@@ -1,0 +1,16 @@
+services:
+
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: context-trust-postgres
+    environment:
+      POSTGRES_DB: context_trust
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
