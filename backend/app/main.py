@@ -1,12 +1,14 @@
 from fastapi import FastAPI
 from sqlalchemy import text
 
+from app.api.v1.router import api_v1_router
 from app.core.config import settings
 from app.db.database import AsyncSessionLocal
 
-
 app = FastAPI(
     title=settings.app_name,
+    description="Context Trust Layer - AI Agent Context Provenance, Validity, and Trust Engine",
+    version="1.0.0",
 )
 
 
@@ -28,3 +30,7 @@ async def health():
         "status": "healthy",
         "database": value == 1,
     }
+
+
+# Include API v1 router
+app.include_router(api_v1_router)

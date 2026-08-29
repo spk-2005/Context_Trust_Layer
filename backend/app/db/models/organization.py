@@ -1,0 +1,97 @@
+import uuid
+from datetime import datetime
+
+from sqlalchemy import DateTime, Enum, String, text
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from app.db.base import Base
+from app.db.enums import OrganizationStatus
+
+
+class Organization(Base):
+    __tablename__ = "organizations"
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        primary_key=True,
+        server_default=text("gen_random_uuid()"),
+    )
+
+    name: Mapped[str] = mapped_column(
+        String(255),
+        nullable=False,
+    )
+
+    slug: Mapped[str] = mapped_column(
+        String(100),
+        nullable=False,
+        unique=True,
+    )
+
+    status: Mapped[OrganizationStatus] = mapped_column(
+        Enum(
+            OrganizationStatus,
+            name="organization_status",
+            native_enum=True,
+            values_callable=lambda x: [e.value for e in x],
+        ),
+        nullable=False,
+        default=OrganizationStatus.ACTIVE,
+        server_default=text("'active'"),
+    )
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=text("NOW()"),
+    )
+
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=text("NOW()"),
+    )
+
+    # Relationships
+    users = relationship(
+        "User",
+        back_populates="organization",
+        cascade="all, delete-orphan",
+    )
+
+    data_sources = relationship(
+        "DataSource",
+        back_populates="organization",
+        cascade="all, delete-orphan",
+    )
+
+    documents = relationship(
+        "Document",
+        back_populates="organization",
+        cascade="all, delete-orphan",
+    )
+
+    claims = relationship(
+        "Claim",
+        back_populates="organization",
+        cascade="all, delete-orphan",
+    )
+
+    agents = relationship(
+        "Agent",
+        back_populates="organization",
+        cascade="all, delete-orphan",
+    )
+
+    agent_requests = relationship(
+        "AgentRequest",
+        back_populates="organization",
+        cascade="all, delete-orphan",
+    )
+
+    human_reviews = relationship(
+        "HumanReview",
+        back_populates="organization",
+        cascade="all, delete-orphan",
+    )
