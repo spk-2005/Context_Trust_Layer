@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+
+# Virtual environment
+backend/.venv/
+
+# Environment
+.env
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+
+# Testing
+.pytest_cache/
+.coverage
+
+# Build
+dist/
+build/
+*.egg-info/
+
+# Node
+frontend/node_modules/
+frontend/.next/
+
+# Docker
+postgres_data/

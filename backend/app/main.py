@@ -1,14 +1,30 @@
 from fastapi import FastAPI
+from sqlalchemy import text
+
+from app.core.config import settings
+from app.db.database import AsyncSessionLocal
+
 
 app = FastAPI(
-    title="Context Trust Layer",
-    version="0.1.0"
+    title=settings.app_name,
 )
 
 
+@app.get("/")
+async def root():
+    return {
+        "application": settings.app_name,
+        "status": "running",
+    }
+
+
 @app.get("/health")
-def health_check():
+async def health():
+    async with AsyncSessionLocal() as session:
+        result = await session.execute(text("SELECT 1"))
+        value = result.scalar()
+
     return {
         "status": "healthy",
-        "service": "context-trust-layer"
+        "database": value == 1,
     }

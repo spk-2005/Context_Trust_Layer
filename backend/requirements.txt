@@ -1,12 +1,13 @@
 fastapi
 uvicorn[standard]
+
 sqlalchemy
-psycopg[binary]
+asyncpg
 alembic
+
 pydantic
 pydantic-settings
+
 pgvector
+
 python-dotenv
-httpx
-openai
-tiktoken
