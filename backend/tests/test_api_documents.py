@@ -11,7 +11,7 @@ from app.db.enums import RecordStatus
 from app.normalization.normalizer import NormalizedDocument
 
 
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_api_create_document_normalization():
     transport = httpx.ASGITransport(app=app)
     doc_id = uuid.uuid4()
@@ -81,7 +81,7 @@ async def test_api_create_document_normalization():
             assert doc["title"] == "JIRA-104: Secure Token Handling"
 
 
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_api_create_document_validation_error():
     transport = httpx.ASGITransport(app=app)
     async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:

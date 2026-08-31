@@ -30,6 +30,7 @@ class ClaimStatus(str, Enum):
     OUTDATED = "outdated"
     CONFLICTED = "conflicted"
     ACTIVE = "active"
+    SUPERSEDED = "superseded"
 
 
 class ConflictStatus(str, Enum):

@@ -11,3 +11,7 @@ pydantic-settings
 pgvector
 
 python-dotenv
+
+pytest
+pytest-asyncio
+httpx

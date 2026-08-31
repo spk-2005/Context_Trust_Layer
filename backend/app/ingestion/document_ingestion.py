@@ -15,6 +15,10 @@ class DocumentIngestionService:
         self.doc_repo = DocumentRepository(session)
         self.normalizer = DocumentNormalizer()
 
+    @staticmethod
+    def calculate_hash(content: str) -> str:
+        return DocumentNormalizer.compute_content_hash(content)
+
     def normalize_payload(
         self,
         raw_doc: RawDocument | DocumentCreate,

@@ -32,6 +32,7 @@ services:
       - POSTGRES_PASSWORD=context_password
       - POSTGRES_DB=context_trust
       - POSTGRES_PORT=5432
+      - DATABASE_URL=postgresql+asyncpg://context_user:context_password@postgres:5432/context_trust
     volumes:
       - ./backend:/app
     ports:

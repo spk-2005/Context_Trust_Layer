@@ -4,6 +4,7 @@
 
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE EXTENSION IF NOT EXISTS "vector";
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 -- 1. organizations
 CREATE TABLE IF NOT EXISTS organizations (
@@ -79,6 +80,8 @@ CREATE TABLE IF NOT EXISTS claims (
     predicate VARCHAR(100),
     object TEXT,
     claim_type VARCHAR(50) NOT NULL DEFAULT 'policy',
+    extraction_method VARCHAR(50),
+    extraction_model VARCHAR(100),
     status VARCHAR(50) NOT NULL DEFAULT 'verified',
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()

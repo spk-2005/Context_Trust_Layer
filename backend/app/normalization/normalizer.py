@@ -22,18 +22,30 @@ class DocumentType(str, Enum):
     POLICY = "policy"
 
 
+class DocumentSection(BaseModel):
+    title: str
+    content: str
+    level: int = 1
+    page_number: int | None = 1
+    start_char_offset: int = 0
+    end_char_offset: int = 0
+
+
 class NormalizedDocument(BaseModel):
     id: uuid.UUID = Field(default_factory=uuid.uuid4)
-    organization_id: uuid.UUID
-    source_id: uuid.UUID
+    organization_id: uuid.UUID = Field(default_factory=uuid.uuid4)
+    source_id: uuid.UUID = Field(default_factory=uuid.uuid4)
     external_id: str | None = None
-    document_type: str
+    document_type: str = "document"
     title: str
     content: str
     author: str | None = None
     created_at: datetime | None = None
     updated_at: datetime | None = None
     metadata: dict[str, Any] = Field(default_factory=dict)
+    sections: list[DocumentSection] = Field(default_factory=list)
+    total_characters: int = 0
+    total_words: int = 0
 
 
 class DocumentNormalizer:
@@ -63,12 +75,78 @@ class DocumentNormalizer:
         """SHA-256 deterministic hash helper for downstream content_hash matching DB schema."""
         return hashlib.sha256(content.encode("utf-8")).hexdigest()
 
+    @staticmethod
+    def parse_sections(raw_text: str) -> list[DocumentSection]:
+        if not raw_text:
+            return []
+
+        lines = raw_text.split("\n")
+        header_pattern = re.compile(r"^(#{1,6})\s+(.*)$")
+
+        sections: list[DocumentSection] = []
+        current_title: str | None = None
+        current_level: int = 1
+        current_content_lines: list[str] = []
+        current_start: int = 0
+
+        has_headers = any(header_pattern.match(line.strip()) for line in lines)
+
+        if not has_headers:
+            return [
+                DocumentSection(
+                    title="General",
+                    content=raw_text,
+                    level=1,
+                    start_char_offset=0,
+                    end_char_offset=len(raw_text),
+                )
+            ]
+
+        offset = 0
+        for line in lines:
+            stripped = line.strip()
+            match = header_pattern.match(stripped)
+            if match:
+                if current_title is not None:
+                    sec_content = "\n".join(current_content_lines).strip()
+                    sections.append(
+                        DocumentSection(
+                            title=current_title,
+                            content=sec_content,
+                            level=current_level,
+                            start_char_offset=current_start,
+                            end_char_offset=max(0, offset - 1),
+                        )
+                    )
+                current_title = match.group(2).strip()
+                current_level = len(match.group(1))
+                current_content_lines = []
+                current_start = offset
+            else:
+                if current_title is not None:
+                    current_content_lines.append(line)
+            offset += len(line) + 1
+
+        if current_title is not None:
+            sec_content = "\n".join(current_content_lines).strip()
+            sections.append(
+                DocumentSection(
+                    title=current_title,
+                    content=sec_content,
+                    level=current_level,
+                    start_char_offset=current_start,
+                    end_char_offset=len(raw_text),
+                )
+            )
+
+        return sections
+
     def normalize(
         self,
         title: str,
-        content: str,
-        organization_id: uuid.UUID,
-        source_id: uuid.UUID,
+        content: str | None = None,
+        organization_id: uuid.UUID | None = None,
+        source_id: uuid.UUID | None = None,
         document_type: str | DocumentType = DocumentType.DOCUMENT,
         external_id: str | None = None,
         author: str | None = None,
@@ -76,9 +154,30 @@ class DocumentNormalizer:
         updated_at: datetime | None = None,
         metadata: dict[str, Any] | None = None,
         id: uuid.UUID | None = None,
+        raw_text: str | None = None,
+        document_id: uuid.UUID | None = None,
+        document_version_id: uuid.UUID | None = None,
+        extra_metadata: dict[str, Any] | None = None,
     ) -> NormalizedDocument:
+        actual_content = content if content is not None else (raw_text or "")
+        actual_id = id or document_id or uuid.uuid4()
+        actual_org_id = organization_id or uuid.uuid4()
+        actual_source_id = source_id or uuid.uuid4()
+
+        merged_metadata = {}
+        if metadata:
+            merged_metadata.update(metadata)
+        if extra_metadata:
+            merged_metadata.update(extra_metadata)
+
+        sanitized_metadata = build_metadata(extra_metadata=merged_metadata)
+
         cleaned_title = title.strip() if title else ""
-        cleaned_content = self.clean_text(content)
+        cleaned_content = self.clean_text(actual_content)
+
+        sections = self.parse_sections(actual_content)
+        total_chars = len(cleaned_content)
+        total_words = len(cleaned_content.split()) if cleaned_content else 0
 
         doc_type_str = (
             document_type.value
@@ -86,12 +185,10 @@ class DocumentNormalizer:
             else str(document_type).lower().strip()
         )
 
-        sanitized_metadata = build_metadata(metadata)
-
         doc = NormalizedDocument(
-            id=id or uuid.uuid4(),
-            organization_id=organization_id,
-            source_id=source_id,
+            id=actual_id,
+            organization_id=actual_org_id,
+            source_id=actual_source_id,
             external_id=external_id.strip() if external_id else None,
             document_type=doc_type_str,
             title=cleaned_title,
@@ -100,6 +197,9 @@ class DocumentNormalizer:
             created_at=created_at,
             updated_at=updated_at,
             metadata=sanitized_metadata,
+            sections=sections,
+            total_characters=total_chars,
+            total_words=total_words,
         )
 
         validate_normalized_document(doc)

@@ -100,7 +100,7 @@ class Claim(Base):
         Enum(
             ClaimStatus,
             name="claim_status",
-            native_enum=True,
+            native_enum=False,
             values_callable=lambda x: [e.value for e in x],
         ),
         nullable=False,

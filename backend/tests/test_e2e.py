@@ -9,6 +9,7 @@ if str(backend_dir) not in sys.path:
     sys.path.insert(0, str(backend_dir))
 
 import httpx
+import pytest
 
 from app.db.database import AsyncSessionLocal
 from app.db.repositories.data_source_repository import DataSourceRepository
@@ -16,6 +17,7 @@ from app.db.repositories.organization_repository import OrganizationRepository
 from app.main import app
 
 
+@pytest.mark.anyio
 async def test_end_to_end_flow():
     transport = httpx.ASGITransport(app=app)
     async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:

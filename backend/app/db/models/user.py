@@ -62,7 +62,7 @@ class User(Base):
         Enum(
             UserRole,
             name="user_role",
-            native_enum=True,
+            native_enum=False,
             values_callable=lambda x: [e.value for e in x],
         ),
         nullable=False,
@@ -74,7 +74,7 @@ class User(Base):
         Enum(
             RecordStatus,
             name="record_status",
-            native_enum=True,
+            native_enum=False,
             values_callable=lambda x: [e.value for e in x],
         ),
         nullable=False,
