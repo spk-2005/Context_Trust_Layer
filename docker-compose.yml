@@ -13,12 +13,32 @@ services:
 
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
 
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U context_user -d context_trust"]
       interval: 5s
       timeout: 5s
       retries: 10
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: context-trust-backend
+    environment:
+      - POSTGRES_SERVER=postgres
+      - POSTGRES_USER=context_user
+      - POSTGRES_PASSWORD=context_password
+      - POSTGRES_DB=context_trust
+      - POSTGRES_PORT=5432
+    volumes:
+      - ./backend:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
 
 volumes:
   postgres_data:
