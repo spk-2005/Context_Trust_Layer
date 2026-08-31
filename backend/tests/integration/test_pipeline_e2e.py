@@ -134,15 +134,14 @@ async def run_full_pipeline_test():
         print(f"[PASS] 6. Extracted {len(claims2)} claims from Doc 2 & Ran Conflict Detection")
 
         # 7. Check Detected Pending Conflicts
-        r_conflicts = await client.get("/v1/conflicts/pending")
+        r_conflicts = await client.get("/v1/conflicts/pending", params={"organization_id": org_id})
         assert r_conflicts.status_code == 200
         conflicts = r_conflicts.json()
         assert len(conflicts) > 0
         claim_2026_remote = next(c for c in claims2 if "4 days" in c["claim_text"])
         target_conflict = next(
             c for c in conflicts
-            if c["claim_a_id"] in (claim_2025_remote["id"], claim_2026_remote["id"])
-            or c["claim_b_id"] in (claim_2025_remote["id"], claim_2026_remote["id"])
+            if {c["claim_a_id"], c["claim_b_id"]} == {claim_2025_remote["id"], claim_2026_remote["id"]}
         )
         conflict_id = target_conflict["id"]
         print(f"[PASS] 7. Conflict Detected: {target_conflict['conflict_type']} (Confidence: {target_conflict['confidence']})")

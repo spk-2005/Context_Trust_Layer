@@ -3,6 +3,7 @@ from fastapi import APIRouter
 from app.api.v1.claims import router as claims_router
 from app.api.v1.conflicts import router as conflicts_router
 from app.api.v1.context import router as context_router
+from app.api.v1.decisions import router as decisions_router
 from app.api.v1.documents import router as documents_router
 from app.api.v1.health import router as health_router
 
@@ -13,3 +14,4 @@ api_v1_router.include_router(documents_router)
 api_v1_router.include_router(claims_router)
 api_v1_router.include_router(conflicts_router)
 api_v1_router.include_router(context_router)
+api_v1_router.include_router(decisions_router)

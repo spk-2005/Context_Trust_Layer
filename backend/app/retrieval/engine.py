@@ -76,7 +76,6 @@ class ContextRetrievalEngine:
         all_claims = res.scalars().all()
 
         evaluated_items: list[tuple[Claim, decimal.Decimal, bool, str | None, ContextItemResponse | None]] = []
-
         query_terms = set(request_in.query.lower().split())
 
         for claim in all_claims:

@@ -117,16 +117,18 @@ class MockLLMProvider(BaseLLMProvider):
         a_lower = claim_a_text.lower()
         b_lower = claim_b_text.lower()
 
-        # Check for numbers in both claims (e.g. 20 days vs 25 days, $500 vs $600)
+        # Check for numbers in both claims (e.g. 30 days vs 60 days, $500 vs $600)
         nums_a = re.findall(r"\b\d+(?:\.\d+)?\b", a_lower)
         nums_b = re.findall(r"\b\d+(?:\.\d+)?\b", b_lower)
 
-        # Check keyword overlap (e.g., both talk about annual leave or sick leave)
-        words_a = set(re.findall(r"\b[a-z]{4,}\b", a_lower))
-        words_b = set(re.findall(r"\b[a-z]{4,}\b", b_lower))
-        common_words = words_a.intersection(words_b)
+        # Tokenize words (length >= 3) and strip trailing plural 's'
+        words_a = {re.sub(r"s$", "", w) for w in re.findall(r"[a-z]{3,}", a_lower)}
+        words_b = {re.sub(r"s$", "", w) for w in re.findall(r"[a-z]{3,}", b_lower)}
+        stopwords = {"employee", "all", "the", "and", "for", "with", "have", "are", "per", "can", "may", "will", "this", "that"}
+        meaningful_common_words = (words_a.intersection(words_b)) - stopwords
+        has_exception_keyword = "exception" in a_lower or "exception" in b_lower
 
-        # Contradiction: Shared context (common keywords) but different numbers or opposing terms
+        # Contradiction: Shared context (meaningful keywords) but different numbers or opposing terms
         opposing_pairs = [
             ("allow", "prohibit"),
             ("allowed", "prohibited"),
@@ -145,16 +147,18 @@ class MockLLMProvider(BaseLLMProvider):
         )
 
         has_number_discrepancy = (
-            len(common_words) >= 2 and nums_a and nums_b and nums_a != nums_b
+            (len(meaningful_common_words) >= 1 or has_exception_keyword)
+            and nums_a and nums_b and nums_a != nums_b
         )
 
         if has_number_discrepancy:
+            context_snippet = ", ".join(list(meaningful_common_words)[:3]) if meaningful_common_words else "numerical context"
             return ContradictionResult(
                 is_contradiction=True,
                 conflict_type="numerical_discrepancy",
                 severity="high",
                 confidence=0.92,
-                reasoning=f"Claims share context ({', '.join(list(common_words)[:3])}) but contain conflicting numerical values: {nums_a} vs {nums_b}.",
+                reasoning=f"Claims share context ({context_snippet}) but contain conflicting numerical values: {nums_a} vs {nums_b}.",
             )
 
         if has_opposing_terms:

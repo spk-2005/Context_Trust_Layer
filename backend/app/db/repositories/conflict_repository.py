@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.db.enums import ConflictStatus
+from app.db.models.claim import Claim
 from app.db.models.claim_conflict import ClaimConflict
 from app.db.repositories.base import BaseRepository
 
@@ -36,6 +37,7 @@ class ConflictRepository(BaseRepository[ClaimConflict]):
 
     async def list_pending_review(
         self,
+        organization_id: uuid.UUID | None = None,
         limit: int = 50,
         offset: int = 0,
     ) -> Sequence[ClaimConflict]:
@@ -45,12 +47,14 @@ class ConflictRepository(BaseRepository[ClaimConflict]):
                 ClaimConflict.resolution_status
                 == ConflictStatus.HUMAN_REVIEW_REQUIRED
             )
-            .offset(offset)
-            .limit(limit)
-            .options(
-                selectinload(ClaimConflict.claim_a),
-                selectinload(ClaimConflict.claim_b),
+        )
+        if organization_id:
+            stmt = stmt.join(ClaimConflict.claim_a).where(
+                Claim.organization_id == organization_id
             )
+        stmt = stmt.offset(offset).limit(limit).options(
+            selectinload(ClaimConflict.claim_a),
+            selectinload(ClaimConflict.claim_b),
         )
         result = await self.session.execute(stmt)
         return result.scalars().all()
