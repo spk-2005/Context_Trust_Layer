@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.database import get_db
 from app.db.repositories.document_repository import DocumentRepository
 from app.ingestion.document_ingestion import DocumentIngestionService
-from app.normalization.normalizer import DocumentNormalizer
+from app.normalization.validators import DocumentValidationError
 from app.schemas.document import (
     DocumentCreate,
     DocumentIngestionResult,
@@ -26,22 +26,17 @@ async def create_document(
     doc_in: DocumentCreate,
     db: AsyncSession = Depends(get_db),
 ):
-    """Receive document -> Calculate hash -> Create document & document_version -> Normalize structure."""
+    """Receive raw document -> Normalize & Validate -> Persist Document & Version."""
     ingestion_service = DocumentIngestionService(db)
-    normalizer = DocumentNormalizer()
 
-    # 1. Ingest document and create initial / new version
-    document, version = await ingestion_service.ingest_document(doc_in)
-    await db.commit()
-
-    # 2. Run normalization
-    normalized = normalizer.normalize(
-        document_id=document.id,
-        document_version_id=version.id,
-        title=document.title,
-        raw_text=doc_in.content,
-        extra_metadata=doc_in.metadata,
-    )
+    try:
+        document, version, normalized = await ingestion_service.ingest_document(doc_in)
+        await db.commit()
+    except DocumentValidationError as err:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=str(err),
+        )
 
     version_response = DocumentVersionResponse.model_validate(version)
     doc_response = DocumentResponse(
@@ -62,9 +57,10 @@ async def create_document(
     return DocumentIngestionResult(
         document=doc_response,
         current_version=version_response,
-        normalized=len(normalized.sections) > 0,
-        message=f"Document ingested successfully with version {version.version_number}. Normalized into {len(normalized.sections)} sections.",
+        normalized=True,
+        message=f"Document ingested successfully with version {version.version_number}. Document type: {normalized.document_type}.",
     )
+
 
 
 @router.get("/{document_id}", response_model=DocumentResponse)
