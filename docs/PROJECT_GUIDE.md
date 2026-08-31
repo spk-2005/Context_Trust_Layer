@@ -308,3 +308,17 @@ cd backend
 .venv\Scripts\uvicorn.exe app.main:app --reload --port 8000
 ```
 Open your browser at **[http://localhost:8000/docs](http://localhost:8000/docs)** to test the interactive Swagger UI.
+
+### 6. Run Document Normalization Layer Tests
+```powershell
+.venv\Scripts\python.exe -m pytest -v tests/test_normalization tests/test_api_documents.py
+```
+Validates canonical `NormalizedDocument` transformations, `DocumentNormalizer` text cleaning, `build_metadata` sanitization, domain validation rules, and API router behavior.
+
+#### Normalization Layer Implementation Architecture
+- **Ingress Models ([`backend/app/ingestion/base.py`](file:///c:/Users/praga/Context_Trust_Layer/backend/app/ingestion/base.py))**: `RawDocument` connector ingress model.
+- **Normalizer Engine ([`backend/app/normalization/normalizer.py`](file:///c:/Users/praga/Context_Trust_Layer/backend/app/normalization/normalizer.py))**: Standardizes text via NFKC normalization, converts `\r\n` to `\n`, collapses multi-newlines, generates SHA-256 content hashes (`compute_content_hash`), and maps `DocumentType` enums (`jira_issue`, `github_issue`, `slack_message`, `confluence_page`, `document`, `policy`).
+- **Metadata Sanitization ([`backend/app/normalization/metadata.py`](file:///c:/Users/praga/Context_Trust_Layer/backend/app/normalization/metadata.py))**: `build_metadata` merges extra attributes while stripping canonical document keys to prevent key collisions.
+- **Domain Validators ([`backend/app/normalization/validators.py`](file:///c:/Users/praga/Context_Trust_Layer/backend/app/normalization/validators.py))**: `validate_normalized_document` enforces non-empty fields, valid UUIDs, and timestamp ordering (`updated_at >= created_at`), raising `DocumentValidationError`.
+- **Ingestion Pipeline & API ([`backend/app/ingestion/document_ingestion.py`](file:///c:/Users/praga/Context_Trust_Layer/backend/app/ingestion/document_ingestion.py), [`backend/app/api/v1/documents.py`](file:///c:/Users/praga/Context_Trust_Layer/backend/app/api/v1/documents.py))**: Executes normalization prior to storage, returning HTTP `422 Unprocessable Entity` on validation failures.
+
