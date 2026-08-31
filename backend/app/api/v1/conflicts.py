@@ -12,12 +12,17 @@ router = APIRouter(prefix="/conflicts", tags=["conflicts"])
 
 @router.get("/pending", response_model=list[ConflictResponse])
 async def list_pending_conflicts(
+    organization_id: uuid.UUID | None = Query(None, description="Optional organization ID filter"),
     limit: int = Query(50, ge=1, le=100),
     offset: int = Query(0, ge=0),
     db: AsyncSession = Depends(get_db),
 ):
     repo = ConflictRepository(db)
-    conflicts = await repo.list_pending_review(limit=limit, offset=offset)
+    conflicts = await repo.list_pending_review(
+        organization_id=organization_id,
+        limit=limit,
+        offset=offset,
+    )
     return [ConflictResponse.model_validate(c) for c in conflicts]
 
 
