@@ -3,7 +3,14 @@ import uuid
 from datetime import datetime
 from pydantic import BaseModel, ConfigDict
 
-from app.db.enums import ConflictStatus
+from app.db.enums import ConflictStatus, ReviewDecision
+
+
+class ConflictResolveRequest(BaseModel):
+    reviewer_id: uuid.UUID
+    decision: ReviewDecision
+    chosen_claim_id: uuid.UUID | None = None
+    reason: str | None = None
 
 
 class ConflictResponse(BaseModel):
