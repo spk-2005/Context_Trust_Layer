@@ -1,12 +1,43 @@
+import hashlib
 import re
 import unicodedata
 import uuid
+from datetime import datetime
+from enum import Enum
+from typing import Any
 
-from app.normalization.metadata import DocumentSection, NormalizedDocument
+from pydantic import BaseModel, Field
+
+from app.normalization.metadata import build_metadata
+from app.normalization.validators import validate_normalized_document
+
+
+class DocumentType(str, Enum):
+    JIRA_ISSUE = "jira_issue"
+    GITHUB_ISSUE = "github_issue"
+    GITHUB_PULL_REQUEST = "github_pull_request"
+    SLACK_MESSAGE = "slack_message"
+    CONFLUENCE_PAGE = "confluence_page"
+    DOCUMENT = "document"
+    POLICY = "policy"
+
+
+class NormalizedDocument(BaseModel):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4)
+    organization_id: uuid.UUID
+    source_id: uuid.UUID
+    external_id: str | None = None
+    document_type: str
+    title: str
+    content: str
+    author: str | None = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
+    metadata: dict[str, Any] = Field(default_factory=dict)
 
 
 class DocumentNormalizer:
-    """Normalizes raw document text into clean, structured sections ready for claim extraction."""
+    """Normalizes heterogeneous raw enterprise documents into canonical NormalizedDocument representation."""
 
     @staticmethod
     def clean_text(raw_text: str) -> str:
@@ -19,7 +50,7 @@ class DocumentNormalizer:
         # 2. Normalize carriage returns / line feeds
         text = text.replace("\r\n", "\n").replace("\r", "\n")
 
-        # 3. Clean up excessive spaces and trailing whitespaces per line
+        # 3. Clean up excessive spaces per line while preserving paragraphs
         lines = [re.sub(r"[ \t]+", " ", line).strip() for line in text.split("\n")]
 
         # 4. Collapse multiple blank lines into max 2 newlines
@@ -27,67 +58,50 @@ class DocumentNormalizer:
         cleaned = re.sub(r"\n{3,}", "\n\n", cleaned)
         return cleaned.strip()
 
-    def parse_sections(self, text: str) -> list[DocumentSection]:
-        sections: list[DocumentSection] = []
-        if not text:
-            return sections
-
-        # Split on headers (e.g. # Header or Section: or ALL CAPS HEADERS)
-        header_pattern = re.compile(r"^(#{1,6}\s+.*|[A-Z0-9\s]{4,}:?)$", re.MULTILINE)
-
-        matches = list(header_pattern.finditer(text))
-        if not matches:
-            # Single section
-            sections.append(
-                DocumentSection(
-                    section_index=1,
-                    title="General",
-                    level=1,
-                    content=text,
-                    start_char_offset=0,
-                    end_char_offset=len(text),
-                )
-            )
-            return sections
-
-        for i, match in enumerate(matches):
-            header_title = match.group(0).strip("# ").rstrip(":")
-            start = match.start()
-            end = matches[i + 1].start() if i + 1 < len(matches) else len(text)
-            content = text[match.end():end].strip()
-
-            sections.append(
-                DocumentSection(
-                    section_index=i + 1,
-                    title=header_title,
-                    level=match.group(0).count("#") or 1,
-                    content=content,
-                    start_char_offset=start,
-                    end_char_offset=end,
-                )
-            )
-
-        return sections
+    @staticmethod
+    def compute_content_hash(content: str) -> str:
+        """SHA-256 deterministic hash helper for downstream content_hash matching DB schema."""
+        return hashlib.sha256(content.encode("utf-8")).hexdigest()
 
     def normalize(
         self,
-        document_id: uuid.UUID,
-        document_version_id: uuid.UUID,
         title: str,
-        raw_text: str,
-        extra_metadata: dict | None = None,
+        content: str,
+        organization_id: uuid.UUID,
+        source_id: uuid.UUID,
+        document_type: str | DocumentType = DocumentType.DOCUMENT,
+        external_id: str | None = None,
+        author: str | None = None,
+        created_at: datetime | None = None,
+        updated_at: datetime | None = None,
+        metadata: dict[str, Any] | None = None,
+        id: uuid.UUID | None = None,
     ) -> NormalizedDocument:
-        cleaned = self.clean_text(raw_text)
-        sections = self.parse_sections(cleaned)
-        words = len(cleaned.split())
+        cleaned_title = title.strip() if title else ""
+        cleaned_content = self.clean_text(content)
 
-        return NormalizedDocument(
-            document_id=document_id,
-            document_version_id=document_version_id,
-            title=title,
-            clean_text=cleaned,
-            sections=sections,
-            total_characters=len(cleaned),
-            total_words=words,
-            metadata=extra_metadata or {},
+        doc_type_str = (
+            document_type.value
+            if isinstance(document_type, DocumentType)
+            else str(document_type).lower().strip()
         )
+
+        sanitized_metadata = build_metadata(metadata)
+
+        doc = NormalizedDocument(
+            id=id or uuid.uuid4(),
+            organization_id=organization_id,
+            source_id=source_id,
+            external_id=external_id.strip() if external_id else None,
+            document_type=doc_type_str,
+            title=cleaned_title,
+            content=cleaned_content,
+            author=author.strip() if author else None,
+            created_at=created_at,
+            updated_at=updated_at,
+            metadata=sanitized_metadata,
+        )
+
+        validate_normalized_document(doc)
+        return doc
+
