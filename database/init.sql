@@ -225,7 +225,7 @@ BEGIN
 
     -- 2. users
     INSERT INTO users (id, organization_id, name, email, role, status)
-    VALUES (v_user_id, v_org_id, 'Sarah Chen (Lead Auditor)', 'sarah.chen@acme.corp', 'compliance_auditor', 'active')
+    VALUES (v_user_id, v_org_id, 'Sarah Chen (Lead Auditor)', 'sarah.chen@acme.corp', 'reviewer', 'active')
     ON CONFLICT (id) DO NOTHING;
 
     -- 3. data_sources
@@ -250,7 +250,7 @@ BEGIN
     -- 6. claims
     INSERT INTO claims (id, organization_id, document_version_id, claim_text, subject, predicate, object, claim_type, status)
     VALUES 
-        (v_claim_1, v_org_id, v_doc_version_1, 'Customers are eligible for automated refunds up to ₹25,000 without supervisor approval.', 'Customer', 'eligible_for_automated_refund', '₹25,000', 'refund_limit', 'superseded'),
+        (v_claim_1, v_org_id, v_doc_version_1, 'Customers are eligible for automated refunds up to ₹25,000 without supervisor approval.', 'Customer', 'eligible_for_automated_refund', '₹25,000', 'refund_limit', 'outdated'),
         (v_claim_2, v_org_id, v_doc_version_2, 'Standard automated refund limit is capped at ₹10,000. Higher amounts require VP signoff.', 'Customer', 'eligible_for_automated_refund', '₹10,000', 'refund_limit', 'verified')
     ON CONFLICT (id) DO NOTHING;
 
@@ -301,6 +301,6 @@ BEGIN
     -- 14. human_reviews
     INSERT INTO human_reviews (organization_id, reviewer_id, target_type, target_id, decision, reason, previous_score, new_score)
     VALUES 
-        (v_org_id, v_user_id, 'claim', v_claim_2, 'approved', 'Validated against CFO official memo published on 2026-08-28.', 0.90, 0.96)
+        (v_org_id, v_user_id, 'claim', v_claim_2, 'approve', 'Validated against CFO official memo published on 2026-08-28.', 0.90, 0.96)
     ON CONFLICT DO NOTHING;
 END $$;

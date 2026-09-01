@@ -38,7 +38,7 @@ class Settings(BaseSettings):
         return self
 
     model_config = SettingsConfigDict(
-        env_file=PROJECT_ROOT / ".env",
+        env_file=(PROJECT_ROOT / ".env", Path(__file__).resolve().parents[2] / ".env", ".env"),
         env_file_encoding="utf-8",
         extra="ignore",
     )
