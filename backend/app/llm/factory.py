@@ -17,7 +17,22 @@ def get_llm_provider() -> BaseLLMProvider:
     if provider_name == "openai" and settings.openai_api_key:
         from app.llm.openai_provider import OpenAIProvider
         _provider_instance = OpenAIProvider()
+    elif provider_name == "ollama":
+        from app.llm.ollama_provider import OllamaProvider
+        _provider_instance = OllamaProvider()
     else:
+        if provider_name not in ("mock",):
+            import logging
+            logging.getLogger(__name__).warning(
+                "Unknown or unconfigured LLM provider '%s'; falling back to MockLLMProvider.",
+                provider_name,
+            )
         _provider_instance = MockLLMProvider()
 
     return _provider_instance
+
+
+def reset_llm_provider() -> None:
+    """Reset the cached provider (useful in tests)."""
+    global _provider_instance
+    _provider_instance = None

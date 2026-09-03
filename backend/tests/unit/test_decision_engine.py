@@ -2,6 +2,7 @@ import asyncio
 import unittest
 
 from app.decision_engine.evaluator import DecisionEvaluator
+from app.llm.mock_provider import MockLLMProvider
 from app.schemas.decision import (
     DecisionActor,
     DecisionContextItem,
@@ -11,7 +12,9 @@ from app.schemas.decision import (
 
 class TestDecisionEngine(unittest.TestCase):
     def setUp(self):
-        self.evaluator = DecisionEvaluator()
+        # Always use MockLLMProvider so tests are deterministic
+        # regardless of LLM_PROVIDER env setting.
+        self.evaluator = DecisionEvaluator(llm_provider=MockLLMProvider())
 
     def test_outdated_policy_trap_review_outcome(self):
         """Simulates Section 23 of the Blueprint: 30-day handbook vs 60-day enterprise exception."""
