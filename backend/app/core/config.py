@@ -20,11 +20,17 @@ class Settings(BaseSettings):
     database_url: str | None = None
 
     # LLM Settings
-    llm_provider: str = "mock"  # "mock", "openai", "gemini"
+    llm_provider: str = "mock"  # "mock", "openai", "gemini", "ollama"
     openai_api_key: str | None = None
     openai_model: str = "gpt-4o-mini"
     openai_embedding_model: str = "text-embedding-3-small"
     gemini_api_key: str | None = None
+
+    # Ollama Settings (local LLM via Ollama)
+    ollama_base_url: str = "http://localhost:11434"
+    ollama_model: str = "qwen3:1.7b"
+    ollama_embedding_model: str = "qwen3:1.7b"
+    ollama_timeout: int = 120  # seconds to wait for Ollama completions
 
     # Trust Engine Defaults
     default_trust_threshold: float = 0.80

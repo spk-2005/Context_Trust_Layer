@@ -13,14 +13,19 @@ from app.db.models.claim import Claim
 from app.db.models.claim_conflict import ClaimConflict
 from app.db.models.human_review import HumanReview
 from app.db.repositories.conflict_repository import ConflictRepository
+from app.llm.base import BaseLLMProvider
 
 
 class ConflictService:
     """Service for running conflict detection and recording human resolutions."""
 
-    def __init__(self, session: AsyncSession):
+    def __init__(
+        self,
+        session: AsyncSession,
+        llm_provider: BaseLLMProvider | None = None,
+    ):
         self.session = session
-        self.detector = ConflictDetector(session)
+        self.detector = ConflictDetector(session, llm_provider=llm_provider)
         self.conflict_repo = ConflictRepository(session)
 
     async def run_conflict_detection_for_version(

@@ -22,15 +22,44 @@ router = APIRouter(prefix="/claims", tags=["claims"])
 )
 async def extract_and_score_claims(
     document_version_id: uuid.UUID,
+    use_mock: bool = Query(
+        False,
+        description=(
+            "Set true to use the fast deterministic MockLLMProvider instead of Ollama. "
+            "Useful for quick testing - returns instantly without calling the LLM server."
+        ),
+    ),
     db: AsyncSession = Depends(get_db),
 ):
-    """Extract claims from a document version, calculate trust scores, and run conflict checks."""
-    extraction_service = ClaimExtractionService(db)
+    """Extract claims from a document version, calculate trust scores, and run conflict checks.
+
+    - use_mock=false (default): calls Ollama with qwen3:1.7b - real LLM extraction,
+      expect 20-60 s for a typical policy document.
+    - use_mock=true: uses fast rule-based MockLLMProvider - returns in < 1 s,
+      ideal for Swagger demos and pipeline smoke-tests.
+    """
+    if use_mock:
+        from app.llm.mock_provider import MockLLMProvider
+        llm_provider = MockLLMProvider()
+    else:
+        llm_provider = None  # factory picks up OllamaProvider from .env
+
+    extraction_service = ClaimExtractionService(db, llm_provider=llm_provider)
     trust_service = TrustService(db)
-    conflict_service = ConflictService(db)
+    conflict_service = ConflictService(db, llm_provider=llm_provider)
     claim_repo = ClaimRepository(db)
 
-    # 1. Extract claims
+    from app.db.models.document_version import DocumentVersion
+
+    # 0. Resolve document_version_id if a document_id was passed
+    ver_obj = await db.get(DocumentVersion, document_version_id)
+    if not ver_obj:
+        doc_repo = DocumentRepository(db)
+        cur_ver = await doc_repo.get_current_version(document_version_id)
+        if cur_ver:
+            document_version_id = cur_ver.id
+
+    # 1. Extract claims (parallel across sections)
     try:
         extracted = await extraction_service.extract_claims_from_version(document_version_id)
     except ValueError as e:

@@ -1,3 +1,4 @@
+import asyncio
 import hashlib
 import uuid
 from typing import Sequence
@@ -38,7 +39,12 @@ class ClaimExtractionService:
         self,
         document_version_id: uuid.UUID,
     ) -> Sequence[Claim]:
-        """Extract claims for a specific document version and persist in database."""
+        """Extract claims for a specific document version and persist in database.
+
+        All document sections are processed in parallel via asyncio.gather so
+        Ollama (or any async LLM provider) handles them concurrently rather
+        than one-at-a-time, reducing wall-clock time by N x for N sections.
+        """
         # 1. Fetch document version and parent document
         version = await self.session.get(DocumentVersion, document_version_id)
         if not version:
@@ -56,18 +62,24 @@ class ClaimExtractionService:
             raw_text=raw_text,
         )
 
-        extracted_claim_records: list[Claim] = []
-
-        # 2. Iterate through each normalized section
-        for section in normalized.sections:
-            result = await self.llm.extract_claims(
+        # 2. Extract all sections in PARALLEL
+        async def _extract_section(section):
+            return section, await self.llm.extract_claims(
                 document_title=doc.title,
                 section_title=section.title or "General",
                 section_content=section.content,
             )
 
+        section_results = await asyncio.gather(
+            *[_extract_section(s) for s in normalized.sections],
+            return_exceptions=False,
+        )
+
+        extracted_claim_records: list[Claim] = []
+
+        # 3. Persist results (DB writes must be serial)
+        for section, result in section_results:
             for item in result.claims:
-                # 3. Create Claim model
                 claim = Claim(
                     organization_id=doc.organization_id,
                     document_version_id=version.id,
@@ -84,12 +96,10 @@ class ClaimExtractionService:
                 await self.session.flush()
                 await self.session.refresh(claim)
 
-                # 4. Find exact start/end character offsets for evidence
                 text_span = item.evidence_text_span or item.claim_text
                 start_offset = section.start_char_offset
                 end_offset = section.end_char_offset
 
-                # Locate inside raw_text if possible
                 span_idx = raw_text.find(text_span)
                 if span_idx != -1:
                     start_offset = span_idx
@@ -108,7 +118,6 @@ class ClaimExtractionService:
                 )
                 self.session.add(evidence)
 
-                # 5. Create Validity record
                 validity = ClaimValidity(
                     claim_id=claim.id,
                     valid_from=item.valid_from,

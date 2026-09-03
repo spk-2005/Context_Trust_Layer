@@ -1,5 +1,6 @@
-import decimal
+﻿import decimal
 import uuid
+import asyncio
 from typing import Sequence
 
 from sqlalchemy import or_, select
@@ -43,6 +44,7 @@ class ConflictDetector:
         res = await self.session.execute(stmt)
         candidates = res.scalars().all()
 
+        unprocessed_candidates = []
         for cand in candidates:
             # Check if conflict already logged for this pair
             pair_stmt = select(ClaimConflict).where(
@@ -52,23 +54,30 @@ class ConflictDetector:
                 )
             )
             pair_res = await self.session.execute(pair_stmt)
-            if pair_res.scalar_one_or_none():
-                continue
+            if not pair_res.scalar_one_or_none():
+                unprocessed_candidates.append(cand)
 
-            # Evaluate contradiction via LLM / logic
+        if not unprocessed_candidates:
+            return detected_conflicts
+
+        # Evaluate candidate pairs in PARALLEL via asyncio.gather
+        async def _eval_pair(cand):
             eval_res = await self.llm.evaluate_contradiction(
                 claim_a_text=target_claim.claim_text,
                 claim_b_text=cand.claim_text,
             )
+            return cand, eval_res
 
+        eval_results = await asyncio.gather(
+            *[_eval_pair(cand) for cand in unprocessed_candidates],
+            return_exceptions=False,
+        )
+
+        for cand, eval_res in eval_results:
             if eval_res.is_contradiction:
-                # Ensure ordered UUIDs for deterministic pair constraint
-                claim_a_id = target_claim.id
-                claim_b_id = cand.id
-
                 conflict = ClaimConflict(
-                    claim_a_id=claim_a_id,
-                    claim_b_id=claim_b_id,
+                    claim_a_id=target_claim.id,
+                    claim_b_id=cand.id,
                     conflict_type=eval_res.conflict_type,
                     severity=eval_res.severity,
                     confidence=decimal.Decimal(f"{eval_res.confidence:.4f}"),
@@ -76,7 +85,6 @@ class ConflictDetector:
                 )
                 self.session.add(conflict)
 
-                # Mark claims as conflicted
                 target_claim.status = ClaimStatus.CONFLICTED
                 cand.status = ClaimStatus.CONFLICTED
 
