@@ -1,11 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  ShieldCheck, AlertTriangle, FileText, CheckCircle2, XCircle, 
-  RefreshCw, Cpu, Database, ChevronRight, UserCheck, ArrowUpRight,
-  Sparkles, Layers, Sliders, ExternalLink, Zap, ShieldAlert, History,
-  GitBranch, Check, Clock, Award, Compass, Eye, ShieldOff, Scale,
-  Bot, Send, Search, Terminal, MessageSquare
-} from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('demo');
@@ -15,18 +8,17 @@ export default function App() {
   const [notification, setNotification] = useState(null);
 
   // -------------------------------------------------------------
-  // Killer Demo State ("Outdated Policy Trap" Split-Screen)
+  // Decision Gate Demo State
   // -------------------------------------------------------------
   const [demoScenario, setDemoScenario] = useState('refund_trap');
   const [demoRunning, setDemoRunning] = useState(false);
-  const [demoStep, setDemoStep] = useState(0); // 0: Idle, 1: Retrieving, 2: Evaluated
+  const [demoStep, setDemoStep] = useState(0); // 0: Idle, 1: Evaluating, 2: Result
   const [demoResult, setDemoResult] = useState(null);
 
-  // Scenarios configured according to Blueprint
   const scenarios = {
     refund_trap: {
-      title: "The Outdated Refund Trap",
-      subtitle: "Freshness & Scope Contradiction (Blueprint Page 9)",
+      title: "Outdated Refund Window Trap",
+      subtitle: "Freshness & Scope Contradiction Verification",
       query: "Is customer Acme Corp (Enterprise Tier) eligible for a 45-day refund?",
       actor: { id: "billing-agent-01", role: "support_agent" },
       claim1: {
@@ -42,16 +34,11 @@ export default function App() {
         date: "2026-08-25",
         authority: 95,
         scope: "Enterprise"
-      },
-      naiveFailure: {
-        action: "REFUND_DENIED",
-        reason: "Handbook says refund window is strictly 30 days. Customer request (45 days) rejected.",
-        impact: "Severe Customer Churn & Breach of Enterprise SLA"
       }
     },
     remote_work: {
       title: "Remote Work Policy Discrepancy",
-      subtitle: "Numerical Contradiction (2 Days vs 4 Days)",
+      subtitle: "Departmental Scope & Authority Override",
       query: "Approve 4 days per week remote work schedule for senior developer.",
       actor: { id: "hr-assistant-bot", role: "hr_reviewer" },
       claim1: {
@@ -67,16 +54,11 @@ export default function App() {
         date: "2026-02-14",
         authority: 90,
         scope: "Engineering"
-      },
-      naiveFailure: {
-        action: "REQUEST_REJECTED",
-        reason: "Legacy handbook restricts remote work to 2 days per week.",
-        impact: "Incorrect rejection of authorized developer perk"
       }
     },
     unauthorized_deploy: {
       title: "Unauthorized Infrastructure Action",
-      subtitle: "Role & Access Scope Violation",
+      subtitle: "Role Permission & Environment Scope Gate",
       query: "Deploy production firewall rule allowing plaintext HTTP traffic on port 8080.",
       actor: { id: "dev-intern-bot", role: "junior_developer" },
       claim1: {
@@ -92,27 +74,9 @@ export default function App() {
         date: "2026-08-01",
         authority: 98,
         scope: "Production"
-      },
-      naiveFailure: {
-        action: "RULE_DEPLOYED",
-        reason: "Followed staging runbook without checking environment scope or TLS mandate.",
-        impact: "CRITICAL SECURITY BREACH (Plaintext Traffic in Prod)"
       }
     }
   };
-
-  // -------------------------------------------------------------
-  // Live Data Ingestion State
-  // -------------------------------------------------------------
-  const [docInput, setDocInput] = useState({
-    title: "API Security Guidelines 2026",
-    docType: "policy",
-    content: "# Security Policy\nAll API endpoints must enforce TLS 1.3 encryption and JWT authentication.\n\n# Audit Retention\nAll transaction logs must be retained for 7 years.",
-    externalId: "SEC-POL-2026"
-  });
-  const [ingestedDoc, setIngestedDoc] = useState(null);
-  const [extractedClaims, setExtractedClaims] = useState([]);
-  const [ingesting, setIngesting] = useState(false);
 
   // -------------------------------------------------------------
   // Interactive Agent Playground State
@@ -133,96 +97,150 @@ export default function App() {
       agent: { id: "88888888-8888-8888-8888-888888888888", name: "Billing Dispute Agent", role: "billing_agent" },
       query: "What is the maximum allowed automated refund for India customers?",
       threshold: 0.80,
-      answer: "Under the authoritative 2026 Customer Refund Policy (V2), automated refunds for Indian customers are capped at ₹10,000. Any higher amount strictly requires VP signoff. The older 2025 handbook limit of ₹25,000 has been superseded and marked outdated."
+      answer: "Under the authoritative 2026 Customer Refund Policy (V2), automated refunds for Indian customers are capped at ₹10,000. Any higher amount strictly requires VP signoff. The older 2025 handbook limit of ₹25,000 has been superseded and marked outdated.",
+      context: [
+        {
+          claim: "Standard automated refund limit is capped at ₹10,000. Higher amounts require VP signoff.",
+          trust_score: 0.96,
+          validity: { status: "valid", valid_from: "2026-08-28", valid_until: "2027-12-31" },
+          source: { document: "Enterprise Customer Refund Policy (V2)", section: "Section 3.2 - Automated Thresholds", page: 1 },
+          evidence: ["Standard automated refund limit is capped at ₹10,000."]
+        }
+      ]
     },
     {
       title: "Engineering Remote Work Policy",
       agent: { id: "88888888-8888-8888-8888-888888888889", name: "HR Policy Assistant", role: "hr_assistant" },
       query: "How many days per week are senior software engineers permitted to work remotely?",
       threshold: 0.85,
-      answer: "According to the VP Engineering Memo (2026), engineering staff are authorized for up to 4 days remote work per week. The general 2-day limit from the legacy handbook is overridden for the Engineering department."
+      answer: "According to the VP Engineering Memo (2026), engineering staff are authorized for up to 4 days remote work per week. The general 2-day limit from the legacy handbook is overridden for the Engineering department.",
+      context: [
+        {
+          claim: "Engineering staff are authorized for up to 4 days remote work per week.",
+          trust_score: 0.95,
+          validity: { status: "valid", valid_from: "2026-02-14", valid_until: "2027-12-31" },
+          source: { document: "VP Engineering Memo (memo-2026.md)", section: "Section 1.1 - Remote Flexibility", page: 1 },
+          evidence: ["Engineering staff are authorized for up to 4 days remote work per week."]
+        }
+      ]
     },
     {
       title: "Production TLS Security Mandate",
       agent: { id: "88888888-8888-8888-8888-888888888890", name: "DevOps Security Guard", role: "devops_agent" },
       query: "What encryption and authentication standards must external production API endpoints enforce?",
       threshold: 0.90,
-      answer: "Corporate Security Guidelines (2026) mandate that all external production API ingress endpoints must strictly enforce TLS 1.3 encryption and JWT authentication with 7-year audit retention."
+      answer: "Corporate Security Guidelines (2026) mandate that all external production API ingress endpoints must strictly enforce TLS 1.3 encryption and JWT authentication with 7-year audit retention.",
+      context: [
+        {
+          claim: "All external production API ingress endpoints must strictly enforce TLS 1.3 encryption and JWT authentication.",
+          trust_score: 0.98,
+          validity: { status: "valid", valid_from: "2026-08-01", valid_until: "2028-12-31" },
+          source: { document: "Corporate Security Guidelines (sec-pol-2026)", section: "Section 4.1 - Ingress Security", page: 2 },
+          evidence: ["All external production API ingress endpoints must strictly enforce TLS 1.3 encryption and JWT authentication."]
+        }
+      ]
     }
   ];
 
-  const runPlaygroundQuery = async (customQuery, customAgent, customThreshold) => {
-    const q = customQuery !== undefined ? customQuery : playgroundQuery;
-    const ag = customAgent || playgroundAgent;
-    const th = customThreshold !== undefined ? customThreshold : playgroundThreshold;
+  // -------------------------------------------------------------
+  // Ingestion State
+  // -------------------------------------------------------------
+  const [docInput, setDocInput] = useState({
+    title: "API Security Guidelines 2026",
+    docType: "policy",
+    content: "# Security Policy\nAll API endpoints must enforce TLS 1.3 encryption and JWT authentication.\n\n# Audit Retention\nAll transaction logs must be retained for 7 years.",
+    externalId: "SEC-POL-2026"
+  });
+  const [ingestedDoc, setIngestedDoc] = useState(null);
+  const [extractedClaims, setExtractedClaims] = useState([]);
+  const [ingesting, setIngesting] = useState(false);
 
-    setPlaygroundRunning(true);
-    setPlaygroundResult(null);
+  // -------------------------------------------------------------
+  // File Upload State & Handlers
+  // -------------------------------------------------------------
+  const fileInputRef = useRef(null);
+  const [uploadedFile, setUploadedFile] = useState(null);
+  const [isDragging, setIsDragging] = useState(false);
 
-    try {
-      const res = await fetch('/v1/context/query', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          organization_id: "11111111-1111-1111-1111-111111111111",
-          agent_id: ag.id,
-          query: q,
-          min_trust_score: parseFloat(th),
-          max_results: 5
-        })
-      });
+  const handleProcessFile = (file) => {
+    if (!file) return;
+    setUploadedFile(file);
 
-      if (res.ok) {
-        const data = await res.json();
-        let synthAnswer = "";
-        if (data.context && data.context.length > 0) {
-          synthAnswer = `Based on ${data.context.length} verified evidence claim(s) (Average Trust Score: ${(Number(data.confidence) * 100).toFixed(0)}%):\n\n` +
-            data.context.map((c, i) => `[${i+1}] "${c.claim}"\n— Source: ${c.source?.document || 'Verified Policy'}, Section: ${c.source?.section || 'General'}`).join('\n\n');
-        } else {
-          synthAnswer = "⚠️ No verified context met the minimum trust threshold (" + th + ") or matching claims are currently locked under auditor conflict review.";
-        }
+    const baseName = file.name.replace(/\.[^/.]+$/, "");
+    const formattedTitle = baseName.replace(/[-_]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+    
+    let inferredType = "policy";
+    const lowerName = file.name.toLowerCase();
+    if (lowerName.includes("handbook")) inferredType = "handbook";
+    else if (lowerName.includes("runbook")) inferredType = "runbook";
+    else if (lowerName.includes("confluence") || lowerName.includes("wiki")) inferredType = "confluence_page";
 
-        setTimeout(() => {
-          setPlaygroundResult({
-            ...data,
-            synthesizedAnswer: synthAnswer,
-            queryExecuted: q,
-            timestamp: new Date().toLocaleTimeString()
-          });
-          setPlaygroundRunning(false);
-          showToast("Trusted context successfully retrieved for Agent!");
-        }, 350);
-      } else {
-        throw new Error("Query error");
-      }
-    } catch (err) {
-      const preset = playgroundPresets.find(p => p.query === q) || playgroundPresets[0];
-      setTimeout(() => {
-        setPlaygroundResult({
-          confidence: 0.96,
-          queryExecuted: q,
-          timestamp: new Date().toLocaleTimeString(),
-          synthesizedAnswer: preset.answer,
-          context: [
-            {
-              claim: "Standard automated refund limit is capped at ₹10,000. Higher amounts require VP signoff.",
-              trust_score: 0.96,
-              validity: { status: "valid", valid_from: "2026-08-28", valid_until: "2027-12-31" },
-              source: { document: "Enterprise Customer Refund Policy (V2)", section: "Section 3.2 - Automated Thresholds", page: 1 },
-              evidence: ["Standard automated refund limit is capped at ₹10,000."]
-            }
-          ],
-          conflicts: []
-        });
-        setPlaygroundRunning(false);
-        showToast("Trusted context retrieved (Interactive Mode)!");
-      }, 350);
+    setDocInput(prev => ({
+      ...prev,
+      title: formattedTitle,
+      externalId: `file://${file.name}`,
+      docType: inferredType
+    }));
+
+    if (lowerName.endsWith(".pdf") || lowerName.endsWith(".docx") || lowerName.endsWith(".doc")) {
+      setDocInput(prev => ({
+        ...prev,
+        content: `[Binary Document: ${file.name} (${(file.size / 1024).toFixed(1)} KB)]\n\nThis document will be processed and text-extracted via server-side parser (pypdf / python-docx) upon ingestion.`
+      }));
+      showToast(`Selected file '${file.name}' (${(file.size / 1024).toFixed(1)} KB) for extraction`);
+    } else {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const text = (e.target?.result || "").replace(/\x00/g, "");
+        setDocInput(prev => ({
+          ...prev,
+          content: text || `# ${formattedTitle}\n\nIngested from ${file.name} (${(file.size / 1024).toFixed(1)} KB).`
+        }));
+        showToast(`Loaded file '${file.name}' (${(file.size / 1024).toFixed(1)} KB)`);
+      };
+      reader.onerror = () => {
+        showToast("Failed to read file", "error");
+      };
+      reader.readAsText(file);
     }
   };
 
   // -------------------------------------------------------------
-  // Fetch Backend Data
+  // Live Database Browser State (Documents & Claims)
   // -------------------------------------------------------------
+  const [dbDocuments, setDbDocuments] = useState([]);
+  const [dbClaims, setDbClaims] = useState([]);
+  const [docExplorerView, setDocExplorerView] = useState('ingest'); // 'ingest' | 'documents' | 'claims'
+  const [claimFilterStatus, setClaimFilterStatus] = useState('all');
+  const [dbSearchQuery, setDbSearchQuery] = useState('');
+  const [dbLoading, setDbLoading] = useState(false);
+
+  // -------------------------------------------------------------
+  // Data Fetching
+  // -------------------------------------------------------------
+  const fetchLiveDatabaseRecords = async () => {
+    try {
+      setDbLoading(true);
+      const [resDocs, resClaims] = await Promise.all([
+        fetch('/v1/documents?organization_id=11111111-1111-1111-1111-111111111111&limit=50'),
+        fetch('/v1/claims?organization_id=11111111-1111-1111-1111-111111111111&limit=50')
+      ]);
+
+      if (resDocs.ok) {
+        const docsData = await resDocs.json();
+        setDbDocuments(docsData);
+      }
+      if (resClaims.ok) {
+        const claimsData = await resClaims.json();
+        setDbClaims(claimsData);
+      }
+    } catch (e) {
+      console.warn("DB records fetch fallback:", e);
+    } finally {
+      setDbLoading(false);
+    }
+  };
+
   const fetchHealthAndConflicts = async () => {
     try {
       setLoading(true);
@@ -236,9 +254,9 @@ export default function App() {
         const data = await resConflicts.json();
         setConflicts(data);
       }
+      await fetchLiveDatabaseRecords();
     } catch (err) {
-      console.warn("Backend fetch fallback:", err);
-      setHealth({ status: 'healthy', database: 'connected', version: '0.1.0' });
+      setHealth({ status: 'healthy', database: true, version: '0.1.0' });
     } finally {
       setLoading(false);
     }
@@ -250,11 +268,11 @@ export default function App() {
 
   const showToast = (msg, type = 'success') => {
     setNotification({ msg, type });
-    setTimeout(() => setNotification(null), 4000);
+    setTimeout(() => setNotification(null), 3500);
   };
 
   // -------------------------------------------------------------
-  // Run the 2-Minute Killer Demo Execution
+  // Execute Decision Gate Evaluation
   // -------------------------------------------------------------
   const runKillerDemo = async () => {
     const current = scenarios[demoScenario];
@@ -262,7 +280,6 @@ export default function App() {
     setDemoStep(1);
     setDemoResult(null);
 
-    // Call live decision evaluation endpoint
     try {
       const payload = {
         decision: current.query,
@@ -299,37 +316,100 @@ export default function App() {
           setDemoResult(data);
           setDemoStep(2);
           setDemoRunning(false);
-          showToast("Evaluation complete! Trust Gate successfully verified context.");
-        }, 500);
+          showToast("Evaluation complete! Decision Gate verified evidence.");
+        }, 300);
       } else {
-        throw new Error("Evaluation error");
+        throw new Error("Evaluation failed");
       }
     } catch (e) {
-      // Fallback structured simulation
       setTimeout(() => {
         setDemoResult({
           decision: demoScenario === 'unauthorized_deploy' ? "BLOCK" : "ALLOW",
           validity: "VALID",
           risk: demoScenario === 'unauthorized_deploy' ? "HIGH" : "LOW",
           reasons: [
-            `Evaluated 2 conflicting candidate sources against required scope '${current.claim2.scope}'.`,
-            `Preferred authoritative source '${current.claim2.source}' (Authority: ${current.claim2.authority}, Date: ${current.claim2.date}).`,
+            `Evaluated 2 candidate sources against target scope '${current.claim2.scope}'.`,
+            `Selected authoritative record '${current.claim2.source}' (Authority: ${current.claim2.authority}/100, Date: ${current.claim2.date}).`,
             `Superseded stale record '${current.claim1.source}'.`
           ],
           preferred_source: current.claim2.source,
           audit_id: `ctx_${Math.random().toString(36).substring(2, 10)}`,
           suggested_action: demoScenario === 'unauthorized_deploy' 
-            ? "Deny action: Actor role insufficient for production deploy." 
+            ? "Deny action: Actor role insufficient for production deployment." 
             : "Proceed with authorized action using verified enterprise exception."
         });
         setDemoStep(2);
         setDemoRunning(false);
-      }, 500);
+      }, 300);
     }
   };
 
   // -------------------------------------------------------------
-  // Resolve Conflict Handler
+  // Playground Query Execution
+  // -------------------------------------------------------------
+  const runPlaygroundQuery = async (customQuery, customAgent, customThreshold) => {
+    const q = customQuery !== undefined ? customQuery : playgroundQuery;
+    const ag = customAgent || playgroundAgent;
+    const th = customThreshold !== undefined ? customThreshold : playgroundThreshold;
+
+    setPlaygroundRunning(true);
+    setPlaygroundResult(null);
+
+    try {
+      const res = await fetch('/v1/context/query', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          organization_id: "11111111-1111-1111-1111-111111111111",
+          agent_id: ag.id,
+          query: q,
+          min_trust_score: parseFloat(th),
+          max_results: 5
+        })
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        let synthAnswer = "";
+        if (data.context && data.context.length > 0) {
+          synthAnswer = `Based on ${data.context.length} verified evidence claim(s) (Average Trust Score: ${(Number(data.confidence) * 100).toFixed(0)}%):\n\n` +
+            data.context.map((c, i) => `[${i+1}] "${c.claim}"\n— Source: ${c.source?.document || 'Verified Policy'}, Section: ${c.source?.section || 'General'}`).join('\n\n');
+        } else {
+          synthAnswer = "No verified context met the minimum trust threshold (" + th + ") or matching claims are currently locked under auditor conflict review.";
+        }
+
+        setTimeout(() => {
+          setPlaygroundResult({
+            ...data,
+            synthesizedAnswer: synthAnswer,
+            queryExecuted: q,
+            timestamp: new Date().toLocaleTimeString()
+          });
+          setPlaygroundRunning(false);
+          showToast("Trusted context retrieved for Agent!");
+        }, 300);
+      } else {
+        throw new Error("Query error");
+      }
+    } catch (err) {
+      const preset = playgroundPresets.find(p => p.query === q) || playgroundPresets[0];
+      setTimeout(() => {
+        setPlaygroundResult({
+          confidence: 0.96,
+          queryExecuted: q,
+          timestamp: new Date().toLocaleTimeString(),
+          synthesizedAnswer: preset.answer,
+          context: preset.context || [],
+          conflicts: []
+        });
+        setPlaygroundRunning(false);
+        showToast("Trusted context retrieved (Interactive Mode)!");
+      }, 300);
+    }
+  };
+
+  // -------------------------------------------------------------
+  // Conflict Resolver Handler
   // -------------------------------------------------------------
   const handleResolveConflict = async (conflictId, chosenClaimId, reason) => {
     try {
@@ -345,38 +425,54 @@ export default function App() {
       });
 
       if (res.ok) {
-        showToast("Conflict successfully resolved and archived!");
+        showToast("Conflict resolved and archived!");
         setConflicts(conflicts.filter(c => c.id !== conflictId));
       } else {
         showToast("Resolved locally (Mock mode)", "info");
         setConflicts(conflicts.filter(c => c.id !== conflictId));
       }
     } catch (err) {
-      showToast("Resolved conflict!", "success");
+      showToast("Conflict resolved!", "success");
       setConflicts(conflicts.filter(c => c.id !== conflictId));
     }
   };
 
   // -------------------------------------------------------------
-  // Live Ingest Document Handler
+  // Document Ingestion Handler
   // -------------------------------------------------------------
   const handleIngestDocument = async () => {
     setIngesting(true);
     setIngestedDoc(null);
     setExtractedClaims([]);
     try {
-      const resDoc = await fetch('/v1/documents', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          organization_id: "11111111-1111-1111-1111-111111111111",
-          source_id: "44444444-4444-4444-4444-444444444444",
-          title: docInput.title,
-          content: docInput.content,
-          document_type: docInput.docType,
-          external_id: docInput.externalId
-        })
-      });
+      let resDoc;
+      if (uploadedFile) {
+        const formData = new FormData();
+        formData.append('file', uploadedFile);
+        formData.append('organization_id', '11111111-1111-1111-1111-111111111111');
+        formData.append('source_id', '44444444-4444-4444-4444-444444444444');
+        formData.append('title', docInput.title);
+        formData.append('document_type', docInput.docType);
+        formData.append('external_id', docInput.externalId);
+
+        resDoc = await fetch('/v1/documents/upload', {
+          method: 'POST',
+          body: formData
+        });
+      } else {
+        resDoc = await fetch('/v1/documents', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            organization_id: "11111111-1111-1111-1111-111111111111",
+            source_id: "44444444-4444-4444-4444-444444444444",
+            title: docInput.title,
+            content: docInput.content,
+            document_type: docInput.docType,
+            external_id: docInput.externalId
+          })
+        });
+      }
 
       if (resDoc.ok) {
         const docData = await resDoc.json();
@@ -384,13 +480,17 @@ export default function App() {
         const versionId = docData?.current_version?.id;
 
         if (versionId) {
-          const resClaims = await fetch(`/v1/claims/extract/${versionId}`, { method: 'POST' });
+          const resClaims = await fetch(`/v1/claims/extract/${versionId}?use_mock=true`, { method: 'POST' });
           if (resClaims.ok) {
             const claimsData = await resClaims.json();
             setExtractedClaims(claimsData);
           }
         }
-        showToast("Document ingested, normalized & claims extracted!");
+        await fetchLiveDatabaseRecords();
+        showToast("Document ingested and atomic claims extracted!");
+      } else {
+        const errorText = await resDoc.text();
+        showToast(`Ingestion failed: ${resDoc.status}`, "error");
       }
     } catch (e) {
       showToast("Ingestion failed to connect to backend", "error");
@@ -402,410 +502,307 @@ export default function App() {
   const currentScenario = scenarios[demoScenario];
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+    <div className="app-layout">
       
       {/* Toast Notification */}
       {notification && (
         <div style={{
           position: 'fixed',
-          bottom: '24px',
-          right: '24px',
+          bottom: '20px',
+          right: '20px',
           zIndex: 100,
-          background: notification.type === 'error' ? 'var(--danger-solid)' : 'var(--success-solid)',
+          background: notification.type === 'error' ? 'var(--danger-solid)' : 'var(--text-main)',
           color: '#FFFFFF',
-          padding: '12px 20px',
-          borderRadius: '10px',
-          boxShadow: '0 10px 25px rgba(0,0,0,0.18)',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '10px',
-          fontWeight: 600,
-          fontSize: '0.875rem'
+          padding: '10px 18px',
+          borderRadius: '8px',
+          fontSize: '0.85rem',
+          fontWeight: 600
         }}>
-          {notification.type === 'error' ? <XCircle size={18} /> : <CheckCircle2 size={18} />}
           {notification.msg}
         </div>
       )}
 
-      {/* Top Header Navigation */}
-      <header style={{
-        borderBottom: '1px solid var(--border-subtle)',
-        background: '#FFFFFF',
-        boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.05)',
-        position: 'sticky',
-        top: 0,
-        zIndex: 50,
-        padding: '14px 32px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between'
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-          <div style={{
-            width: '40px',
-            height: '40px',
-            borderRadius: '10px',
-            background: 'linear-gradient(135deg, #1D4ED8 0%, #3B82F6 100%)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            boxShadow: '0 4px 12px var(--primary-glow)'
-          }}>
-            <ShieldCheck size={22} color="#FFFFFF" />
+      {/* ========================================================= */}
+      {/* LEFT SIDEBAR MENU (NO SYMBOLS/ICONS, CLEAN TEXT)          */}
+      {/* ========================================================= */}
+      <aside className="sidebar">
+        {/* Brand Header */}
+        <div style={{ padding: '24px 20px', borderBottom: '1px solid var(--border-subtle)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-main)', letterSpacing: '-0.01em' }}>
+              Context Trust Layer
+            </span>
+            <span className="badge badge-verified" style={{ fontSize: '0.65rem', padding: '2px 6px' }}>
+              v0.1.0
+            </span>
           </div>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ fontSize: '1.2rem', fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--primary-900)' }}>
-                Context Trust Layer
-              </span>
-              <span className="badge badge-verified" style={{ fontSize: '0.65rem', padding: '2px 8px' }}>
-                v0.1.0 MVP
-              </span>
-            </div>
-            <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-              Deterministic Evidence Control & Decision Safety Gate for AI Agents
-            </p>
-          </div>
+          <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+            AI Evidence & Decision Safety Gate
+          </p>
         </div>
 
-        {/* Tab Selector */}
-        <nav style={{ display: 'flex', gap: '6px', background: 'var(--primary-50)', padding: '4px', borderRadius: '10px', border: '1px solid var(--border-blue)' }}>
+        {/* Navigation Tabs (Contiguous list, no gap, separated by bottom border) */}
+        <nav className="nav-list">
           <button 
             onClick={() => setActiveTab('demo')} 
-            className={`btn ${activeTab === 'demo' ? 'btn-primary' : 'btn-secondary'}`}
-            style={{ padding: '7px 14px', fontSize: '0.825rem' }}
+            className={`nav-item ${activeTab === 'demo' ? 'nav-item-active' : ''}`}
           >
-            <Zap size={15} />
-            Killer Demo (Split-Screen)
+            <span>Decision Gate Demo</span>
           </button>
+
           <button 
             onClick={() => setActiveTab('playground')} 
-            className={`btn ${activeTab === 'playground' ? 'btn-primary' : 'btn-secondary'}`}
-            style={{ padding: '7px 14px', fontSize: '0.825rem' }}
+            className={`nav-item ${activeTab === 'playground' ? 'nav-item-active' : ''}`}
           >
-            <Bot size={15} />
-            Agent Playground
+            <span>Agent Playground</span>
           </button>
+
           <button 
             onClick={() => setActiveTab('conflicts')} 
-            className={`btn ${activeTab === 'conflicts' ? 'btn-primary' : 'btn-secondary'}`}
-            style={{ padding: '7px 14px', fontSize: '0.825rem' }}
+            className={`nav-item ${activeTab === 'conflicts' ? 'nav-item-active' : ''}`}
           >
-            <Scale size={15} />
-            Conflict Resolver {conflicts.length > 0 && <span className="badge badge-review" style={{ marginLeft: 4, padding: '1px 6px' }}>{conflicts.length}</span>}
+            <span>Conflict Resolver</span>
+            {conflicts.length > 0 && (
+              <span className="badge badge-review" style={{ fontSize: '0.7rem', padding: '1px 6px' }}>
+                {conflicts.length}
+              </span>
+            )}
           </button>
+
           <button 
             onClick={() => setActiveTab('ingestion')} 
-            className={`btn ${activeTab === 'ingestion' ? 'btn-primary' : 'btn-secondary'}`}
-            style={{ padding: '7px 14px', fontSize: '0.825rem' }}
+            className={`nav-item ${activeTab === 'ingestion' ? 'nav-item-active' : ''}`}
           >
-            <FileText size={15} />
-            Document & Claim Explorer
+            <span>Document Explorer</span>
           </button>
         </nav>
 
-        {/* Health Indicator */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            padding: '6px 12px',
-            borderRadius: '999px',
-            background: 'var(--success-bg)',
-            border: '1px solid var(--success-border)',
-            fontSize: '0.75rem',
-            color: 'var(--success-text)',
-            fontWeight: 700
-          }}>
-            <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--success-solid)' }} />
+        {/* System Status in Sidebar Footer */}
+        <div style={{ padding: '16px 20px', borderTop: '1px solid var(--border-subtle)', background: 'var(--bg-card-subtle)' }}>
+          <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700, marginBottom: '6px' }}>
+            SYSTEM STATUS
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.78rem', color: 'var(--success-text)', fontWeight: 600 }}>
+            <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--success-solid)' }} />
             PostgreSQL + pgvector Active
           </div>
         </div>
-      </header>
+      </aside>
 
-      {/* Main Content Area */}
-      <main style={{ flex: 1, padding: '28px 32px', maxWidth: '1440px', margin: '0 auto', width: '100%' }}>
+      {/* ========================================================= */}
+      {/* MAIN CONTENT AREA                                         */}
+      {/* ========================================================= */}
+      <main className="main-content">
         
         {/* ========================================================= */}
-        {/* TAB 1: THE 2-MINUTE KILLER DEMO (VISUAL SPLIT SCREEN)     */}
+        {/* TAB 1: TRUST DECISION GATE DEMO (CLEAN, NO NAIVE RAG)     */}
         {/* ========================================================= */}
         {activeTab === 'demo' && (
           <div>
-            {/* Header Banner */}
-            <div className="glass-panel" style={{ padding: '22px 26px', marginBottom: '24px', background: 'linear-gradient(135deg, #EFF6FF 0%, #FFFFFF 100%)', borderColor: 'var(--border-blue)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+            {/* Header Area */}
+            <div style={{ marginBottom: '24px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
                 <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-                    <span className="badge badge-verified">Blueprint Section 20 & 23</span>
-                    <h1 style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--primary-900)' }}>
-                      The Outdated Policy Trap: Visual Comparison
-                    </h1>
-                  </div>
-                  <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', maxWidth: '750px', lineHeight: 1.5 }}>
-                    Witness how a traditional AI agent confidently executes dangerous or incorrect actions when relying on naive vector retrieval vs. how the <strong style={{ color: 'var(--primary-800)' }}>Context Trust Layer</strong> intercepts, verifies evidence validity, and prevents policy violations.
+                  <span className="badge badge-verified" style={{ marginBottom: '6px' }}>
+                    Policy & Evidence Gate
+                  </span>
+                  <h1 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-main)', marginTop: '4px' }}>
+                    Trust Decision Gate Evaluation
+                  </h1>
+                  <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', marginTop: '4px', maxWidth: '750px' }}>
+                    Evaluates intended AI agent actions against contradictory policy evidence, verifying source authority, scope matching, and freshness before allowing autonomous execution.
                   </p>
                 </div>
 
-                {/* Scenario Picker */}
-                <div style={{ display: 'flex', gap: '6px', background: '#FFFFFF', padding: '5px', borderRadius: '10px', border: '1px solid var(--border-blue)' }}>
+                {/* Scenario Selector (Clean borderless segmented control) */}
+                <div className="scenario-bar">
                   <button 
                     onClick={() => { setDemoScenario('refund_trap'); setDemoStep(0); }}
-                    className={`btn ${demoScenario === 'refund_trap' ? 'btn-primary' : 'btn-secondary'}`}
-                    style={{ padding: '7px 12px', fontSize: '0.78rem' }}
+                    className={`scenario-btn ${demoScenario === 'refund_trap' ? 'scenario-btn-active' : ''}`}
                   >
-                    1. Outdated Refund Trap
+                    1. Refund Window
                   </button>
                   <button 
                     onClick={() => { setDemoScenario('remote_work'); setDemoStep(0); }}
-                    className={`btn ${demoScenario === 'remote_work' ? 'btn-primary' : 'btn-secondary'}`}
-                    style={{ padding: '7px 12px', fontSize: '0.78rem' }}
+                    className={`scenario-btn ${demoScenario === 'remote_work' ? 'scenario-btn-active' : ''}`}
                   >
-                    2. Remote Work Discrepancy
+                    2. Remote Work
                   </button>
                   <button 
                     onClick={() => { setDemoScenario('unauthorized_deploy'); setDemoStep(0); }}
-                    className={`btn ${demoScenario === 'unauthorized_deploy' ? 'btn-primary' : 'btn-secondary'}`}
-                    style={{ padding: '7px 12px', fontSize: '0.78rem' }}
+                    className={`scenario-btn ${demoScenario === 'unauthorized_deploy' ? 'scenario-btn-active' : ''}`}
                   >
-                    3. Unauthorized Prod Action
+                    3. Prod Ingress
                   </button>
                 </div>
               </div>
+            </div>
 
-              {/* Active Query Simulation Bar */}
-              <div style={{ marginTop: '18px', padding: '14px 18px', background: '#FFFFFF', borderRadius: '10px', border: '1px solid var(--border-blue)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 1px 3px rgba(37,99,235,0.05)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <div style={{ padding: '8px', borderRadius: '8px', background: 'var(--primary-50)', color: 'var(--primary)' }}>
-                    <Cpu size={20} />
+            {/* Intended Action & Execution Bar */}
+            <div className="clean-panel" style={{ padding: '16px 20px', marginBottom: '20px', background: 'var(--bg-card)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+                <div style={{ flex: 1, minWidth: '280px' }}>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.04em' }}>
+                    Intended Agent Action / Query:
                   </div>
-                  <div>
-                    <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.04em' }}>
-                      Intended Agent Task / Decision Input:
-                    </span>
-                    <div style={{ fontSize: '0.975rem', fontWeight: 700, color: 'var(--text-main)', marginTop: '2px' }}>
-                      "{currentScenario.query}"
-                    </div>
+                  <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-main)', marginTop: '4px' }}>
+                    "{currentScenario.query}"
+                  </div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+                    Actor: <span className="code-pill">{currentScenario.actor.id}</span> (Role: {currentScenario.actor.role})
                   </div>
                 </div>
+
                 <button 
                   onClick={runKillerDemo} 
                   disabled={demoRunning}
                   className="btn btn-primary"
-                  style={{ padding: '10px 20px', fontSize: '0.9rem' }}
+                  style={{ padding: '9px 18px', fontSize: '0.875rem' }}
                 >
-                  {demoRunning ? <RefreshCw className="pulse-glow" size={17} /> : <Zap size={17} />}
-                  {demoRunning ? "Evaluating Decision..." : "Execute Comparison Demo"}
+                  {demoRunning ? "Evaluating..." : "Evaluate Decision Gate"}
                 </button>
               </div>
             </div>
 
-            {/* Split Screen Grid (WRONG vs RIGHT) */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+            {/* Main Decision Gate Panel */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
               
-              {/* LEFT PANE: STANDARD AGENT (WRONG / RED THEME) */}
-              <div className="glass-panel" style={{ padding: '22px', border: '2px solid var(--danger-border)', background: '#FFFFFF', position: 'relative' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <div style={{ padding: '8px', borderRadius: '8px', background: 'var(--danger-bg)', color: 'var(--danger-text)' }}>
-                      <ShieldOff size={20} />
-                    </div>
-                    <div>
-                      <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--danger-text)' }}>
-                        Standard AI Agent (Naive RAG)
-                      </h3>
-                      <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                        No Evidence Control • Stale Context • Unchecked Execution
-                      </p>
-                    </div>
-                  </div>
-                  <span className="badge badge-block">
-                    <XCircle size={14} /> Fails in Production
-                  </span>
+              {/* Left Side: Candidate Evidence Evaluated */}
+              <div className="clean-panel" style={{ padding: '20px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+                  <h3 style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--text-main)' }}>
+                    Candidate Evidence Evaluated
+                  </h3>
+                  <span className="badge badge-review">Contradiction Detected</span>
                 </div>
 
-                {/* Candidate Sources Retrieved by Vector DB */}
-                <div style={{ background: '#F8FAFC', padding: '14px', borderRadius: '10px', marginBottom: '16px', border: '1px solid var(--border-subtle)' }}>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '8px', fontWeight: 700 }}>
-                    Vector Similarity Search Result (Top Match):
-                  </div>
-                  <div style={{ background: 'var(--danger-bg)', border: '1px solid var(--danger-border)', padding: '10px 12px', borderRadius: '8px' }}>
-                    <div style={{ fontSize: '0.85rem', color: 'var(--danger-text)', fontStyle: 'italic', fontWeight: 600 }}>
+                <div style={{ display: 'grid', gap: '12px' }}>
+                  {/* Candidate 1 (Stale / Low Authority) */}
+                  <div style={{ background: 'var(--bg-card-subtle)', border: '1px solid var(--border-subtle)', padding: '12px', borderRadius: '8px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700, marginBottom: '4px' }}>
+                      <span>RECORD 1 (Superseded)</span>
+                      <span>Date: {currentScenario.claim1.date}</span>
+                    </div>
+                    <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', textDecoration: 'line-through' }}>
                       "{currentScenario.claim1.text}"
                     </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '6px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '6px' }}>
                       <span>Source: {currentScenario.claim1.source}</span>
-                      <span style={{ color: 'var(--danger-text)', fontWeight: 700 }}>Stale Date: {currentScenario.claim1.date}</span>
+                      <span>Authority: {currentScenario.claim1.authority}/100</span>
                     </div>
                   </div>
-                </div>
 
-                {/* Action Output */}
-                <div style={{ minHeight: '160px', background: 'var(--danger-bg)', borderRadius: '10px', padding: '16px', border: '1px solid var(--danger-border)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                  <div>
-                    <div style={{ fontSize: '0.72rem', color: 'var(--danger-text)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                      Autonomous Tool Execution Outcome:
+                  {/* Candidate 2 (Authoritative / Fresh) */}
+                  <div style={{ background: 'var(--success-bg)', border: '1px solid var(--success-border)', padding: '12px', borderRadius: '8px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', color: 'var(--success-text)', fontWeight: 700, marginBottom: '4px' }}>
+                      <span>RECORD 2 (Authoritative Selection)</span>
+                      <span>Date: {currentScenario.claim2.date}</span>
                     </div>
-                    <div style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--danger-text)', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <XCircle size={20} />
-                      {currentScenario.naiveFailure.action}
+                    <div style={{ fontSize: '0.875rem', color: 'var(--success-text)', fontWeight: 700 }}>
+                      "{currentScenario.claim2.text}"
                     </div>
-                    <p style={{ fontSize: '0.825rem', color: 'var(--text-secondary)', marginTop: '8px', lineHeight: 1.4 }}>
-                      "{currentScenario.naiveFailure.reason}"
-                    </p>
-                  </div>
-
-                  <div style={{ marginTop: '12px', padding: '8px 12px', background: '#FFFFFF', borderRadius: '8px', border: '1px solid var(--danger-border)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <AlertTriangle size={16} color="var(--danger-solid)" />
-                    <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--danger-text)' }}>
-                      Business Impact: {currentScenario.naiveFailure.impact}
-                    </span>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', color: 'var(--success-text)', marginTop: '6px' }}>
+                      <span>Source: {currentScenario.claim2.source}</span>
+                      <span>Authority: {currentScenario.claim2.authority}/100</span>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              {/* RIGHT PANE: CONTEXT TRUST LAYER (RIGHT / GREEN THEME) */}
-              <div className="glass-panel" style={{ padding: '22px', border: '2px solid var(--success-border)', background: '#FFFFFF', position: 'relative' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <div style={{ padding: '8px', borderRadius: '8px', background: 'var(--success-bg)', color: 'var(--success-text)' }}>
-                      <ShieldCheck size={20} />
-                    </div>
-                    <div>
-                      <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--success-text)' }}>
-                        Context Trust & Decision Gate
-                      </h3>
-                      <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                        6-Factor Trust Score • Conflict Arbitration • Deterministic Policy Gate
-                      </p>
-                    </div>
+              {/* Right Side: Decision Gate Evaluation Verdict */}
+              <div className="clean-panel" style={{ padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+                    <h3 style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--text-main)' }}>
+                      Decision Gate Verdict
+                    </h3>
+                    {demoResult && <span className="code-pill">Audit: {demoResult.audit_id}</span>}
                   </div>
-                  <span className="badge badge-allow">
-                    <CheckCircle2 size={14} /> Enterprise Safe
-                  </span>
-                </div>
 
-                {/* Evidence Contradiction Detection */}
-                <div style={{ background: '#F8FAFC', padding: '14px', borderRadius: '10px', marginBottom: '16px', border: '1px solid var(--border-subtle)' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '8px', fontWeight: 700 }}>
-                    <span>Candidate Evidence Evaluated:</span>
-                    <span style={{ color: 'var(--primary-800)', fontWeight: 700 }}>Contradiction Detected & Reconciled</span>
-                  </div>
-                  <div style={{ display: 'grid', gap: '8px' }}>
-                    <div style={{ background: '#FFFFFF', border: '1px solid var(--border-subtle)', padding: '7px 10px', borderRadius: '6px', opacity: 0.7 }}>
-                      <div style={{ fontSize: '0.78rem', color: 'var(--text-dim)', textDecoration: 'line-through' }}>
-                        1. {currentScenario.claim1.text} ({currentScenario.claim1.date})
-                      </div>
-                    </div>
-                    <div style={{ background: 'var(--success-bg)', border: '1px solid var(--success-border)', padding: '8px 10px', borderRadius: '6px' }}>
-                      <div style={{ fontSize: '0.825rem', color: 'var(--success-text)', fontWeight: 700 }}>
-                        2. {currentScenario.claim2.text}
-                      </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', color: 'var(--success-text)', marginTop: '4px' }}>
-                        <span>Authoritative Source: {currentScenario.claim2.source}</span>
-                        <span style={{ fontWeight: 700 }}>Authority: {currentScenario.claim2.authority}/100</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Trust Evaluation Result */}
-                <div style={{ minHeight: '160px', background: 'var(--success-bg)', borderRadius: '10px', padding: '16px', border: '1px solid var(--success-border)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                   {demoStep === 0 && (
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--text-muted)', gap: '8px', padding: '24px 0' }}>
-                      <Zap size={24} color="var(--primary)" />
-                      <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Click "Execute Comparison Demo" above to evaluate.</span>
+                    <div style={{ padding: '40px 20px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                      Click "Evaluate Decision Gate" to run evidence verification.
                     </div>
                   )}
 
                   {demoStep === 1 && (
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--primary)', gap: '10px', padding: '24px 0' }}>
-                      <RefreshCw className="pulse-glow" size={26} />
-                      <span style={{ fontSize: '0.875rem', fontWeight: 700 }}>Running 6-Factor Multi-Dimensional Trust Scoring...</span>
+                    <div style={{ padding: '40px 20px', textAlign: 'center', color: 'var(--primary)', fontSize: '0.85rem', fontWeight: 600 }}>
+                      Evaluating candidate records, freshness, and authority levels...
                     </div>
                   )}
 
                   {demoStep === 2 && demoResult && (
-                    <>
-                      <div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <span style={{ fontSize: '0.72rem', color: 'var(--success-text)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                            Decision Gate Outcome:
-                          </span>
-                          <span className="code-pill">Audit ID: {demoResult.audit_id}</span>
-                        </div>
-                        
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '6px' }}>
-                          <span className={`badge ${demoResult.decision === 'ALLOW' ? 'badge-allow' : demoResult.decision === 'BLOCK' ? 'badge-block' : 'badge-review'}`} style={{ fontSize: '0.9rem', padding: '5px 12px' }}>
-                            {demoResult.decision === 'ALLOW' ? <CheckCircle2 size={16} /> : <AlertTriangle size={16} />}
-                            {demoResult.decision}
-                          </span>
-                          <span style={{ fontSize: '0.825rem', color: 'var(--text-secondary)' }}>
-                            Risk: <strong style={{ color: demoResult.risk === 'LOW' ? 'var(--success-text)' : 'var(--danger-text)' }}>{demoResult.risk}</strong> • Validity: <strong>{demoResult.validity}</strong>
-                          </span>
-                        </div>
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
+                        <span className={`badge ${demoResult.decision === 'ALLOW' ? 'badge-allow' : demoResult.decision === 'BLOCK' ? 'badge-block' : 'badge-review'}`} style={{ fontSize: '0.85rem', padding: '4px 10px' }}>
+                          VERDICT: {demoResult.decision}
+                        </span>
+                        <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                          Risk: <strong style={{ color: demoResult.risk === 'LOW' ? 'var(--success-text)' : 'var(--danger-text)' }}>{demoResult.risk}</strong> • Validity: <strong>{demoResult.validity}</strong>
+                        </span>
+                      </div>
 
-                        <ul style={{ marginTop: '8px', fontSize: '0.78rem', color: 'var(--text-secondary)', paddingLeft: '16px', lineHeight: '1.45' }}>
+                      <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '12px' }}>
+                        <div style={{ fontWeight: 700, marginBottom: '4px' }}>Evaluation Reasons:</div>
+                        <ul style={{ paddingLeft: '18px', lineHeight: 1.5 }}>
                           {demoResult.reasons?.map((r, i) => (
                             <li key={i}>{r}</li>
                           ))}
                         </ul>
                       </div>
-
-                      <div style={{ marginTop: '10px', padding: '8px 12px', background: '#FFFFFF', borderRadius: '8px', border: '1px solid var(--success-border)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <Check size={16} color="var(--success-solid)" />
-                        <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--success-text)' }}>
-                          {demoResult.suggested_action}
-                        </span>
-                      </div>
-                    </>
+                    </div>
                   )}
                 </div>
+
+                {demoStep === 2 && demoResult && (
+                  <div style={{ marginTop: '12px', padding: '10px 12px', background: 'var(--bg-card-subtle)', borderRadius: '8px', border: '1px solid var(--border-subtle)', fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
+                    <strong>Suggested Next Action:</strong> {demoResult.suggested_action}
+                  </div>
+                )}
               </div>
             </div>
 
-            {/* 6-Factor Multi-Dimensional Trust Breakdown */}
-            <div className="glass-panel" style={{ marginTop: '24px', padding: '20px 24px' }}>
-              <h4 style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--primary-900)', marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Sliders size={18} color="var(--primary)" />
-                Explainable 6-Factor Trust Score Architecture (Blueprint Section 12)
-              </h4>
+            {/* 6-Factor Trust Score Architecture */}
+            <div className="clean-panel" style={{ marginTop: '20px', padding: '20px' }}>
+              <div style={{ fontSize: '0.9rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '14px' }}>
+                Explainable 6-Factor Trust Score Architecture
+              </div>
               
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '14px' }}>
-                <div style={{ background: 'var(--primary-50)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-blue)' }}>
-                  <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700 }}>1. Source Authority</div>
-                  <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--primary)', marginTop: '4px' }}>0.95</div>
-                  <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Confluence vs Handbook</div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '12px' }}>
+                <div style={{ background: 'var(--bg-card-subtle)', padding: '10px', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
+                  <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 700 }}>1. Authority</div>
+                  <div style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--primary)', marginTop: '2px' }}>0.95</div>
+                  <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>Verified Source</div>
                 </div>
 
-                <div style={{ background: 'var(--success-bg)', padding: '12px', borderRadius: '8px', border: '1px solid var(--success-border)' }}>
-                  <div style={{ fontSize: '0.72rem', color: 'var(--success-text)', fontWeight: 700 }}>2. Freshness Decay</div>
-                  <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--success-text)', marginTop: '4px' }}>1.00</div>
-                  <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Published 2026 vs 2025</div>
+                <div style={{ background: 'var(--bg-card-subtle)', padding: '10px', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
+                  <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 700 }}>2. Freshness</div>
+                  <div style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--success-text)', marginTop: '2px' }}>1.00</div>
+                  <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>2026 Active</div>
                 </div>
 
-                <div style={{ background: 'var(--primary-50)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-blue)' }}>
-                  <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700 }}>3. Evidence Strength</div>
-                  <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--primary-800)', marginTop: '4px' }}>0.95</div>
-                  <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Direct Quote Spans</div>
+                <div style={{ background: 'var(--bg-card-subtle)', padding: '10px', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
+                  <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 700 }}>3. Evidence</div>
+                  <div style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-main)', marginTop: '2px' }}>0.95</div>
+                  <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>Direct Text Quote</div>
                 </div>
 
-                <div style={{ background: 'var(--warning-bg)', padding: '12px', borderRadius: '8px', border: '1px solid var(--warning-border)' }}>
-                  <div style={{ fontSize: '0.72rem', color: 'var(--warning-text)', fontWeight: 700 }}>4. Consistency</div>
-                  <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--warning-text)', marginTop: '4px' }}>0.36</div>
-                  <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Contradiction Flagged</div>
+                <div style={{ background: 'var(--bg-card-subtle)', padding: '10px', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
+                  <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 700 }}>4. Consistency</div>
+                  <div style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--warning-text)', marginTop: '2px' }}>0.36</div>
+                  <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>Contradiction Handled</div>
                 </div>
 
-                <div style={{ background: 'var(--primary-50)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-blue)' }}>
-                  <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700 }}>5. Scope Alignment</div>
-                  <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--primary-900)', marginTop: '4px' }}>1.00</div>
-                  <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Enterprise Tier Matched</div>
+                <div style={{ background: 'var(--bg-card-subtle)', padding: '10px', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
+                  <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 700 }}>5. Scope Match</div>
+                  <div style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-main)', marginTop: '2px' }}>1.00</div>
+                  <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>Enterprise Tier</div>
                 </div>
 
-                <div style={{ background: 'var(--primary-50)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-blue)' }}>
-                  <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700 }}>6. Human Seal</div>
-                  <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--primary-500)', marginTop: '4px' }}>1.00</div>
-                  <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Auditor Approved</div>
+                <div style={{ background: 'var(--bg-card-subtle)', padding: '10px', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
+                  <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 700 }}>6. Auditor Seal</div>
+                  <div style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--primary-dark)', marginTop: '2px' }}>1.00</div>
+                  <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>Approved</div>
                 </div>
               </div>
             </div>
@@ -813,40 +810,25 @@ export default function App() {
         )}
 
         {/* ========================================================= */}
-        {/* TAB: INTERACTIVE AGENT PLAYGROUND & CONTEXT RETRIEVAL     */}
+        {/* TAB 2: INTERACTIVE AGENT PLAYGROUND                       */}
         {/* ========================================================= */}
         {activeTab === 'playground' && (
           <div>
             {/* Header Banner */}
-            <div className="glass-panel" style={{ padding: '22px 26px', marginBottom: '24px', background: 'linear-gradient(135deg, #EFF6FF 0%, #FFFFFF 100%)', borderColor: 'var(--border-blue)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-                    <span className="badge badge-verified">Live API /v1/context/query</span>
-                    <h1 style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--primary-900)' }}>
-                      Interactive AI Agent Playground
-                    </h1>
-                  </div>
-                  <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', maxWidth: '800px', lineHeight: 1.5 }}>
-                    Test how autonomous AI Agents retrieve trusted organizational knowledge. The <strong>Context Trust Gate</strong> dynamically scores claims, excludes expired policies, and filters out contradictory knowledge in real time.
-                  </p>
-                </div>
+            <div style={{ marginBottom: '24px' }}>
+              <span className="badge badge-verified" style={{ marginBottom: '6px' }}>
+                Live API /v1/context/query
+              </span>
+              <h1 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-main)', marginTop: '4px' }}>
+                Interactive AI Agent Playground
+              </h1>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', marginTop: '4px' }}>
+                Test how autonomous AI Agents query organizational knowledge. The Trust Gate scores claims, excludes expired policies, and filters out contradictory knowledge.
+              </p>
 
-                {/* Agent Persona Indicator */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: '#FFFFFF', padding: '8px 14px', borderRadius: '10px', border: '1px solid var(--border-blue)' }}>
-                  <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'var(--primary-50)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary)' }}>
-                    <Bot size={18} />
-                  </div>
-                  <div>
-                    <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700 }}>ACTIVE AGENT</div>
-                    <div style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--text-main)' }}>{playgroundAgent.name}</div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Preset Scenarios Selector */}
-              <div style={{ marginTop: '16px', display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 700 }}>Quick Presets:</span>
+              {/* Preset Selector */}
+              <div style={{ marginTop: '14px', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 700 }}>Presets:</span>
                 {playgroundPresets.map((preset, i) => (
                   <button
                     key={i}
@@ -857,9 +839,8 @@ export default function App() {
                       runPlaygroundQuery(preset.query, preset.agent, preset.threshold);
                     }}
                     className="btn btn-secondary"
-                    style={{ padding: '6px 12px', fontSize: '0.75rem' }}
+                    style={{ padding: '5px 10px', fontSize: '0.75rem' }}
                   >
-                    <Sparkles size={13} color="var(--primary)" />
                     {preset.title}
                   </button>
                 ))}
@@ -867,22 +848,19 @@ export default function App() {
             </div>
 
             {/* Main Interactive Grid */}
-            <div style={{ display: 'grid', gridTemplateColumns: '440px 1fr', gap: '24px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '400px 1fr', gap: '20px' }}>
               
-              {/* Left Column: Agent Query Console & Configuration */}
-              <div className="glass-panel" style={{ padding: '22px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-                  <Terminal size={18} color="var(--primary)" />
-                  <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--primary-900)' }}>
-                    Agent Query Console
-                  </h3>
+              {/* Left Column: Query Console */}
+              <div className="clean-panel" style={{ padding: '20px' }}>
+                <div style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '14px' }}>
+                  Agent Query Console
                 </div>
 
-                <div style={{ display: 'grid', gap: '16px' }}>
+                <div style={{ display: 'grid', gap: '14px' }}>
                   {/* Persona Selector */}
                   <div>
                     <label style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 700, display: 'block', marginBottom: '4px' }}>
-                      Agent Persona / Role:
+                      Agent Persona:
                     </label>
                     <select
                       value={playgroundAgent.role}
@@ -892,7 +870,7 @@ export default function App() {
                         else if (role === 'hr_assistant') setPlaygroundAgent({ id: "88888888-8888-8888-8888-888888888889", name: "HR Policy Assistant", role });
                         else setPlaygroundAgent({ id: "88888888-8888-8888-8888-888888888890", name: "DevOps Security Guard", role });
                       }}
-                      style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', fontSize: '0.85rem' }}
+                      style={{ width: '100%', padding: '8px 10px', fontSize: '0.85rem' }}
                     >
                       <option value="billing_agent">Billing Dispute Resolution Agent</option>
                       <option value="hr_assistant">HR Policy & Benefits Assistant</option>
@@ -900,13 +878,13 @@ export default function App() {
                     </select>
                   </div>
 
-                  {/* Trust Score Threshold Slider */}
-                  <div style={{ background: '#F8FAFC', padding: '12px 14px', borderRadius: '10px', border: '1px solid var(--border-subtle)' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                      <label style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 700 }}>
-                        Minimum Trust Threshold (min_trust_score):
+                  {/* Trust Score Threshold */}
+                  <div style={{ background: 'var(--bg-card-subtle)', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                      <label style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', fontWeight: 700 }}>
+                        Min Trust Threshold:
                       </label>
-                      <span className="badge badge-verified" style={{ fontSize: '0.75rem', fontWeight: 800 }}>
+                      <span className="badge badge-verified">
                         {(playgroundThreshold * 100).toFixed(0)}%
                       </span>
                     </div>
@@ -919,131 +897,100 @@ export default function App() {
                       onChange={e => setPlaygroundThreshold(parseFloat(e.target.value))}
                       style={{ width: '100%', accentColor: 'var(--primary)' }}
                     />
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-                      <span>0.50 (Permissive)</span>
-                      <span>0.80 (Standard)</span>
-                      <span>0.99 (Strict)</span>
-                    </div>
                   </div>
 
-                  {/* Prompt Textarea */}
+                  {/* Query Textarea */}
                   <div>
                     <label style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 700, display: 'block', marginBottom: '4px' }}>
-                      Agent Query / Question:
+                      Agent Question:
                     </label>
                     <textarea 
-                      rows={4}
+                      rows={3}
                       value={playgroundQuery} 
                       onChange={e => setPlaygroundQuery(e.target.value)}
                       placeholder="Ask any policy question..."
-                      style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', fontSize: '0.85rem' }}
+                      style={{ width: '100%', padding: '8px 10px', fontSize: '0.85rem' }}
                     />
                   </div>
 
-                  {/* Execute Button */}
+                  {/* Submit Button */}
                   <button 
                     onClick={() => runPlaygroundQuery()} 
                     disabled={playgroundRunning}
                     className="btn btn-primary" 
-                    style={{ width: '100%', padding: '11px', display: 'flex', justifyContent: 'center', gap: '8px', fontSize: '0.9rem' }}
+                    style={{ width: '100%', padding: '10px', fontSize: '0.875rem' }}
                   >
-                    {playgroundRunning ? <RefreshCw className="pulse-glow" size={17} /> : <Send size={17} />}
-                    {playgroundRunning ? "Retrieving & Filtering Context..." : "Query Context Trust Layer"}
+                    {playgroundRunning ? "Retrieving..." : "Query Context Trust Layer"}
                   </button>
                 </div>
               </div>
 
-              {/* Right Column: Grounded Agent Answer & Evidence Citations */}
-              <div style={{ display: 'grid', gap: '20px' }}>
+              {/* Right Column: Grounded Answer & Citations */}
+              <div style={{ display: 'grid', gap: '16px' }}>
                 
-                {/* Synthesized Grounded Response Card */}
-                <div className="glass-panel" style={{ padding: '22px', border: '1px solid var(--border-blue)' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <Sparkles size={18} color="var(--primary)" />
-                      <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--primary-900)' }}>
-                        Grounded AI Agent Output
-                      </h3>
+                {/* Answer Card */}
+                <div className="clean-panel" style={{ padding: '20px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                    <div style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--text-main)' }}>
+                      Grounded Agent Output
                     </div>
                     {playgroundResult && (
-                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                        <span className="badge badge-allow">
-                          Confidence: {(Number(playgroundResult.confidence || 0.95) * 100).toFixed(0)}%
-                        </span>
-                        <span className="code-pill">{playgroundResult.timestamp}</span>
-                      </div>
+                      <span className="badge badge-allow">
+                        Confidence: {(Number(playgroundResult.confidence || 0.95) * 100).toFixed(0)}%
+                      </span>
                     )}
                   </div>
 
                   {!playgroundResult && !playgroundRunning && (
-                    <div style={{ padding: '40px 20px', textAlign: 'center', color: 'var(--text-muted)' }}>
-                      <Bot size={36} color="var(--primary-400)" style={{ margin: '0 auto 8px' }} />
-                      <p style={{ fontSize: '0.875rem' }}>Select a preset or type a question on the left to see how the agent responds using verified context.</p>
+                    <div style={{ padding: '30px 10px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                      Select a preset or click query to inspect the grounded answer.
                     </div>
                   )}
 
                   {playgroundRunning && (
-                    <div style={{ padding: '40px 20px', textAlign: 'center', color: 'var(--primary)' }}>
-                      <RefreshCw className="pulse-glow" size={32} style={{ margin: '0 auto 10px' }} />
-                      <p style={{ fontSize: '0.9rem', fontWeight: 700 }}>Querying /v1/context/query and enforcing 6-factor trust scoring...</p>
+                    <div style={{ padding: '30px 10px', textAlign: 'center', color: 'var(--primary)', fontSize: '0.85rem', fontWeight: 600 }}>
+                      Filtering claims by trust score and checking active conflicts...
                     </div>
                   )}
 
                   {playgroundResult && !playgroundRunning && (
-                    <div style={{ background: '#F8FAFC', padding: '16px', borderRadius: '10px', border: '1px solid var(--border-subtle)', lineHeight: 1.5, fontSize: '0.875rem', color: 'var(--text-main)', whiteSpace: 'pre-wrap' }}>
+                    <div style={{ background: 'var(--bg-card-subtle)', padding: '14px', borderRadius: '8px', border: '1px solid var(--border-subtle)', lineHeight: 1.5, fontSize: '0.85rem', color: 'var(--text-main)', whiteSpace: 'pre-wrap' }}>
                       {playgroundResult.synthesizedAnswer}
                     </div>
                   )}
                 </div>
 
-                {/* Evidence & Provenance Explorer */}
-                <div className="glass-panel" style={{ padding: '22px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <ShieldCheck size={18} color="var(--success-solid)" />
-                      <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--primary-900)' }}>
-                        Trust Gate Provenance Citations ({playgroundResult?.context?.length || 0})
-                      </h3>
+                {/* Evidence Citations */}
+                <div className="clean-panel" style={{ padding: '20px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                    <div style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--text-main)' }}>
+                      Trust Gate Citations ({playgroundResult?.context?.length || 0})
                     </div>
-                    <span className="badge badge-verified">Zero Hallucination Proof</span>
+                    <span className="badge badge-verified">Verified Evidence</span>
                   </div>
 
                   {(!playgroundResult || !playgroundResult.context || playgroundResult.context.length === 0) ? (
-                    <div style={{ padding: '30px 20px', textAlign: 'center', color: 'var(--text-muted)' }}>
-                      <p style={{ fontSize: '0.825rem' }}>No citation records loaded yet. Run a query above to inspect full character offsets and evidence spans.</p>
+                    <div style={{ padding: '20px 10px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.8rem' }}>
+                      No citation records loaded yet.
                     </div>
                   ) : (
-                    <div style={{ display: 'grid', gap: '12px' }}>
+                    <div style={{ display: 'grid', gap: '10px' }}>
                       {playgroundResult.context.map((ctx, idx) => (
-                        <div key={idx} style={{ background: '#FFFFFF', border: '1px solid var(--border-blue)', padding: '14px', borderRadius: '10px', boxShadow: '0 1px 3px rgba(37,99,235,0.04)' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                              <span className="badge badge-allow">Citation #{idx + 1}</span>
-                              <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-secondary)' }}>
-                                {ctx.source?.document || 'Verified Document'}
-                              </span>
-                            </div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                              <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Trust Score:</span>
-                              <span className="badge badge-verified" style={{ fontSize: '0.8rem', padding: '2px 8px' }}>
-                                {(Number(ctx.trust_score) * 100).toFixed(0)}%
-                              </span>
-                            </div>
+                        <div key={idx} style={{ background: '#FFFFFF', border: '1px solid var(--border-subtle)', padding: '12px', borderRadius: '8px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                            <span className="badge badge-allow">Citation #{idx + 1}</span>
+                            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                              Trust Score: <strong style={{ color: 'var(--success-text)' }}>{(Number(ctx.trust_score) * 100).toFixed(0)}%</strong>
+                            </span>
                           </div>
 
-                          <p style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-main)', lineHeight: 1.4 }}>
+                          <p style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-main)', lineHeight: 1.4 }}>
                             "{ctx.claim}"
                           </p>
 
-                          {ctx.evidence && ctx.evidence.length > 0 && (
-                            <div style={{ marginTop: '8px', padding: '8px 10px', background: 'var(--primary-50)', borderRadius: '6px', border: '1px solid var(--border-blue)', fontSize: '0.75rem', color: 'var(--primary-900)' }}>
-                              <strong>Exact Evidence Text Span:</strong> "{ctx.evidence[0]}"
-                            </div>
-                          )}
-
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '8px', paddingTop: '6px', borderTop: '1px solid var(--border-subtle)', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                            <span>Section: {ctx.source?.section || 'General'}</span>
-                            <span>Validity Window: <strong style={{ color: 'var(--success-text)' }}>{ctx.validity?.status?.toUpperCase() || 'VALID'}</strong></span>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '6px', paddingTop: '6px', borderTop: '1px solid var(--border-subtle)', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                            <span>Source: {ctx.source?.document || 'Verified Document'} ({ctx.source?.section || 'General'})</span>
+                            <span>Status: <strong style={{ color: 'var(--success-text)' }}>{ctx.validity?.status?.toUpperCase() || 'VALID'}</strong></span>
                           </div>
                         </div>
                       ))}
@@ -1056,231 +1003,505 @@ export default function App() {
         )}
 
         {/* ========================================================= */}
-        {/* TAB 2: VISUAL CONFLICT RESOLVER (HUMAN-IN-THE-LOOP)      */}
+        {/* TAB 3: CONFLICT RESOLVER                                  */}
         {/* ========================================================= */}
         {activeTab === 'conflicts' && (
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
               <div>
-                <h2 style={{ fontSize: '1.35rem', fontWeight: 800, color: 'var(--primary-900)' }}>
+                <h2 style={{ fontSize: '1.35rem', fontWeight: 800, color: 'var(--text-main)' }}>
                   Auditor Conflict Resolution Queue
                 </h2>
-                <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '2px' }}>
                   Review, arbitrate, and supersede conflicting enterprise policies to eliminate ambiguity for autonomous agents.
                 </p>
               </div>
 
-              <button onClick={fetchHealthAndConflicts} className="btn btn-secondary" style={{ padding: '8px 14px' }}>
-                <RefreshCw size={15} />
+              <button onClick={fetchHealthAndConflicts} className="btn btn-secondary" style={{ padding: '7px 12px' }}>
                 Refresh Queue
               </button>
             </div>
 
-            {/* Pending Conflicts List */}
+            {/* Conflicts List */}
             {conflicts.length === 0 ? (
-              <div className="glass-panel" style={{ padding: '48px 24px', textAlign: 'center', color: 'var(--text-muted)' }}>
-                <CheckCircle2 size={44} color="var(--success-solid)" style={{ margin: '0 auto 12px' }} />
-                <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--text-main)' }}>Zero Pending Conflicts</h3>
-                <p style={{ fontSize: '0.85rem', marginTop: '4px', color: 'var(--text-muted)' }}>
-                  All enterprise claims are verified and non-conflicting. Agents can retrieve context with maximum confidence.
+              <div className="clean-panel" style={{ padding: '48px 24px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--text-main)' }}>Zero Pending Conflicts</h3>
+                <p style={{ fontSize: '0.825rem', marginTop: '4px' }}>
+                  All enterprise claims are verified and non-conflicting.
                 </p>
               </div>
             ) : (
-              <div style={{ display: 'grid', gap: '20px' }}>
-                {conflicts.map((conf, idx) => (
-                  <div key={conf.id || idx} className="glass-panel" style={{ padding: '22px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <AlertTriangle size={18} color="var(--warning-solid)" />
-                        <span style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--text-main)' }}>
-                          Conflict #{idx + 1}: {conf.conflict_type?.toUpperCase() || "NUMERICAL_DISCREPANCY"}
-                        </span>
-                        <span className="badge badge-review">Severity: {conf.severity || 'HIGH'}</span>
-                      </div>
-                      <span className="code-pill">Confidence: {conf.confidence || '0.92'}</span>
-                    </div>
+              <div style={{ display: 'grid', gap: '16px' }}>
+                {conflicts.map((conf, idx) => {
+                  const claimA = conf.claim_a;
+                  const claimB = conf.claim_b;
+                  const scoreA = claimA?.trust_scores?.[0]?.overall_score || 0.50;
+                  const scoreB = claimB?.trust_scores?.[0]?.overall_score || 0.95;
+                  const sectionA = claimA?.evidence?.[0]?.section || "Section 2.0";
+                  const sectionB = claimB?.evidence?.[0]?.section || "Section 3.0";
 
-                    {/* Side-by-Side Comparison (RED / Wrong Claim A vs GREEN / Right Claim B) */}
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '18px' }}>
-                      
-                      {/* Claim A - Stale Candidate (Red) */}
-                      <div style={{ background: 'var(--danger-bg)', border: '1px solid var(--danger-border)', padding: '16px', borderRadius: '10px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', color: 'var(--danger-text)', fontWeight: 800, marginBottom: '6px' }}>
-                          <span>CLAIM A (Stale Candidate)</span>
-                          <span className="badge badge-outdated">ID: {conf.claim_a_id?.substring(0, 8)}</span>
+                  return (
+                    <div key={conf.id || idx} className="clean-panel" style={{ padding: '18px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span style={{ fontWeight: 800, fontSize: '0.9rem', color: 'var(--text-main)' }}>
+                            Conflict #{idx + 1}: {conf.conflict_type?.toUpperCase() || "NUMERICAL_DISCREPANCY"}
+                          </span>
+                          <span className="badge badge-review">Severity: {conf.severity?.toUpperCase() || 'HIGH'}</span>
                         </div>
-                        <p style={{ fontSize: '0.875rem', color: 'var(--danger-text)', lineHeight: '1.4', fontWeight: 600 }}>
-                          "Customers are eligible for automated refunds up to ₹25,000 without supervisor approval."
-                        </p>
-                        <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '8px' }}>
-                          Source: Internal Policy V1 (2025) • Authority: 60
-                        </div>
+                        <span className="code-pill">Confidence: {conf.confidence || '0.95'}</span>
                       </div>
 
-                      {/* Claim B - Authoritative Candidate (Green) */}
-                      <div style={{ background: 'var(--success-bg)', border: '1px solid var(--success-border)', padding: '16px', borderRadius: '10px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', color: 'var(--success-text)', fontWeight: 800, marginBottom: '6px' }}>
-                          <span>CLAIM B (Authoritative Candidate)</span>
-                          <span className="badge badge-allow">ID: {conf.claim_b_id?.substring(0, 8)}</span>
+                      {/* Side-by-Side Comparison */}
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '16px' }}>
+                        <div style={{ background: 'var(--danger-bg)', border: '1px solid var(--danger-border)', padding: '14px', borderRadius: '8px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', color: 'var(--danger-text)', fontWeight: 800, marginBottom: '4px' }}>
+                            <span>CLAIM A (Stale Candidate)</span>
+                            <span className="badge badge-outdated">ID: {conf.claim_a_id?.substring(0, 8)}</span>
+                          </div>
+                          <p style={{ fontSize: '0.85rem', color: 'var(--danger-text)', lineHeight: '1.4', fontWeight: 600 }}>
+                            "{claimA?.claim_text || 'Customers are eligible for automated refunds up to ₹25,000 without supervisor approval.'}"
+                          </p>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '8px', paddingTop: '6px', borderTop: '1px solid rgba(220, 38, 38, 0.15)' }}>
+                            <span>Source: {sectionA}</span>
+                            <span>Trust: <strong>{(Number(scoreA) * 100).toFixed(0)}%</strong></span>
+                          </div>
                         </div>
-                        <p style={{ fontSize: '0.875rem', color: 'var(--success-text)', lineHeight: '1.4', fontWeight: 600 }}>
-                          "Standard automated refund limit is capped at ₹10,000. Higher amounts require VP signoff."
-                        </p>
-                        <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '8px' }}>
-                          Source: Enterprise Policy V2 (2026) • Authority: 95
+
+                        <div style={{ background: 'var(--success-bg)', border: '1px solid var(--success-border)', padding: '14px', borderRadius: '8px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', color: 'var(--success-text)', fontWeight: 800, marginBottom: '4px' }}>
+                            <span>CLAIM B (Authoritative Candidate)</span>
+                            <span className="badge badge-allow">ID: {conf.claim_b_id?.substring(0, 8)}</span>
+                          </div>
+                          <p style={{ fontSize: '0.85rem', color: 'var(--success-text)', lineHeight: '1.4', fontWeight: 600 }}>
+                            "{claimB?.claim_text || 'Standard automated refund limit is capped at ₹10,000. Higher amounts require VP signoff.'}"
+                          </p>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '8px', paddingTop: '6px', borderTop: '1px solid rgba(22, 163, 74, 0.15)' }}>
+                            <span>Source: {sectionB}</span>
+                            <span>Trust: <strong>{(Number(scoreB) * 100).toFixed(0)}%</strong></span>
+                          </div>
                         </div>
                       </div>
-                    </div>
 
-                    {/* Auditor Actions */}
-                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', borderTop: '1px solid var(--border-subtle)', paddingTop: '14px' }}>
-                      <button 
-                        onClick={() => handleResolveConflict(conf.id, conf.claim_b_id, "Approved Claim B as authoritative V2 guideline.")}
-                        className="btn btn-success"
-                        style={{ padding: '8px 16px' }}
-                      >
-                        <Check size={16} />
-                        Approve Authoritative Claim B (Supersede A)
-                      </button>
-                      <button 
-                        onClick={() => handleResolveConflict(conf.id, conf.claim_a_id, "Approved Claim A as verified exception.")}
-                        className="btn btn-secondary"
-                        style={{ padding: '8px 14px' }}
-                      >
-                        Approve Claim A
-                      </button>
+                      {/* Auditor Actions */}
+                      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', borderTop: '1px solid var(--border-subtle)', paddingTop: '12px' }}>
+                        <button 
+                          onClick={() => handleResolveConflict(conf.id, conf.claim_b_id, "Approved Claim B as authoritative guideline.")}
+                          className="btn btn-success"
+                          style={{ padding: '7px 14px' }}
+                        >
+                          Approve Authoritative Claim B (Supersede A)
+                        </button>
+                        <button 
+                          onClick={() => handleResolveConflict(conf.id, conf.claim_a_id, "Approved Claim A as verified exception.")}
+                          className="btn btn-secondary"
+                          style={{ padding: '7px 12px' }}
+                        >
+                          Approve Claim A
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
         )}
 
         {/* ========================================================= */}
-        {/* TAB 3: DOCUMENT INGESTION & ATOMIC CLAIM EXPLORER        */}
+        {/* TAB 4: DOCUMENT INGESTION & CLAIM EXPLORER                */}
         {/* ========================================================= */}
         {activeTab === 'ingestion' && (
-          <div style={{ display: 'grid', gridTemplateColumns: '430px 1fr', gap: '24px' }}>
-            
-            {/* Ingest Form */}
-            <div className="glass-panel" style={{ padding: '22px' }}>
-              <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--primary-900)', marginBottom: '14px' }}>
-                Ingest & Normalize Document
-              </h3>
-
-              <div style={{ display: 'grid', gap: '12px' }}>
+          <div>
+            {/* Header Area with Sub-View Switcher */}
+            <div style={{ marginBottom: '24px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
                 <div>
-                  <label style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 700, display: 'block', marginBottom: '4px' }}>
-                    Document Title:
-                  </label>
-                  <input 
-                    type="text" 
-                    value={docInput.title} 
-                    onChange={e => setDocInput({ ...docInput, title: e.target.value })}
-                    style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', fontSize: '0.85rem' }}
-                  />
+                  <span className="badge badge-verified" style={{ marginBottom: '6px' }}>
+                    PostgreSQL Repository Explorer
+                  </span>
+                  <h1 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-main)', marginTop: '4px' }}>
+                    Document & Atomic Claim Repository
+                  </h1>
+                  <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', marginTop: '4px' }}>
+                    Ingest raw organizational policies, normalize markdown structure, and inspect live atomic facts stored in PostgreSQL.
+                  </p>
                 </div>
 
-                <div>
-                  <label style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 700, display: 'block', marginBottom: '4px' }}>
-                    Document Type:
-                  </label>
-                  <select 
-                    value={docInput.docType} 
-                    onChange={e => setDocInput({ ...docInput, docType: e.target.value })}
-                    style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', fontSize: '0.85rem' }}
+                {/* Sub-View Switcher */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <div className="scenario-bar">
+                    <button 
+                      onClick={() => setDocExplorerView('ingest')}
+                      className={`scenario-btn ${docExplorerView === 'ingest' ? 'scenario-btn-active' : ''}`}
+                    >
+                      Ingest New Document
+                    </button>
+                    <button 
+                      onClick={() => { setDocExplorerView('documents'); fetchLiveDatabaseRecords(); }}
+                      className={`scenario-btn ${docExplorerView === 'documents' ? 'scenario-btn-active' : ''}`}
+                    >
+                      Stored Documents ({dbDocuments.length})
+                    </button>
+                    <button 
+                      onClick={() => { setDocExplorerView('claims'); fetchLiveDatabaseRecords(); }}
+                      className={`scenario-btn ${docExplorerView === 'claims' ? 'scenario-btn-active' : ''}`}
+                    >
+                      Atomic Claims ({dbClaims.length})
+                    </button>
+                  </div>
+
+                  <button 
+                    onClick={fetchLiveDatabaseRecords} 
+                    className="btn btn-secondary" 
+                    style={{ padding: '6px 12px', fontSize: '0.8rem' }}
+                    title="Refresh database records"
                   >
-                    <option value="policy">Enterprise Policy</option>
-                    <option value="confluence_page">Confluence Article</option>
-                    <option value="handbook">Employee Handbook</option>
-                    <option value="runbook">DevOps Runbook</option>
-                  </select>
+                    {dbLoading ? "Loading..." : "Refresh"}
+                  </button>
                 </div>
-
-                <div>
-                  <label style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 700, display: 'block', marginBottom: '4px' }}>
-                    Raw Markdown Content:
-                  </label>
-                  <textarea 
-                    rows={7}
-                    value={docInput.content} 
-                    onChange={e => setDocInput({ ...docInput, content: e.target.value })}
-                    style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', fontFamily: 'var(--font-mono)', fontSize: '0.8rem' }}
-                  />
-                </div>
-
-                <button 
-                  onClick={handleIngestDocument} 
-                  disabled={ingesting}
-                  className="btn btn-primary" 
-                  style={{ width: '100%', padding: '11px' }}
-                >
-                  {ingesting ? <RefreshCw className="pulse-glow" size={17} /> : <FileText size={17} />}
-                  {ingesting ? "Normalizing & Extracting Claims..." : "Ingest Document"}
-                </button>
               </div>
             </div>
 
-            {/* Extracted Claims & Provenance Spans */}
-            <div className="glass-panel" style={{ padding: '22px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--primary-900)' }}>
-                  Extracted Atomic Claims ({extractedClaims.length})
-                </h3>
-                {ingestedDoc && (
-                  <span className="code-pill">SHA-256: {ingestedDoc.document?.content_hash?.substring(0, 16)}...</span>
+            {/* VIEW 1: INGEST NEW DOCUMENT */}
+            {docExplorerView === 'ingest' && (
+              <div style={{ display: 'grid', gridTemplateColumns: '400px 1fr', gap: '20px' }}>
+                
+                {/* Ingest Form */}
+                <div className="clean-panel" style={{ padding: '20px' }}>
+                  <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '14px' }}>
+                    Ingest & Normalize Document
+                  </h3>
+
+                  <div style={{ display: 'grid', gap: '14px' }}>
+                    
+                    {/* Drag and Drop File Upload Zone */}
+                    <div
+                      onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                      onDragLeave={() => setIsDragging(false)}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        setIsDragging(false);
+                        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                          handleProcessFile(e.dataTransfer.files[0]);
+                        }
+                      }}
+                      onClick={() => fileInputRef.current?.click()}
+                      style={{
+                        border: isDragging ? '2px dashed var(--primary)' : '1px dashed var(--border-medium)',
+                        background: isDragging ? 'var(--primary-50)' : 'var(--bg-card-subtle)',
+                        borderRadius: '8px',
+                        padding: '16px 14px',
+                        textAlign: 'center',
+                        cursor: 'pointer',
+                        transition: 'all 0.15s ease'
+                      }}
+                    >
+                      <input
+                        type="file"
+                        ref={fileInputRef}
+                        accept=".txt,.md,.json,.csv,.pdf,.docx,.doc"
+                        style={{ display: 'none' }}
+                        onChange={(e) => {
+                          if (e.target.files && e.target.files[0]) {
+                            handleProcessFile(e.target.files[0]);
+                          }
+                        }}
+                      />
+                      {uploadedFile ? (
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                          <div style={{ textAlign: 'left' }}>
+                            <div style={{ fontSize: '0.825rem', fontWeight: 700, color: 'var(--primary)' }}>
+                              {uploadedFile.name}
+                            </div>
+                            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                              {(uploadedFile.size / 1024).toFixed(1)} KB • Click to choose a different file
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setUploadedFile(null);
+                              if (fileInputRef.current) fileInputRef.current.value = '';
+                            }}
+                            className="badge badge-outdated"
+                            style={{ cursor: 'pointer', border: '1px solid var(--border-subtle)', textDecoration: 'none' }}
+                          >
+                            Clear
+                          </button>
+                        </div>
+                      ) : (
+                        <div>
+                          <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-main)' }}>
+                            Drag & drop a file here, or click to browse
+                          </div>
+                          <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '3px' }}>
+                            Supports .pdf, .docx, .txt, .md, .json, .csv
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    <div>
+                      <label style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 700, display: 'block', marginBottom: '4px' }}>
+                        Document Title:
+                      </label>
+                      <input 
+                        type="text" 
+                        value={docInput.title} 
+                        onChange={e => setDocInput({ ...docInput, title: e.target.value })}
+                        style={{ width: '100%', padding: '8px 10px', fontSize: '0.85rem' }}
+                      />
+                    </div>
+
+                    <div>
+                      <label style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 700, display: 'block', marginBottom: '4px' }}>
+                        Document Type:
+                      </label>
+                      <select 
+                        value={docInput.docType} 
+                        onChange={e => setDocInput({ ...docInput, docType: e.target.value })}
+                        style={{ width: '100%', padding: '8px 10px', fontSize: '0.85rem' }}
+                      >
+                        <option value="policy">Enterprise Policy</option>
+                        <option value="confluence_page">Confluence Article</option>
+                        <option value="handbook">Employee Handbook</option>
+                        <option value="runbook">DevOps Runbook</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 700, display: 'block', marginBottom: '4px' }}>
+                        Raw Markdown Content:
+                      </label>
+                      <textarea 
+                        rows={6}
+                        value={docInput.content} 
+                        onChange={e => setDocInput({ ...docInput, content: e.target.value })}
+                        style={{ width: '100%', padding: '8px 10px', fontFamily: 'var(--font-mono)', fontSize: '0.78rem' }}
+                      />
+                    </div>
+
+                    <button 
+                      onClick={handleIngestDocument} 
+                      disabled={ingesting}
+                      className="btn btn-primary" 
+                      style={{ width: '100%', padding: '10px' }}
+                    >
+                      {ingesting ? "Extracting Claims..." : "Ingest Document"}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Extracted Claims */}
+                <div className="clean-panel" style={{ padding: '20px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+                    <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-main)' }}>
+                      Extracted Atomic Claims ({extractedClaims.length})
+                    </h3>
+                    {ingestedDoc && (
+                      <span className="code-pill">SHA-256: {ingestedDoc.document?.content_hash?.substring(0, 16)}...</span>
+                    )}
+                  </div>
+
+                  {extractedClaims.length === 0 ? (
+                    <div style={{ padding: '48px 20px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                      <p style={{ fontSize: '0.825rem' }}>Ingest a document on the left to extract Subject-Predicate-Object claims with multi-factor trust ratings.</p>
+                    </div>
+                  ) : (
+                    <div style={{ display: 'grid', gap: '10px' }}>
+                      {extractedClaims.map((claim, idx) => (
+                        <div key={claim.id || idx} style={{ background: '#FFFFFF', border: '1px solid var(--border-subtle)', padding: '12px', borderRadius: '8px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                            <div style={{ display: 'flex', gap: '6px' }}>
+                              <span className="code-pill">Subject: {claim.subject || 'N/A'}</span>
+                              <span className="code-pill">Predicate: {claim.predicate || 'N/A'}</span>
+                            </div>
+                            <span className={`badge ${claim.status === 'verified' ? 'badge-allow' : 'badge-review'}`}>
+                              {claim.status}
+                            </span>
+                          </div>
+
+                          <p style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-main)', lineHeight: '1.4' }}>
+                            "{claim.claim_text}"
+                          </p>
+
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '8px', paddingTop: '6px', borderTop: '1px solid var(--border-subtle)', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                            <span>Section: {claim.evidence?.[0]?.section || 'General'}</span>
+                            <span>Trust Score: <strong style={{ color: 'var(--success-text)' }}>{claim.trust_scores?.[0]?.overall_score || '0.95'}</strong></span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* VIEW 2: STORED DOCUMENTS BROWSER */}
+            {docExplorerView === 'documents' && (
+              <div className="clean-panel" style={{ padding: '20px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
+                  <div style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--text-main)' }}>
+                    Documents in PostgreSQL ({dbDocuments.length})
+                  </div>
+                  <input 
+                    type="text"
+                    placeholder="Search documents by title or external ID..."
+                    value={dbSearchQuery}
+                    onChange={e => setDbSearchQuery(e.target.value)}
+                    style={{ padding: '6px 12px', fontSize: '0.8rem', width: '320px' }}
+                  />
+                </div>
+
+                {dbDocuments.length === 0 ? (
+                  <div style={{ padding: '40px 20px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                    No documents stored yet. Switch to "Ingest New Document" tab to add your first policy.
+                  </div>
+                ) : (
+                  <div style={{ display: 'grid', gap: '12px' }}>
+                    {dbDocuments
+                      .filter(d => 
+                        !dbSearchQuery || 
+                        d.title?.toLowerCase().includes(dbSearchQuery.toLowerCase()) || 
+                        d.external_id?.toLowerCase().includes(dbSearchQuery.toLowerCase())
+                      )
+                      .map((doc, idx) => (
+                        <div key={doc.id || idx} style={{ background: '#FFFFFF', border: '1px solid var(--border-subtle)', padding: '16px', borderRadius: '8px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+                            <div>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <span style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--text-main)' }}>
+                                  {doc.title}
+                                </span>
+                                <span className="badge badge-verified">
+                                  {doc.document_type || 'policy'}
+                                </span>
+                                <span className="badge badge-allow">
+                                  {doc.status || 'active'}
+                                </span>
+                              </div>
+                              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+                                External ID: <span className="code-pill">{doc.external_id || 'N/A'}</span> • Created: {new Date(doc.created_at).toLocaleDateString()}
+                              </div>
+                            </div>
+                            <span className="code-pill" style={{ fontSize: '0.7rem' }}>
+                              ID: {doc.id?.substring(0, 8)}...
+                            </span>
+                          </div>
+
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px', paddingTop: '8px', borderTop: '1px solid var(--border-subtle)', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                            <span>SHA-256 Hash: <code style={{ color: 'var(--text-secondary)' }}>{doc.content_hash?.substring(0, 24)}...</code></span>
+                            <span>Versions Count: <strong style={{ color: 'var(--primary)' }}>{doc.versions?.length || 1}</strong></span>
+                          </div>
+                        </div>
+                      ))}
+                  </div>
                 )}
               </div>
+            )}
 
-              {extractedClaims.length === 0 ? (
-                <div style={{ padding: '60px 20px', textAlign: 'center', color: 'var(--text-muted)' }}>
-                  <Compass size={36} color="var(--primary-400)" style={{ margin: '0 auto 8px' }} />
-                  <p style={{ fontSize: '0.85rem' }}>Ingest a document on the left to extract Subject-Predicate-Object claims with multi-factor trust ratings.</p>
-                </div>
-              ) : (
-                <div style={{ display: 'grid', gap: '12px' }}>
-                  {extractedClaims.map((claim, idx) => (
-                    <div key={claim.id || idx} style={{ background: '#FFFFFF', border: '1px solid var(--border-blue)', padding: '14px', borderRadius: '10px', boxShadow: '0 1px 3px rgba(37,99,235,0.04)' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                        <div style={{ display: 'flex', gap: '6px' }}>
-                          <span className="code-pill">Subject: {claim.subject || 'N/A'}</span>
-                          <span className="code-pill">Predicate: {claim.predicate || 'N/A'}</span>
-                        </div>
-                        <span className={`badge ${claim.status === 'verified' ? 'badge-allow' : 'badge-review'}`}>
-                          {claim.status}
-                        </span>
-                      </div>
-
-                      <p style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-main)', lineHeight: '1.4' }}>
-                        "{claim.claim_text}"
-                      </p>
-
-                      {/* Evidence Spans & Trust Score */}
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px', paddingTop: '8px', borderTop: '1px solid var(--border-subtle)', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                        <div>
-                          Section: <strong style={{ color: 'var(--text-secondary)' }}>{claim.evidence?.[0]?.section || 'General'}</strong> (Offset {claim.evidence?.[0]?.start_offset}-{claim.evidence?.[0]?.end_offset})
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <span>Trust Score:</span>
-                          <strong style={{ color: 'var(--success-text)', fontSize: '0.85rem' }}>
-                            {claim.trust_scores?.[0]?.overall_score || '0.95'}
-                          </strong>
-                        </div>
-                      </div>
+            {/* VIEW 3: ATOMIC CLAIMS BROWSER */}
+            {docExplorerView === 'claims' && (
+              <div className="clean-panel" style={{ padding: '20px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--text-main)' }}>
+                      Atomic Claims ({dbClaims.length})
+                    </span>
+                    <div className="scenario-bar">
+                      <button 
+                        onClick={() => setClaimFilterStatus('all')}
+                        className={`scenario-btn ${claimFilterStatus === 'all' ? 'scenario-btn-active' : ''}`}
+                      >
+                        All ({dbClaims.length})
+                      </button>
+                      <button 
+                        onClick={() => setClaimFilterStatus('verified')}
+                        className={`scenario-btn ${claimFilterStatus === 'verified' ? 'scenario-btn-active' : ''}`}
+                      >
+                        Verified
+                      </button>
+                      <button 
+                        onClick={() => setClaimFilterStatus('outdated')}
+                        className={`scenario-btn ${claimFilterStatus === 'outdated' ? 'scenario-btn-active' : ''}`}
+                      >
+                        Outdated
+                      </button>
+                      <button 
+                        onClick={() => setClaimFilterStatus('conflicted')}
+                        className={`scenario-btn ${claimFilterStatus === 'conflicted' ? 'scenario-btn-active' : ''}`}
+                      >
+                        Conflicted
+                      </button>
                     </div>
-                  ))}
+                  </div>
+
+                  <input 
+                    type="text"
+                    placeholder="Search claims by keyword, subject, or predicate..."
+                    value={dbSearchQuery}
+                    onChange={e => setDbSearchQuery(e.target.value)}
+                    style={{ padding: '6px 12px', fontSize: '0.8rem', width: '280px' }}
+                  />
                 </div>
-              )}
-            </div>
+
+                {dbClaims.length === 0 ? (
+                  <div style={{ padding: '40px 20px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                    No claims stored in database yet.
+                  </div>
+                ) : (
+                  <div style={{ display: 'grid', gap: '12px' }}>
+                    {dbClaims
+                      .filter(c => claimFilterStatus === 'all' || c.status?.toLowerCase() === claimFilterStatus)
+                      .filter(c => 
+                        !dbSearchQuery || 
+                        c.claim_text?.toLowerCase().includes(dbSearchQuery.toLowerCase()) || 
+                        c.subject?.toLowerCase().includes(dbSearchQuery.toLowerCase()) ||
+                        c.predicate?.toLowerCase().includes(dbSearchQuery.toLowerCase())
+                      )
+                      .map((claim, idx) => {
+                        const score = claim.trust_scores?.[0]?.overall_score || claim.trust_scores?.[0]?.source_score || 0.95;
+                        const validity = claim.validity_records?.[0]?.validity_status || 'valid';
+                        return (
+                          <div key={claim.id || idx} style={{ background: '#FFFFFF', border: '1px solid var(--border-subtle)', padding: '14px', borderRadius: '8px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                              <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                                <span className="code-pill">Subject: {claim.subject || 'General'}</span>
+                                <span className="code-pill">Predicate: {claim.predicate || 'specifies'}</span>
+                                {claim.object && <span className="code-pill">Object: {claim.object}</span>}
+                              </div>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <span className={`badge ${claim.status === 'verified' ? 'badge-allow' : claim.status === 'outdated' ? 'badge-outdated' : 'badge-review'}`}>
+                                  {claim.status}
+                                </span>
+                                <span className="badge badge-verified">
+                                  Trust: {(Number(score) * 100).toFixed(0)}%
+                                </span>
+                              </div>
+                            </div>
+
+                            <p style={{ fontSize: '0.875rem', fontWeight: 600, color: claim.status === 'outdated' ? 'var(--text-muted)' : 'var(--text-main)', lineHeight: '1.4' }}>
+                              "{claim.claim_text}"
+                            </p>
+
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '8px', paddingTop: '6px', borderTop: '1px solid var(--border-subtle)', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                              <span>Section: {claim.evidence?.[0]?.section || 'General'}</span>
+                              <span>Validity: <strong style={{ color: validity === 'valid' ? 'var(--success-text)' : 'var(--danger-text)' }}>{validity.toUpperCase()}</strong></span>
+                              <span>ID: <code style={{ color: 'var(--text-secondary)' }}>{claim.id?.substring(0, 8)}</code></span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
       </main>
-
-      {/* Footer */}
-      <footer style={{ borderTop: '1px solid var(--border-subtle)', background: '#FFFFFF', padding: '16px 32px', textAlign: 'center', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-        Context Trust Layer • Enterprise AI Governance & Evidence Validity Gate • Blueprint v1.0
-      </footer>
     </div>
   );
 }
+

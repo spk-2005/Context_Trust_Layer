@@ -53,8 +53,12 @@ class ConflictRepository(BaseRepository[ClaimConflict]):
                 Claim.organization_id == organization_id
             )
         stmt = stmt.offset(offset).limit(limit).options(
-            selectinload(ClaimConflict.claim_a),
-            selectinload(ClaimConflict.claim_b),
+            selectinload(ClaimConflict.claim_a).selectinload(Claim.validity_records),
+            selectinload(ClaimConflict.claim_a).selectinload(Claim.trust_scores),
+            selectinload(ClaimConflict.claim_a).selectinload(Claim.evidence),
+            selectinload(ClaimConflict.claim_b).selectinload(Claim.validity_records),
+            selectinload(ClaimConflict.claim_b).selectinload(Claim.trust_scores),
+            selectinload(ClaimConflict.claim_b).selectinload(Claim.evidence),
         )
         result = await self.session.execute(stmt)
         return result.scalars().all()

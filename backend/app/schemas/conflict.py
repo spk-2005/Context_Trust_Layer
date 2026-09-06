@@ -4,6 +4,7 @@ from datetime import datetime
 from pydantic import BaseModel, ConfigDict
 
 from app.db.enums import ConflictStatus, ReviewDecision
+from app.schemas.claim import ClaimResponse
 
 
 class ConflictResolveRequest(BaseModel):
@@ -25,5 +26,7 @@ class ConflictResponse(BaseModel):
     resolved_by: uuid.UUID | None = None
     resolved_at: datetime | None = None
     created_at: datetime
+    claim_a: ClaimResponse | None = None
+    claim_b: ClaimResponse | None = None
 
     model_config = ConfigDict(from_attributes=True)
