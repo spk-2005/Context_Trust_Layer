@@ -56,8 +56,11 @@ class DocumentNormalizer:
         if not raw_text:
             return ""
 
+        # 0. Strip null bytes (PostgreSQL UTF-8 restriction)
+        text = raw_text.replace("\x00", "")
+
         # 1. Unicode normalization (NFKC)
-        text = unicodedata.normalize("NFKC", raw_text)
+        text = unicodedata.normalize("NFKC", text)
 
         # 2. Normalize carriage returns / line feeds
         text = text.replace("\r\n", "\n").replace("\r", "\n")
@@ -73,7 +76,8 @@ class DocumentNormalizer:
     @staticmethod
     def compute_content_hash(content: str) -> str:
         """SHA-256 deterministic hash helper for downstream content_hash matching DB schema."""
-        return hashlib.sha256(content.encode("utf-8")).hexdigest()
+        sanitized = content.replace("\x00", "") if content else ""
+        return hashlib.sha256(sanitized.encode("utf-8")).hexdigest()
 
     @staticmethod
     def parse_sections(raw_text: str) -> list[DocumentSection]:
@@ -172,10 +176,10 @@ class DocumentNormalizer:
 
         sanitized_metadata = build_metadata(extra_metadata=merged_metadata)
 
-        cleaned_title = title.strip() if title else ""
+        cleaned_title = title.replace("\x00", "").strip() if title else ""
         cleaned_content = self.clean_text(actual_content)
 
-        sections = self.parse_sections(actual_content)
+        sections = self.parse_sections(cleaned_content)
         total_chars = len(cleaned_content)
         total_words = len(cleaned_content.split()) if cleaned_content else 0
 
@@ -183,17 +187,20 @@ class DocumentNormalizer:
             document_type.value
             if isinstance(document_type, DocumentType)
             else str(document_type).lower().strip()
-        )
+        ).replace("\x00", "")
+
+        cleaned_external_id = external_id.replace("\x00", "").strip() if external_id else None
+        cleaned_author = author.replace("\x00", "").strip() if author else None
 
         doc = NormalizedDocument(
             id=actual_id,
             organization_id=actual_org_id,
             source_id=actual_source_id,
-            external_id=external_id.strip() if external_id else None,
+            external_id=cleaned_external_id,
             document_type=doc_type_str,
             title=cleaned_title,
             content=cleaned_content,
-            author=author.strip() if author else None,
+            author=cleaned_author,
             created_at=created_at,
             updated_at=updated_at,
             metadata=sanitized_metadata,
