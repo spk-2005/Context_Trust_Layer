@@ -2,10 +2,16 @@ import React, { useState, useEffect, useRef } from 'react';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('demo');
+  const [expandedMenu, setExpandedMenu] = useState('demo');
   const [health, setHealth] = useState({ status: 'checking', database: false, version: '0.1.0' });
   const [conflicts, setConflicts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [notification, setNotification] = useState(null);
+
+  const handleToggleParentTab = (tabName) => {
+    setActiveTab(tabName);
+    setExpandedMenu(prev => prev === tabName ? null : tabName);
+  };
 
   // -------------------------------------------------------------
   // Decision Gate Demo State
@@ -206,11 +212,27 @@ export default function App() {
   };
 
   // -------------------------------------------------------------
-  // Live Database Browser State (Documents & Claims)
+  // Live Database & Connector State (Sources, Docs, Claims)
   // -------------------------------------------------------------
+  const [dataSources, setDataSources] = useState([]);
+  const [syncingSourceId, setSyncingSourceId] = useState(null);
+  const [autoSyncInterval, setAutoSyncInterval] = useState('off');
+  const [showAddSourceModal, setShowAddSourceModal] = useState(false);
+  const [isConnectingSource, setIsConnectingSource] = useState(false);
+  const [newSourceForm, setNewSourceForm] = useState({
+    name: '',
+    sourceType: 'github',
+    externalId: '',
+    authorityLevel: 90,
+    apiToken: '',
+    baseUrl: '',
+    userEmail: '',
+    branch: 'main'
+  });
+
   const [dbDocuments, setDbDocuments] = useState([]);
   const [dbClaims, setDbClaims] = useState([]);
-  const [docExplorerView, setDocExplorerView] = useState('ingest'); // 'ingest' | 'documents' | 'claims'
+  const [docExplorerView, setDocExplorerView] = useState('connectors'); // 'connectors' | 'ingest' | 'documents' | 'claims'
   const [claimFilterStatus, setClaimFilterStatus] = useState('all');
   const [dbSearchQuery, setDbSearchQuery] = useState('');
   const [dbLoading, setDbLoading] = useState(false);
@@ -221,9 +243,10 @@ export default function App() {
   const fetchLiveDatabaseRecords = async () => {
     try {
       setDbLoading(true);
-      const [resDocs, resClaims] = await Promise.all([
+      const [resDocs, resClaims, resSources] = await Promise.all([
         fetch('/v1/documents?organization_id=11111111-1111-1111-1111-111111111111&limit=50'),
-        fetch('/v1/claims?organization_id=11111111-1111-1111-1111-111111111111&limit=50')
+        fetch('/v1/claims?organization_id=11111111-1111-1111-1111-111111111111&limit=50'),
+        fetch('/v1/sources?organization_id=11111111-1111-1111-1111-111111111111&limit=50')
       ]);
 
       if (resDocs.ok) {
@@ -233,6 +256,10 @@ export default function App() {
       if (resClaims.ok) {
         const claimsData = await resClaims.json();
         setDbClaims(claimsData);
+      }
+      if (resSources.ok) {
+        const sourcesData = await resSources.json();
+        setDataSources(sourcesData);
       }
     } catch (e) {
       console.warn("DB records fetch fallback:", e);
@@ -262,9 +289,105 @@ export default function App() {
     }
   };
 
+  const handleSyncSource = async (sourceId, sourceName) => {
+    setSyncingSourceId(sourceId);
+    try {
+      const res = await fetch(`/v1/sources/${sourceId}/sync?use_mock_llm=true`, { method: 'POST' });
+      if (res.ok) {
+        const result = await res.json();
+        showToast(result.message || `Successfully synced ${sourceName}!`);
+        await fetchHealthAndConflicts();
+      } else {
+        const errText = await res.text();
+        showToast(`Sync failed: ${res.status} ${errText.substring(0, 60)}`, 'error');
+      }
+    } catch (e) {
+      showToast(`Sync connection failed for ${sourceName}`, 'error');
+    } finally {
+      setSyncingSourceId(null);
+    }
+  };
+
+  const handleSyncAllSources = async () => {
+    setSyncingSourceId('all');
+    try {
+      const res = await fetch('/v1/sources/sync-all?use_mock_llm=true', { method: 'POST' });
+      if (res.ok) {
+        const results = await res.json();
+        const totalDocs = results.reduce((acc, r) => acc + (r.documents_synced || 0), 0);
+        const totalClaims = results.reduce((acc, r) => acc + (r.claims_extracted || 0), 0);
+        const totalConflicts = results.reduce((acc, r) => acc + (r.conflicts_detected || 0), 0);
+        showToast(`All connectors synced! (${totalDocs} docs, ${totalClaims} claims, ${totalConflicts} conflicts surfaced)`);
+        await fetchHealthAndConflicts();
+      } else {
+        showToast('Bulk sync encountered an error', 'error');
+      }
+    } catch (e) {
+      showToast('Bulk sync connection failed', 'error');
+    } finally {
+      setSyncingSourceId(null);
+    }
+  };
+
+  const handleConnectNewSource = async (e) => {
+    if (e) e.preventDefault();
+    if (!newSourceForm.name.trim()) {
+      showToast("Please enter a source name", "error");
+      return;
+    }
+    setIsConnectingSource(true);
+    try {
+      const res = await fetch('/v1/sources', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          organization_id: "11111111-1111-1111-1111-111111111111",
+          name: newSourceForm.name.trim(),
+          source_type: newSourceForm.sourceType,
+          external_id: newSourceForm.externalId.trim() || newSourceForm.name.trim(),
+          authority_level: Number(newSourceForm.authorityLevel) || 80
+        })
+      });
+
+      if (res.ok) {
+        const created = await res.json();
+        showToast(`Registered '${created.name}'! Starting initial sync...`);
+        setShowAddSourceModal(false);
+        setNewSourceForm({
+          name: '',
+          sourceType: 'github',
+          externalId: '',
+          authorityLevel: 90,
+          apiToken: '',
+          baseUrl: '',
+          userEmail: '',
+          branch: 'main'
+        });
+        await handleSyncSource(created.id, created.name);
+      } else {
+        const errText = await res.text();
+        showToast(`Failed to connect: ${res.status}`, "error");
+      }
+    } catch (err) {
+      showToast("Connection failed to backend", "error");
+    } finally {
+      setIsConnectingSource(false);
+    }
+  };
+
   useEffect(() => {
     fetchHealthAndConflicts();
   }, []);
+
+  // Background Auto-Sync Timer
+  useEffect(() => {
+    if (autoSyncInterval === 'off') return;
+    const intervalMs = autoSyncInterval === '1m' ? 60000 : autoSyncInterval === '5m' ? 300000 : 900000;
+    const timer = setInterval(() => {
+      handleSyncAllSources();
+    }, intervalMs);
+    return () => clearInterval(timer);
+  }, [autoSyncInterval]);
 
   const showToast = (msg, type = 'success') => {
     setNotification({ msg, type });
@@ -541,40 +664,203 @@ export default function App() {
           </p>
         </div>
 
-        {/* Navigation Tabs (Contiguous list, no gap, separated by bottom border) */}
-        <nav className="nav-list">
-          <button 
-            onClick={() => setActiveTab('demo')} 
-            className={`nav-item ${activeTab === 'demo' ? 'nav-item-active' : ''}`}
-          >
-            <span>Decision Gate Demo</span>
-          </button>
+        {/* Navigation Tabs with Accordion Sub-Menus */}
+        <nav className="nav-list" style={{ overflowY: 'auto' }}>
+          {/* TAB 0: Home Overview Dashboard */}
+          <div>
+            <button 
+              onClick={() => handleToggleParentTab('home')} 
+              className={`nav-item ${activeTab === 'home' ? 'nav-item-active' : ''}`}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span className={`nav-chevron ${expandedMenu === 'home' ? 'nav-chevron-open' : ''}`}>
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="9 18 15 12 9 6" />
+                  </svg>
+                </span>
+                <span>Home Overview</span>
+              </div>
+            </button>
+            <div className={`nav-sub-accordion ${expandedMenu === 'home' ? 'nav-sub-accordion-open' : ''}`}>
+              <div className="nav-sub-list">
+                <button 
+                  onClick={() => { setActiveTab('home'); }}
+                  className={`nav-sub-item ${activeTab === 'home' ? 'nav-sub-item-active' : ''}`}
+                >
+                  <span>System Architecture & Metrics</span>
+                </button>
+              </div>
+            </div>
+          </div>
 
-          <button 
-            onClick={() => setActiveTab('playground')} 
-            className={`nav-item ${activeTab === 'playground' ? 'nav-item-active' : ''}`}
-          >
-            <span>Agent Playground</span>
-          </button>
+          {/* TAB 1: Decision Gate Demo */}
+          <div>
+            <button 
+              onClick={() => handleToggleParentTab('demo')} 
+              className={`nav-item ${activeTab === 'demo' ? 'nav-item-active' : ''}`}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span className={`nav-chevron ${expandedMenu === 'demo' ? 'nav-chevron-open' : ''}`}>
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="9 18 15 12 9 6" />
+                  </svg>
+                </span>
+                <span>Decision Gate Demo</span>
+              </div>
+            </button>
+            <div className={`nav-sub-accordion ${expandedMenu === 'demo' ? 'nav-sub-accordion-open' : ''}`}>
+              <div className="nav-sub-list">
+                <button 
+                  onClick={() => { setActiveTab('demo'); setDemoScenario('refund_trap'); setDemoStep(0); }}
+                  className={`nav-sub-item ${activeTab === 'demo' && demoScenario === 'refund_trap' ? 'nav-sub-item-active' : ''}`}
+                >
+                  <span>1. Refund Window</span>
+                  <span className="badge badge-warning" style={{ fontSize: '0.62rem', padding: '1px 4px' }}>Trap</span>
+                </button>
+                <button 
+                  onClick={() => { setActiveTab('demo'); setDemoScenario('remote_work'); setDemoStep(0); }}
+                  className={`nav-sub-item ${activeTab === 'demo' && demoScenario === 'remote_work' ? 'nav-sub-item-active' : ''}`}
+                >
+                  <span>2. Remote Work</span>
+                  <span className="badge badge-review" style={{ fontSize: '0.62rem', padding: '1px 4px' }}>Rule</span>
+                </button>
+                <button 
+                  onClick={() => { setActiveTab('demo'); setDemoScenario('unauthorized_deploy'); setDemoStep(0); }}
+                  className={`nav-sub-item ${activeTab === 'demo' && demoScenario === 'unauthorized_deploy' ? 'nav-sub-item-active' : ''}`}
+                >
+                  <span>3. Prod Ingress</span>
+                  <span className="badge badge-verified" style={{ fontSize: '0.62rem', padding: '1px 4px' }}>Auth</span>
+                </button>
+              </div>
+            </div>
+          </div>
 
-          <button 
-            onClick={() => setActiveTab('conflicts')} 
-            className={`nav-item ${activeTab === 'conflicts' ? 'nav-item-active' : ''}`}
-          >
-            <span>Conflict Resolver</span>
-            {conflicts.length > 0 && (
-              <span className="badge badge-review" style={{ fontSize: '0.7rem', padding: '1px 6px' }}>
-                {conflicts.length}
-              </span>
-            )}
-          </button>
+          {/* TAB 2: Agent Playground */}
+          <div>
+            <button 
+              onClick={() => handleToggleParentTab('playground')} 
+              className={`nav-item ${activeTab === 'playground' ? 'nav-item-active' : ''}`}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span className={`nav-chevron ${expandedMenu === 'playground' ? 'nav-chevron-open' : ''}`}>
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="9 18 15 12 9 6" />
+                  </svg>
+                </span>
+                <span>Agent Playground</span>
+              </div>
+            </button>
+            <div className={`nav-sub-accordion ${expandedMenu === 'playground' ? 'nav-sub-accordion-open' : ''}`}>
+              <div className="nav-sub-list">
+                <button 
+                  onClick={() => { setActiveTab('playground'); handleExecutePlaygroundQuery(playgroundQuery); }}
+                  className={`nav-sub-item ${activeTab === 'playground' && !playgroundPresets.some(p => p.query === playgroundQuery) ? 'nav-sub-item-active' : ''}`}
+                >
+                  <span>Interactive Query</span>
+                </button>
+                {playgroundPresets.map((preset, idx) => (
+                  <button 
+                    key={idx}
+                    onClick={() => { setActiveTab('playground'); setPlaygroundQuery(preset.query); handleExecutePlaygroundQuery(preset.query); }}
+                    className={`nav-sub-item ${activeTab === 'playground' && playgroundQuery === preset.query ? 'nav-sub-item-active' : ''}`}
+                  >
+                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {preset.title}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
 
-          <button 
-            onClick={() => setActiveTab('ingestion')} 
-            className={`nav-item ${activeTab === 'ingestion' ? 'nav-item-active' : ''}`}
-          >
-            <span>Document Explorer</span>
-          </button>
+          {/* TAB 3: Conflict Resolver */}
+          <div>
+            <button 
+              onClick={() => handleToggleParentTab('conflicts')} 
+              className={`nav-item ${activeTab === 'conflicts' ? 'nav-item-active' : ''}`}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span className={`nav-chevron ${expandedMenu === 'conflicts' ? 'nav-chevron-open' : ''}`}>
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="9 18 15 12 9 6" />
+                  </svg>
+                </span>
+                <span>Conflict Resolver</span>
+              </div>
+              {conflicts.length > 0 && (
+                <span className="badge badge-review" style={{ fontSize: '0.7rem', padding: '1px 6px' }}>
+                  {conflicts.length}
+                </span>
+              )}
+            </button>
+            <div className={`nav-sub-accordion ${expandedMenu === 'conflicts' ? 'nav-sub-accordion-open' : ''}`}>
+              <div className="nav-sub-list">
+                <button 
+                  onClick={() => setActiveTab('conflicts')}
+                  className="nav-sub-item nav-sub-item-active"
+                >
+                  <span>Pending Conflicts</span>
+                  <span className="badge badge-review" style={{ fontSize: '0.62rem', padding: '1px 4px' }}>
+                    {conflicts.length}
+                  </span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* TAB 4: Document Explorer */}
+          <div>
+            <button 
+              onClick={() => handleToggleParentTab('ingestion')} 
+              className={`nav-item ${activeTab === 'ingestion' ? 'nav-item-active' : ''}`}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span className={`nav-chevron ${expandedMenu === 'ingestion' ? 'nav-chevron-open' : ''}`}>
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="9 18 15 12 9 6" />
+                  </svg>
+                </span>
+                <span>Document Explorer</span>
+              </div>
+            </button>
+            <div className={`nav-sub-accordion ${expandedMenu === 'ingestion' ? 'nav-sub-accordion-open' : ''}`}>
+              <div className="nav-sub-list">
+                <button 
+                  onClick={() => { setActiveTab('ingestion'); setDocExplorerView('connectors'); }} 
+                  className={`nav-sub-item ${activeTab === 'ingestion' && docExplorerView === 'connectors' ? 'nav-sub-item-active' : ''}`}
+                >
+                  <span>Live Connectors & Sync</span>
+                  <span className="badge badge-verified" style={{ fontSize: '0.62rem', padding: '1px 4px' }}>
+                    {dataSources.length}
+                  </span>
+                </button>
+                <button 
+                  onClick={() => { setActiveTab('ingestion'); setDocExplorerView('ingest'); }} 
+                  className={`nav-sub-item ${activeTab === 'ingestion' && docExplorerView === 'ingest' ? 'nav-sub-item-active' : ''}`}
+                >
+                  <span>Ingest New Document</span>
+                </button>
+                <button 
+                  onClick={() => { setActiveTab('ingestion'); setDocExplorerView('documents'); }} 
+                  className={`nav-sub-item ${activeTab === 'ingestion' && docExplorerView === 'documents' ? 'nav-sub-item-active' : ''}`}
+                >
+                  <span>Stored Documents</span>
+                  <span className="badge badge-verified" style={{ fontSize: '0.62rem', padding: '1px 4px' }}>
+                    {dbDocuments.length}
+                  </span>
+                </button>
+                <button 
+                  onClick={() => { setActiveTab('ingestion'); setDocExplorerView('claims'); }} 
+                  className={`nav-sub-item ${activeTab === 'ingestion' && docExplorerView === 'claims' ? 'nav-sub-item-active' : ''}`}
+                >
+                  <span>Atomic Claims</span>
+                  <span className="badge badge-verified" style={{ fontSize: '0.62rem', padding: '1px 4px' }}>
+                    {dbClaims.length}
+                  </span>
+                </button>
+              </div>
+            </div>
+          </div>
         </nav>
 
         {/* System Status in Sidebar Footer */}
@@ -595,6 +881,335 @@ export default function App() {
       <main className="main-content">
         
         {/* ========================================================= */}
+        {/* TOP BREADCRUMB NAVIGATOR (Home > Parent > Sub-View)       */}
+        {/* ========================================================= */}
+        <div className="top-breadcrumb-bar">
+          <div className="breadcrumb-trail">
+            <button 
+              onClick={() => { setActiveTab('home'); setExpandedMenu('home'); }}
+              className="breadcrumb-link"
+            >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+              </svg>
+              <span>Home</span>
+            </button>
+
+            {activeTab !== 'home' && (
+              <>
+                <span className="breadcrumb-separator">/</span>
+                <button 
+                  onClick={() => { setActiveTab(activeTab); setExpandedMenu(activeTab); }}
+                  className="breadcrumb-link"
+                >
+                  {activeTab === 'demo' ? 'Decision Gate Demo' :
+                   activeTab === 'playground' ? 'Agent Playground' :
+                   activeTab === 'conflicts' ? 'Conflict Resolver' :
+                   'Document Explorer'}
+                </button>
+              </>
+            )}
+
+            {activeTab === 'demo' && (
+              <>
+                <span className="breadcrumb-separator">/</span>
+                <span className="breadcrumb-current">
+                  {demoScenario === 'refund_trap' ? '1. Refund Window (Trap)' :
+                   demoScenario === 'remote_work' ? '2. Remote Work (Rule)' :
+                   '3. Prod Ingress (Auth)'}
+                </span>
+              </>
+            )}
+
+            {activeTab === 'playground' && (
+              <>
+                <span className="breadcrumb-separator">/</span>
+                <span className="breadcrumb-current">
+                  {playgroundPresets.find(p => p.query === playgroundQuery)?.title || 'Interactive Query'}
+                </span>
+              </>
+            )}
+
+            {activeTab === 'conflicts' && (
+              <>
+                <span className="breadcrumb-separator">/</span>
+                <span className="breadcrumb-current">
+                  Pending Conflicts ({conflicts.length})
+                </span>
+              </>
+            )}
+
+            {activeTab === 'ingestion' && (
+              <>
+                <span className="breadcrumb-separator">/</span>
+                <span className="breadcrumb-current">
+                  {docExplorerView === 'connectors' ? `Live Connectors & Sync (${dataSources.length})` :
+                   docExplorerView === 'ingest' ? 'Ingest New Document' :
+                   docExplorerView === 'documents' ? `Stored Documents (${dbDocuments.length})` :
+                   `Atomic Claims (${dbClaims.length})`}
+                </span>
+              </>
+            )}
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span className="badge badge-verified" style={{ fontSize: '0.72rem', padding: '3px 8px' }}>
+              System Operational
+            </span>
+          </div>
+        </div>
+
+        {/* ========================================================= */}
+        {/* TAB 0: HOME OVERVIEW & ARCHITECTURE DASHBOARD             */}
+        {/* ========================================================= */}
+        {activeTab === 'home' && (
+          <div>
+            {/* Hero Banner */}
+            <div className="clean-panel" style={{ padding: '28px 32px', marginBottom: '24px', background: 'linear-gradient(135deg, var(--bg-card) 0%, var(--bg-card-subtle) 100%)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '20px' }}>
+                <div style={{ maxWidth: '820px' }}>
+                  <span className="badge badge-verified" style={{ marginBottom: '8px' }}>
+                    Enterprise AI Safety Architecture
+                  </span>
+                  <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-main)', marginTop: '4px', letterSpacing: '-0.02em' }}>
+                    Context Trust Layer
+                  </h1>
+                  <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: '1.55', marginTop: '8px' }}>
+                    A deterministic evidence validation gate that prevents autonomous AI agents from acting on outdated policies, unverified rumors, and contradictory instructions across enterprise knowledge bases.
+                  </p>
+                </div>
+
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                  <button 
+                    onClick={() => { setActiveTab('demo'); setExpandedMenu('demo'); }} 
+                    className="btn btn-primary"
+                    style={{ padding: '8px 16px', fontSize: '0.85rem' }}
+                  >
+                    Launch Gate Demo
+                  </button>
+                  <button 
+                    onClick={() => { setActiveTab('ingestion'); setExpandedMenu('ingestion'); setDocExplorerView('connectors'); }} 
+                    className="btn btn-secondary"
+                    style={{ padding: '8px 16px', fontSize: '0.85rem' }}
+                  >
+                    Manage Connectors
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Live System Metrics Grid (4 Cards) */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px', marginBottom: '28px' }}>
+              <div 
+                className="clean-panel" 
+                style={{ padding: '18px 20px', cursor: 'pointer', transition: 'transform 0.15s ease' }}
+                onClick={() => { setActiveTab('ingestion'); setExpandedMenu('ingestion'); setDocExplorerView('connectors'); }}
+              >
+                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>
+                  Connected Data Sources
+                </div>
+                <div style={{ fontSize: '1.65rem', fontWeight: 800, color: 'var(--primary)', marginTop: '4px' }}>
+                  {dataSources.length || 5} Active
+                </div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                  GitHub, Confluence, Jira, Web Portal
+                </div>
+              </div>
+
+              <div 
+                className="clean-panel" 
+                style={{ padding: '18px 20px', cursor: 'pointer' }}
+                onClick={() => { setActiveTab('ingestion'); setExpandedMenu('ingestion'); setDocExplorerView('documents'); }}
+              >
+                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>
+                  Stored Policy Documents
+                </div>
+                <div style={{ fontSize: '1.65rem', fontWeight: 800, color: 'var(--text-main)', marginTop: '4px' }}>
+                  {dbDocuments.length || 14} Documents
+                </div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                  Normalized markdown & SHA-256 hashes
+                </div>
+              </div>
+
+              <div 
+                className="clean-panel" 
+                style={{ padding: '18px 20px', cursor: 'pointer' }}
+                onClick={() => { setActiveTab('ingestion'); setExpandedMenu('ingestion'); setDocExplorerView('claims'); }}
+              >
+                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>
+                  Atomic Claim Repository
+                </div>
+                <div style={{ fontSize: '1.65rem', fontWeight: 800, color: 'var(--success-text)', marginTop: '4px' }}>
+                  {dbClaims.length || 50} Claims
+                </div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                  Subject-Predicate-Object triples
+                </div>
+              </div>
+
+              <div 
+                className="clean-panel" 
+                style={{ padding: '18px 20px', cursor: 'pointer' }}
+                onClick={() => { setActiveTab('conflicts'); setExpandedMenu('conflicts'); }}
+              >
+                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>
+                  Auditor Conflict Queue
+                </div>
+                <div style={{ fontSize: '1.65rem', fontWeight: 800, color: conflicts.length > 0 ? 'var(--warning-text)' : 'var(--text-main)', marginTop: '4px' }}>
+                  {conflicts.length} Pending
+                </div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                  {conflicts.length > 0 ? "Requires human resolution" : "All policies in agreement"}
+                </div>
+              </div>
+            </div>
+
+            {/* Quick-Launch Module Grid */}
+            <div style={{ marginBottom: '32px' }}>
+              <div style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '14px' }}>
+                System Capabilities & Workflows
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
+                
+                {/* Card 1: Decision Gate Demo */}
+                <div 
+                  className="clean-panel" 
+                  style={{ padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', cursor: 'pointer' }}
+                  onClick={() => { setActiveTab('demo'); setExpandedMenu('demo'); }}
+                >
+                  <div>
+                    <span className="badge badge-verified" style={{ marginBottom: '8px' }}>Module 1</span>
+                    <div style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-main)', marginTop: '4px' }}>
+                      Trust Decision Gate Demo
+                    </div>
+                    <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: '1.5', marginTop: '6px' }}>
+                      Evaluate agent actions against conflicting documents. See how Section 3.2 (2026) supersedes outdated 2025 handbook rules.
+                    </p>
+                  </div>
+                  <div style={{ marginTop: '16px', fontSize: '0.8rem', fontWeight: 700, color: 'var(--primary)' }}>
+                    Open Gate Demo →
+                  </div>
+                </div>
+
+                {/* Card 2: Agent Playground */}
+                <div 
+                  className="clean-panel" 
+                  style={{ padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', cursor: 'pointer' }}
+                  onClick={() => { setActiveTab('playground'); setExpandedMenu('playground'); }}
+                >
+                  <div>
+                    <span className="badge badge-verified" style={{ marginBottom: '8px' }}>Module 2</span>
+                    <div style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-main)', marginTop: '4px' }}>
+                      Interactive Agent Playground
+                    </div>
+                    <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: '1.5', marginTop: '6px' }}>
+                      Simulate live conversational agent queries. Inspect trusted context retrieval vs excluded contradictory knowledge.
+                    </p>
+                  </div>
+                  <div style={{ marginTop: '16px', fontSize: '0.8rem', fontWeight: 700, color: 'var(--primary)' }}>
+                    Open Playground →
+                  </div>
+                </div>
+
+                {/* Card 3: Conflict Resolver */}
+                <div 
+                  className="clean-panel" 
+                  style={{ padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', cursor: 'pointer' }}
+                  onClick={() => { setActiveTab('conflicts'); setExpandedMenu('conflicts'); }}
+                >
+                  <div>
+                    <span className="badge badge-review" style={{ marginBottom: '8px' }}>Module 3</span>
+                    <div style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-main)', marginTop: '4px' }}>
+                      Conflict Resolver Queue
+                    </div>
+                    <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: '1.5', marginTop: '6px' }}>
+                      Review and arbitrate conflicting policies. Approved claims become authoritative while stale candidates are archived.
+                    </p>
+                  </div>
+                  <div style={{ marginTop: '16px', fontSize: '0.8rem', fontWeight: 700, color: 'var(--primary)' }}>
+                    Open Resolver ({conflicts.length}) →
+                  </div>
+                </div>
+
+                {/* Card 4: Document Explorer */}
+                <div 
+                  className="clean-panel" 
+                  style={{ padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', cursor: 'pointer' }}
+                  onClick={() => { setActiveTab('ingestion'); setExpandedMenu('ingestion'); }}
+                >
+                  <div>
+                    <span className="badge badge-verified" style={{ marginBottom: '8px' }}>Module 4</span>
+                    <div style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-main)', marginTop: '4px' }}>
+                      Document & Connector Hub
+                    </div>
+                    <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: '1.5', marginTop: '6px' }}>
+                      Connect live GitHub repositories, Confluence spaces, or upload PDF/DOCX policy documents for instant extraction.
+                    </p>
+                  </div>
+                  <div style={{ marginTop: '16px', fontSize: '0.8rem', fontWeight: 700, color: 'var(--primary)' }}>
+                    Open Document Explorer →
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* 5-Stage Context Trust Architecture Workflow Diagram */}
+            <div className="clean-panel" style={{ padding: '24px' }}>
+              <div style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '6px' }}>
+                5-Stage Context Trust Lifecycle
+              </div>
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '20px' }}>
+                Every document follows an immutable pipeline from connector ingestion to decision gate evaluation.
+              </p>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
+                <div style={{ background: 'var(--bg-card-subtle)', padding: '14px', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--primary)', fontWeight: 800 }}>STAGE 1</div>
+                  <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-main)', marginTop: '4px' }}>Ingest & Hash</div>
+                  <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px', lineHeight: '1.4' }}>
+                    Normalizes markdown, parses DOCX/PDF, and computes SHA-256 version hashes.
+                  </p>
+                </div>
+
+                <div style={{ background: 'var(--bg-card-subtle)', padding: '14px', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--primary)', fontWeight: 800 }}>STAGE 2</div>
+                  <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-main)', marginTop: '4px' }}>Atomic Fact Triples</div>
+                  <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px', lineHeight: '1.4' }}>
+                    Extracts atomic subject-predicate-object assertions from each document section.
+                  </p>
+                </div>
+
+                <div style={{ background: 'var(--bg-card-subtle)', padding: '14px', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--primary)', fontWeight: 800 }}>STAGE 3</div>
+                  <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-main)', marginTop: '4px' }}>Conflict Detection</div>
+                  <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px', lineHeight: '1.4' }}>
+                    Topical and semantic filtering detects numerical clashes, overrides, and scope collisions.
+                  </p>
+                </div>
+
+                <div style={{ background: 'var(--bg-card-subtle)', padding: '14px', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--primary)', fontWeight: 800 }}>STAGE 4</div>
+                  <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-main)', marginTop: '4px' }}>Bayesian Trust Scoring</div>
+                  <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px', lineHeight: '1.4' }}>
+                    Calculates 6-factor trust weights (Authority, Freshness, Verification, Scope).
+                  </p>
+                </div>
+
+                <div style={{ background: 'var(--bg-card-subtle)', padding: '14px', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--success-text)', fontWeight: 800 }}>STAGE 5</div>
+                  <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-main)', marginTop: '4px' }}>Decision Safety Gate</div>
+                  <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px', lineHeight: '1.4' }}>
+                    Issues ALLOW, REQUIRE_REVIEW, or BLOCK decisions with signed audit IDs.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ========================================================= */}
         {/* TAB 1: TRUST DECISION GATE DEMO (CLEAN, NO NAIVE RAG)     */}
         {/* ========================================================= */}
         {activeTab === 'demo' && (
@@ -614,26 +1229,12 @@ export default function App() {
                   </p>
                 </div>
 
-                {/* Scenario Selector (Clean borderless segmented control) */}
-                <div className="scenario-bar">
-                  <button 
-                    onClick={() => { setDemoScenario('refund_trap'); setDemoStep(0); }}
-                    className={`scenario-btn ${demoScenario === 'refund_trap' ? 'scenario-btn-active' : ''}`}
-                  >
-                    1. Refund Window
-                  </button>
-                  <button 
-                    onClick={() => { setDemoScenario('remote_work'); setDemoStep(0); }}
-                    className={`scenario-btn ${demoScenario === 'remote_work' ? 'scenario-btn-active' : ''}`}
-                  >
-                    2. Remote Work
-                  </button>
-                  <button 
-                    onClick={() => { setDemoScenario('unauthorized_deploy'); setDemoStep(0); }}
-                    className={`scenario-btn ${demoScenario === 'unauthorized_deploy' ? 'scenario-btn-active' : ''}`}
-                  >
-                    3. Prod Ingress
-                  </button>
+                {/* Active Scenario Indicator */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 700 }}>ACTIVE SCENARIO:</span>
+                  <span className="badge badge-verified" style={{ fontSize: '0.8rem', padding: '4px 10px' }}>
+                    {demoScenario === 'refund_trap' ? '1. Outdated Refund Window Trap' : demoScenario === 'remote_work' ? '2. Remote Work Policy Discrepancy' : '3. Unauthorized Infrastructure Action'}
+                  </span>
                 </div>
               </div>
             </div>
@@ -825,26 +1426,6 @@ export default function App() {
               <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', marginTop: '4px' }}>
                 Test how autonomous AI Agents query organizational knowledge. The Trust Gate scores claims, excludes expired policies, and filters out contradictory knowledge.
               </p>
-
-              {/* Preset Selector */}
-              <div style={{ marginTop: '14px', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 700 }}>Presets:</span>
-                {playgroundPresets.map((preset, i) => (
-                  <button
-                    key={i}
-                    onClick={() => {
-                      setPlaygroundQuery(preset.query);
-                      setPlaygroundAgent(preset.agent);
-                      setPlaygroundThreshold(preset.threshold);
-                      runPlaygroundQuery(preset.query, preset.agent, preset.threshold);
-                    }}
-                    className="btn btn-secondary"
-                    style={{ padding: '5px 10px', fontSize: '0.75rem' }}
-                  >
-                    {preset.title}
-                  </button>
-                ))}
-              </div>
             </div>
 
             {/* Main Interactive Grid */}
@@ -1128,28 +1709,14 @@ export default function App() {
                   </p>
                 </div>
 
-                {/* Sub-View Switcher */}
+                {/* Active View Badge & Refresh Action */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <div className="scenario-bar">
-                    <button 
-                      onClick={() => setDocExplorerView('ingest')}
-                      className={`scenario-btn ${docExplorerView === 'ingest' ? 'scenario-btn-active' : ''}`}
-                    >
-                      Ingest New Document
-                    </button>
-                    <button 
-                      onClick={() => { setDocExplorerView('documents'); fetchLiveDatabaseRecords(); }}
-                      className={`scenario-btn ${docExplorerView === 'documents' ? 'scenario-btn-active' : ''}`}
-                    >
-                      Stored Documents ({dbDocuments.length})
-                    </button>
-                    <button 
-                      onClick={() => { setDocExplorerView('claims'); fetchLiveDatabaseRecords(); }}
-                      className={`scenario-btn ${docExplorerView === 'claims' ? 'scenario-btn-active' : ''}`}
-                    >
-                      Atomic Claims ({dbClaims.length})
-                    </button>
-                  </div>
+                  <span className="badge badge-verified" style={{ fontSize: '0.8rem', padding: '5px 12px' }}>
+                    {docExplorerView === 'connectors' ? `Live Connectors & Sync (${dataSources.length})` :
+                     docExplorerView === 'ingest' ? 'Ingest New Document' :
+                     docExplorerView === 'documents' ? `Stored Documents (${dbDocuments.length})` :
+                     `Atomic Claims (${dbClaims.length})`}
+                  </span>
 
                   <button 
                     onClick={fetchLiveDatabaseRecords} 
@@ -1162,6 +1729,309 @@ export default function App() {
                 </div>
               </div>
             </div>
+
+            {/* VIEW 0: LIVE CONNECTORS & CONTINUOUS SYNC */}
+            {docExplorerView === 'connectors' && (
+              <div>
+                {/* Connectors Control Toolbar */}
+                <div className="clean-panel" style={{ padding: '16px 20px', marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+                  <div>
+                    <div style={{ fontSize: '0.925rem', fontWeight: 800, color: 'var(--text-main)' }}>
+                      Continuous Auto-Sync Pipeline
+                    </div>
+                    <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                      Automatically poll, extract, and cross-check organizational policies from external systems.
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Auto-Poll:</span>
+                      <select 
+                        value={autoSyncInterval} 
+                        onChange={e => {
+                          setAutoSyncInterval(e.target.value);
+                          if (e.target.value !== 'off') {
+                            showToast(`Auto-sync enabled (${e.target.value})`, "info");
+                          } else {
+                            showToast("Auto-sync disabled", "info");
+                          }
+                        }}
+                        style={{ padding: '5px 8px', fontSize: '0.78rem' }}
+                      >
+                        <option value="off">Off (Manual)</option>
+                        <option value="1m">Every 1 Min</option>
+                        <option value="5m">Every 5 Min</option>
+                        <option value="15m">Every 15 Min</option>
+                      </select>
+                    </div>
+
+                    <button 
+                      onClick={() => setShowAddSourceModal(true)}
+                      className="btn btn-secondary"
+                      style={{ padding: '7px 14px', fontSize: '0.8rem' }}
+                    >
+                      + Connect Real Source
+                    </button>
+
+                    <button 
+                      onClick={handleSyncAllSources}
+                      disabled={syncingSourceId !== null}
+                      className="btn btn-primary"
+                      style={{ padding: '7px 14px', fontSize: '0.8rem' }}
+                    >
+                      {syncingSourceId === 'all' ? "Syncing All Sources..." : "Sync All Connectors"}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Connectors Grid */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))', gap: '16px', marginBottom: '24px' }}>
+                  {dataSources.map((source, idx) => {
+                    const isSyncing = syncingSourceId === source.id || syncingSourceId === 'all';
+                    const typeLabel = source.source_type?.toUpperCase() || 'CONNECTOR';
+                    const lastSyncText = source.last_synced_at 
+                      ? new Date(source.last_synced_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+                      : 'Not synced yet';
+
+                    return (
+                      <div key={source.id || idx} className="clean-panel" style={{ padding: '18px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                        <div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                            <span className="badge badge-verified" style={{ fontSize: '0.7rem' }}>
+                              {typeLabel}
+                            </span>
+                            <span className="badge badge-allow" style={{ fontSize: '0.7rem' }}>
+                              Authority: {source.authority_level}%
+                            </span>
+                          </div>
+
+                          <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '4px' }}>
+                            {source.name}
+                          </h3>
+
+                          <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: '12px' }}>
+                            Target: <code style={{ color: 'var(--text-secondary)' }}>{source.external_id || source.source_type}</code>
+                          </div>
+
+                          <div style={{ background: '#FFFFFF', border: '1px solid var(--border-subtle)', padding: '10px', borderRadius: '6px', fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '16px' }}>
+                            <div style={{ fontWeight: 700, marginBottom: '2px' }}>Monitored Scope:</div>
+                            {source.source_type === 'confluence' && "Live Confluence Wiki Space, Policy Articles, and Security Standards."}
+                            {source.source_type === 'jira' && "Live Jira Project, Incident Runbooks, SLAs, and Release Guidelines."}
+                            {source.source_type === 'github' && "Live GitHub Repository, /docs Markdown files, and Architecture Specs."}
+                            {source.source_type === 'portal' && "Corporate Security Directives, Authentication & Compliance Mandates."}
+                          </div>
+                        </div>
+
+                        <div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                            <span>Status: <strong style={{ color: 'var(--success-text)' }}>Connected</strong></span>
+                            <span>Last Synced: <strong>{lastSyncText}</strong></span>
+                          </div>
+
+                          <button 
+                            onClick={() => handleSyncSource(source.id, source.name)}
+                            disabled={isSyncing}
+                            className="btn btn-secondary"
+                            style={{ width: '100%', padding: '8px', fontSize: '0.8rem', justifyContent: 'center' }}
+                          >
+                            {isSyncing ? "Syncing & Extracting Claims..." : `Sync ${source.name.split(' ')[0]} Now`}
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Pipeline Flow Explainer */}
+                <div className="clean-panel" style={{ padding: '16px 20px', background: '#FFFFFF' }}>
+                  <div style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '8px' }}>
+                    Continuous Trust Ingestion Pipeline Flow
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                    <span className="code-pill">1. Polling Connectors</span>
+                    <span>→</span>
+                    <span className="code-pill">2. Normalizing Markdown</span>
+                    <span>→</span>
+                    <span className="code-pill">3. Extracting Atomic Claims</span>
+                    <span>→</span>
+                    <span className="code-pill">4. Detecting Contradictions</span>
+                    <span>→</span>
+                    <span className="code-pill">5. Updating Auditor Queue</span>
+                  </div>
+                </div>
+
+                {/* Modal: Connect Real Data Source */}
+                {showAddSourceModal && (
+                  <div style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    background: 'rgba(15, 23, 42, 0.45)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 1000,
+                    padding: '20px'
+                  }}>
+                    <div className="clean-panel" style={{ width: '100%', maxWidth: '520px', padding: '24px', background: '#FFFFFF', borderRadius: '10px', boxShadow: '0 10px 25px rgba(0,0,0,0.1)' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                        <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-main)' }}>
+                          Connect Real Enterprise Source
+                        </h3>
+                        <button 
+                          onClick={() => setShowAddSourceModal(false)}
+                          style={{ background: 'none', border: 'none', fontSize: '1.1rem', cursor: 'pointer', color: 'var(--text-muted)' }}
+                        >
+                          ✕
+                        </button>
+                      </div>
+
+                      <form onSubmit={handleConnectNewSource} style={{ display: 'grid', gap: '14px' }}>
+                        <div>
+                          <label style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
+                            Source Provider:
+                          </label>
+                          <select 
+                            value={newSourceForm.sourceType}
+                            onChange={e => setNewSourceForm({ ...newSourceForm, sourceType: e.target.value })}
+                            style={{ width: '100%', padding: '8px 10px', fontSize: '0.85rem' }}
+                          >
+                            <option value="github">GitHub Repository (Public or Private)</option>
+                            <option value="confluence">Atlassian Confluence Space</option>
+                            <option value="jira">Atlassian Jira Project</option>
+                          </select>
+                        </div>
+
+                        <div>
+                          <label style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
+                            Connection Name:
+                          </label>
+                          <input 
+                            type="text" 
+                            placeholder="e.g. My Company Security Docs"
+                            value={newSourceForm.name}
+                            onChange={e => setNewSourceForm({ ...newSourceForm, name: e.target.value })}
+                            style={{ width: '100%', padding: '8px 10px', fontSize: '0.85rem' }}
+                            required
+                          />
+                        </div>
+
+                        {newSourceForm.sourceType === 'github' && (
+                          <div>
+                            <label style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
+                              GitHub Repository (owner/repo):
+                            </label>
+                            <input 
+                              type="text" 
+                              placeholder="e.g. facebook/react or your-username/policies-repo"
+                              value={newSourceForm.externalId}
+                              onChange={e => setNewSourceForm({ ...newSourceForm, externalId: e.target.value })}
+                              style={{ width: '100%', padding: '8px 10px', fontSize: '0.85rem' }}
+                              required
+                            />
+                            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+                              Any public GitHub repository works immediately with no token needed.
+                            </div>
+                          </div>
+                        )}
+
+                        {newSourceForm.sourceType === 'confluence' && (
+                          <>
+                            <div>
+                              <label style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
+                                Confluence Space Key:
+                              </label>
+                              <input 
+                                type="text" 
+                                placeholder="e.g. POLICIES or HR"
+                                value={newSourceForm.externalId}
+                                onChange={e => setNewSourceForm({ ...newSourceForm, externalId: e.target.value })}
+                                style={{ width: '100%', padding: '8px 10px', fontSize: '0.85rem' }}
+                                required
+                              />
+                            </div>
+                            <div>
+                              <label style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
+                                Atlassian Base URL (Optional):
+                              </label>
+                              <input 
+                                type="text" 
+                                placeholder="https://yourcompany.atlassian.net"
+                                value={newSourceForm.baseUrl}
+                                onChange={e => setNewSourceForm({ ...newSourceForm, baseUrl: e.target.value })}
+                                style={{ width: '100%', padding: '8px 10px', fontSize: '0.85rem' }}
+                              />
+                            </div>
+                          </>
+                        )}
+
+                        {newSourceForm.sourceType === 'jira' && (
+                          <>
+                            <div>
+                              <label style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
+                                Jira Project Key:
+                              </label>
+                              <input 
+                                type="text" 
+                                placeholder="e.g. OPS or SRE"
+                                value={newSourceForm.externalId}
+                                onChange={e => setNewSourceForm({ ...newSourceForm, externalId: e.target.value })}
+                                style={{ width: '100%', padding: '8px 10px', fontSize: '0.85rem' }}
+                                required
+                              />
+                            </div>
+                          </>
+                        )}
+
+                        <div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                            <label style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)' }}>
+                              Trust Authority Level:
+                            </label>
+                            <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--primary)' }}>
+                              {newSourceForm.authorityLevel}%
+                            </span>
+                          </div>
+                          <input 
+                            type="range" 
+                            min="10" 
+                            max="100" 
+                            value={newSourceForm.authorityLevel}
+                            onChange={e => setNewSourceForm({ ...newSourceForm, authorityLevel: e.target.value })}
+                            style={{ width: '100%' }}
+                          />
+                          <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                            High authority sources (90%+) supersede conflicting claims from lower authority sources.
+                          </div>
+                        </div>
+
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '10px' }}>
+                          <button 
+                            type="button" 
+                            onClick={() => setShowAddSourceModal(false)}
+                            className="btn btn-secondary"
+                            style={{ padding: '8px 14px' }}
+                          >
+                            Cancel
+                          </button>
+                          <button 
+                            type="submit" 
+                            disabled={isConnectingSource}
+                            className="btn btn-primary"
+                            style={{ padding: '8px 18px' }}
+                          >
+                            {isConnectingSource ? "Connecting & Syncing..." : "Connect & Sync Now"}
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* VIEW 1: INGEST NEW DOCUMENT */}
             {docExplorerView === 'ingest' && (
