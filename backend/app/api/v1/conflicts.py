@@ -26,6 +26,22 @@ async def list_pending_conflicts(
     return [ConflictResponse.model_validate(c) for c in conflicts]
 
 
+@router.post("/re-evaluate")
+async def re_evaluate_conflicts(
+    organization_id: uuid.UUID | None = Query(None, description="Optional organization ID filter"),
+    db: AsyncSession = Depends(get_db),
+):
+    """Re-evaluate all pending conflicts against the current context-aware contradiction rules and purge false positives."""
+    service = ConflictService(db)
+    result = await service.re_evaluate_all_pending(organization_id=organization_id)
+    return {
+        "status": "success",
+        "purged_false_positives": result["purged"],
+        "retained_conflicts": result["retained"],
+        "message": f"Purged {result['purged']} false-positive conflicts. Retained {result['retained']} genuine conflicts.",
+    }
+
+
 @router.post("/{conflict_id}/resolve", response_model=ConflictResponse)
 async def resolve_conflict(
     conflict_id: uuid.UUID,
@@ -42,3 +58,6 @@ async def resolve_conflict(
     )
     await db.commit()
     return ConflictResponse.model_validate(conflict)
+
+
+

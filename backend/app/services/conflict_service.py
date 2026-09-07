@@ -1,13 +1,14 @@
+import asyncio
 import decimal
 import uuid
 from datetime import datetime, timezone
 from typing import Sequence
 
-from sqlalchemy import select
+from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.conflict_engine.detector import ConflictDetector
+from app.conflict_engine.detector import ConflictDetector, are_claims_topically_related
 from app.db.enums import ClaimStatus, ConflictStatus, ReviewDecision
 from app.db.models.claim import Claim
 from app.db.models.claim_conflict import ClaimConflict
@@ -113,3 +114,76 @@ class ConflictService:
         await self.session.flush()
         await self.session.refresh(conflict)
         return conflict
+
+    async def re_evaluate_all_pending(
+        self,
+        organization_id: uuid.UUID | None = None,
+    ) -> dict[str, int]:
+        """Re-evaluate all pending conflicts against the current evaluator rules, purging false positives."""
+        stmt = (
+            select(ClaimConflict)
+            .where(ClaimConflict.resolution_status == ConflictStatus.HUMAN_REVIEW_REQUIRED)
+            .options(
+                selectinload(ClaimConflict.claim_a),
+                selectinload(ClaimConflict.claim_b),
+            )
+        )
+        res = await self.session.execute(stmt)
+        conflicts = res.scalars().all()
+
+        purged_count = 0
+        retained_count = 0
+        affected_claim_ids: set[uuid.UUID] = set()
+
+        # Parallel evaluation of all conflicts
+        async def _eval_conflict(c):
+            if not c.claim_a or not c.claim_b:
+                return c, None
+            if not are_claims_topically_related(c.claim_a, c.claim_b):
+                return c, None
+            eval_res = await self.detector.llm.evaluate_contradiction(
+                claim_a_text=c.claim_a.claim_text,
+                claim_b_text=c.claim_b.claim_text,
+            )
+            return c, eval_res
+
+        eval_pairs = await asyncio.gather(*[_eval_conflict(c) for c in conflicts], return_exceptions=False)
+
+        for c, eval_res in eval_pairs:
+            if not eval_res or not eval_res.is_contradiction:
+                # Purge false-positive conflict
+                affected_claim_ids.add(c.claim_a_id)
+                affected_claim_ids.add(c.claim_b_id)
+                await self.session.delete(c)
+                purged_count += 1
+            else:
+                # Update conflict metadata with refreshed reasoning / confidence
+                c.conflict_type = eval_res.conflict_type
+                c.severity = eval_res.severity
+                c.confidence = decimal.Decimal(f"{eval_res.confidence:.4f}")
+                retained_count += 1
+
+        await self.session.flush()
+
+        # Check and reset claim statuses if they no longer have any active conflicts
+        from app.services.trust_service import TrustService
+        trust_service = TrustService(self.session)
+
+        for claim_id in affected_claim_ids:
+            remaining_stmt = select(ClaimConflict).where(
+                or_(
+                    ClaimConflict.claim_a_id == claim_id,
+                    ClaimConflict.claim_b_id == claim_id,
+                ),
+                ClaimConflict.resolution_status == ConflictStatus.HUMAN_REVIEW_REQUIRED,
+            )
+            rem_res = await self.session.execute(remaining_stmt)
+            if not rem_res.scalars().first():
+                claim = await self.session.get(Claim, claim_id)
+                if claim and claim.status == ClaimStatus.CONFLICTED:
+                    claim.status = ClaimStatus.VERIFIED
+                    await trust_service.calculate_for_claim(claim_id)
+
+        await self.session.commit()
+        return {"purged": purged_count, "retained": retained_count}
+

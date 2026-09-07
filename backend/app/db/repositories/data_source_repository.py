@@ -1,4 +1,5 @@
 import uuid
+from collections.abc import Sequence
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -50,3 +51,19 @@ class DataSourceRepository(BaseRepository[DataSource]):
             authority_level=authority_level,
         )
         return await self.create(source)
+
+    async def list_by_organization(
+        self,
+        organization_id: uuid.UUID,
+        limit: int = 50,
+        offset: int = 0,
+    ) -> Sequence[DataSource]:
+        stmt = (
+            select(DataSource)
+            .where(DataSource.organization_id == organization_id)
+            .offset(offset)
+            .limit(limit)
+            .order_by(DataSource.created_at.asc())
+        )
+        result = await self.session.execute(stmt)
+        return result.scalars().all()

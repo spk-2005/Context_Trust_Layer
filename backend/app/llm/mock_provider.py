@@ -113,22 +113,51 @@ class MockLLMProvider(BaseLLMProvider):
         claim_a_text: str,
         claim_b_text: str,
     ) -> ContradictionResult:
-        """Heuristic contradiction detector between two claims."""
+        """Context-aware contradiction detector between two claims."""
         a_lower = claim_a_text.lower()
         b_lower = claim_b_text.lower()
 
-        # Check for numbers in both claims (e.g. 30 days vs 60 days, $500 vs $600)
-        nums_a = re.findall(r"\b\d+(?:\.\d+)?\b", a_lower)
-        nums_b = re.findall(r"\b\d+(?:\.\d+)?\b", b_lower)
+        # Comprehensive stopwords + document structural noise
+        stopwords = {
+            "a", "about", "above", "after", "again", "against", "all", "am", "an", "and",
+            "any", "are", "aren't", "as", "at", "be", "because", "been", "before", "being",
+            "below", "between", "both", "but", "by", "can", "can't", "cannot", "could",
+            "couldn't", "did", "didn't", "do", "does", "doesn't", "doing", "don't", "down",
+            "during", "each", "few", "for", "from", "further", "had", "hadn't", "has",
+            "hasn't", "have", "haven't", "having", "he", "he'd", "he'll", "he's", "her",
+            "here", "here's", "hers", "herself", "him", "himself", "his", "how", "how's",
+            "i", "i'd", "i'll", "i'm", "i've", "if", "in", "into", "is", "isn't", "it",
+            "it's", "its", "itself", "let's", "me", "more", "most", "mustn't", "my",
+            "myself", "no", "nor", "not", "of", "off", "on", "once", "only", "or", "other",
+            "ought", "our", "ours", "ourselves", "out", "over", "own", "same", "shan't",
+            "she", "she'd", "she'll", "she's", "should", "shouldn't", "so", "some", "such",
+            "than", "that", "that's", "the", "their", "theirs", "them", "themselves",
+            "then", "there", "there's", "these", "they", "they'd", "they'll", "they're",
+            "they've", "this", "those", "through", "to", "too", "under", "until", "up",
+            "very", "was", "wasn't", "we", "we'd", "we'll", "we're", "we've", "were",
+            "weren't", "what", "what's", "when", "when's", "where", "where's", "which",
+            "while", "who", "who's", "whom", "why", "why's", "with", "won't", "would",
+            "wouldn't", "you", "you'd", "you'll", "you're", "you've", "your", "yours",
+            "page", "section", "document", "policy", "requirement", "standard", "rule",
+            "item", "clause", "specified", "specifies", "accordance", "following", "general",
+            "total", "part", "details", "described", "provides", "including", "also", "per",
+            "one", "two", "three", "four", "five", "first", "second", "third", "must", "may"
+        }
 
-        # Tokenize words (length >= 3) and strip trailing plural 's'
-        words_a = {re.sub(r"s$", "", w) for w in re.findall(r"[a-z]{3,}", a_lower)}
-        words_b = {re.sub(r"s$", "", w) for w in re.findall(r"[a-z]{3,}", b_lower)}
-        stopwords = {"employee", "all", "the", "and", "for", "with", "have", "are", "per", "can", "may", "will", "this", "that"}
-        meaningful_common_words = (words_a.intersection(words_b)) - stopwords
-        has_exception_keyword = "exception" in a_lower or "exception" in b_lower
+        # Tokenize meaningful content words (length >= 3)
+        words_a = {re.sub(r"s$", "", w) for w in re.findall(r"[a-z]{3,}", a_lower)} - stopwords
+        words_b = {re.sub(r"s$", "", w) for w in re.findall(r"[a-z]{3,}", b_lower)} - stopwords
+        meaningful_common_words = words_a.intersection(words_b)
 
-        # Contradiction: Shared context (meaningful keywords) but different numbers or opposing terms
+        # Strip technical protocol standards so "AES-256", "TLS 1.3", "OAuth 2.0", etc. aren't parsed as conflicting counts
+        clean_a = re.sub(r"\b(?:aes[-_]?\d+|tls\s*\d+(?:\.\d+)?|sha[-_]?\d+|oauth\s*\d+(?:\.\d+)?|iso\s*\d+|soc\s*\d+|http[s]?\s*/?\s*\d+(?:\.\d+)?)\b", "", a_lower)
+        clean_b = re.sub(r"\b(?:aes[-_]?\d+|tls\s*\d+(?:\.\d+)?|sha[-_]?\d+|oauth\s*\d+(?:\.\d+)?|iso\s*\d+|soc\s*\d+|http[s]?\s*/?\s*\d+(?:\.\d+)?)\b", "", b_lower)
+
+        # Check for numeric metrics in both claims
+        nums_a = re.findall(r"\b\d+(?:[.,]\d+)?\b", clean_a)
+        nums_b = re.findall(r"\b\d+(?:[.,]\d+)?\b", clean_b)
+
+        # Opposing directive pairs
         opposing_pairs = [
             ("allow", "prohibit"),
             ("allowed", "prohibited"),
@@ -137,8 +166,9 @@ class MockLLMProvider(BaseLLMProvider):
             ("mandatory", "voluntary"),
             ("can", "cannot"),
             ("must", "must not"),
-            ("true", "false"),
             ("enabled", "disabled"),
+            ("on-site", "remote"),
+            ("onsite", "remote"),
         ]
 
         has_opposing_terms = any(
@@ -146,28 +176,53 @@ class MockLLMProvider(BaseLLMProvider):
             for p in opposing_pairs
         )
 
-        has_number_discrepancy = (
-            (len(meaningful_common_words) >= 1 or has_exception_keyword)
-            and nums_a and nums_b and nums_a != nums_b
+        # Domain metric units & policy constraint keywords
+        metric_keywords = {
+            "day", "week", "month", "year", "hour", "minute", "refund", "leave", "allowance",
+            "limit", "amount", "threshold", "window", "rate", "sla", "discount",
+            "fee", "charge", "price", "cost", "salary", "bonus", "score", "percent"
+        }
+        constraint_keywords = {
+            "window", "exception", "threshold", "limit", "cap", "maximum", "minimum",
+            "eligible", "eligibility", "allowed", "permitted", "required", "grant", "granted", "approval", "signoff"
+        }
+
+        shared_metrics = meaningful_common_words.intersection(metric_keywords)
+        has_constraint_context = (
+            any(w in a_lower for w in constraint_keywords) and
+            any(w in b_lower for w in constraint_keywords)
         )
 
-        if has_number_discrepancy:
-            context_snippet = ", ".join(list(meaningful_common_words)[:3]) if meaningful_common_words else "numerical context"
+        # A valid numerical discrepancy requires:
+        # 1. Genuine numbers in both claims (not technical standard names)
+        # 2. Shared metric unit (e.g. both discussing days, or both discussing refund/rupees)
+        # 3. Both claims expressing a rule/constraint/threshold context
+        is_numerical_conflict = (
+            bool(nums_a) and bool(nums_b) and nums_a != nums_b and (
+                (len(meaningful_common_words) >= 2 and (shared_metrics or has_constraint_context)) or
+                (len(meaningful_common_words) >= 1 and shared_metrics and has_constraint_context)
+            )
+        )
+
+        if is_numerical_conflict:
+            context_snippet = ", ".join(list(meaningful_common_words)[:3])
             return ContradictionResult(
                 is_contradiction=True,
                 conflict_type="numerical_discrepancy",
                 severity="high",
                 confidence=0.92,
-                reasoning=f"Claims share context ({context_snippet}) but contain conflicting numerical values: {nums_a} vs {nums_b}.",
+                reasoning=f"Claims share subject context ({context_snippet}) but specify conflicting numerical thresholds: {nums_a} vs {nums_b}.",
             )
 
-        if has_opposing_terms:
+        # Opposing directives: Must share at least 1 meaningful subject keyword (e.g., "remote work", "engineering")
+        if has_opposing_terms and len(meaningful_common_words) >= 1:
+            context_snippet = ", ".join(list(meaningful_common_words)[:3])
             return ContradictionResult(
                 is_contradiction=True,
                 conflict_type="direct_contradiction",
                 severity="high",
                 confidence=0.90,
-                reasoning="Claims contain mutually opposing directives or constraints.",
+                reasoning=f"Claims share subject ({context_snippet}) but contain mutually opposing rules or constraints.",
             )
 
         return ContradictionResult(
@@ -175,5 +230,5 @@ class MockLLMProvider(BaseLLMProvider):
             conflict_type="compatible",
             severity="low",
             confidence=0.85,
-            reasoning="No direct contradiction detected.",
+            reasoning="Claims do not contradict or apply to different non-overlapping domains.",
         )
