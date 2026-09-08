@@ -1,6 +1,7 @@
 import uuid
 from datetime import datetime
 
+from typing import Any
 from sqlalchemy import (
     CheckConstraint,
     DateTime,
@@ -12,7 +13,7 @@ from sqlalchemy import (
     UniqueConstraint,
     text,
 )
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -75,6 +76,13 @@ class DataSource(Base):
         nullable=False,
         default=50,
         server_default=text("50"),
+    )
+
+    connection_config: Mapped[dict[str, Any] | None] = mapped_column(
+        JSONB,
+        nullable=True,
+        default=dict,
+        server_default=text("'{}'::jsonb"),
     )
 
     status: Mapped[RecordStatus] = mapped_column(

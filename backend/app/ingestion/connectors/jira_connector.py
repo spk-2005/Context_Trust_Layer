@@ -13,7 +13,7 @@ from app.schemas.document import DocumentCreate
 
 
 class JiraConnector(BaseConnector):
-    """Syncs release policies, operational runbooks, and incident rules from Atlassian Jira."""
+    """Syncs live release policies, operational runbooks, and incident rules from Atlassian Jira."""
 
     def __init__(
         self,
@@ -59,58 +59,41 @@ class JiraConnector(BaseConnector):
         return doc, version
 
     async def sync(self) -> Sequence[tuple[Document, DocumentVersion]]:
-        """Syncs operational rules and policies from Jira project."""
-        if self.base_url and self.api_token and self.user_email:
+        """Syncs live operational rules and policies from Jira project."""
+        if not self.base_url or not self.api_token or not self.user_email:
+            raise RuntimeError(
+                f"Jira live sync requires 'base_url', 'api_token', and 'user_email' for project '{self.project_key}'."
+            )
+
+        try:
             return await self._sync_live_jira()
-        return await self._sync_simulated_jira()
+        except Exception as e:
+            raise RuntimeError(f"Jira sync failed for project '{self.project_key}': {str(e)}")
 
     async def _sync_live_jira(self) -> list[tuple[Document, DocumentVersion]]:
         synced = []
         jql = f"project = {self.project_key} AND issuetype in (Standard, Policy, Runbook) ORDER BY updated DESC"
         url = f"{self.base_url}/rest/api/3/search?jql={jql}&maxResults=50"
         auth = (self.user_email, self.api_token)
-        async with httpx.AsyncClient(timeout=15.0) as client:
+        async with httpx.AsyncClient(timeout=20.0) as client:
             resp = await client.get(url, auth=auth)
-            if resp.status_code == 200:
-                data = resp.json()
-                for issue in data.get("issues", []):
-                    key = issue.get("key")
-                    fields = issue.get("fields", {})
-                    summary = fields.get("summary", f"Jira {key}")
-                    description = fields.get("description", "")
-                    # Extract plain text if doc format
-                    desc_text = str(description) if description else ""
-                    content = f"# Jira Rule: {summary}\n\nKey: {key}\nStatus: {fields.get('status', {}).get('name', 'Active')}\n\n{desc_text}"
-                    res = await self.ingest_issue(
-                        title=summary,
-                        content=content,
-                        issue_key=key,
-                        status=fields.get("status", {}).get("name", "Active"),
-                        author=fields.get("creator", {}).get("displayName", "Jira User"),
-                    )
-                    synced.append(res)
-        return synced
+            if resp.status_code != 200:
+                raise RuntimeError(f"Jira API returned HTTP {resp.status_code}: {resp.text}")
 
-    async def _sync_simulated_jira(self) -> list[tuple[Document, DocumentVersion]]:
-        # Realistic Jira operational runbook and SLA policies
-        issues = [
-            (
-                "Production Incident Response SLA & Escalation Protocol",
-                "# Sev-1 Outage SLA\n\nAll Sev-1 production incidents require initial response and executive escalation within 15 minutes.\n\n# Post-Mortem Requirements\n\nBlameless root cause analysis documents must be published within 72 hours of incident mitigation.",
-                "OPS-402",
-                "Active",
-                "Site Reliability Engineering Team",
-            ),
-            (
-                "Change Management & Friday Production Freeze Mandate",
-                "# Production Deployment Protocol\n\nNo non-emergency production code deployments are permitted on Fridays after 14:00 UTC without Director sign-off.\n\n# Rollback Validation\n\nEvery automated deployment pipeline must have a verified one-click rollback script tested in staging.",
-                "OPS-881",
-                "Active",
-                "DevOps Governance Board",
-            ),
-        ]
-        synced = []
-        for title, content, key, status, author in issues:
-            res = await self.ingest_issue(title=title, content=content, issue_key=key, status=status, author=author)
-            synced.append(res)
+            data = resp.json()
+            for issue in data.get("issues", []):
+                key = issue.get("key")
+                fields = issue.get("fields", {})
+                summary = fields.get("summary", f"Jira {key}")
+                description = fields.get("description", "")
+                desc_text = str(description) if description else ""
+                content = f"# Jira Rule: {summary}\n\nKey: {key}\nStatus: {fields.get('status', {}).get('name', 'Active')}\n\n{desc_text}"
+                res = await self.ingest_issue(
+                    title=summary,
+                    content=content,
+                    issue_key=key,
+                    status=fields.get("status", {}).get("name", "Active"),
+                    author=fields.get("creator", {}).get("displayName", "Jira User"),
+                )
+                synced.append(res)
         return synced

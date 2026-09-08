@@ -219,15 +219,98 @@ export default function App() {
   const [autoSyncInterval, setAutoSyncInterval] = useState('off');
   const [showAddSourceModal, setShowAddSourceModal] = useState(false);
   const [isConnectingSource, setIsConnectingSource] = useState(false);
+  const [isTestingConnection, setIsTestingConnection] = useState(false);
+  const [testConnectionResult, setTestConnectionResult] = useState(null);
   const [newSourceForm, setNewSourceForm] = useState({
     name: '',
-    sourceType: 'github',
-    externalId: '',
+    sourceType: 'postgresql',
     authorityLevel: 90,
+    externalId: '',
+    // Postgres
+    pgHost: 'localhost',
+    pgPort: 5432,
+    pgDatabase: '',
+    pgUsername: 'postgres',
+    pgPassword: '',
+    pgSslMode: 'prefer',
+    pgSchemas: 'public',
+    // Kafka
+    kafkaBootstrap: '',
+    kafkaSchemaRegistry: '',
+    kafkaSecurityProtocol: 'PLAINTEXT',
+    kafkaSaslMechanism: 'PLAIN',
+    kafkaSaslUsername: '',
+    kafkaSaslPassword: '',
+    kafkaTopics: '',
+    // Salesforce
+    sfInstanceUrl: '',
+    sfClientId: '',
+    sfClientSecret: '',
+    sfUsername: '',
+    sfPassword: '',
+    sfSecurityToken: '',
+    sfObjects: '',
+    // MongoDB
+    mongoUri: '',
+    mongoDatabase: '',
+    mongoCollections: '',
+    // GitHub / Atlassian
+    githubRepo: '',
+    githubBranch: 'main',
+    githubToken: '',
+    confluenceSpace: '',
+    confluenceBaseUrl: '',
+    jiraProject: '',
+    jiraBaseUrl: '',
+  });
+
+  // -------------------------------------------------------------
+  // Dynamic Multi-Tenant Organization State
+  // -------------------------------------------------------------
+  const [organizations, setOrganizations] = useState([]);
+  const [activeOrg, setActiveOrg] = useState(null);
+  const [isOrgDropdownOpen, setIsOrgDropdownOpen] = useState(false);
+  const [showNewOrgModal, setShowNewOrgModal] = useState(false);
+  const [showRenameOrgModal, setShowRenameOrgModal] = useState(false);
+  const [newOrgName, setNewOrgName] = useState('');
+  const [newOrgSlug, setNewOrgSlug] = useState('');
+  const [renameOrgName, setRenameOrgName] = useState('');
+  const [isCreatingOrg, setIsCreatingOrg] = useState(false);
+
+  // -------------------------------------------------------------
+  // Departmental Workspaces under Active Company
+  // -------------------------------------------------------------
+  const DEFAULT_WORKSPACES = [
+    { id: 'all', name: 'All Workspaces (Unified)', icon: '🌐', domain: 'global', description: 'Unified enterprise knowledge across all departments and systems' },
+    { id: 'finance', name: 'Finance & Billing Operations', icon: '💳', domain: 'finance', description: 'Invoices, customer refunds, ARR tiers, and accounting compliance SLAs' },
+    { id: 'secops', name: 'Engineering & Infrastructure SecOps', icon: '🛡️', domain: 'secops', description: 'IAM policies, mTLS authentication, Friday freezes, and session expiration' },
+    { id: 'hr', name: 'HR & People Operations', icon: '👥', domain: 'hr', description: 'Remote work guidelines, employee handbooks, and leave approval rules' },
+    { id: 'support', name: 'Customer Support & Success', icon: '💬', domain: 'support', description: 'Dispute arbitration workflows, tier exception matrices, and SLA escalations' },
+    { id: 'staging', name: 'Staging / Policy Sandbox', icon: '🧪', domain: 'staging', description: 'Isolated sandbox environment for dry-run conflict and gate simulations' },
+  ];
+
+  const [workspaces, setWorkspaces] = useState(DEFAULT_WORKSPACES);
+  const [activeWorkspace, setActiveWorkspace] = useState(DEFAULT_WORKSPACES[0]);
+  const [isWorkspaceDropdownOpen, setIsWorkspaceDropdownOpen] = useState(false);
+  const [showNewWorkspaceModal, setShowNewWorkspaceModal] = useState(false);
+  const [newWorkspaceName, setNewWorkspaceName] = useState('');
+  const [newWorkspaceDomain, setNewWorkspaceDomain] = useState('finance');
+  const [newWorkspaceDescription, setNewWorkspaceDescription] = useState('');
+
+  const [catalogConnectors, setCatalogConnectors] = useState([]);
+  const [catalogCategories, setCatalogCategories] = useState([]);
+  const [catalogFilterCategory, setCatalogFilterCategory] = useState('all');
+  const [catalogSearchQuery, setCatalogSearchQuery] = useState('');
+  const [selectedConnectorMeta, setSelectedConnectorMeta] = useState(null);
+  const [genericConfig, setGenericConfig] = useState({
+    host: '',
+    port: '',
+    database: '',
+    username: '',
+    password: '',
+    endpoint: '',
     apiToken: '',
-    baseUrl: '',
-    userEmail: '',
-    branch: 'main'
+    schemas: '',
   });
 
   const [dbDocuments, setDbDocuments] = useState([]);
@@ -237,29 +320,84 @@ export default function App() {
   const [dbSearchQuery, setDbSearchQuery] = useState('');
   const [dbLoading, setDbLoading] = useState(false);
 
+  const handleCreateWorkspace = (e) => {
+    e?.preventDefault();
+    if (!newWorkspaceName.trim()) return;
+    const newWs = {
+      id: `ws_${Date.now()}`,
+      name: newWorkspaceName.trim(),
+      icon: newWorkspaceDomain === 'secops' ? '🛡️' : newWorkspaceDomain === 'hr' ? '👥' : newWorkspaceDomain === 'finance' ? '💳' : newWorkspaceDomain === 'staging' ? '🧪' : '📁',
+      domain: newWorkspaceDomain,
+      description: newWorkspaceDescription.trim() || 'Custom department workspace'
+    };
+    setWorkspaces(prev => [...prev, newWs]);
+    setActiveWorkspace(newWs);
+    setShowNewWorkspaceModal(false);
+    setNewWorkspaceName('');
+    setNewWorkspaceDescription('');
+    showToast(`Created and switched to workspace '${newWs.name}'!`);
+  };
+
+  const handleSwitchWorkspace = (ws) => {
+    setActiveWorkspace(ws);
+    setIsWorkspaceDropdownOpen(false);
+    showToast(`Switched workspace to '${ws.name}'`);
+  };
+
   // -------------------------------------------------------------
-  // Data Fetching
+  // Organization Management & Dynamic Data Fetching
   // -------------------------------------------------------------
-  const fetchLiveDatabaseRecords = async () => {
+  const fetchOrganizations = async () => {
+    try {
+      const res = await fetch('/v1/organizations');
+      if (res.ok) {
+        const orgs = await res.json();
+        setOrganizations(orgs);
+        if (orgs.length > 0) {
+          const savedId = localStorage.getItem('context_layer_active_org_id');
+          const matched = orgs.find(o => o.id === savedId) || orgs[0];
+          setActiveOrg(matched);
+        }
+      }
+    } catch (e) {
+      console.warn("Failed to fetch organizations:", e);
+    }
+  };
+
+  const fetchLiveDatabaseRecords = async (orgId = activeOrg?.id) => {
+    if (!orgId) return;
     try {
       setDbLoading(true);
-      const [resDocs, resClaims, resSources] = await Promise.all([
-        fetch('/v1/documents?organization_id=11111111-1111-1111-1111-111111111111&limit=50'),
-        fetch('/v1/claims?organization_id=11111111-1111-1111-1111-111111111111&limit=50'),
-        fetch('/v1/sources?organization_id=11111111-1111-1111-1111-111111111111&limit=50')
+      const [resDocs, resClaims, resSources, resCatalog] = await Promise.all([
+        fetch(`/v1/documents?organization_id=${orgId}&limit=50`),
+        fetch(`/v1/claims?organization_id=${orgId}&limit=50`),
+        fetch(`/v1/sources?organization_id=${orgId}&limit=50`),
+        fetch('/v1/sources/catalog')
       ]);
+
+      if (resCatalog && resCatalog.ok) {
+        const catData = await resCatalog.json();
+        setCatalogConnectors(catData.connectors || []);
+        setCatalogCategories(catData.categories || []);
+      }
 
       if (resDocs.ok) {
         const docsData = await resDocs.json();
         setDbDocuments(docsData);
+      } else {
+        setDbDocuments([]);
       }
       if (resClaims.ok) {
         const claimsData = await resClaims.json();
         setDbClaims(claimsData);
+      } else {
+        setDbClaims([]);
       }
       if (resSources.ok) {
         const sourcesData = await resSources.json();
         setDataSources(sourcesData);
+      } else {
+        setDataSources([]);
       }
     } catch (e) {
       console.warn("DB records fetch fallback:", e);
@@ -268,7 +406,7 @@ export default function App() {
     }
   };
 
-  const fetchHealthAndConflicts = async () => {
+  const fetchHealthAndConflicts = async (orgId = activeOrg?.id) => {
     try {
       setLoading(true);
       const resHealth = await fetch('/v1/health');
@@ -276,17 +414,81 @@ export default function App() {
         const data = await resHealth.json();
         setHealth(data);
       }
-      const resConflicts = await fetch('/v1/conflicts/pending?organization_id=11111111-1111-1111-1111-111111111111');
-      if (resConflicts.ok) {
-        const data = await resConflicts.json();
-        setConflicts(data);
+      if (orgId) {
+        const resConflicts = await fetch(`/v1/conflicts/pending?organization_id=${orgId}`);
+        if (resConflicts.ok) {
+          const data = await resConflicts.json();
+          setConflicts(data);
+        } else {
+          setConflicts([]);
+        }
+        await fetchLiveDatabaseRecords(orgId);
       }
-      await fetchLiveDatabaseRecords();
     } catch (err) {
       setHealth({ status: 'healthy', database: true, version: '0.1.0' });
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleCreateOrganization = async (e) => {
+    e?.preventDefault();
+    if (!newOrgName.trim()) return;
+    setIsCreatingOrg(true);
+    const slug = newOrgSlug.trim() || newOrgName.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    try {
+      const res = await fetch('/v1/organizations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: newOrgName.trim(), slug })
+      });
+      if (res.ok) {
+        const created = await res.json();
+        setOrganizations(prev => [...prev, created]);
+        handleSwitchOrganization(created);
+        setShowNewOrgModal(false);
+        setNewOrgName('');
+        setNewOrgSlug('');
+        showToast(`Created & switched to client workspace '${created.name}'!`);
+      } else {
+        const err = await res.json();
+        showToast(`Failed to create workspace: ${err.detail || res.status}`, 'error');
+      }
+    } catch (e) {
+      showToast("Network error creating workspace", "error");
+    } finally {
+      setIsCreatingOrg(false);
+    }
+  };
+
+  const handleRenameOrganization = async (e) => {
+    e?.preventDefault();
+    if (!activeOrg || !renameOrgName.trim()) return;
+    try {
+      const res = await fetch(`/v1/organizations/${activeOrg.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: renameOrgName.trim() })
+      });
+      if (res.ok) {
+        const updated = await res.json();
+        setActiveOrg(updated);
+        setOrganizations(prev => prev.map(o => o.id === updated.id ? updated : o));
+        setShowRenameOrgModal(false);
+        showToast(`Workspace renamed to '${updated.name}'!`);
+      } else {
+        showToast("Failed to rename workspace", "error");
+      }
+    } catch (e) {
+      showToast("Network error renaming workspace", "error");
+    }
+  };
+
+  const handleSwitchOrganization = (org) => {
+    setActiveOrg(org);
+    localStorage.setItem('context_layer_active_org_id', org.id);
+    setIsOrgDropdownOpen(false);
+    showToast(`Switched workspace to '${org.name}'`);
   };
 
   const handleSyncSource = async (sourceId, sourceName) => {
@@ -296,7 +498,7 @@ export default function App() {
       if (res.ok) {
         const result = await res.json();
         showToast(result.message || `Successfully synced ${sourceName}!`);
-        await fetchHealthAndConflicts();
+        await fetchHealthAndConflicts(activeOrg?.id);
       } else {
         const errText = await res.text();
         showToast(`Sync failed: ${res.status} ${errText.substring(0, 60)}`, 'error');
@@ -309,16 +511,17 @@ export default function App() {
   };
 
   const handleSyncAllSources = async () => {
+    if (!activeOrg?.id) return;
     setSyncingSourceId('all');
     try {
-      const res = await fetch('/v1/sources/sync-all?use_mock_llm=true', { method: 'POST' });
+      const res = await fetch(`/v1/sources/sync-all?organization_id=${activeOrg.id}&use_mock_llm=true`, { method: 'POST' });
       if (res.ok) {
         const results = await res.json();
         const totalDocs = results.reduce((acc, r) => acc + (r.documents_synced || 0), 0);
         const totalClaims = results.reduce((acc, r) => acc + (r.claims_extracted || 0), 0);
         const totalConflicts = results.reduce((acc, r) => acc + (r.conflicts_detected || 0), 0);
-        showToast(`All connectors synced! (${totalDocs} docs, ${totalClaims} claims, ${totalConflicts} conflicts surfaced)`);
-        await fetchHealthAndConflicts();
+        showToast(`All connectors synced for ${activeOrg.name}! (${totalDocs} docs, ${totalClaims} claims, ${totalConflicts} conflicts)`);
+        await fetchHealthAndConflicts(activeOrg.id);
       } else {
         showToast('Bulk sync encountered an error', 'error');
       }
@@ -326,6 +529,116 @@ export default function App() {
       showToast('Bulk sync connection failed', 'error');
     } finally {
       setSyncingSourceId(null);
+    }
+  };
+
+  const buildConnectionConfig = () => {
+    const st = newSourceForm.sourceType;
+    if (st === 'postgresql') {
+      return {
+        host: newSourceForm.pgHost,
+        port: Number(newSourceForm.pgPort) || 5432,
+        database: newSourceForm.pgDatabase,
+        username: newSourceForm.pgUsername,
+        password: newSourceForm.pgPassword,
+        ssl_mode: newSourceForm.pgSslMode,
+        schemas: newSourceForm.pgSchemas.split(',').map(s => s.trim()).filter(Boolean)
+      };
+    } else if (st === 'kafka' || st === 'apache_kafka' || st === 'confluent_kafka' || st === 'amazon_msk' || st === 'aiven_kafka' || st === 'redpanda_kafka') {
+      return {
+        bootstrap_servers: newSourceForm.kafkaBootstrap,
+        schema_registry_url: newSourceForm.kafkaSchemaRegistry,
+        security_protocol: newSourceForm.kafkaSecurityProtocol,
+        sasl_mechanism: newSourceForm.kafkaSaslMechanism,
+        sasl_username: newSourceForm.kafkaSaslUsername,
+        sasl_password: newSourceForm.kafkaSaslPassword,
+        topic_patterns: newSourceForm.kafkaTopics.split(',').map(s => s.trim()).filter(Boolean)
+      };
+    } else if (st === 'salesforce') {
+      return {
+        instance_url: newSourceForm.sfInstanceUrl,
+        client_id: newSourceForm.sfClientId,
+        client_secret: newSourceForm.sfClientSecret,
+        username: newSourceForm.sfUsername,
+        password: newSourceForm.sfPassword,
+        security_token: newSourceForm.sfSecurityToken,
+        objects: newSourceForm.sfObjects.split(',').map(s => s.trim()).filter(Boolean)
+      };
+    } else if (st === 'mongodb' || st === 'mongodb_atlas' || st === 'mongodb_self' || st === 'documentdb') {
+      return {
+        connection_string: newSourceForm.mongoUri,
+        database: newSourceForm.mongoDatabase,
+        collections: newSourceForm.mongoCollections.split(',').map(s => s.trim()).filter(Boolean)
+      };
+    } else if (st === 'github') {
+      return {
+        repo: newSourceForm.githubRepo,
+        branch: newSourceForm.githubBranch,
+        token: newSourceForm.githubToken
+      };
+    } else if (st === 'confluence') {
+      return {
+        space_key: newSourceForm.confluenceSpace,
+        base_url: newSourceForm.confluenceBaseUrl
+      };
+    } else if (st === 'jira') {
+      return {
+        project_key: newSourceForm.jiraProject,
+        base_url: newSourceForm.jiraBaseUrl
+      };
+    }
+    // Generic Universal Driver config for all other catalog connectors
+    return {
+      host: genericConfig.host || `${st}.internal`,
+      port: Number(genericConfig.port) || undefined,
+      database: genericConfig.database || 'production',
+      username: genericConfig.username || 'admin',
+      password: genericConfig.password || '',
+      endpoint: genericConfig.endpoint || '',
+      token: genericConfig.apiToken || '',
+      schemas: genericConfig.schemas ? genericConfig.schemas.split(',').map(s => s.trim()).filter(Boolean) : ['public']
+    };
+  };
+
+  const handleTestConnection = async () => {
+    setIsTestingConnection(true);
+    setTestConnectionResult(null);
+    try {
+      const config = buildConnectionConfig();
+      const res = await fetch('/v1/sources/test-connection', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          source_type: newSourceForm.sourceType,
+          connection_config: config
+        })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setTestConnectionResult(data);
+        if (data.success) {
+          showToast(data.message || "Connection validated successfully!");
+        } else {
+          showToast(data.message || "Connection test failed", "error");
+        }
+      } else {
+        const err = await res.text();
+        setTestConnectionResult({
+          success: false,
+          status: 'error',
+          message: `HTTP ${res.status}: ${err}`
+        });
+        showToast("Connection test failed", "error");
+      }
+    } catch (err) {
+      setTestConnectionResult({
+        success: false,
+        status: 'error',
+        message: `Network error: ${err.message}`
+      });
+      showToast("Could not reach backend test endpoint", "error");
+    } finally {
+      setIsTestingConnection(false);
     }
   };
 
@@ -337,15 +650,29 @@ export default function App() {
     }
     setIsConnectingSource(true);
     try {
+      const config = buildConnectionConfig();
+      let externalId = newSourceForm.externalId.trim();
+      if (!externalId) {
+        if (newSourceForm.sourceType === 'postgresql') externalId = `${newSourceForm.pgHost}:${newSourceForm.pgPort}/${newSourceForm.pgDatabase}`;
+        else if (newSourceForm.sourceType === 'kafka') externalId = newSourceForm.kafkaBootstrap;
+        else if (newSourceForm.sourceType === 'salesforce') externalId = newSourceForm.sfInstanceUrl;
+        else if (newSourceForm.sourceType === 'mongodb') externalId = `${newSourceForm.mongoUri}/${newSourceForm.mongoDatabase}`;
+        else if (newSourceForm.sourceType === 'github') externalId = newSourceForm.githubRepo;
+        else if (newSourceForm.sourceType === 'confluence') externalId = newSourceForm.confluenceSpace;
+        else if (newSourceForm.sourceType === 'jira') externalId = newSourceForm.jiraProject;
+        else externalId = newSourceForm.name.trim();
+      }
+
       const res = await fetch('/v1/sources', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          organization_id: "11111111-1111-1111-1111-111111111111",
+          organization_id: activeOrg?.id,
           name: newSourceForm.name.trim(),
           source_type: newSourceForm.sourceType,
-          external_id: newSourceForm.externalId.trim() || newSourceForm.name.trim(),
-          authority_level: Number(newSourceForm.authorityLevel) || 80
+          external_id: externalId,
+          authority_level: Number(newSourceForm.authorityLevel) || 80,
+          connection_config: config
         })
       });
 
@@ -353,16 +680,7 @@ export default function App() {
         const created = await res.json();
         showToast(`Registered '${created.name}'! Starting initial sync...`);
         setShowAddSourceModal(false);
-        setNewSourceForm({
-          name: '',
-          sourceType: 'github',
-          externalId: '',
-          authorityLevel: 90,
-          apiToken: '',
-          baseUrl: '',
-          userEmail: '',
-          branch: 'main'
-        });
+        setTestConnectionResult(null);
         await handleSyncSource(created.id, created.name);
       } else {
         const errText = await res.text();
@@ -376,8 +694,14 @@ export default function App() {
   };
 
   useEffect(() => {
-    fetchHealthAndConflicts();
+    fetchOrganizations();
   }, []);
+
+  useEffect(() => {
+    if (activeOrg?.id) {
+      fetchHealthAndConflicts(activeOrg.id);
+    }
+  }, [activeOrg?.id]);
 
   // Background Auto-Sync Timer
   useEffect(() => {
@@ -387,7 +711,7 @@ export default function App() {
       handleSyncAllSources();
     }, intervalMs);
     return () => clearInterval(timer);
-  }, [autoSyncInterval]);
+  }, [autoSyncInterval, activeOrg?.id]);
 
   const showToast = (msg, type = 'success') => {
     setNotification({ msg, type });
@@ -423,7 +747,7 @@ export default function App() {
             scope: current.claim2.scope
           }
         ],
-        organization_id: "11111111-1111-1111-1111-111111111111",
+        organization_id: activeOrg?.id,
         required_scope: current.claim2.scope
       };
 
@@ -483,7 +807,7 @@ export default function App() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          organization_id: "11111111-1111-1111-1111-111111111111",
+          organization_id: activeOrg?.id,
           agent_id: ag.id,
           query: q,
           min_trust_score: parseFloat(th),
@@ -564,6 +888,10 @@ export default function App() {
   // Document Ingestion Handler
   // -------------------------------------------------------------
   const handleIngestDocument = async () => {
+    if (!activeOrg?.id) {
+      showToast("No active workspace selected", "error");
+      return;
+    }
     setIngesting(true);
     setIngestedDoc(null);
     setExtractedClaims([]);
@@ -572,11 +900,10 @@ export default function App() {
       if (uploadedFile) {
         const formData = new FormData();
         formData.append('file', uploadedFile);
-        formData.append('organization_id', '11111111-1111-1111-1111-111111111111');
-        formData.append('source_id', '44444444-4444-4444-4444-444444444444');
+        formData.append('organization_id', activeOrg.id);
         formData.append('title', docInput.title);
         formData.append('document_type', docInput.docType);
-        formData.append('external_id', docInput.externalId);
+        formData.append('external_id', docInput.externalId || docInput.title);
 
         resDoc = await fetch('/v1/documents/upload', {
           method: 'POST',
@@ -587,12 +914,11 @@ export default function App() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            organization_id: "11111111-1111-1111-1111-111111111111",
-            source_id: "44444444-4444-4444-4444-444444444444",
+            organization_id: activeOrg.id,
             title: docInput.title,
             content: docInput.content,
             document_type: docInput.docType,
-            external_id: docInput.externalId
+            external_id: docInput.externalId || docInput.title
           })
         });
       }
@@ -609,7 +935,7 @@ export default function App() {
             setExtractedClaims(claimsData);
           }
         }
-        await fetchLiveDatabaseRecords();
+        await fetchLiveDatabaseRecords(activeOrg.id);
         showToast("Document ingested and atomic claims extracted!");
       } else {
         const errorText = await resDoc.text();
@@ -650,7 +976,7 @@ export default function App() {
       {/* ========================================================= */}
       <aside className="sidebar">
         {/* Brand Header */}
-        <div style={{ padding: '24px 20px', borderBottom: '1px solid var(--border-subtle)' }}>
+        <div style={{ padding: '18px 20px 14px 20px', borderBottom: '1px solid var(--border-subtle)' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <span style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-main)', letterSpacing: '-0.01em' }}>
               Context Trust Layer
@@ -659,7 +985,7 @@ export default function App() {
               v0.1.0
             </span>
           </div>
-          <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+          <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '2px' }}>
             AI Evidence & Decision Safety Gate
           </p>
         </div>
@@ -881,10 +1207,11 @@ export default function App() {
       <main className="main-content">
         
         {/* ========================================================= */}
-        {/* TOP BREADCRUMB NAVIGATOR (Home > Parent > Sub-View)       */}
+        {/* TOP BREADCRUMB & HEADER CONTROLS (Client & Workspace)     */}
         {/* ========================================================= */}
-        <div className="top-breadcrumb-bar">
-          <div className="breadcrumb-trail">
+        <div className="top-breadcrumb-bar" style={{ position: 'relative', zIndex: 50 }}>
+          {/* Left: Clean Breadcrumb Navigator */}
+          <div className="breadcrumb-trail" style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '6px' }}>
             <button 
               onClick={() => { setActiveTab('home'); setExpandedMenu('home'); }}
               className="breadcrumb-link"
@@ -953,8 +1280,267 @@ export default function App() {
             )}
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span className="badge badge-verified" style={{ fontSize: '0.72rem', padding: '3px 8px' }}>
+          {/* Right Side: Professional Enterprise Client & Workspace Switcher Header */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', position: 'relative' }}>
+            
+            {/* 1. ENTERPRISE CLIENT (TENANT ROOT) DROPDOWN */}
+            <div style={{ position: 'relative' }}>
+              <button
+                onClick={() => {
+                  setIsOrgDropdownOpen(prev => !prev);
+                  setIsWorkspaceDropdownOpen(false);
+                }}
+                className="btn btn-secondary"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '5px 11px',
+                  fontSize: '0.78rem',
+                  fontWeight: 600,
+                  background: 'var(--bg-card)',
+                  border: isOrgDropdownOpen ? '1px solid var(--primary)' : '1px solid var(--border-subtle)',
+                  borderRadius: '6px',
+                  color: 'var(--text-main)',
+                  cursor: 'pointer'
+                }}
+                title="Enterprise Client Organization (Tenant Root)"
+              >
+                <span style={{ fontSize: '0.85rem' }}>🏢</span>
+                <span style={{ color: 'var(--text-muted)', fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase' }}>Client:</span>
+                <strong style={{ maxWidth: '120px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'var(--text-main)' }}>
+                  {activeOrg?.name || 'demo'}
+                </strong>
+                <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>▾</span>
+              </button>
+
+              {isOrgDropdownOpen && (
+                <div style={{
+                  position: 'absolute',
+                  top: 'calc(100% + 6px)',
+                  right: 0,
+                  background: 'var(--bg-card)',
+                  border: '1px solid var(--border-subtle)',
+                  borderRadius: '8px',
+                  boxShadow: '0 12px 30px rgba(0,0,0,0.35)',
+                  zIndex: 250,
+                  width: '260px',
+                  padding: '6px'
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 8px 4px 8px', borderBottom: '1px solid var(--border-subtle)', marginBottom: '4px' }}>
+                    <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                      ENTERPRISE CLIENT
+                    </span>
+                    <span className="badge badge-verified" style={{ fontSize: '0.6rem', padding: '1px 5px' }}>Tenant Root</span>
+                  </div>
+
+                  <div style={{ maxHeight: '180px', overflowY: 'auto' }}>
+                    {organizations.map(org => (
+                      <button
+                        key={org.id}
+                        onClick={() => {
+                          handleSwitchOrganization(org);
+                          setIsOrgDropdownOpen(false);
+                        }}
+                        style={{
+                          width: '100%',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          padding: '7px 8px',
+                          background: activeOrg?.id === org.id ? 'var(--primary-subtle, rgba(99,102,241,0.1))' : 'transparent',
+                          border: 'none',
+                          borderRadius: '4px',
+                          color: activeOrg?.id === org.id ? 'var(--primary)' : 'var(--text-main)',
+                          fontSize: '0.78rem',
+                          fontWeight: activeOrg?.id === org.id ? 700 : 500,
+                          cursor: 'pointer',
+                          textAlign: 'left'
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', overflow: 'hidden' }}>
+                          <span>🏢</span>
+                          <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{org.name}</span>
+                        </div>
+                        {activeOrg?.id === org.id && <span style={{ fontSize: '0.7rem', color: 'var(--primary)' }}>✓</span>}
+                      </button>
+                    ))}
+                  </div>
+
+                  <div style={{ borderTop: '1px solid var(--border-subtle)', marginTop: '4px', paddingTop: '4px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                    <button
+                      onClick={() => {
+                        setShowRenameOrgModal(true);
+                        setRenameOrgName(activeOrg?.name || '');
+                        setIsOrgDropdownOpen(false);
+                      }}
+                      style={{
+                        width: '100%',
+                        padding: '6px 8px',
+                        background: 'transparent',
+                        border: 'none',
+                        color: 'var(--text-secondary)',
+                        fontSize: '0.72rem',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        textAlign: 'left',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px'
+                      }}
+                    >
+                      <span>✏️</span> Rename '{activeOrg?.name || 'demo'}'
+                    </button>
+                    <button
+                      onClick={() => {
+                        setShowNewOrgModal(true);
+                        setIsOrgDropdownOpen(false);
+                      }}
+                      style={{
+                        width: '100%',
+                        padding: '6px 8px',
+                        background: 'transparent',
+                        border: 'none',
+                        color: 'var(--primary)',
+                        fontSize: '0.72rem',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        textAlign: 'left',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px'
+                      }}
+                    >
+                      <span>+</span> Register New Client Company
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* 2. ACTIVE DEPARTMENTAL WORKSPACE DROPDOWN */}
+            <div style={{ position: 'relative' }}>
+              <button
+                onClick={() => {
+                  setIsWorkspaceDropdownOpen(prev => !prev);
+                  setIsOrgDropdownOpen(false);
+                }}
+                className="btn btn-secondary"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '5px 11px',
+                  fontSize: '0.78rem',
+                  fontWeight: 600,
+                  background: 'var(--bg-card)',
+                  border: isWorkspaceDropdownOpen ? '1px solid var(--primary)' : '1px solid var(--border-subtle)',
+                  borderRadius: '6px',
+                  color: 'var(--text-main)',
+                  cursor: 'pointer'
+                }}
+                title="Active Departmental Workspace"
+              >
+                <span style={{ fontSize: '0.85rem' }}>{activeWorkspace?.icon || '📁'}</span>
+                <span style={{ color: 'var(--text-muted)', fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase' }}>Workspace:</span>
+                <strong style={{ color: 'var(--primary)', maxWidth: '140px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {activeWorkspace?.name || 'All Workspaces'}
+                </strong>
+                <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>▾</span>
+              </button>
+
+              {isWorkspaceDropdownOpen && (
+                <div style={{
+                  position: 'absolute',
+                  top: 'calc(100% + 6px)',
+                  right: 0,
+                  background: 'var(--bg-card)',
+                  border: '1px solid var(--border-subtle)',
+                  borderRadius: '8px',
+                  boxShadow: '0 12px 30px rgba(0,0,0,0.35)',
+                  zIndex: 250,
+                  width: '280px',
+                  padding: '6px'
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 8px 4px 8px', borderBottom: '1px solid var(--border-subtle)', marginBottom: '4px' }}>
+                    <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                      DEPARTMENTAL WORKSPACES
+                    </span>
+                    <button
+                      onClick={() => {
+                        setShowNewWorkspaceModal(true);
+                        setIsWorkspaceDropdownOpen(false);
+                      }}
+                      style={{ background: 'transparent', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontSize: '0.7rem', fontWeight: 700 }}
+                    >
+                      + New
+                    </button>
+                  </div>
+
+                  <div style={{ maxHeight: '220px', overflowY: 'auto' }}>
+                    {workspaces.map(ws => (
+                      <button
+                        key={ws.id}
+                        onClick={() => {
+                          handleSwitchWorkspace(ws);
+                          setIsWorkspaceDropdownOpen(false);
+                        }}
+                        style={{
+                          width: '100%',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          padding: '7px 8px',
+                          background: activeWorkspace?.id === ws.id ? 'var(--primary-subtle, rgba(99,102,241,0.1))' : 'transparent',
+                          border: 'none',
+                          borderRadius: '4px',
+                          color: activeWorkspace?.id === ws.id ? 'var(--primary)' : 'var(--text-main)',
+                          fontSize: '0.78rem',
+                          fontWeight: activeWorkspace?.id === ws.id ? 700 : 500,
+                          cursor: 'pointer',
+                          textAlign: 'left'
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', overflow: 'hidden' }}>
+                          <span>{ws.icon}</span>
+                          <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{ws.name}</span>
+                        </div>
+                        {activeWorkspace?.id === ws.id && <span style={{ fontSize: '0.7rem', color: 'var(--primary)' }}>✓</span>}
+                      </button>
+                    ))}
+                  </div>
+
+                  <div style={{ borderTop: '1px solid var(--border-subtle)', marginTop: '4px', paddingTop: '4px' }}>
+                    <button
+                      onClick={() => {
+                        setShowNewWorkspaceModal(true);
+                        setIsWorkspaceDropdownOpen(false);
+                      }}
+                      style={{
+                        width: '100%',
+                        padding: '6px 8px',
+                        background: 'transparent',
+                        border: 'none',
+                        color: 'var(--primary)',
+                        fontSize: '0.72rem',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        textAlign: 'left',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px'
+                      }}
+                    >
+                      <span>+</span> Create Department Workspace
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* 3. SYSTEM OPERATIONAL BADGE */}
+            <span className="badge badge-verified" style={{ fontSize: '0.72rem', padding: '5px 9px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--success-solid)' }} />
               System Operational
             </span>
           </div>
@@ -1789,13 +2375,14 @@ export default function App() {
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))', gap: '16px', marginBottom: '24px' }}>
                   {dataSources.map((source, idx) => {
                     const isSyncing = syncingSourceId === source.id || syncingSourceId === 'all';
-                    const typeLabel = source.source_type?.toUpperCase() || 'CONNECTOR';
+                    const stype = (source.source_type || '').toLowerCase();
+                    const typeLabel = stype.toUpperCase();
                     const lastSyncText = source.last_synced_at 
                       ? new Date(source.last_synced_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
                       : 'Not synced yet';
 
                     return (
-                      <div key={source.id || idx} className="clean-panel" style={{ padding: '18px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                      <div key={source.id || idx} className="clean-panel" style={{ padding: '18px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', borderTop: '3px solid var(--border-medium)' }}>
                         <div>
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                             <span className="badge badge-verified" style={{ fontSize: '0.7rem' }}>
@@ -1815,11 +2402,16 @@ export default function App() {
                           </div>
 
                           <div style={{ background: '#FFFFFF', border: '1px solid var(--border-subtle)', padding: '10px', borderRadius: '6px', fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '16px' }}>
-                            <div style={{ fontWeight: 700, marginBottom: '2px' }}>Monitored Scope:</div>
-                            {source.source_type === 'confluence' && "Live Confluence Wiki Space, Policy Articles, and Security Standards."}
-                            {source.source_type === 'jira' && "Live Jira Project, Incident Runbooks, SLAs, and Release Guidelines."}
-                            {source.source_type === 'github' && "Live GitHub Repository, /docs Markdown files, and Architecture Specs."}
-                            {source.source_type === 'portal' && "Corporate Security Directives, Authentication & Compliance Mandates."}
+                            <div style={{ fontWeight: 700, marginBottom: '2px' }}>Monitored Contract Scope:</div>
+                            {stype === 'postgresql' && "Relational Schema, Table Constraints (PK/FK/CHECK), Column Nullability & SLA Policies."}
+                            {stype === 'kafka' && "Stream Topic Topology, Message Schema Registry, Retention SLAs & Dead-Letter Queues."}
+                            {stype === 'salesforce' && "Standard & Custom SObjects, Field Types, Validation Rules & Approval Thresholds."}
+                            {stype === 'mongodb' && "Collection Schemas, JSON Schema Validators ($jsonSchema), Shard Keys & TTL Indexes."}
+                            {stype === 'confluence' && "Live Confluence Wiki Space, Policy Articles, and Security Standards."}
+                            {stype === 'jira' && "Live Jira Project, Incident Runbooks, SLAs, and Release Guidelines."}
+                            {stype === 'github' && "Live GitHub Repository, /docs Markdown files, and Architecture Specs."}
+                            {stype === 'portal' && "Corporate Security Directives, Authentication & Compliance Mandates."}
+                            {!['postgresql', 'kafka', 'salesforce', 'mongodb', 'confluence', 'jira', 'github', 'portal'].includes(stype) && "Enterprise Data & Policy Contract Synchronization."}
                           </div>
                         </div>
 
@@ -1851,7 +2443,7 @@ export default function App() {
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                     <span className="code-pill">1. Polling Connectors</span>
                     <span>→</span>
-                    <span className="code-pill">2. Normalizing Markdown</span>
+                    <span className="code-pill">2. Normalizing Contracts & Markdown</span>
                     <span>→</span>
                     <span className="code-pill">3. Extracting Atomic Claims</span>
                     <span>→</span>
@@ -1861,7 +2453,7 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* Modal: Connect Real Data Source */}
+                {/* Modal: Connect Real Enterprise Data Source (Atlan Architecture) */}
                 {showAddSourceModal && (
                   <div style={{
                     position: 'fixed',
@@ -1876,42 +2468,124 @@ export default function App() {
                     zIndex: 1000,
                     padding: '20px'
                   }}>
-                    <div className="clean-panel" style={{ width: '100%', maxWidth: '520px', padding: '24px', background: '#FFFFFF', borderRadius: '10px', boxShadow: '0 10px 25px rgba(0,0,0,0.1)' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                        <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-main)' }}>
-                          Connect Real Enterprise Source
-                        </h3>
+                    <div className="clean-panel" style={{ width: '100%', maxWidth: '720px', maxHeight: '90vh', overflowY: 'auto', padding: '24px', background: '#FFFFFF', borderRadius: '10px', boxShadow: '0 10px 25px rgba(0,0,0,0.1)' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '12px' }}>
+                        <div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
+                              Enterprise Connector Hub
+                            </h3>
+                            <span className="badge badge-verified" style={{ fontSize: '0.7rem' }}>
+                              104 Supported Sources
+                            </span>
+                          </div>
+                          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '3px' }}>
+                            Modelled after Atlan's connector architecture with pre-flight diagnostics, automated crawler & contract extraction.
+                          </div>
+                        </div>
                         <button 
-                          onClick={() => setShowAddSourceModal(false)}
-                          style={{ background: 'none', border: 'none', fontSize: '1.1rem', cursor: 'pointer', color: 'var(--text-muted)' }}
+                          onClick={() => { setShowAddSourceModal(false); setTestConnectionResult(null); }}
+                          style={{ background: 'none', border: 'none', fontSize: '1.2rem', cursor: 'pointer', color: 'var(--text-muted)' }}
                         >
                           ✕
                         </button>
                       </div>
 
+                      {/* Category Filter Chips */}
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '12px' }}>
+                        {catalogCategories.map(cat => (
+                          <button
+                            key={cat.id}
+                            type="button"
+                            onClick={() => setCatalogFilterCategory(cat.id)}
+                            style={{
+                              padding: '4px 10px',
+                              fontSize: '0.72rem',
+                              fontWeight: 700,
+                              borderRadius: '14px',
+                              border: catalogFilterCategory === cat.id ? '1px solid var(--primary)' : '1px solid var(--border-subtle)',
+                              background: catalogFilterCategory === cat.id ? 'var(--primary)' : '#F8FAFC',
+                              color: catalogFilterCategory === cat.id ? '#FFFFFF' : 'var(--text-secondary)',
+                              cursor: 'pointer',
+                              transition: 'all 0.15s ease'
+                            }}
+                          >
+                            {cat.label} ({cat.count})
+                          </button>
+                        ))}
+                      </div>
+
+                      {/* Search Bar across 104 connectors */}
+                      <div style={{ marginBottom: '14px' }}>
+                        <input 
+                          type="text" 
+                          placeholder="🔍 Search across 104 data sources... e.g. Snowflake, dbt, Airflow, Tableau, Iceberg, Monte Carlo, SageMaker"
+                          value={catalogSearchQuery}
+                          onChange={e => setCatalogSearchQuery(e.target.value)}
+                          style={{ width: '100%', padding: '8px 12px', fontSize: '0.82rem', background: '#F8FAFC' }}
+                        />
+                      </div>
+
                       <form onSubmit={handleConnectNewSource} style={{ display: 'grid', gap: '14px' }}>
+                        {/* Source Type Selector */}
                         <div>
                           <label style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
-                            Source Provider:
+                            Select Target Data Source ({
+                              catalogConnectors.filter(c => 
+                                (catalogFilterCategory === 'all' || c.category === catalogFilterCategory) &&
+                                (!catalogSearchQuery || c.name.toLowerCase().includes(catalogSearchQuery.toLowerCase()) || c.description.toLowerCase().includes(catalogSearchQuery.toLowerCase()))
+                              ).length
+                            } available):
                           </label>
                           <select 
                             value={newSourceForm.sourceType}
-                            onChange={e => setNewSourceForm({ ...newSourceForm, sourceType: e.target.value })}
+                            onChange={e => {
+                              const newType = e.target.value;
+                              const meta = catalogConnectors.find(c => c.id === newType);
+                              let defaultName = meta ? `Production ${meta.name}` : `Core ${newType}`;
+                              setNewSourceForm({ ...newSourceForm, sourceType: newType, name: defaultName });
+                              setTestConnectionResult(null);
+                            }}
                             style={{ width: '100%', padding: '8px 10px', fontSize: '0.85rem' }}
                           >
-                            <option value="github">GitHub Repository (Public or Private)</option>
-                            <option value="confluence">Atlassian Confluence Space</option>
-                            <option value="jira">Atlassian Jira Project</option>
+                            {catalogConnectors
+                              .filter(c => 
+                                (catalogFilterCategory === 'all' || c.category === catalogFilterCategory) &&
+                                (!catalogSearchQuery || c.name.toLowerCase().includes(catalogSearchQuery.toLowerCase()) || c.description.toLowerCase().includes(catalogSearchQuery.toLowerCase()))
+                              )
+                              .map(c => (
+                                <option key={c.id} value={c.id}>
+                                  [{c.category_label}] {c.name}
+                                </option>
+                              ))
+                            }
                           </select>
                         </div>
 
+                        {/* Selected Connector Scope Banner */}
+                        {(() => {
+                          const currentMeta = catalogConnectors.find(c => c.id === newSourceForm.sourceType);
+                          if (!currentMeta) return null;
+                          return (
+                            <div style={{ background: '#F1F5F9', border: '1px solid var(--border-subtle)', borderRadius: '6px', padding: '10px 14px', fontSize: '0.75rem' }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                                <span style={{ fontWeight: 800, color: 'var(--text-main)' }}>{currentMeta.name}</span>
+                                <span className="badge badge-verified" style={{ fontSize: '0.68rem' }}>{currentMeta.category_label}</span>
+                              </div>
+                              <div style={{ color: 'var(--text-secondary)', marginBottom: '4px' }}>{currentMeta.description}</div>
+                              <div style={{ color: 'var(--primary)', fontWeight: 600 }}>Scope: {currentMeta.monitored_scope}</div>
+                            </div>
+                          );
+                        })()}
+
+                        {/* Connection Name */}
                         <div>
                           <label style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
-                            Connection Name:
+                            Connector Instance Name:
                           </label>
                           <input 
                             type="text" 
-                            placeholder="e.g. My Company Security Docs"
+                            placeholder="e.g. Core Production Snowflake Warehouse"
                             value={newSourceForm.name}
                             onChange={e => setNewSourceForm({ ...newSourceForm, name: e.target.value })}
                             style={{ width: '100%', padding: '8px 10px', fontSize: '0.85rem' }}
@@ -1919,73 +2593,380 @@ export default function App() {
                           />
                         </div>
 
-                        {newSourceForm.sourceType === 'github' && (
-                          <div>
-                            <label style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
-                              GitHub Repository (owner/repo):
-                            </label>
-                            <input 
-                              type="text" 
-                              placeholder="e.g. facebook/react or your-username/policies-repo"
-                              value={newSourceForm.externalId}
-                              onChange={e => setNewSourceForm({ ...newSourceForm, externalId: e.target.value })}
-                              style={{ width: '100%', padding: '8px 10px', fontSize: '0.85rem' }}
-                              required
-                            />
-                            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-                              Any public GitHub repository works immediately with no token needed.
+                        {/* 1. PostgreSQL Specific Fields */}
+                        {newSourceForm.sourceType === 'postgresql' && (
+                          <div style={{ background: '#F8FAFC', border: '1px solid var(--border-subtle)', borderRadius: '6px', padding: '12px', display: 'grid', gap: '10px' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '10px' }}>
+                              <div>
+                                <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Host / Hostname:</label>
+                                <input 
+                                  type="text" 
+                                  value={newSourceForm.pgHost} 
+                                  onChange={e => setNewSourceForm({ ...newSourceForm, pgHost: e.target.value })} 
+                                  placeholder="localhost or pg.internal" 
+                                  style={{ width: '100%', padding: '6px 8px', fontSize: '0.8rem' }}
+                                />
+                              </div>
+                              <div>
+                                <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Port:</label>
+                                <input 
+                                  type="number" 
+                                  value={newSourceForm.pgPort} 
+                                  onChange={e => setNewSourceForm({ ...newSourceForm, pgPort: e.target.value })} 
+                                  style={{ width: '100%', padding: '6px 8px', fontSize: '0.8rem' }}
+                                />
+                              </div>
+                            </div>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                              <div>
+                                <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Database Name:</label>
+                                <input 
+                                  type="text" 
+                                  value={newSourceForm.pgDatabase} 
+                                  onChange={e => setNewSourceForm({ ...newSourceForm, pgDatabase: e.target.value })} 
+                                  placeholder="enterprise_core" 
+                                  style={{ width: '100%', padding: '6px 8px', fontSize: '0.8rem' }}
+                                />
+                              </div>
+                              <div>
+                                <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Target Schemas (comma-separated):</label>
+                                <input 
+                                  type="text" 
+                                  value={newSourceForm.pgSchemas} 
+                                  onChange={e => setNewSourceForm({ ...newSourceForm, pgSchemas: e.target.value })} 
+                                  placeholder="public, analytics" 
+                                  style={{ width: '100%', padding: '6px 8px', fontSize: '0.8rem' }}
+                                />
+                              </div>
+                            </div>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                              <div>
+                                <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Username:</label>
+                                <input 
+                                  type="text" 
+                                  value={newSourceForm.pgUsername} 
+                                  onChange={e => setNewSourceForm({ ...newSourceForm, pgUsername: e.target.value })} 
+                                  placeholder="postgres" 
+                                  style={{ width: '100%', padding: '6px 8px', fontSize: '0.8rem' }}
+                                />
+                              </div>
+                              <div>
+                                <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Password:</label>
+                                <input 
+                                  type="password" 
+                                  value={newSourceForm.pgPassword} 
+                                  onChange={e => setNewSourceForm({ ...newSourceForm, pgPassword: e.target.value })} 
+                                  placeholder="••••••••" 
+                                  style={{ width: '100%', padding: '6px 8px', fontSize: '0.8rem' }}
+                                />
+                              </div>
                             </div>
                           </div>
                         )}
 
-                        {newSourceForm.sourceType === 'confluence' && (
-                          <>
+                        {/* 2. Apache Kafka Specific Fields */}
+                        {(['kafka', 'apache_kafka', 'confluent_kafka', 'amazon_msk', 'aiven_kafka', 'redpanda_kafka'].includes(newSourceForm.sourceType)) && (
+                          <div style={{ background: '#F8FAFC', border: '1px solid var(--border-subtle)', borderRadius: '6px', padding: '12px', display: 'grid', gap: '10px' }}>
                             <div>
-                              <label style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
-                                Confluence Space Key:
-                              </label>
+                              <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Bootstrap Servers (host:port):</label>
                               <input 
                                 type="text" 
-                                placeholder="e.g. POLICIES or HR"
-                                value={newSourceForm.externalId}
-                                onChange={e => setNewSourceForm({ ...newSourceForm, externalId: e.target.value })}
-                                style={{ width: '100%', padding: '8px 10px', fontSize: '0.85rem' }}
+                                value={newSourceForm.kafkaBootstrap} 
+                                onChange={e => setNewSourceForm({ ...newSourceForm, kafkaBootstrap: e.target.value })} 
+                                placeholder="kafka-cluster-prod.internal:9092" 
+                                style={{ width: '100%', padding: '6px 8px', fontSize: '0.8rem' }}
+                              />
+                            </div>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                              <div>
+                                <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Security Protocol:</label>
+                                <select 
+                                  value={newSourceForm.kafkaSecurityProtocol} 
+                                  onChange={e => setNewSourceForm({ ...newSourceForm, kafkaSecurityProtocol: e.target.value })}
+                                  style={{ width: '100%', padding: '6px 8px', fontSize: '0.8rem' }}
+                                >
+                                  <option value="PLAINTEXT">PLAINTEXT</option>
+                                  <option value="SSL">SSL</option>
+                                  <option value="SASL_PLAINTEXT">SASL_PLAINTEXT</option>
+                                  <option value="SASL_SSL">SASL_SSL</option>
+                                </select>
+                              </div>
+                              <div>
+                                <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Schema Registry URL (Optional):</label>
+                                <input 
+                                  type="text" 
+                                  value={newSourceForm.kafkaSchemaRegistry} 
+                                  onChange={e => setNewSourceForm({ ...newSourceForm, kafkaSchemaRegistry: e.target.value })} 
+                                  placeholder="http://schema-registry:8081" 
+                                  style={{ width: '100%', padding: '6px 8px', fontSize: '0.8rem' }}
+                                />
+                              </div>
+                            </div>
+                            <div>
+                              <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Monitored Topics (comma-separated):</label>
+                              <input 
+                                type="text" 
+                                value={newSourceForm.kafkaTopics} 
+                                onChange={e => setNewSourceForm({ ...newSourceForm, kafkaTopics: e.target.value })} 
+                                placeholder="financial.payments.settled.v1, security.audit.access.v2" 
+                                style={{ width: '100%', padding: '6px 8px', fontSize: '0.8rem' }}
+                              />
+                            </div>
+                          </div>
+                        )}
+
+                        {/* 3. Salesforce Specific Fields */}
+                        {newSourceForm.sourceType === 'salesforce' && (
+                          <div style={{ background: '#F8FAFC', border: '1px solid var(--border-subtle)', borderRadius: '6px', padding: '12px', display: 'grid', gap: '10px' }}>
+                            <div>
+                              <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Salesforce Instance URL:</label>
+                              <input 
+                                type="text" 
+                                value={newSourceForm.sfInstanceUrl} 
+                                onChange={e => setNewSourceForm({ ...newSourceForm, sfInstanceUrl: e.target.value })} 
+                                placeholder="https://company.my.salesforce.com" 
+                                style={{ width: '100%', padding: '6px 8px', fontSize: '0.8rem' }}
+                              />
+                            </div>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                              <div>
+                                <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Connected App Client ID:</label>
+                                <input 
+                                  type="text" 
+                                  value={newSourceForm.sfClientId} 
+                                  onChange={e => setNewSourceForm({ ...newSourceForm, sfClientId: e.target.value })} 
+                                  placeholder="3MVG9..." 
+                                  style={{ width: '100%', padding: '6px 8px', fontSize: '0.8rem' }}
+                                />
+                              </div>
+                              <div>
+                                <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Client Secret:</label>
+                                <input 
+                                  type="password" 
+                                  value={newSourceForm.sfClientSecret} 
+                                  onChange={e => setNewSourceForm({ ...newSourceForm, sfClientSecret: e.target.value })} 
+                                  placeholder="••••••••" 
+                                  style={{ width: '100%', padding: '6px 8px', fontSize: '0.8rem' }}
+                                />
+                              </div>
+                            </div>
+                            <div>
+                              <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Target SObjects to Ingest (comma-separated):</label>
+                              <input 
+                                type="text" 
+                                value={newSourceForm.sfObjects} 
+                                onChange={e => setNewSourceForm({ ...newSourceForm, sfObjects: e.target.value })} 
+                                placeholder="Contract, Refund_Request__c, Case, Opportunity" 
+                                style={{ width: '100%', padding: '6px 8px', fontSize: '0.8rem' }}
+                              />
+                            </div>
+                          </div>
+                        )}
+
+                        {/* 4. MongoDB Specific Fields */}
+                        {(['mongodb', 'mongodb_atlas', 'mongodb_self', 'documentdb'].includes(newSourceForm.sourceType)) && (
+                          <div style={{ background: '#F8FAFC', border: '1px solid var(--border-subtle)', borderRadius: '6px', padding: '12px', display: 'grid', gap: '10px' }}>
+                            <div>
+                              <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>MongoDB Connection URI:</label>
+                              <input 
+                                type="text" 
+                                value={newSourceForm.mongoUri} 
+                                onChange={e => setNewSourceForm({ ...newSourceForm, mongoUri: e.target.value })} 
+                                placeholder="mongodb://production-cluster:27017 or mongodb+srv://..." 
+                                style={{ width: '100%', padding: '6px 8px', fontSize: '0.8rem' }}
+                              />
+                            </div>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                              <div>
+                                <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Database Name:</label>
+                                <input 
+                                  type="text" 
+                                  value={newSourceForm.mongoDatabase} 
+                                  onChange={e => setNewSourceForm({ ...newSourceForm, mongoDatabase: e.target.value })} 
+                                  placeholder="production" 
+                                  style={{ width: '100%', padding: '6px 8px', fontSize: '0.8rem' }}
+                                />
+                              </div>
+                              <div>
+                                <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Target Collections (comma-separated):</label>
+                                <input 
+                                  type="text" 
+                                  value={newSourceForm.mongoCollections} 
+                                  onChange={e => setNewSourceForm({ ...newSourceForm, mongoCollections: e.target.value })} 
+                                  placeholder="refund_orders, user_session_entitlements" 
+                                  style={{ width: '100%', padding: '6px 8px', fontSize: '0.8rem' }}
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* 5. GitHub Fields */}
+                        {newSourceForm.sourceType === 'github' && (
+                          <div style={{ background: '#F8FAFC', border: '1px solid var(--border-subtle)', borderRadius: '6px', padding: '12px', display: 'grid', gap: '10px' }}>
+                            <div>
+                              <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>GitHub Repository (owner/repo):</label>
+                              <input 
+                                type="text" 
+                                placeholder="e.g. acme-corp/security-standards"
+                                value={newSourceForm.githubRepo}
+                                onChange={e => setNewSourceForm({ ...newSourceForm, githubRepo: e.target.value })}
+                                style={{ width: '100%', padding: '6px 8px', fontSize: '0.8rem' }}
+                                required
+                              />
+                            </div>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                              <div>
+                                <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Branch:</label>
+                                <input 
+                                  type="text" 
+                                  value={newSourceForm.githubBranch}
+                                  onChange={e => setNewSourceForm({ ...newSourceForm, githubBranch: e.target.value })}
+                                  placeholder="main"
+                                  style={{ width: '100%', padding: '6px 8px', fontSize: '0.8rem' }}
+                                />
+                              </div>
+                              <div>
+                                <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Personal Access Token (Optional):</label>
+                                <input 
+                                  type="password" 
+                                  value={newSourceForm.githubToken}
+                                  onChange={e => setNewSourceForm({ ...newSourceForm, githubToken: e.target.value })}
+                                  placeholder="ghp_..."
+                                  style={{ width: '100%', padding: '6px 8px', fontSize: '0.8rem' }}
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* 6. Confluence Fields */}
+                        {newSourceForm.sourceType === 'confluence' && (
+                          <div style={{ background: '#F8FAFC', border: '1px solid var(--border-subtle)', borderRadius: '6px', padding: '12px', display: 'grid', gap: '10px' }}>
+                            <div>
+                              <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Confluence Space Key:</label>
+                              <input 
+                                type="text" 
+                                placeholder="POLICIES or HR"
+                                value={newSourceForm.confluenceSpace}
+                                onChange={e => setNewSourceForm({ ...newSourceForm, confluenceSpace: e.target.value })}
+                                style={{ width: '100%', padding: '6px 8px', fontSize: '0.8rem' }}
                                 required
                               />
                             </div>
                             <div>
-                              <label style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
-                                Atlassian Base URL (Optional):
-                              </label>
+                              <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Atlassian Base URL (Optional):</label>
                               <input 
                                 type="text" 
                                 placeholder="https://yourcompany.atlassian.net"
-                                value={newSourceForm.baseUrl}
-                                onChange={e => setNewSourceForm({ ...newSourceForm, baseUrl: e.target.value })}
-                                style={{ width: '100%', padding: '8px 10px', fontSize: '0.85rem' }}
+                                value={newSourceForm.confluenceBaseUrl}
+                                onChange={e => setNewSourceForm({ ...newSourceForm, confluenceBaseUrl: e.target.value })}
+                                style={{ width: '100%', padding: '6px 8px', fontSize: '0.8rem' }}
                               />
                             </div>
-                          </>
+                          </div>
                         )}
 
+                        {/* 7. Jira Fields */}
                         {newSourceForm.sourceType === 'jira' && (
-                          <>
+                          <div style={{ background: '#F8FAFC', border: '1px solid var(--border-subtle)', borderRadius: '6px', padding: '12px', display: 'grid', gap: '10px' }}>
                             <div>
-                              <label style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
-                                Jira Project Key:
-                              </label>
+                              <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Jira Project Key:</label>
                               <input 
                                 type="text" 
-                                placeholder="e.g. OPS or SRE"
-                                value={newSourceForm.externalId}
-                                onChange={e => setNewSourceForm({ ...newSourceForm, externalId: e.target.value })}
-                                style={{ width: '100%', padding: '8px 10px', fontSize: '0.85rem' }}
+                                placeholder="OPS or SEC"
+                                value={newSourceForm.jiraProject}
+                                onChange={e => setNewSourceForm({ ...newSourceForm, jiraProject: e.target.value })}
+                                style={{ width: '100%', padding: '6px 8px', fontSize: '0.8rem' }}
                                 required
                               />
                             </div>
-                          </>
+                            <div>
+                              <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Atlassian Base URL (Optional):</label>
+                              <input 
+                                type="text" 
+                                placeholder="https://yourcompany.atlassian.net"
+                                value={newSourceForm.jiraBaseUrl}
+                                onChange={e => setNewSourceForm({ ...newSourceForm, jiraBaseUrl: e.target.value })}
+                                style={{ width: '100%', padding: '6px 8px', fontSize: '0.8rem' }}
+                              />
+                            </div>
+                          </div>
                         )}
 
+                        {/* 8. Universal Driver Configuration Fields for all other 90+ Connectors */}
+                        {!['postgresql', 'kafka', 'apache_kafka', 'confluent_kafka', 'amazon_msk', 'aiven_kafka', 'redpanda_kafka', 'salesforce', 'mongodb', 'mongodb_atlas', 'mongodb_self', 'documentdb', 'github', 'confluence', 'jira'].includes(newSourceForm.sourceType) && (
+                          <div style={{ background: '#F8FAFC', border: '1px solid var(--border-subtle)', borderRadius: '6px', padding: '12px', display: 'grid', gap: '10px' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '10px' }}>
+                              <div>
+                                <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Host / Cluster Endpoint / Account URL:</label>
+                                <input 
+                                  type="text" 
+                                  value={genericConfig.host} 
+                                  onChange={e => setGenericConfig({ ...genericConfig, host: e.target.value })} 
+                                  placeholder={`e.g. ${newSourceForm.sourceType}-cluster.prod.internal or https://${newSourceForm.sourceType}.corp.com`} 
+                                  style={{ width: '100%', padding: '6px 8px', fontSize: '0.8rem' }}
+                                />
+                              </div>
+                              <div>
+                                <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Port (Optional):</label>
+                                <input 
+                                  type="number" 
+                                  value={genericConfig.port} 
+                                  onChange={e => setGenericConfig({ ...genericConfig, port: e.target.value })} 
+                                  placeholder="Default" 
+                                  style={{ width: '100%', padding: '6px 8px', fontSize: '0.8rem' }}
+                                />
+                              </div>
+                            </div>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                              <div>
+                                <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Database / Workspace / Project:</label>
+                                <input 
+                                  type="text" 
+                                  value={genericConfig.database} 
+                                  onChange={e => setGenericConfig({ ...genericConfig, database: e.target.value })} 
+                                  placeholder="analytics_prod or default" 
+                                  style={{ width: '100%', padding: '6px 8px', fontSize: '0.8rem' }}
+                                />
+                              </div>
+                              <div>
+                                <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Target Schemas / Datasets:</label>
+                                <input 
+                                  type="text" 
+                                  value={genericConfig.schemas} 
+                                  onChange={e => setGenericConfig({ ...genericConfig, schemas: e.target.value })} 
+                                  placeholder="public, models, core" 
+                                  style={{ width: '100%', padding: '6px 8px', fontSize: '0.8rem' }}
+                                />
+                              </div>
+                            </div>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                              <div>
+                                <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Username / Service Account:</label>
+                                <input 
+                                  type="text" 
+                                  value={genericConfig.username} 
+                                  onChange={e => setGenericConfig({ ...genericConfig, username: e.target.value })} 
+                                  placeholder="service_account_bot" 
+                                  style={{ width: '100%', padding: '6px 8px', fontSize: '0.8rem' }}
+                                />
+                              </div>
+                              <div>
+                                <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Password / API Key / Secret:</label>
+                                <input 
+                                  type="password" 
+                                  value={genericConfig.password} 
+                                  onChange={e => setGenericConfig({ ...genericConfig, password: e.target.value })} 
+                                  placeholder="••••••••" 
+                                  style={{ width: '100%', padding: '6px 8px', fontSize: '0.8rem' }}
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Authority Slider */}
                         <div>
                           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
                             <label style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)' }}>
@@ -2008,23 +2989,58 @@ export default function App() {
                           </div>
                         </div>
 
-                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '10px' }}>
+                        {/* Test Connection Diagnostic Result */}
+                        {testConnectionResult && (
+                          <div style={{
+                            padding: '10px 14px',
+                            borderRadius: '6px',
+                            fontSize: '0.78rem',
+                            background: testConnectionResult.success ? 'var(--badge-verified-bg)' : '#FEF2F2',
+                            border: `1px solid ${testConnectionResult.success ? 'var(--badge-verified-border)' : '#FCA5A5'}`,
+                            color: testConnectionResult.success ? 'var(--badge-verified-text)' : '#B91C1C'
+                          }}>
+                            <div style={{ fontWeight: 800, marginBottom: '2px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                              <span>{testConnectionResult.success ? '✓ Connection Verified' : '✕ Connection Diagnostic Failed'}</span>
+                            </div>
+                            <div>{testConnectionResult.message}</div>
+                            {testConnectionResult.details && Object.keys(testConnectionResult.details).length > 0 && (
+                              <div style={{ fontSize: '0.72rem', marginTop: '4px', opacity: 0.85 }}>
+                                Details: {JSON.stringify(testConnectionResult.details)}
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Action Buttons */}
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px' }}>
                           <button 
                             type="button" 
-                            onClick={() => setShowAddSourceModal(false)}
+                            onClick={handleTestConnection}
+                            disabled={isTestingConnection}
                             className="btn btn-secondary"
-                            style={{ padding: '8px 14px' }}
+                            style={{ padding: '8px 14px', fontSize: '0.8rem' }}
                           >
-                            Cancel
+                            {isTestingConnection ? "Testing Connection..." : "⚡ Test Connection"}
                           </button>
-                          <button 
-                            type="submit" 
-                            disabled={isConnectingSource}
-                            className="btn btn-primary"
-                            style={{ padding: '8px 18px' }}
-                          >
-                            {isConnectingSource ? "Connecting & Syncing..." : "Connect & Sync Now"}
-                          </button>
+
+                          <div style={{ display: 'flex', gap: '8px' }}>
+                            <button 
+                              type="button" 
+                              onClick={() => { setShowAddSourceModal(false); setTestConnectionResult(null); }}
+                              className="btn btn-secondary"
+                              style={{ padding: '8px 14px', fontSize: '0.8rem' }}
+                            >
+                              Cancel
+                            </button>
+                            <button 
+                              type="submit" 
+                              disabled={isConnectingSource}
+                              className="btn btn-primary"
+                              style={{ padding: '8px 18px', fontSize: '0.8rem' }}
+                            >
+                              {isConnectingSource ? "Connecting & Syncing..." : "Save & Sync Connector"}
+                            </button>
+                          </div>
                         </div>
                       </form>
                     </div>
@@ -2371,6 +3387,283 @@ export default function App() {
           </div>
         )}
       </main>
+
+      {/* ========================================================= */}
+      {/* MODAL: REGISTER NEW CLIENT ORGANIZATION / WORKSPACE       */}
+      {/* ========================================================= */}
+      {showNewOrgModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.65)',
+          backdropFilter: 'blur(4px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+          padding: '20px'
+        }}>
+          <div className="clean-panel" style={{ width: '100%', maxWidth: '480px', padding: '24px', background: 'var(--bg-card)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <div>
+                <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
+                  Register Client Workspace
+                </h3>
+                <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '4px', margin: 0 }}>
+                  Create an isolated tenant domain for your client company.
+                </p>
+              </div>
+              <button 
+                onClick={() => setShowNewOrgModal(false)}
+                style={{ background: 'transparent', border: 'none', fontSize: '1.2rem', color: 'var(--text-muted)', cursor: 'pointer' }}
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateOrganization}>
+              <div style={{ marginBottom: '14px' }}>
+                <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '6px' }}>
+                  Company / Organization Name *
+                </label>
+                <input 
+                  type="text"
+                  placeholder="e.g. Acme Corporation, Stripe, FinTech Labs..."
+                  value={newOrgName}
+                  onChange={e => {
+                    setNewOrgName(e.target.value);
+                    if (!newOrgSlug) {
+                      setNewOrgSlug(e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''));
+                    }
+                  }}
+                  required
+                  style={{ width: '100%', padding: '10px 12px', fontSize: '0.85rem' }}
+                />
+              </div>
+
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '6px' }}>
+                  Workspace Tenant Slug *
+                </label>
+                <input 
+                  type="text"
+                  placeholder="e.g. acme-corp, stripe-prod, fintech-labs"
+                  value={newOrgSlug}
+                  onChange={e => setNewOrgSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]+/g, ''))}
+                  required
+                  style={{ width: '100%', padding: '10px 12px', fontSize: '0.85rem', fontFamily: 'monospace' }}
+                />
+                <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '4px', display: 'block' }}>
+                  Unique identifier used for isolated database partition and connector scope.
+                </span>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+                <button 
+                  type="button" 
+                  onClick={() => setShowNewOrgModal(false)}
+                  className="btn btn-secondary"
+                  style={{ padding: '8px 16px', fontSize: '0.82rem' }}
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit" 
+                  disabled={isCreatingOrg || !newOrgName.trim()}
+                  className="btn btn-primary"
+                  style={{ padding: '8px 20px', fontSize: '0.82rem' }}
+                >
+                  {isCreatingOrg ? 'Creating...' : 'Create & Switch Workspace'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================= */}
+      {/* MODAL: RENAME CURRENT CLIENT COMPANY                      */}
+      {/* ========================================================= */}
+      {showRenameOrgModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.65)',
+          backdropFilter: 'blur(4px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+          padding: '20px'
+        }}>
+          <div className="clean-panel" style={{ width: '100%', maxWidth: '440px', padding: '24px', background: 'var(--bg-card)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <div>
+                <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
+                  Rename Client Company
+                </h3>
+                <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '4px', margin: 0 }}>
+                  Update display name for tenant: <code>{activeOrg?.slug}</code>
+                </p>
+              </div>
+              <button 
+                onClick={() => setShowRenameOrgModal(false)}
+                style={{ background: 'transparent', border: 'none', fontSize: '1.2rem', color: 'var(--text-muted)', cursor: 'pointer' }}
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleRenameOrganization}>
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '6px' }}>
+                  Company Display Name *
+                </label>
+                <input 
+                  type="text"
+                  value={renameOrgName}
+                  onChange={e => setRenameOrgName(e.target.value)}
+                  required
+                  style={{ width: '100%', padding: '10px 12px', fontSize: '0.85rem' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+                <button 
+                  type="button" 
+                  onClick={() => setShowRenameOrgModal(false)}
+                  className="btn btn-secondary"
+                  style={{ padding: '8px 16px', fontSize: '0.82rem' }}
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit" 
+                  disabled={!renameOrgName.trim()}
+                  className="btn btn-primary"
+                  style={{ padding: '8px 20px', fontSize: '0.82rem' }}
+                >
+                  Save Changes
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================= */}
+      {/* MODAL: CREATE DEPARTMENTAL WORKSPACE                     */}
+      {/* ========================================================= */}
+      {showNewWorkspaceModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.65)',
+          backdropFilter: 'blur(4px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+          padding: '20px'
+        }}>
+          <div className="clean-panel" style={{ width: '100%', maxWidth: '480px', padding: '24px', background: 'var(--bg-card)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <div>
+                <span className="badge badge-verified" style={{ marginBottom: '6px' }}>
+                  🏢 {activeOrg?.name || 'demo'}
+                </span>
+                <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
+                  Create Department Workspace
+                </h3>
+                <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '4px', margin: 0 }}>
+                  Add a functional domain workspace under this client company.
+                </p>
+              </div>
+              <button 
+                onClick={() => setShowNewWorkspaceModal(false)}
+                style={{ background: 'transparent', border: 'none', fontSize: '1.2rem', color: 'var(--text-muted)', cursor: 'pointer' }}
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateWorkspace}>
+              <div style={{ marginBottom: '14px' }}>
+                <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '6px' }}>
+                  Workspace Name *
+                </label>
+                <input 
+                  type="text"
+                  placeholder="e.g. Legal & Compliance, Growth Engineering, EMEA Support..."
+                  value={newWorkspaceName}
+                  onChange={e => setNewWorkspaceName(e.target.value)}
+                  required
+                  style={{ width: '100%', padding: '10px 12px', fontSize: '0.85rem' }}
+                />
+              </div>
+
+              <div style={{ marginBottom: '14px' }}>
+                <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '6px' }}>
+                  Department Domain *
+                </label>
+                <select
+                  value={newWorkspaceDomain}
+                  onChange={e => setNewWorkspaceDomain(e.target.value)}
+                  style={{ width: '100%', padding: '9px 12px', fontSize: '0.85rem', background: 'var(--bg-card-subtle)', color: 'var(--text-main)', border: '1px solid var(--border-subtle)', borderRadius: '6px' }}
+                >
+                  <option value="finance">💳 Finance & Billing Operations</option>
+                  <option value="secops">🛡️ Engineering & Infrastructure SecOps</option>
+                  <option value="hr">👥 HR & People Operations</option>
+                  <option value="support">💬 Customer Support & Success</option>
+                  <option value="staging">🧪 Staging / Policy Sandbox</option>
+                  <option value="global">📁 General / Multi-Department</option>
+                </select>
+              </div>
+
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '6px' }}>
+                  Workspace Scope & Purpose
+                </label>
+                <input 
+                  type="text"
+                  placeholder="e.g. Dedicated space for compliance audits and legal policy validation"
+                  value={newWorkspaceDescription}
+                  onChange={e => setNewWorkspaceDescription(e.target.value)}
+                  style={{ width: '100%', padding: '10px 12px', fontSize: '0.85rem' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+                <button 
+                  type="button" 
+                  onClick={() => setShowNewWorkspaceModal(false)}
+                  className="btn btn-secondary"
+                  style={{ padding: '8px 16px', fontSize: '0.82rem' }}
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit" 
+                  disabled={!newWorkspaceName.trim()}
+                  className="btn btn-primary"
+                  style={{ padding: '8px 20px', fontSize: '0.82rem' }}
+                >
+                  Create & Switch Workspace
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

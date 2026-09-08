@@ -1,13 +1,19 @@
-from app.ingestion.connectors.confluence import ConfluenceConnector
-from app.ingestion.connectors.file import FileConnector
-from app.ingestion.connectors.github import GitHubConnector
-from app.ingestion.connectors.jira import JiraConnector
-from app.ingestion.connectors.slack import SlackConnector
+from app.ingestion.connectors.confluence_connector import ConfluenceConnector
+from app.ingestion.connectors.file_connector import FileConnector
+from app.ingestion.connectors.github_connector import GitHubConnector
+from app.ingestion.connectors.jira_connector import JiraConnector
+from app.ingestion.connectors.kafka_connector import KafkaConnector
+from app.ingestion.connectors.mongodb_connector import MongoDbConnector
+from app.ingestion.connectors.postgres_connector import PostgresConnector
+from app.ingestion.connectors.salesforce_connector import SalesforceConnector
 
 __all__ = [
     "FileConnector",
     "JiraConnector",
     "GitHubConnector",
     "ConfluenceConnector",
-    "SlackConnector",
+    "PostgresConnector",
+    "KafkaConnector",
+    "SalesforceConnector",
+    "MongoDbConnector",
 ]

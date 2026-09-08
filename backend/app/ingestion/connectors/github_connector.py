@@ -27,7 +27,6 @@ class GitHubConnector(BaseConnector):
         paths: list[str] | None = None,
     ):
         super().__init__(session, organization_id, source_id)
-        # Clean up repository name if passed as full URL (e.g., https://github.com/owner/repo)
         clean_repo = (repo or "").replace("https://github.com/", "").replace("http://github.com/", "").strip("/")
         self.repo = clean_repo or "acme-corp/security-standards"
         self.branch = branch
@@ -63,15 +62,10 @@ class GitHubConnector(BaseConnector):
         return doc, version
 
     async def sync(self) -> Sequence[tuple[Document, DocumentVersion]]:
-        """Syncs markdown documentation and security guidelines from GitHub repository."""
-        if "acme-corp" in self.repo and not self.token:
-            return await self._sync_simulated_github()
-
+        """Syncs live markdown documentation and security guidelines from GitHub repository."""
         try:
             return await self._sync_live_github()
         except Exception as err:
-            if "acme-corp" in self.repo:
-                return await self._sync_simulated_github()
             raise RuntimeError(f"GitHub Sync Failed for '{self.repo}': {str(err)}")
 
     async def _sync_live_github(self) -> list[tuple[Document, DocumentVersion]]:
@@ -84,20 +78,18 @@ class GitHubConnector(BaseConnector):
             headers["Authorization"] = f"Bearer {self.token}"
 
         async with httpx.AsyncClient(timeout=25.0) as client:
-            # 1. Fetch Repo info to auto-detect default branch
             repo_url = f"https://api.github.com/repos/{self.repo}"
             repo_resp = await client.get(repo_url, headers=headers)
             if repo_resp.status_code == 404:
-                raise RuntimeError(f"GitHub repository '{self.repo}' not found. Make sure the repository exists and is public (or provide a GitHub token for private repos).")
-            elif repo_resp.status_code == 401 or repo_resp.status_code == 403:
-                msg = repo_resp.json().get("message", "Authentication required")
+                raise RuntimeError(f"GitHub repository '{self.repo}' not found. Make sure repository exists and is public, or provide a GITHUB_TOKEN.")
+            elif repo_resp.status_code in (401, 403):
+                msg = repo_resp.json().get("message", "Authentication required or rate limited")
                 raise RuntimeError(f"GitHub API Error: {msg}")
 
             repo_info = repo_resp.json() if repo_resp.status_code == 200 else {}
             active_branch = self.branch or repo_info.get("default_branch", "main")
             self.branch = active_branch
 
-            # 2. Scan paths for markdown/documentation files
             fetched_paths = set()
             for subpath in self.paths:
                 clean_path = subpath.strip("/")
@@ -135,7 +127,6 @@ class GitHubConnector(BaseConnector):
                             fetched_paths.add(path)
 
             if not synced:
-                # If repo has no markdown files yet, create an initial repository overview doc
                 desc = repo_info.get("description") or "Live connected repository"
                 stars = repo_info.get("stargazers_count", 0)
                 lang = repo_info.get("language") or "Code"
@@ -148,27 +139,4 @@ class GitHubConnector(BaseConnector):
                 )
                 synced.append(res)
 
-        return synced
-
-    async def _sync_simulated_github(self) -> list[tuple[Document, DocumentVersion]]:
-        files = [
-            (
-                "Zero Trust API Security & Service-to-Service Authentication",
-                "# API Security Standard\n\nAll internal microservices must authenticate service-to-service requests using mTLS and short-lived SPIFFE/SPIRE x509 certificates.\n\n# Key Rotation\n\nPrivate cryptographic keys must rotate automatically every 30 days without downtime.",
-                "docs/security/zero-trust-api.md",
-                "sha-c88f910a",
-                "Security Architecture WG",
-            ),
-            (
-                "Open Source Compliance & Dependency Vulnerability Policy",
-                "# Dependency Scanning Mandate\n\nAll container images and packages containing critical CVEs with score > 9.0 are blocked from deployment by automated CI gates.\n\n# License Whitelist\n\nPermitted software licenses include MIT, Apache 2.0, and BSD-3-Clause.",
-                "docs/compliance/dependency-scanning.md",
-                "sha-e44b201a",
-                "AppSec Governance Team",
-            ),
-        ]
-        synced = []
-        for title, content, path, sha, author in files:
-            res = await self.ingest_markdown(title=title, content=content, file_path=path, commit_sha=sha, author=author)
-            synced.append(res)
         return synced

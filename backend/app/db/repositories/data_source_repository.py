@@ -33,6 +33,7 @@ class DataSourceRepository(BaseRepository[DataSource]):
         source_type: str,
         external_id: str | None = None,
         authority_level: int = 50,
+        connection_config: dict | None = None,
     ) -> DataSource:
         if external_id:
             existing = await self.get_by_external_id(
@@ -41,6 +42,9 @@ class DataSourceRepository(BaseRepository[DataSource]):
                 external_id=external_id,
             )
             if existing:
+                if connection_config:
+                    existing.connection_config = connection_config
+                    await self.session.flush()
                 return existing
 
         source = DataSource(
@@ -49,6 +53,7 @@ class DataSourceRepository(BaseRepository[DataSource]):
             source_type=source_type,
             external_id=external_id,
             authority_level=authority_level,
+            connection_config=connection_config or {},
         )
         return await self.create(source)
 

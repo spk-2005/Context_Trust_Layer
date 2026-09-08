@@ -7,9 +7,15 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models.data_source import DataSource
 from app.db.repositories.data_source_repository import DataSourceRepository
+from app.ingestion.connector_registry import ConnectorRegistry
 from app.ingestion.connectors.confluence_connector import ConfluenceConnector
 from app.ingestion.connectors.github_connector import GitHubConnector
 from app.ingestion.connectors.jira_connector import JiraConnector
+from app.ingestion.connectors.kafka_connector import KafkaConnector
+from app.ingestion.connectors.mongodb_connector import MongoDbConnector
+from app.ingestion.connectors.postgres_connector import PostgresConnector
+from app.ingestion.connectors.salesforce_connector import SalesforceConnector
+from app.ingestion.connectors.universal_driver import UniversalConnectorDriver
 from app.services.claim_extraction_service import ClaimExtractionService
 from app.services.conflict_service import ConflictService
 from app.services.trust_service import TrustService
@@ -38,8 +44,38 @@ class SyncEngine:
         self.trust_service = TrustService(session)
 
     def get_connector_for_source(self, source: DataSource):
-        source_type = (source.source_type or "").lower()
-        if source_type in ("confluence", "wiki"):
+        source_type = (source.source_type or "").lower().strip()
+        config = source.connection_config or {}
+
+        if source_type in ("postgresql", "postgres"):
+            return PostgresConnector(
+                session=self.session,
+                organization_id=source.organization_id,
+                source_id=source.id,
+                connection_config=config,
+            )
+        elif source_type in ("kafka", "apache_kafka", "confluent"):
+            return KafkaConnector(
+                session=self.session,
+                organization_id=source.organization_id,
+                source_id=source.id,
+                connection_config=config,
+            )
+        elif source_type in ("salesforce", "sfdc", "salesforce_crm"):
+            return SalesforceConnector(
+                session=self.session,
+                organization_id=source.organization_id,
+                source_id=source.id,
+                connection_config=config,
+            )
+        elif source_type in ("mongodb", "mongo", "mongo_atlas"):
+            return MongoDbConnector(
+                session=self.session,
+                organization_id=source.organization_id,
+                source_id=source.id,
+                connection_config=config,
+            )
+        elif source_type in ("confluence", "wiki"):
             return ConfluenceConnector(
                 session=self.session,
                 organization_id=source.organization_id,
@@ -61,12 +97,13 @@ class SyncEngine:
                 repo=source.external_id or "acme-corp/security-standards",
             )
         else:
-            # Fallback to Confluence general connector
-            return ConfluenceConnector(
+            # Universal Protocol Driver covering all 104 catalog sources
+            return UniversalConnectorDriver(
                 session=self.session,
                 organization_id=source.organization_id,
                 source_id=source.id,
-                space_key=source.external_id or "GENERAL",
+                source_type=source_type,
+                connection_config=config,
             )
 
     async def sync_data_source(
