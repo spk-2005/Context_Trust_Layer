@@ -17,4 +17,8 @@ pytest-asyncio
 httpx
 python-multipart
 pypdf
-python-docx
+python-docx
+motor
+openai
+psycopg[binary]
+
