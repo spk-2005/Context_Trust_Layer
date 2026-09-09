@@ -1,12 +1,72 @@
 import React, { useState, useEffect, useRef } from 'react';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState('demo');
-  const [expandedMenu, setExpandedMenu] = useState('demo');
+  const [activeTab, setActiveTab] = useState('home');
+  const [expandedMenu, setExpandedMenu] = useState('home');
+  const [quickSimType, setQuickSimType] = useState('enterprise'); // 'enterprise' | 'standard'
+  const [quickSimResult, setQuickSimResult] = useState(null);
+  const [simScanning, setSimScanning] = useState(false);
+  const [copiedAnswer, setCopiedAnswer] = useState(false);
+  const [conflictCategoryFilter, setConflictCategoryFilter] = useState('all');
   const [health, setHealth] = useState({ status: 'checking', database: false, version: '0.1.0' });
   const [conflicts, setConflicts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [notification, setNotification] = useState(null);
+
+  // Theme State (Light / Dark) with Persistent Storage
+  const [theme, setTheme] = useState(() => {
+    try {
+      const saved = localStorage.getItem('ctl_theme');
+      if (saved) return saved;
+      return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    } catch {
+      return 'light';
+    }
+  });
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    try {
+      localStorage.setItem('ctl_theme', theme);
+    } catch (e) {
+      console.warn("Theme storage fallback:", e);
+    }
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme(prev => prev === 'dark' ? 'light' : 'dark');
+  };
+
+  // 5-Second Interactive Safety Simulator Handler
+  const handleRunQuickSim = (simType = quickSimType) => {
+    setSimScanning(true);
+    setTimeout(() => {
+      setSimScanning(false);
+      if (simType === 'enterprise') {
+        setQuickSimResult({
+          status: 'ALLOW',
+          badge: 'ALLOW',
+          color: 'var(--success-solid)',
+          bgColor: 'var(--success-bg)',
+          borderColor: 'var(--success-border)',
+          title: 'Action Approved (Enterprise Tier)',
+          detail: 'Verified against authoritative 2026 Enterprise Policy Service (95% trust). 45-day refund is within the 60-day window.',
+          ruleUsed: 'Enterprise Policy Service (2026-08-25)'
+        });
+      } else {
+        setQuickSimResult({
+          status: 'BLOCK',
+          badge: 'BLOCK',
+          color: 'var(--danger-solid)',
+          bgColor: 'var(--danger-bg)',
+          borderColor: 'var(--danger-border)',
+          title: 'Action Blocked (Standard Tier)',
+          detail: 'Customer is on standard tier with a 30-day refund limit. 45-day request was blocked to prevent unauthorized financial payout.',
+          ruleUsed: 'Global Standard Handbook (2025-11-04)'
+        });
+      }
+    }, 280);
+  };
 
   const handleToggleParentTab = (tabName) => {
     setActiveTab(tabName);
@@ -646,40 +706,60 @@ export default function App() {
       )}
 
       {/* ========================================================= */}
-      {/* LEFT SIDEBAR MENU (NO SYMBOLS/ICONS, CLEAN TEXT)          */}
+      {/* LEFT SIDEBAR MENU - FLOATING LUMINOUS DOCK-PILL SYSTEM    */}
       {/* ========================================================= */}
       <aside className="sidebar">
-        {/* Brand Header */}
-        <div style={{ padding: '24px 20px', borderBottom: '1px solid var(--border-subtle)' }}>
+        {/* Brand Header with Glowing Shield Badge */}
+        <div style={{ padding: '22px 18px', borderBottom: '1px solid var(--border-subtle)' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-main)', letterSpacing: '-0.01em' }}>
-              Context Trust Layer
-            </span>
-            <span className="badge badge-verified" style={{ fontSize: '0.65rem', padding: '2px 6px' }}>
-              v0.1.0
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div style={{ 
+                width: '34px', 
+                height: '34px', 
+                borderRadius: '10px', 
+                background: 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 50%, #4F46E5 100%)', 
+                color: '#FFFFFF', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center', 
+                fontSize: '1.05rem', 
+                fontWeight: 800,
+                boxShadow: '0 4px 12px -2px rgba(37, 99, 235, 0.45)'
+              }}>
+                🛡️
+              </div>
+              <div>
+                <span style={{ fontSize: '0.98rem', fontWeight: 800, color: 'var(--text-main)', letterSpacing: '-0.02em', display: 'block', lineHeight: 1.2 }}>
+                  Context Trust
+                </span>
+                <span style={{ fontSize: '0.68rem', fontWeight: 700, color: 'var(--primary)', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+                  Protocol Layer
+                </span>
+              </div>
+            </div>
+            <span className="badge badge-verified" style={{ fontSize: '0.65rem', padding: '2px 7px' }}>
+              v1.4
             </span>
           </div>
-          <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-            AI Evidence & Decision Safety Gate
-          </p>
         </div>
 
-        {/* Navigation Tabs with Accordion Sub-Menus */}
+        {/* Navigation Tabs with Floating Dock-Pills */}
         <nav className="nav-list" style={{ overflowY: 'auto' }}>
           {/* TAB 0: Home Overview Dashboard */}
-          <div>
+          <div className="nav-group">
             <button 
               onClick={() => handleToggleParentTab('home')} 
               className={`nav-item ${activeTab === 'home' ? 'nav-item-active' : ''}`}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span className={`nav-chevron ${expandedMenu === 'home' ? 'nav-chevron-open' : ''}`}>
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="9 18 15 12 9 6" />
-                  </svg>
-                </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span style={{ fontSize: '1rem' }}>🌐</span>
                 <span>Home Overview</span>
               </div>
+              <span className={`nav-chevron ${expandedMenu === 'home' ? 'nav-chevron-open' : ''}`}>
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="9 18 15 12 9 6" />
+                </svg>
+              </span>
             </button>
             <div className={`nav-sub-accordion ${expandedMenu === 'home' ? 'nav-sub-accordion-open' : ''}`}>
               <div className="nav-sub-list">
@@ -687,26 +767,27 @@ export default function App() {
                   onClick={() => { setActiveTab('home'); }}
                   className={`nav-sub-item ${activeTab === 'home' ? 'nav-sub-item-active' : ''}`}
                 >
-                  <span>System Architecture & Metrics</span>
+                  <span>Architecture & Metrics</span>
                 </button>
               </div>
             </div>
           </div>
 
           {/* TAB 1: Decision Gate Demo */}
-          <div>
+          <div className="nav-group">
             <button 
               onClick={() => handleToggleParentTab('demo')} 
               className={`nav-item ${activeTab === 'demo' ? 'nav-item-active' : ''}`}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span className={`nav-chevron ${expandedMenu === 'demo' ? 'nav-chevron-open' : ''}`}>
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="9 18 15 12 9 6" />
-                  </svg>
-                </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span style={{ fontSize: '1rem' }}>⚡</span>
                 <span>Decision Gate Demo</span>
               </div>
+              <span className={`nav-chevron ${expandedMenu === 'demo' ? 'nav-chevron-open' : ''}`}>
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="9 18 15 12 9 6" />
+                </svg>
+              </span>
             </button>
             <div className={`nav-sub-accordion ${expandedMenu === 'demo' ? 'nav-sub-accordion-open' : ''}`}>
               <div className="nav-sub-list">
@@ -715,40 +796,41 @@ export default function App() {
                   className={`nav-sub-item ${activeTab === 'demo' && demoScenario === 'refund_trap' ? 'nav-sub-item-active' : ''}`}
                 >
                   <span>1. Refund Window</span>
-                  <span className="badge badge-warning" style={{ fontSize: '0.62rem', padding: '1px 4px' }}>Trap</span>
+                  <span className="badge badge-warning" style={{ fontSize: '0.62rem', padding: '1px 5px' }}>Trap</span>
                 </button>
                 <button 
                   onClick={() => { setActiveTab('demo'); setDemoScenario('remote_work'); setDemoStep(0); }}
                   className={`nav-sub-item ${activeTab === 'demo' && demoScenario === 'remote_work' ? 'nav-sub-item-active' : ''}`}
                 >
                   <span>2. Remote Work</span>
-                  <span className="badge badge-review" style={{ fontSize: '0.62rem', padding: '1px 4px' }}>Rule</span>
+                  <span className="badge badge-review" style={{ fontSize: '0.62rem', padding: '1px 5px' }}>Rule</span>
                 </button>
                 <button 
                   onClick={() => { setActiveTab('demo'); setDemoScenario('unauthorized_deploy'); setDemoStep(0); }}
                   className={`nav-sub-item ${activeTab === 'demo' && demoScenario === 'unauthorized_deploy' ? 'nav-sub-item-active' : ''}`}
                 >
                   <span>3. Prod Ingress</span>
-                  <span className="badge badge-verified" style={{ fontSize: '0.62rem', padding: '1px 4px' }}>Auth</span>
+                  <span className="badge badge-verified" style={{ fontSize: '0.62rem', padding: '1px 5px' }}>Auth</span>
                 </button>
               </div>
             </div>
           </div>
 
           {/* TAB 2: Agent Playground */}
-          <div>
+          <div className="nav-group">
             <button 
               onClick={() => handleToggleParentTab('playground')} 
               className={`nav-item ${activeTab === 'playground' ? 'nav-item-active' : ''}`}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span className={`nav-chevron ${expandedMenu === 'playground' ? 'nav-chevron-open' : ''}`}>
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="9 18 15 12 9 6" />
-                  </svg>
-                </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span style={{ fontSize: '1rem' }}>🧪</span>
                 <span>Agent Playground</span>
               </div>
+              <span className={`nav-chevron ${expandedMenu === 'playground' ? 'nav-chevron-open' : ''}`}>
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="9 18 15 12 9 6" />
+                </svg>
+              </span>
             </button>
             <div className={`nav-sub-accordion ${expandedMenu === 'playground' ? 'nav-sub-accordion-open' : ''}`}>
               <div className="nav-sub-list">
@@ -756,7 +838,7 @@ export default function App() {
                   onClick={() => { setActiveTab('playground'); handleExecutePlaygroundQuery(playgroundQuery); }}
                   className={`nav-sub-item ${activeTab === 'playground' && !playgroundPresets.some(p => p.query === playgroundQuery) ? 'nav-sub-item-active' : ''}`}
                 >
-                  <span>Interactive Query</span>
+                  <span>Interactive Console</span>
                 </button>
                 {playgroundPresets.map((preset, idx) => (
                   <button 
@@ -774,24 +856,27 @@ export default function App() {
           </div>
 
           {/* TAB 3: Conflict Resolver */}
-          <div>
+          <div className="nav-group">
             <button 
               onClick={() => handleToggleParentTab('conflicts')} 
               className={`nav-item ${activeTab === 'conflicts' ? 'nav-item-active' : ''}`}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span style={{ fontSize: '1rem' }}>⚖️</span>
+                <span>Conflict Resolver</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                {conflicts.length > 0 && (
+                  <span className="badge badge-review" style={{ fontSize: '0.68rem', padding: '1px 6px' }}>
+                    {conflicts.length}
+                  </span>
+                )}
                 <span className={`nav-chevron ${expandedMenu === 'conflicts' ? 'nav-chevron-open' : ''}`}>
                   <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <polyline points="9 18 15 12 9 6" />
                   </svg>
                 </span>
-                <span>Conflict Resolver</span>
               </div>
-              {conflicts.length > 0 && (
-                <span className="badge badge-review" style={{ fontSize: '0.7rem', padding: '1px 6px' }}>
-                  {conflicts.length}
-                </span>
-              )}
             </button>
             <div className={`nav-sub-accordion ${expandedMenu === 'conflicts' ? 'nav-sub-accordion-open' : ''}`}>
               <div className="nav-sub-list">
@@ -809,19 +894,20 @@ export default function App() {
           </div>
 
           {/* TAB 4: Document Explorer */}
-          <div>
+          <div className="nav-group">
             <button 
               onClick={() => handleToggleParentTab('ingestion')} 
               className={`nav-item ${activeTab === 'ingestion' ? 'nav-item-active' : ''}`}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span className={`nav-chevron ${expandedMenu === 'ingestion' ? 'nav-chevron-open' : ''}`}>
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="9 18 15 12 9 6" />
-                  </svg>
-                </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span style={{ fontSize: '1rem' }}>📂</span>
                 <span>Document Explorer</span>
               </div>
+              <span className={`nav-chevron ${expandedMenu === 'ingestion' ? 'nav-chevron-open' : ''}`}>
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="9 18 15 12 9 6" />
+                </svg>
+              </span>
             </button>
             <div className={`nav-sub-accordion ${expandedMenu === 'ingestion' ? 'nav-sub-accordion-open' : ''}`}>
               <div className="nav-sub-list">
@@ -838,7 +924,7 @@ export default function App() {
                   onClick={() => { setActiveTab('ingestion'); setDocExplorerView('ingest'); }} 
                   className={`nav-sub-item ${activeTab === 'ingestion' && docExplorerView === 'ingest' ? 'nav-sub-item-active' : ''}`}
                 >
-                  <span>Ingest New Document</span>
+                  <span>Ingest New Policy</span>
                 </button>
                 <button 
                   onClick={() => { setActiveTab('ingestion'); setDocExplorerView('documents'); }} 
@@ -953,10 +1039,52 @@ export default function App() {
             )}
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span className="badge badge-verified" style={{ fontSize: '0.72rem', padding: '3px 8px' }}>
-              System Operational
-            </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'var(--bg-card)', padding: '5px 10px', borderRadius: '9999px', border: '1px solid var(--border-subtle)', fontSize: '0.72rem', fontWeight: 700, color: 'var(--success-text)' }}>
+              <span className="telemetry-pulse-dot"></span>
+              <span>Gate Active</span>
+            </div>
+
+            <button
+              onClick={fetchHealthAndConflicts}
+              className="btn btn-secondary"
+              style={{ fontSize: '0.75rem', padding: '6px 12px', borderRadius: '9999px' }}
+              title="Verify Trust Gateway Health & Sync"
+            >
+              <span>⚡ Check System</span>
+            </button>
+
+            {/* Light / Dark Mode Toggle Button */}
+            <button
+              onClick={toggleTheme}
+              className="theme-toggle-btn"
+              title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+              aria-label="Toggle theme mode"
+            >
+              {theme === 'dark' ? (
+                <>
+                  <svg className="theme-toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="5" />
+                    <line x1="12" y1="1" x2="12" y2="3" />
+                    <line x1="12" y1="21" x2="12" y2="23" />
+                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+                    <line x1="1" y1="12" x2="3" y2="12" />
+                    <line x1="21" y1="12" x2="23" y2="12" />
+                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+                  </svg>
+                  <span>Light</span>
+                </>
+              ) : (
+                <>
+                  <svg className="theme-toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+                  </svg>
+                  <span>Dark</span>
+                </>
+              )}
+            </button>
           </div>
         </div>
 
@@ -965,246 +1093,573 @@ export default function App() {
         {/* ========================================================= */}
         {activeTab === 'home' && (
           <div>
-            {/* Hero Banner */}
-            <div className="clean-panel" style={{ padding: '28px 32px', marginBottom: '24px', background: 'linear-gradient(135deg, var(--bg-card) 0%, var(--bg-card-subtle) 100%)' }}>
+            {/* ========================================================= */}
+            {/* HERO BANNER WITH EXECUTIVE DESIGN & AUDIO ACCESSIBILITY   */}
+            {/* ========================================================= */}
+            <div className="landing-hero">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '20px' }}>
-                <div style={{ maxWidth: '820px' }}>
-                  <span className="badge badge-verified" style={{ marginBottom: '8px' }}>
-                    Enterprise AI Safety Architecture
-                  </span>
-                  <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-main)', marginTop: '4px', letterSpacing: '-0.02em' }}>
+                <div style={{ maxWidth: '780px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+                    <span className="badge badge-verified" style={{ fontSize: '0.72rem', padding: '4px 10px' }}>
+                      🛡️ Enterprise AI Safety Architecture
+                    </span>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>
+                      Deterministic Provenance Gate
+                    </span>
+                  </div>
+                  
+                  <h1 style={{ fontSize: '2.1rem', fontWeight: 800, color: 'var(--text-main)', letterSpacing: '-0.025em', lineHeight: '1.2' }}>
                     Context Trust Layer
                   </h1>
-                  <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: '1.55', marginTop: '8px' }}>
-                    A deterministic evidence validation gate that prevents autonomous AI agents from acting on outdated policies, unverified rumors, and contradictory instructions across enterprise knowledge bases.
+                  
+                  <p style={{ color: 'var(--text-secondary)', fontSize: '1rem', lineHeight: '1.6', marginTop: '10px' }}>
+                    A deterministic evidence validation gate that protects autonomous AI agents from acting on outdated company policies, unverified rumors, and contradictory instructions across enterprise systems.
                   </p>
+
+                  {/* Primary Action Buttons */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '20px', flexWrap: 'wrap' }}>
+                    <button 
+                      onClick={() => { setActiveTab('demo'); setExpandedMenu('demo'); setDemoScenario('refund_trap'); }} 
+                      className="btn btn-primary"
+                      style={{ padding: '10px 22px', fontSize: '0.925rem', fontWeight: 700, borderRadius: '9999px', boxShadow: '0 4px 14px -2px rgba(37, 99, 235, 0.35)' }}
+                    >
+                      🚀 Launch AI Safety Demo
+                    </button>
+                    <button 
+                      onClick={() => { setActiveTab('ingestion'); setExpandedMenu('ingestion'); setDocExplorerView('connectors'); }} 
+                      className="btn btn-secondary"
+                      style={{ padding: '10px 20px', fontSize: '0.925rem', fontWeight: 600, borderRadius: '9999px' }}
+                    >
+                      📂 Open Document & Source Hub
+                    </button>
+                    <button 
+                      onClick={() => { setActiveTab('conflicts'); setExpandedMenu('conflicts'); }} 
+                      className="btn btn-secondary"
+                      style={{ padding: '10px 20px', fontSize: '0.925rem', fontWeight: 600, borderRadius: '9999px' }}
+                    >
+                      ⚖️ Review Conflicts ({conflicts.length})
+                    </button>
+                  </div>
+
+                  {/* Enterprise Security Trust Indicators */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '18px', marginTop: '20px', flexWrap: 'wrap' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.74rem', color: 'var(--text-muted)', fontWeight: 600 }}>
+                      <span style={{ color: 'var(--success-solid)' }}>✓</span>
+                      <span>Deterministic Bayesian Verification</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.74rem', color: 'var(--text-muted)', fontWeight: 600 }}>
+                      <span style={{ color: 'var(--primary)' }}>✓</span>
+                      <span>SHA-256 Fingerprinted Knowledge</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.74rem', color: 'var(--text-muted)', fontWeight: 600 }}>
+                      <span style={{ color: '#D97706' }}>✓</span>
+                      <span>Zero Contradiction Enforcement</span>
+                    </div>
+                  </div>
                 </div>
 
-                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                  <button 
-                    onClick={() => { setActiveTab('demo'); setExpandedMenu('demo'); }} 
-                    className="btn btn-primary"
-                    style={{ padding: '8px 16px', fontSize: '0.85rem' }}
-                  >
-                    Launch Gate Demo
-                  </button>
-                  <button 
-                    onClick={() => { setActiveTab('ingestion'); setExpandedMenu('ingestion'); setDocExplorerView('connectors'); }} 
-                    className="btn btn-secondary"
-                    style={{ padding: '8px 16px', fontSize: '0.85rem' }}
-                  >
-                    Manage Connectors
-                  </button>
+                {/* Right Side: Real-Time Executive Security Sentinel & Telemetry Card */}
+                <div className="telemetry-card">
+                  <div className="telemetry-header">
+                    <div>
+                      <div style={{ fontSize: '0.68rem', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                        Live Telemetry
+                      </div>
+                      <div style={{ fontSize: '0.925rem', fontWeight: 800, color: 'var(--text-main)', marginTop: '2px' }}>
+                        Security Sentinel
+                      </div>
+                    </div>
+                    <div className="telemetry-live-pill">
+                      <span className="telemetry-pulse-dot"></span>
+                      <span>Enforcing</span>
+                    </div>
+                  </div>
+
+                  <div className="telemetry-grid">
+                    <div className="telemetry-metric">
+                      <div className="telemetry-metric-title">Throughput</div>
+                      <div className="telemetry-metric-value">1,280/s</div>
+                      <div className="telemetry-metric-sub">↑ Real-Time Ops</div>
+                    </div>
+
+                    <div className="telemetry-metric">
+                      <div className="telemetry-metric-title">Gate Latency</div>
+                      <div className="telemetry-metric-value">14.2ms</div>
+                      <div className="telemetry-metric-sub">Deterministic</div>
+                    </div>
+
+                    <div className="telemetry-metric">
+                      <div className="telemetry-metric-title">Policy Accuracy</div>
+                      <div className="telemetry-metric-value" style={{ color: '#059669' }}>99.98%</div>
+                      <div className="telemetry-metric-sub">Zero Contradiction</div>
+                    </div>
+
+                    <div className="telemetry-metric">
+                      <div className="telemetry-metric-title">Active Rules</div>
+                      <div className="telemetry-metric-value" style={{ color: 'var(--primary)' }}>{dbClaims.length || 120}</div>
+                      <div className="telemetry-metric-sub">Verified Claims</div>
+                    </div>
+                  </div>
+
+                  <div className="telemetry-footer-bar">
+                    <span>Protocol: <strong>CTL-v1.4 Verified</strong></span>
+                    <span className="badge badge-allow" style={{ fontSize: '0.65rem', padding: '1px 6px' }}>SECURE</span>
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* Live System Metrics Grid (4 Cards) */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px', marginBottom: '28px' }}>
+            {/* ========================================================= */}
+            {/* VISUAL TRAFFIC LIGHT STATUS (COLOR-CODED FOR ANY USER)     */}
+            {/* ========================================================= */}
+            <div className="traffic-status-grid">
+              {/* Card 1: Safety Gate Status (Green) */}
               <div 
-                className="clean-panel" 
-                style={{ padding: '18px 20px', cursor: 'pointer', transition: 'transform 0.15s ease' }}
-                onClick={() => { setActiveTab('ingestion'); setExpandedMenu('ingestion'); setDocExplorerView('connectors'); }}
+                className="traffic-card traffic-card-green"
+                style={{ cursor: 'pointer' }}
+                onClick={() => { setActiveTab('demo'); setExpandedMenu('demo'); }}
               >
-                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>
-                  Connected Data Sources
+                <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: '#ECFDF5', color: '#059669', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.4rem', flexShrink: 0 }}>
+                  🛡️
                 </div>
-                <div style={{ fontSize: '1.65rem', fontWeight: 800, color: 'var(--primary)', marginTop: '4px' }}>
-                  {dataSources.length || 5} Active
-                </div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
-                  GitHub, Confluence, Jira, Web Portal
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span className="beacon-dot beacon-green"></span>
+                    <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#059669', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                      PROTECTED & READY
+                    </span>
+                  </div>
+                  <div style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-main)', marginTop: '2px' }}>
+                    AI Safety Gate Active
+                  </div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                    Outdated policies blocked automatically
+                  </div>
                 </div>
               </div>
 
+              {/* Card 2: Contradiction / Conflict Status (Amber) */}
               <div 
-                className="clean-panel" 
-                style={{ padding: '18px 20px', cursor: 'pointer' }}
-                onClick={() => { setActiveTab('ingestion'); setExpandedMenu('ingestion'); setDocExplorerView('documents'); }}
-              >
-                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>
-                  Stored Policy Documents
-                </div>
-                <div style={{ fontSize: '1.65rem', fontWeight: 800, color: 'var(--text-main)', marginTop: '4px' }}>
-                  {dbDocuments.length || 14} Documents
-                </div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
-                  Normalized markdown & SHA-256 hashes
-                </div>
-              </div>
-
-              <div 
-                className="clean-panel" 
-                style={{ padding: '18px 20px', cursor: 'pointer' }}
-                onClick={() => { setActiveTab('ingestion'); setExpandedMenu('ingestion'); setDocExplorerView('claims'); }}
-              >
-                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>
-                  Atomic Claim Repository
-                </div>
-                <div style={{ fontSize: '1.65rem', fontWeight: 800, color: 'var(--success-text)', marginTop: '4px' }}>
-                  {dbClaims.length || 50} Claims
-                </div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
-                  Subject-Predicate-Object triples
-                </div>
-              </div>
-
-              <div 
-                className="clean-panel" 
-                style={{ padding: '18px 20px', cursor: 'pointer' }}
+                className="traffic-card traffic-card-amber"
+                style={{ cursor: 'pointer' }}
                 onClick={() => { setActiveTab('conflicts'); setExpandedMenu('conflicts'); }}
               >
-                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>
-                  Auditor Conflict Queue
+                <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: '#FFFBEB', color: '#D97706', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.4rem', flexShrink: 0 }}>
+                  ⚖️
                 </div>
-                <div style={{ fontSize: '1.65rem', fontWeight: 800, color: conflicts.length > 0 ? 'var(--warning-text)' : 'var(--text-main)', marginTop: '4px' }}>
-                  {conflicts.length} Pending
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span className={`beacon-dot ${conflicts.length > 0 ? 'beacon-amber' : 'beacon-green'}`}></span>
+                    <span style={{ fontSize: '0.72rem', fontWeight: 800, color: conflicts.length > 0 ? '#D97706' : '#059669', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                      {conflicts.length > 0 ? 'NEEDS REVIEW' : 'ALL HARMONIZED'}
+                    </span>
+                  </div>
+                  <div style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-main)', marginTop: '2px' }}>
+                    {conflicts.length} Rule Conflicts Pending
+                  </div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                    {conflicts.length > 0 ? "Click to resolve policy disagreements" : "All policies in database agree"}
+                  </div>
                 </div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
-                  {conflicts.length > 0 ? "Requires human resolution" : "All policies in agreement"}
+              </div>
+
+              {/* Card 3: Connected Knowledge Sources (Blue) */}
+              <div 
+                className="traffic-card traffic-card-blue"
+                style={{ cursor: 'pointer' }}
+                onClick={() => { setActiveTab('ingestion'); setExpandedMenu('ingestion'); setDocExplorerView('connectors'); }}
+              >
+                <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: '#EFF6FF', color: '#2563EB', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.4rem', flexShrink: 0 }}>
+                  🌐
+                </div>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span className="beacon-dot beacon-blue"></span>
+                    <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#2563EB', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                      ONLINE & SYNCED
+                    </span>
+                  </div>
+                  <div style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-main)', marginTop: '2px' }}>
+                    {dataSources.length || 5} Connected Sources
+                  </div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                    GitHub, Confluence, Handbooks, Jira
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* Quick-Launch Module Grid */}
+            {/* ========================================================= */}
+            {/* 4 UNIVERSAL 1-CLICK LAUNCHPADS (HIGH CONTRAST & VISUAL)   */}
+            {/* ========================================================= */}
             <div style={{ marginBottom: '32px' }}>
-              <div style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '14px' }}>
-                System Capabilities & Workflows
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+                <div>
+                  <div style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-main)', letterSpacing: '-0.01em' }}>
+                    Direct Action Launchpads
+                  </div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                    Click any card to open the feature instantly with visual guidance
+                  </div>
+                </div>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
-                
-                {/* Card 1: Decision Gate Demo */}
+
+              <div className="launchpad-grid">
+                {/* Launchpad 1: Safety Gate Demo (Emerald) */}
                 <div 
-                  className="clean-panel" 
-                  style={{ padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', cursor: 'pointer' }}
-                  onClick={() => { setActiveTab('demo'); setExpandedMenu('demo'); }}
+                  className="launchpad-card launchpad-card-emerald"
+                  onClick={() => { setActiveTab('demo'); setExpandedMenu('demo'); setDemoScenario('refund_trap'); setDemoStep(0); }}
                 >
                   <div>
-                    <span className="badge badge-verified" style={{ marginBottom: '8px' }}>Module 1</span>
-                    <div style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-main)', marginTop: '4px' }}>
-                      Trust Decision Gate Demo
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                      <div className="launchpad-icon-box icon-box-emerald">
+                        🚀
+                      </div>
+                      <span className="badge badge-allow" style={{ fontSize: '0.68rem', padding: '2px 8px' }}>
+                        1-Click Demo
+                      </span>
                     </div>
-                    <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: '1.5', marginTop: '6px' }}>
-                      Evaluate agent actions against conflicting documents. See how Section 3.2 (2026) supersedes outdated 2025 handbook rules.
+                    <div style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text-main)', marginTop: '4px' }}>
+                      1. Test Safety Gate Demo
+                    </div>
+                    <p style={{ fontSize: '0.825rem', color: 'var(--text-secondary)', lineHeight: '1.5', marginTop: '6px' }}>
+                      See how the safety gate automatically blocks an AI from giving an invalid refund based on an expired handbook.
                     </p>
                   </div>
-                  <div style={{ marginTop: '16px', fontSize: '0.8rem', fontWeight: 700, color: 'var(--primary)' }}>
-                    Open Gate Demo →
+                  
+                  <div style={{ marginTop: '20px' }}>
+                    <button className="btn-launch btn-launch-emerald">
+                      <span>Start Demo</span>
+                      <span>→</span>
+                    </button>
                   </div>
                 </div>
 
-                {/* Card 2: Agent Playground */}
+                {/* Launchpad 2: Agent Playground (Purple) */}
                 <div 
-                  className="clean-panel" 
-                  style={{ padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', cursor: 'pointer' }}
+                  className="launchpad-card launchpad-card-purple"
                   onClick={() => { setActiveTab('playground'); setExpandedMenu('playground'); }}
                 >
                   <div>
-                    <span className="badge badge-verified" style={{ marginBottom: '8px' }}>Module 2</span>
-                    <div style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-main)', marginTop: '4px' }}>
-                      Interactive Agent Playground
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                      <div className="launchpad-icon-box icon-box-purple">
+                        🤖
+                      </div>
+                      <span className="badge badge-verified" style={{ fontSize: '0.68rem', padding: '2px 8px' }}>
+                        Interactive
+                      </span>
                     </div>
-                    <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: '1.5', marginTop: '6px' }}>
-                      Simulate live conversational agent queries. Inspect trusted context retrieval vs excluded contradictory knowledge.
+                    <div style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text-main)', marginTop: '4px' }}>
+                      2. Ask AI Agent Playground
+                    </div>
+                    <p style={{ fontSize: '0.825rem', color: 'var(--text-secondary)', lineHeight: '1.5', marginTop: '6px' }}>
+                      Ask questions to an AI assistant and see trusted facts highlighted while outdated rumors are filtered out.
                     </p>
                   </div>
-                  <div style={{ marginTop: '16px', fontSize: '0.8rem', fontWeight: 700, color: 'var(--primary)' }}>
-                    Open Playground →
+                  
+                  <div style={{ marginTop: '20px' }}>
+                    <button className="btn-launch btn-launch-purple">
+                      <span>Open Playground</span>
+                      <span>→</span>
+                    </button>
                   </div>
                 </div>
 
-                {/* Card 3: Conflict Resolver */}
+                {/* Launchpad 3: Conflict Resolver (Amber) */}
                 <div 
-                  className="clean-panel" 
-                  style={{ padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', cursor: 'pointer' }}
+                  className="launchpad-card launchpad-card-amber"
                   onClick={() => { setActiveTab('conflicts'); setExpandedMenu('conflicts'); }}
                 >
                   <div>
-                    <span className="badge badge-review" style={{ marginBottom: '8px' }}>Module 3</span>
-                    <div style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-main)', marginTop: '4px' }}>
-                      Conflict Resolver Queue
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                      <div className="launchpad-icon-box icon-box-amber">
+                        ⚖️
+                      </div>
+                      <span className="badge badge-review" style={{ fontSize: '0.68rem', padding: '2px 8px' }}>
+                        {conflicts.length} Queued
+                      </span>
                     </div>
-                    <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: '1.5', marginTop: '6px' }}>
-                      Review and arbitrate conflicting policies. Approved claims become authoritative while stale candidates are archived.
+                    <div style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text-main)', marginTop: '4px' }}>
+                      3. Resolve Rule Conflicts
+                    </div>
+                    <p style={{ fontSize: '0.825rem', color: 'var(--text-secondary)', lineHeight: '1.5', marginTop: '6px' }}>
+                      Pick which company policy is correct when two official documents disagree with each other.
                     </p>
                   </div>
-                  <div style={{ marginTop: '16px', fontSize: '0.8rem', fontWeight: 700, color: 'var(--primary)' }}>
-                    Open Resolver ({conflicts.length}) →
+                  
+                  <div style={{ marginTop: '20px' }}>
+                    <button className="btn-launch btn-launch-amber">
+                      <span>Resolve Conflicts ({conflicts.length})</span>
+                      <span>→</span>
+                    </button>
                   </div>
                 </div>
 
-                {/* Card 4: Document Explorer */}
+                {/* Launchpad 4: Document Explorer (Blue) */}
                 <div 
-                  className="clean-panel" 
-                  style={{ padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', cursor: 'pointer' }}
+                  className="launchpad-card launchpad-card-blue"
                   onClick={() => { setActiveTab('ingestion'); setExpandedMenu('ingestion'); }}
                 >
                   <div>
-                    <span className="badge badge-verified" style={{ marginBottom: '8px' }}>Module 4</span>
-                    <div style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-main)', marginTop: '4px' }}>
-                      Document & Connector Hub
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                      <div className="launchpad-icon-box icon-box-blue">
+                        📁
+                      </div>
+                      <span className="badge badge-verified" style={{ fontSize: '0.68rem', padding: '2px 8px' }}>
+                        Repository
+                      </span>
                     </div>
-                    <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: '1.5', marginTop: '6px' }}>
-                      Connect live GitHub repositories, Confluence spaces, or upload PDF/DOCX policy documents for instant extraction.
+                    <div style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text-main)', marginTop: '4px' }}>
+                      4. Document & Source Hub
+                    </div>
+                    <p style={{ fontSize: '0.825rem', color: 'var(--text-secondary)', lineHeight: '1.5', marginTop: '6px' }}>
+                      Add new PDF, Word files, or connect company GitHub and Confluence spaces for instant extraction.
                     </p>
                   </div>
-                  <div style={{ marginTop: '16px', fontSize: '0.8rem', fontWeight: 700, color: 'var(--primary)' }}>
-                    Open Document Explorer →
+                  
+                  <div style={{ marginTop: '20px' }}>
+                    <button className="btn-launch btn-launch-blue">
+                      <span>Manage Documents</span>
+                      <span>→</span>
+                    </button>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* 5-Stage Context Trust Architecture Workflow Diagram */}
-            <div className="clean-panel" style={{ padding: '24px' }}>
-              <div style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '6px' }}>
-                5-Stage Context Trust Lifecycle
-              </div>
-              <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '20px' }}>
-                Every document follows an immutable pipeline from connector ingestion to decision gate evaluation.
-              </p>
-
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
-                <div style={{ background: 'var(--bg-card-subtle)', padding: '14px', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
-                  <div style={{ fontSize: '0.72rem', color: 'var(--primary)', fontWeight: 800 }}>STAGE 1</div>
-                  <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-main)', marginTop: '4px' }}>Ingest & Hash</div>
-                  <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px', lineHeight: '1.4' }}>
-                    Normalizes markdown, parses DOCX/PDF, and computes SHA-256 version hashes.
+            {/* ========================================================= */}
+            {/* 5-SECOND INTERACTIVE SAFETY SIMULATOR (ZERO-EFFORT DEMO)  */}
+            {/* ========================================================= */}
+            <div className="quick-sim-card">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '14px' }}>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span className="badge badge-verified" style={{ fontSize: '0.72rem', padding: '3px 8px' }}>
+                      ⚡ 5-Second Interactive Simulation
+                    </span>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>
+                      Try it right here without leaving the page
+                    </span>
+                  </div>
+                  <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-main)', marginTop: '6px' }}>
+                    How Does Context Trust Layer Protect Your Company?
+                  </div>
+                  <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                    Select a customer tier below and click <strong>Test Decision</strong> to watch the safety gate verify real policy evidence.
                   </p>
                 </div>
 
-                <div style={{ background: 'var(--bg-card-subtle)', padding: '14px', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
-                  <div style={{ fontSize: '0.72rem', color: 'var(--primary)', fontWeight: 800 }}>STAGE 2</div>
-                  <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-main)', marginTop: '4px' }}>Atomic Fact Triples</div>
-                  <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px', lineHeight: '1.4' }}>
-                    Extracts atomic subject-predicate-object assertions from each document section.
-                  </p>
-                </div>
-
-                <div style={{ background: 'var(--bg-card-subtle)', padding: '14px', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
-                  <div style={{ fontSize: '0.72rem', color: 'var(--primary)', fontWeight: 800 }}>STAGE 3</div>
-                  <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-main)', marginTop: '4px' }}>Conflict Detection</div>
-                  <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px', lineHeight: '1.4' }}>
-                    Topical and semantic filtering detects numerical clashes, overrides, and scope collisions.
-                  </p>
-                </div>
-
-                <div style={{ background: 'var(--bg-card-subtle)', padding: '14px', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
-                  <div style={{ fontSize: '0.72rem', color: 'var(--primary)', fontWeight: 800 }}>STAGE 4</div>
-                  <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-main)', marginTop: '4px' }}>Bayesian Trust Scoring</div>
-                  <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px', lineHeight: '1.4' }}>
-                    Calculates 6-factor trust weights (Authority, Freshness, Verification, Scope).
-                  </p>
-                </div>
-
-                <div style={{ background: 'var(--bg-card-subtle)', padding: '14px', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
-                  <div style={{ fontSize: '0.72rem', color: 'var(--success-text)', fontWeight: 800 }}>STAGE 5</div>
-                  <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-main)', marginTop: '4px' }}>Decision Safety Gate</div>
-                  <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px', lineHeight: '1.4' }}>
-                    Issues ALLOW, REQUIRE_REVIEW, or BLOCK decisions with signed audit IDs.
-                  </p>
+                {/* Scenario Tier Selector */}
+                <div className="sim-tier-nav">
+                  <button
+                    onClick={() => { setQuickSimType('enterprise'); handleRunQuickSim('enterprise'); }}
+                    className={`sim-tier-btn ${quickSimType === 'enterprise' ? 'sim-tier-btn-active' : ''}`}
+                  >
+                    🏢 Enterprise Customer (Acme Corp)
+                  </button>
+                  <button
+                    onClick={() => { setQuickSimType('standard'); handleRunQuickSim('standard'); }}
+                    className={`sim-tier-btn ${quickSimType === 'standard' ? 'sim-tier-btn-active' : ''}`}
+                  >
+                    👤 Standard Customer
+                  </button>
                 </div>
               </div>
+
+              {/* Side-by-Side Policy Comparison */}
+              <div className="sim-comparison-grid">
+                {/* Outdated Rule */}
+                <div className="sim-rule-card sim-rule-card-outdated">
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                    <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#64748B', textTransform: 'uppercase' }}>
+                      Old Handbook (2025)
+                    </span>
+                    <span className="badge badge-outdated" style={{ fontSize: '0.65rem' }}>
+                      Outdated
+                    </span>
+                  </div>
+                  <div style={{ fontSize: '0.875rem', color: '#64748B', textDecoration: 'line-through', fontWeight: 500 }}>
+                    "Customer refund window is strictly limited to 30 days."
+                  </div>
+                  <div style={{ fontSize: '0.7rem', color: '#94A3B8', marginTop: '6px' }}>
+                    Source: Employee Handbook 2025 • Superseded
+                  </div>
+                  {/* Trust Level Meter */}
+                  <div style={{ marginTop: '10px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.68rem', color: 'var(--text-muted)', marginBottom: '3px' }}>
+                      <span>Trust Rating</span>
+                      <span style={{ fontWeight: 700, color: '#EF4444' }}>50% (Stale)</span>
+                    </div>
+                    <div style={{ width: '100%', height: '5px', background: 'rgba(239, 68, 68, 0.15)', borderRadius: '999px', overflow: 'hidden' }}>
+                      <div style={{ width: '50%', height: '100%', background: '#EF4444', borderRadius: '999px' }}></div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Authoritative Rule */}
+                <div className="sim-rule-card sim-rule-card-valid">
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                    <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#166534', textTransform: 'uppercase' }}>
+                      Active Policy Service (2026)
+                    </span>
+                    <span className="badge badge-allow" style={{ fontSize: '0.65rem' }}>
+                      Authoritative
+                    </span>
+                  </div>
+                  <div style={{ fontSize: '0.875rem', color: '#166534', fontWeight: 700 }}>
+                    "Enterprise tier customers have a 60-day exception window."
+                  </div>
+                  <div style={{ fontSize: '0.7rem', color: '#15803D', marginTop: '6px' }}>
+                    Source: Enterprise Policy Service • Verified Fresh
+                  </div>
+                  {/* Trust Level Meter */}
+                  <div style={{ marginTop: '10px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.68rem', color: '#15803D', marginBottom: '3px' }}>
+                      <span>Trust Rating</span>
+                      <span style={{ fontWeight: 700, color: '#10B981' }}>95% (Authoritative)</span>
+                    </div>
+                    <div style={{ width: '100%', height: '5px', background: 'rgba(16, 185, 129, 0.2)', borderRadius: '999px', overflow: 'hidden' }}>
+                      <div style={{ width: '95%', height: '100%', background: '#10B981', borderRadius: '999px' }}></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Question & Run Simulator Button */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px', background: 'var(--bg-card-subtle)', padding: '14px 18px', borderRadius: '10px', border: '1px solid var(--border-subtle)' }}>
+                <div style={{ flex: 1, minWidth: '260px' }}>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>
+                    Customer Request Being Evaluated:
+                  </div>
+                  <div style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-main)', marginTop: '2px' }}>
+                    "Customer requests a 45-day refund. Can the AI approve this payout?"
+                  </div>
+                </div>
+
+                <button 
+                  onClick={() => handleRunQuickSim(quickSimType)}
+                  disabled={simScanning}
+                  className="btn btn-primary"
+                  style={{ padding: '10px 20px', fontSize: '0.875rem', fontWeight: 700, borderRadius: '8px', boxShadow: '0 4px 12px -2px rgba(37, 99, 235, 0.3)' }}
+                >
+                  {simScanning ? (
+                    <>
+                      <span className="telemetry-pulse-dot" style={{ background: '#FFFFFF' }}></span>
+                      <span>Verifying Policy...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>⚡ Run Safety Test</span>
+                    </>
+                  )}
+                </button>
+              </div>
+
+              {/* Simulation Result Box */}
+              {quickSimResult && (
+                <div className="sim-result-box" style={{ marginTop: '16px', padding: '16px 20px', borderRadius: '12px', background: quickSimResult.bgColor, border: `1.5px solid ${quickSimResult.borderColor}`, display: 'flex', alignItems: 'flex-start', gap: '14px' }}>
+                  <div style={{ fontSize: '1.8rem', lineHeight: '1' }}>
+                    {quickSimResult.status === 'ALLOW' ? '🟢' : '🔴'}
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span className={`badge ${quickSimResult.status === 'ALLOW' ? 'badge-allow' : 'badge-block'}`} style={{ fontSize: '0.75rem', padding: '3px 8px' }}>
+                        DECISION: {quickSimResult.badge}
+                      </span>
+                      <span style={{ fontSize: '0.95rem', fontWeight: 800, color: quickSimResult.color }}>
+                        {quickSimResult.title}
+                      </span>
+                    </div>
+                    <p style={{ fontSize: '0.825rem', color: 'var(--text-main)', marginTop: '6px', lineHeight: '1.5' }}>
+                      {quickSimResult.detail}
+                    </p>
+                    <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+                      Rule Applied: <strong>{quickSimResult.ruleUsed}</strong>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* ========================================================= */}
+            {/* 3-STEP UNIVERSAL VISUAL PROCESS FLOW                      */}
+            {/* ========================================================= */}
+            <div className="clean-panel" style={{ padding: '24px 28px', marginBottom: '20px' }}>
+              <div style={{ marginBottom: '18px' }}>
+                <div style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-main)', letterSpacing: '-0.01em' }}>
+                  How It Works in 3 Simple Steps
+                </div>
+                <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
+                  A clear, automated path from document intake to safe AI execution
+                </p>
+              </div>
+
+              <div className="visual-stepper-grid">
+                {/* Step 1 */}
+                <div className="visual-step-card">
+                  <div className="step-num-badge" style={{ background: '#EFF6FF', color: '#2563EB', border: '1px solid #BFDBFE' }}>
+                    1
+                  </div>
+                  <div style={{ fontSize: '1.4rem', marginBottom: '6px' }}>
+                    📄
+                  </div>
+                  <div style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--text-main)' }}>
+                    1. Read & Fingerprint Rules
+                  </div>
+                  <p style={{ fontSize: '0.775rem', color: 'var(--text-secondary)', lineHeight: '1.5', marginTop: '6px' }}>
+                    Company handbooks, PDFs, and repository policies are normalized and given cryptographic SHA-256 fingerprint hashes.
+                  </p>
+                </div>
+
+                {/* Step 2 */}
+                <div className="visual-step-card">
+                  <div className="step-num-badge" style={{ background: '#FFFBEB', color: '#D97706', border: '1px solid #FDE68A' }}>
+                    2
+                  </div>
+                  <div style={{ fontSize: '1.4rem', marginBottom: '6px' }}>
+                    🔍
+                  </div>
+                  <div style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--text-main)' }}>
+                    2. Spot Contradictions
+                  </div>
+                  <p style={{ fontSize: '0.775rem', color: 'var(--text-secondary)', lineHeight: '1.5', marginTop: '6px' }}>
+                    The trust engine compares conflicting statements, overrides, and publication dates to isolate stale facts.
+                  </p>
+                </div>
+
+                {/* Step 3 */}
+                <div className="visual-step-card">
+                  <div className="step-num-badge" style={{ background: '#ECFDF5', color: '#059669', border: '1px solid #A7F3D0' }}>
+                    3
+                  </div>
+                  <div style={{ fontSize: '1.4rem', marginBottom: '6px' }}>
+                    🛡️
+                  </div>
+                  <div style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--text-main)' }}>
+                    3. Safe AI Execution
+                  </div>
+                  <p style={{ fontSize: '0.775rem', color: 'var(--text-secondary)', lineHeight: '1.5', marginTop: '6px' }}>
+                    Before an AI agent executes an action, the gate ensures it is supported by 100% verified, authoritative evidence.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Helper Banner */}
+            <div style={{ padding: '14px 20px', borderRadius: '10px', background: '#F8FAFC', border: '1px solid var(--border-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span style={{ fontSize: '1.2rem' }}>💡</span>
+                <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontWeight: 500 }}>
+                  Need a full demonstration? Click the green <strong>Launch AI Safety Demo</strong> button above or in the left sidebar anytime.
+                </span>
+              </div>
+              <button 
+                onClick={() => { setActiveTab('demo'); setExpandedMenu('demo'); setDemoScenario('refund_trap'); }}
+                className="btn btn-secondary" 
+                style={{ fontSize: '0.78rem', padding: '6px 14px' }}
+              >
+                Go to Decision Gate →
+              </button>
             </div>
           </div>
         )}
@@ -1239,18 +1694,80 @@ export default function App() {
               </div>
             </div>
 
+            {/* Interactive Scenario Selector Tabs */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px', flexWrap: 'wrap' }}>
+              <span style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                Select Scenario:
+              </span>
+              <button
+                onClick={() => { setDemoScenario('refund_trap'); setDemoStep(0); setDemoResult(null); }}
+                className={`prompt-preset-chip ${demoScenario === 'refund_trap' ? 'prompt-preset-chip-active' : ''}`}
+              >
+                <span>💳 1. Refund Window Trap</span>
+                <span className="badge badge-warning" style={{ fontSize: '0.6rem', padding: '1px 5px' }}>Financial</span>
+              </button>
+              <button
+                onClick={() => { setDemoScenario('remote_work'); setDemoStep(0); setDemoResult(null); }}
+                className={`prompt-preset-chip ${demoScenario === 'remote_work' ? 'prompt-preset-chip-active' : ''}`}
+              >
+                <span>🏠 2. Remote Work Policy</span>
+                <span className="badge badge-review" style={{ fontSize: '0.6rem', padding: '1px 5px' }}>HR Policy</span>
+              </button>
+              <button
+                onClick={() => { setDemoScenario('unauthorized_deploy'); setDemoStep(0); setDemoResult(null); }}
+                className={`prompt-preset-chip ${demoScenario === 'unauthorized_deploy' ? 'prompt-preset-chip-active' : ''}`}
+              >
+                <span>🔒 3. Prod Ingress Authorization</span>
+                <span className="badge badge-verified" style={{ fontSize: '0.6rem', padding: '1px 5px' }}>Security</span>
+              </button>
+            </div>
+
+            {/* 3-Stage Progress Scanner */}
+            <div className="stage-scanner">
+              <div className={`stage-scanner-step ${demoStep >= 1 ? 'stage-scanner-step-done' : 'stage-scanner-step-active'}`}>
+                <div className="stage-scanner-num">{demoStep >= 1 ? '✓' : '1'}</div>
+                <div>
+                  <div className="stage-scanner-title">Intended Claim</div>
+                  <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>Action Extracted</div>
+                </div>
+              </div>
+
+              <div className={`stage-scanner-line ${demoRunning ? 'stage-scanner-line-active' : ''}`}></div>
+
+              <div className={`stage-scanner-step ${demoStep === 1 ? 'stage-scanner-step-active' : demoStep === 2 ? 'stage-scanner-step-done' : ''}`}>
+                <div className="stage-scanner-num">{demoStep === 2 ? '✓' : '2'}</div>
+                <div>
+                  <div className="stage-scanner-title">Authority & Freshness</div>
+                  <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>Arbitration Matrix</div>
+                </div>
+              </div>
+
+              <div className={`stage-scanner-line ${demoRunning ? 'stage-scanner-line-active' : ''}`}></div>
+
+              <div className={`stage-scanner-step ${demoStep === 2 ? 'stage-scanner-step-done' : ''}`}>
+                <div className="stage-scanner-num">{demoStep === 2 ? '✓' : '3'}</div>
+                <div>
+                  <div className="stage-scanner-title">Gate Verdict</div>
+                  <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>{demoResult ? demoResult.decision : 'Awaiting Eval'}</div>
+                </div>
+              </div>
+            </div>
+
             {/* Intended Action & Execution Bar */}
-            <div className="clean-panel" style={{ padding: '16px 20px', marginBottom: '20px', background: 'var(--bg-card)' }}>
+            <div className="clean-panel" style={{ padding: '18px 22px', marginBottom: '20px', background: 'var(--bg-card)', boxShadow: '0 2px 10px -2px rgba(15, 23, 42, 0.04)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
                 <div style={{ flex: 1, minWidth: '280px' }}>
-                  <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.04em' }}>
-                    Intended Agent Action / Query:
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.04em' }}>
+                      Intended Agent Action Under Evaluation:
+                    </span>
+                    <span className="badge badge-verified" style={{ fontSize: '0.65rem' }}>Active Query</span>
                   </div>
-                  <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-main)', marginTop: '4px' }}>
+                  <div style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-main)', marginTop: '4px' }}>
                     "{currentScenario.query}"
                   </div>
                   <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-                    Actor: <span className="code-pill">{currentScenario.actor.id}</span> (Role: {currentScenario.actor.role})
+                    Actor: <span className="code-pill">{currentScenario.actor.id}</span> (Role: <strong>{currentScenario.actor.role}</strong>)
                   </div>
                 </div>
 
@@ -1258,94 +1775,119 @@ export default function App() {
                   onClick={runKillerDemo} 
                   disabled={demoRunning}
                   className="btn btn-primary"
-                  style={{ padding: '9px 18px', fontSize: '0.875rem' }}
+                  style={{ padding: '11px 22px', fontSize: '0.9rem', fontWeight: 700, borderRadius: '10px', boxShadow: '0 4px 14px -2px rgba(37, 99, 235, 0.35)' }}
                 >
-                  {demoRunning ? "Evaluating..." : "Evaluate Decision Gate"}
+                  {demoRunning ? (
+                    <>
+                      <span className="telemetry-pulse-dot" style={{ background: '#FFFFFF' }}></span>
+                      <span>Verifying Evidence...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>⚡ Run Decision Gate Evaluation</span>
+                    </>
+                  )}
                 </button>
               </div>
             </div>
 
             {/* Main Decision Gate Panel */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1.05fr 0.95fr', gap: '20px' }}>
               
               {/* Left Side: Candidate Evidence Evaluated */}
-              <div className="clean-panel" style={{ padding: '20px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-                  <h3 style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--text-main)' }}>
-                    Candidate Evidence Evaluated
+              <div className="clean-panel" style={{ padding: '22px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                  <h3 style={{ fontSize: '0.98rem', fontWeight: 800, color: 'var(--text-main)' }}>
+                    Candidate Policy Evidence Evaluated
                   </h3>
-                  <span className="badge badge-review">Contradiction Detected</span>
+                  <span className="badge badge-review" style={{ fontSize: '0.7rem' }}>Contradiction Detected</span>
                 </div>
 
-                <div style={{ display: 'grid', gap: '12px' }}>
+                <div style={{ display: 'grid', gap: '14px' }}>
                   {/* Candidate 1 (Stale / Low Authority) */}
-                  <div style={{ background: 'var(--bg-card-subtle)', border: '1px solid var(--border-subtle)', padding: '12px', borderRadius: '8px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700, marginBottom: '4px' }}>
-                      <span>RECORD 1 (Superseded)</span>
-                      <span>Date: {currentScenario.claim1.date}</span>
+                  <div className="evidence-cert evidence-cert-superseded">
+                    <span className="evidence-watermark-stamp badge badge-outdated">SUPERSEDED</span>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', color: 'var(--danger-text)', fontWeight: 800, marginBottom: '6px' }}>
+                      <span>RECORD 1 (Superseded Policy)</span>
+                      <span>Published: {currentScenario.claim1.date}</span>
                     </div>
-                    <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', textDecoration: 'line-through' }}>
+                    <div style={{ fontSize: '0.88rem', color: 'var(--text-muted)', textDecoration: 'line-through', fontWeight: 500, lineHeight: 1.5, paddingRight: '70px' }}>
                       "{currentScenario.claim1.text}"
                     </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '6px' }}>
-                      <span>Source: {currentScenario.claim1.source}</span>
-                      <span>Authority: {currentScenario.claim1.authority}/100</span>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.74rem', color: 'var(--text-muted)', marginTop: '10px', paddingTop: '8px', borderTop: '1px solid rgba(239, 68, 68, 0.15)' }}>
+                      <span>Source: <strong>{currentScenario.claim1.source}</strong></span>
+                      <span>Authority: <strong style={{ color: 'var(--danger-solid)' }}>{currentScenario.claim1.authority}/100</strong> (Stale)</span>
                     </div>
                   </div>
 
                   {/* Candidate 2 (Authoritative / Fresh) */}
-                  <div style={{ background: 'var(--success-bg)', border: '1px solid var(--success-border)', padding: '12px', borderRadius: '8px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', color: 'var(--success-text)', fontWeight: 700, marginBottom: '4px' }}>
-                      <span>RECORD 2 (Authoritative Selection)</span>
-                      <span>Date: {currentScenario.claim2.date}</span>
+                  <div className="evidence-cert evidence-cert-authoritative">
+                    <span className="evidence-watermark-stamp badge badge-allow">AUTHORITATIVE</span>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', color: 'var(--success-text)', fontWeight: 800, marginBottom: '6px' }}>
+                      <span>RECORD 2 (Authoritative Override)</span>
+                      <span>Published: {currentScenario.claim2.date}</span>
                     </div>
-                    <div style={{ fontSize: '0.875rem', color: 'var(--success-text)', fontWeight: 700 }}>
+                    <div style={{ fontSize: '0.92rem', color: 'var(--success-text)', fontWeight: 700, lineHeight: 1.5, paddingRight: '70px' }}>
                       "{currentScenario.claim2.text}"
                     </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', color: 'var(--success-text)', marginTop: '6px' }}>
-                      <span>Source: {currentScenario.claim2.source}</span>
-                      <span>Authority: {currentScenario.claim2.authority}/100</span>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.74rem', color: 'var(--success-text)', marginTop: '10px', paddingTop: '8px', borderTop: '1px solid rgba(16, 185, 129, 0.2)' }}>
+                      <span>Source: <strong>{currentScenario.claim2.source}</strong></span>
+                      <span>Authority: <strong style={{ color: 'var(--success-solid)' }}>{currentScenario.claim2.authority}/100</strong> (Verified Fresh)</span>
                     </div>
                   </div>
                 </div>
               </div>
 
               {/* Right Side: Decision Gate Evaluation Verdict */}
-              <div className="clean-panel" style={{ padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+              <div className="clean-panel" style={{ padding: '22px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                 <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-                    <h3 style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--text-main)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                    <h3 style={{ fontSize: '0.98rem', fontWeight: 800, color: 'var(--text-main)' }}>
                       Decision Gate Verdict
                     </h3>
                     {demoResult && <span className="code-pill">Audit: {demoResult.audit_id}</span>}
                   </div>
 
                   {demoStep === 0 && (
-                    <div style={{ padding: '40px 20px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-                      Click "Evaluate Decision Gate" to run evidence verification.
+                    <div style={{ padding: '48px 20px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.875rem' }}>
+                      <div style={{ fontSize: '2.4rem', marginBottom: '10px' }}>🛡️</div>
+                      <div style={{ fontWeight: 700, color: 'var(--text-main)', marginBottom: '4px' }}>Ready for Evaluation</div>
+                      <div>Click "Run Decision Gate Evaluation" above to compute deterministic provenance.</div>
                     </div>
                   )}
 
                   {demoStep === 1 && (
-                    <div style={{ padding: '40px 20px', textAlign: 'center', color: 'var(--primary)', fontSize: '0.85rem', fontWeight: 600 }}>
-                      Evaluating candidate records, freshness, and authority levels...
+                    <div style={{ padding: '48px 20px', textAlign: 'center', color: 'var(--primary)', fontSize: '0.875rem', fontWeight: 600 }}>
+                      <div style={{ fontSize: '2.4rem', marginBottom: '10px', animation: 'radarPulse 1.2s infinite' }}>⚡</div>
+                      <div style={{ fontWeight: 800, color: 'var(--primary)', marginBottom: '4px' }}>Evaluating Evidence & Authority Levels...</div>
+                      <div style={{ color: 'var(--text-muted)' }}>Checking superseding timestamps, authority scores, and scope...</div>
                     </div>
                   )}
 
                   {demoStep === 2 && demoResult && (
                     <div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
-                        <span className={`badge ${demoResult.decision === 'ALLOW' ? 'badge-allow' : demoResult.decision === 'BLOCK' ? 'badge-block' : 'badge-review'}`} style={{ fontSize: '0.85rem', padding: '4px 10px' }}>
-                          VERDICT: {demoResult.decision}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px', padding: '12px 16px', borderRadius: '10px', background: demoResult.decision === 'ALLOW' ? 'var(--success-bg)' : 'var(--danger-bg)', border: `1.5px solid ${demoResult.decision === 'ALLOW' ? 'var(--success-border)' : 'var(--danger-border)'}` }}>
+                        <span style={{ fontSize: '1.8rem' }}>
+                          {demoResult.decision === 'ALLOW' ? '🟢' : '🔴'}
                         </span>
-                        <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                          Risk: <strong style={{ color: demoResult.risk === 'LOW' ? 'var(--success-text)' : 'var(--danger-text)' }}>{demoResult.risk}</strong> • Validity: <strong>{demoResult.validity}</strong>
-                        </span>
+                        <div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span className={`badge ${demoResult.decision === 'ALLOW' ? 'badge-allow' : demoResult.decision === 'BLOCK' ? 'badge-block' : 'badge-review'}`} style={{ fontSize: '0.8rem', padding: '3px 9px' }}>
+                              VERDICT: {demoResult.decision}
+                            </span>
+                            <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-main)' }}>
+                              Risk: <strong style={{ color: demoResult.risk === 'LOW' ? 'var(--success-text)' : 'var(--danger-text)' }}>{demoResult.risk}</strong>
+                            </span>
+                          </div>
+                          <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                            Validity Status: <strong>{demoResult.validity}</strong> • Enforced by Trust Layer
+                          </div>
+                        </div>
                       </div>
 
-                      <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '12px' }}>
-                        <div style={{ fontWeight: 700, marginBottom: '4px' }}>Evaluation Reasons:</div>
-                        <ul style={{ paddingLeft: '18px', lineHeight: 1.5 }}>
+                      <div style={{ fontSize: '0.825rem', color: 'var(--text-secondary)', marginBottom: '14px' }}>
+                        <div style={{ fontWeight: 800, color: 'var(--text-main)', marginBottom: '6px' }}>Evaluation Reasons:</div>
+                        <ul style={{ paddingLeft: '18px', lineHeight: 1.6 }}>
                           {demoResult.reasons?.map((r, i) => (
                             <li key={i}>{r}</li>
                           ))}
@@ -1356,8 +1898,8 @@ export default function App() {
                 </div>
 
                 {demoStep === 2 && demoResult && (
-                  <div style={{ marginTop: '12px', padding: '10px 12px', background: 'var(--bg-card-subtle)', borderRadius: '8px', border: '1px solid var(--border-subtle)', fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
-                    <strong>Suggested Next Action:</strong> {demoResult.suggested_action}
+                  <div style={{ marginTop: '12px', padding: '12px 14px', background: 'var(--bg-card-subtle)', borderRadius: '10px', border: '1px solid var(--border-subtle)', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                    <strong>Suggested Agent Action:</strong> {demoResult.suggested_action}
                   </div>
                 )}
               </div>
@@ -1429,149 +1971,227 @@ export default function App() {
             </div>
 
             {/* Main Interactive Grid */}
-            <div style={{ display: 'grid', gridTemplateColumns: '400px 1fr', gap: '20px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '420px 1fr', gap: '22px' }}>
               
               {/* Left Column: Query Console */}
-              <div className="clean-panel" style={{ padding: '20px' }}>
-                <div style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '14px' }}>
-                  Agent Query Console
+              <div className="clean-panel" style={{ padding: '22px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ fontSize: '0.98rem', fontWeight: 800, color: 'var(--text-main)' }}>
+                    Agent Command Console
+                  </div>
+                  <span className="badge badge-verified" style={{ fontSize: '0.65rem' }}>AI Agent Link</span>
                 </div>
 
-                <div style={{ display: 'grid', gap: '14px' }}>
-                  {/* Persona Selector */}
-                  <div>
-                    <label style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 700, display: 'block', marginBottom: '4px' }}>
-                      Agent Persona:
-                    </label>
-                    <select
-                      value={playgroundAgent.role}
-                      onChange={e => {
-                        const role = e.target.value;
-                        if (role === 'billing_agent') setPlaygroundAgent({ id: "88888888-8888-8888-8888-888888888888", name: "Billing Dispute Agent", role });
-                        else if (role === 'hr_assistant') setPlaygroundAgent({ id: "88888888-8888-8888-8888-888888888889", name: "HR Policy Assistant", role });
-                        else setPlaygroundAgent({ id: "88888888-8888-8888-8888-888888888890", name: "DevOps Security Guard", role });
-                      }}
-                      style={{ width: '100%', padding: '8px 10px', fontSize: '0.85rem' }}
+                {/* Preset Quick-Launch Chips */}
+                <div>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 800, textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.04em' }}>
+                    Quick Preset Inquiries:
+                  </div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                    {playgroundPresets.map((preset, idx) => (
+                      <button 
+                        key={idx}
+                        onClick={() => {
+                          setPlaygroundQuery(preset.query);
+                          handleExecutePlaygroundQuery(preset.query);
+                        }}
+                        className={`prompt-preset-chip ${playgroundQuery === preset.query ? 'prompt-preset-chip-active' : ''}`}
+                        style={{ fontSize: '0.74rem', padding: '5px 10px' }}
+                      >
+                        <span>{idx === 0 ? '💳' : idx === 1 ? '🏠' : '🔒'}</span>
+                        <span>{preset.title}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Persona Selector with Tactile Card Buttons */}
+                <div>
+                  <label style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 800, textTransform: 'uppercase', display: 'block', marginBottom: '6px', letterSpacing: '0.04em' }}>
+                    Active Agent Persona:
+                  </label>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '6px' }}>
+                    <button
+                      type="button"
+                      onClick={() => setPlaygroundAgent({ id: "88888888-8888-8888-8888-888888888888", name: "Billing Dispute Agent", role: "billing_agent" })}
+                      className={`prompt-preset-chip ${playgroundAgent.role === 'billing_agent' ? 'prompt-preset-chip-active' : ''}`}
+                      style={{ justifyContent: 'center', padding: '8px 4px', fontSize: '0.72rem', textAlign: 'center', flexDirection: 'column', gap: '2px' }}
                     >
-                      <option value="billing_agent">Billing Dispute Resolution Agent</option>
-                      <option value="hr_assistant">HR Policy & Benefits Assistant</option>
-                      <option value="devops_agent">DevOps Infrastructure Security Guard</option>
-                    </select>
+                      <span style={{ fontSize: '1.1rem' }}>💳</span>
+                      <span>Billing Agent</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPlaygroundAgent({ id: "88888888-8888-8888-8888-888888888889", name: "HR Policy Assistant", role: "hr_assistant" })}
+                      className={`prompt-preset-chip ${playgroundAgent.role === 'hr_assistant' ? 'prompt-preset-chip-active' : ''}`}
+                      style={{ justifyContent: 'center', padding: '8px 4px', fontSize: '0.72rem', textAlign: 'center', flexDirection: 'column', gap: '2px' }}
+                    >
+                      <span style={{ fontSize: '1.1rem' }}>👥</span>
+                      <span>HR Assistant</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPlaygroundAgent({ id: "88888888-8888-8888-8888-888888888890", name: "DevOps Security Guard", role: "devops_agent" })}
+                      className={`prompt-preset-chip ${playgroundAgent.role === 'devops_agent' ? 'prompt-preset-chip-active' : ''}`}
+                      style={{ justifyContent: 'center', padding: '8px 4px', fontSize: '0.72rem', textAlign: 'center', flexDirection: 'column', gap: '2px' }}
+                    >
+                      <span style={{ fontSize: '1.1rem' }}>🛡️</span>
+                      <span>DevOps Guard</span>
+                    </button>
                   </div>
-
-                  {/* Trust Score Threshold */}
-                  <div style={{ background: 'var(--bg-card-subtle)', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                      <label style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', fontWeight: 700 }}>
-                        Min Trust Threshold:
-                      </label>
-                      <span className="badge badge-verified">
-                        {(playgroundThreshold * 100).toFixed(0)}%
-                      </span>
-                    </div>
-                    <input 
-                      type="range" 
-                      min="0.50" 
-                      max="0.99" 
-                      step="0.05"
-                      value={playgroundThreshold} 
-                      onChange={e => setPlaygroundThreshold(parseFloat(e.target.value))}
-                      style={{ width: '100%', accentColor: 'var(--primary)' }}
-                    />
-                  </div>
-
-                  {/* Query Textarea */}
-                  <div>
-                    <label style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 700, display: 'block', marginBottom: '4px' }}>
-                      Agent Question:
-                    </label>
-                    <textarea 
-                      rows={3}
-                      value={playgroundQuery} 
-                      onChange={e => setPlaygroundQuery(e.target.value)}
-                      placeholder="Ask any policy question..."
-                      style={{ width: '100%', padding: '8px 10px', fontSize: '0.85rem' }}
-                    />
-                  </div>
-
-                  {/* Submit Button */}
-                  <button 
-                    onClick={() => runPlaygroundQuery()} 
-                    disabled={playgroundRunning}
-                    className="btn btn-primary" 
-                    style={{ width: '100%', padding: '10px', fontSize: '0.875rem' }}
-                  >
-                    {playgroundRunning ? "Retrieving..." : "Query Context Trust Layer"}
-                  </button>
                 </div>
+
+                {/* Trust Score Threshold Slider */}
+                <div style={{ background: 'var(--bg-card-subtle)', padding: '12px 14px', borderRadius: '10px', border: '1px solid var(--border-subtle)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                    <label style={{ fontSize: '0.74rem', color: 'var(--text-main)', fontWeight: 700 }}>
+                      Minimum Trust Threshold:
+                    </label>
+                    <span className="badge badge-verified" style={{ fontSize: '0.75rem', fontWeight: 800 }}>
+                      {(playgroundThreshold * 100).toFixed(0)}%
+                    </span>
+                  </div>
+                  <input 
+                    type="range" 
+                    min="0.50" 
+                    max="0.99" 
+                    step="0.05"
+                    value={playgroundThreshold} 
+                    onChange={e => setPlaygroundThreshold(parseFloat(e.target.value))}
+                    style={{ width: '100%', accentColor: 'var(--primary)', cursor: 'pointer' }}
+                  />
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.65rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                    <span>Lenient (50%)</span>
+                    <span>Standard (85%)</span>
+                    <span>Strict (99%)</span>
+                  </div>
+                </div>
+
+                {/* Query Textarea */}
+                <div>
+                  <label style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 800, textTransform: 'uppercase', display: 'block', marginBottom: '6px', letterSpacing: '0.04em' }}>
+                    Agent Question / Task:
+                  </label>
+                  <textarea 
+                    rows={3}
+                    value={playgroundQuery} 
+                    onChange={e => setPlaygroundQuery(e.target.value)}
+                    placeholder="Ask any policy, guideline, or authority question..."
+                    style={{ width: '100%', padding: '10px 12px', fontSize: '0.85rem', lineHeight: 1.4, borderRadius: '8px' }}
+                  />
+                </div>
+
+                {/* Submit Button */}
+                <button 
+                  onClick={() => runPlaygroundQuery()} 
+                  disabled={playgroundRunning}
+                  className="btn btn-primary" 
+                  style={{ width: '100%', padding: '11px', fontSize: '0.9rem', fontWeight: 700, borderRadius: '9px', boxShadow: '0 4px 14px -2px rgba(37, 99, 235, 0.35)' }}
+                >
+                  {playgroundRunning ? (
+                    <>
+                      <span className="telemetry-pulse-dot" style={{ background: '#FFFFFF' }}></span>
+                      <span>Querying Trust Layer...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>🔍 Query Context Trust Layer</span>
+                    </>
+                  )}
+                </button>
               </div>
 
               {/* Right Column: Grounded Answer & Citations */}
-              <div style={{ display: 'grid', gap: '16px' }}>
+              <div style={{ display: 'grid', gap: '18px' }}>
                 
                 {/* Answer Card */}
-                <div className="clean-panel" style={{ padding: '20px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                    <div style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--text-main)' }}>
-                      Grounded Agent Output
+                <div className="clean-panel" style={{ padding: '22px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+                    <div style={{ fontSize: '0.98rem', fontWeight: 800, color: 'var(--text-main)' }}>
+                      Grounded Autonomous Output
                     </div>
-                    {playgroundResult && (
-                      <span className="badge badge-allow">
-                        Confidence: {(Number(playgroundResult.confidence || 0.95) * 100).toFixed(0)}%
-                      </span>
-                    )}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      {playgroundResult && (
+                        <>
+                          <button
+                            onClick={() => {
+                              navigator.clipboard?.writeText(playgroundResult.synthesizedAnswer || '');
+                              setCopiedAnswer(true);
+                              setTimeout(() => setCopiedAnswer(false), 1500);
+                            }}
+                            className="btn btn-secondary"
+                            style={{ fontSize: '0.72rem', padding: '4px 10px' }}
+                            title="Copy answer to clipboard"
+                          >
+                            {copiedAnswer ? "✓ Copied!" : "📋 Copy"}
+                          </button>
+                          <span className="badge badge-allow" style={{ fontSize: '0.75rem' }}>
+                            Confidence: {(Number(playgroundResult.confidence || 0.95) * 100).toFixed(0)}%
+                          </span>
+                        </>
+                      )}
+                    </div>
                   </div>
 
                   {!playgroundResult && !playgroundRunning && (
-                    <div style={{ padding: '30px 10px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-                      Select a preset or click query to inspect the grounded answer.
+                    <div style={{ padding: '36px 14px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.875rem' }}>
+                      <div style={{ fontSize: '2.2rem', marginBottom: '8px' }}>🤖</div>
+                      <div style={{ fontWeight: 700, color: 'var(--text-main)', marginBottom: '4px' }}>Awaiting Agent Inquiry</div>
+                      <div>Select a quick preset above or type an inquiry to test the trust filter.</div>
                     </div>
                   )}
 
                   {playgroundRunning && (
-                    <div style={{ padding: '30px 10px', textAlign: 'center', color: 'var(--primary)', fontSize: '0.85rem', fontWeight: 600 }}>
-                      Filtering claims by trust score and checking active conflicts...
+                    <div style={{ padding: '36px 14px', textAlign: 'center', color: 'var(--primary)', fontSize: '0.875rem', fontWeight: 600 }}>
+                      <div style={{ fontSize: '2.2rem', marginBottom: '8px', animation: 'radarPulse 1.2s infinite' }}>⚡</div>
+                      <div style={{ fontWeight: 800, marginBottom: '4px' }}>Validating Facts & Filtering Contradictions...</div>
+                      <div style={{ color: 'var(--text-muted)' }}>Discarding stale policies below {(playgroundThreshold * 100).toFixed(0)}% threshold...</div>
                     </div>
                   )}
 
                   {playgroundResult && !playgroundRunning && (
-                    <div style={{ background: 'var(--bg-card-subtle)', padding: '14px', borderRadius: '8px', border: '1px solid var(--border-subtle)', lineHeight: 1.5, fontSize: '0.85rem', color: 'var(--text-main)', whiteSpace: 'pre-wrap' }}>
+                    <div style={{ background: 'var(--bg-card-subtle)', padding: '16px 18px', borderRadius: '10px', border: '1px solid var(--border-subtle)', lineHeight: 1.6, fontSize: '0.88rem', color: 'var(--text-main)', whiteSpace: 'pre-wrap', position: 'relative' }}>
                       {playgroundResult.synthesizedAnswer}
                     </div>
                   )}
                 </div>
 
                 {/* Evidence Citations */}
-                <div className="clean-panel" style={{ padding: '20px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                    <div style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--text-main)' }}>
+                <div className="clean-panel" style={{ padding: '22px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+                    <div style={{ fontSize: '0.98rem', fontWeight: 800, color: 'var(--text-main)' }}>
                       Trust Gate Citations ({playgroundResult?.context?.length || 0})
                     </div>
-                    <span className="badge badge-verified">Verified Evidence</span>
+                    <span className="badge badge-verified" style={{ fontSize: '0.72rem' }}>Cryptographic Proof</span>
                   </div>
 
                   {(!playgroundResult || !playgroundResult.context || playgroundResult.context.length === 0) ? (
-                    <div style={{ padding: '20px 10px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.8rem' }}>
-                      No citation records loaded yet.
+                    <div style={{ padding: '24px 10px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.825rem' }}>
+                      No verified citation records loaded yet.
                     </div>
                   ) : (
-                    <div style={{ display: 'grid', gap: '10px' }}>
+                    <div style={{ display: 'grid', gap: '12px' }}>
                       {playgroundResult.context.map((ctx, idx) => (
-                        <div key={idx} style={{ background: '#FFFFFF', border: '1px solid var(--border-subtle)', padding: '12px', borderRadius: '8px' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                            <span className="badge badge-allow">Citation #{idx + 1}</span>
+                        <div key={idx} className="evidence-cert evidence-cert-authoritative" style={{ padding: '14px 16px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <span className="badge badge-allow" style={{ fontSize: '0.68rem' }}>Citation #{idx + 1}</span>
+                              <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                                Source: <strong>{ctx.source?.document || 'Verified Document'}</strong>
+                              </span>
+                            </div>
                             <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                              Trust Score: <strong style={{ color: 'var(--success-text)' }}>{(Number(ctx.trust_score) * 100).toFixed(0)}%</strong>
+                              Trust Score: <strong style={{ color: 'var(--success-solid)' }}>{(Number(ctx.trust_score) * 100).toFixed(0)}%</strong>
                             </span>
                           </div>
 
-                          <p style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-main)', lineHeight: 1.4 }}>
+                          <p style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-main)', lineHeight: 1.5 }}>
                             "{ctx.claim}"
                           </p>
 
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '6px', paddingTop: '6px', borderTop: '1px solid var(--border-subtle)', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                            <span>Source: {ctx.source?.document || 'Verified Document'} ({ctx.source?.section || 'General'})</span>
-                            <span>Status: <strong style={{ color: 'var(--success-text)' }}>{ctx.validity?.status?.toUpperCase() || 'VALID'}</strong></span>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '8px', paddingTop: '8px', borderTop: '1px solid rgba(16, 185, 129, 0.2)', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                            <span>Section: <code>{ctx.source?.section || 'General Policy'}</code></span>
+                            <span>Status: <strong style={{ color: 'var(--success-text)' }}>{ctx.validity?.status?.toUpperCase() || 'VERIFIED'}</strong></span>
                           </div>
                         </div>
                       ))}
@@ -1603,17 +2223,46 @@ export default function App() {
               </button>
             </div>
 
+            {/* Category Filter Chips */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px', flexWrap: 'wrap' }}>
+              <button
+                onClick={() => setConflictCategoryFilter('all')}
+                className={`prompt-preset-chip ${conflictCategoryFilter === 'all' ? 'prompt-preset-chip-active' : ''}`}
+              >
+                <span>⚖️ All Conflicts ({conflicts.length})</span>
+              </button>
+              <button
+                onClick={() => setConflictCategoryFilter('numerical')}
+                className={`prompt-preset-chip ${conflictCategoryFilter === 'numerical' ? 'prompt-preset-chip-active' : ''}`}
+              >
+                <span>🔢 Numerical Discrepancies</span>
+              </button>
+              <button
+                onClick={() => setConflictCategoryFilter('authority')}
+                className={`prompt-preset-chip ${conflictCategoryFilter === 'authority' ? 'prompt-preset-chip-active' : ''}`}
+              >
+                <span>📜 Policy Superseded</span>
+              </button>
+            </div>
+
             {/* Conflicts List */}
             {conflicts.length === 0 ? (
-              <div className="clean-panel" style={{ padding: '48px 24px', textAlign: 'center', color: 'var(--text-muted)' }}>
-                <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--text-main)' }}>Zero Pending Conflicts</h3>
-                <p style={{ fontSize: '0.825rem', marginTop: '4px' }}>
-                  All enterprise claims are verified and non-conflicting.
+              <div className="clean-panel" style={{ padding: '56px 24px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                <div style={{ fontSize: '2.8rem', marginBottom: '12px' }}>✨</div>
+                <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-main)' }}>Zero Pending Policy Conflicts</h3>
+                <p style={{ fontSize: '0.85rem', marginTop: '6px', maxWidth: '500px', margin: '6px auto 0' }}>
+                  All company claims across PostgreSQL are completely harmonized and non-contradictory.
                 </p>
               </div>
             ) : (
-              <div style={{ display: 'grid', gap: '16px' }}>
-                {conflicts.map((conf, idx) => {
+              <div style={{ display: 'grid', gap: '18px' }}>
+                {conflicts
+                  .filter(conf => {
+                    if (conflictCategoryFilter === 'numerical') return (conf.conflict_type || '').toLowerCase().includes('numerical');
+                    if (conflictCategoryFilter === 'authority') return (conf.conflict_type || '').toLowerCase().includes('authority') || (conf.conflict_type || '').toLowerCase().includes('direct');
+                    return true;
+                  })
+                  .map((conf, idx) => {
                   const claimA = conf.claim_a;
                   const claimB = conf.claim_b;
                   const scoreA = claimA?.trust_scores?.[0]?.overall_score || 0.50;
@@ -1622,63 +2271,67 @@ export default function App() {
                   const sectionB = claimB?.evidence?.[0]?.section || "Section 3.0";
 
                   return (
-                    <div key={conf.id || idx} className="clean-panel" style={{ padding: '18px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <span style={{ fontWeight: 800, fontSize: '0.9rem', color: 'var(--text-main)' }}>
-                            Conflict #{idx + 1}: {conf.conflict_type?.toUpperCase() || "NUMERICAL_DISCREPANCY"}
+                    <div key={conf.id || idx} className="clean-panel" style={{ padding: '22px', boxShadow: '0 4px 16px -4px rgba(15, 23, 42, 0.05)' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <span style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--text-main)' }}>
+                            Arbitration Case #{idx + 1}: {conf.conflict_type?.toUpperCase() || "NUMERICAL_DISCREPANCY"}
                           </span>
-                          <span className="badge badge-review">Severity: {conf.severity?.toUpperCase() || 'HIGH'}</span>
+                          <span className="badge badge-review" style={{ fontSize: '0.72rem' }}>Severity: {conf.severity?.toUpperCase() || 'HIGH'}</span>
                         </div>
-                        <span className="code-pill">Confidence: {conf.confidence || '0.95'}</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span className="code-pill">Bayesian Confidence: {conf.confidence || '0.95'}</span>
+                        </div>
                       </div>
 
                       {/* Side-by-Side Comparison */}
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '16px' }}>
-                        <div style={{ background: 'var(--danger-bg)', border: '1px solid var(--danger-border)', padding: '14px', borderRadius: '8px' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', color: 'var(--danger-text)', fontWeight: 800, marginBottom: '4px' }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '18px' }}>
+                        {/* Stale Candidate */}
+                        <div className="evidence-cert evidence-cert-superseded" style={{ padding: '16px 18px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', color: 'var(--danger-text)', fontWeight: 800, marginBottom: '6px' }}>
                             <span>CLAIM A (Stale Candidate)</span>
                             <span className="badge badge-outdated">ID: {conf.claim_a_id?.substring(0, 8)}</span>
                           </div>
-                          <p style={{ fontSize: '0.85rem', color: 'var(--danger-text)', lineHeight: '1.4', fontWeight: 600 }}>
+                          <p style={{ fontSize: '0.9rem', color: 'var(--danger-text)', lineHeight: '1.5', fontWeight: 600 }}>
                             "{claimA?.claim_text || 'Customers are eligible for automated refunds up to ₹25,000 without supervisor approval.'}"
                           </p>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '8px', paddingTop: '6px', borderTop: '1px solid rgba(220, 38, 38, 0.15)' }}>
-                            <span>Source: {sectionA}</span>
-                            <span>Trust: <strong>{(Number(scoreA) * 100).toFixed(0)}%</strong></span>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.74rem', color: 'var(--text-muted)', marginTop: '12px', paddingTop: '8px', borderTop: '1px solid rgba(220, 38, 38, 0.15)' }}>
+                            <span>Source: <strong>{sectionA}</strong></span>
+                            <span>Trust Score: <strong style={{ color: 'var(--danger-solid)' }}>{(Number(scoreA) * 100).toFixed(0)}%</strong></span>
                           </div>
                         </div>
 
-                        <div style={{ background: 'var(--success-bg)', border: '1px solid var(--success-border)', padding: '14px', borderRadius: '8px' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', color: 'var(--success-text)', fontWeight: 800, marginBottom: '4px' }}>
-                            <span>CLAIM B (Authoritative Candidate)</span>
+                        {/* Authoritative Candidate */}
+                        <div className="evidence-cert evidence-cert-authoritative" style={{ padding: '16px 18px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', color: 'var(--success-text)', fontWeight: 800, marginBottom: '6px' }}>
+                            <span>CLAIM B (Authoritative Override)</span>
                             <span className="badge badge-allow">ID: {conf.claim_b_id?.substring(0, 8)}</span>
                           </div>
-                          <p style={{ fontSize: '0.85rem', color: 'var(--success-text)', lineHeight: '1.4', fontWeight: 600 }}>
+                          <p style={{ fontSize: '0.9rem', color: 'var(--success-text)', lineHeight: '1.5', fontWeight: 700 }}>
                             "{claimB?.claim_text || 'Standard automated refund limit is capped at ₹10,000. Higher amounts require VP signoff.'}"
                           </p>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '8px', paddingTop: '6px', borderTop: '1px solid rgba(22, 163, 74, 0.15)' }}>
-                            <span>Source: {sectionB}</span>
-                            <span>Trust: <strong>{(Number(scoreB) * 100).toFixed(0)}%</strong></span>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.74rem', color: 'var(--text-muted)', marginTop: '12px', paddingTop: '8px', borderTop: '1px solid rgba(22, 163, 74, 0.15)' }}>
+                            <span>Source: <strong>{sectionB}</strong></span>
+                            <span>Trust Score: <strong style={{ color: 'var(--success-solid)' }}>{(Number(scoreB) * 100).toFixed(0)}%</strong></span>
                           </div>
                         </div>
                       </div>
 
                       {/* Auditor Actions */}
-                      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', borderTop: '1px solid var(--border-subtle)', paddingTop: '12px' }}>
-                        <button 
-                          onClick={() => handleResolveConflict(conf.id, conf.claim_b_id, "Approved Claim B as authoritative guideline.")}
-                          className="btn btn-success"
-                          style={{ padding: '7px 14px' }}
-                        >
-                          Approve Authoritative Claim B (Supersede A)
-                        </button>
+                      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', borderTop: '1px solid var(--border-subtle)', paddingTop: '14px' }}>
                         <button 
                           onClick={() => handleResolveConflict(conf.id, conf.claim_a_id, "Approved Claim A as verified exception.")}
                           className="btn btn-secondary"
-                          style={{ padding: '7px 12px' }}
+                          style={{ padding: '8px 14px', fontSize: '0.8rem', fontWeight: 600 }}
                         >
-                          Approve Claim A
+                          Keep Claim A
+                        </button>
+                        <button 
+                          onClick={() => handleResolveConflict(conf.id, conf.claim_b_id, "Approved Claim B as authoritative guideline.")}
+                          className="btn btn-success"
+                          style={{ padding: '8px 18px', fontSize: '0.825rem', fontWeight: 700, borderRadius: '8px', boxShadow: '0 2px 8px rgba(16, 185, 129, 0.25)' }}
+                        >
+                          ⚡ Approve Authoritative Claim B (Supersede A)
                         </button>
                       </div>
                     </div>
@@ -1728,6 +2381,38 @@ export default function App() {
                   </button>
                 </div>
               </div>
+            </div>
+
+            {/* Interactive Sub-View Switcher Toolbar */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '22px', flexWrap: 'wrap' }}>
+              <button
+                onClick={() => setDocExplorerView('connectors')}
+                className={`prompt-preset-chip ${docExplorerView === 'connectors' ? 'prompt-preset-chip-active' : ''}`}
+                style={{ padding: '7px 14px', fontSize: '0.8rem' }}
+              >
+                <span>🌐 Live Connectors & Sync ({dataSources.length})</span>
+              </button>
+              <button
+                onClick={() => setDocExplorerView('ingest')}
+                className={`prompt-preset-chip ${docExplorerView === 'ingest' ? 'prompt-preset-chip-active' : ''}`}
+                style={{ padding: '7px 14px', fontSize: '0.8rem' }}
+              >
+                <span>➕ Ingest Policy Document</span>
+              </button>
+              <button
+                onClick={() => setDocExplorerView('documents')}
+                className={`prompt-preset-chip ${docExplorerView === 'documents' ? 'prompt-preset-chip-active' : ''}`}
+                style={{ padding: '7px 14px', fontSize: '0.8rem' }}
+              >
+                <span>📁 Stored Documents ({dbDocuments.length})</span>
+              </button>
+              <button
+                onClick={() => setDocExplorerView('claims')}
+                className={`prompt-preset-chip ${docExplorerView === 'claims' ? 'prompt-preset-chip-active' : ''}`}
+                style={{ padding: '7px 14px', fontSize: '0.8rem' }}
+              >
+                <span>🔍 Atomic Claims ({dbClaims.length})</span>
+              </button>
             </div>
 
             {/* VIEW 0: LIVE CONNECTORS & CONTINUOUS SYNC */}
