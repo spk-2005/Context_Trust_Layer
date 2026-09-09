@@ -13,29 +13,15 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [notification, setNotification] = useState(null);
 
-  // Theme State (Light / Dark) with Persistent Storage
-  const [theme, setTheme] = useState(() => {
-    try {
-      const saved = localStorage.getItem('ctl_theme');
-      if (saved) return saved;
-      return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-    } catch {
-      return 'light';
-    }
-  });
-
+  // Clean Theme Initialization (Enforce Crisp Light Theme)
   useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme);
+    document.documentElement.removeAttribute('data-theme');
     try {
-      localStorage.setItem('ctl_theme', theme);
-    } catch (e) {
-      console.warn("Theme storage fallback:", e);
+      localStorage.removeItem('ctl_theme');
+    } catch {
+      // ignore
     }
-  }, [theme]);
-
-  const toggleTheme = () => {
-    setTheme(prev => prev === 'dark' ? 'light' : 'dark');
-  };
+  }, []);
 
   // 5-Second Interactive Safety Simulator Handler
   const handleRunQuickSim = (simType = quickSimType) => {
@@ -706,257 +692,85 @@ export default function App() {
       )}
 
       {/* ========================================================= */}
-      {/* LEFT SIDEBAR MENU - FLOATING LUMINOUS DOCK-PILL SYSTEM    */}
+      {/* LEFT SIDEBAR MENU - CLEAN UNIFORM ATLAN NAVIGATION       */}
       {/* ========================================================= */}
       <aside className="sidebar">
-        {/* Brand Header with Glowing Shield Badge */}
-        <div style={{ padding: '22px 18px', borderBottom: '1px solid var(--border-subtle)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <div style={{ 
-                width: '34px', 
-                height: '34px', 
-                borderRadius: '10px', 
-                background: 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 50%, #4F46E5 100%)', 
-                color: '#FFFFFF', 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center', 
-                fontSize: '1.05rem', 
-                fontWeight: 800,
-                boxShadow: '0 4px 12px -2px rgba(37, 99, 235, 0.45)'
-              }}>
-                🛡️
-              </div>
-              <div>
-                <span style={{ fontSize: '0.98rem', fontWeight: 800, color: 'var(--text-main)', letterSpacing: '-0.02em', display: 'block', lineHeight: 1.2 }}>
-                  Context Trust
-                </span>
-                <span style={{ fontSize: '0.68rem', fontWeight: 700, color: 'var(--primary)', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
-                  Protocol Layer
-                </span>
-              </div>
-            </div>
-            <span className="badge badge-verified" style={{ fontSize: '0.65rem', padding: '2px 7px' }}>
-              v1.4
-            </span>
+        {/* Brand Header */}
+        <div className="sidebar-header">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span className="sidebar-brand-title">Context Trust</span>
+            <span className="sidebar-brand-badge">v1.4</span>
           </div>
         </div>
 
-        {/* Navigation Tabs with Floating Dock-Pills */}
-        <nav className="nav-list" style={{ overflowY: 'auto' }}>
-          {/* TAB 0: Home Overview Dashboard */}
-          <div className="nav-group">
-            <button 
-              onClick={() => handleToggleParentTab('home')} 
-              className={`nav-item ${activeTab === 'home' ? 'nav-item-active' : ''}`}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <span style={{ fontSize: '1rem' }}>🌐</span>
-                <span>Home Overview</span>
-              </div>
-              <span className={`nav-chevron ${expandedMenu === 'home' ? 'nav-chevron-open' : ''}`}>
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="9 18 15 12 9 6" />
-                </svg>
-              </span>
-            </button>
-            <div className={`nav-sub-accordion ${expandedMenu === 'home' ? 'nav-sub-accordion-open' : ''}`}>
-              <div className="nav-sub-list">
-                <button 
-                  onClick={() => { setActiveTab('home'); }}
-                  className={`nav-sub-item ${activeTab === 'home' ? 'nav-sub-item-active' : ''}`}
-                >
-                  <span>Architecture & Metrics</span>
-                </button>
-              </div>
-            </div>
-          </div>
+        {/* Navigation List */}
+        <nav className="nav-list">
+          <div className="nav-section-title">Platform</div>
+          
+          <button 
+            onClick={() => setActiveTab('home')} 
+            className={`nav-item ${activeTab === 'home' ? 'nav-item-active' : ''}`}
+          >
+            <span>Home Overview</span>
+          </button>
 
-          {/* TAB 1: Decision Gate Demo */}
-          <div className="nav-group">
-            <button 
-              onClick={() => handleToggleParentTab('demo')} 
-              className={`nav-item ${activeTab === 'demo' ? 'nav-item-active' : ''}`}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <span style={{ fontSize: '1rem' }}>⚡</span>
-                <span>Decision Gate Demo</span>
-              </div>
-              <span className={`nav-chevron ${expandedMenu === 'demo' ? 'nav-chevron-open' : ''}`}>
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="9 18 15 12 9 6" />
-                </svg>
-              </span>
-            </button>
-            <div className={`nav-sub-accordion ${expandedMenu === 'demo' ? 'nav-sub-accordion-open' : ''}`}>
-              <div className="nav-sub-list">
-                <button 
-                  onClick={() => { setActiveTab('demo'); setDemoScenario('refund_trap'); setDemoStep(0); }}
-                  className={`nav-sub-item ${activeTab === 'demo' && demoScenario === 'refund_trap' ? 'nav-sub-item-active' : ''}`}
-                >
-                  <span>1. Refund Window</span>
-                  <span className="badge badge-warning" style={{ fontSize: '0.62rem', padding: '1px 5px' }}>Trap</span>
-                </button>
-                <button 
-                  onClick={() => { setActiveTab('demo'); setDemoScenario('remote_work'); setDemoStep(0); }}
-                  className={`nav-sub-item ${activeTab === 'demo' && demoScenario === 'remote_work' ? 'nav-sub-item-active' : ''}`}
-                >
-                  <span>2. Remote Work</span>
-                  <span className="badge badge-review" style={{ fontSize: '0.62rem', padding: '1px 5px' }}>Rule</span>
-                </button>
-                <button 
-                  onClick={() => { setActiveTab('demo'); setDemoScenario('unauthorized_deploy'); setDemoStep(0); }}
-                  className={`nav-sub-item ${activeTab === 'demo' && demoScenario === 'unauthorized_deploy' ? 'nav-sub-item-active' : ''}`}
-                >
-                  <span>3. Prod Ingress</span>
-                  <span className="badge badge-verified" style={{ fontSize: '0.62rem', padding: '1px 5px' }}>Auth</span>
-                </button>
-              </div>
-            </div>
-          </div>
+          <button 
+            onClick={() => setActiveTab('demo')} 
+            className={`nav-item ${activeTab === 'demo' ? 'nav-item-active' : ''}`}
+          >
+            <span>Decision Gate Demo</span>
+          </button>
 
-          {/* TAB 2: Agent Playground */}
-          <div className="nav-group">
-            <button 
-              onClick={() => handleToggleParentTab('playground')} 
-              className={`nav-item ${activeTab === 'playground' ? 'nav-item-active' : ''}`}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <span style={{ fontSize: '1rem' }}>🧪</span>
-                <span>Agent Playground</span>
-              </div>
-              <span className={`nav-chevron ${expandedMenu === 'playground' ? 'nav-chevron-open' : ''}`}>
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="9 18 15 12 9 6" />
-                </svg>
-              </span>
-            </button>
-            <div className={`nav-sub-accordion ${expandedMenu === 'playground' ? 'nav-sub-accordion-open' : ''}`}>
-              <div className="nav-sub-list">
-                <button 
-                  onClick={() => { setActiveTab('playground'); handleExecutePlaygroundQuery(playgroundQuery); }}
-                  className={`nav-sub-item ${activeTab === 'playground' && !playgroundPresets.some(p => p.query === playgroundQuery) ? 'nav-sub-item-active' : ''}`}
-                >
-                  <span>Interactive Console</span>
-                </button>
-                {playgroundPresets.map((preset, idx) => (
-                  <button 
-                    key={idx}
-                    onClick={() => { setActiveTab('playground'); setPlaygroundQuery(preset.query); handleExecutePlaygroundQuery(preset.query); }}
-                    className={`nav-sub-item ${activeTab === 'playground' && playgroundQuery === preset.query ? 'nav-sub-item-active' : ''}`}
-                  >
-                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {preset.title}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
+          <button 
+            onClick={() => setActiveTab('playground')} 
+            className={`nav-item ${activeTab === 'playground' ? 'nav-item-active' : ''}`}
+          >
+            <span>Agent Playground</span>
+          </button>
 
-          {/* TAB 3: Conflict Resolver */}
-          <div className="nav-group">
-            <button 
-              onClick={() => handleToggleParentTab('conflicts')} 
-              className={`nav-item ${activeTab === 'conflicts' ? 'nav-item-active' : ''}`}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <span style={{ fontSize: '1rem' }}>⚖️</span>
-                <span>Conflict Resolver</span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                {conflicts.length > 0 && (
-                  <span className="badge badge-review" style={{ fontSize: '0.68rem', padding: '1px 6px' }}>
-                    {conflicts.length}
-                  </span>
-                )}
-                <span className={`nav-chevron ${expandedMenu === 'conflicts' ? 'nav-chevron-open' : ''}`}>
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="9 18 15 12 9 6" />
-                  </svg>
-                </span>
-              </div>
-            </button>
-            <div className={`nav-sub-accordion ${expandedMenu === 'conflicts' ? 'nav-sub-accordion-open' : ''}`}>
-              <div className="nav-sub-list">
-                <button 
-                  onClick={() => setActiveTab('conflicts')}
-                  className="nav-sub-item nav-sub-item-active"
-                >
-                  <span>Pending Conflicts</span>
-                  <span className="badge badge-review" style={{ fontSize: '0.62rem', padding: '1px 4px' }}>
-                    {conflicts.length}
-                  </span>
-                </button>
-              </div>
-            </div>
-          </div>
+          <button 
+            onClick={() => setActiveTab('conflicts')} 
+            className={`nav-item ${activeTab === 'conflicts' ? 'nav-item-active' : ''}`}
+          >
+            <span>Conflict Resolver</span>
+          </button>
 
-          {/* TAB 4: Document Explorer */}
-          <div className="nav-group">
-            <button 
-              onClick={() => handleToggleParentTab('ingestion')} 
-              className={`nav-item ${activeTab === 'ingestion' ? 'nav-item-active' : ''}`}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <span style={{ fontSize: '1rem' }}>📂</span>
-                <span>Document Explorer</span>
-              </div>
-              <span className={`nav-chevron ${expandedMenu === 'ingestion' ? 'nav-chevron-open' : ''}`}>
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="9 18 15 12 9 6" />
-                </svg>
-              </span>
-            </button>
-            <div className={`nav-sub-accordion ${expandedMenu === 'ingestion' ? 'nav-sub-accordion-open' : ''}`}>
-              <div className="nav-sub-list">
-                <button 
-                  onClick={() => { setActiveTab('ingestion'); setDocExplorerView('connectors'); }} 
-                  className={`nav-sub-item ${activeTab === 'ingestion' && docExplorerView === 'connectors' ? 'nav-sub-item-active' : ''}`}
-                >
-                  <span>Live Connectors & Sync</span>
-                  <span className="badge badge-verified" style={{ fontSize: '0.62rem', padding: '1px 4px' }}>
-                    {dataSources.length}
-                  </span>
-                </button>
-                <button 
-                  onClick={() => { setActiveTab('ingestion'); setDocExplorerView('ingest'); }} 
-                  className={`nav-sub-item ${activeTab === 'ingestion' && docExplorerView === 'ingest' ? 'nav-sub-item-active' : ''}`}
-                >
-                  <span>Ingest New Policy</span>
-                </button>
-                <button 
-                  onClick={() => { setActiveTab('ingestion'); setDocExplorerView('documents'); }} 
-                  className={`nav-sub-item ${activeTab === 'ingestion' && docExplorerView === 'documents' ? 'nav-sub-item-active' : ''}`}
-                >
-                  <span>Stored Documents</span>
-                  <span className="badge badge-verified" style={{ fontSize: '0.62rem', padding: '1px 4px' }}>
-                    {dbDocuments.length}
-                  </span>
-                </button>
-                <button 
-                  onClick={() => { setActiveTab('ingestion'); setDocExplorerView('claims'); }} 
-                  className={`nav-sub-item ${activeTab === 'ingestion' && docExplorerView === 'claims' ? 'nav-sub-item-active' : ''}`}
-                >
-                  <span>Atomic Claims</span>
-                  <span className="badge badge-verified" style={{ fontSize: '0.62rem', padding: '1px 4px' }}>
-                    {dbClaims.length}
-                  </span>
-                </button>
-              </div>
-            </div>
-          </div>
+          <div className="nav-section-title" style={{ marginTop: '8px' }}>Repositories</div>
+
+          <button 
+            onClick={() => { setActiveTab('ingestion'); setDocExplorerView('connectors'); }} 
+            className={`nav-item ${activeTab === 'ingestion' && docExplorerView === 'connectors' ? 'nav-item-active' : ''}`}
+          >
+            <span>Live Connectors & Sync</span>
+          </button>
+
+          <button 
+            onClick={() => { setActiveTab('ingestion'); setDocExplorerView('ingest'); }} 
+            className={`nav-item ${activeTab === 'ingestion' && docExplorerView === 'ingest' ? 'nav-item-active' : ''}`}
+          >
+            <span>Ingest New Policy</span>
+          </button>
+
+          <button 
+            onClick={() => { setActiveTab('ingestion'); setDocExplorerView('documents'); }} 
+            className={`nav-item ${activeTab === 'ingestion' && docExplorerView === 'documents' ? 'nav-item-active' : ''}`}
+          >
+            <span>Stored Documents</span>
+          </button>
+
+          <button 
+            onClick={() => { setActiveTab('ingestion'); setDocExplorerView('claims'); }} 
+            className={`nav-item ${activeTab === 'ingestion' && docExplorerView === 'claims' ? 'nav-item-active' : ''}`}
+          >
+            <span>Atomic Claims</span>
+          </button>
         </nav>
 
         {/* System Status in Sidebar Footer */}
-        <div style={{ padding: '16px 20px', borderTop: '1px solid var(--border-subtle)', background: 'var(--bg-card-subtle)' }}>
-          <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700, marginBottom: '6px' }}>
-            SYSTEM STATUS
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.78rem', color: 'var(--success-text)', fontWeight: 600 }}>
-            <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--success-solid)' }} />
-            PostgreSQL + pgvector Active
+        <div className="sidebar-footer">
+          <div className="sidebar-status-pill">
+            <span className="sidebar-status-dot" />
+            <span>PostgreSQL Active</span>
           </div>
         </div>
       </aside>
@@ -1054,37 +868,6 @@ export default function App() {
               <span>⚡ Check System</span>
             </button>
 
-            {/* Light / Dark Mode Toggle Button */}
-            <button
-              onClick={toggleTheme}
-              className="theme-toggle-btn"
-              title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-              aria-label="Toggle theme mode"
-            >
-              {theme === 'dark' ? (
-                <>
-                  <svg className="theme-toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="12" cy="12" r="5" />
-                    <line x1="12" y1="1" x2="12" y2="3" />
-                    <line x1="12" y1="21" x2="12" y2="23" />
-                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
-                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
-                    <line x1="1" y1="12" x2="3" y2="12" />
-                    <line x1="21" y1="12" x2="23" y2="12" />
-                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
-                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
-                  </svg>
-                  <span>Light</span>
-                </>
-              ) : (
-                <>
-                  <svg className="theme-toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-                  </svg>
-                  <span>Dark</span>
-                </>
-              )}
-            </button>
           </div>
         </div>
 
