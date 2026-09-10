@@ -131,7 +131,7 @@ async def test_source_connection(
             )
 
         elif stype in ("github", "repo"):
-            repo_name = data.connection_config.get("repo", "acme-corp/security-standards")
+            repo_name = data.connection_config.get("repo", "demo-org/security-standards")
             return ConnectionTestResult(
                 success=True,
                 status="ok",

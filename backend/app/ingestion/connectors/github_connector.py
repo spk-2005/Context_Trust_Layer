@@ -21,14 +21,14 @@ class GitHubConnector(BaseConnector):
         session: AsyncSession,
         organization_id: uuid.UUID,
         source_id: uuid.UUID,
-        repo: str = "acme-corp/security-standards",
+        repo: str = "demo-org/security-standards",
         branch: str | None = None,
         token: str | None = None,
         paths: list[str] | None = None,
     ):
         super().__init__(session, organization_id, source_id)
         clean_repo = (repo or "").replace("https://github.com/", "").replace("http://github.com/", "").strip("/")
-        self.repo = clean_repo or "acme-corp/security-standards"
+        self.repo = clean_repo or "demo-org/security-standards"
         self.branch = branch
         self.token = token or os.getenv("GITHUB_TOKEN", "")
         self.paths = paths or ["", "docs", "policies", ".github"]

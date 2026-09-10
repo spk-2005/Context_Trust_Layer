@@ -220,12 +220,12 @@ DECLARE
 BEGIN
     -- 1. organizations
     INSERT INTO organizations (id, name, slug, status)
-    VALUES (v_org_id, 'Acme Enterprise AI', 'acme-enterprise', 'active')
+    VALUES (v_org_id, 'demo', 'demo', 'active')
     ON CONFLICT (id) DO NOTHING;
 
     -- 2. users
     INSERT INTO users (id, organization_id, name, email, role, status)
-    VALUES (v_user_id, v_org_id, 'Sarah Chen (Lead Auditor)', 'sarah.chen@acme.corp', 'reviewer', 'active')
+    VALUES (v_user_id, v_org_id, 'Sarah Chen (Lead Auditor)', 'sarah.chen@demo.local', 'reviewer', 'active')
     ON CONFLICT (id) DO NOTHING;
 
     -- 3. data_sources
@@ -237,14 +237,14 @@ BEGIN
 
     -- 4. documents
     INSERT INTO documents (id, organization_id, source_id, title, document_type, external_id, content_uri, content_hash, status)
-    VALUES (v_doc_id, v_org_id, v_source_conf_id, 'Enterprise Customer Refund Policy', 'confluence_page', 'FIN-POL-2026', 's3://context-trust-docs/acme/fin_policy_2026.md', 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855', 'active')
+    VALUES (v_doc_id, v_org_id, v_source_conf_id, 'Enterprise Customer Refund Policy', 'confluence_page', 'FIN-POL-2026', 's3://context-trust-docs/demo/fin_policy_2026.md', 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855', 'active')
     ON CONFLICT (id) DO NOTHING;
 
     -- 5. document_versions
     INSERT INTO document_versions (id, document_id, version_number, content_uri, content_hash, is_current)
     VALUES 
-        (v_doc_version_1, v_doc_id, 1, 's3://context-trust-docs/acme/fin_policy_v1.md', 'a1b2c3d4e5f67890123456789abcdef0123456789abcdef0123456789abcdef0', false),
-        (v_doc_version_2, v_doc_id, 2, 's3://context-trust-docs/acme/fin_policy_v2.md', 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855', true)
+        (v_doc_version_1, v_doc_id, 1, 's3://context-trust-docs/demo/fin_policy_v1.md', 'a1b2c3d4e5f67890123456789abcdef0123456789abcdef0123456789abcdef0', false),
+        (v_doc_version_2, v_doc_id, 2, 's3://context-trust-docs/demo/fin_policy_v2.md', 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855', true)
     ON CONFLICT (id) DO NOTHING;
 
     -- 6. claims

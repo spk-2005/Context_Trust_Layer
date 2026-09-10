@@ -32,3 +32,6 @@ class DecisionEvaluateResponse(BaseModel):
     preferred_source: str | None = Field(default=None, description="The most authoritative source identified")
     audit_id: str = Field(..., description="Unique audit reference identifier")
     suggested_action: str | None = Field(default=None, description="Recommended next action or clarification prompt for the agent")
+    audit_token: str | None = Field(default=None, description="Cryptographic SHA-256 audit signature")
+    execution_ms: int | None = Field(default=10, description="Evaluation execution latency in milliseconds")
+

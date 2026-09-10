@@ -17,6 +17,6 @@ async def evaluate_decision(
     db: AsyncSession = Depends(get_db),
 ):
     """Evaluate an AI agent's intended decision and candidate evidence for validity, risk, and policy compliance."""
-    evaluator = DecisionEvaluator()
-    response = await evaluator.evaluate(req)
+    evaluator = DecisionEvaluator(session=db)
+    response = await evaluator.evaluate(req, session=db)
     return response

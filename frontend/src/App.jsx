@@ -25,7 +25,7 @@ export default function App() {
     refund_trap: {
       title: "Outdated Refund Window Trap",
       subtitle: "Freshness & Scope Contradiction Verification",
-      query: "Is customer Acme Corp (Enterprise Tier) eligible for a 45-day refund?",
+      query: "Is customer Demo Enterprise (Enterprise Tier) eligible for a 45-day refund?",
       actor: { id: "billing-agent-01", role: "support_agent" },
       claim1: {
         text: "Refund window is strictly limited to 30 days.",
@@ -319,6 +319,49 @@ export default function App() {
   const [claimFilterStatus, setClaimFilterStatus] = useState('all');
   const [dbSearchQuery, setDbSearchQuery] = useState('');
   const [dbLoading, setDbLoading] = useState(false);
+
+  // -------------------------------------------------------------
+  // Model Context Protocol (MCP) & Agent Integration Hub State
+  // -------------------------------------------------------------
+  const [mcpActiveSubView, setMcpActiveSubView] = useState('tester'); // 'tester' | 'configs' | 'sdks'
+  const [mcpSelectedTool, setMcpSelectedTool] = useState('context_trust_get_trusted_context');
+  const [mcpToolQuery, setMcpToolQuery] = useState('What is the customer refund window?');
+  const [mcpMinScore, setMcpMinScore] = useState(0.75);
+  const [mcpMaxResults, setMcpMaxResults] = useState(5);
+  const [mcpActionType, setMcpActionType] = useState('Determine whether customer is eligible for 45-day refund');
+  const [mcpActorId, setMcpActorId] = useState('billing-agent-01');
+  const [mcpActorRole, setMcpActorRole] = useState('support');
+  const [mcpSearchText, setMcpSearchText] = useState('refund');
+  const [mcpClaimText, setMcpClaimText] = useState('Refund window is strictly limited to 30 days.');
+  const [mcpInvoking, setMcpInvoking] = useState(false);
+  const [mcpInvocationResult, setMcpInvocationResult] = useState(null);
+  const [mcpActiveSnippet, setMcpActiveSnippet] = useState('claude'); // 'claude' | 'cursor' | 'python' | 'langchain' | 'llamaindex' | 'curl'
+  const [mcpCopiedSnippet, setMcpCopiedSnippet] = useState(false);
+
+  // -------------------------------------------------------------
+  // Decision Audit Trail & Lineage Explorer State
+  // -------------------------------------------------------------
+  const [auditLogs, setAuditLogs] = useState([]);
+  const [auditTotal, setAuditTotal] = useState(0);
+  const [auditSummary, setAuditSummary] = useState({
+    total_decisions: 0,
+    allow_count: 0,
+    block_count: 0,
+    review_count: 0,
+    clarify_count: 0,
+    allow_rate_pct: 100.0,
+    high_risk_count: 0,
+    avg_latency_ms: 8.5,
+    cryptographic_token_verified: true,
+  });
+  const [auditLoading, setAuditLoading] = useState(false);
+  const [auditFilterVerdict, setAuditFilterVerdict] = useState('all');
+  const [auditFilterRisk, setAuditFilterRisk] = useState('all');
+  const [auditSearchQuery, setAuditSearchQuery] = useState('');
+  const [selectedAuditLineage, setSelectedAuditLineage] = useState(null);
+  const [isLineageModalOpen, setIsLineageModalOpen] = useState(false);
+  const [isFetchingLineage, setIsFetchingLineage] = useState(false);
+  const [copiedToken, setCopiedToken] = useState(null);
 
   const handleCreateWorkspace = (e) => {
     e?.preventDefault();
@@ -700,8 +743,15 @@ export default function App() {
   useEffect(() => {
     if (activeOrg?.id) {
       fetchHealthAndConflicts(activeOrg.id);
+      fetchAuditLogs(activeOrg.id);
     }
   }, [activeOrg?.id]);
+
+  useEffect(() => {
+    if (activeTab === 'audit' && activeOrg?.id) {
+      fetchAuditLogs(activeOrg.id, auditFilterVerdict, auditFilterRisk, auditSearchQuery);
+    }
+  }, [activeTab, auditFilterVerdict, auditFilterRisk, auditSearchQuery, activeOrg?.id]);
 
   // Background Auto-Sync Timer
   useEffect(() => {
@@ -763,6 +813,7 @@ export default function App() {
           setDemoResult(data);
           setDemoStep(2);
           setDemoRunning(false);
+          fetchAuditLogs(activeOrg?.id);
           showToast("Evaluation complete! Decision Gate verified evidence.");
         }, 300);
       } else {
@@ -945,6 +996,129 @@ export default function App() {
       showToast("Ingestion failed to connect to backend", "error");
     } finally {
       setIngesting(false);
+    }
+  };
+
+  const handleExecuteMcpTool = async () => {
+    setMcpInvoking(true);
+    try {
+      let args = {};
+      if (mcpSelectedTool === 'context_trust_get_trusted_context') {
+        args = {
+          query: mcpToolQuery,
+          organization_id: activeOrg?.id || '11111111-1111-1111-1111-111111111111',
+          agent_id: '88888888-8888-8888-8888-888888888888',
+          min_trust_score: Number(mcpMinScore) || 0.75,
+          max_results: Number(mcpMaxResults) || 5
+        };
+      } else if (mcpSelectedTool === 'context_trust_evaluate_decision') {
+        args = {
+          action_type: mcpActionType,
+          actor_id: mcpActorId,
+          actor_role: mcpActorRole,
+          required_scope: 'Enterprise'
+        };
+      } else if (mcpSelectedTool === 'context_trust_search_claims') {
+        args = {
+          search_text: mcpSearchText,
+          organization_id: activeOrg?.id || '11111111-1111-1111-1111-111111111111',
+          status: 'all',
+          limit: 5
+        };
+      } else if (mcpSelectedTool === 'context_trust_check_conflicts') {
+        args = {
+          claim_text: mcpClaimText,
+          organization_id: activeOrg?.id || '11111111-1111-1111-1111-111111111111'
+        };
+      }
+
+      const res = await fetch('/v1/mcp/invoke', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tool: mcpSelectedTool,
+          arguments: args
+        })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setMcpInvocationResult(data);
+        showToast(`Executed MCP Tool '${mcpSelectedTool}' successfully!`);
+      } else {
+        const err = await res.text();
+        showToast(`MCP Execution failed: ${res.status}`, 'error');
+      }
+    } catch (e) {
+      showToast('Failed to invoke MCP server', 'error');
+    } finally {
+      setMcpInvoking(false);
+    }
+  };
+
+  const fetchAuditLogs = async (orgId = activeOrg?.id, verdict = auditFilterVerdict, risk = auditFilterRisk, search = auditSearchQuery) => {
+    if (!orgId) return;
+    try {
+      setAuditLoading(true);
+      let url = `/v1/audit/logs?organization_id=${orgId}&limit=100`;
+      if (verdict && verdict !== 'all') url += `&verdict=${encodeURIComponent(verdict)}`;
+      if (risk && risk !== 'all') url += `&risk=${encodeURIComponent(risk)}`;
+      if (search && search.trim()) url += `&search=${encodeURIComponent(search.trim())}`;
+
+      const [resLogs, resSummary] = await Promise.all([
+        fetch(url),
+        fetch(`/v1/audit/summary?organization_id=${orgId}`)
+      ]);
+
+      if (resLogs.ok) {
+        const data = await resLogs.json();
+        setAuditLogs(data.logs || []);
+        setAuditTotal(data.total || 0);
+      }
+      if (resSummary.ok) {
+        const sumData = await resSummary.json();
+        setAuditSummary(sumData);
+      }
+    } catch (err) {
+      console.warn("Failed to fetch audit records:", err);
+    } finally {
+      setAuditLoading(false);
+    }
+  };
+
+  const handleInspectLineage = async (auditId) => {
+    if (!auditId) return;
+    try {
+      setIsFetchingLineage(true);
+      setIsLineageModalOpen(true);
+      const res = await fetch(`/v1/audit/${auditId}/lineage`);
+      if (res.ok) {
+        const data = await res.json();
+        setSelectedAuditLineage(data);
+      } else {
+        showToast("Audit lineage record not found", "error");
+        setIsLineageModalOpen(false);
+      }
+    } catch (err) {
+      showToast("Failed to load lineage", "error");
+      setIsLineageModalOpen(false);
+    } finally {
+      setIsFetchingLineage(false);
+    }
+  };
+
+  const handleExportAuditLogs = (format = 'json') => {
+    const orgId = activeOrg?.id || '11111111-1111-1111-1111-111111111111';
+    const exportUrl = `/v1/audit/export?organization_id=${orgId}&format=${format}`;
+    window.open(exportUrl, '_blank');
+    showToast(`Exporting ${format.toUpperCase()} compliance audit bundle...`);
+  };
+
+  const handleCopyAuditToken = (token) => {
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(token);
+      setCopiedToken(token);
+      showToast("SHA-256 cryptographic signature copied to clipboard");
+      setTimeout(() => setCopiedToken(null), 2500);
     }
   };
 
@@ -1187,6 +1361,87 @@ export default function App() {
               </div>
             </div>
           </div>
+
+          {/* TAB 5: Agent Integrations & MCP Hub */}
+          <div>
+            <button 
+              onClick={() => handleToggleParentTab('integrations')} 
+              className={`nav-item ${activeTab === 'integrations' ? 'nav-item-active' : ''}`}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span className={`nav-chevron ${expandedMenu === 'integrations' ? 'nav-chevron-open' : ''}`}>
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="9 18 15 12 9 6" />
+                  </svg>
+                </span>
+                <span>Agent Integrations / MCP</span>
+              </div>
+              <span className="badge badge-verified" style={{ fontSize: '0.62rem', padding: '1px 5px' }}>
+                MCP
+              </span>
+            </button>
+            <div className={`nav-sub-accordion ${expandedMenu === 'integrations' ? 'nav-sub-accordion-open' : ''}`}>
+              <div className="nav-sub-list">
+                <button 
+                  onClick={() => { setActiveTab('integrations'); setMcpActiveSubView('tester'); }} 
+                  className={`nav-sub-item ${activeTab === 'integrations' && mcpActiveSubView === 'tester' ? 'nav-sub-item-active' : ''}`}
+                >
+                  <span>Interactive Tool Tester</span>
+                </button>
+                <button 
+                  onClick={() => { setActiveTab('integrations'); setMcpActiveSubView('configs'); }} 
+                  className={`nav-sub-item ${activeTab === 'integrations' && mcpActiveSubView === 'configs' ? 'nav-sub-item-active' : ''}`}
+                >
+                  <span>Claude & Cursor Configs</span>
+                </button>
+                <button 
+                  onClick={() => { setActiveTab('integrations'); setMcpActiveSubView('sdks'); }} 
+                  className={`nav-sub-item ${activeTab === 'integrations' && mcpActiveSubView === 'sdks' ? 'nav-sub-item-active' : ''}`}
+                >
+                  <span>Python, LangChain & LlamaIndex</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* TAB 6: Decision Audit Trail & Lineage Explorer */}
+          <div>
+            <button 
+              onClick={() => { handleToggleParentTab('audit'); fetchAuditLogs(activeOrg?.id); }} 
+              className={`nav-item ${activeTab === 'audit' ? 'nav-item-active' : ''}`}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span className={`nav-chevron ${expandedMenu === 'audit' ? 'nav-chevron-open' : ''}`}>
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="9 18 15 12 9 6" />
+                  </svg>
+                </span>
+                <span>Audit Trail & Lineage</span>
+              </div>
+              <span className="badge badge-verified" style={{ fontSize: '0.62rem', padding: '1px 5px' }}>
+                {auditSummary?.total_decisions || auditLogs.length}
+              </span>
+            </button>
+            <div className={`nav-sub-accordion ${expandedMenu === 'audit' ? 'nav-sub-accordion-open' : ''}`}>
+              <div className="nav-sub-list">
+                <button 
+                  onClick={() => { setActiveTab('audit'); fetchAuditLogs(activeOrg?.id); }} 
+                  className={`nav-sub-item ${activeTab === 'audit' ? 'nav-sub-item-active' : ''}`}
+                >
+                  <span>Live Decision Stream</span>
+                  <span className="badge badge-verified" style={{ fontSize: '0.62rem', padding: '1px 4px' }}>
+                    {auditLogs.length}
+                  </span>
+                </button>
+                <button 
+                  onClick={() => { setActiveTab('audit'); handleExportAuditLogs('json'); }} 
+                  className="nav-sub-item"
+                >
+                  <span>Export SOC2 / ISO 42001</span>
+                </button>
+              </div>
+            </div>
+          </div>
         </nav>
 
         {/* System Status in Sidebar Footer */}
@@ -1196,7 +1451,7 @@ export default function App() {
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.78rem', color: 'var(--success-text)', fontWeight: 600 }}>
             <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--success-solid)' }} />
-            PostgreSQL + pgvector Active
+            PostgreSQL + MCP Server Active
           </div>
         </div>
       </aside>
@@ -1233,7 +1488,9 @@ export default function App() {
                   {activeTab === 'demo' ? 'Decision Gate Demo' :
                    activeTab === 'playground' ? 'Agent Playground' :
                    activeTab === 'conflicts' ? 'Conflict Resolver' :
-                   'Document Explorer'}
+                   activeTab === 'ingestion' ? 'Document Explorer' :
+                   activeTab === 'integrations' ? 'Agent Integrations & MCP' :
+                   'Decision Audit Trail & Lineage'}
                 </button>
               </>
             )}
@@ -1245,6 +1502,15 @@ export default function App() {
                   {demoScenario === 'refund_trap' ? '1. Refund Window (Trap)' :
                    demoScenario === 'remote_work' ? '2. Remote Work (Rule)' :
                    '3. Prod Ingress (Auth)'}
+                </span>
+              </>
+            )}
+
+            {activeTab === 'audit' && (
+              <>
+                <span className="breadcrumb-separator">/</span>
+                <span className="breadcrumb-current">
+                  Live Decision Provenance Stream ({auditLogs.length} Records)
                 </span>
               </>
             )}
@@ -1275,6 +1541,17 @@ export default function App() {
                    docExplorerView === 'ingest' ? 'Ingest New Document' :
                    docExplorerView === 'documents' ? `Stored Documents (${dbDocuments.length})` :
                    `Atomic Claims (${dbClaims.length})`}
+                </span>
+              </>
+            )}
+
+            {activeTab === 'integrations' && (
+              <>
+                <span className="breadcrumb-separator">/</span>
+                <span className="breadcrumb-current">
+                  {mcpActiveSubView === 'tester' ? 'Interactive Tool Tester' :
+                   mcpActiveSubView === 'configs' ? 'Claude & Cursor Configs' :
+                   'Python SDK & Framework Integrations'}
                 </span>
               </>
             )}
@@ -1367,30 +1644,7 @@ export default function App() {
                     ))}
                   </div>
 
-                  <div style={{ borderTop: '1px solid var(--border-subtle)', marginTop: '4px', paddingTop: '4px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                    <button
-                      onClick={() => {
-                        setShowRenameOrgModal(true);
-                        setRenameOrgName(activeOrg?.name || '');
-                        setIsOrgDropdownOpen(false);
-                      }}
-                      style={{
-                        width: '100%',
-                        padding: '6px 8px',
-                        background: 'transparent',
-                        border: 'none',
-                        color: 'var(--text-secondary)',
-                        fontSize: '0.72rem',
-                        fontWeight: 600,
-                        cursor: 'pointer',
-                        textAlign: 'left',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '6px'
-                      }}
-                    >
-                      <span>✏️</span> Rename '{activeOrg?.name || 'demo'}'
-                    </button>
+                  <div style={{ borderTop: '1px solid var(--border-subtle)', marginTop: '4px', paddingTop: '4px' }}>
                     <button
                       onClick={() => {
                         setShowNewOrgModal(true);
@@ -2808,7 +3062,7 @@ export default function App() {
                               <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>GitHub Repository (owner/repo):</label>
                               <input 
                                 type="text" 
-                                placeholder="e.g. acme-corp/security-standards"
+                                placeholder="e.g. demo-org/security-standards"
                                 value={newSourceForm.githubRepo}
                                 onChange={e => setNewSourceForm({ ...newSourceForm, githubRepo: e.target.value })}
                                 style={{ width: '100%', padding: '6px 8px', fontSize: '0.8rem' }}
@@ -3386,7 +3640,1368 @@ export default function App() {
             )}
           </div>
         )}
+
+        {/* ========================================================= */}
+        {/* TAB 5: AGENT INTEGRATIONS & MCP HUB                      */}
+        {/* ========================================================= */}
+        {activeTab === 'integrations' && (
+          <div>
+            {/* Header & MCP Server Status Banner */}
+            <div style={{ marginBottom: '24px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
+                    <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-main)', margin: 0, letterSpacing: '-0.02em' }}>
+                      Agent Integrations & MCP Hub
+                    </h2>
+                    <span className="badge badge-verified" style={{ fontSize: '0.72rem', padding: '3px 8px' }}>
+                      Protocol 2024-11-05
+                    </span>
+                  </div>
+                  <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: 0 }}>
+                    Standard Model Context Protocol (MCP) gateway exposing enterprise decision safety, evidence verification, and conflict detection to AI agents.
+                  </p>
+                </div>
+
+                {/* Server Status Indicators */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                  <div className="clean-panel" style={{ padding: '6px 14px', display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--success-bg)', border: '1px solid var(--success-border)' }}>
+                    <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--success-solid)' }} />
+                    <span style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--success-text)' }}>
+                      MCP Server Online
+                    </span>
+                  </div>
+                  <div className="clean-panel" style={{ padding: '6px 14px', fontSize: '0.78rem', color: 'var(--text-secondary)', background: 'var(--bg-card-subtle)' }}>
+                    <strong>Endpoint:</strong> <code style={{ color: 'var(--primary)', fontFamily: 'var(--font-mono)' }}>/v1/mcp</code>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Sub-view Navigation Bar */}
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '20px', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '12px' }}>
+              <button
+                onClick={() => setMcpActiveSubView('tester')}
+                className={`scenario-btn ${mcpActiveSubView === 'tester' ? 'scenario-btn-active' : ''}`}
+                style={{ padding: '8px 18px', fontSize: '0.84rem' }}
+              >
+                1. Interactive Tool Tester
+              </button>
+              <button
+                onClick={() => setMcpActiveSubView('configs')}
+                className={`scenario-btn ${mcpActiveSubView === 'configs' ? 'scenario-btn-active' : ''}`}
+                style={{ padding: '8px 18px', fontSize: '0.84rem' }}
+              >
+                2. Claude Desktop & Cursor Configs
+              </button>
+              <button
+                onClick={() => setMcpActiveSubView('sdks')}
+                className={`scenario-btn ${mcpActiveSubView === 'sdks' ? 'scenario-btn-active' : ''}`}
+                style={{ padding: '8px 18px', fontSize: '0.84rem' }}
+              >
+                3. Python SDK & Agent Frameworks
+              </button>
+            </div>
+
+            {/* SUB-VIEW 1: INTERACTIVE MCP TOOL TESTER */}
+            {mcpActiveSubView === 'tester' && (
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                {/* Left: Tool Selection & Request Parameter Builder */}
+                <div className="clean-panel" style={{ padding: '20px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                    <span style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--text-main)' }}>
+                      Select MCP Tool to Execute
+                    </span>
+                    <span className="code-pill">JSON-RPC 2.0 / REST</span>
+                  </div>
+
+                  {/* Tool Selector Dropdown */}
+                  <div style={{ marginBottom: '16px' }}>
+                    <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '6px' }}>
+                      Registered MCP Tool *
+                    </label>
+                    <select
+                      value={mcpSelectedTool}
+                      onChange={e => {
+                        setMcpSelectedTool(e.target.value);
+                        setMcpInvocationResult(null);
+                      }}
+                      style={{ width: '100%', padding: '10px 12px', fontSize: '0.85rem', fontFamily: 'var(--font-mono)', background: 'var(--bg-card-subtle)', color: 'var(--text-main)', border: '1px solid var(--border-subtle)', borderRadius: '6px' }}
+                    >
+                      <option value="context_trust_get_trusted_context">context_trust_get_trusted_context (Evidence & Trust Filter)</option>
+                      <option value="context_trust_evaluate_decision">context_trust_evaluate_decision (Authority & Gate Evaluator)</option>
+                      <option value="context_trust_search_claims">context_trust_search_claims (Atomic Knowledge Search)</option>
+                      <option value="context_trust_check_conflicts">context_trust_check_conflicts (Contradiction & Policy Guard)</option>
+                    </select>
+                    <p style={{ fontSize: '0.74rem', color: 'var(--text-muted)', marginTop: '6px' }}>
+                      {mcpSelectedTool === 'context_trust_get_trusted_context' && 'Retrieves evidence-backed, verified context before an AI agent generates an answer or executes a tool.'}
+                      {mcpSelectedTool === 'context_trust_evaluate_decision' && "Evaluates a proposed action against enterprise governance rules, actor hierarchy, and freshness constraints."}
+                      {mcpSelectedTool === 'context_trust_search_claims' && 'Searches atomic enterprise claims and authority levels across verified department workspace sources.'}
+                      {mcpSelectedTool === 'context_trust_check_conflicts' && 'Checks if a candidate statement contradicts existing authoritative policies or outdated rules.'}
+                    </p>
+                  </div>
+
+                  {/* Tool-specific Parameter Form Fields */}
+                  <div style={{ background: 'var(--bg-card-subtle)', padding: '16px', borderRadius: '8px', border: '1px solid var(--border-subtle)', marginBottom: '18px' }}>
+                    <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '12px' }}>
+                      Tool Input Arguments
+                    </div>
+
+                    {mcpSelectedTool === 'context_trust_get_trusted_context' && (
+                      <>
+                        <div style={{ marginBottom: '12px' }}>
+                          <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '4px' }}>
+                            Query / Prompt *
+                          </label>
+                          <input
+                            type="text"
+                            value={mcpToolQuery}
+                            onChange={e => setMcpToolQuery(e.target.value)}
+                            placeholder="e.g. What is the customer refund window for enterprise tier?"
+                            style={{ width: '100%', padding: '8px 10px', fontSize: '0.82rem' }}
+                          />
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                          <div>
+                            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '4px' }}>
+                              Min Trust Score ({mcpMinScore})
+                            </label>
+                            <input
+                              type="range"
+                              min="0.5"
+                              max="1.0"
+                              step="0.05"
+                              value={mcpMinScore}
+                              onChange={e => setMcpMinScore(parseFloat(e.target.value))}
+                              style={{ width: '100%' }}
+                            />
+                          </div>
+                          <div>
+                            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '4px' }}>
+                              Max Results
+                            </label>
+                            <input
+                              type="number"
+                              min="1"
+                              max="10"
+                              value={mcpMaxResults}
+                              onChange={e => setMcpMaxResults(parseInt(e.target.value) || 5)}
+                              style={{ width: '100%', padding: '6px 10px', fontSize: '0.82rem' }}
+                            />
+                          </div>
+                        </div>
+                      </>
+                    )}
+
+                    {mcpSelectedTool === 'context_trust_evaluate_decision' && (
+                      <>
+                        <div style={{ marginBottom: '12px' }}>
+                          <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '4px' }}>
+                            Action / Decision Description *
+                          </label>
+                          <input
+                            type="text"
+                            value={mcpActionType}
+                            onChange={e => setMcpActionType(e.target.value)}
+                            placeholder="e.g. Determine whether customer is eligible for 45-day refund"
+                            style={{ width: '100%', padding: '8px 10px', fontSize: '0.82rem' }}
+                          />
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                          <div>
+                            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '4px' }}>
+                              Actor ID *
+                            </label>
+                            <input
+                              type="text"
+                              value={mcpActorId}
+                              onChange={e => setMcpActorId(e.target.value)}
+                              style={{ width: '100%', padding: '8px 10px', fontSize: '0.82rem' }}
+                            />
+                          </div>
+                          <div>
+                            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '4px' }}>
+                              Actor Role *
+                            </label>
+                            <select
+                              value={mcpActorRole}
+                              onChange={e => setMcpActorRole(e.target.value)}
+                              style={{ width: '100%', padding: '8px 10px', fontSize: '0.82rem', background: 'var(--bg-input)' }}
+                            >
+                              <option value="support">support (Tier 1 Support Agent)</option>
+                              <option value="billing_agent">billing_agent (Finance Billing Lead)</option>
+                              <option value="junior_developer">junior_developer (DevOps Intern)</option>
+                              <option value="hr_reviewer">hr_reviewer (People Ops Partner)</option>
+                            </select>
+                          </div>
+                        </div>
+                      </>
+                    )}
+
+                    {mcpSelectedTool === 'context_trust_search_claims' && (
+                      <>
+                        <div style={{ marginBottom: '12px' }}>
+                          <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '4px' }}>
+                            Search Query / Keywords *
+                          </label>
+                          <input
+                            type="text"
+                            value={mcpSearchText}
+                            onChange={e => setMcpSearchText(e.target.value)}
+                            placeholder="e.g. refund, remote work, TLS..."
+                            style={{ width: '100%', padding: '8px 10px', fontSize: '0.82rem' }}
+                          />
+                        </div>
+                      </>
+                    )}
+
+                    {mcpSelectedTool === 'context_trust_check_conflicts' && (
+                      <>
+                        <div style={{ marginBottom: '12px' }}>
+                          <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '4px' }}>
+                            Proposed Statement / Claim to Check *
+                          </label>
+                          <textarea
+                            rows={3}
+                            value={mcpClaimText}
+                            onChange={e => setMcpClaimText(e.target.value)}
+                            placeholder="e.g. Refund window is strictly limited to 30 days."
+                            style={{ width: '100%', padding: '8px 10px', fontSize: '0.82rem', resize: 'vertical' }}
+                          />
+                        </div>
+                      </>
+                    )}
+                  </div>
+
+                  {/* Execution Button */}
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+                    <button
+                      onClick={handleExecuteMcpTool}
+                      disabled={mcpInvoking}
+                      className="btn btn-primary"
+                      style={{ padding: '10px 24px', fontSize: '0.86rem', display: 'flex', alignItems: 'center', gap: '8px' }}
+                    >
+                      {mcpInvoking ? (
+                        <>
+                          <span style={{ display: 'inline-block', width: 12, height: 12, border: '2px solid #FFFFFF', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+                          Invoking MCP Server...
+                        </>
+                      ) : (
+                        <>
+                          <span>⚡</span>
+                          Execute MCP Tool
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Right: Real-Time MCP Invocation Output */}
+                <div className="clean-panel" style={{ padding: '20px', display: 'flex', flexDirection: 'column' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                    <span style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--text-main)' }}>
+                      MCP Server Response
+                    </span>
+                    {mcpInvocationResult && (
+                      <span className="badge badge-verified" style={{ fontSize: '0.72rem' }}>
+                        200 OK • Success
+                      </span>
+                    )}
+                  </div>
+
+                  {mcpInvocationResult ? (
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                      {/* Summary Cards */}
+                      {mcpInvocationResult.result?.trusted_context && (
+                        <div style={{ marginBottom: '14px', display: 'grid', gap: '8px' }}>
+                          <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-main)' }}>
+                            Verified Claims Returned ({mcpInvocationResult.result.trusted_context.length})
+                          </div>
+                          {mcpInvocationResult.result.trusted_context.map((item, idx) => (
+                            <div key={idx} style={{ background: 'var(--bg-card-subtle)', padding: '10px', borderRadius: '6px', border: '1px solid var(--border-subtle)' }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                                <span className="badge badge-verified" style={{ fontSize: '0.65rem' }}>
+                                  Trust: {(item.trust_score * 100).toFixed(0)}%
+                                </span>
+                                <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                                  Source: {item.source?.title} (Auth: {item.source?.authority_level})
+                                </span>
+                              </div>
+                              <p style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-main)', margin: 0 }}>
+                                "{item.text}"
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {mcpInvocationResult.result?.decision && (
+                        <div style={{ marginBottom: '14px', padding: '12px', borderRadius: '8px', background: mcpInvocationResult.result.validity === 'ALLOW' ? 'var(--success-bg)' : mcpInvocationResult.result.validity === 'BLOCK' ? 'var(--danger-bg)' : 'var(--warning-bg)', border: `1px solid ${mcpInvocationResult.result.validity === 'ALLOW' ? 'var(--success-border)' : mcpInvocationResult.result.validity === 'BLOCK' ? 'var(--danger-border)' : 'var(--warning-border)'}` }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                            <span style={{ fontSize: '0.85rem', fontWeight: 800, color: mcpInvocationResult.result.validity === 'ALLOW' ? 'var(--success-text)' : mcpInvocationResult.result.validity === 'BLOCK' ? 'var(--danger-text)' : 'var(--warning-text)' }}>
+                              VERDICT: {mcpInvocationResult.result.validity}
+                            </span>
+                            <span className="code-pill">Risk: {mcpInvocationResult.result.risk?.toUpperCase()}</span>
+                          </div>
+                          <p style={{ fontSize: '0.8rem', color: 'var(--text-main)', margin: 0 }}>
+                            {mcpInvocationResult.result.reasons?.join(' ')}
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Raw JSON Code Block */}
+                      <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                        <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '4px' }}>
+                          RAW MCP PAYLOAD (JSON)
+                        </div>
+                        <pre style={{
+                          flex: 1,
+                          margin: 0,
+                          background: '#0F172A',
+                          color: '#38BDF8',
+                          padding: '14px',
+                          borderRadius: '8px',
+                          fontSize: '0.76rem',
+                          fontFamily: 'var(--font-mono)',
+                          overflowX: 'auto',
+                          maxHeight: '320px'
+                        }}>
+                          {JSON.stringify(mcpInvocationResult, null, 2)}
+                        </pre>
+                      </div>
+                    </div>
+                  ) : (
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 20px', color: 'var(--text-muted)', textAlign: 'center' }}>
+                      <div style={{ fontSize: '2rem', marginBottom: '8px' }}>⚡</div>
+                      <div style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '4px' }}>
+                        Ready to Execute
+                      </div>
+                      <p style={{ fontSize: '0.78rem', maxWidth: '300px', margin: 0 }}>
+                        Select a tool and click "Execute MCP Tool" to test live Model Context Protocol communication.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* SUB-VIEW 2: CLAUDE DESKTOP & CURSOR CONFIGS */}
+            {mcpActiveSubView === 'configs' && (
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                {/* Claude Desktop Configuration */}
+                <div className="clean-panel" style={{ padding: '20px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                    <div>
+                      <h4 style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
+                        Claude Desktop Integration
+                      </h4>
+                      <p style={{ fontSize: '0.76rem', color: 'var(--text-muted)', margin: 0, marginTop: '2px' }}>
+                        Connect Claude Desktop to your local Context Trust Layer
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => handleCopySnippet(JSON.stringify({
+                        "mcpServers": {
+                          "context-trust-layer": {
+                            "command": "python",
+                            "args": ["-m", "mcp_proxy", "--url", "http://127.0.0.1:8000/v1/mcp"]
+                          }
+                        }
+                      }, null, 2))}
+                      className="btn btn-secondary"
+                      style={{ padding: '4px 12px', fontSize: '0.75rem' }}
+                    >
+                      {mcpCopiedSnippet ? '✓ Copied' : 'Copy Config'}
+                    </button>
+                  </div>
+
+                  <div style={{ fontSize: '0.74rem', color: 'var(--text-secondary)', marginBottom: '8px' }}>
+                    Save in <code>claude_desktop_config.json</code>:
+                  </div>
+
+                  <pre style={{
+                    background: '#0F172A',
+                    color: '#A7F3D0',
+                    padding: '14px',
+                    borderRadius: '8px',
+                    fontSize: '0.76rem',
+                    fontFamily: 'var(--font-mono)',
+                    overflowX: 'auto',
+                    marginBottom: '14px'
+                  }}>
+{`{
+  "mcpServers": {
+    "context-trust-layer": {
+      "command": "python",
+      "args": [
+        "-m", "mcp_proxy",
+        "--url", "http://127.0.0.1:8000/v1/mcp"
+      ]
+    }
+  }
+}`}
+                  </pre>
+
+                  <div style={{ background: 'var(--bg-card-subtle)', padding: '12px', borderRadius: '6px', fontSize: '0.74rem', color: 'var(--text-muted)' }}>
+                    <strong>Config File Locations:</strong>
+                    <ul style={{ paddingLeft: '18px', marginTop: '4px' }}>
+                      <li><strong>macOS:</strong> <code>~/Library/Application Support/Claude/claude_desktop_config.json</code></li>
+                      <li><strong>Windows:</strong> <code>%APPDATA%\\Claude\\claude_desktop_config.json</code></li>
+                    </ul>
+                  </div>
+                </div>
+
+                {/* Cursor IDE Configuration */}
+                <div className="clean-panel" style={{ padding: '20px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                    <div>
+                      <h4 style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
+                        Cursor IDE & Windsurf Integration
+                      </h4>
+                      <p style={{ fontSize: '0.76rem', color: 'var(--text-muted)', margin: 0, marginTop: '2px' }}>
+                        Configure MCP server in <code>.cursor/mcp.json</code> or Settings → Features → MCP
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => handleCopySnippet(JSON.stringify({
+                        "mcpServers": {
+                          "context-trust-layer": {
+                            "url": "http://127.0.0.1:8000/v1/mcp"
+                          }
+                        }
+                      }, null, 2))}
+                      className="btn btn-secondary"
+                      style={{ padding: '4px 12px', fontSize: '0.75rem' }}
+                    >
+                      {mcpCopiedSnippet ? '✓ Copied' : 'Copy Config'}
+                    </button>
+                  </div>
+
+                  <div style={{ fontSize: '0.74rem', color: 'var(--text-secondary)', marginBottom: '8px' }}>
+                    Save in workspace <code>.cursor/mcp.json</code>:
+                  </div>
+
+                  <pre style={{
+                    background: '#0F172A',
+                    color: '#93C5FD',
+                    padding: '14px',
+                    borderRadius: '8px',
+                    fontSize: '0.76rem',
+                    fontFamily: 'var(--font-mono)',
+                    overflowX: 'auto',
+                    marginBottom: '14px'
+                  }}>
+{`{
+  "mcpServers": {
+    "context-trust-layer": {
+      "url": "http://127.0.0.1:8000/v1/mcp"
+    }
+  }
+}`}
+                  </pre>
+
+                  <div style={{ background: 'var(--bg-card-subtle)', padding: '12px', borderRadius: '6px', fontSize: '0.74rem', color: 'var(--text-muted)' }}>
+                    <strong>Capabilities Exposed to Cursor / Claude:</strong>
+                    <ul style={{ paddingLeft: '18px', marginTop: '4px' }}>
+                      <li><code>context_trust_get_trusted_context</code>: Retrieves authoritative facts</li>
+                      <li><code>context_trust_evaluate_decision</code>: Verifies governance rules & gates</li>
+                      <li><code>context_trust_search_claims</code>: Scans department claims</li>
+                      <li><code>context_trust_check_conflicts</code>: Flags contradictions</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* SUB-VIEW 3: PYTHON SDK & AGENT FRAMEWORKS */}
+            {mcpActiveSubView === 'sdks' && (
+              <div className="clean-panel" style={{ padding: '20px' }}>
+                {/* Code Snippet Tabs */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
+                  <div className="scenario-bar">
+                    <button
+                      onClick={() => setMcpActiveSnippet('python')}
+                      className={`scenario-btn ${mcpActiveSnippet === 'python' ? 'scenario-btn-active' : ''}`}
+                    >
+                      Python Async SDK
+                    </button>
+                    <button
+                      onClick={() => setMcpActiveSnippet('langchain')}
+                      className={`scenario-btn ${mcpActiveSnippet === 'langchain' ? 'scenario-btn-active' : ''}`}
+                    >
+                      LangChain / LangGraph Tool
+                    </button>
+                    <button
+                      onClick={() => setMcpActiveSnippet('llamaindex')}
+                      className={`scenario-btn ${mcpActiveSnippet === 'llamaindex' ? 'scenario-btn-active' : ''}`}
+                    >
+                      LlamaIndex Retriever
+                    </button>
+                    <button
+                      onClick={() => setMcpActiveSnippet('curl')}
+                      className={`scenario-btn ${mcpActiveSnippet === 'curl' ? 'scenario-btn-active' : ''}`}
+                    >
+                      cURL & JSON-RPC
+                    </button>
+                  </div>
+
+                  <button
+                    onClick={() => {
+                      let code = '';
+                      if (mcpActiveSnippet === 'python') {
+                        code = `import httpx
+
+class ContextTrustClient:
+    def __init__(self, base_url: str = "http://127.0.0.1:8000"):
+        self.base_url = base_url
+
+    async def get_trusted_context(self, query: str, min_trust_score: float = 0.75):
+        async with httpx.AsyncClient() as client:
+            res = await client.post(
+                f"{self.base_url}/v1/mcp/invoke",
+                json={"tool": "context_trust_get_trusted_context", "arguments": {"query": query, "min_trust_score": min_trust_score}}
+            )
+            return res.json()["result"]
+
+    async def evaluate_decision(self, action_type: str, actor_id: str, actor_role: str):
+        async with httpx.AsyncClient() as client:
+            res = await client.post(
+                f"{self.base_url}/v1/mcp/invoke",
+                json={"tool": "context_trust_evaluate_decision", "arguments": {"action_type": action_type, "actor_id": actor_id, "actor_role": actor_role}}
+            )
+            return res.json()["result"]`;
+                      } else if (mcpActiveSnippet === 'langchain') {
+                        code = `from langchain.tools import tool
+import httpx
+
+@tool
+def get_verified_enterprise_context(query: str) -> str:
+    """Retrieve verified and conflict-free enterprise context before generating answers."""
+    res = httpx.post(
+        "http://127.0.0.1:8000/v1/mcp/invoke",
+        json={"tool": "context_trust_get_trusted_context", "arguments": {"query": query, "min_trust_score": 0.8}}
+    )
+    data = res.json().get("result", {})
+    claims = [item["text"] for item in data.get("trusted_context", [])]
+    return "\\n".join(claims) if claims else "No verified enterprise context found."
+
+@tool
+def evaluate_agent_decision(action: str, agent_id: str = "langchain-agent") -> dict:
+    """Evaluate whether a proposed tool call or decision violates enterprise safety policies."""
+    res = httpx.post(
+        "http://127.0.0.1:8000/v1/mcp/invoke",
+        json={"tool": "context_trust_evaluate_decision", "arguments": {"action_type": action, "actor_id": agent_id, "actor_role": "assistant"}}
+    )
+    return res.json().get("result", {})`;
+                      } else if (mcpActiveSnippet === 'llamaindex') {
+                        code = `from llama_index.core.schema import NodeWithScore, TextNode
+import httpx
+
+class ContextTrustRetriever:
+    def __init__(self, endpoint: str = "http://127.0.0.1:8000/v1/mcp/invoke"):
+        self.endpoint = endpoint
+
+    def retrieve(self, query_str: str):
+        res = httpx.post(
+            self.endpoint,
+            json={"tool": "context_trust_get_trusted_context", "arguments": {"query": query_str, "min_trust_score": 0.75}}
+        )
+        items = res.json().get("result", {}).get("trusted_context", [])
+        return [
+            NodeWithScore(
+                node=TextNode(text=item["text"], metadata={"source": item["source"]["title"]}),
+                score=item["trust_score"]
+            )
+            for item in items
+        ]`;
+                      } else {
+                        code = `# 1. Get MCP Manifest
+curl -X GET http://127.0.0.1:8000/v1/mcp/manifest
+
+# 2. List Registered Tools
+curl -X GET http://127.0.0.1:8000/v1/mcp/tools
+
+# 3. Direct REST Tool Invocation
+curl -X POST http://127.0.0.1:8000/v1/mcp/invoke \\
+  -H "Content-Type: application/json" \\
+  -d '{"tool": "context_trust_get_trusted_context", "arguments": {"query": "customer refund window"}}'
+
+# 4. JSON-RPC 2.0 (MCP Specification)
+curl -X POST http://127.0.0.1:8000/v1/mcp \\
+  -H "Content-Type: application/json" \\
+  -d '{"jsonrpc": "2.0", "method": "tools/call", "params": {"name": "context_trust_check_conflicts", "arguments": {"claim_text": "Refund window is 90 days."}}, "id": 1}'`;
+                      }
+                      handleCopySnippet(code);
+                    }}
+                    className="btn btn-secondary"
+                    style={{ padding: '6px 16px', fontSize: '0.78rem' }}
+                  >
+                    {mcpCopiedSnippet ? '✓ Copied' : 'Copy Code'}
+                  </button>
+                </div>
+
+                {/* Preformatted Code Display */}
+                <pre style={{
+                  background: '#0F172A',
+                  color: '#F8FAFC',
+                  padding: '18px',
+                  borderRadius: '8px',
+                  fontSize: '0.8rem',
+                  fontFamily: 'var(--font-mono)',
+                  overflowX: 'auto',
+                  lineHeight: '1.5'
+                }}>
+                  {mcpActiveSnippet === 'python' && `import httpx
+
+class ContextTrustClient:
+    """Client for Context Trust Layer MCP Server."""
+    def __init__(self, base_url: str = "http://127.0.0.1:8000"):
+        self.base_url = base_url
+
+    async def get_trusted_context(self, query: str, min_trust_score: float = 0.75):
+        async with httpx.AsyncClient() as client:
+            res = await client.post(
+                f"{self.base_url}/v1/mcp/invoke",
+                json={
+                    "tool": "context_trust_get_trusted_context",
+                    "arguments": {"query": query, "min_trust_score": min_trust_score}
+                }
+            )
+            return res.json()["result"]
+
+    async def evaluate_decision(self, action_type: str, actor_id: str, actor_role: str):
+        async with httpx.AsyncClient() as client:
+            res = await client.post(
+                f"{self.base_url}/v1/mcp/invoke",
+                json={
+                    "tool": "context_trust_evaluate_decision",
+                    "arguments": {"action_type": action_type, "actor_id": actor_id, "actor_role": actor_role}
+                }
+            )
+            return res.json()["result"]`}
+
+                  {mcpActiveSnippet === 'langchain' && `from langchain.tools import tool
+import httpx
+
+@tool
+def get_verified_enterprise_context(query: str) -> str:
+    """Retrieve verified and conflict-free enterprise context before generating answers."""
+    res = httpx.post(
+        "http://127.0.0.1:8000/v1/mcp/invoke",
+        json={
+            "tool": "context_trust_get_trusted_context",
+            "arguments": {"query": query, "min_trust_score": 0.8}
+        }
+    )
+    data = res.json().get("result", {})
+    claims = [item["text"] for item in data.get("trusted_context", [])]
+    return "\\n".join(claims) if claims else "No verified enterprise context found."
+
+@tool
+def evaluate_agent_decision(action: str, agent_id: str = "langchain-agent") -> dict:
+    """Evaluate whether a proposed tool call or decision violates enterprise safety policies."""
+    res = httpx.post(
+        "http://127.0.0.1:8000/v1/mcp/invoke",
+        json={
+            "tool": "context_trust_evaluate_decision",
+            "arguments": {"action_type": action, "actor_id": agent_id, "actor_role": "assistant"}
+        }
+    )
+    return res.json().get("result", {})`}
+
+                  {mcpActiveSnippet === 'llamaindex' && `from llama_index.core.schema import NodeWithScore, TextNode
+import httpx
+
+class ContextTrustRetriever:
+    """Enterprise Trust Retriever for LlamaIndex RAG pipelines."""
+    def __init__(self, endpoint: str = "http://127.0.0.1:8000/v1/mcp/invoke"):
+        self.endpoint = endpoint
+
+    def retrieve(self, query_str: str):
+        res = httpx.post(
+            self.endpoint,
+            json={
+                "tool": "context_trust_get_trusted_context",
+                "arguments": {"query": query_str, "min_trust_score": 0.75}
+            }
+        )
+        items = res.json().get("result", {}).get("trusted_context", [])
+        return [
+            NodeWithScore(
+                node=TextNode(text=item["text"], metadata={"source": item["source"]["title"]}),
+                score=item["trust_score"]
+            )
+            for item in items
+        ]`}
+
+                  {mcpActiveSnippet === 'curl' && `# 1. Get MCP Server Manifest
+curl -X GET http://127.0.0.1:8000/v1/mcp/manifest
+
+# 2. List Registered Tools
+curl -X GET http://127.0.0.1:8000/v1/mcp/tools
+
+# 3. Direct REST Tool Invocation
+curl -X POST http://127.0.0.1:8000/v1/mcp/invoke \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "tool": "context_trust_get_trusted_context",
+    "arguments": {"query": "customer refund window", "min_trust_score": 0.75}
+  }'
+
+# 4. JSON-RPC 2.0 (MCP Protocol Standard)
+curl -X POST http://127.0.0.1:8000/v1/mcp \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "jsonrpc": "2.0",
+    "method": "tools/call",
+    "params": {
+      "name": "context_trust_check_conflicts",
+      "arguments": {"claim_text": "Refund window is 90 days."}
+    },
+    "id": 1
+  }'`}
+                </pre>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ========================================================= */}
+        {/* TAB 6: DECISION AUDIT TRAIL & LINEAGE EXPLORER            */}
+        {/* ========================================================= */}
+        {activeTab === 'audit' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            
+            {/* Top Header & Compliance Export Actions */}
+            <div className="clean-panel" style={{ padding: '24px', background: 'var(--bg-card)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                    <span className="badge badge-verified" style={{ fontSize: '0.72rem', padding: '2px 8px' }}>
+                      🛡️ AI GOVERNANCE & AUDIT TRAIL
+                    </span>
+                    <span className="badge badge-outline" style={{ fontSize: '0.72rem', padding: '2px 8px' }}>
+                      SOC2 Type II • ISO 42001 • EU AI Act Art. 12
+                    </span>
+                  </div>
+                  <h1 style={{ fontSize: '1.45rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
+                    Live Decision Audit Trail & Lineage Explorer
+                  </h1>
+                  <p style={{ fontSize: '0.84rem', color: 'var(--text-muted)', marginTop: '4px', margin: 0, maxWidth: '720px' }}>
+                    Cryptographically tamper-evident decision logs with 4-stage end-to-end lineage tracing, actor authorization gates, and candidate evidence provenance.
+                  </p>
+                </div>
+
+                {/* Right: Export & Refresh Buttons */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                  <button 
+                    onClick={() => fetchAuditLogs(activeOrg?.id)}
+                    className="btn btn-secondary"
+                    disabled={auditLoading}
+                    style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', padding: '7px 13px' }}
+                  >
+                    <span style={{ display: 'inline-block', transform: auditLoading ? 'rotate(180deg)' : 'none', transition: 'transform 0.5s' }}>
+                      🔄
+                    </span>
+                    {auditLoading ? 'Refreshing...' : 'Refresh Logs'}
+                  </button>
+                  <button 
+                    onClick={() => handleExportAuditLogs('csv')}
+                    className="btn btn-secondary"
+                    style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', padding: '7px 13px' }}
+                  >
+                    <span>📊</span> Export CSV
+                  </button>
+                  <button 
+                    onClick={() => handleExportAuditLogs('json')}
+                    className="btn btn-primary"
+                    style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', padding: '7px 14px' }}
+                  >
+                    <span>📜</span> Export SOC2 Compliance JSON
+                  </button>
+                </div>
+              </div>
+
+              {/* 5 Compliance KPI Summary Cards */}
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+                gap: '12px',
+                marginTop: '20px'
+              }}>
+                <div style={{ background: 'var(--bg-card-subtle)', padding: '14px 16px', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>
+                    Total Decisions
+                  </div>
+                  <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--text-main)', marginTop: '4px' }}>
+                    {auditSummary.total_decisions}
+                  </div>
+                  <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                    100% Provenance Captured
+                  </div>
+                </div>
+
+                <div style={{ background: 'var(--bg-card-subtle)', padding: '14px 16px', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>
+                    Policy Allow Rate
+                  </div>
+                  <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--success-text)', marginTop: '4px' }}>
+                    {auditSummary.allow_rate_pct}%
+                  </div>
+                  <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                    {auditSummary.allow_count} Allowed / {auditSummary.block_count} Blocked
+                  </div>
+                </div>
+
+                <div style={{ background: 'var(--bg-card-subtle)', padding: '14px 16px', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>
+                    Risk Interceptions
+                  </div>
+                  <div style={{ fontSize: '1.6rem', fontWeight: 800, color: auditSummary.block_count > 0 ? 'var(--danger-text, #ef4444)' : 'var(--text-main)', marginTop: '4px' }}>
+                    {auditSummary.block_count + auditSummary.review_count}
+                  </div>
+                  <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                    {auditSummary.high_risk_count} High Risk Blocked
+                  </div>
+                </div>
+
+                <div style={{ background: 'var(--bg-card-subtle)', padding: '14px 16px', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>
+                    Crypto Signatures
+                  </div>
+                  <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--primary)', marginTop: '4px' }}>
+                    100% SHA-256
+                  </div>
+                  <div style={{ fontSize: '0.7rem', color: 'var(--success-text)', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <span>✓</span> Tamper-Evident Hash Chain
+                  </div>
+                </div>
+
+                <div style={{ background: 'var(--bg-card-subtle)', padding: '14px 16px', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>
+                    Avg Gate Latency
+                  </div>
+                  <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--text-main)', marginTop: '4px' }}>
+                    {auditSummary.avg_latency_ms} <span style={{ fontSize: '0.9rem', fontWeight: 600 }}>ms</span>
+                  </div>
+                  <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                    Real-time inline guard
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Filter Toolbar & Live Audit Log Stream */}
+            <div className="clean-panel" style={{ padding: '20px', background: 'var(--bg-card)' }}>
+              
+              {/* Filter Controls Bar */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '16px' }}>
+                
+                {/* Search Box */}
+                <div style={{ position: 'relative', minWidth: '260px', flex: 1, maxWidth: '400px' }}>
+                  <input
+                    type="text"
+                    placeholder="Search prompt, actor ID, or audit ID..."
+                    value={auditSearchQuery}
+                    onChange={(e) => setAuditSearchQuery(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '8px 12px 8px 32px',
+                      fontSize: '0.82rem',
+                      background: 'var(--bg-card-subtle)',
+                      border: '1px solid var(--border-subtle)',
+                      borderRadius: '6px',
+                      color: 'var(--text-main)'
+                    }}
+                  />
+                  <span style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', fontSize: '0.8rem' }}>
+                    🔍
+                  </span>
+                  {auditSearchQuery && (
+                    <button
+                      onClick={() => setAuditSearchQuery('')}
+                      style={{ position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)', background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+
+                {/* Verdict Filters */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)', fontWeight: 700, marginRight: '4px' }}>
+                    VERDICT:
+                  </span>
+                  {['all', 'ALLOW', 'BLOCK', 'REVIEW', 'CLARIFY'].map(v => (
+                    <button
+                      key={v}
+                      onClick={() => setAuditFilterVerdict(v)}
+                      style={{
+                        padding: '4px 10px',
+                        fontSize: '0.74rem',
+                        fontWeight: 700,
+                        borderRadius: '4px',
+                        border: auditFilterVerdict === v ? '1px solid var(--primary)' : '1px solid var(--border-subtle)',
+                        background: auditFilterVerdict === v ? 'var(--primary-subtle, rgba(99,102,241,0.15))' : 'var(--bg-card-subtle)',
+                        color: auditFilterVerdict === v ? 'var(--primary)' : 'var(--text-muted)',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      {v.toUpperCase()}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Risk Filter */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)', fontWeight: 700 }}>
+                    RISK:
+                  </span>
+                  <select
+                    value={auditFilterRisk}
+                    onChange={(e) => setAuditFilterRisk(e.target.value)}
+                    style={{
+                      padding: '5px 10px',
+                      fontSize: '0.74rem',
+                      fontWeight: 600,
+                      borderRadius: '4px',
+                      border: '1px solid var(--border-subtle)',
+                      background: 'var(--bg-card-subtle)',
+                      color: 'var(--text-main)'
+                    }}
+                  >
+                    <option value="all">All Risk Levels</option>
+                    <option value="LOW">Low Risk</option>
+                    <option value="MEDIUM">Medium Risk</option>
+                    <option value="HIGH">High Risk</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Logs Table */}
+              {auditLogs.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--text-muted)' }}>
+                  <div style={{ fontSize: '2rem', marginBottom: '8px' }}>📋</div>
+                  <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-main)' }}>
+                    No Decision Audit Records Found
+                  </div>
+                  <p style={{ fontSize: '0.78rem', marginTop: '4px', maxWidth: '450px', margin: '4px auto 16px auto' }}>
+                    {auditSearchQuery || auditFilterVerdict !== 'all' || auditFilterRisk !== 'all'
+                      ? 'No records match your active search or filter criteria. Try resetting filters.'
+                      : 'Run a Decision Gate evaluation or query the MCP server to begin populating the live compliance audit log.'}
+                  </p>
+                  {(auditSearchQuery || auditFilterVerdict !== 'all' || auditFilterRisk !== 'all') && (
+                    <button
+                      onClick={() => { setAuditSearchQuery(''); setAuditFilterVerdict('all'); setAuditFilterRisk('all'); }}
+                      className="btn btn-secondary"
+                      style={{ fontSize: '0.78rem', padding: '6px 14px' }}
+                    >
+                      Reset Filters
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem', textAlign: 'left' }}>
+                    <thead>
+                      <tr style={{ borderBottom: '1px solid var(--border-subtle)', color: 'var(--text-muted)' }}>
+                        <th style={{ padding: '10px 12px', fontWeight: 700, fontSize: '0.72rem', textTransform: 'uppercase' }}>Timestamp & Audit ID</th>
+                        <th style={{ padding: '10px 12px', fontWeight: 700, fontSize: '0.72rem', textTransform: 'uppercase' }}>Actor & Role</th>
+                        <th style={{ padding: '10px 12px', fontWeight: 700, fontSize: '0.72rem', textTransform: 'uppercase' }}>Decision Prompt</th>
+                        <th style={{ padding: '10px 12px', fontWeight: 700, fontSize: '0.72rem', textTransform: 'uppercase' }}>Verdict</th>
+                        <th style={{ padding: '10px 12px', fontWeight: 700, fontSize: '0.72rem', textTransform: 'uppercase' }}>Risk</th>
+                        <th style={{ padding: '10px 12px', fontWeight: 700, fontSize: '0.72rem', textTransform: 'uppercase' }}>Crypto Token</th>
+                        <th style={{ padding: '10px 12px', fontWeight: 700, fontSize: '0.72rem', textTransform: 'uppercase', textAlign: 'right' }}>Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {auditLogs.map((log) => (
+                        <tr 
+                          key={log.id || log.audit_id}
+                          style={{
+                            borderBottom: '1px solid var(--border-subtle)',
+                            cursor: 'pointer',
+                            transition: 'background 0.15s'
+                          }}
+                          onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-card-subtle)'}
+                          onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                          onClick={() => handleInspectLineage(log.audit_id)}
+                        >
+                          {/* Timestamp & Audit ID */}
+                          <td style={{ padding: '12px' }}>
+                            <div style={{ fontWeight: 700, color: 'var(--text-main)', fontFamily: 'monospace', fontSize: '0.76rem' }}>
+                              {log.audit_id}
+                            </div>
+                            <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                              {log.created_at ? new Date(log.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : 'Just now'} • {log.created_at ? new Date(log.created_at).toLocaleDateString() : ''}
+                            </div>
+                          </td>
+
+                          {/* Actor & Role */}
+                          <td style={{ padding: '12px' }}>
+                            <div style={{ fontWeight: 600, color: 'var(--text-main)', fontSize: '0.78rem' }}>
+                              {log.actor_id}
+                            </div>
+                            <span className="badge badge-outline" style={{ fontSize: '0.62rem', padding: '1px 5px', marginTop: '3px', display: 'inline-block' }}>
+                              {log.actor_role}
+                            </span>
+                          </td>
+
+                          {/* Decision Prompt */}
+                          <td style={{ padding: '12px', maxWidth: '300px' }}>
+                            <div style={{ color: 'var(--text-main)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 500 }}>
+                              {log.decision_prompt}
+                            </div>
+                            {log.preferred_source && (
+                              <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                                Source: {log.preferred_source}
+                              </div>
+                            )}
+                          </td>
+
+                          {/* Verdict */}
+                          <td style={{ padding: '12px' }}>
+                            <span 
+                              className={
+                                log.verdict === 'ALLOW' ? 'badge badge-verified' :
+                                log.verdict === 'BLOCK' ? 'badge badge-warning' :
+                                'badge badge-review'
+                              }
+                              style={{ fontSize: '0.72rem', padding: '2px 8px', fontWeight: 800 }}
+                            >
+                              {log.verdict}
+                            </span>
+                          </td>
+
+                          {/* Risk */}
+                          <td style={{ padding: '12px' }}>
+                            <span 
+                              style={{
+                                fontSize: '0.7rem',
+                                fontWeight: 700,
+                                color: log.risk_level === 'LOW' ? 'var(--success-text)' : log.risk_level === 'HIGH' ? 'var(--danger-text, #ef4444)' : 'var(--warning-text, #f59e0b)'
+                              }}
+                            >
+                              {log.risk_level}
+                            </span>
+                          </td>
+
+                          {/* SHA-256 Token */}
+                          <td style={{ padding: '12px' }} onClick={(e) => e.stopPropagation()}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                              <code style={{ fontSize: '0.68rem', background: 'var(--bg-card-subtle)', padding: '2px 6px', borderRadius: '4px', border: '1px solid var(--border-subtle)', color: 'var(--text-muted)' }}>
+                                {log.audit_token ? `${log.audit_token.substring(0, 8)}...${log.audit_token.substring(log.audit_token.length - 6)}` : 'SHA256-OK'}
+                              </code>
+                              <button
+                                onClick={() => handleCopyAuditToken(log.audit_token)}
+                                title="Copy cryptographic SHA-256 signature"
+                                style={{
+                                  background: 'transparent',
+                                  border: 'none',
+                                  color: copiedToken === log.audit_token ? 'var(--success-text)' : 'var(--text-muted)',
+                                  cursor: 'pointer',
+                                  fontSize: '0.74rem'
+                                }}
+                              >
+                                {copiedToken === log.audit_token ? '✓' : '📋'}
+                              </button>
+                            </div>
+                          </td>
+
+                          {/* Action Button */}
+                          <td style={{ padding: '12px', textAlign: 'right' }}>
+                            <button
+                              onClick={() => handleInspectLineage(log.audit_id)}
+                              className="btn btn-secondary"
+                              style={{ fontSize: '0.72rem', padding: '4px 10px' }}
+                            >
+                              Inspect Lineage ➔
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </main>
+
+      {/* ========================================================= */}
+      {/* 4-STAGE VISUAL DECISION LINEAGE INSPECTOR MODAL           */}
+      {/* ========================================================= */}
+      {isLineageModalOpen && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.75)',
+          backdropFilter: 'blur(6px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+          padding: '20px'
+        }}>
+          <div className="clean-panel" style={{ width: '100%', maxWidth: '850px', maxHeight: '90vh', overflowY: 'auto', padding: '28px', background: 'var(--bg-card)' }}>
+            
+            {/* Modal Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '16px', marginBottom: '20px' }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                  <span className="badge badge-verified" style={{ fontSize: '0.72rem' }}>
+                    DECISION PROVENANCE AUDIT
+                  </span>
+                  <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontFamily: 'monospace' }}>
+                    {selectedAuditLineage?.audit_id || 'Loading...'}
+                  </span>
+                </div>
+                <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
+                  4-Stage End-to-End Decision Lineage Inspector
+                </h2>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <button
+                  onClick={() => {
+                    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(selectedAuditLineage, null, 2));
+                    const dl = document.createElement('a');
+                    dl.setAttribute("href", dataStr);
+                    dl.setAttribute("download", `lineage_${selectedAuditLineage?.audit_id || 'report'}.json`);
+                    dl.click();
+                  }}
+                  className="btn btn-secondary"
+                  style={{ fontSize: '0.75rem', padding: '5px 10px' }}
+                >
+                  📥 Export JSON
+                </button>
+                <button
+                  onClick={() => { setIsLineageModalOpen(false); setSelectedAuditLineage(null); }}
+                  style={{ background: 'transparent', border: 'none', fontSize: '1.3rem', color: 'var(--text-muted)', cursor: 'pointer', padding: '2px 8px' }}
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+
+            {isFetchingLineage || !selectedAuditLineage ? (
+              <div style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--text-muted)' }}>
+                <div style={{ fontSize: '1.8rem', marginBottom: '10px' }}>⏳</div>
+                <div style={{ fontSize: '0.9rem', fontWeight: 600 }}>Loading decision lineage & cryptographic verification...</div>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+
+                {/* STAGE 1: Actor & Intent */}
+                <div style={{ background: 'var(--bg-card-subtle)', borderRadius: '8px', border: '1px solid var(--border-subtle)', padding: '16px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ width: 22, height: 22, borderRadius: '50%', background: 'var(--primary)', color: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.72rem', fontWeight: 800 }}>
+                        1
+                      </span>
+                      <span style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--text-main)' }}>
+                        STAGE 1: ACTOR INTENT & ROLE AUTHORIZATION
+                      </span>
+                    </div>
+                    <span className="badge badge-outline" style={{ fontSize: '0.65rem' }}>
+                      Scope: {selectedAuditLineage.stage_1_actor.scope}
+                    </span>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', fontSize: '0.8rem', marginBottom: '8px' }}>
+                    <div>
+                      <span style={{ color: 'var(--text-muted)', fontSize: '0.72rem' }}>Actor Identifier: </span>
+                      <span style={{ fontWeight: 700, color: 'var(--text-main)', fontFamily: 'monospace' }}>
+                        {selectedAuditLineage.stage_1_actor.actor_id}
+                      </span>
+                    </div>
+                    <div>
+                      <span style={{ color: 'var(--text-muted)', fontSize: '0.72rem' }}>Actor Role: </span>
+                      <span className="badge badge-review" style={{ fontSize: '0.68rem', padding: '1px 6px' }}>
+                        {selectedAuditLineage.stage_1_actor.actor_role}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div style={{ background: 'var(--bg-card)', padding: '10px', borderRadius: '6px', border: '1px solid var(--border-subtle)', fontSize: '0.82rem', color: 'var(--text-main)' }}>
+                    <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', display: 'block', fontWeight: 700, marginBottom: '2px' }}>
+                      DECISION PROMPT / REQUESTED ACTION:
+                    </span>
+                    {selectedAuditLineage.stage_1_actor.decision_prompt}
+                  </div>
+                </div>
+
+                {/* STAGE 2: Evidence & Candidate Authority */}
+                <div style={{ background: 'var(--bg-card-subtle)', borderRadius: '8px', border: '1px solid var(--border-subtle)', padding: '16px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ width: 22, height: 22, borderRadius: '50%', background: 'var(--primary)', color: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.72rem', fontWeight: 800 }}>
+                        2
+                      </span>
+                      <span style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--text-main)' }}>
+                        STAGE 2: CANDIDATE EVIDENCE & AUTHORITY RATINGS
+                      </span>
+                    </div>
+                    <span className="badge badge-verified" style={{ fontSize: '0.65rem' }}>
+                      {selectedAuditLineage.stage_2_evidence.total_candidate_claims} Candidate Claims Evaluated
+                    </span>
+                  </div>
+
+                  {selectedAuditLineage.stage_2_evidence.sources.length === 0 ? (
+                    <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontStyle: 'italic', padding: '6px 0' }}>
+                      No separate candidate context items were attached; policy evaluated against authoritative organizational registry.
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      {selectedAuditLineage.stage_2_evidence.sources.map((item, idx) => (
+                        <div key={idx} style={{ background: 'var(--bg-card)', padding: '10px 12px', borderRadius: '6px', border: '1px solid var(--border-subtle)', fontSize: '0.78rem' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                              <span style={{ fontWeight: 700, color: 'var(--text-main)' }}>
+                                📄 {item.source || item.source_id || 'System Document'}
+                              </span>
+                              {item.updated_at && (
+                                <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
+                                  ({item.updated_at})
+                                </span>
+                              )}
+                            </div>
+                            <span className="badge badge-verified" style={{ fontSize: '0.65rem' }}>
+                              Authority: {item.authority_level || 50}/100
+                            </span>
+                          </div>
+                          <div style={{ color: 'var(--text-main)', marginTop: '4px', fontStyle: 'italic' }}>
+                            "{item.claim || item.content || JSON.stringify(item)}"
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* STAGE 3: Contradiction Engine & Scope Check */}
+                <div style={{ background: 'var(--bg-card-subtle)', borderRadius: '8px', border: '1px solid var(--border-subtle)', padding: '16px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ width: 22, height: 22, borderRadius: '50%', background: 'var(--primary)', color: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.72rem', fontWeight: 800 }}>
+                        3
+                      </span>
+                      <span style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--text-main)' }}>
+                        STAGE 3: CONTRADICTION & FRESHNESS RESOLUTION
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', gap: '6px' }}>
+                      <span className={selectedAuditLineage.stage_3_contradiction.conflicts_detected ? 'badge badge-warning' : 'badge badge-verified'} style={{ fontSize: '0.65rem' }}>
+                        {selectedAuditLineage.stage_3_contradiction.conflicts_detected ? '⚠️ Contradiction Resolved' : '✓ Uncontradicted'}
+                      </span>
+                      <span className={selectedAuditLineage.stage_3_contradiction.role_authorized ? 'badge badge-verified' : 'badge badge-warning'} style={{ fontSize: '0.65rem' }}>
+                        {selectedAuditLineage.stage_3_contradiction.role_authorized ? '✓ Role Authorized' : '🛑 Role Insufficient'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {selectedAuditLineage.stage_3_contradiction.contradiction_details.length > 0 ? (
+                    <div style={{ background: 'var(--bg-card)', padding: '10px', borderRadius: '6px', border: '1px solid var(--border-subtle)', fontSize: '0.78rem' }}>
+                      <span style={{ fontSize: '0.7rem', color: 'var(--warning-text, #f59e0b)', fontWeight: 700, display: 'block', marginBottom: '4px' }}>
+                        CONTRADICTION ANALYSIS:
+                      </span>
+                      <ul style={{ margin: 0, paddingLeft: '18px', color: 'var(--text-main)' }}>
+                        {selectedAuditLineage.stage_3_contradiction.contradiction_details.map((detail, idx) => (
+                          <li key={idx} style={{ marginBottom: '2px' }}>{detail}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : (
+                    <div style={{ fontSize: '0.78rem', color: 'var(--success-text)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span>✓</span> No temporal or authority conflicts detected across active corporate policies.
+                    </div>
+                  )}
+                </div>
+
+                {/* STAGE 4: Final Verdict & Cryptographic Hash */}
+                <div style={{ background: 'var(--bg-card-subtle)', borderRadius: '8px', border: '1px solid var(--border-subtle)', padding: '16px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ width: 22, height: 22, borderRadius: '50%', background: 'var(--success-solid)', color: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.72rem', fontWeight: 800 }}>
+                        4
+                      </span>
+                      <span style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--text-main)' }}>
+                        STAGE 4: FINAL VERDICT & CRYPTOGRAPHIC PROVENANCE
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                        Latency: {selectedAuditLineage.stage_4_verdict.execution_ms} ms
+                      </span>
+                      <span 
+                        className={
+                          selectedAuditLineage.stage_4_verdict.verdict === 'ALLOW' ? 'badge badge-verified' :
+                          selectedAuditLineage.stage_4_verdict.verdict === 'BLOCK' ? 'badge badge-warning' :
+                          'badge badge-review'
+                        }
+                        style={{ fontSize: '0.75rem', padding: '3px 10px', fontWeight: 800 }}
+                      >
+                        {selectedAuditLineage.stage_4_verdict.verdict}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Reasons */}
+                  <div style={{ marginBottom: '12px' }}>
+                    <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700, display: 'block', marginBottom: '4px' }}>
+                      EXPLAINABLE AUDIT REASONS:
+                    </span>
+                    <ul style={{ margin: 0, paddingLeft: '18px', fontSize: '0.8rem', color: 'var(--text-main)' }}>
+                      {selectedAuditLineage.stage_4_verdict.reasons.map((r, idx) => (
+                        <li key={idx} style={{ marginBottom: '3px' }}>{r}</li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  {/* Suggested Action */}
+                  {selectedAuditLineage.stage_4_verdict.suggested_action && (
+                    <div style={{ background: 'var(--bg-card)', padding: '8px 12px', borderRadius: '6px', border: '1px solid var(--border-subtle)', fontSize: '0.78rem', marginBottom: '12px' }}>
+                      <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 700, display: 'block' }}>
+                        SUGGESTED NEXT ACTION:
+                      </span>
+                      <span style={{ color: 'var(--text-main)', fontWeight: 600 }}>
+                        {selectedAuditLineage.stage_4_verdict.suggested_action}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Cryptographic SHA-256 Signature Box */}
+                  <div style={{ background: 'rgba(0,0,0,0.4)', padding: '12px', borderRadius: '6px', border: '1px solid var(--primary-subtle, rgba(99,102,241,0.3))' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                      <span style={{ fontSize: '0.7rem', color: 'var(--primary)', fontWeight: 800, letterSpacing: '0.05em' }}>
+                        🔒 CRYPTOGRAPHIC SHA-256 AUDIT SIGNATURE
+                      </span>
+                      <button
+                        onClick={() => handleCopyAuditToken(selectedAuditLineage.stage_4_verdict.audit_token)}
+                        className="btn btn-secondary"
+                        style={{ fontSize: '0.68rem', padding: '3px 8px' }}
+                      >
+                        {copiedToken === selectedAuditLineage.stage_4_verdict.audit_token ? '✓ Copied' : 'Copy Hash'}
+                      </button>
+                    </div>
+                    <code style={{ fontSize: '0.72rem', color: '#38bdf8', wordBreak: 'break-all', display: 'block', fontFamily: 'monospace' }}>
+                      {selectedAuditLineage.stage_4_verdict.audit_token}
+                    </code>
+                    <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', marginTop: '6px' }}>
+                      Tamper-evident digest of actor, prompt, evidence claims, timestamp, and verdict.
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* ========================================================= */}
       {/* MODAL: REGISTER NEW CLIENT ORGANIZATION / WORKSPACE       */}
@@ -3431,7 +5046,7 @@ export default function App() {
                 </label>
                 <input 
                   type="text"
-                  placeholder="e.g. Acme Corporation, Stripe, FinTech Labs..."
+                  placeholder="e.g. demo, Demo Enterprise..."
                   value={newOrgName}
                   onChange={e => {
                     setNewOrgName(e.target.value);
@@ -3450,7 +5065,7 @@ export default function App() {
                 </label>
                 <input 
                   type="text"
-                  placeholder="e.g. acme-corp, stripe-prod, fintech-labs"
+                  placeholder="e.g. demo, demo-prod"
                   value={newOrgSlug}
                   onChange={e => setNewOrgSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]+/g, ''))}
                   required
@@ -3477,79 +5092,6 @@ export default function App() {
                   style={{ padding: '8px 20px', fontSize: '0.82rem' }}
                 >
                   {isCreatingOrg ? 'Creating...' : 'Create & Switch Workspace'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* ========================================================= */}
-      {/* MODAL: RENAME CURRENT CLIENT COMPANY                      */}
-      {/* ========================================================= */}
-      {showRenameOrgModal && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: 'rgba(0, 0, 0, 0.65)',
-          backdropFilter: 'blur(4px)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1000,
-          padding: '20px'
-        }}>
-          <div className="clean-panel" style={{ width: '100%', maxWidth: '440px', padding: '24px', background: 'var(--bg-card)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <div>
-                <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
-                  Rename Client Company
-                </h3>
-                <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '4px', margin: 0 }}>
-                  Update display name for tenant: <code>{activeOrg?.slug}</code>
-                </p>
-              </div>
-              <button 
-                onClick={() => setShowRenameOrgModal(false)}
-                style={{ background: 'transparent', border: 'none', fontSize: '1.2rem', color: 'var(--text-muted)', cursor: 'pointer' }}
-              >
-                ✕
-              </button>
-            </div>
-
-            <form onSubmit={handleRenameOrganization}>
-              <div style={{ marginBottom: '20px' }}>
-                <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '6px' }}>
-                  Company Display Name *
-                </label>
-                <input 
-                  type="text"
-                  value={renameOrgName}
-                  onChange={e => setRenameOrgName(e.target.value)}
-                  required
-                  style={{ width: '100%', padding: '10px 12px', fontSize: '0.85rem' }}
-                />
-              </div>
-
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
-                <button 
-                  type="button" 
-                  onClick={() => setShowRenameOrgModal(false)}
-                  className="btn btn-secondary"
-                  style={{ padding: '8px 16px', fontSize: '0.82rem' }}
-                >
-                  Cancel
-                </button>
-                <button 
-                  type="submit" 
-                  disabled={!renameOrgName.trim()}
-                  className="btn btn-primary"
-                  style={{ padding: '8px 20px', fontSize: '0.82rem' }}
-                >
-                  Save Changes
                 </button>
               </div>
             </form>

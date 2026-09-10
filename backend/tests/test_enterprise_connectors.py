@@ -149,10 +149,10 @@ async def test_salesforce_connector_test_and_sync():
             external_id=f"sfdc-main-{uuid.uuid4().hex[:6]}",
             authority_level=88,
             connection_config={
-                "instance_url": "https://acme-corp.my.salesforce.com",
+                "instance_url": "https://demo-org.my.salesforce.com",
                 "client_id": "test_client",
                 "client_secret": "test_secret",
-                "username": "admin@acme.com",
+                "username": "admin@demo.com",
                 "password": "test_password",
                 "objects": ["Contract"],
             },
@@ -169,7 +169,7 @@ async def test_salesforce_connector_test_and_sync():
 
         mock_token_resp = MagicMock()
         mock_token_resp.status_code = 200
-        mock_token_resp.json.return_value = {"access_token": "mock_token_123", "instance_url": "https://acme-corp.my.salesforce.com"}
+        mock_token_resp.json.return_value = {"access_token": "mock_token_123", "instance_url": "https://demo-org.my.salesforce.com"}
 
         mock_describe_resp = MagicMock()
         mock_describe_resp.status_code = 200
@@ -275,7 +275,7 @@ async def test_api_test_connection_endpoint():
             json={
                 "source_type": "snowflake",
                 "connection_config": {
-                    "host": "acme.snowflakecomputing.com",
+                    "host": "demo.snowflakecomputing.com",
                     "database": "ANALYTICS",
                 },
             },
