@@ -8,6 +8,7 @@ from app.db.models.claim_evidence import ClaimEvidence
 from app.db.models.claim_trust_score import ClaimTrustScore
 from app.db.models.claim_validity import ClaimValidity
 from app.db.models.data_source import DataSource
+from app.db.models.decision_evaluation import DecisionEvaluation
 from app.db.models.document import Document
 from app.db.models.document_version import DocumentVersion
 from app.db.models.human_review import HumanReview
@@ -30,4 +31,6 @@ __all__ = [
     "AgentRequest",
     "AgentContextItem",
     "HumanReview",
+    "DecisionEvaluation",
 ]
+

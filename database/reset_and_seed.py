@@ -44,7 +44,7 @@ async def reset_and_seed():
         await session.execute(
             text("""
             INSERT INTO organizations (id, name, slug, status)
-            VALUES (:id, 'Acme Global Enterprise', 'acme-global', 'active')
+            VALUES (:id, 'demo', 'demo', 'active')
             """),
             {"id": org_id},
         )
@@ -53,7 +53,7 @@ async def reset_and_seed():
         await session.execute(
             text("""
             INSERT INTO users (id, organization_id, name, email, role, status)
-            VALUES (:id, :org_id, 'Sarah Chen (Lead Trust Auditor)', 'sarah.chen@acme.corp', 'reviewer', 'active')
+            VALUES (:id, :org_id, 'Sarah Chen (Lead Trust Auditor)', 'sarah.chen@demo.local', 'reviewer', 'active')
             """),
             {"id": user_id, "org_id": org_id},
         )

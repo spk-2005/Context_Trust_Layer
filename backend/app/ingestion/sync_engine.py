@@ -94,7 +94,7 @@ class SyncEngine:
                 session=self.session,
                 organization_id=source.organization_id,
                 source_id=source.id,
-                repo=source.external_id or "acme-corp/security-standards",
+                repo=source.external_id or "demo-org/security-standards",
             )
         else:
             # Universal Protocol Driver covering all 104 catalog sources
