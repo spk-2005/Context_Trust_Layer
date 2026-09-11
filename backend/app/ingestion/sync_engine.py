@@ -1,3 +1,4 @@
+import time
 import uuid
 from datetime import datetime, timezone
 from typing import Any
@@ -26,8 +27,12 @@ class SyncResult(BaseModel):
     source_name: str
     source_type: str
     documents_synced: int
+    documents_created: int = 0
+    documents_updated: int = 0
+    documents_skipped: int = 0
     claims_extracted: int
     conflicts_detected: int
+    execution_time_ms: int = 0
     status: str = "success"
     synced_at: datetime
     message: str
@@ -111,7 +116,8 @@ class SyncEngine:
         source_id: uuid.UUID,
         use_mock_llm: bool = True,
     ) -> SyncResult:
-        """Executes a complete sync cycle for a specific DataSource."""
+        """Executes a complete delta sync cycle with SHA-256 deduplication for a specific DataSource."""
+        start_time = time.perf_counter()
         source = await self.source_repo.get_by_id(source_id)
         if not source:
             raise ValueError(f"Data source {source_id} not found.")
@@ -119,12 +125,15 @@ class SyncEngine:
         connector = self.get_connector_for_source(source)
 
         try:
-            # 1. Sync raw documents into document & version tables
+            # 1. Sync raw documents into document & version tables with deduplication
             synced_docs = await connector.sync()
             documents_synced_count = len(synced_docs)
 
             total_claims_extracted = 0
             total_conflicts_detected = 0
+            documents_created_count = 0
+            documents_updated_count = 0
+            documents_skipped_count = 0
 
             # Fast rule-based provider for immediate responsive sync
             if use_mock_llm:
@@ -136,8 +145,28 @@ class SyncEngine:
                 extraction_service = self.extraction_service
                 conflict_service = self.conflict_service
 
-            # 2. Extract atomic claims & detect conflicts for each newly synced version
-            for doc, version in synced_docs:
+            # 2. Extract atomic claims & detect conflicts ONLY for new/modified versions
+            for item in synced_docs:
+                if len(item) == 3:
+                    doc, version, is_changed = item
+                else:
+                    doc, version = item[0], item[1]
+                    # Check if claims already exist for this version
+                    from app.db.repositories.claim_repository import ClaimRepository
+                    claim_repo = ClaimRepository(self.session)
+                    existing_claims = await claim_repo.list_by_version(version.id)
+                    is_changed = len(existing_claims) == 0
+
+                if not is_changed:
+                    # Document is identical to active version -> Skip extraction & conflict checks
+                    documents_skipped_count += 1
+                    continue
+
+                if version.version_number == 1:
+                    documents_created_count += 1
+                else:
+                    documents_updated_count += 1
+
                 claims = await extraction_service.extract_claims_from_version(version.id)
                 total_claims_extracted += len(claims)
 
@@ -151,29 +180,49 @@ class SyncEngine:
             await self.session.flush()
             await self.session.commit()
 
+            exec_ms = max(1, int((time.perf_counter() - start_time) * 1000))
+
+            if documents_skipped_count > 0 and documents_created_count == 0 and documents_updated_count == 0:
+                msg = (
+                    f"⚡ Instant deduplication sync for {source.name}: "
+                    f"{documents_skipped_count} documents verified unchanged (0 new claims extracted) in {exec_ms}ms."
+                )
+            else:
+                msg = (
+                    f"Successfully synced {documents_synced_count} documents ({documents_created_count} new, "
+                    f"{documents_updated_count} updated, {documents_skipped_count} unchanged) from {source.name}. "
+                    f"Extracted {total_claims_extracted} atomic claims and surfaced {total_conflicts_detected} potential conflicts in {exec_ms}ms."
+                )
+
             return SyncResult(
                 source_id=source.id,
                 source_name=source.name,
                 source_type=source.source_type,
                 documents_synced=documents_synced_count,
+                documents_created=documents_created_count,
+                documents_updated=documents_updated_count,
+                documents_skipped=documents_skipped_count,
                 claims_extracted=total_claims_extracted,
                 conflicts_detected=total_conflicts_detected,
+                execution_time_ms=exec_ms,
                 status="success",
                 synced_at=source.last_synced_at,
-                message=(
-                    f"Successfully synced {documents_synced_count} documents from {source.name}. "
-                    f"Extracted {total_claims_extracted} atomic claims and surfaced {total_conflicts_detected} potential conflicts."
-                ),
+                message=msg,
             )
         except Exception as err:
             await self.session.rollback()
+            exec_ms = max(1, int((time.perf_counter() - start_time) * 1000))
             return SyncResult(
                 source_id=source.id,
                 source_name=source.name,
                 source_type=source.source_type,
                 documents_synced=0,
+                documents_created=0,
+                documents_updated=0,
+                documents_skipped=0,
                 claims_extracted=0,
                 conflicts_detected=0,
+                execution_time_ms=exec_ms,
                 status="error",
                 synced_at=datetime.now(timezone.utc),
                 message=f"Sync failed for {source.name}: {str(err)}",

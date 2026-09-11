@@ -15,7 +15,7 @@ class Settings(BaseSettings):
     postgres_user: str = "context_user"
     postgres_password: str = "context_password"
     postgres_db: str = "context_trust"
-    postgres_port: int = 5432
+    postgres_port: int = 5433
 
     database_url: str | None = None
 

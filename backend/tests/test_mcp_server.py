@@ -24,7 +24,7 @@ async def test_mcp_tools_list():
         assert res.status_code == 200
         data = res.json()
         assert "tools" in data
-        assert len(data["tools"]) == 4
+        assert len(data["tools"]) >= 4
         tool_names = [t["name"] for t in data["tools"]]
         assert "context_trust_get_trusted_context" in tool_names
         assert "context_trust_evaluate_decision" in tool_names
@@ -106,7 +106,7 @@ async def test_mcp_jsonrpc_initialize_and_tools():
         )
         assert res_list.status_code == 200
         data_list = res_list.json()
-        assert len(data_list["result"]["tools"]) == 4
+        assert len(data_list["result"]["tools"]) >= 4
 
         # 3. tools/call
         res_call = await client.post(

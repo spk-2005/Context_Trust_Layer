@@ -82,6 +82,21 @@ class User(Base):
         server_default=text("'active'"),
     )
 
+    avatar_url: Mapped[str | None] = mapped_column(
+        String(500),
+        nullable=True,
+    )
+
+    title: Mapped[str | None] = mapped_column(
+        String(100),
+        nullable=True,
+    )
+
+    department: Mapped[str | None] = mapped_column(
+        String(100),
+        nullable=True,
+    )
+
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
@@ -109,4 +124,10 @@ class User(Base):
         "ClaimConflict",
         back_populates="resolver",
         foreign_keys="ClaimConflict.resolved_by",
+    )
+
+    activities = relationship(
+        "UserActivityLog",
+        back_populates="user",
+        cascade="all, delete-orphan",
     )

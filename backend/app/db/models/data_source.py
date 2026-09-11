@@ -78,6 +78,23 @@ class DataSource(Base):
         server_default=text("50"),
     )
 
+    domain: Mapped[str] = mapped_column(
+        String(100),
+        nullable=False,
+        default="General",
+        server_default=text("'General'"),
+    )
+
+    owner_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey(
+            "users.id",
+            ondelete="SET NULL",
+            name="fk_data_sources_owner",
+        ),
+        nullable=True,
+    )
+
     connection_config: Mapped[dict[str, Any] | None] = mapped_column(
         JSONB,
         nullable=True,

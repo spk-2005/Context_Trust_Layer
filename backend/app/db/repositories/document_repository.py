@@ -56,7 +56,7 @@ class DocumentRepository(BaseRepository[Document]):
         result = await self.session.execute(stmt)
         return result.scalars().all()
 
-    async def create_document_with_version(
+    async def get_or_create_version_with_dedup(
         self,
         organization_id: uuid.UUID,
         source_id: uuid.UUID,
@@ -65,8 +65,14 @@ class DocumentRepository(BaseRepository[Document]):
         content_hash: str | None,
         document_type: str | None = "policy",
         external_id: str | None = None,
-    ) -> tuple[Document, DocumentVersion]:
-        # 1. Check if document exists
+    ) -> tuple[Document, DocumentVersion, bool]:
+        """
+        Idempotent document ingestion with SHA-256 deduplication.
+        Returns:
+            (document, version, is_changed: bool)
+            - is_changed is True if this is a newly created document or a modified version.
+            - is_changed is False if the document already exists with identical content_hash.
+        """
         document = None
         if external_id:
             document = await self.get_by_external_id(
@@ -76,6 +82,7 @@ class DocumentRepository(BaseRepository[Document]):
             )
 
         if not document:
+            # Brand new document
             document = Document(
                 organization_id=organization_id,
                 source_id=source_id,
@@ -88,23 +95,44 @@ class DocumentRepository(BaseRepository[Document]):
             self.session.add(document)
             await self.session.flush()
             await self.session.refresh(document)
-            next_version_num = 1
-        else:
-            # Find next version number
-            stmt = select(DocumentVersion.version_number).where(
-                DocumentVersion.document_id == document.id
-            ).order_by(DocumentVersion.version_number.desc()).limit(1)
-            res = await self.session.execute(stmt)
-            latest_version = res.scalar_one_or_none() or 0
-            next_version_num = latest_version + 1
 
-            # Update document content hash and title
-            document.title = title
-            document.content_uri = content_uri
-            document.content_hash = content_hash
+            version = DocumentVersion(
+                document_id=document.id,
+                version_number=1,
+                content_uri=content_uri,
+                content_hash=content_hash,
+                is_current=True,
+            )
+            self.session.add(version)
             await self.session.flush()
+            await self.session.refresh(version)
+            return document, version, True
 
-        # 2. Deactivate existing current versions
+        # Existing document: Check current active version
+        current_version = await self.get_current_version(document.id)
+        if current_version and current_version.content_hash and content_hash:
+            if current_version.content_hash.strip().lower() == content_hash.strip().lower():
+                # Document is identical -> Deduplication match (UNCHANGED)
+                return document, current_version, False
+
+        # Content is new or modified -> Create new incremented version
+        stmt = (
+            select(DocumentVersion.version_number)
+            .where(DocumentVersion.document_id == document.id)
+            .order_by(DocumentVersion.version_number.desc())
+            .limit(1)
+        )
+        res = await self.session.execute(stmt)
+        latest_version = res.scalar_one_or_none() or 0
+        next_version_num = latest_version + 1
+
+        # Update document header
+        document.title = title
+        document.content_uri = content_uri
+        document.content_hash = content_hash
+        await self.session.flush()
+
+        # Deactivate existing current versions
         await self.session.execute(
             update(DocumentVersion)
             .where(DocumentVersion.document_id == document.id)
@@ -112,19 +140,40 @@ class DocumentRepository(BaseRepository[Document]):
         )
         await self.session.flush()
 
-        # 3. Create new current version
-        version = DocumentVersion(
+        # Create new current version
+        new_version = DocumentVersion(
             document_id=document.id,
             version_number=next_version_num,
             content_uri=content_uri,
             content_hash=content_hash,
             is_current=True,
         )
-        self.session.add(version)
+        self.session.add(new_version)
         await self.session.flush()
-        await self.session.refresh(version)
+        await self.session.refresh(new_version)
 
-        return document, version
+        return document, new_version, True
+
+    async def create_document_with_version(
+        self,
+        organization_id: uuid.UUID,
+        source_id: uuid.UUID,
+        title: str,
+        content_uri: str | None,
+        content_hash: str | None,
+        document_type: str | None = "policy",
+        external_id: str | None = None,
+    ) -> tuple[Document, DocumentVersion]:
+        doc, ver, _ = await self.get_or_create_version_with_dedup(
+            organization_id=organization_id,
+            source_id=source_id,
+            title=title,
+            content_uri=content_uri,
+            content_hash=content_hash,
+            document_type=document_type,
+            external_id=external_id,
+        )
+        return doc, ver
 
     async def get_current_version(
         self,

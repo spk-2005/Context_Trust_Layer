@@ -146,6 +146,36 @@ MCP_TOOLS = [
             },
             "required": ["claim_text"]
         }
+    },
+    {
+        "name": "context_trust_get_lineage",
+        "description": "Retrieves the end-to-end DAG lineage and blast radius for a claim, document, or tenant context graph.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "organization_id": {
+                    "type": "string",
+                    "description": "Tenant organization ID."
+                },
+                "claim_id": {
+                    "type": "string",
+                    "description": "Optional specific claim ID to compute blast radius and downstream impacts."
+                }
+            }
+        }
+    },
+    {
+        "name": "context_trust_steward_audit",
+        "description": "Runs an autonomous AI Data Steward audit scan detecting stale policies, active contradictions, and context health metrics.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "organization_id": {
+                    "type": "string",
+                    "description": "Tenant organization ID (default: 11111111-1111-1111-1111-111111111111)."
+                }
+            }
+        }
     }
 ]
 
@@ -444,6 +474,37 @@ async def handle_check_conflicts(session: AsyncSession, args: Dict[str, Any]) ->
     }
 
 
+async def handle_get_lineage(session: AsyncSession, args: Dict[str, Any]) -> Dict[str, Any]:
+    from app.services.lineage_service import LineageService
+    org_id_str = args.get("organization_id") or "11111111-1111-1111-1111-111111111111"
+    try:
+        org_id = uuid.UUID(org_id_str)
+    except Exception:
+        org_id = uuid.UUID("11111111-1111-1111-1111-111111111111")
+
+    claim_id_str = args.get("claim_id")
+    service = LineageService(session)
+    if claim_id_str:
+        try:
+            claim_id = uuid.UUID(claim_id_str)
+            return await service.get_blast_radius(claim_id)
+        except Exception as e:
+            return {"error": f"Invalid claim_id: {e}"}
+    return await service.get_lineage_graph(org_id)
+
+
+async def handle_steward_audit(session: AsyncSession, args: Dict[str, Any]) -> Dict[str, Any]:
+    from app.services.steward_agent import StewardAgentService
+    org_id_str = args.get("organization_id") or "11111111-1111-1111-1111-111111111111"
+    try:
+        org_id = uuid.UUID(org_id_str)
+    except Exception:
+        org_id = uuid.UUID("11111111-1111-1111-1111-111111111111")
+
+    service = StewardAgentService(session)
+    return await service.run_context_audit(org_id)
+
+
 # -------------------------------------------------------------
 # Dispatcher for Tool Invocations
 # -------------------------------------------------------------
@@ -452,6 +513,8 @@ TOOL_HANDLERS = {
     "context_trust_evaluate_decision": handle_evaluate_decision,
     "context_trust_search_claims": handle_search_claims,
     "context_trust_check_conflicts": handle_check_conflicts,
+    "context_trust_get_lineage": handle_get_lineage,
+    "context_trust_steward_audit": handle_steward_audit,
 }
 
 
@@ -460,3 +523,4 @@ async def execute_mcp_tool(tool_name: str, arguments: Dict[str, Any], session: A
     if not handler:
         raise ValueError(f"Tool '{tool_name}' not found. Available tools: {list(TOOL_HANDLERS.keys())}")
     return await handler(session, arguments)
+

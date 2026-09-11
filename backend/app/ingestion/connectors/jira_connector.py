@@ -55,7 +55,7 @@ class JiraConnector(BaseConnector):
                 "connector": "jira",
             },
         )
-        doc, version, _ = await self.ingestion_service.ingest_document(doc_in)
+        doc, version, _, is_changed = await self.ingestion_service.ingest_document_with_dedup(doc_in)
         return doc, version
 
     async def sync(self) -> Sequence[tuple[Document, DocumentVersion]]:

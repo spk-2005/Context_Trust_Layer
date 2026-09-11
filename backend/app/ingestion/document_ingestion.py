@@ -43,10 +43,11 @@ class DocumentIngestionService:
             metadata=metadata,
         )
 
-    async def ingest_document(
+    async def ingest_document_with_dedup(
         self,
         doc_in: DocumentCreate | RawDocument,
-    ) -> tuple[Document, DocumentVersion, NormalizedDocument]:
+    ) -> tuple[Document, DocumentVersion, NormalizedDocument, bool]:
+        """Ingests document returning is_changed=False if content_hash matches current version."""
         # 1. Execute canonical normalization and domain validation
         normalized = self.normalize_payload(doc_in)
 
@@ -54,8 +55,8 @@ class DocumentIngestionService:
         content_hash = self.normalizer.compute_content_hash(normalized.content)
         content_uri = normalized.content
 
-        # 3. Create database records
-        document, version = await self.doc_repo.create_document_with_version(
+        # 3. Create or match existing version via deduplication
+        document, version, is_changed = await self.doc_repo.get_or_create_version_with_dedup(
             organization_id=normalized.organization_id,
             source_id=normalized.source_id,
             title=normalized.title,
@@ -65,5 +66,12 @@ class DocumentIngestionService:
             external_id=normalized.external_id,
         )
 
+        return document, version, normalized, is_changed
+
+    async def ingest_document(
+        self,
+        doc_in: DocumentCreate | RawDocument,
+    ) -> tuple[Document, DocumentVersion, NormalizedDocument]:
+        document, version, normalized, _ = await self.ingest_document_with_dedup(doc_in)
         return document, version, normalized
 
