@@ -1,0 +1,313 @@
+import uuid
+from typing import Any, Dict, List, Optional
+from sqlalchemy import select, or_, and_, desc
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
+
+from app.db.models.claim import Claim
+from app.db.models.claim_conflict import ClaimConflict
+from app.db.models.claim_trust_score import ClaimTrustScore
+from app.db.models.claim_validity import ClaimValidity
+from app.db.models.data_source import DataSource
+from app.db.models.decision_evaluation import DecisionEvaluation
+from app.db.models.document import Document
+from app.db.models.document_version import DocumentVersion
+
+
+class LineageService:
+    """End-to-End Lineage & Blast-Radius Engine for Enterprise Context."""
+
+    def __init__(self, db: AsyncSession):
+        self.db = db
+
+    async def get_lineage_graph(self, organization_id: uuid.UUID) -> Dict[str, Any]:
+        """Builds a complete DAG representing sources -> documents -> versions -> claims -> conflicts -> decisions."""
+        # 1. Fetch Data Sources
+        stmt_sources = select(DataSource).where(DataSource.organization_id == organization_id)
+        res_sources = await self.db.execute(stmt_sources)
+        sources = res_sources.scalars().all()
+
+        # 2. Fetch Documents with Versions
+        stmt_docs = (
+            select(Document)
+            .where(Document.organization_id == organization_id)
+            .options(selectinload(Document.versions))
+        )
+        res_docs = await self.db.execute(stmt_docs)
+        documents = res_docs.scalars().all()
+
+        # 3. Fetch Claims with Trust Scores and Validity
+        stmt_claims = (
+            select(Claim)
+            .where(Claim.organization_id == organization_id)
+            .options(
+                selectinload(Claim.trust_scores),
+                selectinload(Claim.validity_records),
+                selectinload(Claim.document_version),
+            )
+        )
+        res_claims = await self.db.execute(stmt_claims)
+        claims = res_claims.scalars().all()
+
+        # 4. Fetch Conflicts
+        stmt_conflicts = (
+            select(ClaimConflict)
+            .join(Claim, ClaimConflict.claim_a_id == Claim.id)
+            .where(Claim.organization_id == organization_id)
+            .options(
+                selectinload(ClaimConflict.claim_a),
+                selectinload(ClaimConflict.claim_b),
+            )
+        )
+        res_conflicts = await self.db.execute(stmt_conflicts)
+        conflicts = res_conflicts.scalars().all()
+
+        # 5. Fetch Decision Evaluations
+        stmt_decisions = (
+            select(DecisionEvaluation)
+            .where(DecisionEvaluation.organization_id == organization_id)
+            .order_by(desc(DecisionEvaluation.created_at))
+            .limit(30)
+        )
+        res_decisions = await self.db.execute(stmt_decisions)
+        decisions = res_decisions.scalars().all()
+
+        nodes: List[Dict[str, Any]] = []
+        edges: List[Dict[str, Any]] = []
+
+        # Build Source Nodes
+        for src in sources:
+            nodes.append({
+                "id": f"src_{src.id}",
+                "type": "source",
+                "label": src.name,
+                "subType": src.source_type,
+                "authority": src.authority_level,
+                "status": src.status.value if hasattr(src.status, "value") else str(src.status),
+                "data": {
+                    "source_id": str(src.id),
+                    "external_id": src.external_id,
+                    "last_synced_at": src.last_synced_at.isoformat() if src.last_synced_at else None,
+                }
+            })
+
+        # Build Document Nodes & Edges from Source
+        for doc in documents:
+            doc_node_id = f"doc_{doc.id}"
+            nodes.append({
+                "id": doc_node_id,
+                "type": "document",
+                "label": doc.title,
+                "subType": doc.document_type,
+                "status": doc.status.value if hasattr(doc.status, "value") else str(doc.status),
+                "data": {
+                    "doc_id": str(doc.id),
+                    "external_id": doc.external_id,
+                    "version_count": len(doc.versions),
+                    "created_at": doc.created_at.isoformat() if doc.created_at else None,
+                }
+            })
+            if doc.source_id:
+                edges.append({
+                    "id": f"e_src_{doc.source_id}_doc_{doc.id}",
+                    "source": f"src_{doc.source_id}",
+                    "target": doc_node_id,
+                    "label": "provides",
+                    "type": "provenance"
+                })
+
+        # Build Claim Nodes & Edges from Document
+        for cl in claims:
+            cl_node_id = f"cl_{cl.id}"
+            ts = cl.trust_scores[0] if cl.trust_scores else None
+            trust_val = float(ts.overall_score) if ts and ts.overall_score else 0.85
+            vr = cl.validity_records[0] if cl.validity_records else None
+            nodes.append({
+                "id": cl_node_id,
+                "type": "claim",
+                "label": (cl.claim_text[:60] + "...") if len(cl.claim_text) > 60 else cl.claim_text,
+                "fullText": cl.claim_text,
+                "status": cl.status.value if hasattr(cl.status, "value") else str(cl.status),
+                "trustScore": trust_val,
+                "data": {
+                    "claim_id": str(cl.id),
+                    "document_version_id": str(cl.document_version_id),
+                    "scope": getattr(cl, "scope", "Enterprise"),
+                    "temporal_validity": {
+                        "valid_from": vr.valid_from.isoformat() if vr and vr.valid_from else None,
+                        "valid_until": vr.valid_until.isoformat() if vr and vr.valid_until else None,
+                        "is_valid": vr.is_current if vr else True,
+                    }
+                }
+            })
+
+            # Edge from Document
+            if cl.document_version and cl.document_version.document_id:
+                edges.append({
+                    "id": f"e_doc_{cl.document_version.document_id}_cl_{cl.id}",
+                    "source": f"doc_{cl.document_version.document_id}",
+                    "target": cl_node_id,
+                    "label": "extracted_from",
+                    "type": "extraction"
+                })
+
+        # Build Conflict Nodes & Edges
+        for cfl in conflicts:
+            cfl_node_id = f"cfl_{cfl.id}"
+            res_status = cfl.resolution_status.value if hasattr(cfl.resolution_status, "value") else str(cfl.resolution_status)
+            nodes.append({
+                "id": cfl_node_id,
+                "type": "conflict",
+                "label": f"Conflict: {cfl.conflict_type}",
+                "severity": str(cfl.severity),
+                "status": res_status,
+                "data": {
+                    "conflict_id": str(cfl.id),
+                    "first_claim_id": str(cfl.claim_a_id),
+                    "second_claim_id": str(cfl.claim_b_id),
+                }
+            })
+            edges.append({
+                "id": f"e_cl_{cfl.claim_a_id}_cfl_{cfl.id}",
+                "source": f"cl_{cfl.claim_a_id}",
+                "target": cfl_node_id,
+                "label": "contradicts",
+                "type": "conflict"
+            })
+            edges.append({
+                "id": f"e_cl_{cfl.claim_b_id}_cfl_{cfl.id}",
+                "source": f"cl_{cfl.claim_b_id}",
+                "target": cfl_node_id,
+                "label": "contradicts",
+                "type": "conflict"
+            })
+
+        # Build Decision Nodes & Edges
+        for dec in decisions:
+            dec_node_id = f"dec_{dec.id}"
+            nodes.append({
+                "id": dec_node_id,
+                "type": "decision",
+                "label": dec.decision_prompt or f"Evaluation {dec.audit_id}",
+                "verdict": dec.verdict,
+                "riskTier": getattr(dec, "risk_level", "LOW"),
+                "actor": dec.actor_id,
+                "data": {
+                    "decision_id": str(dec.id),
+                    "audit_id": dec.audit_id,
+                    "created_at": dec.created_at.isoformat() if dec.created_at else None,
+                }
+            })
+
+            items_list = dec.context_items if dec.context_items and isinstance(dec.context_items, list) else []
+            for item in items_list:
+                item_text = item.get("claim", "") if isinstance(item, dict) else str(item)
+                for cl in claims:
+                    if cl.claim_text in item_text or item_text in cl.claim_text:
+                        edges.append({
+                            "id": f"e_cl_{cl.id}_dec_{dec.id}",
+                            "source": f"cl_{cl.id}",
+                            "target": dec_node_id,
+                            "label": "grounded_in",
+                            "type": "decision_grounding"
+                        })
+                        break
+
+        return {
+            "organization_id": str(organization_id),
+            "total_nodes": len(nodes),
+            "total_edges": len(edges),
+            "counts": {
+                "sources": len(sources),
+                "documents": len(documents),
+                "claims": len(claims),
+                "conflicts": len(conflicts),
+                "decisions": len(decisions),
+            },
+            "nodes": nodes,
+            "edges": edges,
+        }
+
+    async def get_blast_radius(self, claim_id: uuid.UUID) -> Dict[str, Any]:
+        """Calculates downstream blast radius of deprecating or updating a claim."""
+        stmt = (
+            select(Claim)
+            .where(Claim.id == claim_id)
+            .options(
+                selectinload(Claim.trust_scores),
+                selectinload(Claim.validity_records),
+                selectinload(Claim.document_version),
+            )
+        )
+        res = await self.db.execute(stmt)
+        claim = res.scalar_one_or_none()
+        if not claim:
+            return {"error": "Claim not found", "claim_id": str(claim_id)}
+
+        # 1. Connected Conflicts
+        stmt_conflicts = (
+            select(ClaimConflict)
+            .where(or_(ClaimConflict.claim_a_id == claim_id, ClaimConflict.claim_b_id == claim_id))
+            .options(
+                selectinload(ClaimConflict.claim_a),
+                selectinload(ClaimConflict.claim_b),
+            )
+        )
+        res_conflicts = await self.db.execute(stmt_conflicts)
+        conflicts = res_conflicts.scalars().all()
+
+        conflicting_claims = []
+        for c in conflicts:
+            opp_claim = c.claim_b if c.claim_a_id == claim_id else c.claim_a
+            if opp_claim:
+                conflicting_claims.append({
+                    "claim_id": str(opp_claim.id),
+                    "text": opp_claim.claim_text,
+                    "status": opp_claim.status.value if hasattr(opp_claim.status, "value") else str(opp_claim.status),
+                    "conflict_severity": str(c.severity),
+                })
+
+        stmt_decisions = (
+            select(DecisionEvaluation)
+            .where(DecisionEvaluation.organization_id == claim.organization_id)
+            .order_by(desc(DecisionEvaluation.created_at))
+            .limit(50)
+        )
+        res_decisions = await self.db.execute(stmt_decisions)
+        all_decisions = res_decisions.scalars().all()
+
+        impacted_decisions = []
+        for dec in all_decisions:
+            items_list = dec.context_items if dec.context_items and isinstance(dec.context_items, list) else []
+            for item in items_list:
+                item_text = item.get("claim", "") if isinstance(item, dict) else str(item)
+                if claim.claim_text in item_text or item_text in claim.claim_text:
+                    impacted_decisions.append({
+                        "decision_id": str(dec.id),
+                        "audit_id": dec.audit_id,
+                        "action_type": dec.decision_prompt,
+                        "verdict": dec.verdict,
+                        "actor_id": dec.actor_id,
+                        "created_at": dec.created_at.isoformat() if dec.created_at else None,
+                    })
+                    break
+
+        risk_score = (len(conflicts) * 25) + (len(impacted_decisions) * 20)
+        risk_tier = "CRITICAL" if risk_score > 70 else "HIGH" if risk_score > 40 else "MODERATE" if risk_score > 10 else "LOW"
+
+        return {
+            "claim_id": str(claim.id),
+            "claim_text": claim.claim_text,
+            "status": claim.status.value if hasattr(claim.status, "value") else str(claim.status),
+            "risk_tier": risk_tier,
+            "risk_score": min(risk_score, 100),
+            "connected_conflicts_count": len(conflicts),
+            "conflicting_claims": conflicting_claims,
+            "impacted_decisions_count": len(impacted_decisions),
+            "impacted_decisions": impacted_decisions,
+            "recommendation": (
+                "High blast radius: Resolving or deprecating this claim will clear active conflicts and prevent policy hallucinations in AI agent decisions."
+                if risk_score > 40
+                else "Low blast radius: Changes to this claim have localized scope."
+            )
+        }

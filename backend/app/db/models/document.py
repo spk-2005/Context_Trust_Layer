@@ -79,6 +79,23 @@ class Document(Base):
         nullable=True,
     )
 
+    domain: Mapped[str] = mapped_column(
+        String(100),
+        nullable=False,
+        default="General",
+        server_default=text("'General'"),
+    )
+
+    owner_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey(
+            "users.id",
+            ondelete="SET NULL",
+            name="fk_documents_owner",
+        ),
+        nullable=True,
+    )
+
     content_uri: Mapped[str | None] = mapped_column(
         Text,
         nullable=True,

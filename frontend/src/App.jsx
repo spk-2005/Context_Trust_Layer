@@ -1,12 +1,33 @@
 import React, { useState, useEffect, useRef } from 'react';
+import TeamAndActivityHub from './components/TeamAndActivityHub';
+import AgentChatPlayground from './components/AgentChatPlayground';
+import LiveIngestionStudio from './components/LiveIngestionStudio';
+import VisualLineageGraph from './components/VisualLineageGraph';
+import ContextCuratorStudio from './components/ContextCuratorStudio';
+import McpIntegrationStudio from './components/McpIntegrationStudio';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('demo');
   const [expandedMenu, setExpandedMenu] = useState('demo');
   const [health, setHealth] = useState({ status: 'checking', database: false, version: '0.1.0' });
   const [conflicts, setConflicts] = useState([]);
+  const [curatorSubView, setCuratorSubView] = useState('health'); // 'health' | 'conflicts'
   const [loading, setLoading] = useState(false);
   const [notification, setNotification] = useState(null);
+
+  // -------------------------------------------------------------
+  // Atlan Active Persona & User Ecosystem State
+  // -------------------------------------------------------------
+  const [personas, setPersonas] = useState([]);
+  const [activePersona, setActivePersona] = useState({
+    id: '22222222-2222-2222-2222-222222222222',
+    name: 'Sarah Chen',
+    role: 'admin',
+    title: 'Chief Compliance Officer',
+    department: 'Risk, Trust & Security',
+    avatar_url: 'https://api.dicebear.com/7.x/bottts/svg?seed=Sarah'
+  });
+  const [isPersonaDropdownOpen, setIsPersonaDropdownOpen] = useState(false);
 
   const handleToggleParentTab = (tabName) => {
     setActiveTab(tabName);
@@ -174,7 +195,7 @@ export default function App() {
 
     const baseName = file.name.replace(/\.[^/.]+$/, "");
     const formattedTitle = baseName.replace(/[-_]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-    
+
     let inferredType = "policy";
     const lowerName = file.name.toLowerCase();
     if (lowerName.includes("handbook")) inferredType = "handbook";
@@ -449,6 +470,21 @@ export default function App() {
     }
   };
 
+  const fetchPersonas = async (orgId = activeOrg?.id) => {
+    try {
+      const res = await fetch(`/v1/users?organization_id=${orgId || '11111111-1111-1111-1111-111111111111'}`);
+      if (res.ok) {
+        const data = await res.json();
+        setPersonas(data);
+        if (data.length > 0 && (!activePersona || !data.some(d => d.id === activePersona.id))) {
+          setActivePersona(data[0]);
+        }
+      }
+    } catch (e) {
+      console.error("Failed to load personas:", e);
+    }
+  };
+
   const fetchHealthAndConflicts = async (orgId = activeOrg?.id) => {
     try {
       setLoading(true);
@@ -466,6 +502,7 @@ export default function App() {
           setConflicts([]);
         }
         await fetchLiveDatabaseRecords(orgId);
+        await fetchPersonas(orgId);
       }
     } catch (err) {
       setHealth({ status: 'healthy', database: true, version: '0.1.0' });
@@ -488,10 +525,12 @@ export default function App() {
       if (res.ok) {
         const created = await res.json();
         setOrganizations(prev => [...prev, created]);
-        handleSwitchOrganization(created);
+        setActiveOrg(created);
+        localStorage.setItem('context_layer_active_org_id', created.id);
         setShowNewOrgModal(false);
         setNewOrgName('');
         setNewOrgSlug('');
+        await fetchHealthAndConflicts(created.id);
         showToast(`Created & switched to client workspace '${created.name}'!`);
       } else {
         const err = await res.json();
@@ -537,7 +576,10 @@ export default function App() {
   const handleSyncSource = async (sourceId, sourceName) => {
     setSyncingSourceId(sourceId);
     try {
-      const res = await fetch(`/v1/sources/${sourceId}/sync?use_mock_llm=true`, { method: 'POST' });
+      const userName = encodeURIComponent(activePersona?.name || 'Alex Rivera');
+      const userRole = encodeURIComponent(activePersona?.role || 'data_owner');
+      const userId = activePersona?.id || '';
+      const res = await fetch(`/v1/sources/${sourceId}/sync?use_mock_llm=true&user_name=${userName}&user_role=${userRole}&user_id=${userId}`, { method: 'POST' });
       if (res.ok) {
         const result = await res.json();
         showToast(result.message || `Successfully synced ${sourceName}!`);
@@ -557,7 +599,9 @@ export default function App() {
     if (!activeOrg?.id) return;
     setSyncingSourceId('all');
     try {
-      const res = await fetch(`/v1/sources/sync-all?organization_id=${activeOrg.id}&use_mock_llm=true`, { method: 'POST' });
+      const userName = encodeURIComponent(activePersona?.name || 'Alex Rivera');
+      const userRole = encodeURIComponent(activePersona?.role || 'data_owner');
+      const res = await fetch(`/v1/sources/sync-all?organization_id=${activeOrg.id}&use_mock_llm=true&user_name=${userName}&user_role=${userRole}`, { method: 'POST' });
       if (res.ok) {
         const results = await res.json();
         const totalDocs = results.reduce((acc, r) => acc + (r.documents_synced || 0), 0);
@@ -832,8 +876,8 @@ export default function App() {
           ],
           preferred_source: current.claim2.source,
           audit_id: `ctx_${Math.random().toString(36).substring(2, 10)}`,
-          suggested_action: demoScenario === 'unauthorized_deploy' 
-            ? "Deny action: Actor role insufficient for production deployment." 
+          suggested_action: demoScenario === 'unauthorized_deploy'
+            ? "Deny action: Actor role insufficient for production deployment."
             : "Proceed with authorized action using verified enterprise exception."
         });
         setDemoStep(2);
@@ -871,7 +915,7 @@ export default function App() {
         let synthAnswer = "";
         if (data.context && data.context.length > 0) {
           synthAnswer = `Based on ${data.context.length} verified evidence claim(s) (Average Trust Score: ${(Number(data.confidence) * 100).toFixed(0)}%):\n\n` +
-            data.context.map((c, i) => `[${i+1}] "${c.claim}"\n— Source: ${c.source?.document || 'Verified Policy'}, Section: ${c.source?.section || 'General'}`).join('\n\n');
+            data.context.map((c, i) => `[${i + 1}] "${c.claim}"\n— Source: ${c.source?.document || 'Verified Policy'}, Section: ${c.source?.section || 'General'}`).join('\n\n');
         } else {
           synthAnswer = "No verified context met the minimum trust threshold (" + th + ") or matching claims are currently locked under auditor conflict review.";
         }
@@ -1126,7 +1170,7 @@ export default function App() {
 
   return (
     <div className="app-layout">
-      
+
       {/* Toast Notification */}
       {notification && (
         <div style={{
@@ -1168,8 +1212,8 @@ export default function App() {
         <nav className="nav-list" style={{ overflowY: 'auto' }}>
           {/* TAB 0: Home Overview Dashboard */}
           <div>
-            <button 
-              onClick={() => handleToggleParentTab('home')} 
+            <button
+              onClick={() => handleToggleParentTab('home')}
               className={`nav-item ${activeTab === 'home' ? 'nav-item-active' : ''}`}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -1183,7 +1227,7 @@ export default function App() {
             </button>
             <div className={`nav-sub-accordion ${expandedMenu === 'home' ? 'nav-sub-accordion-open' : ''}`}>
               <div className="nav-sub-list">
-                <button 
+                <button
                   onClick={() => { setActiveTab('home'); }}
                   className={`nav-sub-item ${activeTab === 'home' ? 'nav-sub-item-active' : ''}`}
                 >
@@ -1195,8 +1239,8 @@ export default function App() {
 
           {/* TAB 1: Decision Gate Demo */}
           <div>
-            <button 
-              onClick={() => handleToggleParentTab('demo')} 
+            <button
+              onClick={() => handleToggleParentTab('demo')}
               className={`nav-item ${activeTab === 'demo' ? 'nav-item-active' : ''}`}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -1210,21 +1254,21 @@ export default function App() {
             </button>
             <div className={`nav-sub-accordion ${expandedMenu === 'demo' ? 'nav-sub-accordion-open' : ''}`}>
               <div className="nav-sub-list">
-                <button 
+                <button
                   onClick={() => { setActiveTab('demo'); setDemoScenario('refund_trap'); setDemoStep(0); }}
                   className={`nav-sub-item ${activeTab === 'demo' && demoScenario === 'refund_trap' ? 'nav-sub-item-active' : ''}`}
                 >
                   <span>1. Refund Window</span>
                   <span className="badge badge-warning" style={{ fontSize: '0.62rem', padding: '1px 4px' }}>Trap</span>
                 </button>
-                <button 
+                <button
                   onClick={() => { setActiveTab('demo'); setDemoScenario('remote_work'); setDemoStep(0); }}
                   className={`nav-sub-item ${activeTab === 'demo' && demoScenario === 'remote_work' ? 'nav-sub-item-active' : ''}`}
                 >
                   <span>2. Remote Work</span>
                   <span className="badge badge-review" style={{ fontSize: '0.62rem', padding: '1px 4px' }}>Rule</span>
                 </button>
-                <button 
+                <button
                   onClick={() => { setActiveTab('demo'); setDemoScenario('unauthorized_deploy'); setDemoStep(0); }}
                   className={`nav-sub-item ${activeTab === 'demo' && demoScenario === 'unauthorized_deploy' ? 'nav-sub-item-active' : ''}`}
                 >
@@ -1235,69 +1279,96 @@ export default function App() {
             </div>
           </div>
 
-          {/* TAB 2: Agent Playground */}
+          {/* TAB 2: AI Copilot Chat / Agent Playground */}
           <div>
-            <button 
-              onClick={() => handleToggleParentTab('playground')} 
+            <button
+              onClick={() => { setActiveTab('playground'); setExpandedMenu('playground'); }}
               className={`nav-item ${activeTab === 'playground' ? 'nav-item-active' : ''}`}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span className={`nav-chevron ${expandedMenu === 'playground' ? 'nav-chevron-open' : ''}`}>
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="9 18 15 12 9 6" />
-                  </svg>
-                </span>
-                <span>Agent Playground</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                </svg>
+                <span>AI Copilot Chat</span>
               </div>
+              <span className="badge badge-verified" style={{ fontSize: '0.62rem', padding: '1px 5px' }}>
+                Live RAG
+              </span>
             </button>
-            <div className={`nav-sub-accordion ${expandedMenu === 'playground' ? 'nav-sub-accordion-open' : ''}`}>
-              <div className="nav-sub-list">
-                <button 
-                  onClick={() => { setActiveTab('playground'); handleExecutePlaygroundQuery(playgroundQuery); }}
-                  className={`nav-sub-item ${activeTab === 'playground' && !playgroundPresets.some(p => p.query === playgroundQuery) ? 'nav-sub-item-active' : ''}`}
-                >
-                  <span>Interactive Query</span>
-                </button>
-                {playgroundPresets.map((preset, idx) => (
-                  <button 
-                    key={idx}
-                    onClick={() => { setActiveTab('playground'); setPlaygroundQuery(preset.query); handleExecutePlaygroundQuery(preset.query); }}
-                    className={`nav-sub-item ${activeTab === 'playground' && playgroundQuery === preset.query ? 'nav-sub-item-active' : ''}`}
-                  >
-                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {preset.title}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            </div>
           </div>
 
-          {/* TAB 3: Conflict Resolver */}
+          {/* ========================================================= */}
+          {/* ATLAN ENTERPRISE CAPABILITY SUITE                         */}
+          {/* ========================================================= */}
+
+          {/* OPTION 1: Live Ingestion Studio */}
           <div>
-            <button 
-              onClick={() => handleToggleParentTab('conflicts')} 
-              className={`nav-item ${activeTab === 'conflicts' ? 'nav-item-active' : ''}`}
+            <button
+              onClick={() => { setActiveTab('live_ingestion'); setExpandedMenu('live_ingestion'); }}
+              className={`nav-item ${activeTab === 'live_ingestion' ? 'nav-item-active' : ''}`}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span className={`nav-chevron ${expandedMenu === 'conflicts' ? 'nav-chevron-open' : ''}`}>
+                <span style={{ fontSize: '0.9rem' }}>⚡</span>
+                <span>Live Ingestion Studio</span>
+              </div>
+              <span className="badge badge-verified" style={{ fontSize: '0.62rem', padding: '1px 5px' }}>
+                Auto Claims
+              </span>
+            </button>
+          </div>
+
+          {/* OPTION 2: Visual Lineage Graph */}
+          <div>
+            <button
+              onClick={() => { setActiveTab('visual_lineage'); setExpandedMenu('visual_lineage'); }}
+              className={`nav-item ${activeTab === 'visual_lineage' ? 'nav-item-active' : ''}`}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '0.9rem' }}>🕸️</span>
+                <span>Visual Lineage Graph</span>
+              </div>
+              <span className="badge badge-verified" style={{ fontSize: '0.62rem', padding: '1px 5px' }}>
+                DAG
+              </span>
+            </button>
+          </div>
+
+          {/* TAB 3: Context Curator Bot & Conflict Hub */}
+          <div>
+            <button
+              onClick={() => handleToggleParentTab('context_curator')}
+              className={`nav-item ${activeTab === 'context_curator' ? 'nav-item-active' : ''}`}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span className={`nav-chevron ${expandedMenu === 'context_curator' ? 'nav-chevron-open' : ''}`}>
                   <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <polyline points="9 18 15 12 9 6" />
                   </svg>
                 </span>
-                <span>Conflict Resolver</span>
+                <span style={{ fontSize: '0.9rem' }}>🤖</span>
+                <span>Context Curator Bot</span>
               </div>
-              {conflicts.length > 0 && (
-                <span className="badge badge-review" style={{ fontSize: '0.7rem', padding: '1px 6px' }}>
-                  {conflicts.length}
+              {conflicts.length > 0 ? (
+                <span className="badge badge-warning" style={{ fontSize: '0.62rem', padding: '1px 5px' }}>
+                  {conflicts.length} Issues
+                </span>
+              ) : (
+                <span className="badge badge-verified" style={{ fontSize: '0.62rem', padding: '1px 5px' }}>
+                  Auto Audit
                 </span>
               )}
             </button>
-            <div className={`nav-sub-accordion ${expandedMenu === 'conflicts' ? 'nav-sub-accordion-open' : ''}`}>
+            <div className={`nav-sub-accordion ${expandedMenu === 'context_curator' ? 'nav-sub-accordion-open' : ''}`}>
               <div className="nav-sub-list">
-                <button 
-                  onClick={() => setActiveTab('conflicts')}
-                  className="nav-sub-item nav-sub-item-active"
+                <button
+                  onClick={() => { setActiveTab('context_curator'); setCuratorSubView('health'); }}
+                  className={`nav-sub-item ${activeTab === 'context_curator' && curatorSubView === 'health' ? 'nav-sub-item-active' : ''}`}
+                >
+                  <span>Context Health & Steward Bot</span>
+                </button>
+                <button
+                  onClick={() => { setActiveTab('context_curator'); setCuratorSubView('conflicts'); }}
+                  className={`nav-sub-item ${activeTab === 'context_curator' && curatorSubView === 'conflicts' ? 'nav-sub-item-active' : ''}`}
                 >
                   <span>Pending Conflicts</span>
                   <span className="badge badge-review" style={{ fontSize: '0.62rem', padding: '1px 4px' }}>
@@ -1308,10 +1379,26 @@ export default function App() {
             </div>
           </div>
 
+          {/* TAB 4: MCP Server & Studio */}
+          <div>
+            <button
+              onClick={() => { setActiveTab('integrations'); setExpandedMenu('integrations'); }}
+              className={`nav-item ${activeTab === 'integrations' ? 'nav-item-active' : ''}`}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '0.9rem' }}>🔌</span>
+                <span>MCP Server & Studio</span>
+              </div>
+              <span className="badge badge-verified" style={{ fontSize: '0.62rem', padding: '1px 5px' }}>
+                JSON-RPC
+              </span>
+            </button>
+          </div>
+
           {/* TAB 4: Document Explorer */}
           <div>
-            <button 
-              onClick={() => handleToggleParentTab('ingestion')} 
+            <button
+              onClick={() => handleToggleParentTab('ingestion')}
               className={`nav-item ${activeTab === 'ingestion' ? 'nav-item-active' : ''}`}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -1325,8 +1412,8 @@ export default function App() {
             </button>
             <div className={`nav-sub-accordion ${expandedMenu === 'ingestion' ? 'nav-sub-accordion-open' : ''}`}>
               <div className="nav-sub-list">
-                <button 
-                  onClick={() => { setActiveTab('ingestion'); setDocExplorerView('connectors'); }} 
+                <button
+                  onClick={() => { setActiveTab('ingestion'); setDocExplorerView('connectors'); }}
                   className={`nav-sub-item ${activeTab === 'ingestion' && docExplorerView === 'connectors' ? 'nav-sub-item-active' : ''}`}
                 >
                   <span>Live Connectors & Sync</span>
@@ -1334,14 +1421,14 @@ export default function App() {
                     {dataSources.length}
                   </span>
                 </button>
-                <button 
-                  onClick={() => { setActiveTab('ingestion'); setDocExplorerView('ingest'); }} 
+                <button
+                  onClick={() => { setActiveTab('ingestion'); setDocExplorerView('ingest'); }}
                   className={`nav-sub-item ${activeTab === 'ingestion' && docExplorerView === 'ingest' ? 'nav-sub-item-active' : ''}`}
                 >
                   <span>Ingest New Document</span>
                 </button>
-                <button 
-                  onClick={() => { setActiveTab('ingestion'); setDocExplorerView('documents'); }} 
+                <button
+                  onClick={() => { setActiveTab('ingestion'); setDocExplorerView('documents'); }}
                   className={`nav-sub-item ${activeTab === 'ingestion' && docExplorerView === 'documents' ? 'nav-sub-item-active' : ''}`}
                 >
                   <span>Stored Documents</span>
@@ -1349,8 +1436,8 @@ export default function App() {
                     {dbDocuments.length}
                   </span>
                 </button>
-                <button 
-                  onClick={() => { setActiveTab('ingestion'); setDocExplorerView('claims'); }} 
+                <button
+                  onClick={() => { setActiveTab('ingestion'); setDocExplorerView('claims'); }}
                   className={`nav-sub-item ${activeTab === 'ingestion' && docExplorerView === 'claims' ? 'nav-sub-item-active' : ''}`}
                 >
                   <span>Atomic Claims</span>
@@ -1364,8 +1451,8 @@ export default function App() {
 
           {/* TAB 5: Agent Integrations & MCP Hub */}
           <div>
-            <button 
-              onClick={() => handleToggleParentTab('integrations')} 
+            <button
+              onClick={() => handleToggleParentTab('integrations')}
               className={`nav-item ${activeTab === 'integrations' ? 'nav-item-active' : ''}`}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -1382,20 +1469,20 @@ export default function App() {
             </button>
             <div className={`nav-sub-accordion ${expandedMenu === 'integrations' ? 'nav-sub-accordion-open' : ''}`}>
               <div className="nav-sub-list">
-                <button 
-                  onClick={() => { setActiveTab('integrations'); setMcpActiveSubView('tester'); }} 
+                <button
+                  onClick={() => { setActiveTab('integrations'); setMcpActiveSubView('tester'); }}
                   className={`nav-sub-item ${activeTab === 'integrations' && mcpActiveSubView === 'tester' ? 'nav-sub-item-active' : ''}`}
                 >
                   <span>Interactive Tool Tester</span>
                 </button>
-                <button 
-                  onClick={() => { setActiveTab('integrations'); setMcpActiveSubView('configs'); }} 
+                <button
+                  onClick={() => { setActiveTab('integrations'); setMcpActiveSubView('configs'); }}
                   className={`nav-sub-item ${activeTab === 'integrations' && mcpActiveSubView === 'configs' ? 'nav-sub-item-active' : ''}`}
                 >
                   <span>Claude & Cursor Configs</span>
                 </button>
-                <button 
-                  onClick={() => { setActiveTab('integrations'); setMcpActiveSubView('sdks'); }} 
+                <button
+                  onClick={() => { setActiveTab('integrations'); setMcpActiveSubView('sdks'); }}
                   className={`nav-sub-item ${activeTab === 'integrations' && mcpActiveSubView === 'sdks' ? 'nav-sub-item-active' : ''}`}
                 >
                   <span>Python, LangChain & LlamaIndex</span>
@@ -1406,8 +1493,8 @@ export default function App() {
 
           {/* TAB 6: Decision Audit Trail & Lineage Explorer */}
           <div>
-            <button 
-              onClick={() => { handleToggleParentTab('audit'); fetchAuditLogs(activeOrg?.id); }} 
+            <button
+              onClick={() => { handleToggleParentTab('audit'); fetchAuditLogs(activeOrg?.id); }}
               className={`nav-item ${activeTab === 'audit' ? 'nav-item-active' : ''}`}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -1424,8 +1511,8 @@ export default function App() {
             </button>
             <div className={`nav-sub-accordion ${expandedMenu === 'audit' ? 'nav-sub-accordion-open' : ''}`}>
               <div className="nav-sub-list">
-                <button 
-                  onClick={() => { setActiveTab('audit'); fetchAuditLogs(activeOrg?.id); }} 
+                <button
+                  onClick={() => { setActiveTab('audit'); fetchAuditLogs(activeOrg?.id); }}
                   className={`nav-sub-item ${activeTab === 'audit' ? 'nav-sub-item-active' : ''}`}
                 >
                   <span>Live Decision Stream</span>
@@ -1433,11 +1520,53 @@ export default function App() {
                     {auditLogs.length}
                   </span>
                 </button>
-                <button 
-                  onClick={() => { setActiveTab('audit'); handleExportAuditLogs('json'); }} 
+                <button
+                  onClick={() => { setActiveTab('audit'); handleExportAuditLogs('json'); }}
                   className="nav-sub-item"
                 >
                   <span>Export SOC2 / ISO 42001</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* TAB 7: Team, Personas & Governance Ecosystem */}
+          <div>
+            <button
+              onClick={() => handleToggleParentTab('team')}
+              className={`nav-item ${activeTab === 'team' ? 'nav-item-active' : ''}`}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span className={`nav-chevron ${expandedMenu === 'team' ? 'nav-chevron-open' : ''}`}>
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="9 18 15 12 9 6" />
+                  </svg>
+                </span>
+                <span>Team & Personas</span>
+              </div>
+              <span className="badge badge-verified" style={{ fontSize: '0.62rem', padding: '1px 5px' }}>
+                {personas.length || 5}
+              </span>
+            </button>
+            <div className={`nav-sub-accordion ${expandedMenu === 'team' ? 'nav-sub-accordion-open' : ''}`}>
+              <div className="nav-sub-list">
+                <button
+                  onClick={() => { setActiveTab('team'); }}
+                  className={`nav-sub-item ${activeTab === 'team' ? 'nav-sub-item-active' : ''}`}
+                >
+                  <span>Team Directory & Roles</span>
+                </button>
+                <button
+                  onClick={() => { setActiveTab('team'); }}
+                  className="nav-sub-item"
+                >
+                  <span>Collaborative Activity Feed</span>
+                </button>
+                <button
+                  onClick={() => { setActiveTab('team'); }}
+                  className="nav-sub-item"
+                >
+                  <span>Data Mesh Domains</span>
                 </button>
               </div>
             </div>
@@ -1460,14 +1589,14 @@ export default function App() {
       {/* MAIN CONTENT AREA                                         */}
       {/* ========================================================= */}
       <main className="main-content">
-        
+
         {/* ========================================================= */}
         {/* TOP BREADCRUMB & HEADER CONTROLS (Client & Workspace)     */}
         {/* ========================================================= */}
         <div className="top-breadcrumb-bar" style={{ position: 'relative', zIndex: 50 }}>
           {/* Left: Clean Breadcrumb Navigator */}
           <div className="breadcrumb-trail" style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '6px' }}>
-            <button 
+            <button
               onClick={() => { setActiveTab('home'); setExpandedMenu('home'); }}
               className="breadcrumb-link"
             >
@@ -1481,17 +1610,50 @@ export default function App() {
             {activeTab !== 'home' && (
               <>
                 <span className="breadcrumb-separator">/</span>
-                <button 
+                <button
                   onClick={() => { setActiveTab(activeTab); setExpandedMenu(activeTab); }}
                   className="breadcrumb-link"
                 >
                   {activeTab === 'demo' ? 'Decision Gate Demo' :
                    activeTab === 'playground' ? 'Agent Playground' :
+                   activeTab === 'live_ingestion' ? 'Live Ingestion Studio' :
+                   activeTab === 'visual_lineage' ? 'Visual Lineage Graph' :
+                   activeTab === 'context_curator' ? 'Context Curator Bot' :
                    activeTab === 'conflicts' ? 'Conflict Resolver' :
                    activeTab === 'ingestion' ? 'Document Explorer' :
                    activeTab === 'integrations' ? 'Agent Integrations & MCP' :
-                   'Decision Audit Trail & Lineage'}
+                   activeTab === 'audit' ? 'Decision Audit Trail & Lineage' :
+                   'Team, Personas & Governance'}
                 </button>
+              </>
+            )}
+
+            {activeTab === 'live_ingestion' && (
+              <>
+                <span className="breadcrumb-separator">/</span>
+                <span className="breadcrumb-current">
+                  Live Ingestion & Auto-Claim Extraction Pipeline
+                </span>
+              </>
+            )}
+
+            {activeTab === 'visual_lineage' && (
+              <>
+                <span className="breadcrumb-separator">/</span>
+                <span className="breadcrumb-current">
+                  Deep Visual Lineage DAG & Blast Radius Explorer
+                </span>
+              </>
+            )}
+
+            {activeTab === 'context_curator' && (
+              <>
+                <span className="breadcrumb-separator">/</span>
+                <span className="breadcrumb-current">
+                  {curatorSubView === 'conflicts'
+                    ? `Pending Conflicts (${conflicts.length})`
+                    : 'Autonomous Context Health & Data Steward Bot'}
+                </span>
               </>
             )}
 
@@ -1500,8 +1662,8 @@ export default function App() {
                 <span className="breadcrumb-separator">/</span>
                 <span className="breadcrumb-current">
                   {demoScenario === 'refund_trap' ? '1. Refund Window (Trap)' :
-                   demoScenario === 'remote_work' ? '2. Remote Work (Rule)' :
-                   '3. Prod Ingress (Auth)'}
+                    demoScenario === 'remote_work' ? '2. Remote Work (Rule)' :
+                      '3. Prod Ingress (Auth)'}
                 </span>
               </>
             )}
@@ -1515,11 +1677,20 @@ export default function App() {
               </>
             )}
 
+            {activeTab === 'team' && (
+              <>
+                <span className="breadcrumb-separator">/</span>
+                <span className="breadcrumb-current">
+                  Team Directory, Personas & Governance Activity
+                </span>
+              </>
+            )}
+
             {activeTab === 'playground' && (
               <>
                 <span className="breadcrumb-separator">/</span>
                 <span className="breadcrumb-current">
-                  {playgroundPresets.find(p => p.query === playgroundQuery)?.title || 'Interactive Query'}
+                  Interactive AI Copilot Chat
                 </span>
               </>
             )}
@@ -1538,9 +1709,9 @@ export default function App() {
                 <span className="breadcrumb-separator">/</span>
                 <span className="breadcrumb-current">
                   {docExplorerView === 'connectors' ? `Live Connectors & Sync (${dataSources.length})` :
-                   docExplorerView === 'ingest' ? 'Ingest New Document' :
-                   docExplorerView === 'documents' ? `Stored Documents (${dbDocuments.length})` :
-                   `Atomic Claims (${dbClaims.length})`}
+                    docExplorerView === 'ingest' ? 'Ingest New Document' :
+                      docExplorerView === 'documents' ? `Stored Documents (${dbDocuments.length})` :
+                        `Atomic Claims (${dbClaims.length})`}
                 </span>
               </>
             )}
@@ -1550,65 +1721,65 @@ export default function App() {
                 <span className="breadcrumb-separator">/</span>
                 <span className="breadcrumb-current">
                   {mcpActiveSubView === 'tester' ? 'Interactive Tool Tester' :
-                   mcpActiveSubView === 'configs' ? 'Claude & Cursor Configs' :
-                   'Python SDK & Framework Integrations'}
+                    mcpActiveSubView === 'configs' ? 'Claude & Cursor Configs' :
+                      'Python SDK & Framework Integrations'}
                 </span>
               </>
             )}
           </div>
 
-          {/* Right Side: Professional Enterprise Client & Workspace Switcher Header */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', position: 'relative' }}>
-            
+          {/* Right Side: Professional Enterprise Header Controls */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'nowrap', position: 'relative' }}>
+
             {/* 1. ENTERPRISE CLIENT (TENANT ROOT) DROPDOWN */}
             <div style={{ position: 'relative' }}>
               <button
                 onClick={() => {
                   setIsOrgDropdownOpen(prev => !prev);
                   setIsWorkspaceDropdownOpen(false);
+                  setIsPersonaDropdownOpen(false);
                 }}
                 className="btn btn-secondary"
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '6px',
-                  padding: '5px 11px',
-                  fontSize: '0.78rem',
+                  gap: '4px',
+                  padding: '4px 8px',
+                  fontSize: '0.75rem',
                   fontWeight: 600,
                   background: 'var(--bg-card)',
                   border: isOrgDropdownOpen ? '1px solid var(--primary)' : '1px solid var(--border-subtle)',
-                  borderRadius: '6px',
+                  borderRadius: '5px',
                   color: 'var(--text-main)',
-                  cursor: 'pointer'
+                  cursor: 'pointer',
+                  whiteSpace: 'nowrap'
                 }}
-                title="Enterprise Client Organization (Tenant Root)"
+                title="Active Client / Organization"
               >
-                <span style={{ fontSize: '0.85rem' }}>🏢</span>
-                <span style={{ color: 'var(--text-muted)', fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase' }}>Client:</span>
-                <strong style={{ maxWidth: '120px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'var(--text-main)' }}>
+                <span style={{ maxWidth: '110px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {activeOrg?.name || 'demo'}
-                </strong>
+                </span>
                 <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>▾</span>
               </button>
 
               {isOrgDropdownOpen && (
                 <div style={{
                   position: 'absolute',
-                  top: 'calc(100% + 6px)',
+                  top: 'calc(100% + 4px)',
                   right: 0,
                   background: 'var(--bg-card)',
                   border: '1px solid var(--border-subtle)',
-                  borderRadius: '8px',
-                  boxShadow: '0 12px 30px rgba(0,0,0,0.35)',
+                  borderRadius: '6px',
+                  boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
                   zIndex: 250,
-                  width: '260px',
+                  width: '240px',
                   padding: '6px'
                 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 8px 4px 8px', borderBottom: '1px solid var(--border-subtle)', marginBottom: '4px' }}>
-                    <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                      ENTERPRISE CLIENT
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 6px 4px 6px', borderBottom: '1px solid var(--border-subtle)', marginBottom: '4px' }}>
+                    <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                      Organizations
                     </span>
-                    <span className="badge badge-verified" style={{ fontSize: '0.6rem', padding: '1px 5px' }}>Tenant Root</span>
+                    <span className="badge badge-muted" style={{ fontSize: '0.6rem', padding: '1px 4px' }}>Client Root</span>
                   </div>
 
                   <div style={{ maxHeight: '180px', overflowY: 'auto' }}>
@@ -1624,21 +1795,18 @@ export default function App() {
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'space-between',
-                          padding: '7px 8px',
+                          padding: '6px 8px',
                           background: activeOrg?.id === org.id ? 'var(--primary-subtle, rgba(99,102,241,0.1))' : 'transparent',
                           border: 'none',
                           borderRadius: '4px',
                           color: activeOrg?.id === org.id ? 'var(--primary)' : 'var(--text-main)',
-                          fontSize: '0.78rem',
+                          fontSize: '0.75rem',
                           fontWeight: activeOrg?.id === org.id ? 700 : 500,
                           cursor: 'pointer',
                           textAlign: 'left'
                         }}
                       >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', overflow: 'hidden' }}>
-                          <span>🏢</span>
-                          <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{org.name}</span>
-                        </div>
+                        <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{org.name}</span>
                         {activeOrg?.id === org.id && <span style={{ fontSize: '0.7rem', color: 'var(--primary)' }}>✓</span>}
                       </button>
                     ))}
@@ -1652,20 +1820,20 @@ export default function App() {
                       }}
                       style={{
                         width: '100%',
-                        padding: '6px 8px',
+                        padding: '5px 8px',
                         background: 'transparent',
                         border: 'none',
                         color: 'var(--primary)',
                         fontSize: '0.72rem',
-                        fontWeight: 700,
+                        fontWeight: 600,
                         cursor: 'pointer',
                         textAlign: 'left',
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '6px'
+                        gap: '4px'
                       }}
                     >
-                      <span>+</span> Register New Client Company
+                      + Register Organization
                     </button>
                   </div>
                 </div>
@@ -1678,65 +1846,59 @@ export default function App() {
                 onClick={() => {
                   setIsWorkspaceDropdownOpen(prev => !prev);
                   setIsOrgDropdownOpen(false);
+                  setIsPersonaDropdownOpen(false);
                 }}
                 className="btn btn-secondary"
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '6px',
-                  padding: '5px 11px',
-                  fontSize: '0.78rem',
+                  gap: '4px',
+                  padding: '4px 8px',
+                  fontSize: '0.75rem',
                   fontWeight: 600,
                   background: 'var(--bg-card)',
                   border: isWorkspaceDropdownOpen ? '1px solid var(--primary)' : '1px solid var(--border-subtle)',
-                  borderRadius: '6px',
+                  borderRadius: '5px',
                   color: 'var(--text-main)',
-                  cursor: 'pointer'
+                  cursor: 'pointer',
+                  whiteSpace: 'nowrap'
                 }}
-                title="Active Departmental Workspace"
+                title="Active Workspace"
               >
-                <span style={{ fontSize: '0.85rem' }}>{activeWorkspace?.icon || '📁'}</span>
-                <span style={{ color: 'var(--text-muted)', fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase' }}>Workspace:</span>
-                <strong style={{ color: 'var(--primary)', maxWidth: '140px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <span style={{ maxWidth: '120px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {activeWorkspace?.name || 'All Workspaces'}
-                </strong>
+                </span>
                 <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>▾</span>
               </button>
 
               {isWorkspaceDropdownOpen && (
                 <div style={{
                   position: 'absolute',
-                  top: 'calc(100% + 6px)',
+                  top: 'calc(100% + 4px)',
                   right: 0,
                   background: 'var(--bg-card)',
                   border: '1px solid var(--border-subtle)',
-                  borderRadius: '8px',
-                  boxShadow: '0 12px 30px rgba(0,0,0,0.35)',
+                  borderRadius: '6px',
+                  boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
                   zIndex: 250,
-                  width: '280px',
+                  width: '260px',
                   padding: '6px'
                 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 8px 4px 8px', borderBottom: '1px solid var(--border-subtle)', marginBottom: '4px' }}>
-                    <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                      DEPARTMENTAL WORKSPACES
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 6px 4px 6px', borderBottom: '1px solid var(--border-subtle)', marginBottom: '4px' }}>
+                    <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                      Workspaces
                     </span>
-                    <button
-                      onClick={() => {
-                        setShowNewWorkspaceModal(true);
-                        setIsWorkspaceDropdownOpen(false);
-                      }}
-                      style={{ background: 'transparent', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontSize: '0.7rem', fontWeight: 700 }}
-                    >
-                      + New
-                    </button>
+                    {activeWorkspace?.domain && (
+                      <span className="badge badge-muted" style={{ fontSize: '0.6rem', padding: '1px 4px' }}>{activeWorkspace.domain.toUpperCase()}</span>
+                    )}
                   </div>
 
-                  <div style={{ maxHeight: '220px', overflowY: 'auto' }}>
+                  <div style={{ maxHeight: '190px', overflowY: 'auto' }}>
                     {workspaces.map(ws => (
                       <button
                         key={ws.id}
                         onClick={() => {
-                          handleSwitchWorkspace(ws);
+                          setActiveWorkspace(ws);
                           setIsWorkspaceDropdownOpen(false);
                         }}
                         style={{
@@ -1744,21 +1906,18 @@ export default function App() {
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'space-between',
-                          padding: '7px 8px',
+                          padding: '6px 8px',
                           background: activeWorkspace?.id === ws.id ? 'var(--primary-subtle, rgba(99,102,241,0.1))' : 'transparent',
                           border: 'none',
                           borderRadius: '4px',
                           color: activeWorkspace?.id === ws.id ? 'var(--primary)' : 'var(--text-main)',
-                          fontSize: '0.78rem',
+                          fontSize: '0.75rem',
                           fontWeight: activeWorkspace?.id === ws.id ? 700 : 500,
                           cursor: 'pointer',
                           textAlign: 'left'
                         }}
                       >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', overflow: 'hidden' }}>
-                          <span>{ws.icon}</span>
-                          <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{ws.name}</span>
-                        </div>
+                        <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{ws.name}</span>
                         {activeWorkspace?.id === ws.id && <span style={{ fontSize: '0.7rem', color: 'var(--primary)' }}>✓</span>}
                       </button>
                     ))}
@@ -1772,30 +1931,161 @@ export default function App() {
                       }}
                       style={{
                         width: '100%',
-                        padding: '6px 8px',
+                        padding: '5px 8px',
                         background: 'transparent',
                         border: 'none',
                         color: 'var(--primary)',
                         fontSize: '0.72rem',
-                        fontWeight: 700,
+                        fontWeight: 600,
                         cursor: 'pointer',
                         textAlign: 'left',
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '6px'
+                        gap: '4px'
                       }}
                     >
-                      <span>+</span> Create Department Workspace
+                      + Create Workspace
                     </button>
                   </div>
                 </div>
               )}
             </div>
 
-            {/* 3. SYSTEM OPERATIONAL BADGE */}
-            <span className="badge badge-verified" style={{ fontSize: '0.72rem', padding: '5px 9px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--success-solid)' }} />
-              System Operational
+            {/* 3. ACTIVE PERSONA SWITCHER DROPDOWN */}
+            <div style={{ position: 'relative' }}>
+              <button
+                onClick={() => {
+                  setIsPersonaDropdownOpen(prev => !prev);
+                  setIsOrgDropdownOpen(false);
+                  setIsWorkspaceDropdownOpen(false);
+                }}
+                className="btn btn-secondary"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  padding: '4px 8px',
+                  fontSize: '0.75rem',
+                  fontWeight: 600,
+                  background: 'var(--bg-card)',
+                  border: isPersonaDropdownOpen ? '1px solid var(--primary)' : '1px solid var(--border-subtle)',
+                  borderRadius: '5px',
+                  color: 'var(--text-main)',
+                  cursor: 'pointer',
+                  whiteSpace: 'nowrap'
+                }}
+                title="Active User Persona"
+              >
+                <span style={{ maxWidth: '100px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {activePersona?.name || 'Alex'}
+                </span>
+                <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 500, textTransform: 'uppercase' }}>
+                  ({activePersona?.role || 'DATA_OWNER'})
+                </span>
+                <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>▾</span>
+              </button>
+
+              {isPersonaDropdownOpen && (
+                <div style={{
+                  position: 'absolute',
+                  top: 'calc(100% + 4px)',
+                  right: 0,
+                  background: 'var(--bg-card)',
+                  border: '1px solid var(--border-subtle)',
+                  borderRadius: '6px',
+                  boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
+                  zIndex: 250,
+                  width: '260px',
+                  padding: '6px'
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 6px 4px 6px', borderBottom: '1px solid var(--border-subtle)', marginBottom: '4px' }}>
+                    <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                      Switch Persona
+                    </span>
+                    <span className="badge badge-muted" style={{ fontSize: '0.6rem', padding: '1px 4px' }}>RBAC</span>
+                  </div>
+
+                  <div style={{ maxHeight: '200px', overflowY: 'auto' }}>
+                    {personas.map(p => (
+                      <button
+                        key={p.id}
+                        onClick={() => {
+                          setActivePersona(p);
+                          setIsPersonaDropdownOpen(false);
+                          showToast(`Switched active persona to ${p.name} (${p.role.toUpperCase()})`);
+                        }}
+                        style={{
+                          width: '100%',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          padding: '6px 8px',
+                          background: activePersona?.id === p.id ? 'var(--primary-subtle, rgba(99,102,241,0.1))' : 'transparent',
+                          border: 'none',
+                          borderRadius: '4px',
+                          color: activePersona?.id === p.id ? 'var(--primary)' : 'var(--text-main)',
+                          fontSize: '0.75rem',
+                          fontWeight: activePersona?.id === p.id ? 700 : 500,
+                          cursor: 'pointer',
+                          textAlign: 'left'
+                        }}
+                      >
+                        <div style={{ overflow: 'hidden' }}>
+                          <div style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontWeight: 600 }}>
+                            {p.name}
+                          </div>
+                          <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
+                            {p.title || p.role}
+                          </div>
+                        </div>
+                        <span className="badge badge-muted" style={{ fontSize: '0.6rem', padding: '1px 4px' }}>
+                          {p.role}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+
+                  <div style={{ borderTop: '1px solid var(--border-subtle)', marginTop: '4px', paddingTop: '4px' }}>
+                    <button
+                      onClick={() => {
+                        setActiveTab('team');
+                        setIsPersonaDropdownOpen(false);
+                      }}
+                      style={{
+                        width: '100%',
+                        padding: '5px 8px',
+                        background: 'transparent',
+                        border: 'none',
+                        color: 'var(--primary)',
+                        fontSize: '0.72rem',
+                        fontWeight: 600,
+                        textAlign: 'center',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Manage Team & Domains ➔
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* 4. SYSTEM OPERATIONAL BADGE */}
+            <span style={{
+              fontSize: '0.72rem',
+              padding: '4px 8px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '5px',
+              borderRadius: '5px',
+              border: '1px solid var(--border-subtle)',
+              background: 'var(--bg-card)',
+              color: 'var(--text-secondary)',
+              fontWeight: 500,
+              whiteSpace: 'nowrap'
+            }}>
+              <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--success-solid, #10b981)' }} />
+              Operational
             </span>
           </div>
         </div>
@@ -1821,15 +2111,15 @@ export default function App() {
                 </div>
 
                 <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                  <button 
-                    onClick={() => { setActiveTab('demo'); setExpandedMenu('demo'); }} 
+                  <button
+                    onClick={() => { setActiveTab('demo'); setExpandedMenu('demo'); }}
                     className="btn btn-primary"
                     style={{ padding: '8px 16px', fontSize: '0.85rem' }}
                   >
                     Launch Gate Demo
                   </button>
-                  <button 
-                    onClick={() => { setActiveTab('ingestion'); setExpandedMenu('ingestion'); setDocExplorerView('connectors'); }} 
+                  <button
+                    onClick={() => { setActiveTab('ingestion'); setExpandedMenu('ingestion'); setDocExplorerView('connectors'); }}
                     className="btn btn-secondary"
                     style={{ padding: '8px 16px', fontSize: '0.85rem' }}
                   >
@@ -1841,8 +2131,8 @@ export default function App() {
 
             {/* Live System Metrics Grid (4 Cards) */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px', marginBottom: '28px' }}>
-              <div 
-                className="clean-panel" 
+              <div
+                className="clean-panel"
                 style={{ padding: '18px 20px', cursor: 'pointer', transition: 'transform 0.15s ease' }}
                 onClick={() => { setActiveTab('ingestion'); setExpandedMenu('ingestion'); setDocExplorerView('connectors'); }}
               >
@@ -1857,8 +2147,8 @@ export default function App() {
                 </div>
               </div>
 
-              <div 
-                className="clean-panel" 
+              <div
+                className="clean-panel"
                 style={{ padding: '18px 20px', cursor: 'pointer' }}
                 onClick={() => { setActiveTab('ingestion'); setExpandedMenu('ingestion'); setDocExplorerView('documents'); }}
               >
@@ -1873,8 +2163,8 @@ export default function App() {
                 </div>
               </div>
 
-              <div 
-                className="clean-panel" 
+              <div
+                className="clean-panel"
                 style={{ padding: '18px 20px', cursor: 'pointer' }}
                 onClick={() => { setActiveTab('ingestion'); setExpandedMenu('ingestion'); setDocExplorerView('claims'); }}
               >
@@ -1889,10 +2179,10 @@ export default function App() {
                 </div>
               </div>
 
-              <div 
-                className="clean-panel" 
+              <div
+                className="clean-panel"
                 style={{ padding: '18px 20px', cursor: 'pointer' }}
-                onClick={() => { setActiveTab('conflicts'); setExpandedMenu('conflicts'); }}
+                onClick={() => { setActiveTab('context_curator'); setCuratorSubView('conflicts'); setExpandedMenu('context_curator'); }}
               >
                 <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>
                   Auditor Conflict Queue
@@ -1912,10 +2202,10 @@ export default function App() {
                 System Capabilities & Workflows
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
-                
+
                 {/* Card 1: Decision Gate Demo */}
-                <div 
-                  className="clean-panel" 
+                <div
+                  className="clean-panel"
                   style={{ padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', cursor: 'pointer' }}
                   onClick={() => { setActiveTab('demo'); setExpandedMenu('demo'); }}
                 >
@@ -1934,8 +2224,8 @@ export default function App() {
                 </div>
 
                 {/* Card 2: Agent Playground */}
-                <div 
-                  className="clean-panel" 
+                <div
+                  className="clean-panel"
                   style={{ padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', cursor: 'pointer' }}
                   onClick={() => { setActiveTab('playground'); setExpandedMenu('playground'); }}
                 >
@@ -1953,29 +2243,29 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* Card 3: Conflict Resolver */}
-                <div 
-                  className="clean-panel" 
+                {/* Card 3: Context Curator Bot & Conflict Resolver */}
+                <div
+                  className="clean-panel"
                   style={{ padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', cursor: 'pointer' }}
-                  onClick={() => { setActiveTab('conflicts'); setExpandedMenu('conflicts'); }}
+                  onClick={() => { setActiveTab('context_curator'); setCuratorSubView('conflicts'); setExpandedMenu('context_curator'); }}
                 >
                   <div>
                     <span className="badge badge-review" style={{ marginBottom: '8px' }}>Module 3</span>
                     <div style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-main)', marginTop: '4px' }}>
-                      Conflict Resolver Queue
+                      Context Curator & Conflict Resolver
                     </div>
                     <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: '1.5', marginTop: '6px' }}>
-                      Review and arbitrate conflicting policies. Approved claims become authoritative while stale candidates are archived.
+                      Continuous knowledge health auditing and pairwise policy arbitration. Approved claims become authoritative while stale rules are superseded.
                     </p>
                   </div>
                   <div style={{ marginTop: '16px', fontSize: '0.8rem', fontWeight: 700, color: 'var(--primary)' }}>
-                    Open Resolver ({conflicts.length}) →
+                    Open Conflict Resolver ({conflicts.length}) →
                   </div>
                 </div>
 
                 {/* Card 4: Document Explorer */}
-                <div 
-                  className="clean-panel" 
+                <div
+                  className="clean-panel"
                   style={{ padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', cursor: 'pointer' }}
                   onClick={() => { setActiveTab('ingestion'); setExpandedMenu('ingestion'); }}
                 >
@@ -2094,8 +2384,8 @@ export default function App() {
                   </div>
                 </div>
 
-                <button 
-                  onClick={runKillerDemo} 
+                <button
+                  onClick={runKillerDemo}
                   disabled={demoRunning}
                   className="btn btn-primary"
                   style={{ padding: '9px 18px', fontSize: '0.875rem' }}
@@ -2107,7 +2397,7 @@ export default function App() {
 
             {/* Main Decision Gate Panel */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-              
+
               {/* Left Side: Candidate Evidence Evaluated */}
               <div className="clean-panel" style={{ padding: '20px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
@@ -2208,7 +2498,7 @@ export default function App() {
               <div style={{ fontSize: '0.9rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '14px' }}>
                 Explainable 6-Factor Trust Score Architecture
               </div>
-              
+
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '12px' }}>
                 <div style={{ background: 'var(--bg-card-subtle)', padding: '10px', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
                   <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 700 }}>1. Authority</div>
@@ -2251,283 +2541,18 @@ export default function App() {
         )}
 
         {/* ========================================================= */}
-        {/* TAB 2: INTERACTIVE AGENT PLAYGROUND                       */}
+        {/* TAB 2: INTERACTIVE AGENT PLAYGROUND & AI COPILOT CHAT     */}
         {/* ========================================================= */}
         {activeTab === 'playground' && (
-          <div>
-            {/* Header Banner */}
-            <div style={{ marginBottom: '24px' }}>
-              <span className="badge badge-verified" style={{ marginBottom: '6px' }}>
-                Live API /v1/context/query
-              </span>
-              <h1 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-main)', marginTop: '4px' }}>
-                Interactive AI Agent Playground
-              </h1>
-              <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', marginTop: '4px' }}>
-                Test how autonomous AI Agents query organizational knowledge. The Trust Gate scores claims, excludes expired policies, and filters out contradictory knowledge.
-              </p>
-            </div>
-
-            {/* Main Interactive Grid */}
-            <div style={{ display: 'grid', gridTemplateColumns: '400px 1fr', gap: '20px' }}>
-              
-              {/* Left Column: Query Console */}
-              <div className="clean-panel" style={{ padding: '20px' }}>
-                <div style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '14px' }}>
-                  Agent Query Console
-                </div>
-
-                <div style={{ display: 'grid', gap: '14px' }}>
-                  {/* Persona Selector */}
-                  <div>
-                    <label style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 700, display: 'block', marginBottom: '4px' }}>
-                      Agent Persona:
-                    </label>
-                    <select
-                      value={playgroundAgent.role}
-                      onChange={e => {
-                        const role = e.target.value;
-                        if (role === 'billing_agent') setPlaygroundAgent({ id: "88888888-8888-8888-8888-888888888888", name: "Billing Dispute Agent", role });
-                        else if (role === 'hr_assistant') setPlaygroundAgent({ id: "88888888-8888-8888-8888-888888888889", name: "HR Policy Assistant", role });
-                        else setPlaygroundAgent({ id: "88888888-8888-8888-8888-888888888890", name: "DevOps Security Guard", role });
-                      }}
-                      style={{ width: '100%', padding: '8px 10px', fontSize: '0.85rem' }}
-                    >
-                      <option value="billing_agent">Billing Dispute Resolution Agent</option>
-                      <option value="hr_assistant">HR Policy & Benefits Assistant</option>
-                      <option value="devops_agent">DevOps Infrastructure Security Guard</option>
-                    </select>
-                  </div>
-
-                  {/* Trust Score Threshold */}
-                  <div style={{ background: 'var(--bg-card-subtle)', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                      <label style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', fontWeight: 700 }}>
-                        Min Trust Threshold:
-                      </label>
-                      <span className="badge badge-verified">
-                        {(playgroundThreshold * 100).toFixed(0)}%
-                      </span>
-                    </div>
-                    <input 
-                      type="range" 
-                      min="0.50" 
-                      max="0.99" 
-                      step="0.05"
-                      value={playgroundThreshold} 
-                      onChange={e => setPlaygroundThreshold(parseFloat(e.target.value))}
-                      style={{ width: '100%', accentColor: 'var(--primary)' }}
-                    />
-                  </div>
-
-                  {/* Query Textarea */}
-                  <div>
-                    <label style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 700, display: 'block', marginBottom: '4px' }}>
-                      Agent Question:
-                    </label>
-                    <textarea 
-                      rows={3}
-                      value={playgroundQuery} 
-                      onChange={e => setPlaygroundQuery(e.target.value)}
-                      placeholder="Ask any policy question..."
-                      style={{ width: '100%', padding: '8px 10px', fontSize: '0.85rem' }}
-                    />
-                  </div>
-
-                  {/* Submit Button */}
-                  <button 
-                    onClick={() => runPlaygroundQuery()} 
-                    disabled={playgroundRunning}
-                    className="btn btn-primary" 
-                    style={{ width: '100%', padding: '10px', fontSize: '0.875rem' }}
-                  >
-                    {playgroundRunning ? "Retrieving..." : "Query Context Trust Layer"}
-                  </button>
-                </div>
-              </div>
-
-              {/* Right Column: Grounded Answer & Citations */}
-              <div style={{ display: 'grid', gap: '16px' }}>
-                
-                {/* Answer Card */}
-                <div className="clean-panel" style={{ padding: '20px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                    <div style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--text-main)' }}>
-                      Grounded Agent Output
-                    </div>
-                    {playgroundResult && (
-                      <span className="badge badge-allow">
-                        Confidence: {(Number(playgroundResult.confidence || 0.95) * 100).toFixed(0)}%
-                      </span>
-                    )}
-                  </div>
-
-                  {!playgroundResult && !playgroundRunning && (
-                    <div style={{ padding: '30px 10px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-                      Select a preset or click query to inspect the grounded answer.
-                    </div>
-                  )}
-
-                  {playgroundRunning && (
-                    <div style={{ padding: '30px 10px', textAlign: 'center', color: 'var(--primary)', fontSize: '0.85rem', fontWeight: 600 }}>
-                      Filtering claims by trust score and checking active conflicts...
-                    </div>
-                  )}
-
-                  {playgroundResult && !playgroundRunning && (
-                    <div style={{ background: 'var(--bg-card-subtle)', padding: '14px', borderRadius: '8px', border: '1px solid var(--border-subtle)', lineHeight: 1.5, fontSize: '0.85rem', color: 'var(--text-main)', whiteSpace: 'pre-wrap' }}>
-                      {playgroundResult.synthesizedAnswer}
-                    </div>
-                  )}
-                </div>
-
-                {/* Evidence Citations */}
-                <div className="clean-panel" style={{ padding: '20px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                    <div style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--text-main)' }}>
-                      Trust Gate Citations ({playgroundResult?.context?.length || 0})
-                    </div>
-                    <span className="badge badge-verified">Verified Evidence</span>
-                  </div>
-
-                  {(!playgroundResult || !playgroundResult.context || playgroundResult.context.length === 0) ? (
-                    <div style={{ padding: '20px 10px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.8rem' }}>
-                      No citation records loaded yet.
-                    </div>
-                  ) : (
-                    <div style={{ display: 'grid', gap: '10px' }}>
-                      {playgroundResult.context.map((ctx, idx) => (
-                        <div key={idx} style={{ background: '#FFFFFF', border: '1px solid var(--border-subtle)', padding: '12px', borderRadius: '8px' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                            <span className="badge badge-allow">Citation #{idx + 1}</span>
-                            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                              Trust Score: <strong style={{ color: 'var(--success-text)' }}>{(Number(ctx.trust_score) * 100).toFixed(0)}%</strong>
-                            </span>
-                          </div>
-
-                          <p style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-main)', lineHeight: 1.4 }}>
-                            "{ctx.claim}"
-                          </p>
-
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '6px', paddingTop: '6px', borderTop: '1px solid var(--border-subtle)', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                            <span>Source: {ctx.source?.document || 'Verified Document'} ({ctx.source?.section || 'General'})</span>
-                            <span>Status: <strong style={{ color: 'var(--success-text)' }}>{ctx.validity?.status?.toUpperCase() || 'VALID'}</strong></span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
+          <AgentChatPlayground
+            activeOrg={activeOrg}
+            activePersona={activePersona}
+            workspaces={workspaces}
+            showToast={showToast}
+          />
         )}
 
-        {/* ========================================================= */}
-        {/* TAB 3: CONFLICT RESOLVER                                  */}
-        {/* ========================================================= */}
-        {activeTab === 'conflicts' && (
-          <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-              <div>
-                <h2 style={{ fontSize: '1.35rem', fontWeight: 800, color: 'var(--text-main)' }}>
-                  Auditor Conflict Resolution Queue
-                </h2>
-                <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '2px' }}>
-                  Review, arbitrate, and supersede conflicting enterprise policies to eliminate ambiguity for autonomous agents.
-                </p>
-              </div>
 
-              <button onClick={fetchHealthAndConflicts} className="btn btn-secondary" style={{ padding: '7px 12px' }}>
-                Refresh Queue
-              </button>
-            </div>
-
-            {/* Conflicts List */}
-            {conflicts.length === 0 ? (
-              <div className="clean-panel" style={{ padding: '48px 24px', textAlign: 'center', color: 'var(--text-muted)' }}>
-                <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--text-main)' }}>Zero Pending Conflicts</h3>
-                <p style={{ fontSize: '0.825rem', marginTop: '4px' }}>
-                  All enterprise claims are verified and non-conflicting.
-                </p>
-              </div>
-            ) : (
-              <div style={{ display: 'grid', gap: '16px' }}>
-                {conflicts.map((conf, idx) => {
-                  const claimA = conf.claim_a;
-                  const claimB = conf.claim_b;
-                  const scoreA = claimA?.trust_scores?.[0]?.overall_score || 0.50;
-                  const scoreB = claimB?.trust_scores?.[0]?.overall_score || 0.95;
-                  const sectionA = claimA?.evidence?.[0]?.section || "Section 2.0";
-                  const sectionB = claimB?.evidence?.[0]?.section || "Section 3.0";
-
-                  return (
-                    <div key={conf.id || idx} className="clean-panel" style={{ padding: '18px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <span style={{ fontWeight: 800, fontSize: '0.9rem', color: 'var(--text-main)' }}>
-                            Conflict #{idx + 1}: {conf.conflict_type?.toUpperCase() || "NUMERICAL_DISCREPANCY"}
-                          </span>
-                          <span className="badge badge-review">Severity: {conf.severity?.toUpperCase() || 'HIGH'}</span>
-                        </div>
-                        <span className="code-pill">Confidence: {conf.confidence || '0.95'}</span>
-                      </div>
-
-                      {/* Side-by-Side Comparison */}
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '16px' }}>
-                        <div style={{ background: 'var(--danger-bg)', border: '1px solid var(--danger-border)', padding: '14px', borderRadius: '8px' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', color: 'var(--danger-text)', fontWeight: 800, marginBottom: '4px' }}>
-                            <span>CLAIM A (Stale Candidate)</span>
-                            <span className="badge badge-outdated">ID: {conf.claim_a_id?.substring(0, 8)}</span>
-                          </div>
-                          <p style={{ fontSize: '0.85rem', color: 'var(--danger-text)', lineHeight: '1.4', fontWeight: 600 }}>
-                            "{claimA?.claim_text || 'Customers are eligible for automated refunds up to ₹25,000 without supervisor approval.'}"
-                          </p>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '8px', paddingTop: '6px', borderTop: '1px solid rgba(220, 38, 38, 0.15)' }}>
-                            <span>Source: {sectionA}</span>
-                            <span>Trust: <strong>{(Number(scoreA) * 100).toFixed(0)}%</strong></span>
-                          </div>
-                        </div>
-
-                        <div style={{ background: 'var(--success-bg)', border: '1px solid var(--success-border)', padding: '14px', borderRadius: '8px' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', color: 'var(--success-text)', fontWeight: 800, marginBottom: '4px' }}>
-                            <span>CLAIM B (Authoritative Candidate)</span>
-                            <span className="badge badge-allow">ID: {conf.claim_b_id?.substring(0, 8)}</span>
-                          </div>
-                          <p style={{ fontSize: '0.85rem', color: 'var(--success-text)', lineHeight: '1.4', fontWeight: 600 }}>
-                            "{claimB?.claim_text || 'Standard automated refund limit is capped at ₹10,000. Higher amounts require VP signoff.'}"
-                          </p>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '8px', paddingTop: '6px', borderTop: '1px solid rgba(22, 163, 74, 0.15)' }}>
-                            <span>Source: {sectionB}</span>
-                            <span>Trust: <strong>{(Number(scoreB) * 100).toFixed(0)}%</strong></span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Auditor Actions */}
-                      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', borderTop: '1px solid var(--border-subtle)', paddingTop: '12px' }}>
-                        <button 
-                          onClick={() => handleResolveConflict(conf.id, conf.claim_b_id, "Approved Claim B as authoritative guideline.")}
-                          className="btn btn-success"
-                          style={{ padding: '7px 14px' }}
-                        >
-                          Approve Authoritative Claim B (Supersede A)
-                        </button>
-                        <button 
-                          onClick={() => handleResolveConflict(conf.id, conf.claim_a_id, "Approved Claim A as verified exception.")}
-                          className="btn btn-secondary"
-                          style={{ padding: '7px 12px' }}
-                        >
-                          Approve Claim A
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        )}
 
         {/* ========================================================= */}
         {/* TAB 4: DOCUMENT INGESTION & CLAIM EXPLORER                */}
@@ -2553,14 +2578,14 @@ export default function App() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <span className="badge badge-verified" style={{ fontSize: '0.8rem', padding: '5px 12px' }}>
                     {docExplorerView === 'connectors' ? `Live Connectors & Sync (${dataSources.length})` :
-                     docExplorerView === 'ingest' ? 'Ingest New Document' :
-                     docExplorerView === 'documents' ? `Stored Documents (${dbDocuments.length})` :
-                     `Atomic Claims (${dbClaims.length})`}
+                      docExplorerView === 'ingest' ? 'Ingest New Document' :
+                        docExplorerView === 'documents' ? `Stored Documents (${dbDocuments.length})` :
+                          `Atomic Claims (${dbClaims.length})`}
                   </span>
 
-                  <button 
-                    onClick={fetchLiveDatabaseRecords} 
-                    className="btn btn-secondary" 
+                  <button
+                    onClick={fetchLiveDatabaseRecords}
+                    className="btn btn-secondary"
                     style={{ padding: '6px 12px', fontSize: '0.8rem' }}
                     title="Refresh database records"
                   >
@@ -2587,8 +2612,8 @@ export default function App() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Auto-Poll:</span>
-                      <select 
-                        value={autoSyncInterval} 
+                      <select
+                        value={autoSyncInterval}
                         onChange={e => {
                           setAutoSyncInterval(e.target.value);
                           if (e.target.value !== 'off') {
@@ -2606,7 +2631,7 @@ export default function App() {
                       </select>
                     </div>
 
-                    <button 
+                    <button
                       onClick={() => setShowAddSourceModal(true)}
                       className="btn btn-secondary"
                       style={{ padding: '7px 14px', fontSize: '0.8rem' }}
@@ -2614,7 +2639,7 @@ export default function App() {
                       + Connect Real Source
                     </button>
 
-                    <button 
+                    <button
                       onClick={handleSyncAllSources}
                       disabled={syncingSourceId !== null}
                       className="btn btn-primary"
@@ -2631,7 +2656,7 @@ export default function App() {
                     const isSyncing = syncingSourceId === source.id || syncingSourceId === 'all';
                     const stype = (source.source_type || '').toLowerCase();
                     const typeLabel = stype.toUpperCase();
-                    const lastSyncText = source.last_synced_at 
+                    const lastSyncText = source.last_synced_at
                       ? new Date(source.last_synced_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
                       : 'Not synced yet';
 
@@ -2675,7 +2700,7 @@ export default function App() {
                             <span>Last Synced: <strong>{lastSyncText}</strong></span>
                           </div>
 
-                          <button 
+                          <button
                             onClick={() => handleSyncSource(source.id, source.name)}
                             disabled={isSyncing}
                             className="btn btn-secondary"
@@ -2737,7 +2762,7 @@ export default function App() {
                             Modelled after Atlan's connector architecture with pre-flight diagnostics, automated crawler & contract extraction.
                           </div>
                         </div>
-                        <button 
+                        <button
                           onClick={() => { setShowAddSourceModal(false); setTestConnectionResult(null); }}
                           style={{ background: 'none', border: 'none', fontSize: '1.2rem', cursor: 'pointer', color: 'var(--text-muted)' }}
                         >
@@ -2771,8 +2796,8 @@ export default function App() {
 
                       {/* Search Bar across 104 connectors */}
                       <div style={{ marginBottom: '14px' }}>
-                        <input 
-                          type="text" 
+                        <input
+                          type="text"
                           placeholder="🔍 Search across 104 data sources... e.g. Snowflake, dbt, Airflow, Tableau, Iceberg, Monte Carlo, SageMaker"
                           value={catalogSearchQuery}
                           onChange={e => setCatalogSearchQuery(e.target.value)}
@@ -2785,13 +2810,13 @@ export default function App() {
                         <div>
                           <label style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
                             Select Target Data Source ({
-                              catalogConnectors.filter(c => 
+                              catalogConnectors.filter(c =>
                                 (catalogFilterCategory === 'all' || c.category === catalogFilterCategory) &&
                                 (!catalogSearchQuery || c.name.toLowerCase().includes(catalogSearchQuery.toLowerCase()) || c.description.toLowerCase().includes(catalogSearchQuery.toLowerCase()))
                               ).length
                             } available):
                           </label>
-                          <select 
+                          <select
                             value={newSourceForm.sourceType}
                             onChange={e => {
                               const newType = e.target.value;
@@ -2803,7 +2828,7 @@ export default function App() {
                             style={{ width: '100%', padding: '8px 10px', fontSize: '0.85rem' }}
                           >
                             {catalogConnectors
-                              .filter(c => 
+                              .filter(c =>
                                 (catalogFilterCategory === 'all' || c.category === catalogFilterCategory) &&
                                 (!catalogSearchQuery || c.name.toLowerCase().includes(catalogSearchQuery.toLowerCase()) || c.description.toLowerCase().includes(catalogSearchQuery.toLowerCase()))
                               )
@@ -2837,8 +2862,8 @@ export default function App() {
                           <label style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
                             Connector Instance Name:
                           </label>
-                          <input 
-                            type="text" 
+                          <input
+                            type="text"
                             placeholder="e.g. Core Production Snowflake Warehouse"
                             value={newSourceForm.name}
                             onChange={e => setNewSourceForm({ ...newSourceForm, name: e.target.value })}
@@ -2853,20 +2878,20 @@ export default function App() {
                             <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '10px' }}>
                               <div>
                                 <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Host / Hostname:</label>
-                                <input 
-                                  type="text" 
-                                  value={newSourceForm.pgHost} 
-                                  onChange={e => setNewSourceForm({ ...newSourceForm, pgHost: e.target.value })} 
-                                  placeholder="localhost or pg.internal" 
+                                <input
+                                  type="text"
+                                  value={newSourceForm.pgHost}
+                                  onChange={e => setNewSourceForm({ ...newSourceForm, pgHost: e.target.value })}
+                                  placeholder="localhost or pg.internal"
                                   style={{ width: '100%', padding: '6px 8px', fontSize: '0.8rem' }}
                                 />
                               </div>
                               <div>
                                 <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Port:</label>
-                                <input 
-                                  type="number" 
-                                  value={newSourceForm.pgPort} 
-                                  onChange={e => setNewSourceForm({ ...newSourceForm, pgPort: e.target.value })} 
+                                <input
+                                  type="number"
+                                  value={newSourceForm.pgPort}
+                                  onChange={e => setNewSourceForm({ ...newSourceForm, pgPort: e.target.value })}
                                   style={{ width: '100%', padding: '6px 8px', fontSize: '0.8rem' }}
                                 />
                               </div>
@@ -2874,21 +2899,21 @@ export default function App() {
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                               <div>
                                 <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Database Name:</label>
-                                <input 
-                                  type="text" 
-                                  value={newSourceForm.pgDatabase} 
-                                  onChange={e => setNewSourceForm({ ...newSourceForm, pgDatabase: e.target.value })} 
-                                  placeholder="enterprise_core" 
+                                <input
+                                  type="text"
+                                  value={newSourceForm.pgDatabase}
+                                  onChange={e => setNewSourceForm({ ...newSourceForm, pgDatabase: e.target.value })}
+                                  placeholder="enterprise_core"
                                   style={{ width: '100%', padding: '6px 8px', fontSize: '0.8rem' }}
                                 />
                               </div>
                               <div>
                                 <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Target Schemas (comma-separated):</label>
-                                <input 
-                                  type="text" 
-                                  value={newSourceForm.pgSchemas} 
-                                  onChange={e => setNewSourceForm({ ...newSourceForm, pgSchemas: e.target.value })} 
-                                  placeholder="public, analytics" 
+                                <input
+                                  type="text"
+                                  value={newSourceForm.pgSchemas}
+                                  onChange={e => setNewSourceForm({ ...newSourceForm, pgSchemas: e.target.value })}
+                                  placeholder="public, analytics"
                                   style={{ width: '100%', padding: '6px 8px', fontSize: '0.8rem' }}
                                 />
                               </div>
@@ -2896,21 +2921,21 @@ export default function App() {
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                               <div>
                                 <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Username:</label>
-                                <input 
-                                  type="text" 
-                                  value={newSourceForm.pgUsername} 
-                                  onChange={e => setNewSourceForm({ ...newSourceForm, pgUsername: e.target.value })} 
-                                  placeholder="postgres" 
+                                <input
+                                  type="text"
+                                  value={newSourceForm.pgUsername}
+                                  onChange={e => setNewSourceForm({ ...newSourceForm, pgUsername: e.target.value })}
+                                  placeholder="postgres"
                                   style={{ width: '100%', padding: '6px 8px', fontSize: '0.8rem' }}
                                 />
                               </div>
                               <div>
                                 <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Password:</label>
-                                <input 
-                                  type="password" 
-                                  value={newSourceForm.pgPassword} 
-                                  onChange={e => setNewSourceForm({ ...newSourceForm, pgPassword: e.target.value })} 
-                                  placeholder="••••••••" 
+                                <input
+                                  type="password"
+                                  value={newSourceForm.pgPassword}
+                                  onChange={e => setNewSourceForm({ ...newSourceForm, pgPassword: e.target.value })}
+                                  placeholder="••••••••"
                                   style={{ width: '100%', padding: '6px 8px', fontSize: '0.8rem' }}
                                 />
                               </div>
@@ -2923,19 +2948,19 @@ export default function App() {
                           <div style={{ background: '#F8FAFC', border: '1px solid var(--border-subtle)', borderRadius: '6px', padding: '12px', display: 'grid', gap: '10px' }}>
                             <div>
                               <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Bootstrap Servers (host:port):</label>
-                              <input 
-                                type="text" 
-                                value={newSourceForm.kafkaBootstrap} 
-                                onChange={e => setNewSourceForm({ ...newSourceForm, kafkaBootstrap: e.target.value })} 
-                                placeholder="kafka-cluster-prod.internal:9092" 
+                              <input
+                                type="text"
+                                value={newSourceForm.kafkaBootstrap}
+                                onChange={e => setNewSourceForm({ ...newSourceForm, kafkaBootstrap: e.target.value })}
+                                placeholder="kafka-cluster-prod.internal:9092"
                                 style={{ width: '100%', padding: '6px 8px', fontSize: '0.8rem' }}
                               />
                             </div>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                               <div>
                                 <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Security Protocol:</label>
-                                <select 
-                                  value={newSourceForm.kafkaSecurityProtocol} 
+                                <select
+                                  value={newSourceForm.kafkaSecurityProtocol}
                                   onChange={e => setNewSourceForm({ ...newSourceForm, kafkaSecurityProtocol: e.target.value })}
                                   style={{ width: '100%', padding: '6px 8px', fontSize: '0.8rem' }}
                                 >
@@ -2947,22 +2972,22 @@ export default function App() {
                               </div>
                               <div>
                                 <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Schema Registry URL (Optional):</label>
-                                <input 
-                                  type="text" 
-                                  value={newSourceForm.kafkaSchemaRegistry} 
-                                  onChange={e => setNewSourceForm({ ...newSourceForm, kafkaSchemaRegistry: e.target.value })} 
-                                  placeholder="http://schema-registry:8081" 
+                                <input
+                                  type="text"
+                                  value={newSourceForm.kafkaSchemaRegistry}
+                                  onChange={e => setNewSourceForm({ ...newSourceForm, kafkaSchemaRegistry: e.target.value })}
+                                  placeholder="http://schema-registry:8081"
                                   style={{ width: '100%', padding: '6px 8px', fontSize: '0.8rem' }}
                                 />
                               </div>
                             </div>
                             <div>
                               <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Monitored Topics (comma-separated):</label>
-                              <input 
-                                type="text" 
-                                value={newSourceForm.kafkaTopics} 
-                                onChange={e => setNewSourceForm({ ...newSourceForm, kafkaTopics: e.target.value })} 
-                                placeholder="financial.payments.settled.v1, security.audit.access.v2" 
+                              <input
+                                type="text"
+                                value={newSourceForm.kafkaTopics}
+                                onChange={e => setNewSourceForm({ ...newSourceForm, kafkaTopics: e.target.value })}
+                                placeholder="financial.payments.settled.v1, security.audit.access.v2"
                                 style={{ width: '100%', padding: '6px 8px', fontSize: '0.8rem' }}
                               />
                             </div>
@@ -2974,43 +2999,43 @@ export default function App() {
                           <div style={{ background: '#F8FAFC', border: '1px solid var(--border-subtle)', borderRadius: '6px', padding: '12px', display: 'grid', gap: '10px' }}>
                             <div>
                               <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Salesforce Instance URL:</label>
-                              <input 
-                                type="text" 
-                                value={newSourceForm.sfInstanceUrl} 
-                                onChange={e => setNewSourceForm({ ...newSourceForm, sfInstanceUrl: e.target.value })} 
-                                placeholder="https://company.my.salesforce.com" 
+                              <input
+                                type="text"
+                                value={newSourceForm.sfInstanceUrl}
+                                onChange={e => setNewSourceForm({ ...newSourceForm, sfInstanceUrl: e.target.value })}
+                                placeholder="https://company.my.salesforce.com"
                                 style={{ width: '100%', padding: '6px 8px', fontSize: '0.8rem' }}
                               />
                             </div>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                               <div>
                                 <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Connected App Client ID:</label>
-                                <input 
-                                  type="text" 
-                                  value={newSourceForm.sfClientId} 
-                                  onChange={e => setNewSourceForm({ ...newSourceForm, sfClientId: e.target.value })} 
-                                  placeholder="3MVG9..." 
+                                <input
+                                  type="text"
+                                  value={newSourceForm.sfClientId}
+                                  onChange={e => setNewSourceForm({ ...newSourceForm, sfClientId: e.target.value })}
+                                  placeholder="3MVG9..."
                                   style={{ width: '100%', padding: '6px 8px', fontSize: '0.8rem' }}
                                 />
                               </div>
                               <div>
                                 <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Client Secret:</label>
-                                <input 
-                                  type="password" 
-                                  value={newSourceForm.sfClientSecret} 
-                                  onChange={e => setNewSourceForm({ ...newSourceForm, sfClientSecret: e.target.value })} 
-                                  placeholder="••••••••" 
+                                <input
+                                  type="password"
+                                  value={newSourceForm.sfClientSecret}
+                                  onChange={e => setNewSourceForm({ ...newSourceForm, sfClientSecret: e.target.value })}
+                                  placeholder="••••••••"
                                   style={{ width: '100%', padding: '6px 8px', fontSize: '0.8rem' }}
                                 />
                               </div>
                             </div>
                             <div>
                               <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Target SObjects to Ingest (comma-separated):</label>
-                              <input 
-                                type="text" 
-                                value={newSourceForm.sfObjects} 
-                                onChange={e => setNewSourceForm({ ...newSourceForm, sfObjects: e.target.value })} 
-                                placeholder="Contract, Refund_Request__c, Case, Opportunity" 
+                              <input
+                                type="text"
+                                value={newSourceForm.sfObjects}
+                                onChange={e => setNewSourceForm({ ...newSourceForm, sfObjects: e.target.value })}
+                                placeholder="Contract, Refund_Request__c, Case, Opportunity"
                                 style={{ width: '100%', padding: '6px 8px', fontSize: '0.8rem' }}
                               />
                             </div>
@@ -3022,32 +3047,32 @@ export default function App() {
                           <div style={{ background: '#F8FAFC', border: '1px solid var(--border-subtle)', borderRadius: '6px', padding: '12px', display: 'grid', gap: '10px' }}>
                             <div>
                               <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>MongoDB Connection URI:</label>
-                              <input 
-                                type="text" 
-                                value={newSourceForm.mongoUri} 
-                                onChange={e => setNewSourceForm({ ...newSourceForm, mongoUri: e.target.value })} 
-                                placeholder="mongodb://production-cluster:27017 or mongodb+srv://..." 
+                              <input
+                                type="text"
+                                value={newSourceForm.mongoUri}
+                                onChange={e => setNewSourceForm({ ...newSourceForm, mongoUri: e.target.value })}
+                                placeholder="mongodb://production-cluster:27017 or mongodb+srv://..."
                                 style={{ width: '100%', padding: '6px 8px', fontSize: '0.8rem' }}
                               />
                             </div>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                               <div>
                                 <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Database Name:</label>
-                                <input 
-                                  type="text" 
-                                  value={newSourceForm.mongoDatabase} 
-                                  onChange={e => setNewSourceForm({ ...newSourceForm, mongoDatabase: e.target.value })} 
-                                  placeholder="production" 
+                                <input
+                                  type="text"
+                                  value={newSourceForm.mongoDatabase}
+                                  onChange={e => setNewSourceForm({ ...newSourceForm, mongoDatabase: e.target.value })}
+                                  placeholder="production"
                                   style={{ width: '100%', padding: '6px 8px', fontSize: '0.8rem' }}
                                 />
                               </div>
                               <div>
                                 <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Target Collections (comma-separated):</label>
-                                <input 
-                                  type="text" 
-                                  value={newSourceForm.mongoCollections} 
-                                  onChange={e => setNewSourceForm({ ...newSourceForm, mongoCollections: e.target.value })} 
-                                  placeholder="refund_orders, user_session_entitlements" 
+                                <input
+                                  type="text"
+                                  value={newSourceForm.mongoCollections}
+                                  onChange={e => setNewSourceForm({ ...newSourceForm, mongoCollections: e.target.value })}
+                                  placeholder="refund_orders, user_session_entitlements"
                                   style={{ width: '100%', padding: '6px 8px', fontSize: '0.8rem' }}
                                 />
                               </div>
@@ -3060,8 +3085,8 @@ export default function App() {
                           <div style={{ background: '#F8FAFC', border: '1px solid var(--border-subtle)', borderRadius: '6px', padding: '12px', display: 'grid', gap: '10px' }}>
                             <div>
                               <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>GitHub Repository (owner/repo):</label>
-                              <input 
-                                type="text" 
+                              <input
+                                type="text"
                                 placeholder="e.g. demo-org/security-standards"
                                 value={newSourceForm.githubRepo}
                                 onChange={e => setNewSourceForm({ ...newSourceForm, githubRepo: e.target.value })}
@@ -3072,8 +3097,8 @@ export default function App() {
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                               <div>
                                 <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Branch:</label>
-                                <input 
-                                  type="text" 
+                                <input
+                                  type="text"
                                   value={newSourceForm.githubBranch}
                                   onChange={e => setNewSourceForm({ ...newSourceForm, githubBranch: e.target.value })}
                                   placeholder="main"
@@ -3082,8 +3107,8 @@ export default function App() {
                               </div>
                               <div>
                                 <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Personal Access Token (Optional):</label>
-                                <input 
-                                  type="password" 
+                                <input
+                                  type="password"
                                   value={newSourceForm.githubToken}
                                   onChange={e => setNewSourceForm({ ...newSourceForm, githubToken: e.target.value })}
                                   placeholder="ghp_..."
@@ -3099,8 +3124,8 @@ export default function App() {
                           <div style={{ background: '#F8FAFC', border: '1px solid var(--border-subtle)', borderRadius: '6px', padding: '12px', display: 'grid', gap: '10px' }}>
                             <div>
                               <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Confluence Space Key:</label>
-                              <input 
-                                type="text" 
+                              <input
+                                type="text"
                                 placeholder="POLICIES or HR"
                                 value={newSourceForm.confluenceSpace}
                                 onChange={e => setNewSourceForm({ ...newSourceForm, confluenceSpace: e.target.value })}
@@ -3110,8 +3135,8 @@ export default function App() {
                             </div>
                             <div>
                               <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Atlassian Base URL (Optional):</label>
-                              <input 
-                                type="text" 
+                              <input
+                                type="text"
                                 placeholder="https://yourcompany.atlassian.net"
                                 value={newSourceForm.confluenceBaseUrl}
                                 onChange={e => setNewSourceForm({ ...newSourceForm, confluenceBaseUrl: e.target.value })}
@@ -3126,8 +3151,8 @@ export default function App() {
                           <div style={{ background: '#F8FAFC', border: '1px solid var(--border-subtle)', borderRadius: '6px', padding: '12px', display: 'grid', gap: '10px' }}>
                             <div>
                               <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Jira Project Key:</label>
-                              <input 
-                                type="text" 
+                              <input
+                                type="text"
                                 placeholder="OPS or SEC"
                                 value={newSourceForm.jiraProject}
                                 onChange={e => setNewSourceForm({ ...newSourceForm, jiraProject: e.target.value })}
@@ -3137,8 +3162,8 @@ export default function App() {
                             </div>
                             <div>
                               <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Atlassian Base URL (Optional):</label>
-                              <input 
-                                type="text" 
+                              <input
+                                type="text"
                                 placeholder="https://yourcompany.atlassian.net"
                                 value={newSourceForm.jiraBaseUrl}
                                 onChange={e => setNewSourceForm({ ...newSourceForm, jiraBaseUrl: e.target.value })}
@@ -3154,21 +3179,21 @@ export default function App() {
                             <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '10px' }}>
                               <div>
                                 <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Host / Cluster Endpoint / Account URL:</label>
-                                <input 
-                                  type="text" 
-                                  value={genericConfig.host} 
-                                  onChange={e => setGenericConfig({ ...genericConfig, host: e.target.value })} 
-                                  placeholder={`e.g. ${newSourceForm.sourceType}-cluster.prod.internal or https://${newSourceForm.sourceType}.corp.com`} 
+                                <input
+                                  type="text"
+                                  value={genericConfig.host}
+                                  onChange={e => setGenericConfig({ ...genericConfig, host: e.target.value })}
+                                  placeholder={`e.g. ${newSourceForm.sourceType}-cluster.prod.internal or https://${newSourceForm.sourceType}.corp.com`}
                                   style={{ width: '100%', padding: '6px 8px', fontSize: '0.8rem' }}
                                 />
                               </div>
                               <div>
                                 <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Port (Optional):</label>
-                                <input 
-                                  type="number" 
-                                  value={genericConfig.port} 
-                                  onChange={e => setGenericConfig({ ...genericConfig, port: e.target.value })} 
-                                  placeholder="Default" 
+                                <input
+                                  type="number"
+                                  value={genericConfig.port}
+                                  onChange={e => setGenericConfig({ ...genericConfig, port: e.target.value })}
+                                  placeholder="Default"
                                   style={{ width: '100%', padding: '6px 8px', fontSize: '0.8rem' }}
                                 />
                               </div>
@@ -3176,21 +3201,21 @@ export default function App() {
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                               <div>
                                 <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Database / Workspace / Project:</label>
-                                <input 
-                                  type="text" 
-                                  value={genericConfig.database} 
-                                  onChange={e => setGenericConfig({ ...genericConfig, database: e.target.value })} 
-                                  placeholder="analytics_prod or default" 
+                                <input
+                                  type="text"
+                                  value={genericConfig.database}
+                                  onChange={e => setGenericConfig({ ...genericConfig, database: e.target.value })}
+                                  placeholder="analytics_prod or default"
                                   style={{ width: '100%', padding: '6px 8px', fontSize: '0.8rem' }}
                                 />
                               </div>
                               <div>
                                 <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Target Schemas / Datasets:</label>
-                                <input 
-                                  type="text" 
-                                  value={genericConfig.schemas} 
-                                  onChange={e => setGenericConfig({ ...genericConfig, schemas: e.target.value })} 
-                                  placeholder="public, models, core" 
+                                <input
+                                  type="text"
+                                  value={genericConfig.schemas}
+                                  onChange={e => setGenericConfig({ ...genericConfig, schemas: e.target.value })}
+                                  placeholder="public, models, core"
                                   style={{ width: '100%', padding: '6px 8px', fontSize: '0.8rem' }}
                                 />
                               </div>
@@ -3198,21 +3223,21 @@ export default function App() {
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                               <div>
                                 <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Username / Service Account:</label>
-                                <input 
-                                  type="text" 
-                                  value={genericConfig.username} 
-                                  onChange={e => setGenericConfig({ ...genericConfig, username: e.target.value })} 
-                                  placeholder="service_account_bot" 
+                                <input
+                                  type="text"
+                                  value={genericConfig.username}
+                                  onChange={e => setGenericConfig({ ...genericConfig, username: e.target.value })}
+                                  placeholder="service_account_bot"
                                   style={{ width: '100%', padding: '6px 8px', fontSize: '0.8rem' }}
                                 />
                               </div>
                               <div>
                                 <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Password / API Key / Secret:</label>
-                                <input 
-                                  type="password" 
-                                  value={genericConfig.password} 
-                                  onChange={e => setGenericConfig({ ...genericConfig, password: e.target.value })} 
-                                  placeholder="••••••••" 
+                                <input
+                                  type="password"
+                                  value={genericConfig.password}
+                                  onChange={e => setGenericConfig({ ...genericConfig, password: e.target.value })}
+                                  placeholder="••••••••"
                                   style={{ width: '100%', padding: '6px 8px', fontSize: '0.8rem' }}
                                 />
                               </div>
@@ -3230,10 +3255,10 @@ export default function App() {
                               {newSourceForm.authorityLevel}%
                             </span>
                           </div>
-                          <input 
-                            type="range" 
-                            min="10" 
-                            max="100" 
+                          <input
+                            type="range"
+                            min="10"
+                            max="100"
                             value={newSourceForm.authorityLevel}
                             onChange={e => setNewSourceForm({ ...newSourceForm, authorityLevel: e.target.value })}
                             style={{ width: '100%' }}
@@ -3267,8 +3292,8 @@ export default function App() {
 
                         {/* Action Buttons */}
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px' }}>
-                          <button 
-                            type="button" 
+                          <button
+                            type="button"
                             onClick={handleTestConnection}
                             disabled={isTestingConnection}
                             className="btn btn-secondary"
@@ -3278,16 +3303,16 @@ export default function App() {
                           </button>
 
                           <div style={{ display: 'flex', gap: '8px' }}>
-                            <button 
-                              type="button" 
+                            <button
+                              type="button"
                               onClick={() => { setShowAddSourceModal(false); setTestConnectionResult(null); }}
                               className="btn btn-secondary"
                               style={{ padding: '8px 14px', fontSize: '0.8rem' }}
                             >
                               Cancel
                             </button>
-                            <button 
-                              type="submit" 
+                            <button
+                              type="submit"
                               disabled={isConnectingSource}
                               className="btn btn-primary"
                               style={{ padding: '8px 18px', fontSize: '0.8rem' }}
@@ -3306,7 +3331,7 @@ export default function App() {
             {/* VIEW 1: INGEST NEW DOCUMENT */}
             {docExplorerView === 'ingest' && (
               <div style={{ display: 'grid', gridTemplateColumns: '400px 1fr', gap: '20px' }}>
-                
+
                 {/* Ingest Form */}
                 <div className="clean-panel" style={{ padding: '20px' }}>
                   <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '14px' }}>
@@ -3314,7 +3339,7 @@ export default function App() {
                   </h3>
 
                   <div style={{ display: 'grid', gap: '14px' }}>
-                    
+
                     {/* Drag and Drop File Upload Zone */}
                     <div
                       onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
@@ -3387,9 +3412,9 @@ export default function App() {
                       <label style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 700, display: 'block', marginBottom: '4px' }}>
                         Document Title:
                       </label>
-                      <input 
-                        type="text" 
-                        value={docInput.title} 
+                      <input
+                        type="text"
+                        value={docInput.title}
                         onChange={e => setDocInput({ ...docInput, title: e.target.value })}
                         style={{ width: '100%', padding: '8px 10px', fontSize: '0.85rem' }}
                       />
@@ -3399,8 +3424,8 @@ export default function App() {
                       <label style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 700, display: 'block', marginBottom: '4px' }}>
                         Document Type:
                       </label>
-                      <select 
-                        value={docInput.docType} 
+                      <select
+                        value={docInput.docType}
                         onChange={e => setDocInput({ ...docInput, docType: e.target.value })}
                         style={{ width: '100%', padding: '8px 10px', fontSize: '0.85rem' }}
                       >
@@ -3415,18 +3440,18 @@ export default function App() {
                       <label style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 700, display: 'block', marginBottom: '4px' }}>
                         Raw Markdown Content:
                       </label>
-                      <textarea 
+                      <textarea
                         rows={6}
-                        value={docInput.content} 
+                        value={docInput.content}
                         onChange={e => setDocInput({ ...docInput, content: e.target.value })}
                         style={{ width: '100%', padding: '8px 10px', fontFamily: 'var(--font-mono)', fontSize: '0.78rem' }}
                       />
                     </div>
 
-                    <button 
-                      onClick={handleIngestDocument} 
+                    <button
+                      onClick={handleIngestDocument}
                       disabled={ingesting}
-                      className="btn btn-primary" 
+                      className="btn btn-primary"
                       style={{ width: '100%', padding: '10px' }}
                     >
                       {ingesting ? "Extracting Claims..." : "Ingest Document"}
@@ -3486,7 +3511,7 @@ export default function App() {
                   <div style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--text-main)' }}>
                     Documents in PostgreSQL ({dbDocuments.length})
                   </div>
-                  <input 
+                  <input
                     type="text"
                     placeholder="Search documents by title or external ID..."
                     value={dbSearchQuery}
@@ -3502,9 +3527,9 @@ export default function App() {
                 ) : (
                   <div style={{ display: 'grid', gap: '12px' }}>
                     {dbDocuments
-                      .filter(d => 
-                        !dbSearchQuery || 
-                        d.title?.toLowerCase().includes(dbSearchQuery.toLowerCase()) || 
+                      .filter(d =>
+                        !dbSearchQuery ||
+                        d.title?.toLowerCase().includes(dbSearchQuery.toLowerCase()) ||
                         d.external_id?.toLowerCase().includes(dbSearchQuery.toLowerCase())
                       )
                       .map((doc, idx) => (
@@ -3551,25 +3576,25 @@ export default function App() {
                       Atomic Claims ({dbClaims.length})
                     </span>
                     <div className="scenario-bar">
-                      <button 
+                      <button
                         onClick={() => setClaimFilterStatus('all')}
                         className={`scenario-btn ${claimFilterStatus === 'all' ? 'scenario-btn-active' : ''}`}
                       >
                         All ({dbClaims.length})
                       </button>
-                      <button 
+                      <button
                         onClick={() => setClaimFilterStatus('verified')}
                         className={`scenario-btn ${claimFilterStatus === 'verified' ? 'scenario-btn-active' : ''}`}
                       >
                         Verified
                       </button>
-                      <button 
+                      <button
                         onClick={() => setClaimFilterStatus('outdated')}
                         className={`scenario-btn ${claimFilterStatus === 'outdated' ? 'scenario-btn-active' : ''}`}
                       >
                         Outdated
                       </button>
-                      <button 
+                      <button
                         onClick={() => setClaimFilterStatus('conflicted')}
                         className={`scenario-btn ${claimFilterStatus === 'conflicted' ? 'scenario-btn-active' : ''}`}
                       >
@@ -3578,7 +3603,7 @@ export default function App() {
                     </div>
                   </div>
 
-                  <input 
+                  <input
                     type="text"
                     placeholder="Search claims by keyword, subject, or predicate..."
                     value={dbSearchQuery}
@@ -3595,9 +3620,9 @@ export default function App() {
                   <div style={{ display: 'grid', gap: '12px' }}>
                     {dbClaims
                       .filter(c => claimFilterStatus === 'all' || c.status?.toLowerCase() === claimFilterStatus)
-                      .filter(c => 
-                        !dbSearchQuery || 
-                        c.claim_text?.toLowerCase().includes(dbSearchQuery.toLowerCase()) || 
+                      .filter(c =>
+                        !dbSearchQuery ||
+                        c.claim_text?.toLowerCase().includes(dbSearchQuery.toLowerCase()) ||
                         c.subject?.toLowerCase().includes(dbSearchQuery.toLowerCase()) ||
                         c.predicate?.toLowerCase().includes(dbSearchQuery.toLowerCase())
                       )
@@ -4029,7 +4054,7 @@ export default function App() {
                     overflowX: 'auto',
                     marginBottom: '14px'
                   }}>
-{`{
+                    {`{
   "mcpServers": {
     "context-trust-layer": {
       "command": "python",
@@ -4091,7 +4116,7 @@ export default function App() {
                     overflowX: 'auto',
                     marginBottom: '14px'
                   }}>
-{`{
+                    {`{
   "mcpServers": {
     "context-trust-layer": {
       "url": "http://127.0.0.1:8000/v1/mcp"
@@ -4371,7 +4396,7 @@ curl -X POST http://127.0.0.1:8000/v1/mcp \\
         {/* ========================================================= */}
         {activeTab === 'audit' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            
+
             {/* Top Header & Compliance Export Actions */}
             <div className="clean-panel" style={{ padding: '24px', background: 'var(--bg-card)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
@@ -4394,7 +4419,7 @@ curl -X POST http://127.0.0.1:8000/v1/mcp \\
 
                 {/* Right: Export & Refresh Buttons */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                  <button 
+                  <button
                     onClick={() => fetchAuditLogs(activeOrg?.id)}
                     className="btn btn-secondary"
                     disabled={auditLoading}
@@ -4405,14 +4430,14 @@ curl -X POST http://127.0.0.1:8000/v1/mcp \\
                     </span>
                     {auditLoading ? 'Refreshing...' : 'Refresh Logs'}
                   </button>
-                  <button 
+                  <button
                     onClick={() => handleExportAuditLogs('csv')}
                     className="btn btn-secondary"
                     style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', padding: '7px 13px' }}
                   >
                     <span>📊</span> Export CSV
                   </button>
-                  <button 
+                  <button
                     onClick={() => handleExportAuditLogs('json')}
                     className="btn btn-primary"
                     style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', padding: '7px 14px' }}
@@ -4493,10 +4518,10 @@ curl -X POST http://127.0.0.1:8000/v1/mcp \\
 
             {/* Filter Toolbar & Live Audit Log Stream */}
             <div className="clean-panel" style={{ padding: '20px', background: 'var(--bg-card)' }}>
-              
+
               {/* Filter Controls Bar */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '16px' }}>
-                
+
                 {/* Search Box */}
                 <div style={{ position: 'relative', minWidth: '260px', flex: 1, maxWidth: '400px' }}>
                   <input
@@ -4616,7 +4641,7 @@ curl -X POST http://127.0.0.1:8000/v1/mcp \\
                     </thead>
                     <tbody>
                       {auditLogs.map((log) => (
-                        <tr 
+                        <tr
                           key={log.id || log.audit_id}
                           style={{
                             borderBottom: '1px solid var(--border-subtle)',
@@ -4661,11 +4686,11 @@ curl -X POST http://127.0.0.1:8000/v1/mcp \\
 
                           {/* Verdict */}
                           <td style={{ padding: '12px' }}>
-                            <span 
+                            <span
                               className={
                                 log.verdict === 'ALLOW' ? 'badge badge-verified' :
-                                log.verdict === 'BLOCK' ? 'badge badge-warning' :
-                                'badge badge-review'
+                                  log.verdict === 'BLOCK' ? 'badge badge-warning' :
+                                    'badge badge-review'
                               }
                               style={{ fontSize: '0.72rem', padding: '2px 8px', fontWeight: 800 }}
                             >
@@ -4675,7 +4700,7 @@ curl -X POST http://127.0.0.1:8000/v1/mcp \\
 
                           {/* Risk */}
                           <td style={{ padding: '12px' }}>
-                            <span 
+                            <span
                               style={{
                                 fontSize: '0.7rem',
                                 fontWeight: 700,
@@ -4727,6 +4752,68 @@ curl -X POST http://127.0.0.1:8000/v1/mcp \\
             </div>
           </div>
         )}
+
+        {/* ========================================================= */}
+        {/* ENTERPRISE TAB 1: LIVE INGESTION STUDIO (OPTION 1)        */}
+        {/* ========================================================= */}
+        {activeTab === 'live_ingestion' && (
+          <LiveIngestionStudio
+            activeOrg={activeOrg}
+            activePersona={activePersona}
+            onClaimExtracted={() => {
+              fetchLiveDatabaseRecords();
+              fetchHealthAndConflicts(activeOrg?.id);
+            }}
+            showToast={showToast}
+          />
+        )}
+
+        {/* ========================================================= */}
+        {/* ENTERPRISE TAB 2: VISUAL LINEAGE GRAPH (OPTION 2)         */}
+        {/* ========================================================= */}
+        {activeTab === 'visual_lineage' && (
+          <VisualLineageGraph
+            activeOrg={activeOrg}
+            showToast={showToast}
+          />
+        )}
+
+        {/* ========================================================= */}
+        {/* ENTERPRISE TAB 3: CONTEXT CURATOR BOT (OPTION 3)          */}
+        {/* ========================================================= */}
+        {(activeTab === 'context_curator' || activeTab === 'conflicts') && (
+          <ContextCuratorStudio
+            activeOrg={activeOrg}
+            showToast={showToast}
+            conflicts={conflicts}
+            onResolveConflict={handleResolveConflict}
+            onRefreshConflicts={() => fetchHealthAndConflicts(activeOrg?.id)}
+            initialSubView={activeTab === 'conflicts' ? 'conflicts' : curatorSubView}
+            onSubViewChange={setCuratorSubView}
+          />
+        )}
+
+        {/* ========================================================= */}
+        {/* ENTERPRISE TAB 4: MCP INTEGRATION STUDIO (OPTION 4)       */}
+        {/* ========================================================= */}
+        {activeTab === 'integrations' && (
+          <McpIntegrationStudio
+            activeOrg={activeOrg}
+            showToast={showToast}
+          />
+        )}
+
+        {/* ========================================================= */}
+        {/* TAB 7: TEAM, PERSONAS & GOVERNANCE ACTIVITY HUB           */}
+        {/* ========================================================= */}
+        {activeTab === 'team' && (
+          <TeamAndActivityHub
+            activeOrg={activeOrg}
+            activePersona={activePersona}
+            onSelectPersona={(p) => setActivePersona(p)}
+            showToast={showToast}
+          />
+        )}
       </main>
 
       {/* ========================================================= */}
@@ -4748,7 +4835,7 @@ curl -X POST http://127.0.0.1:8000/v1/mcp \\
           padding: '20px'
         }}>
           <div className="clean-panel" style={{ width: '100%', maxWidth: '850px', maxHeight: '90vh', overflowY: 'auto', padding: '28px', background: 'var(--bg-card)' }}>
-            
+
             {/* Modal Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '16px', marginBottom: '20px' }}>
               <div>
@@ -4937,11 +5024,11 @@ curl -X POST http://127.0.0.1:8000/v1/mcp \\
                       <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
                         Latency: {selectedAuditLineage.stage_4_verdict.execution_ms} ms
                       </span>
-                      <span 
+                      <span
                         className={
                           selectedAuditLineage.stage_4_verdict.verdict === 'ALLOW' ? 'badge badge-verified' :
-                          selectedAuditLineage.stage_4_verdict.verdict === 'BLOCK' ? 'badge badge-warning' :
-                          'badge badge-review'
+                            selectedAuditLineage.stage_4_verdict.verdict === 'BLOCK' ? 'badge badge-warning' :
+                              'badge badge-review'
                         }
                         style={{ fontSize: '0.75rem', padding: '3px 10px', fontWeight: 800 }}
                       >
@@ -5031,7 +5118,7 @@ curl -X POST http://127.0.0.1:8000/v1/mcp \\
                   Create an isolated tenant domain for your client company.
                 </p>
               </div>
-              <button 
+              <button
                 onClick={() => setShowNewOrgModal(false)}
                 style={{ background: 'transparent', border: 'none', fontSize: '1.2rem', color: 'var(--text-muted)', cursor: 'pointer' }}
               >
@@ -5044,7 +5131,7 @@ curl -X POST http://127.0.0.1:8000/v1/mcp \\
                 <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '6px' }}>
                   Company / Organization Name *
                 </label>
-                <input 
+                <input
                   type="text"
                   placeholder="e.g. demo, Demo Enterprise..."
                   value={newOrgName}
@@ -5063,7 +5150,7 @@ curl -X POST http://127.0.0.1:8000/v1/mcp \\
                 <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '6px' }}>
                   Workspace Tenant Slug *
                 </label>
-                <input 
+                <input
                   type="text"
                   placeholder="e.g. demo, demo-prod"
                   value={newOrgSlug}
@@ -5077,16 +5164,16 @@ curl -X POST http://127.0.0.1:8000/v1/mcp \\
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   onClick={() => setShowNewOrgModal(false)}
                   className="btn btn-secondary"
                   style={{ padding: '8px 16px', fontSize: '0.82rem' }}
                 >
                   Cancel
                 </button>
-                <button 
-                  type="submit" 
+                <button
+                  type="submit"
                   disabled={isCreatingOrg || !newOrgName.trim()}
                   className="btn btn-primary"
                   style={{ padding: '8px 20px', fontSize: '0.82rem' }}
@@ -5130,7 +5217,7 @@ curl -X POST http://127.0.0.1:8000/v1/mcp \\
                   Add a functional domain workspace under this client company.
                 </p>
               </div>
-              <button 
+              <button
                 onClick={() => setShowNewWorkspaceModal(false)}
                 style={{ background: 'transparent', border: 'none', fontSize: '1.2rem', color: 'var(--text-muted)', cursor: 'pointer' }}
               >
@@ -5143,7 +5230,7 @@ curl -X POST http://127.0.0.1:8000/v1/mcp \\
                 <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '6px' }}>
                   Workspace Name *
                 </label>
-                <input 
+                <input
                   type="text"
                   placeholder="e.g. Legal & Compliance, Growth Engineering, EMEA Support..."
                   value={newWorkspaceName}
@@ -5175,7 +5262,7 @@ curl -X POST http://127.0.0.1:8000/v1/mcp \\
                 <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '6px' }}>
                   Workspace Scope & Purpose
                 </label>
-                <input 
+                <input
                   type="text"
                   placeholder="e.g. Dedicated space for compliance audits and legal policy validation"
                   value={newWorkspaceDescription}
@@ -5185,16 +5272,16 @@ curl -X POST http://127.0.0.1:8000/v1/mcp \\
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   onClick={() => setShowNewWorkspaceModal(false)}
                   className="btn btn-secondary"
                   style={{ padding: '8px 16px', fontSize: '0.82rem' }}
                 >
                   Cancel
                 </button>
-                <button 
-                  type="submit" 
+                <button
+                  type="submit"
                   disabled={!newWorkspaceName.trim()}
                   className="btn btn-primary"
                   style={{ padding: '8px 20px', fontSize: '0.82rem' }}

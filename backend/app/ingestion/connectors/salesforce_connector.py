@@ -148,7 +148,7 @@ class SalesforceConnector(BaseConnector):
                         "fields_count": len(sobj_data.get("fields", [])),
                     },
                 )
-                doc, ver, _ = await self.ingestion_service.ingest_document(doc_in)
+                doc, ver, _, is_changed = await self.ingestion_service.ingest_document_with_dedup(doc_in)
                 synced.append((doc, ver))
 
         return synced

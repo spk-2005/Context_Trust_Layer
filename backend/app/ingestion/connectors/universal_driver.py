@@ -163,7 +163,7 @@ class UniversalConnectorDriver(BaseConnector):
                     **self.config,
                 },
             )
-            doc, ver, _ = await self.ingestion_service.ingest_document(doc_in)
+            doc, ver, _, _ = await self.ingestion_service.ingest_document_with_dedup(doc_in)
             return [(doc, ver)]
 
     async def _sync_configured_target(self, endpoint: str) -> list[tuple[Document, DocumentVersion]]:
@@ -197,5 +197,5 @@ class UniversalConnectorDriver(BaseConnector):
                 "schema": schema_name,
             },
         )
-        doc, ver, _ = await self.ingestion_service.ingest_document(doc_in)
+        doc, ver, _, _ = await self.ingestion_service.ingest_document_with_dedup(doc_in)
         return [(doc, ver)]

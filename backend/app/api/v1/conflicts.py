@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.database import get_db
 from app.db.repositories.conflict_repository import ConflictRepository
 from app.schemas.conflict import ConflictResolveRequest, ConflictResponse
+from app.services.activity_service import ActivityService
 from app.services.conflict_service import ConflictService
 
 router = APIRouter(prefix="/conflicts", tags=["conflicts"])
@@ -46,9 +47,12 @@ async def re_evaluate_conflicts(
 async def resolve_conflict(
     conflict_id: uuid.UUID,
     req: ConflictResolveRequest,
+    user_name: str = Query(default="Diana Vance", description="Name of acting user"),
+    user_role: str = Query(default="reviewer", description="Role of acting user"),
     db: AsyncSession = Depends(get_db),
 ):
     service = ConflictService(db)
+    activity_service = ActivityService(db)
     conflict = await service.resolve_conflict(
         conflict_id=conflict_id,
         reviewer_id=req.reviewer_id,
@@ -56,6 +60,28 @@ async def resolve_conflict(
         chosen_claim_id=req.chosen_claim_id,
         reason=req.reason,
     )
+    # Log resolution activity
+    if conflict:
+        # Determine organization_id from claim_a if available
+        org_id = uuid.UUID("11111111-1111-1111-1111-111111111111")
+        if conflict.claim_a and conflict.claim_a.organization_id:
+            org_id = conflict.claim_a.organization_id
+        await activity_service.log_activity(
+            organization_id=org_id,
+            user_id=req.reviewer_id,
+            user_name=user_name,
+            user_role=user_role,
+            action_type="CONFLICT_RESOLVED",
+            target_type="conflict",
+            target_id=str(conflict.id),
+            target_title=f"Conflict {str(conflict.id)[:8]} ({conflict.conflict_type})",
+            domain="Finance & Billing",
+            details={
+                "decision": req.decision.value if hasattr(req.decision, "value") else str(req.decision),
+                "chosen_claim_id": str(req.chosen_claim_id) if req.chosen_claim_id else None,
+                "reason": req.reason,
+            },
+        )
     await db.commit()
     return ConflictResponse.model_validate(conflict)
 

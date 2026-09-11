@@ -43,7 +43,8 @@ class FileConnector(BaseConnector):
             external_id=external_id,
             metadata=metadata,
         )
-        return await self.ingestion_service.ingest_document(doc_in)
+        doc, ver, _, is_changed = await self.ingestion_service.ingest_document_with_dedup(doc_in)
+        return doc, ver
 
     async def sync(self) -> Sequence[tuple[Document, DocumentVersion]]:
         results: list[tuple[Document, DocumentVersion]] = []

@@ -18,6 +18,7 @@ from app.schemas.data_source import (
     DataSourceCreate,
     DataSourceResponse,
 )
+from app.services.activity_service import ActivityService
 
 router = APIRouter(prefix="/sources", tags=["sources"])
 
@@ -197,10 +198,14 @@ async def list_data_sources(
 @router.post("", response_model=DataSourceResponse, status_code=status.HTTP_201_CREATED)
 async def create_data_source(
     data: DataSourceCreate,
+    user_name: str = Query(default="Alex Rivera", description="Name of acting user"),
+    user_role: str = Query(default="data_owner", description="Role of acting user"),
+    user_id: uuid.UUID | None = Query(default=None),
     db: AsyncSession = Depends(get_db),
 ):
     """Register a new live data source connector."""
     repo = DataSourceRepository(db)
+    activity_service = ActivityService(db)
     source = await repo.get_or_create(
         organization_id=data.organization_id,
         name=data.name,
@@ -208,6 +213,18 @@ async def create_data_source(
         external_id=data.external_id,
         authority_level=data.authority_level,
         connection_config=data.connection_config,
+    )
+    await activity_service.log_activity(
+        organization_id=data.organization_id,
+        user_id=user_id,
+        user_name=user_name,
+        user_role=user_role,
+        action_type="SOURCE_CREATED",
+        target_type="data_source",
+        target_id=str(source.id),
+        target_title=source.name,
+        domain="Engineering & Platform",
+        details={"source_type": source.source_type, "authority_level": source.authority_level},
     )
     await db.commit()
     return DataSourceResponse.model_validate(source)
@@ -217,12 +234,39 @@ async def create_data_source(
 async def sync_single_source(
     source_id: uuid.UUID,
     use_mock_llm: bool = Query(True, description="Use fast deterministic rule-based LLM for extraction"),
+    user_name: str = Query(default="Alex Rivera", description="Name of acting user"),
+    user_role: str = Query(default="data_owner", description="Role of acting user"),
+    user_id: uuid.UUID | None = Query(default=None),
     db: AsyncSession = Depends(get_db),
 ):
     """Trigger an immediate live sync for a specific connector. Automatically extracts claims and detects conflicts."""
     sync_engine = SyncEngine(db)
+    activity_service = ActivityService(db)
+    repo = DataSourceRepository(db)
+    source = await repo.get_by_id(source_id)
+
     try:
         result = await sync_engine.sync_data_source(source_id=source_id, use_mock_llm=use_mock_llm)
+        if source:
+            await activity_service.log_activity(
+                organization_id=source.organization_id,
+                user_id=user_id,
+                user_name=user_name,
+                user_role=user_role,
+                action_type="SOURCE_SYNCED",
+                target_type="data_source",
+                target_id=str(source.id),
+                target_title=source.name,
+                domain="Engineering & Platform",
+                details={
+                    "documents_synced": result.documents_synced,
+                    "documents_created": result.documents_created,
+                    "documents_skipped": result.documents_skipped,
+                    "claims_extracted": result.claims_extracted,
+                    "execution_time_ms": result.execution_time_ms,
+                },
+            )
+            await db.commit()
         return result
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
