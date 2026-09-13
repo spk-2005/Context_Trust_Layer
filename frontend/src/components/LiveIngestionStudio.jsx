@@ -9,26 +9,7 @@ export default function LiveIngestionStudio({ activeOrg, activePersona, onClaimE
   const [isProcessing, setIsProcessing] = useState(false);
   const [pipelineStage, setPipelineStage] = useState(0); // 0: Idle, 1: Uploading, 2: Parsing, 3: Extracting Claims, 4: Scoring Trust, 5: Conflict Check, 6: Done
   const [pipelineResult, setPipelineResult] = useState(null);
-  const [history, setHistory] = useState([
-    {
-      filename: "Customer_Refund_Policy_2026_V2.pdf",
-      title: "Customer Refund Policy 2026 (V2)",
-      claimsCount: 3,
-      durationMs: 412,
-      time: "10 mins ago",
-      type: "policy",
-      status: "verified"
-    },
-    {
-      filename: "VP_Engineering_Remote_Flexibility_Memo.md",
-      title: "VP Engineering Remote Flexibility Memo",
-      claimsCount: 2,
-      durationMs: 385,
-      time: "25 mins ago",
-      type: "memo",
-      status: "verified"
-    }
-  ]);
+  const [history, setHistory] = useState([]);
 
   const stages = [
     { label: "File Ingestion & Parsing", icon: "📄", desc: "Extract raw structure, headers, and metadata" },
@@ -518,32 +499,40 @@ export default function LiveIngestionStudio({ activeOrg, activePersona, onClaimE
               </tr>
             </thead>
             <tbody>
-              {history.map((item, idx) => (
-                <tr key={idx} style={{ borderBottom: '1px solid var(--border-color)' }}>
-                  <td style={{ padding: '10px 12px', fontWeight: 600, color: 'var(--text-main)', wordBreak: 'break-word' }}>
-                    📄 {item.title}
-                  </td>
-                  <td style={{ padding: '10px 12px' }}>
-                    <span className="badge" style={{ textTransform: 'capitalize', fontSize: '0.68rem' }}>
-                      {item.type}
-                    </span>
-                  </td>
-                  <td style={{ padding: '10px 12px' }}>
-                    <span style={{ fontWeight: 600, color: '#2026d2' }}>{item.claimsCount} claims</span>
-                  </td>
-                  <td style={{ padding: '10px 12px', color: 'var(--text-muted)' }}>
-                    {item.durationMs}ms
-                  </td>
-                  <td style={{ padding: '10px 12px' }}>
-                    <span className="badge badge-verified" style={{ fontSize: '0.65rem' }}>
-                      Verified
-                    </span>
-                  </td>
-                  <td style={{ padding: '10px 12px', color: 'var(--text-muted)' }}>
-                    {item.time}
+              {history.length === 0 ? (
+                <tr>
+                  <td colSpan="6" style={{ padding: '24px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.82rem' }}>
+                    No documents ingested in this session yet. Upload a PDF file above to trigger the ingestion & auto-claim extraction pipeline.
                   </td>
                 </tr>
-              ))}
+              ) : (
+                history.map((item, idx) => (
+                  <tr key={idx} style={{ borderBottom: '1px solid var(--border-color)' }}>
+                    <td style={{ padding: '10px 12px', fontWeight: 600, color: 'var(--text-main)', wordBreak: 'break-word' }}>
+                      📄 {item.title}
+                    </td>
+                    <td style={{ padding: '10px 12px' }}>
+                      <span className="badge" style={{ textTransform: 'capitalize', fontSize: '0.68rem' }}>
+                        {item.type}
+                      </span>
+                    </td>
+                    <td style={{ padding: '10px 12px' }}>
+                      <span style={{ fontWeight: 600, color: '#2026d2' }}>{item.claimsCount} claims</span>
+                    </td>
+                    <td style={{ padding: '10px 12px', color: 'var(--text-muted)' }}>
+                      {item.durationMs}ms
+                    </td>
+                    <td style={{ padding: '10px 12px' }}>
+                      <span className="badge badge-verified" style={{ fontSize: '0.65rem' }}>
+                        Verified
+                      </span>
+                    </td>
+                    <td style={{ padding: '10px 12px', color: 'var(--text-muted)' }}>
+                      {item.time}
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

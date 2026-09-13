@@ -64,6 +64,44 @@ class TestMockLLMProvider(unittest.TestCase):
 
         asyncio.run(run_test())
 
+    def test_evaluate_contradiction_page_header_compatible(self):
+        async def run_test():
+            claim_a = "SS FINANCE ARCHITECT 01 Customer Refund & Disputes Policy Document ID: SSFA-01 | Version: 2026.2 | Authority: 85 Chapter 1: Refund Page 1 Section purpose: Refunds, disputes, settlement authority."
+            claim_b = "Chapter 1: Refund Page 2 Section purpose: Refunds, disputes, settlement authority."
+            claim_c = "Refund example: transaction RF-01-001; standard automated limit $2,500; Enterprise exception limit $10,000."
+
+            eval_res_headers = await self.provider.evaluate_contradiction(claim_a, claim_b)
+            self.assertFalse(eval_res_headers.is_contradiction)
+            self.assertEqual(eval_res_headers.conflict_type, "compatible")
+
+            eval_res_meta_vs_rule = await self.provider.evaluate_contradiction(claim_a, claim_c)
+            self.assertFalse(eval_res_meta_vs_rule.is_contradiction)
+            self.assertEqual(eval_res_meta_vs_rule.conflict_type, "compatible")
+
+        asyncio.run(run_test())
+
+    def test_evaluate_contradiction_true_currency_discrepancy(self):
+        async def run_test():
+            claim_a = "Standard automated refund limit is $2,500."
+            claim_b = "Standard automated refund limit is $1,000."
+
+            eval_res = await self.provider.evaluate_contradiction(claim_a, claim_b)
+            self.assertTrue(eval_res.is_contradiction)
+            self.assertEqual(eval_res.conflict_type, "numerical_discrepancy")
+
+        asyncio.run(run_test())
+
+    def test_evaluate_contradiction_segregation_of_duties_compatible(self):
+        async def run_test():
+            claim_a = "Control rule 1.1.1: Every transaction must have a traceable transaction identifier, business purpose, responsible owner, approval timestamp and supporting evidence."
+            claim_b = "Approval principle: A person must not approve their own transaction."
+
+            eval_res = await self.provider.evaluate_contradiction(claim_a, claim_b)
+            self.assertFalse(eval_res.is_contradiction)
+            self.assertEqual(eval_res.conflict_type, "compatible")
+
+        asyncio.run(run_test())
+
 
 if __name__ == "__main__":
     unittest.main()

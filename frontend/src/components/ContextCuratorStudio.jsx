@@ -82,15 +82,15 @@ export default function ContextCuratorStudio({
   };
 
   const scorecard = auditData?.health_scorecard || {
-    overall_score: 88.0,
-    grade: "B+",
-    freshness_index: 85.0,
-    contradiction_index: 80.0,
-    coverage_score: 92.5,
-    total_documents: 6,
-    total_claims: 24,
-    active_claims: 22,
-    pending_conflicts: conflicts.length || 2
+    overall_score: 100.0,
+    grade: "A+",
+    freshness_index: 100.0,
+    contradiction_index: 100.0,
+    coverage_score: 100.0,
+    total_documents: 0,
+    total_claims: 0,
+    active_claims: 0,
+    pending_conflicts: conflicts.length || 0
   };
 
   const issues = auditData?.issues || [];
@@ -593,7 +593,7 @@ export default function ContextCuratorStudio({
                             <span className="badge badge-outdated" style={{ fontSize: '0.62rem' }}>ID: {conf.claim_a_id?.substring(0, 8)}</span>
                           </div>
                           <p style={{ fontSize: '0.82rem', color: 'var(--danger-text)', lineHeight: 1.45, fontWeight: 600, margin: 0 }}>
-                            "{claimA?.claim_text || 'Customers are eligible for automated refunds up to ₹25,000 without supervisor approval.'}"
+                            "{claimA?.claim_text || 'No claim text recorded'}"
                           </p>
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.7rem', color: 'var(--text-muted)', paddingTop: '6px', borderTop: '1px solid rgba(220, 38, 38, 0.15)' }}>
@@ -619,7 +619,7 @@ export default function ContextCuratorStudio({
                             <span className="badge badge-allow" style={{ fontSize: '0.62rem' }}>ID: {conf.claim_b_id?.substring(0, 8)}</span>
                           </div>
                           <p style={{ fontSize: '0.82rem', color: 'var(--success-text)', lineHeight: 1.45, fontWeight: 600, margin: 0 }}>
-                            "{claimB?.claim_text || 'Standard automated refund limit is capped at ₹10,000. Higher amounts require VP signoff.'}"
+                            "{claimB?.claim_text || 'No claim text recorded'}"
                           </p>
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.7rem', color: 'var(--text-muted)', paddingTop: '6px', borderTop: '1px solid rgba(22, 163, 74, 0.15)' }}>

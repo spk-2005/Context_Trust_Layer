@@ -52,7 +52,7 @@ class ConflictRepository(BaseRepository[ClaimConflict]):
             stmt = stmt.join(ClaimConflict.claim_a).where(
                 Claim.organization_id == organization_id
             )
-        stmt = stmt.offset(offset).limit(limit).options(
+        stmt = stmt.options(
             selectinload(ClaimConflict.claim_a).selectinload(Claim.validity_records),
             selectinload(ClaimConflict.claim_a).selectinload(Claim.trust_scores),
             selectinload(ClaimConflict.claim_a).selectinload(Claim.evidence),
@@ -61,4 +61,20 @@ class ConflictRepository(BaseRepository[ClaimConflict]):
             selectinload(ClaimConflict.claim_b).selectinload(Claim.evidence),
         )
         result = await self.session.execute(stmt)
-        return result.scalars().all()
+        all_conflicts = result.scalars().all()
+
+        # Deduplicate semantically: ensure unique (text_a, text_b) pairs in queue
+        seen_pairs: set[tuple[str, str]] = set()
+        deduped: list[ClaimConflict] = []
+        for c in all_conflicts:
+            if not c.claim_a or not c.claim_b:
+                continue
+            ta = " ".join(c.claim_a.claim_text.strip().lower().split())
+            tb = " ".join(c.claim_b.claim_text.strip().lower().split())
+            pair_key = (min(ta, tb), max(ta, tb))
+            if pair_key in seen_pairs:
+                continue
+            seen_pairs.add(pair_key)
+            deduped.append(c)
+
+        return deduped[offset : offset + limit]

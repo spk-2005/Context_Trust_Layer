@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { MessageSquare, Plus, MoreHorizontal, Search, Trash2 } from 'lucide-react';
 
 const STARTER_PROMPTS = [
   {
@@ -27,10 +28,12 @@ export default function AgentChatPlayground({
   activeOrg,
   activePersona,
   workspaces,
-  showToast
+  showToast,
+  selectedSessionId,
+  onSessionChange
 }) {
   const [sessions, setSessions] = useState([]);
-  const [activeSessionId, setActiveSessionId] = useState(null);
+  const [activeSessionId, setActiveSessionId] = useState(selectedSessionId || null);
   const [activeSession, setActiveSession] = useState(null);
   const [messages, setMessages] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -40,6 +43,13 @@ export default function AgentChatPlayground({
   const [attachedFile, setAttachedFile] = useState(null);
   const [isLoadingSessions, setIsLoadingSessions] = useState(false);
   const [expandedCitations, setExpandedCitations] = useState({});
+
+  useEffect(() => {
+    if (selectedSessionId && selectedSessionId !== activeSessionId) {
+      setActiveSessionId(selectedSessionId);
+      loadSessionDetails(selectedSessionId);
+    }
+  }, [selectedSessionId]);
 
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -111,6 +121,7 @@ export default function AgentChatPlayground({
         setActiveSessionId(data.id);
         setActiveSession(data);
         setMessages(data.messages || []);
+        if (onSessionChange) onSessionChange(data.id);
       }
     } catch (err) {
       console.error("Failed to load session details", err);
@@ -247,52 +258,52 @@ export default function AgentChatPlayground({
 
   return (
     <div>
-      {/* Top Header */}
-      <div style={{ marginBottom: '18px' }}>
-
-
-      </div>
-
       {/* FULL-SCREEN AI COPILOT CHAT WORKSPACE */}
-      <div style={{ display: 'grid', gridTemplateColumns: '290px 1fr', gap: '16px', height: 'calc(100vh - 230px)', minHeight: '620px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '275px 1fr', gap: '16px', height: 'calc(100vh - 120px)', minHeight: '620px' }}>
 
-        {/* LEFT SIDEBAR: CONVERSATION HISTORY PER USER */}
-        <div className="clean-panel" style={{ display: 'flex', flexDirection: 'column', height: '100%', padding: '14px' }}>
+        {/* LEFT SIDEBAR: CONVERSATION HISTORY PANEL (MATCHING REFERENCE DESIGN) */}
+        <div className="clean-panel" style={{ display: 'flex', flexDirection: 'column', height: '100%', padding: '14px 10px', background: '#FAFAFA' }}>
 
-          {/* New Chat Button */}
-          <button
-            onClick={() => handleCreateNewChat("New Conversation")}
-            className="btn btn-primary"
-            style={{
-              width: '100%',
-              padding: '9px 12px',
-              fontSize: '0.82rem',
-              fontWeight: 700,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '8px',
-              marginBottom: '12px'
-            }}
-          >
-            <span>+</span> New Chat Thread
-          </button>
-
-       
-
-          {/* Search History Filter */}
-          <div style={{ marginBottom: '10px' }}>
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              placeholder="Search conversations..."
-              style={{ width: '100%', padding: '6px 10px', fontSize: '0.78rem', borderRadius: '6px' }}
-            />
+          {/* Section Header: "Chats" with "+" button */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '4px 10px 8px 10px',
+            marginBottom: '4px'
+          }}>
+            <span style={{
+              fontSize: '0.85rem',
+              fontWeight: 600,
+              color: '#94A3B8',
+              letterSpacing: '-0.01em'
+            }}>
+              Chats
+            </span>
+            <button
+              onClick={() => handleCreateNewChat("New Conversation")}
+              title="Create new chat"
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: '#64748B',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '3px 4px',
+                borderRadius: '5px',
+                transition: 'all 0.15s ease'
+              }}
+              onMouseEnter={e => { e.currentTarget.style.color = '#0F172A'; e.currentTarget.style.background = '#F1F5F9'; }}
+              onMouseLeave={e => { e.currentTarget.style.color = '#64748B'; e.currentTarget.style.background = 'transparent'; }}
+            >
+              <Plus size={16} strokeWidth={2} />
+            </button>
           </div>
 
           {/* Sessions List */}
-          <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '2px' }}>
             {isLoadingSessions && (
               <div style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.78rem', padding: '20px' }}>
                 Loading history...
@@ -301,8 +312,8 @@ export default function AgentChatPlayground({
 
             {!isLoadingSessions && filteredSessions.length === 0 && (
               <div style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.78rem', padding: '30px 10px' }}>
-                No previous conversations.<br />
-                Click <strong>+ New Chat</strong> to begin.
+                No conversations found.<br />
+                Click <strong>+</strong> above to start.
               </div>
             )}
 
@@ -313,55 +324,121 @@ export default function AgentChatPlayground({
                   key={sess.id}
                   onClick={() => loadSessionDetails(sess.id)}
                   style={{
-                    padding: '8px 10px',
-                    borderRadius: '6px',
-                    background: isActive ? 'var(--primary-subtle, rgba(99,102,241,0.12))' : 'transparent',
-                    border: isActive ? '1px solid var(--primary)' : '1px solid transparent',
-                    cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'space-between',
-                    transition: 'all 0.15s ease'
+                    gap: '9px',
+                    padding: '6px 9px',
+                    borderRadius: '7px',
+                    background: isActive ? '#EEF2FF' : 'transparent',
+                    cursor: 'pointer',
+                    transition: 'background-color 0.15s ease, color 0.15s ease',
+                    position: 'relative'
+                  }}
+                  onMouseEnter={e => {
+                    if (!isActive) {
+                      e.currentTarget.style.background = '#F1F5F9';
+                      const titleEl = e.currentTarget.querySelector('.chat-title-text');
+                      if (titleEl) titleEl.style.color = '#1E293B';
+                      const iconEl = e.currentTarget.querySelector('.chat-icon');
+                      if (iconEl) iconEl.style.color = '#1E293B';
+                    }
+                    const delBtn = e.currentTarget.querySelector('.chat-del-btn');
+                    if (delBtn) delBtn.style.opacity = '1';
+                  }}
+                  onMouseLeave={e => {
+                    if (!isActive) {
+                      e.currentTarget.style.background = 'transparent';
+                      const titleEl = e.currentTarget.querySelector('.chat-title-text');
+                      if (titleEl) titleEl.style.color = '#64748B';
+                      const iconEl = e.currentTarget.querySelector('.chat-icon');
+                      if (iconEl) iconEl.style.color = '#94A3B8';
+                    }
+                    const delBtn = e.currentTarget.querySelector('.chat-del-btn');
+                    if (delBtn) delBtn.style.opacity = '0';
                   }}
                 >
-                  <div style={{ overflow: 'hidden', paddingRight: '6px' }}>
-                    <div style={{
-                      fontSize: '0.78rem',
-                      fontWeight: isActive ? 700 : 500,
-                      color: isActive ? 'var(--primary)' : 'var(--text-main)',
+                  <MessageSquare
+                    className="chat-icon"
+                    size={15}
+                    strokeWidth={1.8}
+                    style={{
+                      color: isActive ? '#4F46E5' : '#94A3B8',
+                      flexShrink: 0,
+                      transition: 'color 0.15s ease'
+                    }}
+                  />
+                  <span
+                    className="chat-title-text"
+                    style={{
+                      fontSize: '0.82rem',
+                      fontWeight: isActive ? 600 : 500,
+                      color: isActive ? '#312E81' : '#64748B',
                       whiteSpace: 'nowrap',
                       overflow: 'hidden',
-                      textOverflow: 'ellipsis'
-                    }}>
-                      {sess.title || 'Untitled Conversation'}
-                    </div>
-                    <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', marginTop: '2px' }}>
-                      {new Date(sess.updated_at || sess.created_at).toLocaleDateString([], { month: 'short', day: 'numeric' })} • {sess.message_count || 0} messages
-                    </div>
-                  </div>
+                      textOverflow: 'ellipsis',
+                      flex: 1,
+                      transition: 'color 0.15s ease'
+                    }}
+                  >
+                    {sess.title || 'Untitled Conversation'}
+                  </span>
 
                   <button
+                    className="chat-del-btn"
                     onClick={(e) => handleDeleteSession(e, sess.id)}
-                    title="Delete conversation"
+                    title="Delete thread"
                     style={{
                       background: 'transparent',
                       border: 'none',
-                      color: 'var(--text-muted)',
+                      color: '#94A3B8',
                       cursor: 'pointer',
-                      padding: '4px',
-                      fontSize: '0.8rem',
+                      padding: '2px',
                       borderRadius: '4px',
                       display: 'flex',
-                      alignItems: 'center'
+                      alignItems: 'center',
+                      opacity: 0,
+                      transition: 'opacity 0.15s ease, color 0.15s ease',
+                      flexShrink: 0
                     }}
-                    onMouseEnter={e => e.currentTarget.style.color = 'var(--danger-text)'}
-                    onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}
+                    onMouseEnter={e => e.currentTarget.style.color = '#DC2626'}
+                    onMouseLeave={e => e.currentTarget.style.color = '#94A3B8'}
                   >
-                    ✕
+                    <Trash2 size={13} strokeWidth={1.8} />
                   </button>
                 </div>
               );
             })}
+
+            {/* Bottom "... More" Action Item */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '6px 9px',
+                borderRadius: '7px',
+                color: '#64748B',
+                fontSize: '0.82rem',
+                fontWeight: 500,
+                cursor: 'pointer',
+                marginTop: '4px',
+                transition: 'background-color 0.15s ease, color 0.15s ease'
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.background = '#F1F5F9';
+                e.currentTarget.style.color = '#1E293B';
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.background = 'transparent';
+                e.currentTarget.style.color = '#64748B';
+              }}
+              onClick={() => {
+                if (showToast) showToast(`Displaying ${sessions.length} recorded conversations.`);
+              }}
+            >
+              <MoreHorizontal size={15} strokeWidth={1.8} style={{ color: '#94A3B8' }} />
+              <span>More</span>
+            </div>
           </div>
         </div>
 
