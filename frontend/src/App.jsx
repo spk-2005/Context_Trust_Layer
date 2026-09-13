@@ -1,4 +1,19 @@
 import React, { useState, useEffect, useRef } from 'react';
+import {
+  Home,
+  Brain,
+  Bot,
+  Zap,
+  Network,
+  ShieldAlert,
+  FolderTree,
+  Sliders,
+  BarChart3,
+  Users,
+  MessageSquare,
+  Plus,
+  MoreHorizontal
+} from 'lucide-react';
 import TeamAndActivityHub from './components/TeamAndActivityHub';
 import AgentChatPlayground from './components/AgentChatPlayground';
 import LiveIngestionStudio from './components/LiveIngestionStudio';
@@ -33,6 +48,8 @@ export default function App() {
     setActiveTab(tabName);
     setExpandedMenu(prev => prev === tabName ? null : tabName);
   };
+
+
 
   // -------------------------------------------------------------
   // Decision Gate Demo State
@@ -288,8 +305,8 @@ export default function App() {
   // -------------------------------------------------------------
   // Dynamic Multi-Tenant Organization State
   // -------------------------------------------------------------
-  const [organizations, setOrganizations] = useState([]);
-  const [activeOrg, setActiveOrg] = useState(null);
+  const [organizations, setOrganizations] = useState([{ id: '11111111-1111-1111-1111-111111111111', name: 'demo', slug: 'demo' }]);
+  const [activeOrg, setActiveOrg] = useState({ id: '11111111-1111-1111-1111-111111111111', name: 'demo', slug: 'demo' });
   const [isOrgDropdownOpen, setIsOrgDropdownOpen] = useState(false);
   const [showNewOrgModal, setShowNewOrgModal] = useState(false);
   const [showRenameOrgModal, setShowRenameOrgModal] = useState(false);
@@ -297,6 +314,29 @@ export default function App() {
   const [newOrgSlug, setNewOrgSlug] = useState('');
   const [renameOrgName, setRenameOrgName] = useState('');
   const [isCreatingOrg, setIsCreatingOrg] = useState(false);
+
+  // Chat Sessions for Sidebar History and AI Copilot Chat Sync
+  const [chatSessions, setChatSessions] = useState([]);
+  const [activeChatSessionId, setActiveChatSessionId] = useState(null);
+
+  const fetchChatSessions = async () => {
+    try {
+      const res = await fetch(`/v1/chat/sessions?organization_id=${activeOrg?.id || '11111111-1111-1111-1111-111111111111'}`);
+      if (res.ok) {
+        const data = await res.json();
+        setChatSessions(data);
+        if (data.length > 0 && !activeChatSessionId) {
+          setActiveChatSessionId(data[0].id);
+        }
+      }
+    } catch (e) {
+      console.error("Failed to load chat sessions for sidebar", e);
+    }
+  };
+
+  useEffect(() => {
+    fetchChatSessions();
+  }, [activeOrg?.id]);
 
   // -------------------------------------------------------------
   // Departmental Workspaces under Active Company
@@ -1190,398 +1230,183 @@ export default function App() {
       )}
 
       {/* ========================================================= */}
-      {/* LEFT SIDEBAR MENU (NO SYMBOLS/ICONS, CLEAN TEXT)          */}
+      {/* LEFT SIDEBAR MENU (STRUCTURE MATCHING USER SAMPLE)        */}
       {/* ========================================================= */}
       <aside className="sidebar">
         {/* Brand Header */}
-        <div style={{ padding: '18px 20px 14px 20px', borderBottom: '1px solid var(--border-subtle)' }}>
+        <div style={{ padding: '4px 6px 12px 6px', borderBottom: '1px solid var(--border-subtle)', marginBottom: '8px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-main)', letterSpacing: '-0.01em' }}>
+            <span style={{ fontSize: '0.98rem', fontWeight: 700, color: 'var(--text-main)', letterSpacing: '-0.01em' }}>
               Context Trust Layer
             </span>
-            <span className="badge badge-verified" style={{ fontSize: '0.65rem', padding: '2px 6px' }}>
+            <span className="badge badge-verified" style={{ fontSize: '0.62rem', padding: '1px 5px' }}>
               v0.1.0
             </span>
           </div>
-          <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '2px' }}>
-            AI Evidence & Decision Safety Gate
-          </p>
         </div>
 
-        {/* Navigation Tabs with Accordion Sub-Menus */}
-        <nav className="nav-list" style={{ overflowY: 'auto' }}>
-          {/* TAB 0: Home Overview Dashboard */}
-          <div>
+        {/* Scrollable Center Nav (Flat, No Sub-Items) */}
+        <div className="sidebar-scroll-content">
+          <div className="nav-group">
             <button
-              onClick={() => handleToggleParentTab('home')}
+              onClick={() => setActiveTab('home')}
               className={`nav-item ${activeTab === 'home' ? 'nav-item-active' : ''}`}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span className={`nav-chevron ${expandedMenu === 'home' ? 'nav-chevron-open' : ''}`}>
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="9 18 15 12 9 6" />
-                  </svg>
-                </span>
-                <span>Home Overview</span>
-              </div>
+              <Home size={16} strokeWidth={1.75} />
+              <span>Home Overview</span>
             </button>
-            <div className={`nav-sub-accordion ${expandedMenu === 'home' ? 'nav-sub-accordion-open' : ''}`}>
-              <div className="nav-sub-list">
-                <button
-                  onClick={() => { setActiveTab('home'); }}
-                  className={`nav-sub-item ${activeTab === 'home' ? 'nav-sub-item-active' : ''}`}
-                >
-                  <span>System Architecture & Metrics</span>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* TAB 1: Decision Gate Demo */}
-          <div>
             <button
-              onClick={() => handleToggleParentTab('demo')}
+              onClick={() => { setActiveTab('demo'); }}
               className={`nav-item ${activeTab === 'demo' ? 'nav-item-active' : ''}`}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span className={`nav-chevron ${expandedMenu === 'demo' ? 'nav-chevron-open' : ''}`}>
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="9 18 15 12 9 6" />
-                  </svg>
-                </span>
-                <span>Decision Gate Demo</span>
-              </div>
+              <Brain size={16} strokeWidth={1.75} />
+              <span>Decision Gate Demo</span>
             </button>
-            <div className={`nav-sub-accordion ${expandedMenu === 'demo' ? 'nav-sub-accordion-open' : ''}`}>
-              <div className="nav-sub-list">
-                <button
-                  onClick={() => { setActiveTab('demo'); setDemoScenario('refund_trap'); setDemoStep(0); }}
-                  className={`nav-sub-item ${activeTab === 'demo' && demoScenario === 'refund_trap' ? 'nav-sub-item-active' : ''}`}
-                >
-                  <span>1. Refund Window</span>
-                  <span className="badge badge-warning" style={{ fontSize: '0.62rem', padding: '1px 4px' }}>Trap</span>
-                </button>
-                <button
-                  onClick={() => { setActiveTab('demo'); setDemoScenario('remote_work'); setDemoStep(0); }}
-                  className={`nav-sub-item ${activeTab === 'demo' && demoScenario === 'remote_work' ? 'nav-sub-item-active' : ''}`}
-                >
-                  <span>2. Remote Work</span>
-                  <span className="badge badge-review" style={{ fontSize: '0.62rem', padding: '1px 4px' }}>Rule</span>
-                </button>
-                <button
-                  onClick={() => { setActiveTab('demo'); setDemoScenario('unauthorized_deploy'); setDemoStep(0); }}
-                  className={`nav-sub-item ${activeTab === 'demo' && demoScenario === 'unauthorized_deploy' ? 'nav-sub-item-active' : ''}`}
-                >
-                  <span>3. Prod Ingress</span>
-                  <span className="badge badge-verified" style={{ fontSize: '0.62rem', padding: '1px 4px' }}>Auth</span>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* TAB 2: AI Copilot Chat / Agent Playground */}
-          <div>
             <button
-              onClick={() => { setActiveTab('playground'); setExpandedMenu('playground'); }}
+              onClick={() => {
+                setActiveTab('playground');
+                setExpandedMenu(prev => prev === 'playground' ? null : 'playground');
+              }}
               className={`nav-item ${activeTab === 'playground' ? 'nav-item-active' : ''}`}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-                </svg>
-                <span>AI Copilot Chat</span>
-              </div>
-              <span className="badge badge-verified" style={{ fontSize: '0.62rem', padding: '1px 5px' }}>
-                Live RAG
-              </span>
+              <Bot size={16} strokeWidth={1.75} />
+              <span>AI Copilot Chat</span>
             </button>
-          </div>
 
-          {/* ========================================================= */}
-          {/* ATLAN ENTERPRISE CAPABILITY SUITE                         */}
-          {/* ========================================================= */}
+            {/* If AI Copilot Chat is active, show the exact Chats panel in the sidebar */}
+            {activeTab === 'playground' && (
+              <div style={{ paddingLeft: '8px', margin: '4px 0 8px 0' }}>
+                <div className="nav-section-header">
+                  <span>Chats</span>
+                  <button
+                    className="nav-section-action"
+                    onClick={async (e) => {
+                      e.stopPropagation();
+                      try {
+                        const res = await fetch('/v1/chat/sessions', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({
+                            organization_id: activeOrg?.id || '11111111-1111-1111-1111-111111111111',
+                            user_id: null,
+                            user_name: activePersona?.name || 'Sarah Chen',
+                            user_role: activePersona?.role || 'admin',
+                            title: 'New Conversation'
+                          })
+                        });
+                        if (res.ok) {
+                          const newSess = await res.json();
+                          setChatSessions(prev => [newSess, ...prev]);
+                          setActiveChatSessionId(newSess.id);
+                          showToast("Started new chat thread");
+                        }
+                      } catch (err) {
+                        console.error(err);
+                      }
+                    }}
+                    title="New Chat"
+                  >
+                    <Plus size={14} strokeWidth={2} />
+                  </button>
+                </div>
 
-          {/* OPTION 1: Live Ingestion Studio */}
-          <div>
+                {chatSessions.slice(0, 4).map(sess => {
+                  const isActiveSess = sess.id === activeChatSessionId;
+                  return (
+                    <button
+                      key={sess.id}
+                      onClick={() => {
+                        setActiveChatSessionId(sess.id);
+                        setActiveTab('playground');
+                      }}
+                      className={`nav-chat-item ${isActiveSess ? 'nav-chat-item-active' : ''}`}
+                      title={sess.title}
+                    >
+                      <MessageSquare size={13} strokeWidth={1.75} />
+                      <span>{sess.title}</span>
+                    </button>
+                  );
+                })}
+
+                <button
+                  onClick={() => {
+                    showToast(`Showing all ${chatSessions.length} chat threads`);
+                  }}
+                  className="nav-chat-item"
+                  style={{ color: '#94A3B8' }}
+                >
+                  <MoreHorizontal size={13} strokeWidth={1.75} />
+                  <span>More</span>
+                </button>
+              </div>
+            )}
             <button
-              onClick={() => { setActiveTab('live_ingestion'); setExpandedMenu('live_ingestion'); }}
+              onClick={() => setActiveTab('live_ingestion')}
               className={`nav-item ${activeTab === 'live_ingestion' ? 'nav-item-active' : ''}`}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '0.9rem' }}>⚡</span>
-                <span>Live Ingestion Studio</span>
-              </div>
-              <span className="badge badge-verified" style={{ fontSize: '0.62rem', padding: '1px 5px' }}>
-                Auto Claims
-              </span>
+              <Zap size={16} strokeWidth={1.75} />
+              <span>Live Ingestion Studio</span>
             </button>
-          </div>
-
-          {/* OPTION 2: Visual Lineage Graph */}
-          <div>
             <button
-              onClick={() => { setActiveTab('visual_lineage'); setExpandedMenu('visual_lineage'); }}
+              onClick={() => setActiveTab('visual_lineage')}
               className={`nav-item ${activeTab === 'visual_lineage' ? 'nav-item-active' : ''}`}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '0.9rem' }}>🕸️</span>
-                <span>Visual Lineage Graph</span>
-              </div>
-              <span className="badge badge-verified" style={{ fontSize: '0.62rem', padding: '1px 5px' }}>
-                DAG
-              </span>
+              <Network size={16} strokeWidth={1.75} />
+              <span>Visual Lineage Graph</span>
             </button>
-          </div>
-
-          {/* TAB 3: Context Curator Bot & Conflict Hub */}
-          <div>
             <button
-              onClick={() => handleToggleParentTab('context_curator')}
+              onClick={() => setActiveTab('context_curator')}
               className={`nav-item ${activeTab === 'context_curator' ? 'nav-item-active' : ''}`}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span className={`nav-chevron ${expandedMenu === 'context_curator' ? 'nav-chevron-open' : ''}`}>
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="9 18 15 12 9 6" />
-                  </svg>
-                </span>
-                <span style={{ fontSize: '0.9rem' }}>🤖</span>
-                <span>Context Curator Bot</span>
-              </div>
-              {conflicts.length > 0 ? (
-                <span className="badge badge-warning" style={{ fontSize: '0.62rem', padding: '1px 5px' }}>
-                  {conflicts.length} Issues
-                </span>
-              ) : (
-                <span className="badge badge-verified" style={{ fontSize: '0.62rem', padding: '1px 5px' }}>
-                  Auto Audit
+              <ShieldAlert size={16} strokeWidth={1.75} />
+              <span>Context Curator Bot</span>
+              {conflicts.length > 0 && (
+                <span style={{
+                  marginLeft: 'auto',
+                  fontSize: '0.65rem',
+                  padding: '1px 6px',
+                  borderRadius: '10px',
+                  background: '#FEE2E2',
+                  color: '#991B1B',
+                  fontWeight: 600
+                }}>
+                  {conflicts.length}
                 </span>
               )}
             </button>
-            <div className={`nav-sub-accordion ${expandedMenu === 'context_curator' ? 'nav-sub-accordion-open' : ''}`}>
-              <div className="nav-sub-list">
-                <button
-                  onClick={() => { setActiveTab('context_curator'); setCuratorSubView('health'); }}
-                  className={`nav-sub-item ${activeTab === 'context_curator' && curatorSubView === 'health' ? 'nav-sub-item-active' : ''}`}
-                >
-                  <span>Context Health & Steward Bot</span>
-                </button>
-                <button
-                  onClick={() => { setActiveTab('context_curator'); setCuratorSubView('conflicts'); }}
-                  className={`nav-sub-item ${activeTab === 'context_curator' && curatorSubView === 'conflicts' ? 'nav-sub-item-active' : ''}`}
-                >
-                  <span>Pending Conflicts</span>
-                  <span className="badge badge-review" style={{ fontSize: '0.62rem', padding: '1px 4px' }}>
-                    {conflicts.length}
-                  </span>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* TAB 4: MCP Server & Studio */}
-          <div>
             <button
-              onClick={() => { setActiveTab('integrations'); setExpandedMenu('integrations'); }}
-              className={`nav-item ${activeTab === 'integrations' ? 'nav-item-active' : ''}`}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '0.9rem' }}>🔌</span>
-                <span>MCP Server & Studio</span>
-              </div>
-              <span className="badge badge-verified" style={{ fontSize: '0.62rem', padding: '1px 5px' }}>
-                JSON-RPC
-              </span>
-            </button>
-          </div>
-
-          {/* TAB 4: Document Explorer */}
-          <div>
-            <button
-              onClick={() => handleToggleParentTab('ingestion')}
+              onClick={() => setActiveTab('ingestion')}
               className={`nav-item ${activeTab === 'ingestion' ? 'nav-item-active' : ''}`}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span className={`nav-chevron ${expandedMenu === 'ingestion' ? 'nav-chevron-open' : ''}`}>
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="9 18 15 12 9 6" />
-                  </svg>
-                </span>
-                <span>Document Explorer</span>
-              </div>
+              <FolderTree size={16} strokeWidth={1.75} />
+              <span>Document Explorer</span>
             </button>
-            <div className={`nav-sub-accordion ${expandedMenu === 'ingestion' ? 'nav-sub-accordion-open' : ''}`}>
-              <div className="nav-sub-list">
-                <button
-                  onClick={() => { setActiveTab('ingestion'); setDocExplorerView('connectors'); }}
-                  className={`nav-sub-item ${activeTab === 'ingestion' && docExplorerView === 'connectors' ? 'nav-sub-item-active' : ''}`}
-                >
-                  <span>Live Connectors & Sync</span>
-                  <span className="badge badge-verified" style={{ fontSize: '0.62rem', padding: '1px 4px' }}>
-                    {dataSources.length}
-                  </span>
-                </button>
-                <button
-                  onClick={() => { setActiveTab('ingestion'); setDocExplorerView('ingest'); }}
-                  className={`nav-sub-item ${activeTab === 'ingestion' && docExplorerView === 'ingest' ? 'nav-sub-item-active' : ''}`}
-                >
-                  <span>Ingest New Document</span>
-                </button>
-                <button
-                  onClick={() => { setActiveTab('ingestion'); setDocExplorerView('documents'); }}
-                  className={`nav-sub-item ${activeTab === 'ingestion' && docExplorerView === 'documents' ? 'nav-sub-item-active' : ''}`}
-                >
-                  <span>Stored Documents</span>
-                  <span className="badge badge-verified" style={{ fontSize: '0.62rem', padding: '1px 4px' }}>
-                    {dbDocuments.length}
-                  </span>
-                </button>
-                <button
-                  onClick={() => { setActiveTab('ingestion'); setDocExplorerView('claims'); }}
-                  className={`nav-sub-item ${activeTab === 'ingestion' && docExplorerView === 'claims' ? 'nav-sub-item-active' : ''}`}
-                >
-                  <span>Atomic Claims</span>
-                  <span className="badge badge-verified" style={{ fontSize: '0.62rem', padding: '1px 4px' }}>
-                    {dbClaims.length}
-                  </span>
-                </button>
-              </div>
-            </div>
           </div>
+        </div>
 
-          {/* TAB 5: Agent Integrations & MCP Hub */}
-          <div>
-            <button
-              onClick={() => handleToggleParentTab('integrations')}
-              className={`nav-item ${activeTab === 'integrations' ? 'nav-item-active' : ''}`}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span className={`nav-chevron ${expandedMenu === 'integrations' ? 'nav-chevron-open' : ''}`}>
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="9 18 15 12 9 6" />
-                  </svg>
-                </span>
-                <span>Agent Integrations / MCP</span>
-              </div>
-              <span className="badge badge-verified" style={{ fontSize: '0.62rem', padding: '1px 5px' }}>
-                MCP
-              </span>
-            </button>
-            <div className={`nav-sub-accordion ${expandedMenu === 'integrations' ? 'nav-sub-accordion-open' : ''}`}>
-              <div className="nav-sub-list">
-                <button
-                  onClick={() => { setActiveTab('integrations'); setMcpActiveSubView('tester'); }}
-                  className={`nav-sub-item ${activeTab === 'integrations' && mcpActiveSubView === 'tester' ? 'nav-sub-item-active' : ''}`}
-                >
-                  <span>Interactive Tool Tester</span>
-                </button>
-                <button
-                  onClick={() => { setActiveTab('integrations'); setMcpActiveSubView('configs'); }}
-                  className={`nav-sub-item ${activeTab === 'integrations' && mcpActiveSubView === 'configs' ? 'nav-sub-item-active' : ''}`}
-                >
-                  <span>Claude & Cursor Configs</span>
-                </button>
-                <button
-                  onClick={() => { setActiveTab('integrations'); setMcpActiveSubView('sdks'); }}
-                  className={`nav-sub-item ${activeTab === 'integrations' && mcpActiveSubView === 'sdks' ? 'nav-sub-item-active' : ''}`}
-                >
-                  <span>Python, LangChain & LlamaIndex</span>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* TAB 6: Decision Audit Trail & Lineage Explorer */}
-          <div>
-            <button
-              onClick={() => { handleToggleParentTab('audit'); fetchAuditLogs(activeOrg?.id); }}
-              className={`nav-item ${activeTab === 'audit' ? 'nav-item-active' : ''}`}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span className={`nav-chevron ${expandedMenu === 'audit' ? 'nav-chevron-open' : ''}`}>
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="9 18 15 12 9 6" />
-                  </svg>
-                </span>
-                <span>Audit Trail & Lineage</span>
-              </div>
-              <span className="badge badge-verified" style={{ fontSize: '0.62rem', padding: '1px 5px' }}>
-                {auditSummary?.total_decisions || auditLogs.length}
-              </span>
-            </button>
-            <div className={`nav-sub-accordion ${expandedMenu === 'audit' ? 'nav-sub-accordion-open' : ''}`}>
-              <div className="nav-sub-list">
-                <button
-                  onClick={() => { setActiveTab('audit'); fetchAuditLogs(activeOrg?.id); }}
-                  className={`nav-sub-item ${activeTab === 'audit' ? 'nav-sub-item-active' : ''}`}
-                >
-                  <span>Live Decision Stream</span>
-                  <span className="badge badge-verified" style={{ fontSize: '0.62rem', padding: '1px 4px' }}>
-                    {auditLogs.length}
-                  </span>
-                </button>
-                <button
-                  onClick={() => { setActiveTab('audit'); handleExportAuditLogs('json'); }}
-                  className="nav-sub-item"
-                >
-                  <span>Export SOC2 / ISO 42001</span>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* TAB 7: Team, Personas & Governance Ecosystem */}
-          <div>
-            <button
-              onClick={() => handleToggleParentTab('team')}
-              className={`nav-item ${activeTab === 'team' ? 'nav-item-active' : ''}`}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span className={`nav-chevron ${expandedMenu === 'team' ? 'nav-chevron-open' : ''}`}>
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="9 18 15 12 9 6" />
-                  </svg>
-                </span>
-                <span>Team & Personas</span>
-              </div>
-              <span className="badge badge-verified" style={{ fontSize: '0.62rem', padding: '1px 5px' }}>
-                {personas.length || 5}
-              </span>
-            </button>
-            <div className={`nav-sub-accordion ${expandedMenu === 'team' ? 'nav-sub-accordion-open' : ''}`}>
-              <div className="nav-sub-list">
-                <button
-                  onClick={() => { setActiveTab('team'); }}
-                  className={`nav-sub-item ${activeTab === 'team' ? 'nav-sub-item-active' : ''}`}
-                >
-                  <span>Team Directory & Roles</span>
-                </button>
-                <button
-                  onClick={() => { setActiveTab('team'); }}
-                  className="nav-sub-item"
-                >
-                  <span>Collaborative Activity Feed</span>
-                </button>
-                <button
-                  onClick={() => { setActiveTab('team'); }}
-                  className="nav-sub-item"
-                >
-                  <span>Data Mesh Domains</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        </nav>
-
-        {/* System Status in Sidebar Footer */}
-        <div style={{ padding: '16px 20px', borderTop: '1px solid var(--border-subtle)', background: 'var(--bg-card-subtle)' }}>
-          <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700, marginBottom: '6px' }}>
-            SYSTEM STATUS
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.78rem', color: 'var(--success-text)', fontWeight: 600 }}>
-            <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--success-solid)' }} />
-            PostgreSQL + MCP Server Active
-          </div>
+        {/* 3. Bottom Pinned Footer Group */}
+        <div className="sidebar-footer">
+          <button
+            onClick={() => setActiveTab('integrations')}
+            className={`nav-item ${activeTab === 'integrations' ? 'nav-item-active' : ''}`}
+          >
+            <Sliders size={16} strokeWidth={1.75} />
+            <span>Agent Integrations & MCP</span>
+          </button>
+          <button
+            onClick={() => { setActiveTab('audit'); fetchAuditLogs(activeOrg?.id); }}
+            className={`nav-item ${activeTab === 'audit' ? 'nav-item-active' : ''}`}
+          >
+            <BarChart3 size={16} strokeWidth={1.75} />
+            <span>Audit Trail & Lineage</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('team')}
+            className={`nav-item ${activeTab === 'team' ? 'nav-item-active' : ''}`}
+          >
+            <Users size={16} strokeWidth={1.75} />
+            <span>Team & Personas</span>
+          </button>
         </div>
       </aside>
 
@@ -1722,7 +1547,8 @@ export default function App() {
                 <span className="breadcrumb-current">
                   {mcpActiveSubView === 'tester' ? 'Interactive Tool Tester' :
                     mcpActiveSubView === 'configs' ? 'Claude & Cursor Configs' :
-                      'Python SDK & Framework Integrations'}
+                    mcpActiveSubView === 'sdks' ? 'Python SDK & Framework Integrations' :
+                      'Registered MCP Tool Schemas'}
                 </span>
               </>
             )}
@@ -2359,13 +2185,90 @@ export default function App() {
                   </p>
                 </div>
 
-                {/* Active Scenario Indicator */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 700 }}>ACTIVE SCENARIO:</span>
-                  <span className="badge badge-verified" style={{ fontSize: '0.8rem', padding: '4px 10px' }}>
-                    {demoScenario === 'refund_trap' ? '1. Outdated Refund Window Trap' : demoScenario === 'remote_work' ? '2. Remote Work Policy Discrepancy' : '3. Unauthorized Infrastructure Action'}
-                  </span>
-                </div>
+              </div>
+
+              {/* Scenario Switcher Tabs on Decision Page */}
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                background: '#F1F5F9',
+                padding: '4px',
+                borderRadius: '10px',
+                gap: '6px',
+                border: '1px solid var(--border-subtle)',
+                marginTop: '16px'
+              }}>
+                <button
+                  onClick={() => { setDemoScenario('refund_trap'); setDemoStep(0); setDemoResult(null); }}
+                  style={{
+                    flex: 1,
+                    padding: '8px 14px',
+                    fontSize: '0.82rem',
+                    fontWeight: demoScenario === 'refund_trap' ? 700 : 500,
+                    color: demoScenario === 'refund_trap' ? '#0F172A' : '#64748B',
+                    background: demoScenario === 'refund_trap' ? '#FFFFFF' : 'transparent',
+                    border: 'none',
+                    borderRadius: '7px',
+                    cursor: 'pointer',
+                    boxShadow: demoScenario === 'refund_trap' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    transition: 'all 0.15s ease'
+                  }}
+                >
+                  <span>1. Refund Window</span>
+                  <span className="badge badge-warning" style={{ fontSize: '0.64rem', padding: '1px 5px' }}>Freshness Trap</span>
+                </button>
+
+                <button
+                  onClick={() => { setDemoScenario('remote_work'); setDemoStep(0); setDemoResult(null); }}
+                  style={{
+                    flex: 1,
+                    padding: '8px 14px',
+                    fontSize: '0.82rem',
+                    fontWeight: demoScenario === 'remote_work' ? 700 : 500,
+                    color: demoScenario === 'remote_work' ? '#0F172A' : '#64748B',
+                    background: demoScenario === 'remote_work' ? '#FFFFFF' : 'transparent',
+                    border: 'none',
+                    borderRadius: '7px',
+                    cursor: 'pointer',
+                    boxShadow: demoScenario === 'remote_work' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    transition: 'all 0.15s ease'
+                  }}
+                >
+                  <span>2. Remote Work</span>
+                  <span className="badge badge-review" style={{ fontSize: '0.64rem', padding: '1px 5px' }}>Scope Override</span>
+                </button>
+
+                <button
+                  onClick={() => { setDemoScenario('unauthorized_deploy'); setDemoStep(0); setDemoResult(null); }}
+                  style={{
+                    flex: 1,
+                    padding: '8px 14px',
+                    fontSize: '0.82rem',
+                    fontWeight: demoScenario === 'unauthorized_deploy' ? 700 : 500,
+                    color: demoScenario === 'unauthorized_deploy' ? '#0F172A' : '#64748B',
+                    background: demoScenario === 'unauthorized_deploy' ? '#FFFFFF' : 'transparent',
+                    border: 'none',
+                    borderRadius: '7px',
+                    cursor: 'pointer',
+                    boxShadow: demoScenario === 'unauthorized_deploy' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    transition: 'all 0.15s ease'
+                  }}
+                >
+                  <span>3. Prod Ingress</span>
+                  <span className="badge badge-verified" style={{ fontSize: '0.64rem', padding: '1px 5px' }}>Role Gate</span>
+                </button>
               </div>
             </div>
 
@@ -2549,6 +2452,11 @@ export default function App() {
             activePersona={activePersona}
             workspaces={workspaces}
             showToast={showToast}
+            selectedSessionId={activeChatSessionId}
+            onSessionChange={(id) => {
+              setActiveChatSessionId(id);
+              fetchChatSessions();
+            }}
           />
         )}
 
@@ -3667,731 +3575,6 @@ export default function App() {
         )}
 
         {/* ========================================================= */}
-        {/* TAB 5: AGENT INTEGRATIONS & MCP HUB                      */}
-        {/* ========================================================= */}
-        {activeTab === 'integrations' && (
-          <div>
-            {/* Header & MCP Server Status Banner */}
-            <div style={{ marginBottom: '24px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
-                    <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-main)', margin: 0, letterSpacing: '-0.02em' }}>
-                      Agent Integrations & MCP Hub
-                    </h2>
-                    <span className="badge badge-verified" style={{ fontSize: '0.72rem', padding: '3px 8px' }}>
-                      Protocol 2024-11-05
-                    </span>
-                  </div>
-                  <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: 0 }}>
-                    Standard Model Context Protocol (MCP) gateway exposing enterprise decision safety, evidence verification, and conflict detection to AI agents.
-                  </p>
-                </div>
-
-                {/* Server Status Indicators */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-                  <div className="clean-panel" style={{ padding: '6px 14px', display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--success-bg)', border: '1px solid var(--success-border)' }}>
-                    <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--success-solid)' }} />
-                    <span style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--success-text)' }}>
-                      MCP Server Online
-                    </span>
-                  </div>
-                  <div className="clean-panel" style={{ padding: '6px 14px', fontSize: '0.78rem', color: 'var(--text-secondary)', background: 'var(--bg-card-subtle)' }}>
-                    <strong>Endpoint:</strong> <code style={{ color: 'var(--primary)', fontFamily: 'var(--font-mono)' }}>/v1/mcp</code>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Sub-view Navigation Bar */}
-            <div style={{ display: 'flex', gap: '8px', marginBottom: '20px', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '12px' }}>
-              <button
-                onClick={() => setMcpActiveSubView('tester')}
-                className={`scenario-btn ${mcpActiveSubView === 'tester' ? 'scenario-btn-active' : ''}`}
-                style={{ padding: '8px 18px', fontSize: '0.84rem' }}
-              >
-                1. Interactive Tool Tester
-              </button>
-              <button
-                onClick={() => setMcpActiveSubView('configs')}
-                className={`scenario-btn ${mcpActiveSubView === 'configs' ? 'scenario-btn-active' : ''}`}
-                style={{ padding: '8px 18px', fontSize: '0.84rem' }}
-              >
-                2. Claude Desktop & Cursor Configs
-              </button>
-              <button
-                onClick={() => setMcpActiveSubView('sdks')}
-                className={`scenario-btn ${mcpActiveSubView === 'sdks' ? 'scenario-btn-active' : ''}`}
-                style={{ padding: '8px 18px', fontSize: '0.84rem' }}
-              >
-                3. Python SDK & Agent Frameworks
-              </button>
-            </div>
-
-            {/* SUB-VIEW 1: INTERACTIVE MCP TOOL TESTER */}
-            {mcpActiveSubView === 'tester' && (
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-                {/* Left: Tool Selection & Request Parameter Builder */}
-                <div className="clean-panel" style={{ padding: '20px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                    <span style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--text-main)' }}>
-                      Select MCP Tool to Execute
-                    </span>
-                    <span className="code-pill">JSON-RPC 2.0 / REST</span>
-                  </div>
-
-                  {/* Tool Selector Dropdown */}
-                  <div style={{ marginBottom: '16px' }}>
-                    <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '6px' }}>
-                      Registered MCP Tool *
-                    </label>
-                    <select
-                      value={mcpSelectedTool}
-                      onChange={e => {
-                        setMcpSelectedTool(e.target.value);
-                        setMcpInvocationResult(null);
-                      }}
-                      style={{ width: '100%', padding: '10px 12px', fontSize: '0.85rem', fontFamily: 'var(--font-mono)', background: 'var(--bg-card-subtle)', color: 'var(--text-main)', border: '1px solid var(--border-subtle)', borderRadius: '6px' }}
-                    >
-                      <option value="context_trust_get_trusted_context">context_trust_get_trusted_context (Evidence & Trust Filter)</option>
-                      <option value="context_trust_evaluate_decision">context_trust_evaluate_decision (Authority & Gate Evaluator)</option>
-                      <option value="context_trust_search_claims">context_trust_search_claims (Atomic Knowledge Search)</option>
-                      <option value="context_trust_check_conflicts">context_trust_check_conflicts (Contradiction & Policy Guard)</option>
-                    </select>
-                    <p style={{ fontSize: '0.74rem', color: 'var(--text-muted)', marginTop: '6px' }}>
-                      {mcpSelectedTool === 'context_trust_get_trusted_context' && 'Retrieves evidence-backed, verified context before an AI agent generates an answer or executes a tool.'}
-                      {mcpSelectedTool === 'context_trust_evaluate_decision' && "Evaluates a proposed action against enterprise governance rules, actor hierarchy, and freshness constraints."}
-                      {mcpSelectedTool === 'context_trust_search_claims' && 'Searches atomic enterprise claims and authority levels across verified department workspace sources.'}
-                      {mcpSelectedTool === 'context_trust_check_conflicts' && 'Checks if a candidate statement contradicts existing authoritative policies or outdated rules.'}
-                    </p>
-                  </div>
-
-                  {/* Tool-specific Parameter Form Fields */}
-                  <div style={{ background: 'var(--bg-card-subtle)', padding: '16px', borderRadius: '8px', border: '1px solid var(--border-subtle)', marginBottom: '18px' }}>
-                    <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '12px' }}>
-                      Tool Input Arguments
-                    </div>
-
-                    {mcpSelectedTool === 'context_trust_get_trusted_context' && (
-                      <>
-                        <div style={{ marginBottom: '12px' }}>
-                          <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '4px' }}>
-                            Query / Prompt *
-                          </label>
-                          <input
-                            type="text"
-                            value={mcpToolQuery}
-                            onChange={e => setMcpToolQuery(e.target.value)}
-                            placeholder="e.g. What is the customer refund window for enterprise tier?"
-                            style={{ width: '100%', padding: '8px 10px', fontSize: '0.82rem' }}
-                          />
-                        </div>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                          <div>
-                            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '4px' }}>
-                              Min Trust Score ({mcpMinScore})
-                            </label>
-                            <input
-                              type="range"
-                              min="0.5"
-                              max="1.0"
-                              step="0.05"
-                              value={mcpMinScore}
-                              onChange={e => setMcpMinScore(parseFloat(e.target.value))}
-                              style={{ width: '100%' }}
-                            />
-                          </div>
-                          <div>
-                            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '4px' }}>
-                              Max Results
-                            </label>
-                            <input
-                              type="number"
-                              min="1"
-                              max="10"
-                              value={mcpMaxResults}
-                              onChange={e => setMcpMaxResults(parseInt(e.target.value) || 5)}
-                              style={{ width: '100%', padding: '6px 10px', fontSize: '0.82rem' }}
-                            />
-                          </div>
-                        </div>
-                      </>
-                    )}
-
-                    {mcpSelectedTool === 'context_trust_evaluate_decision' && (
-                      <>
-                        <div style={{ marginBottom: '12px' }}>
-                          <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '4px' }}>
-                            Action / Decision Description *
-                          </label>
-                          <input
-                            type="text"
-                            value={mcpActionType}
-                            onChange={e => setMcpActionType(e.target.value)}
-                            placeholder="e.g. Determine whether customer is eligible for 45-day refund"
-                            style={{ width: '100%', padding: '8px 10px', fontSize: '0.82rem' }}
-                          />
-                        </div>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                          <div>
-                            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '4px' }}>
-                              Actor ID *
-                            </label>
-                            <input
-                              type="text"
-                              value={mcpActorId}
-                              onChange={e => setMcpActorId(e.target.value)}
-                              style={{ width: '100%', padding: '8px 10px', fontSize: '0.82rem' }}
-                            />
-                          </div>
-                          <div>
-                            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '4px' }}>
-                              Actor Role *
-                            </label>
-                            <select
-                              value={mcpActorRole}
-                              onChange={e => setMcpActorRole(e.target.value)}
-                              style={{ width: '100%', padding: '8px 10px', fontSize: '0.82rem', background: 'var(--bg-input)' }}
-                            >
-                              <option value="support">support (Tier 1 Support Agent)</option>
-                              <option value="billing_agent">billing_agent (Finance Billing Lead)</option>
-                              <option value="junior_developer">junior_developer (DevOps Intern)</option>
-                              <option value="hr_reviewer">hr_reviewer (People Ops Partner)</option>
-                            </select>
-                          </div>
-                        </div>
-                      </>
-                    )}
-
-                    {mcpSelectedTool === 'context_trust_search_claims' && (
-                      <>
-                        <div style={{ marginBottom: '12px' }}>
-                          <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '4px' }}>
-                            Search Query / Keywords *
-                          </label>
-                          <input
-                            type="text"
-                            value={mcpSearchText}
-                            onChange={e => setMcpSearchText(e.target.value)}
-                            placeholder="e.g. refund, remote work, TLS..."
-                            style={{ width: '100%', padding: '8px 10px', fontSize: '0.82rem' }}
-                          />
-                        </div>
-                      </>
-                    )}
-
-                    {mcpSelectedTool === 'context_trust_check_conflicts' && (
-                      <>
-                        <div style={{ marginBottom: '12px' }}>
-                          <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '4px' }}>
-                            Proposed Statement / Claim to Check *
-                          </label>
-                          <textarea
-                            rows={3}
-                            value={mcpClaimText}
-                            onChange={e => setMcpClaimText(e.target.value)}
-                            placeholder="e.g. Refund window is strictly limited to 30 days."
-                            style={{ width: '100%', padding: '8px 10px', fontSize: '0.82rem', resize: 'vertical' }}
-                          />
-                        </div>
-                      </>
-                    )}
-                  </div>
-
-                  {/* Execution Button */}
-                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
-                    <button
-                      onClick={handleExecuteMcpTool}
-                      disabled={mcpInvoking}
-                      className="btn btn-primary"
-                      style={{ padding: '10px 24px', fontSize: '0.86rem', display: 'flex', alignItems: 'center', gap: '8px' }}
-                    >
-                      {mcpInvoking ? (
-                        <>
-                          <span style={{ display: 'inline-block', width: 12, height: 12, border: '2px solid #FFFFFF', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
-                          Invoking MCP Server...
-                        </>
-                      ) : (
-                        <>
-                          <span>⚡</span>
-                          Execute MCP Tool
-                        </>
-                      )}
-                    </button>
-                  </div>
-                </div>
-
-                {/* Right: Real-Time MCP Invocation Output */}
-                <div className="clean-panel" style={{ padding: '20px', display: 'flex', flexDirection: 'column' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                    <span style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--text-main)' }}>
-                      MCP Server Response
-                    </span>
-                    {mcpInvocationResult && (
-                      <span className="badge badge-verified" style={{ fontSize: '0.72rem' }}>
-                        200 OK • Success
-                      </span>
-                    )}
-                  </div>
-
-                  {mcpInvocationResult ? (
-                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-                      {/* Summary Cards */}
-                      {mcpInvocationResult.result?.trusted_context && (
-                        <div style={{ marginBottom: '14px', display: 'grid', gap: '8px' }}>
-                          <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-main)' }}>
-                            Verified Claims Returned ({mcpInvocationResult.result.trusted_context.length})
-                          </div>
-                          {mcpInvocationResult.result.trusted_context.map((item, idx) => (
-                            <div key={idx} style={{ background: 'var(--bg-card-subtle)', padding: '10px', borderRadius: '6px', border: '1px solid var(--border-subtle)' }}>
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                                <span className="badge badge-verified" style={{ fontSize: '0.65rem' }}>
-                                  Trust: {(item.trust_score * 100).toFixed(0)}%
-                                </span>
-                                <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                                  Source: {item.source?.title} (Auth: {item.source?.authority_level})
-                                </span>
-                              </div>
-                              <p style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-main)', margin: 0 }}>
-                                "{item.text}"
-                              </p>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-
-                      {mcpInvocationResult.result?.decision && (
-                        <div style={{ marginBottom: '14px', padding: '12px', borderRadius: '8px', background: mcpInvocationResult.result.validity === 'ALLOW' ? 'var(--success-bg)' : mcpInvocationResult.result.validity === 'BLOCK' ? 'var(--danger-bg)' : 'var(--warning-bg)', border: `1px solid ${mcpInvocationResult.result.validity === 'ALLOW' ? 'var(--success-border)' : mcpInvocationResult.result.validity === 'BLOCK' ? 'var(--danger-border)' : 'var(--warning-border)'}` }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                            <span style={{ fontSize: '0.85rem', fontWeight: 800, color: mcpInvocationResult.result.validity === 'ALLOW' ? 'var(--success-text)' : mcpInvocationResult.result.validity === 'BLOCK' ? 'var(--danger-text)' : 'var(--warning-text)' }}>
-                              VERDICT: {mcpInvocationResult.result.validity}
-                            </span>
-                            <span className="code-pill">Risk: {mcpInvocationResult.result.risk?.toUpperCase()}</span>
-                          </div>
-                          <p style={{ fontSize: '0.8rem', color: 'var(--text-main)', margin: 0 }}>
-                            {mcpInvocationResult.result.reasons?.join(' ')}
-                          </p>
-                        </div>
-                      )}
-
-                      {/* Raw JSON Code Block */}
-                      <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-                        <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '4px' }}>
-                          RAW MCP PAYLOAD (JSON)
-                        </div>
-                        <pre style={{
-                          flex: 1,
-                          margin: 0,
-                          background: '#0F172A',
-                          color: '#38BDF8',
-                          padding: '14px',
-                          borderRadius: '8px',
-                          fontSize: '0.76rem',
-                          fontFamily: 'var(--font-mono)',
-                          overflowX: 'auto',
-                          maxHeight: '320px'
-                        }}>
-                          {JSON.stringify(mcpInvocationResult, null, 2)}
-                        </pre>
-                      </div>
-                    </div>
-                  ) : (
-                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 20px', color: 'var(--text-muted)', textAlign: 'center' }}>
-                      <div style={{ fontSize: '2rem', marginBottom: '8px' }}>⚡</div>
-                      <div style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '4px' }}>
-                        Ready to Execute
-                      </div>
-                      <p style={{ fontSize: '0.78rem', maxWidth: '300px', margin: 0 }}>
-                        Select a tool and click "Execute MCP Tool" to test live Model Context Protocol communication.
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* SUB-VIEW 2: CLAUDE DESKTOP & CURSOR CONFIGS */}
-            {mcpActiveSubView === 'configs' && (
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-                {/* Claude Desktop Configuration */}
-                <div className="clean-panel" style={{ padding: '20px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                    <div>
-                      <h4 style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
-                        Claude Desktop Integration
-                      </h4>
-                      <p style={{ fontSize: '0.76rem', color: 'var(--text-muted)', margin: 0, marginTop: '2px' }}>
-                        Connect Claude Desktop to your local Context Trust Layer
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => handleCopySnippet(JSON.stringify({
-                        "mcpServers": {
-                          "context-trust-layer": {
-                            "command": "python",
-                            "args": ["-m", "mcp_proxy", "--url", "http://127.0.0.1:8000/v1/mcp"]
-                          }
-                        }
-                      }, null, 2))}
-                      className="btn btn-secondary"
-                      style={{ padding: '4px 12px', fontSize: '0.75rem' }}
-                    >
-                      {mcpCopiedSnippet ? '✓ Copied' : 'Copy Config'}
-                    </button>
-                  </div>
-
-                  <div style={{ fontSize: '0.74rem', color: 'var(--text-secondary)', marginBottom: '8px' }}>
-                    Save in <code>claude_desktop_config.json</code>:
-                  </div>
-
-                  <pre style={{
-                    background: '#0F172A',
-                    color: '#A7F3D0',
-                    padding: '14px',
-                    borderRadius: '8px',
-                    fontSize: '0.76rem',
-                    fontFamily: 'var(--font-mono)',
-                    overflowX: 'auto',
-                    marginBottom: '14px'
-                  }}>
-                    {`{
-  "mcpServers": {
-    "context-trust-layer": {
-      "command": "python",
-      "args": [
-        "-m", "mcp_proxy",
-        "--url", "http://127.0.0.1:8000/v1/mcp"
-      ]
-    }
-  }
-}`}
-                  </pre>
-
-                  <div style={{ background: 'var(--bg-card-subtle)', padding: '12px', borderRadius: '6px', fontSize: '0.74rem', color: 'var(--text-muted)' }}>
-                    <strong>Config File Locations:</strong>
-                    <ul style={{ paddingLeft: '18px', marginTop: '4px' }}>
-                      <li><strong>macOS:</strong> <code>~/Library/Application Support/Claude/claude_desktop_config.json</code></li>
-                      <li><strong>Windows:</strong> <code>%APPDATA%\\Claude\\claude_desktop_config.json</code></li>
-                    </ul>
-                  </div>
-                </div>
-
-                {/* Cursor IDE Configuration */}
-                <div className="clean-panel" style={{ padding: '20px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                    <div>
-                      <h4 style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
-                        Cursor IDE & Windsurf Integration
-                      </h4>
-                      <p style={{ fontSize: '0.76rem', color: 'var(--text-muted)', margin: 0, marginTop: '2px' }}>
-                        Configure MCP server in <code>.cursor/mcp.json</code> or Settings → Features → MCP
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => handleCopySnippet(JSON.stringify({
-                        "mcpServers": {
-                          "context-trust-layer": {
-                            "url": "http://127.0.0.1:8000/v1/mcp"
-                          }
-                        }
-                      }, null, 2))}
-                      className="btn btn-secondary"
-                      style={{ padding: '4px 12px', fontSize: '0.75rem' }}
-                    >
-                      {mcpCopiedSnippet ? '✓ Copied' : 'Copy Config'}
-                    </button>
-                  </div>
-
-                  <div style={{ fontSize: '0.74rem', color: 'var(--text-secondary)', marginBottom: '8px' }}>
-                    Save in workspace <code>.cursor/mcp.json</code>:
-                  </div>
-
-                  <pre style={{
-                    background: '#0F172A',
-                    color: '#93C5FD',
-                    padding: '14px',
-                    borderRadius: '8px',
-                    fontSize: '0.76rem',
-                    fontFamily: 'var(--font-mono)',
-                    overflowX: 'auto',
-                    marginBottom: '14px'
-                  }}>
-                    {`{
-  "mcpServers": {
-    "context-trust-layer": {
-      "url": "http://127.0.0.1:8000/v1/mcp"
-    }
-  }
-}`}
-                  </pre>
-
-                  <div style={{ background: 'var(--bg-card-subtle)', padding: '12px', borderRadius: '6px', fontSize: '0.74rem', color: 'var(--text-muted)' }}>
-                    <strong>Capabilities Exposed to Cursor / Claude:</strong>
-                    <ul style={{ paddingLeft: '18px', marginTop: '4px' }}>
-                      <li><code>context_trust_get_trusted_context</code>: Retrieves authoritative facts</li>
-                      <li><code>context_trust_evaluate_decision</code>: Verifies governance rules & gates</li>
-                      <li><code>context_trust_search_claims</code>: Scans department claims</li>
-                      <li><code>context_trust_check_conflicts</code>: Flags contradictions</li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* SUB-VIEW 3: PYTHON SDK & AGENT FRAMEWORKS */}
-            {mcpActiveSubView === 'sdks' && (
-              <div className="clean-panel" style={{ padding: '20px' }}>
-                {/* Code Snippet Tabs */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
-                  <div className="scenario-bar">
-                    <button
-                      onClick={() => setMcpActiveSnippet('python')}
-                      className={`scenario-btn ${mcpActiveSnippet === 'python' ? 'scenario-btn-active' : ''}`}
-                    >
-                      Python Async SDK
-                    </button>
-                    <button
-                      onClick={() => setMcpActiveSnippet('langchain')}
-                      className={`scenario-btn ${mcpActiveSnippet === 'langchain' ? 'scenario-btn-active' : ''}`}
-                    >
-                      LangChain / LangGraph Tool
-                    </button>
-                    <button
-                      onClick={() => setMcpActiveSnippet('llamaindex')}
-                      className={`scenario-btn ${mcpActiveSnippet === 'llamaindex' ? 'scenario-btn-active' : ''}`}
-                    >
-                      LlamaIndex Retriever
-                    </button>
-                    <button
-                      onClick={() => setMcpActiveSnippet('curl')}
-                      className={`scenario-btn ${mcpActiveSnippet === 'curl' ? 'scenario-btn-active' : ''}`}
-                    >
-                      cURL & JSON-RPC
-                    </button>
-                  </div>
-
-                  <button
-                    onClick={() => {
-                      let code = '';
-                      if (mcpActiveSnippet === 'python') {
-                        code = `import httpx
-
-class ContextTrustClient:
-    def __init__(self, base_url: str = "http://127.0.0.1:8000"):
-        self.base_url = base_url
-
-    async def get_trusted_context(self, query: str, min_trust_score: float = 0.75):
-        async with httpx.AsyncClient() as client:
-            res = await client.post(
-                f"{self.base_url}/v1/mcp/invoke",
-                json={"tool": "context_trust_get_trusted_context", "arguments": {"query": query, "min_trust_score": min_trust_score}}
-            )
-            return res.json()["result"]
-
-    async def evaluate_decision(self, action_type: str, actor_id: str, actor_role: str):
-        async with httpx.AsyncClient() as client:
-            res = await client.post(
-                f"{self.base_url}/v1/mcp/invoke",
-                json={"tool": "context_trust_evaluate_decision", "arguments": {"action_type": action_type, "actor_id": actor_id, "actor_role": actor_role}}
-            )
-            return res.json()["result"]`;
-                      } else if (mcpActiveSnippet === 'langchain') {
-                        code = `from langchain.tools import tool
-import httpx
-
-@tool
-def get_verified_enterprise_context(query: str) -> str:
-    """Retrieve verified and conflict-free enterprise context before generating answers."""
-    res = httpx.post(
-        "http://127.0.0.1:8000/v1/mcp/invoke",
-        json={"tool": "context_trust_get_trusted_context", "arguments": {"query": query, "min_trust_score": 0.8}}
-    )
-    data = res.json().get("result", {})
-    claims = [item["text"] for item in data.get("trusted_context", [])]
-    return "\\n".join(claims) if claims else "No verified enterprise context found."
-
-@tool
-def evaluate_agent_decision(action: str, agent_id: str = "langchain-agent") -> dict:
-    """Evaluate whether a proposed tool call or decision violates enterprise safety policies."""
-    res = httpx.post(
-        "http://127.0.0.1:8000/v1/mcp/invoke",
-        json={"tool": "context_trust_evaluate_decision", "arguments": {"action_type": action, "actor_id": agent_id, "actor_role": "assistant"}}
-    )
-    return res.json().get("result", {})`;
-                      } else if (mcpActiveSnippet === 'llamaindex') {
-                        code = `from llama_index.core.schema import NodeWithScore, TextNode
-import httpx
-
-class ContextTrustRetriever:
-    def __init__(self, endpoint: str = "http://127.0.0.1:8000/v1/mcp/invoke"):
-        self.endpoint = endpoint
-
-    def retrieve(self, query_str: str):
-        res = httpx.post(
-            self.endpoint,
-            json={"tool": "context_trust_get_trusted_context", "arguments": {"query": query_str, "min_trust_score": 0.75}}
-        )
-        items = res.json().get("result", {}).get("trusted_context", [])
-        return [
-            NodeWithScore(
-                node=TextNode(text=item["text"], metadata={"source": item["source"]["title"]}),
-                score=item["trust_score"]
-            )
-            for item in items
-        ]`;
-                      } else {
-                        code = `# 1. Get MCP Manifest
-curl -X GET http://127.0.0.1:8000/v1/mcp/manifest
-
-# 2. List Registered Tools
-curl -X GET http://127.0.0.1:8000/v1/mcp/tools
-
-# 3. Direct REST Tool Invocation
-curl -X POST http://127.0.0.1:8000/v1/mcp/invoke \\
-  -H "Content-Type: application/json" \\
-  -d '{"tool": "context_trust_get_trusted_context", "arguments": {"query": "customer refund window"}}'
-
-# 4. JSON-RPC 2.0 (MCP Specification)
-curl -X POST http://127.0.0.1:8000/v1/mcp \\
-  -H "Content-Type: application/json" \\
-  -d '{"jsonrpc": "2.0", "method": "tools/call", "params": {"name": "context_trust_check_conflicts", "arguments": {"claim_text": "Refund window is 90 days."}}, "id": 1}'`;
-                      }
-                      handleCopySnippet(code);
-                    }}
-                    className="btn btn-secondary"
-                    style={{ padding: '6px 16px', fontSize: '0.78rem' }}
-                  >
-                    {mcpCopiedSnippet ? '✓ Copied' : 'Copy Code'}
-                  </button>
-                </div>
-
-                {/* Preformatted Code Display */}
-                <pre style={{
-                  background: '#0F172A',
-                  color: '#F8FAFC',
-                  padding: '18px',
-                  borderRadius: '8px',
-                  fontSize: '0.8rem',
-                  fontFamily: 'var(--font-mono)',
-                  overflowX: 'auto',
-                  lineHeight: '1.5'
-                }}>
-                  {mcpActiveSnippet === 'python' && `import httpx
-
-class ContextTrustClient:
-    """Client for Context Trust Layer MCP Server."""
-    def __init__(self, base_url: str = "http://127.0.0.1:8000"):
-        self.base_url = base_url
-
-    async def get_trusted_context(self, query: str, min_trust_score: float = 0.75):
-        async with httpx.AsyncClient() as client:
-            res = await client.post(
-                f"{self.base_url}/v1/mcp/invoke",
-                json={
-                    "tool": "context_trust_get_trusted_context",
-                    "arguments": {"query": query, "min_trust_score": min_trust_score}
-                }
-            )
-            return res.json()["result"]
-
-    async def evaluate_decision(self, action_type: str, actor_id: str, actor_role: str):
-        async with httpx.AsyncClient() as client:
-            res = await client.post(
-                f"{self.base_url}/v1/mcp/invoke",
-                json={
-                    "tool": "context_trust_evaluate_decision",
-                    "arguments": {"action_type": action_type, "actor_id": actor_id, "actor_role": actor_role}
-                }
-            )
-            return res.json()["result"]`}
-
-                  {mcpActiveSnippet === 'langchain' && `from langchain.tools import tool
-import httpx
-
-@tool
-def get_verified_enterprise_context(query: str) -> str:
-    """Retrieve verified and conflict-free enterprise context before generating answers."""
-    res = httpx.post(
-        "http://127.0.0.1:8000/v1/mcp/invoke",
-        json={
-            "tool": "context_trust_get_trusted_context",
-            "arguments": {"query": query, "min_trust_score": 0.8}
-        }
-    )
-    data = res.json().get("result", {})
-    claims = [item["text"] for item in data.get("trusted_context", [])]
-    return "\\n".join(claims) if claims else "No verified enterprise context found."
-
-@tool
-def evaluate_agent_decision(action: str, agent_id: str = "langchain-agent") -> dict:
-    """Evaluate whether a proposed tool call or decision violates enterprise safety policies."""
-    res = httpx.post(
-        "http://127.0.0.1:8000/v1/mcp/invoke",
-        json={
-            "tool": "context_trust_evaluate_decision",
-            "arguments": {"action_type": action, "actor_id": agent_id, "actor_role": "assistant"}
-        }
-    )
-    return res.json().get("result", {})`}
-
-                  {mcpActiveSnippet === 'llamaindex' && `from llama_index.core.schema import NodeWithScore, TextNode
-import httpx
-
-class ContextTrustRetriever:
-    """Enterprise Trust Retriever for LlamaIndex RAG pipelines."""
-    def __init__(self, endpoint: str = "http://127.0.0.1:8000/v1/mcp/invoke"):
-        self.endpoint = endpoint
-
-    def retrieve(self, query_str: str):
-        res = httpx.post(
-            self.endpoint,
-            json={
-                "tool": "context_trust_get_trusted_context",
-                "arguments": {"query": query_str, "min_trust_score": 0.75}
-            }
-        )
-        items = res.json().get("result", {}).get("trusted_context", [])
-        return [
-            NodeWithScore(
-                node=TextNode(text=item["text"], metadata={"source": item["source"]["title"]}),
-                score=item["trust_score"]
-            )
-            for item in items
-        ]`}
-
-                  {mcpActiveSnippet === 'curl' && `# 1. Get MCP Server Manifest
-curl -X GET http://127.0.0.1:8000/v1/mcp/manifest
-
-# 2. List Registered Tools
-curl -X GET http://127.0.0.1:8000/v1/mcp/tools
-
-# 3. Direct REST Tool Invocation
-curl -X POST http://127.0.0.1:8000/v1/mcp/invoke \\
-  -H "Content-Type: application/json" \\
-  -d '{
-    "tool": "context_trust_get_trusted_context",
-    "arguments": {"query": "customer refund window", "min_trust_score": 0.75}
-  }'
-
-# 4. JSON-RPC 2.0 (MCP Protocol Standard)
-curl -X POST http://127.0.0.1:8000/v1/mcp \\
-  -H "Content-Type: application/json" \\
-  -d '{
-    "jsonrpc": "2.0",
-    "method": "tools/call",
-    "params": {
-      "name": "context_trust_check_conflicts",
-      "arguments": {"claim_text": "Refund window is 90 days."}
-    },
-    "id": 1
-  }'`}
-                </pre>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* ========================================================= */}
         {/* TAB 6: DECISION AUDIT TRAIL & LINEAGE EXPLORER            */}
         {/* ========================================================= */}
         {activeTab === 'audit' && (
@@ -4800,6 +3983,8 @@ curl -X POST http://127.0.0.1:8000/v1/mcp \\
           <McpIntegrationStudio
             activeOrg={activeOrg}
             showToast={showToast}
+            initialSubView={mcpActiveSubView}
+            onSubViewChange={setMcpActiveSubView}
           />
         )}
 

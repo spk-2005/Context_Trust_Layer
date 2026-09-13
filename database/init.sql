@@ -201,106 +201,29 @@ CREATE TABLE IF NOT EXISTS human_reviews (
 );
 
 -- ============================================================
--- SEED DATA: Insert 1-2 realistic records into all 14 tables
+-- BASELINE DATA: Organization 'demo' and Default Agent
 -- ============================================================
 
 DO $$
 DECLARE
     v_org_id UUID := '11111111-1111-1111-1111-111111111111';
     v_user_id UUID := '22222222-2222-2222-2222-222222222222';
-    v_source_jira_id UUID := '33333333-3333-3333-3333-333333333333';
-    v_source_conf_id UUID := '44444444-4444-4444-4444-444444444444';
-    v_doc_id UUID := '55555555-5555-5555-5555-555555555555';
-    v_doc_version_1 UUID := '66666666-6666-6666-6666-666666666661';
-    v_doc_version_2 UUID := '66666666-6666-6666-6666-666666666662';
-    v_claim_1 UUID := '77777777-7777-7777-7777-777777777771';
-    v_claim_2 UUID := '77777777-7777-7777-7777-777777777772';
     v_agent_id UUID := '88888888-8888-8888-8888-888888888888';
-    v_request_id UUID := '99999999-9999-9999-9999-999999999999';
 BEGIN
     -- 1. organizations
     INSERT INTO organizations (id, name, slug, status)
     VALUES (v_org_id, 'demo', 'demo', 'active')
-    ON CONFLICT (id) DO NOTHING;
+    ON CONFLICT (id) DO UPDATE SET name = 'demo', slug = 'demo';
 
     -- 2. users
     INSERT INTO users (id, organization_id, name, email, role, status)
-    VALUES (v_user_id, v_org_id, 'Sarah Chen (Lead Auditor)', 'sarah.chen@demo.local', 'reviewer', 'active')
+    VALUES (v_user_id, v_org_id, 'Sarah Chen', 'sarah.chen@demo.local', 'admin', 'active')
     ON CONFLICT (id) DO NOTHING;
 
-    -- 3. data_sources
-    INSERT INTO data_sources (id, organization_id, name, source_type, external_id, authority_level, status)
-    VALUES 
-        (v_source_conf_id, v_org_id, 'Enterprise Policy Confluence', 'confluence', 'CONF-SPACE-FINANCE', 95, 'active'),
-        (v_source_jira_id, v_org_id, 'Support Operations Jira', 'jira', 'JIRA-PROJECT-SUPP', 60, 'active')
-    ON CONFLICT (id) DO NOTHING;
-
-    -- 4. documents
-    INSERT INTO documents (id, organization_id, source_id, title, document_type, external_id, content_uri, content_hash, status)
-    VALUES (v_doc_id, v_org_id, v_source_conf_id, 'Enterprise Customer Refund Policy', 'confluence_page', 'FIN-POL-2026', 's3://context-trust-docs/demo/fin_policy_2026.md', 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855', 'active')
-    ON CONFLICT (id) DO NOTHING;
-
-    -- 5. document_versions
-    INSERT INTO document_versions (id, document_id, version_number, content_uri, content_hash, is_current)
-    VALUES 
-        (v_doc_version_1, v_doc_id, 1, 's3://context-trust-docs/demo/fin_policy_v1.md', 'a1b2c3d4e5f67890123456789abcdef0123456789abcdef0123456789abcdef0', false),
-        (v_doc_version_2, v_doc_id, 2, 's3://context-trust-docs/demo/fin_policy_v2.md', 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855', true)
-    ON CONFLICT (id) DO NOTHING;
-
-    -- 6. claims
-    INSERT INTO claims (id, organization_id, document_version_id, claim_text, subject, predicate, object, claim_type, status)
-    VALUES 
-        (v_claim_1, v_org_id, v_doc_version_1, 'Customers are eligible for automated refunds up to ₹25,000 without supervisor approval.', 'Customer', 'eligible_for_automated_refund', '₹25,000', 'refund_limit', 'outdated'),
-        (v_claim_2, v_org_id, v_doc_version_2, 'Standard automated refund limit is capped at ₹10,000. Higher amounts require VP signoff.', 'Customer', 'eligible_for_automated_refund', '₹10,000', 'refund_limit', 'verified')
-    ON CONFLICT (id) DO NOTHING;
-
-    -- 7. claim_evidence
-    INSERT INTO claim_evidence (claim_id, document_id, evidence_type, section, text_span, start_offset, end_offset, evidence_hash)
-    VALUES 
-        (v_claim_2, v_doc_id, 'direct_quote', 'Section 3.2 - Automated Thresholds', 'Standard automated refund limit is capped at ₹10,000.', 120, 175, '8f4c281e0123456789abcdef0123456789abcdef0123456789abcdef01234567')
-    ON CONFLICT DO NOTHING;
-
-    -- 8. claim_validity
-    INSERT INTO claim_validity (claim_id, valid_from, valid_until, version, is_current, validity_status)
-    VALUES 
-        (v_claim_1, '2025-01-01 00:00:00+00', '2026-08-27 23:59:59+00', 'v1.0', false, 'expired'),
-        (v_claim_2, '2026-08-28 00:00:00+00', '2027-12-31 23:59:59+00', 'v2.0', true, 'valid')
-    ON CONFLICT DO NOTHING;
-
-    -- 9. claim_trust_scores
-    INSERT INTO claim_trust_scores (claim_id, source_score, freshness_score, evidence_score, consistency_score, authority_score, human_score, overall_score)
-    VALUES 
-        (v_claim_2, 0.98, 0.99, 0.95, 0.92, 0.98, 1.00, 0.96)
-    ON CONFLICT DO NOTHING;
-
-    -- 10. claim_conflicts
-    INSERT INTO claim_conflicts (claim_a_id, claim_b_id, conflict_type, severity, confidence, resolution_status, resolved_claim_id, resolved_by)
-    VALUES 
-        (v_claim_1, v_claim_2, 'value_mismatch', 'high', 0.99, 'resolved', v_claim_2, v_user_id)
-    ON CONFLICT DO NOTHING;
-
-    -- 11. agents
+    -- 3. agents
     INSERT INTO agents (id, organization_id, name, description, agent_type, model_provider, model_name, status)
     VALUES 
-        (v_agent_id, v_org_id, 'Billing & Refund Resolution Agent', 'Autonomous agent processing customer billing dispute tickets.', 'billing_agent', 'openai', 'gpt-4o', 'active')
+        (v_agent_id, v_org_id, 'Autonomous AI Copilot', 'Enterprise contextual copilot for policy verification.', 'claude_mcp_client', 'mock', 'gpt-4o', 'active')
     ON CONFLICT (id) DO NOTHING;
-
-    -- 12. agent_requests
-    INSERT INTO agent_requests (id, organization_id, agent_id, query, trust_threshold, max_results, status, completed_at)
-    VALUES 
-        (v_request_id, v_org_id, v_agent_id, 'What is the maximum allowed automated refund for India customers?', 0.85, 5, 'completed', now())
-    ON CONFLICT (id) DO NOTHING;
-
-    -- 13. agent_context_items
-    INSERT INTO agent_context_items (request_id, claim_id, rank, trust_score, included, exclusion_reason)
-    VALUES 
-        (v_request_id, v_claim_2, 1, 0.96, true, NULL),
-        (v_request_id, v_claim_1, 2, 0.30, false, 'STALE_CONTEXT: Claim superseded by V2 policy')
-    ON CONFLICT DO NOTHING;
-
-    -- 14. human_reviews
-    INSERT INTO human_reviews (organization_id, reviewer_id, target_type, target_id, decision, reason, previous_score, new_score)
-    VALUES 
-        (v_org_id, v_user_id, 'claim', v_claim_2, 'approve', 'Validated against CFO official memo published on 2026-08-28.', 0.90, 0.96)
-    ON CONFLICT DO NOTHING;
 END $$;
+

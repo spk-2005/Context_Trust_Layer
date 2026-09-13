@@ -25,7 +25,8 @@ class ChatRepository(BaseRepository[ChatSession]):
             .where(ChatSession.organization_id == organization_id)
         )
         if user_id:
-            stmt = stmt.where(ChatSession.user_id == user_id)
+            from sqlalchemy import or_
+            stmt = stmt.where(or_(ChatSession.user_id == user_id, ChatSession.user_id.is_(None)))
         
         stmt = stmt.order_by(ChatSession.updated_at.desc()).limit(limit)
         result = await self.session.execute(stmt)

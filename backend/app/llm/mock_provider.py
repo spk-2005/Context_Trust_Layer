@@ -149,36 +149,97 @@ class MockLLMProvider(BaseLLMProvider):
         words_b = {re.sub(r"s$", "", w) for w in re.findall(r"[a-z]{3,}", b_lower)} - stopwords
         meaningful_common_words = words_a.intersection(words_b)
 
-        # Strip technical protocol standards so "AES-256", "TLS 1.3", "OAuth 2.0", etc. aren't parsed as conflicting counts
-        clean_a = re.sub(r"\b(?:aes[-_]?\d+|tls\s*\d+(?:\.\d+)?|sha[-_]?\d+|oauth\s*\d+(?:\.\d+)?|iso\s*\d+|soc\s*\d+|http[s]?\s*/?\s*\d+(?:\.\d+)?)\b", "", a_lower)
-        clean_b = re.sub(r"\b(?:aes[-_]?\d+|tls\s*\d+(?:\.\d+)?|sha[-_]?\d+|oauth\s*\d+(?:\.\d+)?|iso\s*\d+|soc\s*\d+|http[s]?\s*/?\s*\d+(?:\.\d+)?)\b", "", b_lower)
+        # Check for structural / document governance headers
+        header_patterns = r"\b(?:document\s*id|version\s*:\s*\d+|authority\s*:\s*\d+|classification\s*:|synthetic\s*enterprise\s*dataset|bilingual\s*policy\s*style|section\s*purpose\s*:|page\s*\d+)\b"
+        is_header_a = bool(re.search(header_patterns, a_lower)) and not any(w in a_lower for w in ["must not", "prohibited", "forbidden", "cannot"])
+        is_header_b = bool(re.search(header_patterns, b_lower)) and not any(w in b_lower for w in ["must not", "prohibited", "forbidden", "cannot"])
+
+        # Strip technical protocol standards, metadata tags, and page numbers from numeric checks
+        meta_strip = r"\b(?:aes[-_]?\d+|tls\s*\d+(?:\.\d+)?|sha[-_]?\d+|oauth\s*\d+(?:\.\d+)?|iso\s*\d+|soc\s*\d+|http[s]?\s*/?\s*\d+(?:\.\d+)?|version\s*[:=]?\s*\d+(?:\.\d+)?|authority\s*[:=]?\s*\d+|chapter\s*[:=]?\s*\d+|page\s*[:=]?\s*\d+|rf-\d+-\d+|ssfa-\d+|control\s*rule\s*[:=]?\s*\d+(?:\.\d+)*)\b"
+        clean_a = re.sub(meta_strip, "", a_lower)
+        clean_b = re.sub(meta_strip, "", b_lower)
 
         # Check for numeric metrics in both claims
-        nums_a = re.findall(r"\b\d+(?:[.,]\d+)?\b", clean_a)
-        nums_b = re.findall(r"\b\d+(?:[.,]\d+)?\b", clean_b)
+        nums_a = set(re.findall(r"\b\d+(?:[.,]\d+)?\b", clean_a))
+        nums_b = set(re.findall(r"\b\d+(?:[.,]\d+)?\b", clean_b))
+
+        # If claims are identical after stripping metadata, they cannot contradict
+        if " ".join(clean_a.split()) == " ".join(clean_b.split()):
+            return ContradictionResult(
+                is_contradiction=False,
+                conflict_type="compatible",
+                severity="low",
+                confidence=0.95,
+                reasoning="Claims have identical content and are fully consistent.",
+            )
+
+        # Check for complementary segregation-of-duties or self-approval patterns
+        is_segregation_a = "own transaction" in a_lower or "segregation of duties" in a_lower or "self-approv" in a_lower
+        is_segregation_b = "own transaction" in b_lower or "segregation of duties" in b_lower or "self-approv" in b_lower
+        is_complementary_approval = (is_segregation_a or is_segregation_b) and ("approval" in a_lower or "approv" in a_lower) and ("approval" in b_lower or "approv" in b_lower)
 
         # Opposing directive pairs
-        opposing_pairs = [
+        direct_opposing_pairs = [
             ("allow", "prohibit"),
             ("allowed", "prohibited"),
             ("permitted", "forbidden"),
             ("required", "optional"),
             ("mandatory", "voluntary"),
-            ("can", "cannot"),
-            ("must", "must not"),
             ("enabled", "disabled"),
             ("on-site", "remote"),
             ("onsite", "remote"),
         ]
 
-        has_opposing_terms = any(
+        has_direct_opposing = any(
             (p[0] in a_lower and p[1] in b_lower) or (p[1] in a_lower and p[0] in b_lower)
-            for p in opposing_pairs
+            for p in direct_opposing_pairs
         )
+
+        # Modal verbs (must vs must not, can vs cannot) require matching predicate action verb
+        has_modal_opposing = False
+        if not is_complementary_approval:
+            # Check 'must' vs 'must not'
+            if ("must not" in a_lower and re.search(r"\bmust\s+(?!not\b)(\w+)", b_lower)) or \
+               ("must not" in b_lower and re.search(r"\bmust\s+(?!not\b)(\w+)", a_lower)):
+                verb_must = re.findall(r"\bmust\s+(?!not\b)([a-z]{3,})", a_lower if "must not" in b_lower else b_lower)
+                verb_must_not = re.findall(r"\bmust\s+not\s+([a-z]{3,})", b_lower if "must not" in b_lower else a_lower)
+                if verb_must and verb_must_not and set(verb_must).intersection(set(verb_must_not)):
+                    has_modal_opposing = True
+
+            # Check 'can' vs 'cannot'
+            elif ("cannot" in a_lower and re.search(r"\bcan\s+(\w+)", b_lower)) or \
+                 ("cannot" in b_lower and re.search(r"\bcan\s+(\w+)", a_lower)):
+                verb_can = re.findall(r"\bcan\s+([a-z]{3,})", a_lower if "cannot" in b_lower else b_lower)
+                verb_cannot = re.findall(r"\bcannot\s+([a-z]{3,})", b_lower if "cannot" in b_lower else a_lower)
+                if verb_can and verb_cannot and set(verb_can).intersection(set(verb_cannot)):
+                    has_modal_opposing = True
+
+        has_opposing_terms = has_direct_opposing or has_modal_opposing
+
+        # Opposing directives: Must share at least 1 meaningful subject keyword (e.g., "remote work", "engineering")
+        if has_opposing_terms and len(meaningful_common_words) >= 1:
+            context_snippet = ", ".join(list(meaningful_common_words)[:3])
+            return ContradictionResult(
+                is_contradiction=True,
+                conflict_type="direct_contradiction",
+                severity="high",
+                confidence=0.90,
+                reasoning=f"Claims share subject ({context_snippet}) but contain mutually opposing rules or constraints.",
+            )
+
+        # If either claim is pure document structure/metadata, it does not contradict operational rules
+        if is_header_a or is_header_b:
+            return ContradictionResult(
+                is_contradiction=False,
+                conflict_type="compatible",
+                severity="low",
+                confidence=0.88,
+                reasoning="Document structure, metadata header, and operational content are compatible.",
+            )
 
         # Domain metric units & policy constraint keywords
         metric_keywords = {
-            "day", "week", "month", "year", "hour", "minute", "refund", "leave", "allowance",
+            "day", "week", "month", "year", "hour", "minute", "leave", "allowance",
             "limit", "amount", "threshold", "window", "rate", "sla", "discount",
             "fee", "charge", "price", "cost", "salary", "bonus", "score", "percent"
         }
@@ -193,14 +254,30 @@ class MockLLMProvider(BaseLLMProvider):
             any(w in b_lower for w in constraint_keywords)
         )
 
-        # A valid numerical discrepancy requires:
-        # 1. Genuine numbers in both claims (not technical standard names)
-        # 2. Shared metric unit (e.g. both discussing days, or both discussing refund/rupees)
-        # 3. Both claims expressing a rule/constraint/threshold context
+        # Extract semantic units
+        curr_a = set(re.findall(r"\$[\d,]+(?:\.\d+)?|\b\d+(?:[.,]\d+)?\s*(?:dollars?|usd|inr|rupees?|eur|euros?)\b", clean_a))
+        curr_b = set(re.findall(r"\$[\d,]+(?:\.\d+)?|\b\d+(?:[.,]\d+)?\s*(?:dollars?|usd|inr|rupees?|eur|euros?)\b", clean_b))
+        
+        dur_a = set(re.findall(r"\b\d+[-\s]*(?:days?|weeks?|months?|years?|hours?|mins?|minutes?)\b", clean_a))
+        dur_b = set(re.findall(r"\b\d+[-\s]*(?:days?|weeks?|months?|years?|hours?|mins?|minutes?)\b", clean_b))
+
+        pct_a = set(re.findall(r"\b\d+(?:\.\d+)?\s*(?:\%|percent)\b", clean_a))
+        pct_b = set(re.findall(r"\b\d+(?:\.\d+)?\s*(?:\%|percent)\b", clean_b))
+
+        # Semantic unit mismatch check
+        has_unit_conflict = (
+            (bool(curr_a) and bool(curr_b) and curr_a != curr_b) or
+            (bool(dur_a) and bool(dur_b) and dur_a != dur_b) or
+            (bool(pct_a) and bool(pct_b) and pct_a != pct_b)
+        )
+
         is_numerical_conflict = (
-            bool(nums_a) and bool(nums_b) and nums_a != nums_b and (
-                (len(meaningful_common_words) >= 2 and (shared_metrics or has_constraint_context)) or
-                (len(meaningful_common_words) >= 1 and shared_metrics and has_constraint_context)
+            (has_unit_conflict and len(meaningful_common_words) >= 1) or
+            (
+                bool(nums_a) and bool(nums_b) and nums_a != nums_b and (
+                    (len(meaningful_common_words) >= 2 and (shared_metrics or has_constraint_context)) or
+                    (len(meaningful_common_words) >= 1 and shared_metrics and has_constraint_context)
+                )
             )
         )
 
@@ -211,18 +288,7 @@ class MockLLMProvider(BaseLLMProvider):
                 conflict_type="numerical_discrepancy",
                 severity="high",
                 confidence=0.92,
-                reasoning=f"Claims share subject context ({context_snippet}) but specify conflicting numerical thresholds: {nums_a} vs {nums_b}.",
-            )
-
-        # Opposing directives: Must share at least 1 meaningful subject keyword (e.g., "remote work", "engineering")
-        if has_opposing_terms and len(meaningful_common_words) >= 1:
-            context_snippet = ", ".join(list(meaningful_common_words)[:3])
-            return ContradictionResult(
-                is_contradiction=True,
-                conflict_type="direct_contradiction",
-                severity="high",
-                confidence=0.90,
-                reasoning=f"Claims share subject ({context_snippet}) but contain mutually opposing rules or constraints.",
+                reasoning=f"Claims share subject context ({context_snippet}) but specify conflicting numerical thresholds: {list(nums_a)[:2]} vs {list(nums_b)[:2]}.",
             )
 
         return ContradictionResult(

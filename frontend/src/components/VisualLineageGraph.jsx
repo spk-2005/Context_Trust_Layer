@@ -8,6 +8,12 @@ export default function VisualLineageGraph({ activeOrg, showToast }) {
   const [blastRadius, setBlastRadius] = useState(null);
   const [loadingBlastRadius, setLoadingBlastRadius] = useState(false);
 
+  // View Mode: 'conflicts' (default clean DAG), 'focused' (centered around active asset), 'all' (sample overview)
+  const [viewMode, setViewMode] = useState('conflicts');
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [drawerSearch, setDrawerSearch] = useState('');
+  const [drawerDocFilter, setDrawerDocFilter] = useState('all');
+
   // Free-form Canvas Pan & Zoom State
   const [zoom, setZoom] = useState(0.85);
   const [pan, setPan] = useState({ x: 60, y: 100 });
@@ -33,9 +39,10 @@ export default function VisualLineageGraph({ activeOrg, showToast }) {
         const data = await res.json();
         setGraphData(data);
         if (data.nodes && data.nodes.length > 0 && !selectedNodeId) {
-          // Default focus to the first atomic claim or document
-          const firstClaim = data.nodes.find(n => n.type === 'claim') || data.nodes[0];
-          setSelectedNodeId(firstClaim.id);
+          // Default focus to the first contradiction or claim
+          const firstConflict = data.nodes.find(n => n.type === 'conflict');
+          const firstClaim = data.nodes.find(n => n.type === 'claim');
+          setSelectedNodeId(firstConflict ? firstConflict.id : (firstClaim ? firstClaim.id : data.nodes[0].id));
         }
       } else {
         showToast?.("Failed to fetch lineage graph", "error");
@@ -125,7 +132,7 @@ export default function VisualLineageGraph({ activeOrg, showToast }) {
   const CARD_WIDTH = 270;
   const CARD_HEIGHT = 92;
 
-  // Natural DAG Tree Layout (Organic flow centered around the focused asset)
+  // Smart DAG Layout: Capped and contextual to prevent browser freezing
   const defaultPositions = useMemo(() => {
     const map = {};
     if (!graphData?.nodes) return map;
@@ -136,32 +143,97 @@ export default function VisualLineageGraph({ activeOrg, showToast }) {
     const conflicts = graphData.nodes.filter(n => n.type === 'conflict');
     const decisions = graphData.nodes.filter(n => n.type === 'decision');
 
-    // Filter to connected nodes + top context siblings for a focused, clean graph
-    const filterTier = (list) => {
-      if (!selectedNodeId) return list.slice(0, 8);
-      const connected = list.filter(n => connectedNodeMap.all.has(n.id));
-      if (connected.length > 0) return connected;
-      return list.slice(0, 3);
-    };
+    let activeSources = [];
+    let activeDocs = [];
+    let activeClaims = [];
+    let activeConflicts = [];
+    let activeDecisions = [];
 
-    const activeSources = filterTier(sources);
-    const activeDocs = filterTier(documents);
-    const activeClaims = filterTier(claims);
-    const activeConflicts = filterTier(conflicts);
-    const activeDecisions = filterTier(decisions);
+    const MAX_PER_TIER = 6;
+
+    if (viewMode === 'conflicts') {
+      // 1. Conflict Focus Mode: Show active contradictory branches
+      activeConflicts = conflicts.slice(0, MAX_PER_TIER);
+      const conflictClaimIds = new Set();
+      activeConflicts.forEach(c => {
+        if (c.data?.first_claim_id) conflictClaimIds.add(`cl_${c.data.first_claim_id}`);
+        if (c.data?.second_claim_id) conflictClaimIds.add(`cl_${c.data.second_claim_id}`);
+      });
+
+      activeClaims = claims.filter(cl => conflictClaimIds.has(cl.id)).slice(0, MAX_PER_TIER);
+      if (activeClaims.length === 0) {
+        activeClaims = claims.slice(0, MAX_PER_TIER);
+      }
+
+      const docIds = new Set();
+      activeClaims.forEach(cl => {
+        graphData.edges.forEach(e => {
+          if (e.target === cl.id && e.source.startsWith('doc_')) {
+            docIds.add(e.source);
+          }
+        });
+      });
+      activeDocs = documents.filter(d => docIds.has(d.id)).slice(0, MAX_PER_TIER);
+      if (activeDocs.length === 0) activeDocs = documents.slice(0, 3);
+
+      const srcIds = new Set();
+      activeDocs.forEach(d => {
+        graphData.edges.forEach(e => {
+          if (e.target === d.id && e.source.startsWith('src_')) {
+            srcIds.add(e.source);
+          }
+        });
+      });
+      activeSources = sources.filter(s => srcIds.has(s.id)).slice(0, MAX_PER_TIER);
+      if (activeSources.length === 0) activeSources = sources.slice(0, 3);
+
+      activeDecisions = decisions.slice(0, 3);
+    } else if (viewMode === 'focused' && selectedNodeId) {
+      // 2. Active Focus Mode: Focus strictly on selected node and its direct neighbors
+      activeSources = sources.filter(n => connectedNodeMap.all.has(n.id)).slice(0, MAX_PER_TIER);
+      if (activeSources.length === 0) activeSources = sources.slice(0, 2);
+
+      activeDocs = documents.filter(n => connectedNodeMap.all.has(n.id)).slice(0, MAX_PER_TIER);
+      if (activeDocs.length === 0) activeDocs = documents.slice(0, 3);
+
+      activeClaims = claims.filter(n => connectedNodeMap.all.has(n.id)).slice(0, MAX_PER_TIER);
+      if (activeClaims.length === 0) activeClaims = claims.slice(0, 4);
+
+      activeConflicts = conflicts.filter(n => connectedNodeMap.all.has(n.id)).slice(0, MAX_PER_TIER);
+      if (activeConflicts.length === 0) activeConflicts = conflicts.slice(0, 3);
+
+      activeDecisions = decisions.filter(n => connectedNodeMap.all.has(n.id)).slice(0, MAX_PER_TIER);
+      if (activeDecisions.length === 0) activeDecisions = decisions.slice(0, 2);
+    } else {
+      // 3. Full Overview Mode: Capped cleanly at top 6 per tier
+      activeSources = sources.slice(0, MAX_PER_TIER);
+      activeDocs = documents.slice(0, MAX_PER_TIER);
+      activeClaims = claims.slice(0, MAX_PER_TIER);
+      activeConflicts = conflicts.slice(0, MAX_PER_TIER);
+      activeDecisions = decisions.slice(0, MAX_PER_TIER);
+    }
+
+    // Always guarantee selected node is in position map
+    if (selectedNode && !map[selectedNode.id]) {
+      if (selectedNode.type === 'source' && !activeSources.some(n => n.id === selectedNode.id)) activeSources.unshift(selectedNode);
+      if (selectedNode.type === 'document' && !activeDocs.some(n => n.id === selectedNode.id)) activeDocs.unshift(selectedNode);
+      if (selectedNode.type === 'claim' && !activeClaims.some(n => n.id === selectedNode.id)) activeClaims.unshift(selectedNode);
+      if (selectedNode.type === 'conflict' && !activeConflicts.some(n => n.id === selectedNode.id)) activeConflicts.unshift(selectedNode);
+      if (selectedNode.type === 'decision' && !activeDecisions.some(n => n.id === selectedNode.id)) activeDecisions.unshift(selectedNode);
+    }
 
     const levels = [
       { nodes: activeSources, x: 50 },
-      { nodes: activeDocs, x: 400 },
-      { nodes: activeClaims, x: 760 },
-      { nodes: activeConflicts, x: 1120 },
-      { nodes: activeDecisions, x: 1480 }
+      { nodes: activeDocs, x: 380 },
+      { nodes: activeClaims, x: 720 },
+      { nodes: activeConflicts, x: 1060 },
+      { nodes: activeDecisions, x: 1400 }
     ];
 
     levels.forEach((lvl) => {
       const count = lvl.nodes.length;
       const totalH = count * 130;
-      const startY = Math.max(60, 280 - totalH / 2);
+      const startY = Math.max(60, 260 - totalH / 2);
 
       lvl.nodes.forEach((node, idx) => {
         map[node.id] = {
@@ -172,7 +244,7 @@ export default function VisualLineageGraph({ activeOrg, showToast }) {
     });
 
     return map;
-  }, [graphData, selectedNodeId, connectedNodeMap]);
+  }, [graphData, selectedNodeId, connectedNodeMap, viewMode, selectedNode]);
 
   // Merged positions (custom user drags take precedence)
   const nodePositions = useMemo(() => {
@@ -301,7 +373,10 @@ export default function VisualLineageGraph({ activeOrg, showToast }) {
           {/* Asset Dropdown Selector */}
           <select
             value={selectedNodeId || ''}
-            onChange={(e) => setSelectedNodeId(e.target.value)}
+            onChange={(e) => {
+              setSelectedNodeId(e.target.value);
+              if (viewMode === 'conflicts') setViewMode('focused');
+            }}
             style={{
               padding: '5px 10px',
               borderRadius: '6px',
@@ -311,24 +386,95 @@ export default function VisualLineageGraph({ activeOrg, showToast }) {
               fontWeight: 700,
               color: '#2026d2',
               cursor: 'pointer',
-              maxWidth: '380px',
+              maxWidth: '320px',
               outline: 'none'
             }}
           >
-            {graphData?.nodes?.map(n => (
-              <option key={n.id} value={n.id}>
-                [{n.type.toUpperCase()}] {n.label}
-              </option>
-            ))}
+            {(!graphData?.nodes || graphData.nodes.length === 0) ? (
+              <option value="">No assets ingested yet</option>
+            ) : (
+              graphData.nodes.map(n => (
+                <option key={n.id} value={n.id}>
+                  [{n.type.toUpperCase()}] {n.label}
+                </option>
+              ))
+            )}
           </select>
+        </div>
 
-          <span className="badge badge-verified" style={{ fontSize: '0.65rem' }}>
-            Verified Provenance DAG
-          </span>
+        {/* Center: DAG Perspective Switcher */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '3px', background: '#f1f5f9', padding: '3px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+          <button
+            onClick={() => {
+              setViewMode('conflicts');
+              const firstConf = graphData?.nodes?.find(n => n.type === 'conflict');
+              if (firstConf) setSelectedNodeId(firstConf.id);
+            }}
+            style={{
+              padding: '5px 11px',
+              fontSize: '0.74rem',
+              fontWeight: 700,
+              borderRadius: '6px',
+              border: 'none',
+              cursor: 'pointer',
+              background: viewMode === 'conflicts' ? '#ea580c' : 'transparent',
+              color: viewMode === 'conflicts' ? '#fff' : '#475569',
+              boxShadow: viewMode === 'conflicts' ? '0 1px 4px rgba(234,88,12,0.3)' : 'none',
+              transition: 'all 0.15s ease'
+            }}
+            title="Focus exclusively on contradictory claims and their lineage"
+          >
+            ⚡ Contradictions DAG ({graphData?.nodes?.filter(n => n.type === 'conflict')?.length || 0})
+          </button>
+          <button
+            onClick={() => setViewMode('focused')}
+            style={{
+              padding: '5px 11px',
+              fontSize: '0.74rem',
+              fontWeight: 700,
+              borderRadius: '6px',
+              border: 'none',
+              cursor: 'pointer',
+              background: viewMode === 'focused' ? '#2563eb' : 'transparent',
+              color: viewMode === 'focused' ? '#fff' : '#475569',
+              boxShadow: viewMode === 'focused' ? '0 1px 4px rgba(37,99,235,0.3)' : 'none',
+              transition: 'all 0.15s ease'
+            }}
+            title="Focus on active node's direct lineage path"
+          >
+            🔍 Active Focus DAG
+          </button>
+          <button
+            onClick={() => setViewMode('all')}
+            style={{
+              padding: '5px 11px',
+              fontSize: '0.74rem',
+              fontWeight: 700,
+              borderRadius: '6px',
+              border: 'none',
+              cursor: 'pointer',
+              background: viewMode === 'all' ? '#0284c7' : 'transparent',
+              color: viewMode === 'all' ? '#fff' : '#475569',
+              boxShadow: viewMode === 'all' ? '0 1px 4px rgba(2,132,199,0.3)' : 'none',
+              transition: 'all 0.15s ease'
+            }}
+            title="Clean top-tier overview across all asset types"
+          >
+            🌐 Full Overview DAG
+          </button>
         </div>
 
         {/* Right Action Buttons */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <button
+            onClick={() => setIsDrawerOpen(true)}
+            className="btn btn-secondary canvas-btn"
+            style={{ padding: '6px 12px', fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: '5px', background: '#f8fafc', border: '1px solid #cbd5e1' }}
+            title="Browse all extracted atomic claims in searchable list"
+          >
+            <span>📋</span>
+            <span>All Claims Drawer ({graphData?.nodes?.filter(n => n.type === 'claim')?.length || 0})</span>
+          </button>
           <button
             onClick={fetchLineage}
             disabled={loading}
@@ -555,6 +701,32 @@ export default function VisualLineageGraph({ activeOrg, showToast }) {
                 );
               })}
             </svg>
+
+            {/* Empty State Banner if No Nodes Ingested Yet */}
+            {renderedNodes.length === 0 && (
+              <div style={{
+                position: 'absolute',
+                top: '240px',
+                left: '260px',
+                textAlign: 'center',
+                background: 'rgba(255,255,255,0.96)',
+                backdropFilter: 'blur(8px)',
+                padding: '36px 44px',
+                borderRadius: '16px',
+                border: '1px solid #cbd5e1',
+                boxShadow: '0 12px 32px rgba(0,0,0,0.06)',
+                maxWidth: '520px',
+                pointerEvents: 'auto'
+              }}>
+                <div style={{ fontSize: '2.5rem', marginBottom: '10px' }}>🕸️</div>
+                <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#1e293b', margin: '0 0 8px 0' }}>
+                  Lineage Graph Ready
+                </h3>
+                <p style={{ fontSize: '0.84rem', color: '#64748b', lineHeight: 1.55, margin: 0 }}>
+                  No documents or claims ingested yet for organization <strong>{activeOrg?.name || 'demo'}</strong>. Upload and ingest your PDF policies in <strong>Live Ingestion Studio</strong> to automatically extract atomic claims, detect contradictions, and visualize full end-to-end lineage.
+                </p>
+              </div>
+            )}
 
             {/* Draggable Node Cards Bound to Real Backend Entities */}
             {renderedNodes.map(node => {
@@ -866,6 +1038,225 @@ export default function VisualLineageGraph({ activeOrg, showToast }) {
                 <strong style={{ color: 'var(--text-main)' }}>Lineage Context:</strong> Select an individual <strong>Atomic Claim (⚡)</strong> to run automated blast-radius simulation and assess downstream AI agent decision impact.
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Slide-Out All Claims Explorer Drawer */}
+      {isDrawerOpen && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(15, 23, 42, 0.45)',
+          backdropFilter: 'blur(4px)',
+          zIndex: 9999,
+          display: 'flex',
+          justifyContent: 'flex-end',
+          animation: 'fadeIn 0.2s ease-out'
+        }}>
+          {/* Drawer backdrop dismiss */}
+          <div
+            style={{ flex: 1 }}
+            onClick={() => setIsDrawerOpen(false)}
+          />
+
+          {/* Drawer Content Panel */}
+          <div style={{
+            width: '620px',
+            maxWidth: '92vw',
+            height: '100%',
+            background: '#ffffff',
+            boxShadow: '-8px 0 32px rgba(0,0,0,0.2)',
+            display: 'flex',
+            flexDirection: 'column',
+            zIndex: 10000,
+            overflow: 'hidden'
+          }}>
+            {/* Drawer Header */}
+            <div style={{
+              padding: '20px 24px',
+              borderBottom: '1px solid #e2e8f0',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              background: '#f8fafc'
+            }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ fontSize: '18px' }}>⚡</span>
+                  <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#0f172a' }}>
+                    Enterprise Atomic Claims Explorer
+                  </h3>
+                </div>
+                <p style={{ margin: '4px 0 0 0', fontSize: '0.78rem', color: '#64748b' }}>
+                  Search and inspect all {graphData?.nodes?.filter(n => n.type === 'claim')?.length || 0} atomic policy rules extracted across documents.
+                </p>
+              </div>
+              <button
+                onClick={() => setIsDrawerOpen(false)}
+                style={{
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '8px',
+                  border: '1px solid #cbd5e1',
+                  background: '#fff',
+                  cursor: 'pointer',
+                  fontWeight: 700,
+                  fontSize: '1rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#475569'
+                }}
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Filter & Search Bar */}
+            <div style={{ padding: '14px 24px', borderBottom: '1px solid #f1f5f9', background: '#fff', display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+              <div style={{ flex: 1, minWidth: '220px', position: 'relative' }}>
+                <input
+                  type="text"
+                  placeholder="Search claim text, threshold, topic..."
+                  value={drawerSearch}
+                  onChange={(e) => setDrawerSearch(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '8px 12px 8px 32px',
+                    borderRadius: '8px',
+                    border: '1px solid #cbd5e1',
+                    fontSize: '0.82rem',
+                    outline: 'none'
+                  }}
+                />
+                <span style={{ position: 'absolute', left: '10px', top: '9px', fontSize: '0.85rem', color: '#94a3b8' }}>🔍</span>
+              </div>
+
+              {/* Document Filter Selector */}
+              <select
+                value={drawerDocFilter}
+                onChange={(e) => setDrawerDocFilter(e.target.value)}
+                style={{
+                  padding: '8px 12px',
+                  borderRadius: '8px',
+                  border: '1px solid #cbd5e1',
+                  fontSize: '0.8rem',
+                  background: '#f8fafc',
+                  maxWidth: '220px',
+                  outline: 'none'
+                }}
+              >
+                <option value="all">All Documents ({graphData?.nodes?.filter(n => n.type === 'document')?.length || 0})</option>
+                {graphData?.nodes?.filter(n => n.type === 'document')?.map(d => (
+                  <option key={d.id} value={d.id}>{d.label}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Claims Scrollable List */}
+            <div style={{ flex: 1, overflowY: 'auto', padding: '16px 24px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {(() => {
+                const allClaims = graphData?.nodes?.filter(n => n.type === 'claim') || [];
+                const filtered = allClaims.filter(cl => {
+                  if (drawerDocFilter !== 'all') {
+                    const matchesDoc = graphData?.edges?.some(e => e.source === drawerDocFilter && e.target === cl.id);
+                    if (!matchesDoc) return false;
+                  }
+                  if (drawerSearch.trim()) {
+                    const q = drawerSearch.toLowerCase();
+                    const text = (cl.fullText || cl.label || '').toLowerCase();
+                    return text.includes(q);
+                  }
+                  return true;
+                });
+
+                if (filtered.length === 0) {
+                  return (
+                    <div style={{ textAlign: 'center', padding: '40px 20px', color: '#94a3b8' }}>
+                      <div style={{ fontSize: '24px', marginBottom: '8px' }}>🔎</div>
+                      <div style={{ fontSize: '0.85rem', fontWeight: 600 }}>No claims matched your search</div>
+                      <div style={{ fontSize: '0.75rem', marginTop: '4px' }}>Try clearing filters or searching for keywords like "refund", "limit", or "approval".</div>
+                    </div>
+                  );
+                }
+
+                return filtered.map((cl, idx) => {
+                  const docEdge = graphData?.edges?.find(e => e.target === cl.id && e.source.startsWith('doc_'));
+                  const parentDoc = graphData?.nodes?.find(n => n.id === docEdge?.source);
+                  const isConflicted = cl.status === 'conflicted';
+
+                  return (
+                    <div
+                      key={cl.id}
+                      style={{
+                        padding: '14px 16px',
+                        borderRadius: '10px',
+                        border: isConflicted ? '1.5px solid #ea580c' : '1px solid #e2e8f0',
+                        background: isConflicted ? '#fff7ed' : '#ffffff',
+                        boxShadow: '0 2px 6px rgba(0,0,0,0.03)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '8px'
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '6px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span style={{ fontSize: '0.68rem', fontWeight: 800, color: '#64748b' }}>#{idx + 1}</span>
+                          <span style={{ fontSize: '0.7rem', fontWeight: 700, color: '#0284c7' }}>
+                            📄 {parentDoc?.label || 'Parent Document'}
+                          </span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span className={isConflicted ? 'badge badge-warning' : 'badge badge-verified'} style={{ fontSize: '0.65rem' }}>
+                            {isConflicted ? '⚠️ In Conflict' : 'Verified'}
+                          </span>
+                          <span className="badge badge-verified" style={{ fontSize: '0.65rem' }}>
+                            {((cl.trustScore || 0.92) * 100).toFixed(0)}% Trust
+                          </span>
+                        </div>
+                      </div>
+
+                      <p style={{ margin: 0, fontSize: '0.82rem', color: '#1e293b', lineHeight: 1.45, fontWeight: 500 }}>
+                        "{cl.fullText || cl.label}"
+                      </p>
+
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '4px', borderTop: '1px solid #f1f5f9', paddingTop: '8px' }}>
+                        <span style={{ fontSize: '0.68rem', color: '#64748b' }}>
+                          Scope: <strong>{cl.data?.scope || 'Enterprise'}</strong> &bull; ID: <code>{cl.id.slice(0, 12)}</code>
+                        </span>
+                        <button
+                          onClick={() => {
+                            setSelectedNodeId(cl.id);
+                            setViewMode('focused');
+                            setIsDrawerOpen(false);
+                            showToast?.(`Focused DAG on Claim #${cl.id.slice(0, 8)}`);
+                          }}
+                          style={{
+                            padding: '4px 10px',
+                            borderRadius: '6px',
+                            border: '1px solid #2563eb',
+                            background: '#eff6ff',
+                            color: '#2563eb',
+                            fontSize: '0.72rem',
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px'
+                          }}
+                        >
+                          <span>🎯 Focus in DAG</span>
+                        </button>
+                      </div>
+                    </div>
+                  );
+                });
+              })()}
+            </div>
           </div>
         </div>
       )}

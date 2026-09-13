@@ -76,26 +76,44 @@ class ClaimExtractionService:
         )
 
         extracted_claim_records: list[Claim] = []
+        claim_cache: dict[str, Claim] = {}
 
         # 3. Persist results (DB writes must be serial)
         for section, result in section_results:
             for item in result.claims:
-                claim = Claim(
-                    organization_id=doc.organization_id,
-                    document_version_id=version.id,
-                    claim_text=item.claim_text,
-                    subject=item.subject,
-                    predicate=item.predicate,
-                    object=item.object,
-                    claim_type=item.claim_type,
-                    extraction_method=result.extraction_method,
-                    extraction_model=result.extraction_model,
-                    status=ClaimStatus.ACTIVE,
-                )
-                self.session.add(claim)
-                await self.session.flush()
-                await self.session.refresh(claim)
+                norm_key = " ".join(item.claim_text.strip().lower().split())
+                claim = claim_cache.get(norm_key)
 
+                if not claim:
+                    claim = Claim(
+                        organization_id=doc.organization_id,
+                        document_version_id=version.id,
+                        claim_text=item.claim_text,
+                        subject=item.subject,
+                        predicate=item.predicate,
+                        object=item.object,
+                        claim_type=item.claim_type,
+                        extraction_method=result.extraction_method,
+                        extraction_model=result.extraction_model,
+                        status=ClaimStatus.ACTIVE,
+                    )
+                    self.session.add(claim)
+                    await self.session.flush()
+                    await self.session.refresh(claim)
+                    claim_cache[norm_key] = claim
+                    extracted_claim_records.append(claim)
+
+                    validity = ClaimValidity(
+                        claim_id=claim.id,
+                        valid_from=item.valid_from,
+                        valid_until=item.valid_until,
+                        version=str(version.version_number),
+                        is_current=version.is_current,
+                        validity_status="active" if version.is_current else "outdated",
+                    )
+                    self.session.add(validity)
+
+                # Always attach evidence citation for this section/page
                 text_span = item.evidence_text_span or item.claim_text
                 start_offset = section.start_char_offset
                 end_offset = section.end_char_offset
@@ -117,18 +135,6 @@ class ClaimExtractionService:
                     page_number=section.page_number or 1,
                 )
                 self.session.add(evidence)
-
-                validity = ClaimValidity(
-                    claim_id=claim.id,
-                    valid_from=item.valid_from,
-                    valid_until=item.valid_until,
-                    version=str(version.version_number),
-                    is_current=version.is_current,
-                    validity_status="active" if version.is_current else "outdated",
-                )
-                self.session.add(validity)
-
-                extracted_claim_records.append(claim)
 
         await self.session.flush()
         return extracted_claim_records
