@@ -22,8 +22,8 @@ import ContextCuratorStudio from './components/ContextCuratorStudio';
 import McpIntegrationStudio from './components/McpIntegrationStudio';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState('demo');
-  const [expandedMenu, setExpandedMenu] = useState('demo');
+  const [activeTab, setActiveTab] = useState('playground');
+  const [expandedMenu, setExpandedMenu] = useState('playground');
   const [health, setHealth] = useState({ status: 'checking', database: false, version: '0.1.0' });
   const [conflicts, setConflicts] = useState([]);
   const [curatorSubView, setCuratorSubView] = useState('health'); // 'health' | 'conflicts'
@@ -331,6 +331,32 @@ export default function App() {
       }
     } catch (e) {
       console.error("Failed to load chat sessions for sidebar", e);
+    }
+  };
+
+  const handleStartNewChatFromSidebar = async () => {
+    try {
+      const res = await fetch('/v1/chat/sessions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          organization_id: activeOrg?.id || '11111111-1111-1111-1111-111111111111',
+          user_id: activePersona?.id || null,
+          user_name: activePersona?.name || 'Sarah Chen',
+          user_role: activePersona?.role || 'admin',
+          title: 'New Conversation',
+        }),
+      });
+      if (res.ok) {
+        const newSession = await res.json();
+        setChatSessions(prev => [newSession, ...prev]);
+        setActiveChatSessionId(newSession.id);
+        setActiveTab('playground');
+        setNotification({ msg: 'Started new conversation', type: 'success' });
+        setTimeout(() => setNotification(null), 3000);
+      }
+    } catch (e) {
+      console.error("Failed to create new chat session from sidebar", e);
     }
   };
 
@@ -1245,146 +1271,211 @@ export default function App() {
           </div>
         </div>
 
-        {/* Scrollable Center Nav (Flat, No Sub-Items) */}
-        <div className="sidebar-scroll-content">
-          <div className="nav-group">
-            <button
-              onClick={() => setActiveTab('home')}
-              className={`nav-item ${activeTab === 'home' ? 'nav-item-active' : ''}`}
-            >
-              <Home size={16} strokeWidth={1.75} />
-              <span>Home Overview</span>
-            </button>
-            <button
-              onClick={() => { setActiveTab('demo'); }}
-              className={`nav-item ${activeTab === 'demo' ? 'nav-item-active' : ''}`}
-            >
-              <Brain size={16} strokeWidth={1.75} />
-              <span>Decision Gate Demo</span>
-            </button>
+        {/* Set 1: Upper Workspace Tools (Flat, Compact, No Sub-Items) */}
+        <div className="nav-group" style={{ flexShrink: 0, marginBottom: '6px' }}>
+          <button
+            onClick={() => setActiveTab('home')}
+            className={`nav-item ${activeTab === 'home' ? 'nav-item-active' : ''}`}
+          >
+            <Home size={16} strokeWidth={1.75} />
+            <span>Home Overview</span>
+          </button>
+          <button
+            onClick={() => { setActiveTab('demo'); }}
+            className={`nav-item ${activeTab === 'demo' ? 'nav-item-active' : ''}`}
+          >
+            <Brain size={16} strokeWidth={1.75} />
+            <span>Decision Gate Demo</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('live_ingestion')}
+            className={`nav-item ${activeTab === 'live_ingestion' ? 'nav-item-active' : ''}`}
+          >
+            <Zap size={16} strokeWidth={1.75} />
+            <span>Live Ingestion Studio</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('visual_lineage')}
+            className={`nav-item ${activeTab === 'visual_lineage' ? 'nav-item-active' : ''}`}
+          >
+            <Network size={16} strokeWidth={1.75} />
+            <span>Visual Lineage Graph</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('context_curator')}
+            className={`nav-item ${activeTab === 'context_curator' ? 'nav-item-active' : ''}`}
+          >
+            <ShieldAlert size={16} strokeWidth={1.75} />
+            <span>Context Curator Bot</span>
+            {conflicts.length > 0 && (
+              <span style={{
+                marginLeft: 'auto',
+                fontSize: '0.65rem',
+                padding: '1px 6px',
+                borderRadius: '10px',
+                background: '#FEE2E2',
+                color: '#991B1B',
+                fontWeight: 600
+              }}>
+                {conflicts.length}
+              </span>
+            )}
+          </button>
+          <button
+            onClick={() => setActiveTab('ingestion')}
+            className={`nav-item ${activeTab === 'ingestion' ? 'nav-item-active' : ''}`}
+          >
+            <FolderTree size={16} strokeWidth={1.75} />
+            <span>Document Explorer</span>
+          </button>
+        </div>
+
+        {/* Set Middle: AI Copilot Chat & Scrollable Previous Chats History (Fills Middle Space) */}
+        <div className="sidebar-middle-section" style={{
+          flex: 1,
+          minHeight: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          borderTop: '1px solid var(--border-subtle)',
+          paddingTop: '8px',
+          marginTop: '4px',
+          overflow: 'hidden'
+        }}>
+          {/* AI Copilot Chat Button with + New Chat Action */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '4px' }}>
             <button
               onClick={() => {
                 setActiveTab('playground');
-                setExpandedMenu(prev => prev === 'playground' ? null : 'playground');
+                setExpandedMenu('playground');
               }}
               className={`nav-item ${activeTab === 'playground' ? 'nav-item-active' : ''}`}
+              style={{ flex: 1 }}
             >
               <Bot size={16} strokeWidth={1.75} />
               <span>AI Copilot Chat</span>
             </button>
+            <button
+              type="button"
+              onClick={handleStartNewChatFromSidebar}
+              title="Start New Chat"
+              style={{
+                width: '28px',
+                height: '28px',
+                borderRadius: '6px',
+                border: '1px solid var(--border-subtle)',
+                background: 'transparent',
+                color: '#64748B',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'all 0.15s ease',
+                flexShrink: 0
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.color = 'var(--primary)';
+                e.currentTarget.style.borderColor = 'var(--primary)';
+                e.currentTarget.style.background = '#F1F5F9';
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.color = '#64748B';
+                e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                e.currentTarget.style.background = 'transparent';
+              }}
+            >
+              <Plus size={14} strokeWidth={2.2} />
+            </button>
+          </div>
 
-            {/* If AI Copilot Chat is active, show the exact Chats panel in the sidebar */}
-            {activeTab === 'playground' && (
-              <div style={{ paddingLeft: '8px', margin: '4px 0 8px 0' }}>
-                <div className="nav-section-header">
-                  <span>Chats</span>
+          {/* Section Header for Recent Chats */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '4px 8px 4px 10px',
+            fontSize: '0.68rem',
+            fontWeight: 600,
+            color: '#94A3B8',
+            letterSpacing: '0.04em',
+            textTransform: 'uppercase'
+          }}>
+            <span>Recent Chats</span>
+            <span>{chatSessions.length}</span>
+          </div>
+
+          {/* Scrollable Previous Chats List (Scrolls cleanly within space) */}
+          <div className="sidebar-chat-scroll" style={{
+            flex: 1,
+            minHeight: 0,
+            overflowY: 'auto',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '2px',
+            paddingRight: '2px',
+            marginTop: '2px'
+          }}>
+            {chatSessions.length === 0 ? (
+              <div style={{ padding: '8px 10px', fontSize: '0.75rem', color: '#94A3B8', fontStyle: 'italic' }}>
+                No previous chats yet
+              </div>
+            ) : (
+              chatSessions.map((session) => {
+                const isCurrent = activeTab === 'playground' && activeChatSessionId === session.id;
+                return (
                   <button
-                    className="nav-section-action"
-                    onClick={async (e) => {
-                      e.stopPropagation();
-                      try {
-                        const res = await fetch('/v1/chat/sessions', {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({
-                            organization_id: activeOrg?.id || '11111111-1111-1111-1111-111111111111',
-                            user_id: null,
-                            user_name: activePersona?.name || 'Sarah Chen',
-                            user_role: activePersona?.role || 'admin',
-                            title: 'New Conversation'
-                          })
-                        });
-                        if (res.ok) {
-                          const newSess = await res.json();
-                          setChatSessions(prev => [newSess, ...prev]);
-                          setActiveChatSessionId(newSess.id);
-                          showToast("Started new chat thread");
-                        }
-                      } catch (err) {
-                        console.error(err);
+                    key={session.id}
+                    onClick={() => {
+                      setActiveTab('playground');
+                      setActiveChatSessionId(session.id);
+                    }}
+                    className={`nav-chat-item ${isCurrent ? 'nav-chat-item-active' : ''}`}
+                    title={session.title}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      padding: '6px 8px',
+                      borderRadius: '6px',
+                      fontSize: '0.78rem',
+                      border: 'none',
+                      cursor: 'pointer',
+                      textAlign: 'left',
+                      width: '100%',
+                      background: isCurrent ? '#EEF2FF' : 'transparent',
+                      color: isCurrent ? '#312E81' : '#64748B',
+                      fontWeight: isCurrent ? 600 : 400,
+                      transition: 'all 0.15s ease'
+                    }}
+                    onMouseEnter={e => {
+                      if (!isCurrent) {
+                        e.currentTarget.style.background = '#F1F5F9';
+                        e.currentTarget.style.color = '#1E293B';
                       }
                     }}
-                    title="New Chat"
+                    onMouseLeave={e => {
+                      if (!isCurrent) {
+                        e.currentTarget.style.background = 'transparent';
+                        e.currentTarget.style.color = '#64748B';
+                      }
+                    }}
                   >
-                    <Plus size={14} strokeWidth={2} />
+                    <MessageSquare size={13} style={{ flexShrink: 0, opacity: isCurrent ? 1 : 0.6 }} />
+                    <span style={{
+                      flex: 1,
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap'
+                    }}>
+                      {session.title || 'Untitled Conversation'}
+                    </span>
                   </button>
-                </div>
-
-                {chatSessions.slice(0, 4).map(sess => {
-                  const isActiveSess = sess.id === activeChatSessionId;
-                  return (
-                    <button
-                      key={sess.id}
-                      onClick={() => {
-                        setActiveChatSessionId(sess.id);
-                        setActiveTab('playground');
-                      }}
-                      className={`nav-chat-item ${isActiveSess ? 'nav-chat-item-active' : ''}`}
-                      title={sess.title}
-                    >
-                      <MessageSquare size={13} strokeWidth={1.75} />
-                      <span>{sess.title}</span>
-                    </button>
-                  );
-                })}
-
-                <button
-                  onClick={() => {
-                    showToast(`Showing all ${chatSessions.length} chat threads`);
-                  }}
-                  className="nav-chat-item"
-                  style={{ color: '#94A3B8' }}
-                >
-                  <MoreHorizontal size={13} strokeWidth={1.75} />
-                  <span>More</span>
-                </button>
-              </div>
+                );
+              })
             )}
-            <button
-              onClick={() => setActiveTab('live_ingestion')}
-              className={`nav-item ${activeTab === 'live_ingestion' ? 'nav-item-active' : ''}`}
-            >
-              <Zap size={16} strokeWidth={1.75} />
-              <span>Live Ingestion Studio</span>
-            </button>
-            <button
-              onClick={() => setActiveTab('visual_lineage')}
-              className={`nav-item ${activeTab === 'visual_lineage' ? 'nav-item-active' : ''}`}
-            >
-              <Network size={16} strokeWidth={1.75} />
-              <span>Visual Lineage Graph</span>
-            </button>
-            <button
-              onClick={() => setActiveTab('context_curator')}
-              className={`nav-item ${activeTab === 'context_curator' ? 'nav-item-active' : ''}`}
-            >
-              <ShieldAlert size={16} strokeWidth={1.75} />
-              <span>Context Curator Bot</span>
-              {conflicts.length > 0 && (
-                <span style={{
-                  marginLeft: 'auto',
-                  fontSize: '0.65rem',
-                  padding: '1px 6px',
-                  borderRadius: '10px',
-                  background: '#FEE2E2',
-                  color: '#991B1B',
-                  fontWeight: 600
-                }}>
-                  {conflicts.length}
-                </span>
-              )}
-            </button>
-            <button
-              onClick={() => setActiveTab('ingestion')}
-              className={`nav-item ${activeTab === 'ingestion' ? 'nav-item-active' : ''}`}
-            >
-              <FolderTree size={16} strokeWidth={1.75} />
-              <span>Document Explorer</span>
-            </button>
           </div>
         </div>
 
-        {/* 3. Bottom Pinned Footer Group */}
+        {/* Set 2: Bottom Pinned Governance & Administration Group */}
         <div className="sidebar-footer">
           <button
             onClick={() => setActiveTab('integrations')}
