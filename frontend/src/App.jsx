@@ -22,8 +22,8 @@ import ContextCuratorStudio from './components/ContextCuratorStudio';
 import McpIntegrationStudio from './components/McpIntegrationStudio';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState('demo');
-  const [expandedMenu, setExpandedMenu] = useState('demo');
+  const [activeTab, setActiveTab] = useState('playground');
+  const [expandedMenu, setExpandedMenu] = useState('playground');
   const [health, setHealth] = useState({ status: 'checking', database: false, version: '0.1.0' });
   const [conflicts, setConflicts] = useState([]);
   const [curatorSubView, setCuratorSubView] = useState('health'); // 'health' | 'conflicts'
@@ -1245,7 +1245,7 @@ export default function App() {
           </div>
         </div>
 
-        {/* Scrollable Center Nav (Flat, No Sub-Items) */}
+        {/* Set 1: Upper Workspace Tools (Flat, No Sub-Items) */}
         <div className="sidebar-scroll-content">
           <div className="nav-group">
             <button
@@ -1262,84 +1262,6 @@ export default function App() {
               <Brain size={16} strokeWidth={1.75} />
               <span>Decision Gate Demo</span>
             </button>
-            <button
-              onClick={() => {
-                setActiveTab('playground');
-                setExpandedMenu(prev => prev === 'playground' ? null : 'playground');
-              }}
-              className={`nav-item ${activeTab === 'playground' ? 'nav-item-active' : ''}`}
-            >
-              <Bot size={16} strokeWidth={1.75} />
-              <span>AI Copilot Chat</span>
-            </button>
-
-            {/* If AI Copilot Chat is active, show the exact Chats panel in the sidebar */}
-            {activeTab === 'playground' && (
-              <div style={{ paddingLeft: '8px', margin: '4px 0 8px 0' }}>
-                <div className="nav-section-header">
-                  <span>Chats</span>
-                  <button
-                    className="nav-section-action"
-                    onClick={async (e) => {
-                      e.stopPropagation();
-                      try {
-                        const res = await fetch('/v1/chat/sessions', {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({
-                            organization_id: activeOrg?.id || '11111111-1111-1111-1111-111111111111',
-                            user_id: null,
-                            user_name: activePersona?.name || 'Sarah Chen',
-                            user_role: activePersona?.role || 'admin',
-                            title: 'New Conversation'
-                          })
-                        });
-                        if (res.ok) {
-                          const newSess = await res.json();
-                          setChatSessions(prev => [newSess, ...prev]);
-                          setActiveChatSessionId(newSess.id);
-                          showToast("Started new chat thread");
-                        }
-                      } catch (err) {
-                        console.error(err);
-                      }
-                    }}
-                    title="New Chat"
-                  >
-                    <Plus size={14} strokeWidth={2} />
-                  </button>
-                </div>
-
-                {chatSessions.slice(0, 4).map(sess => {
-                  const isActiveSess = sess.id === activeChatSessionId;
-                  return (
-                    <button
-                      key={sess.id}
-                      onClick={() => {
-                        setActiveChatSessionId(sess.id);
-                        setActiveTab('playground');
-                      }}
-                      className={`nav-chat-item ${isActiveSess ? 'nav-chat-item-active' : ''}`}
-                      title={sess.title}
-                    >
-                      <MessageSquare size={13} strokeWidth={1.75} />
-                      <span>{sess.title}</span>
-                    </button>
-                  );
-                })}
-
-                <button
-                  onClick={() => {
-                    showToast(`Showing all ${chatSessions.length} chat threads`);
-                  }}
-                  className="nav-chat-item"
-                  style={{ color: '#94A3B8' }}
-                >
-                  <MoreHorizontal size={13} strokeWidth={1.75} />
-                  <span>More</span>
-                </button>
-              </div>
-            )}
             <button
               onClick={() => setActiveTab('live_ingestion')}
               className={`nav-item ${activeTab === 'live_ingestion' ? 'nav-item-active' : ''}`}
@@ -1384,7 +1306,21 @@ export default function App() {
           </div>
         </div>
 
-        {/* 3. Bottom Pinned Footer Group */}
+        {/* Set Middle: AI Copilot Chat (Positioned at the middle of the two sets) */}
+        <div className="sidebar-middle" style={{ padding: '8px 0', margin: '6px 0', borderTop: '1px solid var(--border-subtle)' }}>
+          <button
+            onClick={() => {
+              setActiveTab('playground');
+              setExpandedMenu('playground');
+            }}
+            className={`nav-item ${activeTab === 'playground' ? 'nav-item-active' : ''}`}
+          >
+            <Bot size={16} strokeWidth={1.75} />
+            <span>AI Copilot Chat</span>
+          </button>
+        </div>
+
+        {/* Set 2: Bottom Pinned Governance & Administration Group */}
         <div className="sidebar-footer">
           <button
             onClick={() => setActiveTab('integrations')}

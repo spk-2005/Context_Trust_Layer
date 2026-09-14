@@ -258,208 +258,28 @@ export default function AgentChatPlayground({
 
   return (
     <div>
-      {/* FULL-SCREEN AI COPILOT CHAT WORKSPACE */}
-      <div style={{ display: 'grid', gridTemplateColumns: '275px 1fr', gap: '16px', height: 'calc(100vh - 120px)', minHeight: '620px' }}>
+      {/* FULL-SCREEN AI COPILOT CHAT WORKSPACE (PLAIN BACKGROUND, DIRECT CHAT) */}
+      <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 150px)', minHeight: '520px', background: 'transparent' }}>
 
-        {/* LEFT SIDEBAR: CONVERSATION HISTORY PANEL (MATCHING REFERENCE DESIGN) */}
-        <div className="clean-panel" style={{ display: 'flex', flexDirection: 'column', height: '100%', padding: '14px 10px', background: '#FAFAFA' }}>
+        {/* MAIN WORKSPACE: CONVERSATION STREAM & QUERY BAR */}
+        <div style={{ display: 'flex', flexDirection: 'column', height: '100%', padding: '0', overflow: 'hidden', background: 'transparent' }}>
 
-          {/* Section Header: "Chats" with "+" button */}
+          {/* Top Left Chat Header (Plain background, clean title) */}
           <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '4px 10px 8px 10px',
-            marginBottom: '4px'
-          }}>
-            <span style={{
-              fontSize: '0.85rem',
-              fontWeight: 600,
-              color: '#94A3B8',
-              letterSpacing: '-0.01em'
-            }}>
-              Chats
-            </span>
-            <button
-              onClick={() => handleCreateNewChat("New Conversation")}
-              title="Create new chat"
-              style={{
-                background: 'transparent',
-                border: 'none',
-                color: '#64748B',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: '3px 4px',
-                borderRadius: '5px',
-                transition: 'all 0.15s ease'
-              }}
-              onMouseEnter={e => { e.currentTarget.style.color = '#0F172A'; e.currentTarget.style.background = '#F1F5F9'; }}
-              onMouseLeave={e => { e.currentTarget.style.color = '#64748B'; e.currentTarget.style.background = 'transparent'; }}
-            >
-              <Plus size={16} strokeWidth={2} />
-            </button>
-          </div>
-
-          {/* Sessions List */}
-          <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '2px' }}>
-            {isLoadingSessions && (
-              <div style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.78rem', padding: '20px' }}>
-                Loading history...
-              </div>
-            )}
-
-            {!isLoadingSessions && filteredSessions.length === 0 && (
-              <div style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.78rem', padding: '30px 10px' }}>
-                No conversations found.<br />
-                Click <strong>+</strong> above to start.
-              </div>
-            )}
-
-            {filteredSessions.map(sess => {
-              const isActive = sess.id === activeSessionId;
-              return (
-                <div
-                  key={sess.id}
-                  onClick={() => loadSessionDetails(sess.id)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '9px',
-                    padding: '6px 9px',
-                    borderRadius: '7px',
-                    background: isActive ? '#EEF2FF' : 'transparent',
-                    cursor: 'pointer',
-                    transition: 'background-color 0.15s ease, color 0.15s ease',
-                    position: 'relative'
-                  }}
-                  onMouseEnter={e => {
-                    if (!isActive) {
-                      e.currentTarget.style.background = '#F1F5F9';
-                      const titleEl = e.currentTarget.querySelector('.chat-title-text');
-                      if (titleEl) titleEl.style.color = '#1E293B';
-                      const iconEl = e.currentTarget.querySelector('.chat-icon');
-                      if (iconEl) iconEl.style.color = '#1E293B';
-                    }
-                    const delBtn = e.currentTarget.querySelector('.chat-del-btn');
-                    if (delBtn) delBtn.style.opacity = '1';
-                  }}
-                  onMouseLeave={e => {
-                    if (!isActive) {
-                      e.currentTarget.style.background = 'transparent';
-                      const titleEl = e.currentTarget.querySelector('.chat-title-text');
-                      if (titleEl) titleEl.style.color = '#64748B';
-                      const iconEl = e.currentTarget.querySelector('.chat-icon');
-                      if (iconEl) iconEl.style.color = '#94A3B8';
-                    }
-                    const delBtn = e.currentTarget.querySelector('.chat-del-btn');
-                    if (delBtn) delBtn.style.opacity = '0';
-                  }}
-                >
-                  <MessageSquare
-                    className="chat-icon"
-                    size={15}
-                    strokeWidth={1.8}
-                    style={{
-                      color: isActive ? '#4F46E5' : '#94A3B8',
-                      flexShrink: 0,
-                      transition: 'color 0.15s ease'
-                    }}
-                  />
-                  <span
-                    className="chat-title-text"
-                    style={{
-                      fontSize: '0.82rem',
-                      fontWeight: isActive ? 600 : 500,
-                      color: isActive ? '#312E81' : '#64748B',
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      flex: 1,
-                      transition: 'color 0.15s ease'
-                    }}
-                  >
-                    {sess.title || 'Untitled Conversation'}
-                  </span>
-
-                  <button
-                    className="chat-del-btn"
-                    onClick={(e) => handleDeleteSession(e, sess.id)}
-                    title="Delete thread"
-                    style={{
-                      background: 'transparent',
-                      border: 'none',
-                      color: '#94A3B8',
-                      cursor: 'pointer',
-                      padding: '2px',
-                      borderRadius: '4px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      opacity: 0,
-                      transition: 'opacity 0.15s ease, color 0.15s ease',
-                      flexShrink: 0
-                    }}
-                    onMouseEnter={e => e.currentTarget.style.color = '#DC2626'}
-                    onMouseLeave={e => e.currentTarget.style.color = '#94A3B8'}
-                  >
-                    <Trash2 size={13} strokeWidth={1.8} />
-                  </button>
-                </div>
-              );
-            })}
-
-            {/* Bottom "... More" Action Item */}
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                padding: '6px 9px',
-                borderRadius: '7px',
-                color: '#64748B',
-                fontSize: '0.82rem',
-                fontWeight: 500,
-                cursor: 'pointer',
-                marginTop: '4px',
-                transition: 'background-color 0.15s ease, color 0.15s ease'
-              }}
-              onMouseEnter={e => {
-                e.currentTarget.style.background = '#F1F5F9';
-                e.currentTarget.style.color = '#1E293B';
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.background = 'transparent';
-                e.currentTarget.style.color = '#64748B';
-              }}
-              onClick={() => {
-                if (showToast) showToast(`Displaying ${sessions.length} recorded conversations.`);
-              }}
-            >
-              <MoreHorizontal size={15} strokeWidth={1.8} style={{ color: '#94A3B8' }} />
-              <span>More</span>
-            </div>
-          </div>
-        </div>
-
-        {/* RIGHT MAIN WORKSPACE: CONVERSATION STREAM & QUERY BAR */}
-        <div className="clean-panel" style={{ display: 'flex', flexDirection: 'column', height: '100%', padding: '0', overflow: 'hidden' }}>
-
-          {/* Active Thread Top Bar */}
-          <div style={{
-            padding: '12px 18px',
+            padding: '2px 0 14px 0',
             borderBottom: '1px solid var(--border-subtle)',
-            background: 'var(--bg-card-subtle)',
+            marginBottom: '4px',
             display: 'flex',
             justifyContent: 'space-between',
-            alignItems: 'center'
+            alignItems: 'center',
+            background: 'transparent'
           }}>
             <div>
-              <h3 style={{ fontSize: '0.92rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
-                {activeSession?.title || 'Interactive AI Context Session'}
-              </h3>
-              <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
-                Active Persona: <strong>{activePersona?.name || 'Alex'}</strong> ({activePersona?.role || 'DATA_OWNER'}) • Verified RAG Engine
+              <h2 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--text-main)', margin: 0, letterSpacing: '-0.01em' }}>
+                Interactive AI Copilot Chat
+              </h2>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                Active Persona: <strong>{activePersona?.name || 'Sarah Chen'}</strong> ({activePersona?.role || 'admin'}) • Verified RAG Engine & Contradiction Filter
               </span>
             </div>
             <span className="badge badge-verified" style={{ fontSize: '0.68rem', padding: '3px 8px' }}>
@@ -659,214 +479,66 @@ export default function AgentChatPlayground({
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Bottom Query Input Box (ChatGPT-style Unified Bar) */}
-          <div style={{ padding: '14px 20px', borderTop: '1px solid var(--border-subtle)', background: 'var(--bg-card)' }}>
-            
-            {/* Hidden File Input */}
-            <input
-              type="file"
-              ref={fileInputRef}
-              onChange={handleFileUpload}
-              style={{ display: 'none' }}
-              accept=".txt,.md,.json,.csv,.pdf,.yaml,.yml"
-            />
-
-            {/* Attached File Preview Pill */}
-            {attachedFile && (
-              <div style={{
-                display: 'inline-flex',
+          {/* Bottom Single-Line Bar (Used for search normally, plain background) */}
+          <div style={{ padding: '14px 0 4px 0', background: 'transparent' }}>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleSendMessage();
+              }}
+              style={{
+                display: 'flex',
                 alignItems: 'center',
-                gap: '6px',
-                background: 'var(--bg-card-subtle)',
-                border: '1px solid var(--primary)',
-                borderRadius: '6px',
-                padding: '4px 10px',
-                fontSize: '0.75rem',
-                color: 'var(--primary)',
-                marginBottom: '8px'
-              }}>
-                <span>📄</span>
-                <strong>{attachedFile.name}</strong>
-                <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>({Math.round(attachedFile.size / 1024)} KB)</span>
-                <button
-                  type="button"
-                  onClick={() => setAttachedFile(null)}
-                  style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', marginLeft: '4px', fontSize: '0.8rem' }}
-                  title="Remove attachment"
-                >
-                  ✕
-                </button>
-              </div>
-            )}
-
-            {/* Unified ChatGPT-style Input Container */}
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              background: 'var(--bg-card-subtle)',
-              border: '1px solid var(--border-subtle)',
-              borderRadius: '16px',
-              padding: '6px 10px',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-              position: 'relative'
-            }}>
-              
-              {/* Plus (+) Button with Action Menu */}
-              <div ref={plusMenuRef} style={{ position: 'relative' }}>
-                <button
-                  type="button"
-                  onClick={() => setShowPlusMenu(prev => !prev)}
-                  title="Attach file or action"
-                  style={{
-                    width: '32px',
-                    height: '32px',
-                    borderRadius: '50%',
-                    border: '1px solid var(--border-subtle)',
-                    background: showPlusMenu ? 'var(--primary)' : 'var(--bg-card)',
-                    color: showPlusMenu ? '#ffffff' : 'var(--text-main)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    cursor: 'pointer',
-                    fontSize: '1.2rem',
-                    fontWeight: 600,
-                    transition: 'all 0.15s ease',
-                    lineHeight: 1
-                  }}
-                >
-                  +
-                </button>
-
-                {/* Plus Popup Menu */}
-                {showPlusMenu && (
-                  <div style={{
-                    position: 'absolute',
-                    bottom: 'calc(100% + 8px)',
-                    left: 0,
-                    background: 'var(--bg-card)',
-                    border: '1px solid var(--border-subtle)',
-                    borderRadius: '8px',
-                    boxShadow: '0 8px 24px rgba(0,0,0,0.25)',
-                    zIndex: 200,
-                    width: '240px',
-                    padding: '6px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '2px'
-                  }}>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        fileInputRef.current?.click();
-                      }}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                        padding: '8px 10px',
-                        background: 'transparent',
-                        border: 'none',
-                        borderRadius: '6px',
-                        fontSize: '0.78rem',
-                        color: 'var(--text-main)',
-                        cursor: 'pointer',
-                        textAlign: 'left'
-                      }}
-                      onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-hover, rgba(99,102,241,0.08))'}
-                      onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                    >
-                      <span style={{ fontSize: '0.95rem' }}>📎</span>
-                      <div>
-                        <div style={{ fontWeight: 600 }}>Attach Document</div>
-                        <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>.txt, .md, .pdf, .json, .csv</div>
-                      </div>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => {
-                        handleCreateNewChat("New Conversation");
-                        setShowPlusMenu(false);
-                      }}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                        padding: '8px 10px',
-                        background: 'transparent',
-                        border: 'none',
-                        borderRadius: '6px',
-                        fontSize: '0.78rem',
-                        color: 'var(--text-main)',
-                        cursor: 'pointer',
-                        textAlign: 'left'
-                      }}
-                      onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-hover, rgba(99,102,241,0.08))'}
-                      onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                    >
-                      <span style={{ fontSize: '0.95rem' }}>✨</span>
-                      <div>
-                        <div style={{ fontWeight: 600 }}>New Conversation</div>
-                        <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>Start fresh thread</div>
-                      </div>
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              {/* Textarea */}
-              <textarea
-                rows={1}
+                gap: '12px',
+                background: '#FFFFFF',
+                border: '1px solid var(--border-subtle, #E2E8F0)',
+                borderRadius: '24px',
+                padding: '10px 18px',
+                boxShadow: '0 1px 4px rgba(0, 0, 0, 0.04)'
+              }}
+            >
+              <Search size={18} color="#94A3B8" style={{ flexShrink: 0 }} />
+              <input
+                type="text"
                 value={inputPrompt}
                 onChange={e => setInputPrompt(e.target.value)}
-                onKeyDown={e => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSendMessage();
-                  }
-                }}
-                placeholder="Ask any policy or governance question..."
+                placeholder="Search policy rules or ask AI Copilot a question..."
+                disabled={isSending}
                 style={{
                   flex: 1,
-                  padding: '8px 4px',
-                  fontSize: '0.85rem',
                   border: 'none',
                   outline: 'none',
                   background: 'transparent',
-                  resize: 'none',
+                  fontSize: '0.875rem',
+                  color: 'var(--text-main, #1E293B)',
                   fontFamily: 'inherit',
-                  color: 'var(--text-main)',
-                  minHeight: '28px',
-                  maxHeight: '120px'
+                  padding: '2px 0'
                 }}
               />
-
-              {/* Send Button */}
               <button
-                type="button"
-                onClick={() => handleSendMessage()}
-                disabled={(!inputPrompt.trim() && !attachedFile) || isSending}
+                type="submit"
+                disabled={!inputPrompt.trim() || isSending}
                 style={{
-                  width: '32px',
-                  height: '32px',
+                  width: '30px',
+                  height: '30px',
                   borderRadius: '50%',
                   border: 'none',
-                  background: (!inputPrompt.trim() && !attachedFile) || isSending ? 'var(--border-subtle)' : 'var(--primary)',
-                  color: '#ffffff',
+                  background: !inputPrompt.trim() || isSending ? 'transparent' : 'var(--primary, #4F46E5)',
+                  color: !inputPrompt.trim() || isSending ? '#CBD5E1' : '#FFFFFF',
+                  cursor: !inputPrompt.trim() || isSending ? 'default' : 'pointer',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  cursor: (!inputPrompt.trim() && !attachedFile) || isSending ? 'not-allowed' : 'pointer',
-                  fontSize: '0.95rem',
+                  fontSize: '0.9rem',
                   fontWeight: 700,
-                  transition: 'all 0.15s ease'
+                  transition: 'all 0.15s ease',
+                  flexShrink: 0
                 }}
-                title="Send message"
+                title="Search / Send"
               >
                 {isSending ? "..." : "↑"}
               </button>
-            </div>
+            </form>
           </div>
         </div>
       </div>
