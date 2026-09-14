@@ -1,5 +1,6 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 
 from app.api.v1.router import api_v1_router
@@ -22,6 +23,15 @@ app = FastAPI(
     description="Context Trust Layer - AI Agent Context Provenance, Validity, and Trust Engine",
     version="1.0.0",
     lifespan=lifespan,
+)
+
+# Enable CORS for deployed and local clients
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 
