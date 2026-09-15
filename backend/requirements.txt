@@ -4,8 +4,6 @@ uvicorn[standard]
 sqlalchemy
 asyncpg
 alembic
-greenlet
-psycopg[binary]
 
 pydantic
 pydantic-settings
@@ -20,10 +18,7 @@ httpx
 python-multipart
 pypdf
 python-docx
-
 motor
-pymongo
 openai
-tiktoken
-pyyaml
-requests
+psycopg[binary]
+
