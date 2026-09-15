@@ -1656,27 +1656,13 @@ export default function App() {
                   setIsWorkspaceDropdownOpen(false);
                   setIsPersonaDropdownOpen(false);
                 }}
-                className="btn btn-secondary"
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '4px',
-                  padding: '4px 8px',
-                  fontSize: '0.75rem',
-                  fontWeight: 600,
-                  background: 'var(--bg-card)',
-                  border: isOrgDropdownOpen ? '1px solid var(--primary)' : '1px solid var(--border-subtle)',
-                  borderRadius: '5px',
-                  color: 'var(--text-main)',
-                  cursor: 'pointer',
-                  whiteSpace: 'nowrap'
-                }}
+                className={`top-header-pill ${isOrgDropdownOpen ? 'top-header-pill-active' : ''}`}
                 title="Active Client / Organization"
               >
-                <span style={{ maxWidth: '110px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <span style={{ maxWidth: '100px', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                   {activeOrg?.name || 'demo'}
                 </span>
-                <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>▾</span>
+                <span style={{ fontSize: '0.62rem', color: '#94A3B8' }}>▾</span>
               </button>
 
               {isOrgDropdownOpen && (
@@ -1765,27 +1751,13 @@ export default function App() {
                   setIsOrgDropdownOpen(false);
                   setIsPersonaDropdownOpen(false);
                 }}
-                className="btn btn-secondary"
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '4px',
-                  padding: '4px 8px',
-                  fontSize: '0.75rem',
-                  fontWeight: 600,
-                  background: 'var(--bg-card)',
-                  border: isWorkspaceDropdownOpen ? '1px solid var(--primary)' : '1px solid var(--border-subtle)',
-                  borderRadius: '5px',
-                  color: 'var(--text-main)',
-                  cursor: 'pointer',
-                  whiteSpace: 'nowrap'
-                }}
+                className={`top-header-pill ${isWorkspaceDropdownOpen ? 'top-header-pill-active' : ''}`}
                 title="Active Workspace"
               >
-                <span style={{ maxWidth: '120px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <span style={{ maxWidth: '120px', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                   {activeWorkspace?.name || 'All Workspaces'}
                 </span>
-                <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>▾</span>
+                <span style={{ fontSize: '0.62rem', color: '#94A3B8' }}>▾</span>
               </button>
 
               {isWorkspaceDropdownOpen && (
@@ -1876,30 +1848,16 @@ export default function App() {
                   setIsOrgDropdownOpen(false);
                   setIsWorkspaceDropdownOpen(false);
                 }}
-                className="btn btn-secondary"
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '5px',
-                  padding: '4px 8px',
-                  fontSize: '0.75rem',
-                  fontWeight: 600,
-                  background: 'var(--bg-card)',
-                  border: isPersonaDropdownOpen ? '1px solid var(--primary)' : '1px solid var(--border-subtle)',
-                  borderRadius: '5px',
-                  color: 'var(--text-main)',
-                  cursor: 'pointer',
-                  whiteSpace: 'nowrap'
-                }}
+                className={`top-header-pill ${isPersonaDropdownOpen ? 'top-header-pill-active' : ''}`}
                 title="Active User Persona"
               >
-                <span style={{ maxWidth: '100px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <span style={{ maxWidth: '100px', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                   {activePersona?.name || 'Alex'}
                 </span>
-                <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 500, textTransform: 'uppercase' }}>
+                <span style={{ fontSize: '0.64rem', color: '#64748B', fontWeight: 500, textTransform: 'uppercase' }}>
                   ({activePersona?.role || 'DATA_OWNER'})
                 </span>
-                <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>▾</span>
+                <span style={{ fontSize: '0.62rem', color: '#94A3B8' }}>▾</span>
               </button>
 
               {isPersonaDropdownOpen && (
@@ -1988,20 +1946,8 @@ export default function App() {
             </div>
 
             {/* 4. SYSTEM OPERATIONAL BADGE */}
-            <span style={{
-              fontSize: '0.72rem',
-              padding: '4px 8px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '5px',
-              borderRadius: '5px',
-              border: '1px solid var(--border-subtle)',
-              background: 'var(--bg-card)',
-              color: 'var(--text-secondary)',
-              fontWeight: 500,
-              whiteSpace: 'nowrap'
-            }}>
-              <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--success-solid, #10b981)' }} />
+            <span className="top-status-badge">
+              <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--success-solid, #10b981)', display: 'inline-block' }} />
               Operational
             </span>
           </div>
