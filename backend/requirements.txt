@@ -21,4 +21,4 @@ python-docx
 motor
 openai
 psycopg[binary]
-
+
