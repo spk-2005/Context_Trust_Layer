@@ -190,10 +190,10 @@ body {
   align-items: center;
   gap: 9px;
   width: 100%;
-  padding: 6px 10px;
-  font-size: 0.81rem;
+  padding: 8px 10px;
+  font-size: 0.86rem;
   font-weight: 500;
-  color: #64748B;
+  color: #475569;
   background: transparent;
   border: none;
   cursor: pointer;
@@ -204,6 +204,7 @@ body {
   margin: 0;
   white-space: nowrap;
   overflow: hidden;
+  line-height: 1.25;
 }
 
 .nav-chat-item svg {
@@ -220,7 +221,7 @@ body {
 
 .nav-chat-item:hover {
   background: #F1F5F9;
-  color: #1E293B;
+  color: #0F172A;
 }
 
 .nav-chat-item:hover svg {
@@ -235,6 +236,31 @@ body {
 
 .nav-chat-item-active svg {
   color: #4F46E5;
+}
+
+/* Sleek Scrollbar for Recent Chats in Sidebar */
+.sidebar-chat-scroll {
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: #CBD5E1 transparent;
+}
+
+.sidebar-chat-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+
+.sidebar-chat-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar-chat-scroll::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 4px;
+}
+
+.sidebar-chat-scroll::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
 }
 
 /* Sidebar Pinned Footer */

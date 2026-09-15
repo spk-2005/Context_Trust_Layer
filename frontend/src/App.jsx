@@ -1392,7 +1392,7 @@ export default function App() {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            padding: '4px 8px 4px 10px',
+            padding: '6px 8px 4px 10px',
             fontSize: '0.68rem',
             fontWeight: 600,
             color: '#94A3B8',
@@ -1400,22 +1400,30 @@ export default function App() {
             textTransform: 'uppercase'
           }}>
             <span>Recent Chats</span>
-            <span>{chatSessions.length}</span>
+            <span style={{
+              background: '#F1F5F9',
+              color: '#64748B',
+              padding: '1px 6px',
+              borderRadius: '10px',
+              fontSize: '0.65rem',
+              fontWeight: 600
+            }}>{chatSessions.length}</span>
           </div>
 
-          {/* Scrollable Previous Chats List (Scrolls cleanly within space) */}
+          {/* Scrollable Previous Chats List (Scrolls cleanly with comfortable gap) */}
           <div className="sidebar-chat-scroll" style={{
             flex: 1,
             minHeight: 0,
             overflowY: 'auto',
             display: 'flex',
             flexDirection: 'column',
-            gap: '2px',
-            paddingRight: '2px',
-            marginTop: '2px'
+            gap: '6px',
+            paddingRight: '4px',
+            marginTop: '4px',
+            marginBottom: '4px'
           }}>
             {chatSessions.length === 0 ? (
-              <div style={{ padding: '8px 10px', fontSize: '0.75rem', color: '#94A3B8', fontStyle: 'italic' }}>
+              <div style={{ padding: '8px 10px', fontSize: '0.82rem', color: '#94A3B8', fontStyle: 'italic' }}>
                 No previous chats yet
               </div>
             ) : (
@@ -1433,33 +1441,34 @@ export default function App() {
                     style={{
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '8px',
-                      padding: '6px 8px',
-                      borderRadius: '6px',
-                      fontSize: '0.78rem',
+                      gap: '9px',
+                      padding: '8px 10px',
+                      borderRadius: '7px',
+                      fontSize: '0.86rem',
+                      lineHeight: '1.25',
                       border: 'none',
                       cursor: 'pointer',
                       textAlign: 'left',
                       width: '100%',
                       background: isCurrent ? '#EEF2FF' : 'transparent',
-                      color: isCurrent ? '#312E81' : '#64748B',
-                      fontWeight: isCurrent ? 600 : 400,
+                      color: isCurrent ? '#312E81' : '#475569',
+                      fontWeight: isCurrent ? 600 : 500,
                       transition: 'all 0.15s ease'
                     }}
                     onMouseEnter={e => {
                       if (!isCurrent) {
                         e.currentTarget.style.background = '#F1F5F9';
-                        e.currentTarget.style.color = '#1E293B';
+                        e.currentTarget.style.color = '#0F172A';
                       }
                     }}
                     onMouseLeave={e => {
                       if (!isCurrent) {
                         e.currentTarget.style.background = 'transparent';
-                        e.currentTarget.style.color = '#64748B';
+                        e.currentTarget.style.color = '#475569';
                       }
                     }}
                   >
-                    <MessageSquare size={13} style={{ flexShrink: 0, opacity: isCurrent ? 1 : 0.6 }} />
+                    <MessageSquare size={14} style={{ flexShrink: 0, opacity: isCurrent ? 1 : 0.65, color: isCurrent ? '#4F46E5' : '#64748B' }} />
                     <span style={{
                       flex: 1,
                       overflow: 'hidden',
