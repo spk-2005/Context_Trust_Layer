@@ -264,30 +264,6 @@ export default function AgentChatPlayground({
         {/* MAIN WORKSPACE: CONVERSATION STREAM & QUERY BAR */}
         <div style={{ display: 'flex', flexDirection: 'column', height: '100%', padding: '0', overflow: 'hidden', background: 'transparent' }}>
 
-          {/* Top Left Chat Header (Plain background, clean title) */}
-          <div style={{
-            padding: '2px 0 12px 0',
-            borderBottom: '1px solid var(--border-subtle)',
-            marginBottom: '4px',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            background: 'transparent',
-            flexShrink: 0
-          }}>
-            <div>
-              <h2 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--text-main)', margin: 0, letterSpacing: '-0.01em' }}>
-                Interactive AI Copilot Chat
-              </h2>
-              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                Active Persona: <strong>{activePersona?.name || 'Sarah Chen'}</strong> ({activePersona?.role || 'admin'}) • Verified RAG Engine & Contradiction Filter
-              </span>
-            </div>
-            <span className="badge badge-verified" style={{ fontSize: '0.68rem', padding: '3px 8px' }}>
-              ● Trust Gate Online
-            </span>
-          </div>
-
           {/* Messages Scroll Area - No unnecessary scrollbar in empty state */}
           <div
             id="chat-messages-container"
@@ -336,18 +312,16 @@ export default function AgentChatPlayground({
                   Every answer is filtered by freshness decay, authority scoring, and contradiction detection. Expired or disputed claims are automatically highlighted.
                 </p>
 
-                {/* Big Rectangular Chat Box at Center */}
-                <div style={{
-                  width: '100%',
-                  background: '#FFFFFF',
-                  border: '1.5px solid var(--border-subtle, #E2E8F0)',
-                  borderRadius: '12px',
-                  padding: '12px 16px 10px 16px',
-                  boxShadow: '0 2px 10px rgba(0, 0, 0, 0.04)',
-                  marginBottom: '16px',
-                  textAlign: 'left',
-                  transition: 'border-color 0.18s ease, box-shadow 0.18s ease'
-                }}>
+                {/* Big Rectangular Chat Box at Center with Disco Blue Animated Border & Glow Shadow */}
+                <div
+                  className="disco-blue-border-card"
+                  style={{
+                    width: '100%',
+                    padding: '14px 18px 12px 18px',
+                    marginBottom: '16px',
+                    textAlign: 'left'
+                  }}
+                >
                   <textarea
                     rows={2}
                     value={inputPrompt}
