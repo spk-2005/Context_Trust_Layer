@@ -3,7 +3,11 @@ import uuid
 from typing import Any, Sequence
 from urllib.parse import urlparse
 
-import motor.motor_asyncio
+try:
+    import motor.motor_asyncio
+except ImportError:
+    motor = None
+
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models.document import Document
@@ -45,6 +49,14 @@ class MongoDbConnector(BaseConnector):
     async def test_connection(self) -> dict[str, Any]:
         """Verify MongoDB URI structure, connectivity, and database access against live instance."""
         masked_uri = self._mask_uri(self.connection_string)
+
+        if motor is None:
+            return {
+                "success": False,
+                "status": "error",
+                "message": "MongoDB driver 'motor' is not installed in this environment.",
+                "details": {"connection_uri": masked_uri},
+            }
 
         try:
             client = motor.motor_asyncio.AsyncIOMotorClient(
@@ -95,6 +107,8 @@ class MongoDbConnector(BaseConnector):
             raise RuntimeError(f"MongoDB sync failed for '{self.database}': {str(e)}")
 
     async def _sync_live_mongodb(self) -> list[tuple[Document, DocumentVersion]]:
+        if motor is None:
+            raise RuntimeError("MongoDB driver 'motor' is not installed in this environment.")
         client = motor.motor_asyncio.AsyncIOMotorClient(
             self.connection_string,
             serverSelectionTimeoutMS=10000,
