@@ -504,3 +504,28 @@ textarea:focus {
     stroke-dashoffset: 0;
   }
 }
+
+/* User Question Bubble Animated Blue Gradient Border */
+@keyframes blueGradientBorder {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.user-question-card {
+  position: relative;
+  background: 
+    linear-gradient(var(--bg-card, #FFFFFF), var(--bg-card, #FFFFFF)) padding-box,
+    linear-gradient(135deg, #2563EB, #38BDF8, #60A5FA, #1D4ED8, #3B82F6, #06B6D4, #2563EB) border-box;
+  border: 1.5px solid transparent;
+  background-size: 100% 100%, 300% 300%;
+  animation: blueGradientBorder 3.5s linear infinite;
+  border-radius: 14px 14px 2px 14px;
+  box-shadow: 0 2px 10px rgba(37, 99, 235, 0.08);
+}

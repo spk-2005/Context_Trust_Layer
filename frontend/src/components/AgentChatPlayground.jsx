@@ -259,20 +259,21 @@ export default function AgentChatPlayground({
   return (
     <div>
       {/* FULL-SCREEN AI COPILOT CHAT WORKSPACE (PLAIN BACKGROUND, DIRECT CHAT) */}
-      <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 150px)', minHeight: '520px', background: 'transparent' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 130px)', maxHeight: 'calc(100vh - 130px)', background: 'transparent', overflow: 'hidden' }}>
 
         {/* MAIN WORKSPACE: CONVERSATION STREAM & QUERY BAR */}
         <div style={{ display: 'flex', flexDirection: 'column', height: '100%', padding: '0', overflow: 'hidden', background: 'transparent' }}>
 
           {/* Top Left Chat Header (Plain background, clean title) */}
           <div style={{
-            padding: '2px 0 14px 0',
+            padding: '2px 0 12px 0',
             borderBottom: '1px solid var(--border-subtle)',
             marginBottom: '4px',
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            background: 'transparent'
+            background: 'transparent',
+            flexShrink: 0
           }}>
             <div>
               <h2 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--text-main)', margin: 0, letterSpacing: '-0.01em' }}>
@@ -287,41 +288,156 @@ export default function AgentChatPlayground({
             </span>
           </div>
 
-          {/* Messages Scroll Area */}
-          <div style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {/* Messages Scroll Area - No unnecessary scrollbar in empty state */}
+          <div
+            id="chat-messages-container"
+            style={{
+              flex: 1,
+              overflowY: messages.length === 0 ? 'hidden' : 'auto',
+              padding: messages.length === 0 ? '8px 12px' : '16px 20px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '16px',
+              justifyContent: messages.length === 0 ? 'center' : 'flex-start'
+            }}
+          >
 
-            {/* Empty State / Starter Prompts */}
+            {/* Empty State: Centered Big Rectangular Chat Box + Prompts */}
             {messages.length === 0 && (
-              <div style={{ margin: 'auto', maxWidth: '640px', textAlign: 'center', padding: '20px 0' }}>
-                <div style={{ fontSize: '2rem', marginBottom: '8px' }}>🛡️</div>
-                <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '6px' }}>
+              <div style={{
+                margin: 'auto',
+                width: '100%',
+                maxWidth: '680px',
+                textAlign: 'center',
+                padding: '10px 0',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center'
+              }}>
+                {/* Ask Context Trust Layer - Smaller text */}
+                <h2 style={{
+                  fontSize: '1rem',
+                  fontWeight: 700,
+                  color: 'var(--text-main, #0F172A)',
+                  marginBottom: '4px',
+                  letterSpacing: '-0.01em'
+                }}>
                   Ask Context Trust Layer
                 </h2>
-                <p style={{ fontSize: '0.825rem', color: 'var(--text-secondary)', lineHeight: 1.5, marginBottom: '20px' }}>
+
+                {/* Subtitle - Smaller text */}
+                <p style={{
+                  fontSize: '0.75rem',
+                  color: 'var(--text-muted, #64748B)',
+                  lineHeight: 1.45,
+                  maxWidth: '540px',
+                  marginBottom: '16px'
+                }}>
                   Every answer is filtered by freshness decay, authority scoring, and contradiction detection. Expired or disputed claims are automatically highlighted.
                 </p>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', textAlign: 'left' }}>
+                {/* Big Rectangular Chat Box at Center */}
+                <div style={{
+                  width: '100%',
+                  background: '#FFFFFF',
+                  border: '1.5px solid var(--border-subtle, #E2E8F0)',
+                  borderRadius: '12px',
+                  padding: '12px 16px 10px 16px',
+                  boxShadow: '0 2px 10px rgba(0, 0, 0, 0.04)',
+                  marginBottom: '16px',
+                  textAlign: 'left',
+                  transition: 'border-color 0.18s ease, box-shadow 0.18s ease'
+                }}>
+                  <textarea
+                    rows={2}
+                    value={inputPrompt}
+                    onChange={e => setInputPrompt(e.target.value)}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        handleSendMessage();
+                      }
+                    }}
+                    placeholder="Search policy rules or ask AI Copilot a question..."
+                    disabled={isSending}
+                    style={{
+                      width: '100%',
+                      border: 'none',
+                      outline: 'none',
+                      background: 'transparent',
+                      resize: 'none',
+                      fontSize: '0.875rem',
+                      color: 'var(--text-main, #0F172A)',
+                      fontFamily: 'inherit',
+                      lineHeight: 1.5,
+                      padding: 0
+                    }}
+                  />
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '6px', paddingTop: '6px', borderTop: '1px solid #F1F5F9' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.7rem', color: 'var(--text-muted, #94A3B8)' }}>
+                      <Search size={13} color="#94A3B8" />
+                      <span>Press <kbd style={{ padding: '1px 5px', background: '#F1F5F9', borderRadius: '4px', border: '1px solid #E2E8F0', fontSize: '0.66rem', fontWeight: 600 }}>Enter</kbd> to ask</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleSendMessage()}
+                      disabled={!inputPrompt.trim() || isSending}
+                      style={{
+                        width: '28px',
+                        height: '28px',
+                        borderRadius: '6px',
+                        border: 'none',
+                        background: !inputPrompt.trim() || isSending ? '#F1F5F9' : 'var(--primary, #2563EB)',
+                        color: !inputPrompt.trim() || isSending ? '#94A3B8' : '#FFFFFF',
+                        cursor: !inputPrompt.trim() || isSending ? 'default' : 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '0.85rem',
+                        fontWeight: 700,
+                        transition: 'all 0.15s ease'
+                      }}
+                      title="Send Question"
+                    >
+                      {isSending ? "..." : "↑"}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Below that: Suggested Prompts */}
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: '1fr 1fr',
+                  gap: '8px',
+                  width: '100%',
+                  textAlign: 'left'
+                }}>
                   {STARTER_PROMPTS.map((starter, i) => (
                     <button
                       key={i}
                       onClick={() => handleSendMessage(starter.query)}
                       style={{
-                        background: 'var(--bg-card-subtle)',
-                        border: '1px solid var(--border-subtle)',
+                        background: 'var(--bg-card-subtle, #F8FAFC)',
+                        border: '1px solid var(--border-subtle, #E2E8F0)',
                         borderRadius: '8px',
-                        padding: '12px',
+                        padding: '10px 12px',
                         cursor: 'pointer',
                         textAlign: 'left',
                         transition: 'all 0.15s ease'
                       }}
-                      onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--primary)'}
-                      onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border-subtle)'}
+                      onMouseEnter={e => {
+                        e.currentTarget.style.borderColor = 'var(--primary, #2563EB)';
+                        e.currentTarget.style.background = '#FFFFFF';
+                      }}
+                      onMouseLeave={e => {
+                        e.currentTarget.style.borderColor = 'var(--border-subtle, #E2E8F0)';
+                        e.currentTarget.style.background = 'var(--bg-card-subtle, #F8FAFC)';
+                      }}
                     >
-                      <div style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '3px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-main, #0F172A)', marginBottom: '2px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <span>{starter.icon}</span> {starter.title}
                       </div>
-                      <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.4 }}>
+                      <div style={{ fontSize: '0.7rem', color: 'var(--text-muted, #64748B)', lineHeight: 1.35 }}>
                         "{starter.query}"
                       </div>
                     </button>
@@ -354,18 +470,19 @@ export default function AgentChatPlayground({
                     {isUser ? (meta.author || activePersona?.name || 'You') : 'Context Trust Copilot'} • {new Date(msg.created_at || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </div>
 
-                  {/* Bubble Content */}
+                  {/* Bubble Content - Normal Background with Animated Blue Gradient Border for Sent Question */}
                   <div
+                    className={isUser ? "user-question-card" : ""}
                     style={{
                       maxWidth: isUser ? '75%' : '88%',
-                      padding: '14px 16px',
-                      borderRadius: isUser ? '12px 12px 2px 12px' : '12px 12px 12px 2px',
-                      background: isUser ? 'var(--primary)' : 'var(--bg-card-subtle)',
-                      color: isUser ? '#ffffff' : 'var(--text-main)',
-                      border: isUser ? 'none' : '1px solid var(--border-subtle)',
+                      padding: '12px 16px',
+                      borderRadius: isUser ? '14px 14px 2px 14px' : '12px 12px 12px 2px',
+                      background: isUser ? undefined : 'var(--bg-card-subtle)',
+                      color: 'var(--text-main, #0F172A)',
+                      border: isUser ? undefined : '1px solid var(--border-subtle)',
                       fontSize: '0.85rem',
                       lineHeight: 1.55,
-                      boxShadow: '0 2px 8px rgba(0,0,0,0.08)'
+                      boxShadow: isUser ? undefined : '0 2px 8px rgba(0,0,0,0.08)'
                     }}
                   >
                     {/* Synthesized Text */}
@@ -479,69 +596,72 @@ export default function AgentChatPlayground({
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Bottom Single-Line Bar (Used for search normally, plain background) */}
-          <div style={{ padding: '14px 0 4px 0', background: 'transparent' }}>
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                handleSendMessage();
-              }}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '12px',
-                background: '#FFFFFF',
-                border: '1px solid var(--border-subtle, #E2E8F0)',
-                borderRadius: '24px',
-                padding: '10px 18px',
-                boxShadow: '0 1px 4px rgba(0, 0, 0, 0.04)'
-              }}
-            >
-              <Search size={18} color="#94A3B8" style={{ flexShrink: 0 }} />
-              <input
-                type="text"
-                value={inputPrompt}
-                onChange={e => setInputPrompt(e.target.value)}
-                placeholder="Search policy rules or ask AI Copilot a question..."
-                disabled={isSending}
-                style={{
-                  flex: 1,
-                  border: 'none',
-                  outline: 'none',
-                  background: 'transparent',
-                  fontSize: '0.875rem',
-                  color: 'var(--text-main, #1E293B)',
-                  fontFamily: 'inherit',
-                  padding: '2px 0'
+          {/* Bottom Single-Line Bar - Only shown when active conversation messages exist */}
+          {messages.length > 0 && (
+            <div style={{ padding: '10px 0 2px 0', background: 'transparent', flexShrink: 0 }}>
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleSendMessage();
                 }}
-              />
-              <button
-                type="submit"
-                disabled={!inputPrompt.trim() || isSending}
                 style={{
-                  width: '30px',
-                  height: '30px',
-                  borderRadius: '50%',
-                  border: 'none',
-                  background: !inputPrompt.trim() || isSending ? 'transparent' : 'var(--primary, #4F46E5)',
-                  color: !inputPrompt.trim() || isSending ? '#CBD5E1' : '#FFFFFF',
-                  cursor: !inputPrompt.trim() || isSending ? 'default' : 'pointer',
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '0.9rem',
-                  fontWeight: 700,
-                  transition: 'all 0.15s ease',
-                  flexShrink: 0
+                  gap: '12px',
+                  background: '#FFFFFF',
+                  border: '1px solid var(--border-subtle, #E2E8F0)',
+                  borderRadius: '24px',
+                  padding: '10px 18px',
+                  boxShadow: '0 1px 4px rgba(0, 0, 0, 0.04)'
                 }}
-                title="Search / Send"
               >
-                {isSending ? "..." : "↑"}
-              </button>
-            </form>
-          </div>
+                <Search size={18} color="#94A3B8" style={{ flexShrink: 0 }} />
+                <input
+                  type="text"
+                  value={inputPrompt}
+                  onChange={e => setInputPrompt(e.target.value)}
+                  placeholder="Search policy rules or ask AI Copilot a question..."
+                  disabled={isSending}
+                  style={{
+                    flex: 1,
+                    border: 'none',
+                    outline: 'none',
+                    background: 'transparent',
+                    fontSize: '0.875rem',
+                    color: 'var(--text-main, #1E293B)',
+                    fontFamily: 'inherit',
+                    padding: '2px 0'
+                  }}
+                />
+                <button
+                  type="submit"
+                  disabled={!inputPrompt.trim() || isSending}
+                  style={{
+                    width: '30px',
+                    height: '30px',
+                    borderRadius: '50%',
+                    border: 'none',
+                    background: !inputPrompt.trim() || isSending ? 'transparent' : 'var(--primary, #2563EB)',
+                    color: !inputPrompt.trim() || isSending ? '#CBD5E1' : '#FFFFFF',
+                    cursor: !inputPrompt.trim() || isSending ? 'default' : 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '0.9rem',
+                    fontWeight: 700,
+                    transition: 'all 0.15s ease',
+                    flexShrink: 0
+                  }}
+                  title="Search / Send"
+                >
+                  {isSending ? "..." : "↑"}
+                </button>
+              </form>
+            </div>
+          )}
         </div>
       </div>
     </div>
   );
 }
+
