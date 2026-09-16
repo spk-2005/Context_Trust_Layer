@@ -4,7 +4,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.database import get_db
 from app.db.repositories.conflict_repository import ConflictRepository
-from app.schemas.conflict import ConflictResolveRequest, ConflictResponse
+from app.schemas.conflict import (
+    ConflictIssueResponse,
+    ConflictResolveRequest,
+    ConflictResponse,
+    ResolveIssueRequest,
+)
 from app.services.activity_service import ActivityService
 from app.services.conflict_service import ConflictService
 
@@ -25,6 +30,63 @@ async def list_pending_conflicts(
         offset=offset,
     )
     return [ConflictResponse.model_validate(c) for c in conflicts]
+
+
+@router.get("/issues", response_model=list[ConflictIssueResponse])
+async def list_conflict_issues(
+    organization_id: uuid.UUID | None = Query(None, description="Optional organization ID filter"),
+    limit: int = Query(100, ge=1, le=200),
+    db: AsyncSession = Depends(get_db),
+):
+    """List pending conflicts grouped into semantic Governance Issues."""
+    service = ConflictService(db)
+    issues = await service.get_clustered_conflict_issues(
+        organization_id=organization_id,
+        limit=limit,
+    )
+    return [ConflictIssueResponse.model_validate(issue) for issue in issues]
+
+
+@router.post("/issues/{issue_id}/resolve")
+async def resolve_conflict_issue(
+    issue_id: str,
+    req: ResolveIssueRequest,
+    user_name: str = Query(default="Diana Vance", description="Name of acting user"),
+    user_role: str = Query(default="reviewer", description="Role of acting user"),
+    organization_id: uuid.UUID | None = Query(None, description="Optional organization ID filter"),
+    db: AsyncSession = Depends(get_db),
+):
+    """Resolve an entire clustered Governance Issue in a single atomic action."""
+    service = ConflictService(db)
+    activity_service = ActivityService(db)
+    result = await service.resolve_conflict_issue(
+        issue_id=issue_id,
+        reviewer_id=req.reviewer_id,
+        decision=req.decision,
+        chosen_side=req.chosen_side,
+        reason=req.reason,
+        organization_id=organization_id,
+    )
+    org_id = organization_id or uuid.UUID("11111111-1111-1111-1111-111111111111")
+    await activity_service.log_activity(
+        organization_id=org_id,
+        user_id=req.reviewer_id,
+        user_name=user_name,
+        user_role=user_role,
+        action_type="CONFLICT_RESOLVED",
+        target_type="conflict_issue",
+        target_id=issue_id,
+        target_title=f"Governance Issue {issue_id[:20]} ({result.get('resolved_conflicts_count', 0)} conflicts)",
+        domain="Finance & Billing",
+        details={
+            "decision": req.decision.value if hasattr(req.decision, "value") else str(req.decision),
+            "chosen_side": req.chosen_side,
+            "resolved_conflicts_count": result.get("resolved_conflicts_count", 0),
+            "reason": req.reason,
+        },
+    )
+    await db.commit()
+    return result
 
 
 @router.post("/re-evaluate")

@@ -161,7 +161,20 @@ async def upload_document_file(
         try:
             import docx
             doc = docx.Document(io.BytesIO(raw_bytes))
-            paragraphs = [p.text.strip() for p in doc.paragraphs if p.text.strip()]
+            paragraphs = []
+            for p in doc.paragraphs:
+                txt = p.text.strip()
+                if not txt:
+                    continue
+                style_name = (p.style.name if hasattr(p, "style") and p.style else "").lower()
+                is_heading = (
+                    "heading" in style_name
+                    or bool(re.match(r"^(Chapter\s+\d+|Page\s+\d+|Section\s+\d+|Control\s+rule)", txt, re.IGNORECASE))
+                )
+                if is_heading:
+                    paragraphs.append(f"## {txt}")
+                else:
+                    paragraphs.append(txt)
             for table in doc.tables:
                 for row in table.rows:
                     row_text = " | ".join(cell.text.strip() for cell in row.cells if cell.text.strip())
@@ -303,7 +316,20 @@ async def upload_and_extract_document(
         try:
             import docx
             doc = docx.Document(io.BytesIO(raw_bytes))
-            paragraphs = [p.text.strip() for p in doc.paragraphs if p.text.strip()]
+            paragraphs = []
+            for p in doc.paragraphs:
+                txt = p.text.strip()
+                if not txt:
+                    continue
+                style_name = (p.style.name if hasattr(p, "style") and p.style else "").lower()
+                is_heading = (
+                    "heading" in style_name
+                    or bool(re.match(r"^(Chapter\s+\d+|Page\s+\d+|Section\s+\d+|Control\s+rule)", txt, re.IGNORECASE))
+                )
+                if is_heading:
+                    paragraphs.append(f"## {txt}")
+                else:
+                    paragraphs.append(txt)
             for table in doc.tables:
                 for row in table.rows:
                     row_text = " | ".join(cell.text.strip() for cell in row.cells if cell.text.strip())

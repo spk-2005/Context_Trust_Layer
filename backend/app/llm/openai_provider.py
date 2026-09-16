@@ -154,6 +154,12 @@ class OpenAIProvider(BaseLLMProvider):
         claim_a_text: str,
         claim_b_text: str,
     ) -> ContradictionResult:
+        # Fast local evaluation for illustrative examples, metadata headers, and temporal updates
+        from app.llm.mock_provider import MockLLMProvider
+        mock_eval = await MockLLMProvider().evaluate_contradiction(claim_a_text, claim_b_text)
+        if not mock_eval.is_contradiction or mock_eval.conflict_type in ("illustrative_example", "temporal_outdated"):
+            return mock_eval
+
         system_prompt = (
             "You are a logic and contradiction analysis engine. "
             "Evaluate whether Claim A and Claim B contradict each other, state conflicting requirements, "
@@ -234,27 +240,38 @@ class OpenAIProvider(BaseLLMProvider):
                 "Please ingest the relevant documentation or connect enterprise data sources."
             )
 
-        citations_context = "\n".join(
-            f"[{idx + 1}] {c.get('claim_text', '')} (Source: {c.get('source_title', 'Unknown')} > {c.get('section', 'General')}, Trust: {int(float(c.get('trust_score', 0.8))*100)}%)"
-            for idx, c in enumerate(citations[:5])
-        )
+        # Sanitize and format verified citations
+        sanitized_citations = []
+        for idx, c in enumerate(citations[:5]):
+            text = c.get('claim_text', '').strip()
+            if text.startswith("{") or '"connectors":' in text or "synthetic" in text.lower():
+                continue
+            if len(text) > 300:
+                text = text[:300].rsplit(" ", 1)[0] + "..."
+            sanitized_citations.append(
+                f"[{idx + 1}] {text} (Source: {c.get('source_title', 'Knowledge Base')} > {c.get('section', 'General')}, Trust Score: {int(float(c.get('trust_score', 0.8))*100)}%)"
+            )
+
+        citations_context = "\n".join(sanitized_citations) if sanitized_citations else "No specific text excerpts available."
 
         warning_context = ""
         if warnings:
-            warning_context = "\n⚠️ Warnings / Potential Discrepancies:\n" + "\n".join(f"- {w}" for w in warnings)
+            warning_context = "\n⚠️ Potential Policy Discrepancies / Conflicts:\n" + "\n".join(f"- {w}" for w in warnings)
 
         system_prompt = (
-            "You are Context Trust Layer AI Copilot, an enterprise knowledge intelligence assistant. "
-            "Answer the user's inquiry accurately, professionally, and concisely using ONLY the provided verified citations. "
-            "Do NOT make up facts or extrapolate beyond the provided claims. "
-            "Reference the cited policies clearly, and note if any policy is marked with warnings or disputes."
+            "You are Context Trust Layer Copilot, an enterprise governance intelligence assistant. "
+            "Formulate a direct, authoritative, and concise answer (2 to 4 sentences maximum) directly answering the user's inquiry. "
+            "Use ONLY the provided verified citations. "
+            "State specific numbers, dollar thresholds, windows, or conditions clearly. "
+            "Explicitly reference whether the cited policy is an active current rule or if there are conflicts. "
+            "DO NOT output raw JSON, code blocks, or repeat whole file schemas. Be crisp, professional, and concise."
         )
 
         user_prompt = (
             f"User Question: {query}\n\n"
             f"Verified Enterprise Claims:\n{citations_context}\n"
             f"{warning_context}\n\n"
-            "Please provide an authoritative, clear response for the user."
+            "Please provide a concise, authoritative answer for the user."
         )
 
         try:

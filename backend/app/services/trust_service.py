@@ -99,13 +99,86 @@ class TrustService:
         self,
         document_version_id: uuid.UUID,
     ) -> Sequence[ClaimTrustScore]:
-        stmt = select(Claim.id).where(Claim.document_version_id == document_version_id)
+        """High-performance bulk trust scoring for all claims in a version in 2 batched queries."""
+        stmt = (
+            select(Claim)
+            .where(Claim.document_version_id == document_version_id)
+            .options(
+                selectinload(Claim.document_version).selectinload(DocumentVersion.document),
+                selectinload(Claim.evidence),
+            )
+        )
         res = await self.session.execute(stmt)
-        claim_ids = res.scalars().all()
+        claims = res.scalars().all()
+        if not claims:
+            return []
+
+        version = claims[0].document_version
+        doc = version.document if version else None
+
+        authority_level = 50
+        if doc and doc.source_id:
+            ds = await self.session.get(DataSource, doc.source_id)
+            if ds:
+                authority_level = ds.authority_level
+
+        claim_ids = [c.id for c in claims]
+
+        # Bulk load all active conflicts in one query
+        conflicts_stmt = select(ClaimConflict).where(
+            (ClaimConflict.claim_a_id.in_(claim_ids)) | (ClaimConflict.claim_b_id.in_(claim_ids)),
+            ClaimConflict.resolution_status != ConflictStatus.RESOLVED,
+        )
+        conflicts_res = await self.session.execute(conflicts_stmt)
+        all_conflicts = conflicts_res.scalars().all()
+
+        conflicts_by_claim: dict[uuid.UUID, list[ClaimConflict]] = {cid: [] for cid in claim_ids}
+        for conf in all_conflicts:
+            if conf.claim_a_id in conflicts_by_claim:
+                conflicts_by_claim[conf.claim_a_id].append(conf)
+            if conf.claim_b_id in conflicts_by_claim:
+                conflicts_by_claim[conf.claim_b_id].append(conf)
 
         scores: list[ClaimTrustScore] = []
-        for c_id in claim_ids:
-            score = await self.calculate_for_claim(c_id)
-            scores.append(score)
+        for claim in claims:
+            conflicts = conflicts_by_claim.get(claim.id, [])
+            has_conflicts = len(conflicts) > 0
+            max_conflict_confidence = (
+                max([float(c.confidence) for c in conflicts]) if has_conflicts else 0.0
+            )
 
+            breakdown = self.calculator.calculate(
+                source_authority_level=authority_level,
+                doc_created_at=version.created_at if version else None,
+                has_evidence=len(claim.evidence) > 0,
+                is_current_version=version.is_current if version else True,
+                has_conflicts=has_conflicts,
+                conflict_confidence=max_conflict_confidence,
+            )
+
+            trust_score = ClaimTrustScore(
+                claim_id=claim.id,
+                source_score=breakdown.source_score,
+                freshness_score=breakdown.freshness_score,
+                evidence_score=breakdown.evidence_score,
+                consistency_score=breakdown.consistency_score,
+                authority_score=breakdown.authority_score,
+                human_score=breakdown.human_score,
+                overall_score=breakdown.overall_score,
+                scoring_model="multi_factor_trust_v1",
+                scoring_version="1.0.0",
+            )
+            self.session.add(trust_score)
+            scores.append(trust_score)
+
+            if has_conflicts:
+                claim.status = ClaimStatus.CONFLICTED
+            elif claim.status in [ClaimStatus.OUTDATED, ClaimStatus.REJECTED]:
+                pass
+            elif not (version and version.is_current):
+                claim.status = ClaimStatus.OUTDATED
+            elif breakdown.overall_score >= 0.70:
+                claim.status = ClaimStatus.VERIFIED
+
+        await self.session.flush()
         return scores

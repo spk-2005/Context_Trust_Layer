@@ -16,6 +16,14 @@ export default function ContextCuratorStudio({
   const [appliedActionIds, setAppliedActionIds] = useState(new Set());
   const [activeCategory, setActiveCategory] = useState('ALL'); // 'ALL' | 'CONTRADICTION' | 'TEMPORAL_OBSOLESCENCE' | 'LOW_CONFIDENCE'
 
+  // Pillar 1: Clustered Governance Issues State
+  const [conflictIssues, setConflictIssues] = useState([]);
+  const [issuesLoading, setIssuesLoading] = useState(false);
+  const [viewGrouping, setViewGrouping] = useState('issues'); // 'issues' | 'pairs'
+  const [expandedIssueIds, setExpandedIssueIds] = useState(new Set());
+  const [resolvingIssueId, setResolvingIssueId] = useState(null);
+  const [reEvaluating, setReEvaluating] = useState(false);
+
   useEffect(() => {
     if (initialSubView) {
       setCuratorSubView(initialSubView);
@@ -25,6 +33,84 @@ export default function ContextCuratorStudio({
   const handleSelectSubView = (view) => {
     setCuratorSubView(view);
     if (onSubViewChange) onSubViewChange(view);
+  };
+
+  const fetchConflictIssues = async () => {
+    setIssuesLoading(true);
+    try {
+      const orgId = activeOrg?.id || '11111111-1111-1111-1111-111111111111';
+      const res = await fetch(`/v1/conflicts/issues?organization_id=${orgId}`);
+      if (res.ok) {
+        const data = await res.json();
+        setConflictIssues(data);
+      } else {
+        setConflictIssues([]);
+      }
+    } catch (e) {
+      console.warn("Failed to fetch conflict issues:", e);
+      setConflictIssues([]);
+    } finally {
+      setIssuesLoading(false);
+    }
+  };
+
+  const handleResolveIssue = async (issueId, chosenSide, defaultReason) => {
+    setResolvingIssueId(issueId);
+    try {
+      const orgId = activeOrg?.id || '11111111-1111-1111-1111-111111111111';
+      const res = await fetch(`/v1/conflicts/issues/${encodeURIComponent(issueId)}/resolve?organization_id=${orgId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          reviewer_id: '22222222-2222-2222-2222-222222222222',
+          decision: 'approve',
+          chosen_side: chosenSide,
+          reason: defaultReason || `Batch resolved Governance Issue: Approved Cluster ${chosenSide} as authoritative standard.`
+        })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        showToast?.(data.message || `Resolved Governance Issue (${data.resolved_conflicts_count} conflicts resolved)!`, 'success');
+        await fetchConflictIssues();
+        if (onRefreshConflicts) onRefreshConflicts();
+      } else {
+        const err = await res.text();
+        showToast?.(`Failed to resolve issue: ${err.substring(0, 80)}`, 'error');
+      }
+    } catch (e) {
+      showToast?.("Error resolving governance issue", 'error');
+    } finally {
+      setResolvingIssueId(null);
+    }
+  };
+
+  const handleReEvaluateConflicts = async () => {
+    setReEvaluating(true);
+    try {
+      const orgId = activeOrg?.id || '11111111-1111-1111-1111-111111111111';
+      const res = await fetch(`/v1/conflicts/re-evaluate?organization_id=${orgId}`, { method: 'POST' });
+      if (res.ok) {
+        const data = await res.json();
+        showToast?.(data.message || `Purged ${data.purged_false_positives} false-positive conflicts!`, 'success');
+        await fetchConflictIssues();
+        if (onRefreshConflicts) onRefreshConflicts();
+      } else {
+        showToast?.("Failed to re-evaluate conflicts", 'error');
+      }
+    } catch (e) {
+      showToast?.("Error re-evaluating conflicts", 'error');
+    } finally {
+      setReEvaluating(false);
+    }
+  };
+
+  const toggleExpandIssue = (issueId) => {
+    setExpandedIssueIds(prev => {
+      const next = new Set(prev);
+      if (next.has(issueId)) next.delete(issueId);
+      else next.add(issueId);
+      return next;
+    });
   };
 
   const fetchAudit = async () => {
@@ -47,6 +133,7 @@ export default function ContextCuratorStudio({
 
   useEffect(() => {
     fetchAudit();
+    fetchConflictIssues();
   }, [activeOrg?.id]);
 
   const handleApplyAction = async (rec) => {
@@ -494,161 +581,455 @@ export default function ContextCuratorStudio({
       )}
 
       {/* ========================================================= */}
-      {/* SUB-VIEW 2: PAIRWISE CONFLICT RESOLUTION QUEUE           */}
+      {/* SUB-VIEW 2: CLUSTERED GOVERNANCE ISSUES & CONFLICT QUEUE   */}
       {/* ========================================================= */}
       {curatorSubView === 'conflicts' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px' }}>
             <div>
-              <h3 style={{ fontSize: '1.1rem', fontWeight: 800, margin: 0, color: 'var(--text-main)' }}>
-                Auditor Conflict Resolution Queue ({conflicts.length} Pending)
-              </h3>
-              <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem', margin: '3px 0 0 0' }}>
-                Review, arbitrate, and supersede conflicting enterprise policies to eliminate ambiguity for autonomous agents.
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <h3 style={{ fontSize: '1.15rem', fontWeight: 800, margin: 0, color: 'var(--text-main)' }}>
+                  Auditor Conflict Resolution Queue
+                </h3>
+                <span className="badge badge-warning" style={{ fontSize: '0.72rem', padding: '2px 8px' }}>
+                  {conflictIssues.length} Governance Issues ({conflicts.length} Total Pairwise Pairs)
+                </span>
+              </div>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.82rem', margin: '4px 0 0 0' }}>
+                Arbitrate and supersede conflicting enterprise policies to eliminate ambiguity for autonomous AI agents.
               </p>
             </div>
 
-            <div style={{ display: 'flex', gap: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+              {/* Grouping View Toggle */}
+              <div style={{
+                display: 'flex',
+                background: 'var(--bg-card)',
+                border: '1px solid var(--border-color)',
+                borderRadius: '8px',
+                padding: '3px'
+              }}>
+                <button
+                  onClick={() => setViewGrouping('issues')}
+                  style={{
+                    padding: '5px 12px',
+                    borderRadius: '6px',
+                    border: 'none',
+                    background: viewGrouping === 'issues' ? 'var(--primary-solid, #2026d2)' : 'transparent',
+                    color: viewGrouping === 'issues' ? '#fff' : 'var(--text-muted)',
+                    fontSize: '0.76rem',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease'
+                  }}
+                >
+                  ⚡ Clustered Issues ({conflictIssues.length})
+                </button>
+                <button
+                  onClick={() => setViewGrouping('pairs')}
+                  style={{
+                    padding: '5px 12px',
+                    borderRadius: '6px',
+                    border: 'none',
+                    background: viewGrouping === 'pairs' ? 'var(--primary-solid, #2026d2)' : 'transparent',
+                    color: viewGrouping === 'pairs' ? '#fff' : 'var(--text-muted)',
+                    fontSize: '0.76rem',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease'
+                  }}
+                >
+                  ⚖️ Raw Pairs ({conflicts.length})
+                </button>
+              </div>
+
+              {/* Action Buttons */}
               <button
-                onClick={onRefreshConflicts}
+                onClick={handleReEvaluateConflicts}
+                disabled={reEvaluating}
+                className="btn btn-secondary"
+                style={{ padding: '6px 12px', fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: '5px' }}
+                title="Re-run context-aware contradiction rules to purge non-conflicting samples"
+              >
+                {reEvaluating ? '🧹 Purging...' : '🧹 Purge False Positives'}
+              </button>
+
+              <button
+                onClick={() => {
+                  fetchConflictIssues();
+                  if (onRefreshConflicts) onRefreshConflicts();
+                }}
                 className="btn btn-secondary"
                 style={{ padding: '6px 12px', fontSize: '0.78rem' }}
               >
-                Refresh Queue
+                🔄 Refresh
               </button>
             </div>
           </div>
 
-          {conflicts.length === 0 ? (
-            <div style={{
-              background: 'var(--bg-surface)',
-              border: '1px solid var(--border-color)',
-              borderRadius: '12px',
-              padding: '48px 24px',
-              textAlign: 'center',
-              color: 'var(--text-muted)'
-            }}>
-              <span style={{ fontSize: '32px' }}>✨</span>
-              <h4 style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--text-main)', marginTop: '8px' }}>
-                Zero Pending Policy Conflicts
-              </h4>
-              <p style={{ fontSize: '0.82rem', marginTop: '4px' }}>
-                All enterprise claims and operational rules across all data sources are verified and in non-conflicting harmony.
-              </p>
+          {/* ========================================================= */}
+          {/* VIEW MODE 1: CLUSTERED GOVERNANCE ISSUES (DEFAULT)        */}
+          {/* ========================================================= */}
+          {viewGrouping === 'issues' && (
+            <div>
+              {conflictIssues.length === 0 ? (
+                <div style={{
+                  background: 'var(--bg-surface)',
+                  border: '1px solid var(--border-color)',
+                  borderRadius: '12px',
+                  padding: '48px 24px',
+                  textAlign: 'center',
+                  color: 'var(--text-muted)'
+                }}>
+                  <span style={{ fontSize: '32px' }}>✨</span>
+                  <h4 style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--text-main)', marginTop: '8px' }}>
+                    Zero Pending Governance Issues
+                  </h4>
+                  <p style={{ fontSize: '0.82rem', marginTop: '4px' }}>
+                    All enterprise claims, operational rules, and policy versions across all data sources are reconciled in non-conflicting harmony.
+                  </p>
+                </div>
+              ) : (
+                <div style={{ display: 'grid', gap: '16px' }}>
+                  {conflictIssues.map((issue, idx) => {
+                    const isResolving = resolvingIssueId === issue.issue_id;
+                    const isExpanded = expandedIssueIds.has(issue.issue_id);
+
+                    return (
+                      <div
+                        key={issue.issue_id || idx}
+                        style={{
+                          background: 'var(--bg-surface)',
+                          border: '1.5px solid var(--border-color)',
+                          borderRadius: '14px',
+                          padding: '20px',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '16px',
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
+                          position: 'relative'
+                        }}
+                      >
+                        {/* Issue Header with Cluster Pill */}
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                            <span style={{ fontWeight: 800, fontSize: '0.96rem', color: 'var(--text-main)' }}>
+                              Governance Issue #{idx + 1}: {issue.topic}
+                            </span>
+                            <span style={{
+                              background: 'linear-gradient(135deg, #4f46e5 0%, #2563eb 100%)',
+                              color: '#ffffff',
+                              padding: '2px 9px',
+                              borderRadius: '12px',
+                              fontSize: '0.68rem',
+                              fontWeight: 800,
+                              letterSpacing: '0.02em',
+                              boxShadow: '0 1px 4px rgba(79,70,229,0.25)'
+                            }}>
+                              ⚡ {issue.total_conflicts} CONFLICTS COLLAPSED
+                            </span>
+                            <span className="badge badge-warning" style={{ fontSize: '0.65rem' }}>
+                              Severity: {issue.severity?.toUpperCase() || 'HIGH'}
+                            </span>
+                          </div>
+                          <span className="code-pill" style={{ fontSize: '0.74rem' }}>
+                            Confidence: {(Number(issue.confidence) * 100).toFixed(0)}%
+                          </span>
+                        </div>
+
+                        {/* Dual-Cluster Comparison (Stale/Sample vs Authoritative) */}
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '14px' }}>
+                          {/* Cluster A */}
+                          <div style={{
+                            background: 'var(--danger-bg)',
+                            border: '1px solid var(--danger-border)',
+                            padding: '16px',
+                            borderRadius: '11px',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            justifyContent: 'space-between',
+                            gap: '12px'
+                          }}>
+                            <div>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.72rem', color: 'var(--danger-text)', fontWeight: 800, marginBottom: '8px' }}>
+                                <span>CLUSTER A ({issue.cluster_a.claim_count} Claim Variations)</span>
+                                <span className="badge badge-outdated" style={{ fontSize: '0.62rem' }}>
+                                  Stale / Candidate
+                                </span>
+                              </div>
+                              <p style={{ fontSize: '0.84rem', color: 'var(--danger-text)', lineHeight: 1.5, fontWeight: 600, margin: 0 }}>
+                                "{issue.cluster_a.representative_text}"
+                              </p>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.72rem', color: 'var(--text-muted)', paddingTop: '8px', borderTop: '1px solid rgba(220, 38, 38, 0.15)' }}>
+                              <span>Section: {issue.cluster_a.source_title}</span>
+                              <span>Avg Trust: <strong>{(Number(issue.cluster_a.trust_score) * 100).toFixed(0)}%</strong></span>
+                            </div>
+                          </div>
+
+                          {/* Cluster B */}
+                          <div style={{
+                            background: 'var(--success-bg)',
+                            border: '1px solid var(--success-border)',
+                            padding: '16px',
+                            borderRadius: '11px',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            justifyContent: 'space-between',
+                            gap: '12px'
+                          }}>
+                            <div>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.72rem', color: 'var(--success-text)', fontWeight: 800, marginBottom: '8px' }}>
+                                <span>CLUSTER B ({issue.cluster_b.claim_count} Authoritative Policy)</span>
+                                <span className="badge badge-allow" style={{ fontSize: '0.62rem' }}>
+                                  Verified Policy
+                                </span>
+                              </div>
+                              <p style={{ fontSize: '0.84rem', color: 'var(--success-text)', lineHeight: 1.5, fontWeight: 600, margin: 0 }}>
+                                "{issue.cluster_b.representative_text}"
+                              </p>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.72rem', color: 'var(--text-muted)', paddingTop: '8px', borderTop: '1px solid rgba(22, 163, 74, 0.15)' }}>
+                              <span>Section: {issue.cluster_b.source_title}</span>
+                              <span>Trust: <strong>{(Number(issue.cluster_b.trust_score) * 100).toFixed(0)}%</strong></span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Auditor Actions Toolbar */}
+                        <div style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          flexWrap: 'wrap',
+                          gap: '10px',
+                          borderTop: '1px solid var(--border-color)',
+                          paddingTop: '14px'
+                        }}>
+                          <button
+                            onClick={() => toggleExpandIssue(issue.issue_id)}
+                            style={{
+                              background: 'transparent',
+                              border: '1px solid var(--border-color)',
+                              borderRadius: '6px',
+                              padding: '6px 12px',
+                              fontSize: '0.74rem',
+                              color: 'var(--text-muted)',
+                              cursor: 'pointer',
+                              fontWeight: 600,
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '6px'
+                            }}
+                          >
+                            <span>{isExpanded ? '▴ Hide' : '▾ Inspect'} All {issue.total_conflicts} Underlying Pairwise Conflicts</span>
+                          </button>
+
+                          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                            <button
+                              onClick={() => handleResolveIssue(issue.issue_id, 'B')}
+                              disabled={isResolving}
+                              className="btn btn-success"
+                              style={{
+                                padding: '8px 16px',
+                                fontSize: '0.8rem',
+                                fontWeight: 700,
+                                boxShadow: '0 2px 6px rgba(22,163,74,0.2)'
+                              }}
+                            >
+                              {isResolving ? 'Resolving...' : `✓ One-Click Resolve: Approve Cluster B (Supersede ${issue.cluster_a.claim_count} in A)`}
+                            </button>
+                            <button
+                              onClick={() => handleResolveIssue(issue.issue_id, 'A')}
+                              disabled={isResolving}
+                              className="btn btn-secondary"
+                              style={{ padding: '8px 14px', fontSize: '0.78rem' }}
+                            >
+                              Approve Cluster A
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Expandable Accordion for Granular Pair Inspection */}
+                        {isExpanded && (
+                          <div style={{
+                            background: 'var(--bg-card)',
+                            border: '1px solid var(--border-subtle)',
+                            borderRadius: '8px',
+                            padding: '12px 16px',
+                            fontSize: '0.74rem',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '8px',
+                            maxHeight: '260px',
+                            overflowY: 'auto'
+                          }}>
+                            <div style={{ fontWeight: 700, color: 'var(--text-main)', display: 'flex', justifyContent: 'space-between' }}>
+                              <span>Underlying Conflict IDs in this Cluster ({issue.conflict_ids.length})</span>
+                              <span style={{ color: 'var(--text-muted)' }}>Auto-deduplicated pairwise permutations</span>
+                            </div>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '6px' }}>
+                              {issue.conflict_ids.map((cid, cIdx) => (
+                                <div key={cid} style={{
+                                  padding: '4px 8px',
+                                  background: 'var(--bg-surface)',
+                                  borderRadius: '4px',
+                                  border: '1px solid var(--border-color)',
+                                  fontFamily: 'monospace',
+                                  fontSize: '0.7rem',
+                                  color: 'var(--text-muted)'
+                                }}>
+                                  #{cIdx + 1}: {cid.substring(0, 13)}...
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
-          ) : (
-            <div style={{ display: 'grid', gap: '14px' }}>
-              {conflicts.map((conf, idx) => {
-                const claimA = conf.claim_a;
-                const claimB = conf.claim_b;
-                const scoreA = claimA?.trust_scores?.[0]?.overall_score || 0.50;
-                const scoreB = claimB?.trust_scores?.[0]?.overall_score || 0.95;
-                const sectionA = claimA?.evidence?.[0]?.section || "Corporate Operations Handbook (Section 2.0)";
-                const sectionB = claimB?.evidence?.[0]?.section || "VP Engineering Directive Memo (Section 3.0)";
+          )}
 
-                return (
-                  <div
-                    key={conf.id || idx}
-                    style={{
-                      background: 'var(--bg-surface)',
-                      border: '1px solid var(--border-color)',
-                      borderRadius: '12px',
-                      padding: '18px',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: '14px'
-                    }}
-                  >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span style={{ fontWeight: 800, fontSize: '0.88rem', color: 'var(--text-main)' }}>
-                          Conflict #{idx + 1}: {conf.conflict_type?.toUpperCase() || "NUMERICAL_DISCREPANCY"}
-                        </span>
-                        <span className="badge badge-review" style={{ fontSize: '0.65rem' }}>
-                          Severity: {conf.severity?.toUpperCase() || 'HIGH'}
-                        </span>
-                      </div>
-                      <span className="code-pill" style={{ fontSize: '0.72rem' }}>
-                        Confidence: {conf.confidence || '0.95'}
-                      </span>
-                    </div>
+          {/* ========================================================= */}
+          {/* VIEW MODE 2: RAW PAIRWISE CONFLICT LIST (UNCLUSTERED)     */}
+          {/* ========================================================= */}
+          {viewGrouping === 'pairs' && (
+            <div>
+              {conflicts.length === 0 ? (
+                <div style={{
+                  background: 'var(--bg-surface)',
+                  border: '1px solid var(--border-color)',
+                  borderRadius: '12px',
+                  padding: '48px 24px',
+                  textAlign: 'center',
+                  color: 'var(--text-muted)'
+                }}>
+                  <span style={{ fontSize: '32px' }}>✨</span>
+                  <h4 style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--text-main)', marginTop: '8px' }}>
+                    Zero Pending Policy Conflicts
+                  </h4>
+                  <p style={{ fontSize: '0.82rem', marginTop: '4px' }}>
+                    All enterprise claims and operational rules across all data sources are verified and in non-conflicting harmony.
+                  </p>
+                </div>
+              ) : (
+                <div style={{ display: 'grid', gap: '14px' }}>
+                  {conflicts.map((conf, idx) => {
+                    const claimA = conf.claim_a;
+                    const claimB = conf.claim_b;
+                    const scoreA = claimA?.trust_scores?.[0]?.overall_score || 0.50;
+                    const scoreB = claimB?.trust_scores?.[0]?.overall_score || 0.95;
+                    const sectionA = claimA?.evidence?.[0]?.section || "Corporate Operations Handbook (Section 2.0)";
+                    const sectionB = claimB?.evidence?.[0]?.section || "VP Engineering Directive Memo (Section 3.0)";
 
-                    {/* Side-by-Side Claim Comparison */}
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '14px' }}>
-                      {/* Claim A */}
-                      <div style={{
-                        background: 'var(--danger-bg)',
-                        border: '1px solid var(--danger-border)',
-                        padding: '14px',
-                        borderRadius: '10px',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        justifyContent: 'space-between',
-                        gap: '10px'
-                      }}>
-                        <div>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.7rem', color: 'var(--danger-text)', fontWeight: 800, marginBottom: '6px' }}>
-                            <span>CLAIM A (Stale Candidate)</span>
-                            <span className="badge badge-outdated" style={{ fontSize: '0.62rem' }}>ID: {conf.claim_a_id?.substring(0, 8)}</span>
-                          </div>
-                          <p style={{ fontSize: '0.82rem', color: 'var(--danger-text)', lineHeight: 1.45, fontWeight: 600, margin: 0 }}>
-                            "{claimA?.claim_text || 'No claim text recorded'}"
-                          </p>
-                        </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.7rem', color: 'var(--text-muted)', paddingTop: '6px', borderTop: '1px solid rgba(220, 38, 38, 0.15)' }}>
-                          <span>Source: {sectionA}</span>
-                          <span>Trust: <strong>{(Number(scoreA) * 100).toFixed(0)}%</strong></span>
-                        </div>
-                      </div>
-
-                      {/* Claim B */}
-                      <div style={{
-                        background: 'var(--success-bg)',
-                        border: '1px solid var(--success-border)',
-                        padding: '14px',
-                        borderRadius: '10px',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        justifyContent: 'space-between',
-                        gap: '10px'
-                      }}>
-                        <div>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.7rem', color: 'var(--success-text)', fontWeight: 800, marginBottom: '6px' }}>
-                            <span>CLAIM B (Authoritative Candidate)</span>
-                            <span className="badge badge-allow" style={{ fontSize: '0.62rem' }}>ID: {conf.claim_b_id?.substring(0, 8)}</span>
-                          </div>
-                          <p style={{ fontSize: '0.82rem', color: 'var(--success-text)', lineHeight: 1.45, fontWeight: 600, margin: 0 }}>
-                            "{claimB?.claim_text || 'No claim text recorded'}"
-                          </p>
-                        </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.7rem', color: 'var(--text-muted)', paddingTop: '6px', borderTop: '1px solid rgba(22, 163, 74, 0.15)' }}>
-                          <span>Source: {sectionB}</span>
-                          <span>Trust: <strong>{(Number(scoreB) * 100).toFixed(0)}%</strong></span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Auditor Resolution Actions */}
-                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', borderTop: '1px solid var(--border-color)', paddingTop: '12px' }}>
-                      <button
-                        onClick={() => onResolveConflict && onResolveConflict(conf.id, conf.claim_b_id, "Approved Claim B as authoritative guideline.")}
-                        className="btn btn-success"
-                        style={{ padding: '7px 14px', fontSize: '0.78rem', fontWeight: 600 }}
+                    return (
+                      <div
+                        key={conf.id || idx}
+                        style={{
+                          background: 'var(--bg-surface)',
+                          border: '1px solid var(--border-color)',
+                          borderRadius: '12px',
+                          padding: '18px',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '14px'
+                        }}
                       >
-                        ✓ Approve Authoritative Claim B (Supersede A)
-                      </button>
-                      <button
-                        onClick={() => onResolveConflict && onResolveConflict(conf.id, conf.claim_a_id, "Approved Claim A as verified exception.")}
-                        className="btn btn-secondary"
-                        style={{ padding: '7px 12px', fontSize: '0.78rem' }}
-                      >
-                        Approve Claim A
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span style={{ fontWeight: 800, fontSize: '0.88rem', color: 'var(--text-main)' }}>
+                              Conflict #{idx + 1}: {conf.conflict_type?.toUpperCase() || "NUMERICAL_DISCREPANCY"}
+                            </span>
+                            <span className="badge badge-review" style={{ fontSize: '0.65rem' }}>
+                              Severity: {conf.severity?.toUpperCase() || 'HIGH'}
+                            </span>
+                          </div>
+                          <span className="code-pill" style={{ fontSize: '0.72rem' }}>
+                            Confidence: {conf.confidence || '0.95'}
+                          </span>
+                        </div>
+
+                        {/* Side-by-Side Claim Comparison */}
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '14px' }}>
+                          {/* Claim A */}
+                          <div style={{
+                            background: 'var(--danger-bg)',
+                            border: '1px solid var(--danger-border)',
+                            padding: '14px',
+                            borderRadius: '10px',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            justifyContent: 'space-between',
+                            gap: '10px'
+                          }}>
+                            <div>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.7rem', color: 'var(--danger-text)', fontWeight: 800, marginBottom: '6px' }}>
+                                <span>CLAIM A (Stale Candidate)</span>
+                                <span className="badge badge-outdated" style={{ fontSize: '0.62rem' }}>ID: {conf.claim_a_id?.substring(0, 8)}</span>
+                              </div>
+                              <p style={{ fontSize: '0.82rem', color: 'var(--danger-text)', lineHeight: 1.45, fontWeight: 600, margin: 0 }}>
+                                "{claimA?.claim_text || 'No claim text recorded'}"
+                              </p>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.7rem', color: 'var(--text-muted)', paddingTop: '6px', borderTop: '1px solid rgba(220, 38, 38, 0.15)' }}>
+                              <span>Source: {sectionA}</span>
+                              <span>Trust: <strong>{(Number(scoreA) * 100).toFixed(0)}%</strong></span>
+                            </div>
+                          </div>
+
+                          {/* Claim B */}
+                          <div style={{
+                            background: 'var(--success-bg)',
+                            border: '1px solid var(--success-border)',
+                            padding: '14px',
+                            borderRadius: '10px',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            justifyContent: 'space-between',
+                            gap: '10px'
+                          }}>
+                            <div>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.7rem', color: 'var(--success-text)', fontWeight: 800, marginBottom: '6px' }}>
+                                <span>CLAIM B (Authoritative Candidate)</span>
+                                <span className="badge badge-allow" style={{ fontSize: '0.62rem' }}>ID: {conf.claim_b_id?.substring(0, 8)}</span>
+                              </div>
+                              <p style={{ fontSize: '0.82rem', color: 'var(--success-text)', lineHeight: 1.45, fontWeight: 600, margin: 0 }}>
+                                "{claimB?.claim_text || 'No claim text recorded'}"
+                              </p>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.7rem', color: 'var(--text-muted)', paddingTop: '6px', borderTop: '1px solid rgba(22, 163, 74, 0.15)' }}>
+                              <span>Source: {sectionB}</span>
+                              <span>Trust: <strong>{(Number(scoreB) * 100).toFixed(0)}%</strong></span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Auditor Resolution Actions */}
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', borderTop: '1px solid var(--border-color)', paddingTop: '12px' }}>
+                          <button
+                            onClick={() => onResolveConflict && onResolveConflict(conf.id, conf.claim_b_id, "Approved Claim B as authoritative guideline.")}
+                            className="btn btn-success"
+                            style={{ padding: '7px 14px', fontSize: '0.78rem', fontWeight: 600 }}
+                          >
+                            ✓ Approve Authoritative Claim B (Supersede A)
+                          </button>
+                          <button
+                            onClick={() => onResolveConflict && onResolveConflict(conf.id, conf.claim_a_id, "Approved Claim A as verified exception.")}
+                            className="btn btn-secondary"
+                            style={{ padding: '7px 12px', fontSize: '0.78rem' }}
+                          >
+                            Approve Claim A
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           )}
         </div>

@@ -8,6 +8,10 @@ class ExtractedClaim(BaseModel):
     predicate: str = Field(..., description="Action, property, relation, or condition")
     object: str = Field(..., description="Value, quantity, state, or target entity")
     claim_type: str = Field(default="policy", description="Type of claim (e.g. policy, technical, financial, metric)")
+    modality: str = Field(
+        default="normative",
+        description="Modality of claim: 'normative' (governing enterprise rule/obligation), 'illustrative' (example/hypothetical/scenario sample), or 'descriptive' (factual/contextual background)"
+    )
     confidence: float = Field(default=0.95, ge=0.0, le=1.0, description="Extraction confidence score")
     evidence_text_span: str = Field(..., description="Exact substring quote from the source text backing this claim")
     valid_from: datetime | None = Field(default=None, description="Effective start date if mentioned")
