@@ -97,9 +97,14 @@ class ChatService:
             if included_claims else 0.50
         )
 
-        # 4. Formulate citations & warnings
+        # 4. Formulate citations & warnings (deduplicate identical claim statements)
         citations = []
+        seen_claims = set()
         for item in included_claims:
+            norm_text = item.claim.strip().lower()
+            if norm_text in seen_claims:
+                continue
+            seen_claims.add(norm_text)
             citations.append({
                 "claim_text": item.claim,
                 "trust_score": float(item.trust_score),
@@ -115,27 +120,37 @@ class ChatService:
                 desc = conf.get("description") or "Contradictory evidence detected between active sources."
                 warnings.append(f"Disputed evidence: {desc}")
 
-        # 5. Determine verification verdict
-        if not included_claims:
-            decision = "CLARIFY"
-            confidence = 0.50
-        elif has_conflicts:
-            decision = "REVIEW"
-            confidence = round(max(0.60, avg_trust * 0.85), 2)
-        elif avg_trust >= 0.70:
-            decision = "ALLOW"
-            confidence = round(min(0.99, avg_trust), 2)
-        else:
-            decision = "REVIEW"
-            confidence = round(avg_trust, 2)
-
-        # 6. Synthesize grounded answer via configured LLM provider (Ox Alpha / OpenRouter / OpenAI / Mock)
+        # 5. Synthesize grounded answer via configured LLM provider (Ox Alpha / OpenRouter / OpenAI / Mock)
         synthesized_answer = await self.llm.generate_grounded_answer(
             query=content,
             citations=citations,
             has_conflicts=has_conflicts,
             warnings=warnings,
         )
+
+        # 6. Determine verification verdict (aligning with evidence and synthesis analysis)
+        ans_lower = synthesized_answer.lower()
+        is_gap_or_escalation = any(k in ans_lower for k in [
+            "does not specify", "do not specify", "missing specification",
+            "does not contain", "do not contain", "not covered", "not addressed",
+            "no explicit", "not explicitly", "neither permitted nor",
+            "escalat", "unverified figure", "recommend consulting", "consult your",
+            "consult the", "internal controls", "sox compliance", "segregation of duties",
+            "segregation-of-duties", "no numeric window", "unverified"
+        ])
+
+        if not included_claims:
+            decision = "CLARIFY"
+            confidence = 0.50
+        elif has_conflicts or is_gap_or_escalation:
+            decision = "REVIEW"
+            confidence = round(max(0.65, avg_trust * 0.85), 2)
+        elif avg_trust >= 0.70:
+            decision = "ALLOW"
+            confidence = round(min(0.99, avg_trust), 2)
+        else:
+            decision = "REVIEW"
+            confidence = round(avg_trust, 2)
 
         metadata_json = {
             "decision": decision,

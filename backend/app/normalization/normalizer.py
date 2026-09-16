@@ -84,6 +84,39 @@ class DocumentNormalizer:
         if not raw_text:
             return []
 
+        # 1. Structured JSON dataset parser (extracts clean document claims instead of raw code)
+        stripped_raw = raw_text.strip()
+        if (stripped_raw.startswith("{") and stripped_raw.endswith("}")) or (stripped_raw.startswith("[") and stripped_raw.endswith("]")):
+            try:
+                import json
+                data = json.loads(stripped_raw)
+                if isinstance(data, dict) and "documents" in data:
+                    json_sections = []
+                    sec_offset = 0
+                    for doc in data.get("documents", []):
+                        title = doc.get("title", "Policy Section")
+                        doc_claims = [c.get("claim") for c in doc.get("claims", []) if c.get("claim")]
+                        if doc_claims:
+                            body = "\n".join(f"- {c}" for c in doc_claims)
+                        else:
+                            body = doc.get("version_2_current_text") or doc.get("version_1_legacy_text") or ""
+
+                        if body.strip():
+                            json_sections.append(
+                                DocumentSection(
+                                    title=title,
+                                    content=body.strip(),
+                                    level=1,
+                                    start_char_offset=sec_offset,
+                                    end_char_offset=sec_offset + len(body.strip()),
+                                )
+                            )
+                            sec_offset += len(body.strip()) + 1
+                    if json_sections:
+                        return json_sections
+            except Exception:
+                pass
+
         lines = raw_text.split("\n")
         header_pattern = re.compile(r"^(#{1,6})\s+(.*)$")
 
@@ -96,6 +129,43 @@ class DocumentNormalizer:
         has_headers = any(header_pattern.match(line.strip()) for line in lines)
 
         if not has_headers:
+            paragraphs = [p.strip() for p in raw_text.split("\n\n") if p.strip()]
+            if len(raw_text) > 2500 and len(paragraphs) > 1:
+                chunk_sections: list[DocumentSection] = []
+                current_chunk: list[str] = []
+                current_len = 0
+                chunk_idx = 1
+                offset = 0
+                for p in paragraphs:
+                    if current_len + len(p) > 2000 and current_chunk:
+                        chunk_text = "\n\n".join(current_chunk)
+                        chunk_sections.append(
+                            DocumentSection(
+                                title=f"Section {chunk_idx}",
+                                content=chunk_text,
+                                level=2,
+                                start_char_offset=offset,
+                                end_char_offset=offset + len(chunk_text),
+                            )
+                        )
+                        offset += len(chunk_text) + 2
+                        chunk_idx += 1
+                        current_chunk = []
+                        current_len = 0
+                    current_chunk.append(p)
+                    current_len += len(p)
+                if current_chunk:
+                    chunk_text = "\n\n".join(current_chunk)
+                    chunk_sections.append(
+                        DocumentSection(
+                            title=f"Section {chunk_idx}",
+                            content=chunk_text,
+                            level=2,
+                            start_char_offset=offset,
+                            end_char_offset=offset + len(chunk_text),
+                        )
+                    )
+                return chunk_sections
             return [
                 DocumentSection(
                     title="General",

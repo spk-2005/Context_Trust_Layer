@@ -32,12 +32,21 @@ class MockLLMProvider(BaseLLMProvider):
             )
 
         # Split into individual sentences or clauses
-        raw_sentences = re.split(r"(?<=[.!?])\s+", section_content.strip())
+        # Split into individual sentences or list bullets
+        raw_sentences = re.split(r"(?<=[.!?])\s+|\n[-*•]\s*", section_content.strip())
 
         for sentence in raw_sentences:
-            s = sentence.strip()
+            s = sentence.strip().lstrip("-*• ")
             if not s or len(s) < 10:
                 continue
+
+            # Skip code, raw json, or synthetic dataset boilerplate
+            if s.startswith("{") or s.startswith("[") or '"connectors":' in s or '"documents":' in s or "synthetic" in s.lower():
+                continue
+
+            # Atomic claims should not exceed 300 characters
+            if len(s) > 300:
+                s = s[:300].rsplit(" ", 1)[0] + "."
 
             # Heuristic S-P-O breakdown
             subject = section_title if section_title and section_title != "General" else document_title
@@ -264,6 +273,34 @@ class MockLLMProvider(BaseLLMProvider):
         pct_a = set(re.findall(r"\b\d+(?:\.\d+)?\s*(?:\%|percent)\b", clean_a))
         pct_b = set(re.findall(r"\b\d+(?:\.\d+)?\s*(?:\%|percent)\b", clean_b))
 
+        # Pillar 2: Check if either claim is an illustrative scenario or transaction sample
+        illustrative_patterns = [
+            r"\bexample\s*:\s*transaction\b",
+            r"\bfor\s+example\b",
+            r"\bhypothetical\b",
+            r"\bsample\s+transaction\b",
+            r"\billustrative\s+only\b",
+            r"\brf-\d+-\d+\b",
+        ]
+        if any(re.search(p, a_lower) for p in illustrative_patterns) or any(re.search(p, b_lower) for p in illustrative_patterns):
+            return ContradictionResult(
+                is_contradiction=False,
+                conflict_type="illustrative_example",
+                severity="low",
+                confidence=0.92,
+                reasoning="One or both claims are concrete transaction scenarios or illustrative examples rather than conflicting policy rules.",
+            )
+
+        # Pillar 3: Detect temporal versioning (legacy vs current)
+        if ("legacy" in a_lower and "current" in b_lower) or ("legacy" in b_lower and "current" in a_lower):
+            return ContradictionResult(
+                is_contradiction=True,
+                conflict_type="temporal_outdated",
+                severity="medium",
+                confidence=0.95,
+                reasoning="One claim represents legacy policy evidence superseded by current active policy evidence.",
+            )
+
         # Semantic unit mismatch check
         has_unit_conflict = (
             (bool(curr_a) and bool(curr_b) and curr_a != curr_b) or
@@ -313,22 +350,36 @@ class MockLLMProvider(BaseLLMProvider):
                 "Please ingest the relevant documentation or connect enterprise data sources."
             )
         avg_trust = sum(float(c.get("trust_score", 0.8)) for c in citations) / len(citations)
+        
+        # Sanitize and extract clean natural language claims
+        clean_claims = []
+        for c in citations:
+            text = c.get("claim_text", "").strip()
+            if text.startswith("{") or '"connectors":' in text or "synthetic" in text.lower():
+                continue
+            if len(text) > 280:
+                text = text[:280].rsplit(" ", 1)[0] + "..."
+            clean_claims.append(text)
+
+        if not clean_claims:
+            clean_claims = [c.get("claim_text", "Verified policy statement")[:250] for c in citations[:2]]
+
         if has_conflicts:
-            lead_claim = citations[0].get("claim_text", "Policy in dispute")
+            lead_claim = clean_claims[0] if clean_claims else "Policy in dispute"
             return (
                 f'Based on current enterprise knowledge, the authoritative record indicates: "{lead_claim}".\n\n'
                 f"⚠️ Note: There are active contradictory claims in the knowledge base regarding this topic. "
                 f"A Data Steward review has been flagged to verify compliance."
             )
         elif avg_trust >= 0.70:
-            lead_claims = "\n".join(f"• {c.get('claim_text', '')}" for c in citations[:3])
+            lead_claims = "\n".join(f"• {claim}" for claim in clean_claims[:3])
             return (
                 f"According to verified enterprise policies (Trust Score: {int(avg_trust * 100)}/100):\n\n"
                 f"{lead_claims}\n\n"
                 f"All cited sources have verified authority and active validity status."
             )
         else:
-            lead_claims = "\n".join(f"• {c.get('claim_text', '')}" for c in citations[:2])
+            lead_claims = "\n".join(f"• {claim}" for claim in clean_claims[:2])
             return (
                 f"Candidate records found with moderate confidence:\n\n{lead_claims}\n\n"
                 f"Authority score is {int(avg_trust * 100)}/100. Manual verification recommended."

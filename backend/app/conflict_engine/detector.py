@@ -66,6 +66,23 @@ def are_claims_topically_related(claim_a: Claim, claim_b: Claim) -> bool:
     return len(common) >= min_overlap
 
 
+def is_illustrative_claim(claim: Claim) -> bool:
+    """Pillar 2: Classify whether a claim is an illustrative example or hypothetical scenario rather than a normative policy rule."""
+    if claim.claim_type and "illustrative" in claim.claim_type.lower():
+        return True
+    text_lower = claim.claim_text.lower()
+    illustrative_patterns = [
+        r"\bexample\s*:\s*transaction\b",
+        r"\bfor\s+example\b",
+        r"\bhypothetical\b",
+        r"\bsample\s+transaction\b",
+        r"\billustrative\s+only\b",
+        r"\brf-\d+-\d+\b",
+        r"\bscenario\s+[0-9a-z]+\b",
+    ]
+    return any(re.search(p, text_lower) for p in illustrative_patterns)
+
+
 class ConflictDetector:
     """Detects semantic and logical contradictions between claims across documents."""
 
@@ -84,6 +101,11 @@ class ConflictDetector:
         """Compare target_claim against all topically related active claims in the same organization."""
         detected_conflicts: list[ClaimConflict] = []
 
+        # Pillar 2: Illustrative sample pre-filter
+        # Concrete transaction examples/scenarios never contradict governing enterprise policies
+        if is_illustrative_claim(target_claim):
+            return detected_conflicts
+
         # Find potential candidate claims (same org, different claim, active)
         stmt = (
             select(Claim)
@@ -98,6 +120,10 @@ class ConflictDetector:
 
         unprocessed_candidates = []
         for cand in candidates:
+            # Pillar 2: Skip illustrative candidates
+            if is_illustrative_claim(cand):
+                continue
+
             # Pre-filter out claims that have no topical connection
             if not are_claims_topically_related(target_claim, cand):
                 continue
@@ -131,6 +157,42 @@ class ConflictDetector:
 
         for cand, eval_res in eval_results:
             if eval_res.is_contradiction:
+                # Pillar 3: Lineage-Aware Temporal Supersession
+                # Automatically supersede older/legacy version claims without generating human conflicts
+                is_temporal = eval_res.conflict_type == "temporal_outdated"
+                text_t = target_claim.claim_text.lower()
+                text_c = cand.claim_text.lower()
+                has_legacy = "legacy" in text_t or "legacy" in text_c
+                has_current = "current" in text_t or "current" in text_c
+
+                # 3a. Check DocumentVersion lineage if present
+                if (
+                    target_claim.document_version
+                    and cand.document_version
+                    and target_claim.document_version.document_id == cand.document_version.document_id
+                ):
+                    ver_t = target_claim.document_version.version_number
+                    ver_c = cand.document_version.version_number
+                    if ver_t != ver_c:
+                        if ver_t > ver_c:
+                            cand.status = ClaimStatus.OUTDATED
+                            target_claim.status = ClaimStatus.VERIFIED
+                        else:
+                            target_claim.status = ClaimStatus.OUTDATED
+                            cand.status = ClaimStatus.VERIFIED
+                        continue
+
+                # 3b. Check explicit temporal obsolescence based on dates / legacy tags
+                if is_temporal or (has_legacy and has_current):
+                    if "legacy" in text_c or ("current" in text_t and "legacy" not in text_t):
+                        cand.status = ClaimStatus.OUTDATED
+                        target_claim.status = ClaimStatus.VERIFIED
+                    else:
+                        target_claim.status = ClaimStatus.OUTDATED
+                        cand.status = ClaimStatus.VERIFIED
+                    continue
+
+                # Record genuine corporate conflict for human review
                 conflict = ClaimConflict(
                     claim_a_id=target_claim.id,
                     claim_b_id=cand.id,
