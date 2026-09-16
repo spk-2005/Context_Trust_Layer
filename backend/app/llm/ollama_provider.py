@@ -1,4 +1,4 @@
-﻿import hashlib, json, logging, math, re
+import hashlib, json, logging, math, re
 from typing import Sequence
 import httpx
 from app.llm.base import BaseLLMProvider
@@ -179,3 +179,33 @@ class OllamaProvider(BaseLLMProvider):
             logger.debug("Ollama contradiction eval fallback due to: %s", e)
             from app.llm.mock_provider import MockLLMProvider
             return await MockLLMProvider().evaluate_contradiction(claim_a_text, claim_b_text)
+
+    async def generate_grounded_answer(
+        self,
+        query: str,
+        citations: list[dict],
+        has_conflicts: bool = False,
+        warnings: list[str] | None = None,
+    ) -> str:
+        if not citations:
+            return (
+                f'No verified claims or policies matching "{query}" were found in the current organization knowledge base. '
+                "Please ingest the relevant documentation or connect enterprise data sources."
+            )
+        claims_text = "\n".join(f"- {c.get('claim_text', '')} (Source: {c.get('source_title', 'Doc')})" for c in citations[:5])
+        prompt = (
+            f"You are Context Trust Layer AI Copilot. Answer the user's question using ONLY the provided verified claims.\n"
+            f"User Question: {query}\n\n"
+            f"Verified Claims:\n{claims_text}\n\n"
+            f"Conflicts present: {has_conflicts}\n"
+            "Provide a concise, direct, authoritative answer citing the sources."
+        )
+        try:
+            ans = await self._chat(prompt)
+            if ans and len(ans.strip()) > 10:
+                return ans.strip()
+        except Exception as e:
+            logger.debug("Ollama chat completion fallback due to: %s", e)
+        from app.llm.mock_provider import MockLLMProvider
+        return await MockLLMProvider().generate_grounded_answer(query, citations, has_conflicts, warnings)
+

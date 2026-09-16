@@ -35,3 +35,14 @@ class BaseLLMProvider(ABC):
     ) -> ContradictionResult:
         """Analyze whether two claims contradict, disagree, or complement each other."""
         pass
+
+    @abstractmethod
+    async def generate_grounded_answer(
+        self,
+        query: str,
+        citations: list[dict],
+        has_conflicts: bool = False,
+        warnings: list[str] | None = None,
+    ) -> str:
+        """Synthesize a factual, grounded answer to query based strictly on verified context claims."""
+        pass

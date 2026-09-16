@@ -20,11 +20,18 @@ class Settings(BaseSettings):
     database_url: str | None = None
 
     # LLM Settings
-    llm_provider: str = "mock"  # "mock", "openai", "gemini", "ollama"
+    llm_provider: str = "mock"  # "mock", "openai", "openrouter", "gemini", "ollama"
     openai_api_key: str | None = None
+    openai_base_url: str | None = None
     openai_model: str = "gpt-4o-mini"
     openai_embedding_model: str = "text-embedding-3-small"
     gemini_api_key: str | None = None
+
+    # OpenRouter / Ox Alpha (Z.ai GLM-5.3-Flash) Settings
+    openrouter_api_key: str | None = None
+    openrouter_base_url: str = "https://openrouter.ai/api/v1"
+    openrouter_model: str = "z-ai/glm-5.3-flash"  # Supports "z-ai/glm-5.3-flash" or "stealth/ox-alpha"
+    openrouter_embedding_model: str = "text-embedding-3-small"
 
     # Ollama Settings (local LLM via Ollama)
     ollama_base_url: str = "http://localhost:11434"

@@ -119,36 +119,23 @@ class ChatService:
         if not included_claims:
             decision = "CLARIFY"
             confidence = 0.50
-            synthesized_answer = (
-                f"No verified claims or policies matching \"{content}\" were found in the current organization knowledge base. "
-                "Please ingest the relevant documentation or connect enterprise data sources."
-            )
         elif has_conflicts:
             decision = "REVIEW"
             confidence = round(max(0.60, avg_trust * 0.85), 2)
-            lead_claim = included_claims[0].claim if included_claims else "Policy in dispute"
-            synthesized_answer = (
-                f"Based on current enterprise knowledge, the authoritative record indicates: \"{lead_claim}\".\n\n"
-                f"⚠️ Note: There are active contradictory claims in the knowledge base regarding this topic. "
-                f"A Data Steward review has been flagged to verify compliance."
-            )
         elif avg_trust >= 0.70:
             decision = "ALLOW"
             confidence = round(min(0.99, avg_trust), 2)
-            lead_claims = "\n".join(f"• {c['claim_text']}" for c in citations[:3])
-            synthesized_answer = (
-                f"According to verified enterprise policies (Trust Score: {int(avg_trust * 100)}/100):\n\n"
-                f"{lead_claims}\n\n"
-                f"All cited sources have verified authority and active validity status."
-            )
         else:
             decision = "REVIEW"
             confidence = round(avg_trust, 2)
-            lead_claims = "\n".join(f"• {c['claim_text']}" for c in citations[:2])
-            synthesized_answer = (
-                f"Candidate records found with moderate confidence:\n\n{lead_claims}\n\n"
-                f"Authority score is {int(avg_trust * 100)}/100. Manual verification recommended."
-            )
+
+        # 6. Synthesize grounded answer via configured LLM provider (Ox Alpha / OpenRouter / OpenAI / Mock)
+        synthesized_answer = await self.llm.generate_grounded_answer(
+            query=content,
+            citations=citations,
+            has_conflicts=has_conflicts,
+            warnings=warnings,
+        )
 
         metadata_json = {
             "decision": decision,
