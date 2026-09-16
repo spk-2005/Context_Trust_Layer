@@ -298,3 +298,39 @@ class MockLLMProvider(BaseLLMProvider):
             confidence=0.85,
             reasoning="Claims do not contradict or apply to different non-overlapping domains.",
         )
+
+    async def generate_grounded_answer(
+        self,
+        query: str,
+        citations: list[dict],
+        has_conflicts: bool = False,
+        warnings: list[str] | None = None,
+    ) -> str:
+        """Template synthesis when using Mock provider."""
+        if not citations:
+            return (
+                f'No verified claims or policies matching "{query}" were found in the current organization knowledge base. '
+                "Please ingest the relevant documentation or connect enterprise data sources."
+            )
+        avg_trust = sum(float(c.get("trust_score", 0.8)) for c in citations) / len(citations)
+        if has_conflicts:
+            lead_claim = citations[0].get("claim_text", "Policy in dispute")
+            return (
+                f'Based on current enterprise knowledge, the authoritative record indicates: "{lead_claim}".\n\n'
+                f"⚠️ Note: There are active contradictory claims in the knowledge base regarding this topic. "
+                f"A Data Steward review has been flagged to verify compliance."
+            )
+        elif avg_trust >= 0.70:
+            lead_claims = "\n".join(f"• {c.get('claim_text', '')}" for c in citations[:3])
+            return (
+                f"According to verified enterprise policies (Trust Score: {int(avg_trust * 100)}/100):\n\n"
+                f"{lead_claims}\n\n"
+                f"All cited sources have verified authority and active validity status."
+            )
+        else:
+            lead_claims = "\n".join(f"• {c.get('claim_text', '')}" for c in citations[:2])
+            return (
+                f"Candidate records found with moderate confidence:\n\n{lead_claims}\n\n"
+                f"Authority score is {int(avg_trust * 100)}/100. Manual verification recommended."
+            )
+
