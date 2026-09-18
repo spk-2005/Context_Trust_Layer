@@ -20,6 +20,10 @@ import LiveIngestionStudio from './components/LiveIngestionStudio';
 import VisualLineageGraph from './components/VisualLineageGraph';
 import ContextCuratorStudio from './components/ContextCuratorStudio';
 import McpIntegrationStudio from './components/McpIntegrationStudio';
+import SignInModal from './components/SignInModal';
+import OrganizationSettingsModal from './components/OrganizationSettingsModal';
+import RbacMatrixModal from './components/RbacMatrixModal';
+import { useAuth } from './context/AuthContext';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('playground');
@@ -29,10 +33,23 @@ export default function App() {
   const [curatorSubView, setCuratorSubView] = useState('health'); // 'health' | 'conflicts'
   const [loading, setLoading] = useState(false);
   const [notification, setNotification] = useState(null);
+  const [isOrgSettingsModalOpen, setIsOrgSettingsModalOpen] = useState(false);
+  const [isRbacModalOpen, setIsRbacModalOpen] = useState(false);
 
   // -------------------------------------------------------------
+  const {
+    user: authUser,
+    organization: authOrg,
+    isAuthenticated,
+    personas: authPersonas,
+    setIsAuthModalOpen,
+    setAuthModalTab,
+    loginAsPersona: authLoginAsPersona,
+    switchOrganization,
+    logout: authLogout
+  } = useAuth();
+
   // Atlan Active Persona & User Ecosystem State
-  // -------------------------------------------------------------
   const [personas, setPersonas] = useState([]);
   const [activePersona, setActivePersona] = useState({
     id: '22222222-2222-2222-2222-222222222222',
@@ -43,6 +60,18 @@ export default function App() {
     avatar_url: 'https://api.dicebear.com/7.x/bottts/svg?seed=Sarah'
   });
   const [isPersonaDropdownOpen, setIsPersonaDropdownOpen] = useState(false);
+
+  useEffect(() => {
+    if (authUser) {
+      setActivePersona(authUser);
+    }
+  }, [authUser]);
+
+  useEffect(() => {
+    if (authPersonas && authPersonas.length > 0) {
+      setPersonas(authPersonas);
+    }
+  }, [authPersonas]);
 
   const handleToggleParentTab = (tabName) => {
     setActiveTab(tabName);
@@ -632,11 +661,21 @@ export default function App() {
     }
   };
 
-  const handleSwitchOrganization = (org) => {
+  const handleSwitchOrganization = async (org) => {
     setActiveOrg(org);
     localStorage.setItem('context_layer_active_org_id', org.id);
     setIsOrgDropdownOpen(false);
-    showToast(`Switched workspace to '${org.name}'`);
+    try {
+      if (switchOrganization) {
+        await switchOrganization(org.id);
+      }
+      showToast(`Switched active workspace to '${org.name}'`);
+      await fetchHealthAndConflicts(org.id);
+      await fetchSources(org.id);
+    } catch (err) {
+      console.warn('Switch org error:', err);
+      showToast(`Switched workspace to '${org.name}'`);
+    }
   };
 
   const handleSyncSource = async (sourceId, sourceName) => {
@@ -1724,7 +1763,31 @@ export default function App() {
                     ))}
                   </div>
 
-                  <div style={{ borderTop: '1px solid var(--border-subtle)', marginTop: '4px', paddingTop: '4px' }}>
+                  <div style={{ borderTop: '1px solid var(--border-subtle)', marginTop: '4px', paddingTop: '4px', display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                    <button
+                      onClick={() => {
+                        setIsOrgSettingsModalOpen(true);
+                        setIsOrgDropdownOpen(false);
+                      }}
+                      style={{
+                        width: '100%',
+                        padding: '6px 8px',
+                        background: 'rgba(37, 99, 235, 0.08)',
+                        border: '1px solid rgba(37, 99, 235, 0.22)',
+                        borderRadius: '4px',
+                        color: '#2563EB',
+                        fontSize: '0.72rem',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        textAlign: 'left',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px'
+                      }}
+                    >
+                      <span>⚙️ Workspace Settings & Team</span>
+                    </button>
+
                     <button
                       onClick={() => {
                         setShowNewOrgModal(true);
@@ -1735,9 +1798,9 @@ export default function App() {
                         padding: '5px 8px',
                         background: 'transparent',
                         border: 'none',
-                        color: 'var(--primary)',
-                        fontSize: '0.72rem',
-                        fontWeight: 600,
+                        color: 'var(--text-muted)',
+                        fontSize: '0.70rem',
+                        fontWeight: 500,
                         cursor: 'pointer',
                         textAlign: 'left',
                         display: 'flex',
@@ -1858,13 +1921,21 @@ export default function App() {
                   setIsWorkspaceDropdownOpen(false);
                 }}
                 className={`top-header-pill ${isPersonaDropdownOpen ? 'top-header-pill-active' : ''}`}
-                title="Active User Persona"
+                title="Active Enterprise Persona & Identity"
+                style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
               >
-                <span style={{ maxWidth: '100px', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  {activePersona?.name || 'Alex'}
+                {activePersona?.avatar_url && (
+                  <img
+                    src={activePersona.avatar_url}
+                    alt={activePersona.name}
+                    style={{ width: '16px', height: '16px', borderRadius: '4px', objectFit: 'cover' }}
+                  />
+                )}
+                <span style={{ maxWidth: '110px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {activePersona?.name || 'Sarah Chen'}
                 </span>
-                <span style={{ fontSize: '0.64rem', color: '#64748B', fontWeight: 500, textTransform: 'uppercase' }}>
-                  ({activePersona?.role || 'DATA_OWNER'})
+                <span style={{ fontSize: '0.62rem', color: '#10b981', background: 'rgba(16,185,129,0.1)', padding: '1px 5px', borderRadius: '3px', border: '1px solid rgba(16,185,129,0.25)', fontWeight: 600, textTransform: 'uppercase' }}>
+                  {activePersona?.role || 'ADMIN'}
                 </span>
                 <span style={{ fontSize: '0.62rem', color: '#94A3B8' }}>▾</span>
               </button>
@@ -1876,24 +1947,27 @@ export default function App() {
                   right: 0,
                   background: 'var(--bg-card)',
                   border: '1px solid var(--border-subtle)',
-                  borderRadius: '6px',
-                  boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
+                  borderRadius: '8px',
+                  boxShadow: '0 12px 32px rgba(0,0,0,0.35)',
                   zIndex: 250,
-                  width: '260px',
-                  padding: '6px'
+                  width: '280px',
+                  padding: '8px'
                 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 6px 4px 6px', borderBottom: '1px solid var(--border-subtle)', marginBottom: '4px' }}>
-                    <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                      Switch Persona
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 6px 6px 6px', borderBottom: '1px solid var(--border-subtle)', marginBottom: '6px' }}>
+                    <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                      Enterprise Identity
                     </span>
-                    <span className="badge badge-muted" style={{ fontSize: '0.6rem', padding: '1px 4px' }}>RBAC</span>
+                    <span className="badge badge-verified" style={{ fontSize: '0.62rem', padding: '1px 6px' }}>
+                      {isAuthenticated ? 'Authenticated' : 'Demo Mode'}
+                    </span>
                   </div>
 
-                  <div style={{ maxHeight: '200px', overflowY: 'auto' }}>
+                  <div style={{ maxHeight: '180px', overflowY: 'auto' }}>
                     {personas.map(p => (
                       <button
                         key={p.id}
                         onClick={() => {
+                          authLoginAsPersona(p);
                           setActivePersona(p);
                           setIsPersonaDropdownOpen(false);
                           showToast(`Switched active persona to ${p.name} (${p.role.toUpperCase()})`);
@@ -1906,12 +1980,13 @@ export default function App() {
                           padding: '6px 8px',
                           background: activePersona?.id === p.id ? 'var(--primary-subtle, rgba(99,102,241,0.1))' : 'transparent',
                           border: 'none',
-                          borderRadius: '4px',
+                          borderRadius: '6px',
                           color: activePersona?.id === p.id ? 'var(--primary)' : 'var(--text-main)',
                           fontSize: '0.75rem',
                           fontWeight: activePersona?.id === p.id ? 700 : 500,
                           cursor: 'pointer',
-                          textAlign: 'left'
+                          textAlign: 'left',
+                          marginBottom: '2px'
                         }}
                       >
                         <div style={{ overflow: 'hidden' }}>
@@ -1922,14 +1997,64 @@ export default function App() {
                             {p.title || p.role}
                           </div>
                         </div>
-                        <span className="badge badge-muted" style={{ fontSize: '0.6rem', padding: '1px 4px' }}>
+                        <span className="badge badge-muted" style={{ fontSize: '0.6rem', padding: '1px 5px' }}>
                           {p.role}
                         </span>
                       </button>
                     ))}
                   </div>
 
-                  <div style={{ borderTop: '1px solid var(--border-subtle)', marginTop: '4px', paddingTop: '4px' }}>
+                  <div style={{ borderTop: '1px solid var(--border-subtle)', marginTop: '6px', paddingTop: '6px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <button
+                      onClick={() => {
+                        setIsRbacModalOpen(true);
+                        setIsPersonaDropdownOpen(false);
+                      }}
+                      style={{
+                        width: '100%',
+                        padding: '6px 10px',
+                        background: 'rgba(99, 102, 241, 0.12)',
+                        border: '1px solid rgba(99, 102, 241, 0.3)',
+                        borderRadius: '6px',
+                        color: '#6366F1',
+                        fontSize: '0.74rem',
+                        fontWeight: 600,
+                        textAlign: 'center',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '6px'
+                      }}
+                    >
+                      <span>🛡️ Atlan RBAC Matrix & SoD</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setIsAuthModalOpen(true);
+                        setAuthModalTab('login');
+                        setIsPersonaDropdownOpen(false);
+                      }}
+                      style={{
+                        width: '100%',
+                        padding: '6px 10px',
+                        background: 'rgba(16, 185, 129, 0.12)',
+                        border: '1px solid rgba(16, 185, 129, 0.3)',
+                        borderRadius: '6px',
+                        color: '#10b981',
+                        fontSize: '0.74rem',
+                        fontWeight: 600,
+                        textAlign: 'center',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '6px'
+                      }}
+                    >
+                      <span>🔑 Enterprise Sign In / Register</span>
+                    </button>
                     <button
                       onClick={() => {
                         setActiveTab('team');
@@ -1940,19 +2065,39 @@ export default function App() {
                         padding: '5px 8px',
                         background: 'transparent',
                         border: 'none',
-                        color: 'var(--primary)',
-                        fontSize: '0.72rem',
-                        fontWeight: 600,
+                        color: 'var(--text-muted)',
+                        fontSize: '0.70rem',
+                        fontWeight: 500,
                         textAlign: 'center',
                         cursor: 'pointer'
                       }}
                     >
-                      Manage Team & Domains ➔
+                      Manage Team & Directory ➔
                     </button>
                   </div>
                 </div>
               )}
             </div>
+
+            {/* RBAC Matrix Top Header Pill */}
+            <button
+              onClick={() => setIsRbacModalOpen(true)}
+              className="top-header-pill"
+              title="Inspect Atlan-Grade RBAC Permissions & Separation of Duties Matrix"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '5px',
+                background: 'rgba(99, 102, 241, 0.08)',
+                borderColor: 'rgba(99, 102, 241, 0.28)',
+                color: '#4F46E5',
+                fontWeight: 600,
+                cursor: 'pointer'
+              }}
+            >
+              <span style={{ fontSize: '0.75rem' }}>🛡️</span>
+              <span>RBAC Matrix</span>
+            </button>
 
             {/* 4. SYSTEM OPERATIONAL BADGE */}
             <span className="top-status-badge">
@@ -4524,6 +4669,26 @@ export default function App() {
           </div>
         </div>
       )}
+
+      {/* Enterprise Authentication & Persona Switching Modal */}
+      <SignInModal />
+
+      {/* Enterprise Organization & Workspace Governance Modal */}
+      <OrganizationSettingsModal
+        isOpen={isOrgSettingsModalOpen}
+        onClose={() => setIsOrgSettingsModalOpen(false)}
+        activeOrg={activeOrg}
+        onOrgUpdated={(updated) => {
+          setActiveOrg(updated);
+          fetchOrganizations();
+        }}
+      />
+
+      {/* Atlan-Grade RBAC & Separation of Duties (SoD) Permissions Matrix Modal */}
+      <RbacMatrixModal
+        isOpen={isRbacModalOpen}
+        onClose={() => setIsRbacModalOpen(false)}
+      />
     </div>
   );
 }

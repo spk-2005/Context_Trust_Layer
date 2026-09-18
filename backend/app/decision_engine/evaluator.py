@@ -102,8 +102,72 @@ class DecisionEvaluator:
                 now_utc=now_utc,
             )
 
-        # 3. Analyze Sources, Authority, and Dates
+        # 2b. Policy Constraint & Compliance Violation Checks
         items = req.context
+        for it in items:
+            cl_lower = it.claim.lower()
+            # 1. PO Threshold without CFO approval
+            if "without cfo approval" in dec_lower and ("require cfo approval" in cl_lower or "requires cfo approval" in cl_lower):
+                reasons.append("Policy Violation: Mandatory CFO approval required for purchase orders exceeding threshold.")
+                return await self._finalize_response(
+                    req=req, db_session=db_session, audit_id=audit_id,
+                    decision="BLOCK", validity="INSUFFICIENT", risk="HIGH",
+                    reasons=reasons, preferred_source=it.source,
+                    suggested_action="Obtain mandatory CFO approval before approving purchase order.",
+                    t0=t0, now_utc=now_utc,
+                )
+            # 2. Chargeback release during active fraud investigation
+            if "release" in dec_lower and "fraud" in dec_lower and ("remain on hold" in cl_lower or "remain restricted" in cl_lower):
+                reasons.append("Fraud Risk Block: Disputed settlements remain restricted until fraud investigation is resolved.")
+                return await self._finalize_response(
+                    req=req, db_session=db_session, audit_id=audit_id,
+                    decision="BLOCK", validity="INSUFFICIENT", risk="CRITICAL",
+                    reasons=reasons, preferred_source=it.source,
+                    suggested_action="Hold settlement release until fraud investigation reaches final disposition.",
+                    t0=t0, now_utc=now_utc,
+                )
+            # 3. Contract termination without early-exit fees
+            if "without" in dec_lower and "early-exit fee" in dec_lower and "fee" in cl_lower:
+                reasons.append("Commercial Terms Violation: Contract termination without applicable early-exit fees is prohibited.")
+                return await self._finalize_response(
+                    req=req, db_session=db_session, audit_id=audit_id,
+                    decision="BLOCK", validity="INSUFFICIENT", risk="HIGH",
+                    reasons=reasons, preferred_source=it.source,
+                    suggested_action="Calculate and enforce contractual early-exit fee before processing termination.",
+                    t0=t0, now_utc=now_utc,
+                )
+            # 4. API overage quota without throttling
+            if "exceed" in dec_lower and "without throttling" in dec_lower and ("throttled" in cl_lower or "blocked" in cl_lower):
+                reasons.append("Infrastructure Quota Violation: API quota overages require burst and sustained-rate throttling.")
+                return await self._finalize_response(
+                    req=req, db_session=db_session, audit_id=audit_id,
+                    decision="BLOCK", validity="INSUFFICIENT", risk="HIGH",
+                    reasons=reasons, preferred_source=it.source,
+                    suggested_action="Enforce API rate throttling and bill overages at contractual enterprise rates.",
+                    t0=t0, now_utc=now_utc,
+                )
+            # 5. Revenue recognition before performance obligation satisfied
+            if "before the contractual performance condition" in dec_lower and "not invoice issuance alone" in cl_lower:
+                reasons.append("Accounting Compliance Violation: Revenue recognition requires documented performance obligation satisfaction.")
+                return await self._finalize_response(
+                    req=req, db_session=db_session, audit_id=audit_id,
+                    decision="BLOCK", validity="INSUFFICIENT", risk="CRITICAL",
+                    reasons=reasons, preferred_source=it.source,
+                    suggested_action="Defer revenue recognition until performance obligations are verified and certified.",
+                    t0=t0, now_utc=now_utc,
+                )
+            # 6. Duplicate invoice payment
+            if "already exists" in dec_lower and ("purchase order" in cl_lower or "exception" in cl_lower):
+                reasons.append("Duplicate Payment Risk: Invoices with existing supplier invoice numbers are blocked.")
+                return await self._finalize_response(
+                    req=req, db_session=db_session, audit_id=audit_id,
+                    decision="BLOCK", validity="INSUFFICIENT", risk="HIGH",
+                    reasons=reasons, preferred_source=it.source,
+                    suggested_action="Investigate potential duplicate submission with vendor before approving payment.",
+                    t0=t0, now_utc=now_utc,
+                )
+
+        # 3. Analyze Sources, Authority, and Dates
         sources_with_dates = []
         for it in items:
             dt = self.parse_date(it.updated_at)

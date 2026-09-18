@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import DateTime, Enum, String, text
+from sqlalchemy import DateTime, Enum, JSON, String, text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -41,6 +41,18 @@ class Organization(Base):
         server_default=text("'active'"),
     )
 
+    domain_whitelist: Mapped[list[str] | None] = mapped_column(
+        JSON,
+        nullable=True,
+        default=list,
+    )
+
+    allowed_auth_methods: Mapped[list[str] | None] = mapped_column(
+        JSON,
+        nullable=True,
+        default=lambda: ["password", "google", "microsoft", "okta"],
+    )
+
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
@@ -54,6 +66,12 @@ class Organization(Base):
     )
 
     # Relationships
+    invites = relationship(
+        "OrganizationInvite",
+        back_populates="organization",
+        cascade="all, delete-orphan",
+    )
+
     users = relationship(
         "User",
         back_populates="organization",

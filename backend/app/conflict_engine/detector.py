@@ -8,6 +8,7 @@ from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from app.conflict_engine.precedence_engine import PrecedenceEngine
 from app.db.enums import ClaimStatus, ConflictStatus
 from app.db.models.claim import Claim
 from app.db.models.claim_conflict import ClaimConflict
@@ -157,42 +158,38 @@ class ConflictDetector:
 
         for cand, eval_res in eval_results:
             if eval_res.is_contradiction:
-                # Pillar 3: Lineage-Aware Temporal Supersession
-                # Automatically supersede older/legacy version claims without generating human conflicts
-                is_temporal = eval_res.conflict_type == "temporal_outdated"
-                text_t = target_claim.claim_text.lower()
-                text_c = cand.claim_text.lower()
-                has_legacy = "legacy" in text_t or "legacy" in text_c
-                has_current = "current" in text_t or "current" in text_c
+                # 1. Deterministic Enterprise Precedence Engine
+                precedence = PrecedenceEngine.evaluate_precedence(target_claim, cand, eval_res)
 
-                # 3a. Check DocumentVersion lineage if present
-                if (
-                    target_claim.document_version
-                    and cand.document_version
-                    and target_claim.document_version.document_id == cand.document_version.document_id
-                ):
-                    ver_t = target_claim.document_version.version_number
-                    ver_c = cand.document_version.version_number
-                    if ver_t != ver_c:
-                        if ver_t > ver_c:
-                            cand.status = ClaimStatus.OUTDATED
-                            target_claim.status = ClaimStatus.VERIFIED
-                        else:
-                            target_claim.status = ClaimStatus.OUTDATED
-                            cand.status = ClaimStatus.VERIFIED
+                if precedence.is_auto_resolved:
+                    if precedence.is_compatible_exception:
+                        # Specialized tier exception co-exists with baseline standard
                         continue
 
-                # 3b. Check explicit temporal obsolescence based on dates / legacy tags
-                if is_temporal or (has_legacy and has_current):
-                    if "legacy" in text_c or ("current" in text_t and "legacy" not in text_t):
-                        cand.status = ClaimStatus.OUTDATED
+                    # Winner / Loser determined deterministically
+                    winner_id = precedence.winner_claim_id
+                    if winner_id == target_claim.id:
                         target_claim.status = ClaimStatus.VERIFIED
+                        cand.status = ClaimStatus.OUTDATED
                     else:
-                        target_claim.status = ClaimStatus.OUTDATED
                         cand.status = ClaimStatus.VERIFIED
+                        target_claim.status = ClaimStatus.OUTDATED
+
+                    # Record conflict as auto-resolved with full audit provenance
+                    conflict = ClaimConflict(
+                        claim_a_id=target_claim.id,
+                        claim_b_id=cand.id,
+                        conflict_type=eval_res.conflict_type,
+                        severity=eval_res.severity,
+                        confidence=decimal.Decimal(f"{eval_res.confidence:.4f}"),
+                        resolution_status=ConflictStatus.RESOLVED,
+                        resolved_claim_id=winner_id,
+                    )
+                    self.session.add(conflict)
+                    detected_conflicts.append(conflict)
                     continue
 
-                # Record genuine corporate conflict for human review
+                # 2. Genuinely Ambiguous Contradiction -> Queued for Human Stewardship
                 conflict = ClaimConflict(
                     claim_a_id=target_claim.id,
                     claim_b_id=cand.id,

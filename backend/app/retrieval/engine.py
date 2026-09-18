@@ -98,7 +98,18 @@ class ContextRetrievalEngine:
             # Check if claim content matches query keywords/intent
             claim_words = set(claim.claim_text.lower().split())
             overlap = query_terms.intersection(claim_words)
+            # Calculate relevance score based on keyword overlap & term importance
+            claim_lower = claim.claim_text.lower()
+            overlap = query_terms.intersection(claim_words)
             relevance_match = len(overlap) > 0 or len(query_terms) == 0
+            
+            relevance_score = len(overlap)
+            for qt in query_terms:
+                clean_qt = qt.strip("?.,!$₹£€")
+                if clean_qt and any(char.isdigit() for char in clean_qt) and clean_qt in claim_lower:
+                    relevance_score += 5
+                elif qt in ["refund", "window", "enterprise", "exception", "limit", "procurement", "po", "downtime", "sla", "cfo", "approval"] and qt in claim_lower:
+                    relevance_score += 2
 
             # Filter decisions
             included = True
@@ -144,17 +155,17 @@ class ContextRetrievalEngine:
                     evidence=evidence_quotes,
                 )
 
-            evaluated_items.append((claim, latest_score, included, exclusion_reason, item_response))
+            evaluated_items.append((claim, latest_score, included, exclusion_reason, item_response, relevance_score))
 
-        # 3. Sort included items by trust score (highest first) and limit to max_results
+        # 3. Sort included items by relevance score and trust score (highest first) and limit to max_results
         included_items = [item for item in evaluated_items if item[2]]
-        included_items.sort(key=lambda x: x[1], reverse=True)
+        included_items.sort(key=lambda x: (x[5], x[1]), reverse=True)
         top_included = included_items[: request_in.max_results]
 
         final_context_list: list[ContextItemResponse] = []
         rank = 1
 
-        for claim, score, included, reason, resp in top_included:
+        for claim, score, included, reason, resp, _rel in top_included:
             if resp:
                 final_context_list.append(resp)
             # Record in DB
@@ -171,7 +182,7 @@ class ContextRetrievalEngine:
 
         # Record excluded items in DB for auditing
         excluded_items = [item for item in evaluated_items if not item[2]]
-        for claim, score, included, reason, _ in excluded_items:
+        for claim, score, included, reason, _, _rel in excluded_items:
             context_log = AgentContextItem(
                 request_id=agent_req.id,
                 claim_id=claim.id,

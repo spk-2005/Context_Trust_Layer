@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useAuth } from '../context/AuthContext';
 
 export default function ContextCuratorStudio({
   activeOrg,
@@ -9,6 +10,7 @@ export default function ContextCuratorStudio({
   initialSubView = 'health',
   onSubViewChange
 }) {
+  const { user, token, hasPermission } = useAuth();
   const [curatorSubView, setCuratorSubView] = useState(initialSubView); // 'health' | 'conflicts'
   const [auditData, setAuditData] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -23,6 +25,7 @@ export default function ContextCuratorStudio({
   const [expandedIssueIds, setExpandedIssueIds] = useState(new Set());
   const [resolvingIssueId, setResolvingIssueId] = useState(null);
   const [reEvaluating, setReEvaluating] = useState(false);
+  const [autoResolving, setAutoResolving] = useState(false);
 
   useEffect(() => {
     if (initialSubView) {
@@ -55,14 +58,25 @@ export default function ContextCuratorStudio({
   };
 
   const handleResolveIssue = async (issueId, chosenSide, defaultReason) => {
+    if (!hasPermission('conflicts:resolve')) {
+      showToast?.(
+        `Separation of Duties (SoD) Barred: Your role (${(user?.role || 'operator').toUpperCase()}) cannot adjudicate conflicts. Only Risk & Compliance Auditors or CCO have resolution clearance.`,
+        'error'
+      );
+      return;
+    }
     setResolvingIssueId(issueId);
     try {
       const orgId = activeOrg?.id || '11111111-1111-1111-1111-111111111111';
-      const res = await fetch(`/v1/conflicts/issues/${encodeURIComponent(issueId)}/resolve?organization_id=${orgId}`, {
+      const headers = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+      if (user?.role) headers['x-user-role'] = user.role;
+
+      const res = await fetch(`/v1/conflicts/issues/${encodeURIComponent(issueId)}/resolve?organization_id=${orgId}&user_role=${user?.role || ''}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({
-          reviewer_id: '22222222-2222-2222-2222-222222222222',
+          reviewer_id: user?.id || '22222222-2222-2222-2222-222222222222',
           decision: 'approve',
           chosen_side: chosenSide,
           reason: defaultReason || `Batch resolved Governance Issue: Approved Cluster ${chosenSide} as authoritative standard.`
@@ -74,8 +88,9 @@ export default function ContextCuratorStudio({
         await fetchConflictIssues();
         if (onRefreshConflicts) onRefreshConflicts();
       } else {
-        const err = await res.text();
-        showToast?.(`Failed to resolve issue: ${err.substring(0, 80)}`, 'error');
+        const errJson = await res.json().catch(() => null);
+        const errMsg = errJson?.detail || 'Failed to resolve issue';
+        showToast?.(errMsg, 'error');
       }
     } catch (e) {
       showToast?.("Error resolving governance issue", 'error');
@@ -85,22 +100,80 @@ export default function ContextCuratorStudio({
   };
 
   const handleReEvaluateConflicts = async () => {
+    if (!hasPermission('conflicts:resolve')) {
+      showToast?.(
+        `Separation of Duties (SoD) Barred: Your role (${(user?.role || 'operator').toUpperCase()}) cannot re-evaluate governance conflicts. Auditor clearance required.`,
+        'error'
+      );
+      return;
+    }
     setReEvaluating(true);
     try {
       const orgId = activeOrg?.id || '11111111-1111-1111-1111-111111111111';
-      const res = await fetch(`/v1/conflicts/re-evaluate?organization_id=${orgId}`, { method: 'POST' });
+      const headers = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+      if (user?.role) headers['x-user-role'] = user.role;
+
+      const res = await fetch(`/v1/conflicts/re-evaluate?organization_id=${orgId}&user_role=${user?.role || ''}`, {
+        method: 'POST',
+        headers
+      });
       if (res.ok) {
         const data = await res.json();
         showToast?.(data.message || `Purged ${data.purged_false_positives} false-positive conflicts!`, 'success');
         await fetchConflictIssues();
         if (onRefreshConflicts) onRefreshConflicts();
       } else {
-        showToast?.("Failed to re-evaluate conflicts", 'error');
+        const errJson = await res.json().catch(() => null);
+        showToast?.(errJson?.detail || "Failed to re-evaluate conflicts", 'error');
       }
     } catch (e) {
       showToast?.("Error re-evaluating conflicts", 'error');
     } finally {
       setReEvaluating(false);
+    }
+  };
+
+  const handleAutoResolveConflicts = async () => {
+    if (!hasPermission('conflicts:resolve')) {
+      showToast?.(
+        `Separation of Duties (SoD) Barred: Your role (${(user?.role || 'operator').toUpperCase()}) cannot execute auto-resolution. Auditor clearance required.`,
+        'error'
+      );
+      return;
+    }
+    setAutoResolving(true);
+    try {
+      const orgId = activeOrg?.id || '11111111-1111-1111-1111-111111111111';
+      const headers = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+      if (user?.role) headers['x-user-role'] = user.role;
+
+      const res = await fetch(`/v1/conflicts/auto-resolve?organization_id=${orgId}&user_role=${user?.role || ''}`, {
+        method: 'POST',
+        headers
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const breakdown = Object.entries(data.rules_breakdown || {})
+          .map(([rule, count]) => `${rule.replace(/_/g, ' ')}: ${count}`)
+          .join(', ');
+        showToast?.(
+          data.auto_resolved_count > 0
+            ? `⚡ Autonomously resolved ${data.auto_resolved_count} conflicts! (${breakdown || 'Precedence rules applied'})`
+            : `Evaluated ${data.total_evaluated} conflicts: All remaining require human auditor review.`,
+          'success'
+        );
+        await fetchConflictIssues();
+        if (onRefreshConflicts) onRefreshConflicts();
+      } else {
+        const errJson = await res.json().catch(() => null);
+        showToast?.(errJson?.detail || "Failed to auto-resolve conflicts", 'error');
+      }
+    } catch (e) {
+      showToast?.("Error running autonomous conflict resolution", 'error');
+    } finally {
+      setAutoResolving(false);
     }
   };
 
@@ -595,6 +668,15 @@ export default function ContextCuratorStudio({
                 <span className="badge badge-warning" style={{ fontSize: '0.72rem', padding: '2px 8px' }}>
                   {conflictIssues.length} Governance Issues ({conflicts.length} Total Pairwise Pairs)
                 </span>
+                {hasPermission('conflicts:resolve') ? (
+                  <span style={{ fontSize: '0.70rem', padding: '2px 8px', borderRadius: '12px', background: '#DCFCE7', color: '#15803D', border: '1px solid #86EFAC', fontWeight: 700 }}>
+                    ✓ Resolution Clearance Active
+                  </span>
+                ) : (
+                  <span style={{ fontSize: '0.70rem', padding: '2px 8px', borderRadius: '12px', background: '#FEE2E2', color: '#DC2626', border: '1px solid #FCA5A5', fontWeight: 700 }} title="Separation of Duties (SoD) Barred: Your active role cannot adjudicate conflicts">
+                    🔒 SoD Barred: Read-Only View
+                  </span>
+                )}
               </div>
               <p style={{ color: 'var(--text-muted)', fontSize: '0.82rem', margin: '4px 0 0 0' }}>
                 Arbitrate and supersede conflicting enterprise policies to eliminate ambiguity for autonomous AI agents.
@@ -645,6 +727,28 @@ export default function ContextCuratorStudio({
               </div>
 
               {/* Action Buttons */}
+              <button
+                onClick={handleAutoResolveConflicts}
+                disabled={autoResolving}
+                className="btn btn-primary"
+                style={{
+                  padding: '6px 14px',
+                  fontSize: '0.78rem',
+                  fontWeight: 800,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  background: 'linear-gradient(135deg, #4f46e5 0%, #2563eb 100%)',
+                  color: '#fff',
+                  border: 'none',
+                  boxShadow: '0 2px 8px rgba(79, 70, 229, 0.35)',
+                  cursor: autoResolving ? 'not-allowed' : 'pointer'
+                }}
+                title="Autonomously resolve deterministic version, temporal, and authority conflicts in O(1) time"
+              >
+                {autoResolving ? '⚡ Resolving...' : '⚡ Auto-Resolve Deterministic'}
+              </button>
+
               <button
                 onClick={handleReEvaluateConflicts}
                 disabled={reEvaluating}
@@ -732,6 +836,31 @@ export default function ContextCuratorStudio({
                             <span className="badge badge-warning" style={{ fontSize: '0.65rem' }}>
                               Severity: {issue.severity?.toUpperCase() || 'HIGH'}
                             </span>
+                            {issue.blast_radius && (
+                              <span
+                                style={{
+                                  background: issue.blast_radius === 'CRITICAL_BLAST'
+                                    ? 'rgba(239, 68, 68, 0.15)'
+                                    : issue.blast_radius === 'HIGH_BLAST'
+                                    ? 'rgba(245, 158, 11, 0.15)'
+                                    : 'rgba(59, 130, 246, 0.15)',
+                                  color: issue.blast_radius === 'CRITICAL_BLAST'
+                                    ? '#ef4444'
+                                    : issue.blast_radius === 'HIGH_BLAST'
+                                    ? '#f59e0b'
+                                    : '#3b82f6',
+                                  border: `1px solid ${issue.blast_radius === 'CRITICAL_BLAST' ? 'rgba(239, 68, 68, 0.3)' : issue.blast_radius === 'HIGH_BLAST' ? 'rgba(245, 158, 11, 0.3)' : 'rgba(59, 130, 246, 0.3)'}`,
+                                  padding: '2px 8px',
+                                  borderRadius: '6px',
+                                  fontSize: '0.66rem',
+                                  fontWeight: 800,
+                                  letterSpacing: '0.03em'
+                                }}
+                                title={`Blast Radius Impact Score: ${issue.impact_score || 0}`}
+                              >
+                                💥 {issue.blast_radius.replace('_', ' ')} ({issue.impact_score || 0})
+                              </span>
+                            )}
                           </div>
                           <span className="code-pill" style={{ fontSize: '0.74rem' }}>
                             Confidence: {(Number(issue.confidence) * 100).toFixed(0)}%

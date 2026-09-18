@@ -242,7 +242,7 @@ class OpenAIProvider(BaseLLMProvider):
 
         # Sanitize and format verified citations
         sanitized_citations = []
-        for idx, c in enumerate(citations[:5]):
+        for idx, c in enumerate(citations[:10]):
             text = c.get('claim_text', '').strip()
             if text.startswith("{") or '"connectors":' in text or "synthetic" in text.lower():
                 continue
