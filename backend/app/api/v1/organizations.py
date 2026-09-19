@@ -65,6 +65,7 @@ async def get_organization(
     return OrganizationResponse.model_validate(org)
 
 
+@router.put("/{org_id}", response_model=OrganizationResponse)
 @router.patch("/{org_id}", response_model=OrganizationResponse)
 async def update_organization(
     org_id: uuid.UUID,

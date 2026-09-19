@@ -89,12 +89,12 @@ class ClaimExtractionService:
                         organization_id=doc.organization_id,
                         document_version_id=version.id,
                         claim_text=item.claim_text,
-                        subject=item.subject,
-                        predicate=item.predicate,
+                        subject=(item.subject or "")[:490],
+                        predicate=(item.predicate or "")[:490],
                         object=item.object,
-                        claim_type=item.claim_type,
-                        extraction_method=result.extraction_method,
-                        extraction_model=result.extraction_model,
+                        claim_type=(item.claim_type or "statement")[:45],
+                        extraction_method=(result.extraction_method or "mock_rule_extractor")[:45],
+                        extraction_model=(result.extraction_model or "mock-v1")[:95],
                         status=ClaimStatus.ACTIVE,
                     )
                     self.session.add(claim)

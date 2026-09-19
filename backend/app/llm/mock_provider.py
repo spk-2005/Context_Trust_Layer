@@ -63,6 +63,21 @@ class MockLLMProvider(BaseLLMProvider):
             elif " must " in s:
                 parts = s.split(" must ", 1)
                 subject, predicate, obj = parts[0].strip(), "must", parts[1].strip()
+            elif " require " in s:
+                parts = s.split(" require ", 1)
+                subject, predicate, obj = parts[0].strip(), "require", parts[1].strip()
+            elif " requires " in s:
+                parts = s.split(" requires ", 1)
+                subject, predicate, obj = parts[0].strip(), "requires", parts[1].strip()
+            elif " should " in s:
+                parts = s.split(" should ", 1)
+                subject, predicate, obj = parts[0].strip(), "should", parts[1].strip()
+            elif " approve " in s:
+                parts = s.split(" approve ", 1)
+                subject, predicate, obj = parts[0].strip(), "approve", parts[1].strip()
+            elif " approved " in s:
+                parts = s.split(" approved ", 1)
+                subject, predicate, obj = parts[0].strip(), "approved", parts[1].strip()
             elif " is " in s:
                 parts = s.split(" is ", 1)
                 subject, predicate, obj = parts[0].strip(), "is", parts[1].strip()
