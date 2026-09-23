@@ -80,6 +80,33 @@ class DocumentNormalizer:
         return hashlib.sha256(sanitized.encode("utf-8")).hexdigest()
 
     @staticmethod
+    def scrub_noise(text: str) -> str:
+        """Scrub document boilerplate, greetings, table of contents, and structural artifacts before extraction."""
+        if not text:
+            return ""
+        lines = text.split("\n")
+        cleaned_lines = []
+        boilerplate_patterns = [
+            re.compile(r"^table of contents", re.IGNORECASE),
+            re.compile(r"^page\s+\d+(\s+of\s+\d+)?", re.IGNORECASE),
+            re.compile(r"^copyright\s+(©|\(c\))?\s*\d{4}", re.IGNORECASE),
+            re.compile(r"^all rights reserved", re.IGNORECASE),
+            re.compile(r"^(hi|hello|dear)\s+(team|all|everyone|colleagues)[\s,!:]*$", re.IGNORECASE),
+            re.compile(r"^please (note|find|refer to) (the following|below|attached)[\s,!:]*$", re.IGNORECASE),
+            re.compile(r"^[-=_]{3,}$"),
+        ]
+        for line in lines:
+            stripped = line.strip()
+            if not stripped:
+                cleaned_lines.append("")
+                continue
+            if any(p.search(stripped) for p in boilerplate_patterns):
+                continue
+            cleaned_lines.append(line)
+        result = "\n".join(cleaned_lines)
+        return re.sub(r"\n{3,}", "\n\n", result).strip()
+
+    @staticmethod
     def parse_sections(raw_text: str) -> list[DocumentSection]:
         if not raw_text:
             return []

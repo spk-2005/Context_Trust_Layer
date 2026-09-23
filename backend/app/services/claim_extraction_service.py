@@ -62,12 +62,20 @@ class ClaimExtractionService:
             raw_text=raw_text,
         )
 
-        # 2. Extract all sections in PARALLEL
+        # 2. Extract all sections in PARALLEL with noise scrubbing and entity anchoring
         async def _extract_section(section):
+            scrubbed_content = self.normalizer.scrub_noise(section.content)
+            if not scrubbed_content.strip():
+                scrubbed_content = section.content
+
+            # Provide qualified hierarchical section title
+            sec_display = section.title or "General"
+            qualified_sec_title = f"{doc.title} > {sec_display}" if sec_display != "General" else doc.title
+
             return section, await self.llm.extract_claims(
                 document_title=doc.title,
-                section_title=section.title or "General",
-                section_content=section.content,
+                section_title=qualified_sec_title,
+                section_content=scrubbed_content,
             )
 
         section_results = await asyncio.gather(
@@ -78,11 +86,27 @@ class ClaimExtractionService:
         extracted_claim_records: list[Claim] = []
         claim_cache: dict[str, Claim] = {}
 
-        # 3. Persist results (DB writes must be serial)
+        # 3. Persist results with Canonical Deduplication & Multi-Citation Lineage
         for section, result in section_results:
             for item in result.claims:
-                norm_key = " ".join(item.claim_text.strip().lower().split())
-                claim = claim_cache.get(norm_key)
+                # 3a. Generate canonical multi-factor matching keys
+                norm_text_key = " ".join(item.claim_text.strip().lower().split())
+                
+                sub_clean = (item.subject or "").strip().lower()
+                pred_clean = (item.predicate or "").strip().lower()
+                obj_clean = (item.object or "").strip().lower()
+                spo_key = f"{sub_clean}::{pred_clean}::{obj_clean}" if (sub_clean and pred_clean) else None
+                
+                num_key = None
+                if item.numeric_value is not None and sub_clean and pred_clean:
+                    num_key = f"{sub_clean}::{pred_clean}::{item.numeric_value}::{item.numeric_unit or ''}"
+
+                # 3b. Check canonical cache
+                claim = (
+                    claim_cache.get(norm_text_key)
+                    or (claim_cache.get(spo_key) if spo_key else None)
+                    or (claim_cache.get(num_key) if num_key else None)
+                )
 
                 if not claim:
                     claim = Claim(
@@ -100,7 +124,14 @@ class ClaimExtractionService:
                     self.session.add(claim)
                     await self.session.flush()
                     await self.session.refresh(claim)
-                    claim_cache[norm_key] = claim
+                    
+                    # Register canonical keys
+                    claim_cache[norm_text_key] = claim
+                    if spo_key:
+                        claim_cache[spo_key] = claim
+                    if num_key:
+                        claim_cache[num_key] = claim
+                        
                     extracted_claim_records.append(claim)
 
                     validity = ClaimValidity(
@@ -113,7 +144,7 @@ class ClaimExtractionService:
                     )
                     self.session.add(validity)
 
-                # Always attach evidence citation for this section/page
+                # 3c. Always attach evidence citation (direct quote span, hash, section)
                 text_span = item.evidence_text_span or item.claim_text
                 start_offset = section.start_char_offset
                 end_offset = section.end_char_offset
