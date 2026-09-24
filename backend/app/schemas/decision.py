@@ -35,3 +35,19 @@ class DecisionEvaluateResponse(BaseModel):
     audit_token: str | None = Field(default=None, description="Cryptographic SHA-256 audit signature")
     execution_ms: int | None = Field(default=10, description="Evaluation execution latency in milliseconds")
 
+
+class DecisionStreamItemResponse(BaseModel):
+    id: uuid.UUID
+    audit_id: str
+    actor_id: str
+    actor_role: str
+    decision_prompt: str
+    verdict: str
+    risk_level: str
+    reasons: list[str] = Field(default_factory=list)
+    preferred_source: str | None = None
+    suggested_action: str | None = None
+    audit_token: str
+    execution_ms: int = 10
+    created_at: datetime | None = None
+

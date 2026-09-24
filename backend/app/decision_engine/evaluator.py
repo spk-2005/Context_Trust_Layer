@@ -6,8 +6,12 @@ from datetime import datetime, timezone
 from typing import Optional, Sequence
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 
+from app.db.models.claim import Claim
+from app.db.models.claim_evidence import ClaimEvidence
 from app.db.models.decision_evaluation import DecisionEvaluation
+from app.db.models.document_version import DocumentVersion
 from app.db.models.organization import Organization
 from app.llm.base import BaseLLMProvider
 from app.llm.factory import get_llm_provider
@@ -86,7 +90,13 @@ class DecisionEvaluator:
                 now_utc=now_utc,
             )
 
-        # 2. Empty Context Check
+        # 2. Candidate Context Check & Auto-Retrieval from Database
+        if not req.context and db_session:
+            org_id = req.organization_id or uuid.UUID("11111111-1111-1111-1111-111111111111")
+            auto_claims = await self._retrieve_candidate_claims(req.decision, org_id, db_session)
+            if auto_claims:
+                req.context = auto_claims
+
         if not req.context:
             return await self._finalize_response(
                 req=req,
@@ -95,7 +105,7 @@ class DecisionEvaluator:
                 decision="CLARIFY",
                 validity="INSUFFICIENT",
                 risk="MEDIUM",
-                reasons=["No candidate context or evidence provided for this decision."],
+                reasons=["No matching policy or evidence found in the knowledge base for this decision."],
                 preferred_source=None,
                 suggested_action="Retrieve candidate evidence from authoritative sources before making decision.",
                 t0=t0,
@@ -340,4 +350,67 @@ class DecisionEvaluator:
             audit_token=audit_token,
             execution_ms=execution_ms,
         )
+
+    async def _retrieve_candidate_claims(
+        self,
+        decision_query: str,
+        organization_id: uuid.UUID,
+        session: AsyncSession,
+    ) -> list[DecisionContextItem]:
+        """Automatically retrieve relevant atomic claims from PostgreSQL for grounding."""
+        try:
+            stmt = (
+                select(Claim)
+                .where(Claim.organization_id == organization_id)
+                .options(
+                    selectinload(Claim.evidence).selectinload(ClaimEvidence.document),
+                    selectinload(Claim.document_version).selectinload(DocumentVersion.document),
+                    selectinload(Claim.trust_scores),
+                )
+                .limit(50)
+            )
+            res = await session.execute(stmt)
+            claims = res.scalars().all()
+            if not claims:
+                return []
+
+            query_words = set(decision_query.lower().split())
+            matched_items = []
+            for c in claims:
+                claim_text_lower = c.claim_text.lower()
+                sub_lower = (c.subject or "").lower()
+                words = set(claim_text_lower.split() + sub_lower.split())
+                overlap = len(query_words.intersection(words))
+                if overlap > 0:
+                    doc_name = "Internal Knowledge Base"
+                    if c.evidence and len(c.evidence) > 0 and c.evidence[0].document:
+                        doc_name = c.evidence[0].document.title
+                    elif c.document_version and c.document_version.document and c.document_version.document.title:
+                        doc_name = c.document_version.document.title
+
+                    authority = 50
+                    if c.trust_scores and len(c.trust_scores) > 0:
+                        authority = int(c.trust_scores[0].authority_score * 100)
+
+                    updated_at_str = (
+                        c.created_at.strftime("%Y-%m-%d")
+                        if hasattr(c, "created_at") and c.created_at
+                        else "2026-01-01"
+                    )
+
+                    matched_items.append((
+                        overlap,
+                        DecisionContextItem(
+                            claim=c.claim_text,
+                            source=doc_name,
+                            updated_at=updated_at_str,
+                            authority_level=authority,
+                            scope=c.subject or "General",
+                        ),
+                    ))
+
+            matched_items.sort(key=lambda x: x[0], reverse=True)
+            return [item[1] for item in matched_items[:5]]
+        except Exception:
+            return []
 
