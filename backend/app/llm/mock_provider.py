@@ -27,61 +27,102 @@ class MockLLMProvider(BaseLLMProvider):
         if not section_content or not section_content.strip():
             return ClaimExtractionResult(
                 claims=[],
-                extraction_model="mock-v1",
+                extraction_model="mock-v2",
                 extraction_method="mock_rule_extractor",
             )
 
-        # Split into individual sentences or clauses
-        # Split into individual sentences or list bullets
+        # 1. Base sentence & bullet splitting
         raw_sentences = re.split(r"(?<=[.!?])\s+|\n[-*•]\s*", section_content.strip())
-
+        
+        # 2. Candidate clause decomposition (split compound clauses: ';', ' and must ', ' and can ')
+        candidate_clauses = []
         for sentence in raw_sentences:
             s = sentence.strip().lstrip("-*• ")
-            if not s or len(s) < 10:
+            if not s or len(s) < 8:
+                continue
+            # Split on semicolons or compound coordination if sentence is long
+            if ";" in s and len(s) > 50:
+                for sub in s.split(";"):
+                    if sub.strip():
+                        candidate_clauses.append(sub.strip())
+            elif " and must " in s:
+                parts = s.split(" and must ")
+                candidate_clauses.append(parts[0].strip())
+                candidate_clauses.append("must " + parts[1].strip())
+            elif " and can " in s:
+                parts = s.split(" and can ")
+                candidate_clauses.append(parts[0].strip())
+                candidate_clauses.append("can " + parts[1].strip())
+            else:
+                candidate_clauses.append(s)
+
+        # Qualified anchor for entities
+        doc_clean = document_title.strip()
+        sec_clean = section_title.strip() if section_title and section_title != "General" else ""
+        anchor = f"{doc_clean}: {sec_clean}" if (sec_clean and sec_clean.lower() not in doc_clean.lower()) else (sec_clean or doc_clean)
+
+        for s in candidate_clauses:
+            if not s or len(s) < 8:
                 continue
 
             # Skip code, raw json, or synthetic dataset boilerplate
             if s.startswith("{") or s.startswith("[") or '"connectors":' in s or '"documents":' in s or "synthetic" in s.lower():
                 continue
 
-            # Atomic claims should not exceed 300 characters
             if len(s) > 300:
                 s = s[:300].rsplit(" ", 1)[0] + "."
 
-            # Heuristic S-P-O breakdown
-            subject = section_title if section_title and section_title != "General" else document_title
+            # Modality detection
+            s_lower = s.lower()
+            if any(k in s_lower for k in ["cannot", "must not", "prohibited", "never", "not permitted"]):
+                modality = "CANNOT"
+            elif any(k in s_lower for k in ["must", "required", "shall", "mandatory", "strictly"]):
+                modality = "MUST"
+            elif any(k in s_lower for k in ["can", "may", "permitted", "allowed", "eligible"]):
+                modality = "CAN"
+            else:
+                modality = "IS"
+
+            # Numeric & Unit extraction (e.g. 14 days, 30 days, 99.9%, $500)
+            numeric_val = None
+            numeric_unit = None
+            num_match = re.search(r"(\d+(?:\.\d+)?)\s*(days?|hours?|months?|years?|weeks?|%|percent|usd|\$|gb|mb|ms|seconds?)(?:\b|[^\w]|$)", s_lower)
+            if num_match:
+                try:
+                    numeric_val = float(num_match.group(1))
+                    numeric_unit = num_match.group(2).replace("$", "USD").replace("percent", "%")
+                except ValueError:
+                    pass
+
+            # S-P-O breakdown with entity anchoring
+            subject = anchor
             predicate = "specifies"
             obj = s
 
             # Pattern matches for common policy / statement structures
-            if " receive " in s:
-                parts = s.split(" receive ", 1)
-                subject, predicate, obj = parts[0].strip(), "receive", parts[1].strip()
-            elif " receives " in s:
-                parts = s.split(" receives ", 1)
-                subject, predicate, obj = parts[0].strip(), "receives", parts[1].strip()
-            elif " are granted " in s:
-                parts = s.split(" are granted ", 1)
-                subject, predicate, obj = parts[0].strip(), "are granted", parts[1].strip()
-            elif " is granted " in s:
-                parts = s.split(" is granted ", 1)
-                subject, predicate, obj = parts[0].strip(), "is granted", parts[1].strip()
-            elif " can " in s:
-                parts = s.split(" can ", 1)
-                subject, predicate, obj = parts[0].strip(), "can", parts[1].strip()
-            elif " must " in s:
-                parts = s.split(" must ", 1)
-                subject, predicate, obj = parts[0].strip(), "must", parts[1].strip()
-            elif " is " in s:
-                parts = s.split(" is ", 1)
-                subject, predicate, obj = parts[0].strip(), "is", parts[1].strip()
+            for pred_word in [" receive ", " receives ", " are granted ", " is granted ", " can ", " must ", " is ", " requires "]:
+                if pred_word in s:
+                    parts = s.split(pred_word, 1)
+                    sub_cand = parts[0].strip()
+                    # Resolve dangling pronouns
+                    if sub_cand.lower() in ["they", "it", "these", "this", "employees", "users", "all users"] and anchor:
+                        subject = f"{anchor} ({sub_cand})"
+                    elif len(sub_cand) > 2:
+                        subject = sub_cand
+                    predicate = pred_word.strip()
+                    obj = parts[1].strip()
+                    break
 
             claim = ExtractedClaim(
                 claim_text=s,
                 subject=subject[:250],
                 predicate=predicate[:250],
                 object=obj,
-                claim_type="policy" if ("policy" in document_title.lower() or "leave" in s.lower() or "allowance" in s.lower()) else "statement",
+                claim_type="policy" if ("policy" in document_title.lower() or "leave" in s_lower or "refund" in s_lower or "allowance" in s_lower) else "statement",
+                modality=modality,
+                numeric_value=numeric_val,
+                numeric_unit=numeric_unit,
+                scope=anchor if anchor else None,
                 confidence=0.95,
                 evidence_text_span=s,
             )
@@ -89,8 +130,8 @@ class MockLLMProvider(BaseLLMProvider):
 
         return ClaimExtractionResult(
             claims=claims,
-            extraction_model="mock-rule-extractor-v1",
-            extraction_method="mock_rule_extractor",
+            extraction_model="mock-rule-extractor-v2",
+            extraction_method="mock_atomic_extractor",
         )
 
     async def get_embedding(self, text: str) -> list[float]:

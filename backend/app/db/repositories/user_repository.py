@@ -60,44 +60,12 @@ class UserRepository(BaseRepository[User]):
 
         default_personas = [
             {
-                "name": "Alex Rivera",
-                "email": "alex.rivera@demo.local",
-                "role": UserRole.DATA_OWNER,
-                "title": "Lead Data Engineer",
-                "department": "Data Platform & Infrastructure",
-                "avatar_url": "https://api.dicebear.com/7.x/bottts/svg?seed=Alex",
-            },
-            {
-                "name": "Diana Vance",
-                "email": "diana.vance@demo.local",
-                "role": UserRole.REVIEWER,
-                "title": "Principal Data Steward",
-                "department": "Governance & Policy Compliance",
-                "avatar_url": "https://api.dicebear.com/7.x/bottts/svg?seed=Diana",
-            },
-            {
                 "name": "Sarah Chen",
-                "email": "sarah.chen@demo.local",
+                "email": "sarah.chen@ssfa.com",
                 "role": UserRole.ADMIN,
-                "title": "Chief Compliance Officer",
-                "department": "Risk, Trust & Security",
+                "title": "CEO & Chief Compliance Officer",
+                "department": "Executive & Compliance",
                 "avatar_url": "https://api.dicebear.com/7.x/bottts/svg?seed=Sarah",
-            },
-            {
-                "name": "Liam Thorne",
-                "email": "liam.thorne@demo.local",
-                "role": UserRole.DEVELOPER,
-                "title": "AI Solutions Architect",
-                "department": "Generative AI Platform",
-                "avatar_url": "https://api.dicebear.com/7.x/bottts/svg?seed=Liam",
-            },
-            {
-                "name": "Rachel Adams",
-                "email": "rachel.adams@demo.local",
-                "role": UserRole.VIEWER,
-                "title": "VP Business Operations",
-                "department": "Executive Strategy",
-                "avatar_url": "https://api.dicebear.com/7.x/bottts/svg?seed=Rachel",
             },
         ]
 

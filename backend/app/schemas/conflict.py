@@ -48,6 +48,8 @@ class ConflictIssueResponse(BaseModel):
     conflict_type: str
     severity: str
     confidence: float
+    impact_score: float = 0.0
+    blast_radius: str = "ROUTINE"
     cluster_a: ConflictClusterSide
     cluster_b: ConflictClusterSide
     conflict_ids: list[uuid.UUID]

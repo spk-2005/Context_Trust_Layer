@@ -1,10 +1,14 @@
 import uuid
+from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api.deps import require_permission
+from app.core.permissions import Permission
 from app.db.database import get_db
 from app.db.enums import ClaimStatus
+from app.db.models.user import User
 from app.db.repositories.claim_repository import ClaimRepository
 from app.db.repositories.document_repository import DocumentRepository
 from app.schemas.claim import ClaimResponse
@@ -29,6 +33,8 @@ async def extract_and_score_claims(
             "Useful for quick testing - returns instantly without calling the LLM server."
         ),
     ),
+    user_role: str = Query(default="data_owner", description="Role of acting user"),
+    _authorized_user: Optional[User] = Depends(require_permission(Permission.CLAIMS_EXTRACT)),
     db: AsyncSession = Depends(get_db),
 ):
     """Extract claims from a document version, calculate trust scores, and run conflict checks.

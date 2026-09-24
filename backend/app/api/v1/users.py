@@ -1,9 +1,12 @@
 import uuid
 from typing import Any
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.database import get_db
+from app.db.enums import UserRole
+from app.db.models.user import User
 from app.db.repositories.user_repository import UserRepository
 from app.schemas.user import (
     ActivityLogCreate,
@@ -115,6 +118,52 @@ async def update_user(
     await db.commit()
     await db.refresh(user)
     return user
+
+
+@router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_user(
+    user_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+):
+    """Delete a team member from the organization, protecting against deleting the sole administrator."""
+    user_repo = UserRepository(db)
+    activity_service = ActivityService(db)
+
+    user = await user_repo.get_by_id(user_id)
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found.")
+
+    # Guard against deleting the last administrator
+    if user.role == UserRole.ADMIN or str(user.role).lower() == "admin":
+        admin_count_stmt = (
+            select(func.count(User.id))
+            .where(User.organization_id == user.organization_id)
+            .where(User.role == UserRole.ADMIN)
+        )
+        res = await db.execute(admin_count_stmt)
+        admin_count = res.scalar() or 0
+        if admin_count <= 1:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Cannot delete the sole Administrator / CEO of the organization.",
+            )
+
+    await activity_service.log_activity(
+        organization_id=user.organization_id,
+        user_id=user.id,
+        user_name=user.name,
+        user_role=user.role.value if hasattr(user.role, "value") else str(user.role),
+        action_type="MEMBER_REMOVED",
+        target_type="user",
+        target_id=str(user.id),
+        target_title=f"{user.name} ({user.role})",
+        domain=user.department or "General",
+        details={"email": user.email, "role": str(user.role)},
+    )
+
+    await db.delete(user)
+    await db.commit()
+    return None
 
 
 @router.post("/seed-personas", response_model=list[UserResponse])

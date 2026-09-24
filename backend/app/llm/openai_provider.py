@@ -59,15 +59,19 @@ class OpenAIProvider(BaseLLMProvider):
         section_content: str,
     ) -> ClaimExtractionResult:
         system_prompt = (
-            "You are a knowledge provenance and claim extraction specialist. "
-            "Extract all atomic, verifiable factual statements and policy rules from the text into "
-            "Subject-Predicate-Object triplets. Include the EXACT substring span from the text as evidence."
+            "You are an enterprise knowledge provenance and atomic claim extraction specialist (similar to Microsoft GraphRAG and Atlan Context Engine).\n\n"
+            "CRITICAL EXTRACTION DIRECTIVES:\n"
+            "1. ATOMIC DECOMPOSITION: Split compound sentences into discrete, independent atomic facts. Never lump multiple distinct rules or conditions into one claim.\n"
+            "2. ENTITY ANCHORING: Resolve all dangling pronouns ('they', 'it', 'the user', 'employees') using the Document Title and Section Header to ensure the Subject is fully qualified.\n"
+            "3. STRUCTURED TRIPLET: Output Subject (entity/policy scope), Predicate (action/relation), Object (bound/value/target).\n"
+            "4. MODALITY & TYPE: Set modality to 'MUST' (obligation), 'CAN' (permission), 'CANNOT' (prohibition), or 'IS' (definition). Set claim_type to 'policy', 'technical', 'financial', 'metric', or 'compliance'.\n"
+            "5. NUMERIC EXTRACTION: If the claim contains a numerical threshold, duration, or percentage, set numeric_value (e.g. 14.0, 99.9) and numeric_unit ('days', 'percent', 'USD', etc.).\n"
+            "6. EXACT CITATION: 'evidence_text_span' MUST be an exact verbatim substring from the Content."
         )
 
         user_prompt = (
-            f"Document Title: {document_title}\n"
-            f"Section Header: {section_title}\n\n"
-            f"Content:\n{section_content}"
+            f"Document Hierarchy: {document_title} > {section_title}\n\n"
+            f"Content to Extract From:\n{section_content}"
         )
 
         # 1. Attempt OpenAI structured output parsing
@@ -95,10 +99,11 @@ class OpenAIProvider(BaseLLMProvider):
         try:
             json_system_prompt = (
                 f"{system_prompt}\n\n"
-                "Return ONLY a valid JSON object with key 'claims': "
-                '[{"subject": "...", "predicate": "...", "object": "...", '
-                '"claim_text": "...", "claim_type": "policy|technical|financial|metric|compliance", '
-                '"confidence": 0.95, "exact_span": "exact substring"}]'
+                "Return ONLY a valid JSON object with key 'claims':\n"
+                '{"claims": [{"claim_text": "...", "subject": "...", "predicate": "...", "object": "...", '
+                '"claim_type": "policy|technical|financial|metric|compliance", "modality": "MUST|CAN|CANNOT|IS", '
+                '"numeric_value": 14.0, "numeric_unit": "days", "scope": "...", "confidence": 0.95, '
+                '"evidence_text_span": "exact verbatim substring"}]}'
             )
             response = await self.client.chat.completions.create(
                 model=self.model,
@@ -112,7 +117,12 @@ class OpenAIProvider(BaseLLMProvider):
             content = response.choices[0].message.content or "{}"
             data = json.loads(content)
             raw_claims = data.get("claims", [])
-            claims = [ExtractedClaim(**c) for c in raw_claims]
+            claims = []
+            for c in raw_claims:
+                # Handle possible field variations from diverse LLMs
+                if "exact_span" in c and "evidence_text_span" not in c:
+                    c["evidence_text_span"] = c["exact_span"]
+                claims.append(ExtractedClaim(**c))
             return ClaimExtractionResult(
                 claims=claims,
                 extraction_model=self.model,
@@ -242,7 +252,7 @@ class OpenAIProvider(BaseLLMProvider):
 
         # Sanitize and format verified citations
         sanitized_citations = []
-        for idx, c in enumerate(citations[:5]):
+        for idx, c in enumerate(citations[:10]):
             text = c.get('claim_text', '').strip()
             if text.startswith("{") or '"connectors":' in text or "synthetic" in text.lower():
                 continue

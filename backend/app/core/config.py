@@ -42,6 +42,17 @@ class Settings(BaseSettings):
     # Trust Engine Defaults
     default_trust_threshold: float = 0.80
 
+    # Enterprise SSO / OIDC Settings
+    sso_redirect_uri: str = "http://localhost:4000/auth/callback"
+    google_client_id: str | None = None
+    google_client_secret: str | None = None
+    azure_client_id: str | None = None
+    azure_client_secret: str | None = None
+    azure_tenant_id: str = "common"
+    okta_client_id: str | None = None
+    okta_client_secret: str | None = None
+    okta_domain: str | None = None
+
     @model_validator(mode="after")
     def assemble_db_connection(self) -> "Settings":
         if not self.database_url:

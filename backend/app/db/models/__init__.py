@@ -14,12 +14,14 @@ from app.db.models.document import Document
 from app.db.models.document_version import DocumentVersion
 from app.db.models.human_review import HumanReview
 from app.db.models.organization import Organization
+from app.db.models.organization_invite import OrganizationInvite
 from app.db.models.user import User
 from app.db.models.user_activity import UserActivityLog
 
 __all__ = [
     "Base",
     "Organization",
+    "OrganizationInvite",
     "User",
     "UserActivityLog",
     "DataSource",

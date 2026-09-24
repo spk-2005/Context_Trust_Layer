@@ -16,6 +16,9 @@ class ExtractedClaim(BaseModel):
     evidence_text_span: str = Field(..., description="Exact substring quote from the source text backing this claim")
     valid_from: datetime | None = Field(default=None, description="Effective start date if mentioned")
     valid_until: datetime | None = Field(default=None, description="Expiration date if mentioned")
+    numeric_value: float | None = Field(default=None, description="Parsed numeric value if the claim asserts a quantity or bound (e.g. 14.0)")
+    numeric_unit: str | None = Field(default=None, description="Unit for numeric value (e.g. 'days', 'hours', 'percent', 'USD')")
+    scope: str | None = Field(default=None, description="Contextual entity scope or tier (e.g. 'Enterprise Tier', 'Full-Time Staff')")
 
 
 class ClaimExtractionResult(BaseModel):

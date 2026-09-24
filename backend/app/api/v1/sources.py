@@ -19,6 +19,10 @@ from app.schemas.data_source import (
     DataSourceResponse,
 )
 from app.services.activity_service import ActivityService
+from typing import Optional
+from app.api.deps import require_permission
+from app.core.permissions import Permission
+from app.db.models.user import User
 
 router = APIRouter(prefix="/sources", tags=["sources"])
 
@@ -201,6 +205,7 @@ async def create_data_source(
     user_name: str = Query(default="Alex Rivera", description="Name of acting user"),
     user_role: str = Query(default="data_owner", description="Role of acting user"),
     user_id: uuid.UUID | None = Query(default=None),
+    _authorized_user: Optional[User] = Depends(require_permission(Permission.SOURCES_MANAGE)),
     db: AsyncSession = Depends(get_db),
 ):
     """Register a new live data source connector."""
@@ -237,6 +242,7 @@ async def sync_single_source(
     user_name: str = Query(default="Alex Rivera", description="Name of acting user"),
     user_role: str = Query(default="data_owner", description="Role of acting user"),
     user_id: uuid.UUID | None = Query(default=None),
+    _authorized_user: Optional[User] = Depends(require_permission(Permission.SOURCES_SYNC)),
     db: AsyncSession = Depends(get_db),
 ):
     """Trigger an immediate live sync for a specific connector. Automatically extracts claims and detects conflicts."""

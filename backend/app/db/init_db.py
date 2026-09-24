@@ -31,6 +31,8 @@ async def init_db_schema():
         "ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_url VARCHAR(500);",
         "ALTER TABLE users ADD COLUMN IF NOT EXISTS title VARCHAR(100);",
         "ALTER TABLE users ADD COLUMN IF NOT EXISTS department VARCHAR(100);",
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS hashed_password VARCHAR(255);",
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS is_verified BOOLEAN DEFAULT TRUE;",
         "ALTER TABLE data_sources ADD COLUMN IF NOT EXISTS domain VARCHAR(100) DEFAULT 'General';",
         "ALTER TABLE data_sources ADD COLUMN IF NOT EXISTS owner_id UUID REFERENCES users(id) ON DELETE SET NULL;",
         "ALTER TABLE data_sources ADD COLUMN IF NOT EXISTS connection_config JSONB DEFAULT '{}'::jsonb;",

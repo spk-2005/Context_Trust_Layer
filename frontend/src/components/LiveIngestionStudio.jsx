@@ -1,6 +1,8 @@
 import React, { useState, useRef } from 'react';
+import { useAuth } from '../context/AuthContext';
 
 export default function LiveIngestionStudio({ activeOrg, activePersona, onClaimExtracted, showToast }) {
+  const { user, token, hasPermission } = useAuth();
   const fileInputRef = useRef(null);
   const [dragOver, setDragOver] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
@@ -43,6 +45,13 @@ export default function LiveIngestionStudio({ activeOrg, activePersona, onClaimE
       showToast?.("Please select a file to ingest", "error");
       return;
     }
+    if (!hasPermission('claims:extract')) {
+      showToast?.(
+        `Separation of Duties (SoD) Barred: Your role (${(user?.role || 'user').toUpperCase()}) cannot run claim extraction pipelines. Only Data Stewards or CCO have ingestion clearance.`,
+        'error'
+      );
+      return;
+    }
 
     setIsProcessing(true);
     setPipelineStage(1);
@@ -59,8 +68,13 @@ export default function LiveIngestionStudio({ activeOrg, activePersona, onClaimE
       formData.append('document_type', documentType);
       formData.append('use_mock', 'true');
 
-      const res = await fetch('/v1/documents/upload-and-extract', {
+      const headers = {};
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+      if (user?.role) headers['x-user-role'] = user.role;
+
+      const res = await fetch(`/v1/documents/upload-and-extract?user_role=${user?.role || ''}`, {
         method: 'POST',
+        headers,
         body: formData,
       });
 
@@ -281,37 +295,55 @@ export default function LiveIngestionStudio({ activeOrg, activePersona, onClaimE
           </div>
 
           {/* Ingest Action Button */}
-          <button
-            onClick={handleExecuteExtractionPipeline}
-            disabled={!selectedFile || isProcessing}
-            style={{
-              padding: '12px 24px',
-              borderRadius: '10px',
-              background: !selectedFile || isProcessing ? 'var(--border-color)' : 'linear-gradient(135deg, #2026d2 0%, #3737d8 100%)',
-              color: '#fff',
-              border: 'none',
-              fontWeight: 600,
-              fontSize: '0.95rem',
-              cursor: !selectedFile || isProcessing ? 'not-allowed' : 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '10px',
-              boxShadow: '0 4px 14px rgba(32,38,210,0.25)',
-              transition: 'all 0.2s ease'
-            }}
-          >
-            {isProcessing ? (
-              <>
-                <span className="spinner-sm"></span>
-                <span>Executing Ingestion Pipeline...</span>
-              </>
-            ) : (
-              <>
-                <span>⚡ Run Live Ingestion & Claim Extractor</span>
-              </>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <button
+              onClick={handleExecuteExtractionPipeline}
+              disabled={!selectedFile || isProcessing || !hasPermission('claims:extract')}
+              style={{
+                padding: '12px 24px',
+                borderRadius: '10px',
+                background: !selectedFile || isProcessing || !hasPermission('claims:extract')
+                  ? 'var(--border-color)'
+                  : 'linear-gradient(135deg, #2026d2 0%, #3737d8 100%)',
+                color: !hasPermission('claims:extract') ? '#94A3B8' : '#fff',
+                border: 'none',
+                fontWeight: 600,
+                fontSize: '0.95rem',
+                cursor: !selectedFile || isProcessing || !hasPermission('claims:extract') ? 'not-allowed' : 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '10px',
+                boxShadow: hasPermission('claims:extract') ? '0 4px 14px rgba(32,38,210,0.25)' : 'none',
+                transition: 'all 0.2s ease'
+              }}
+              title={
+                hasPermission('claims:extract')
+                  ? "Execute live parsing and claim extraction"
+                  : "Separation of Duties (SoD) Barred: Only Data Stewards or CCO can execute ingestion pipelines"
+              }
+            >
+              {isProcessing ? (
+                <>
+                  <span className="spinner-sm"></span>
+                  <span>Executing Ingestion Pipeline...</span>
+                </>
+              ) : !hasPermission('claims:extract') ? (
+                <>
+                  <span>🔒 Ingestion Barred: Data Steward Clearance Required (SoD)</span>
+                </>
+              ) : (
+                <>
+                  <span>⚡ Run Live Ingestion & Claim Extractor</span>
+                </>
+              )}
+            </button>
+            {!hasPermission('claims:extract') && (
+              <span style={{ fontSize: '0.72rem', color: '#DC2626', textAlign: 'center', fontWeight: 600 }}>
+                ⚠️ Your active role ({user?.role?.toUpperCase() || 'USER'}) cannot ingest documents. Switch to Data Steward (Marcus Vance) to test extraction.
+              </span>
             )}
-          </button>
+          </div>
         </div>
 
         {/* Right Column: Live Pipeline Progress & Verification */}
