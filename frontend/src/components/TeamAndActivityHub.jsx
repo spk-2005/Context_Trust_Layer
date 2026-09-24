@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useAuth } from '../context/AuthContext';
 
 export default function TeamAndActivityHub({
   activeOrg,
@@ -6,6 +7,7 @@ export default function TeamAndActivityHub({
   onSelectPersona,
   showToast,
 }) {
+  const { user: currentAuthUser, refreshPersonas } = useAuth();
   const [activeSubTab, setActiveSubTab] = useState('directory'); // 'directory', 'activity', 'domains'
   const [users, setUsers] = useState([]);
   const [activities, setActivities] = useState([]);
@@ -88,6 +90,7 @@ export default function TeamAndActivityHub({
         const updated = await res.json();
         setUsers(prev => prev.map(u => (u.id === userId ? updated : u)));
         showToast(`Updated role for ${updated.name} to ${newRole.toUpperCase()}`);
+        if (refreshPersonas) refreshPersonas();
         fetchActivities();
       }
     } catch (err) {
@@ -115,8 +118,9 @@ export default function TeamAndActivityHub({
         const newUser = await res.json();
         setUsers(prev => [...prev, newUser]);
         setShowInviteModal(false);
-        setInviteForm({ name: '', email: '', role: 'data_owner', title: '', department: 'Data Platform' });
-        showToast(`Invited ${newUser.name} as ${newUser.role}`);
+        setInviteForm({ name: '', email: '', role: 'reviewer', title: '', department: 'Governance & Risk' });
+        showToast(`Added ${newUser.name} as ${newUser.role.toUpperCase()}`);
+        if (refreshPersonas) refreshPersonas();
         fetchActivities();
       } else {
         const errData = await res.json();
@@ -124,6 +128,27 @@ export default function TeamAndActivityHub({
       }
     } catch (err) {
       showToast('Network error while inviting user', 'error');
+    }
+  };
+
+  // Handle Delete Member
+  const handleDeleteMember = async (userId, userName) => {
+    if (!window.confirm(`Are you sure you want to remove ${userName} from the organization?`)) {
+      return;
+    }
+    try {
+      const res = await fetch(`/v1/users/${userId}`, { method: 'DELETE' });
+      if (res.ok || res.status === 204) {
+        setUsers(prev => prev.filter(u => u.id !== userId));
+        showToast(`Removed ${userName} from organization.`);
+        if (refreshPersonas) refreshPersonas();
+        fetchActivities();
+      } else {
+        const errData = await res.json().catch(() => ({}));
+        showToast(errData.detail || 'Failed to remove member', 'error');
+      }
+    } catch (err) {
+      showToast('Network error removing member', 'error');
     }
   };
 
@@ -436,16 +461,36 @@ export default function TeamAndActivityHub({
                       </span>
                     </td>
                     <td style={{ padding: '14px 20px', textAlign: 'right' }}>
-                      <button
-                        onClick={() => {
-                          onSelectPersona(u);
-                          showToast(`Switched active persona to ${u.name} (${u.role.toUpperCase()})`);
-                        }}
-                        className="btn btn-secondary"
-                        style={{ fontSize: '0.72rem', padding: '4px 10px', fontWeight: 600 }}
-                      >
-                        ⚡ Switch Persona
-                      </button>
+                      <div style={{ display: 'inline-flex', gap: '8px', alignItems: 'center' }}>
+                        <button
+                          onClick={() => {
+                            onSelectPersona(u);
+                            showToast(`Switched active persona to ${u.name} (${u.role.toUpperCase()})`);
+                          }}
+                          className="btn btn-secondary"
+                          style={{ fontSize: '0.72rem', padding: '4px 10px', fontWeight: 600 }}
+                        >
+                          ⚡ Switch Persona
+                        </button>
+                        {u.role !== 'admin' && (
+                          <button
+                            onClick={() => handleDeleteMember(u.id, u.name)}
+                            className="btn btn-secondary"
+                            title="Remove member from organization"
+                            style={{
+                              fontSize: '0.72rem',
+                              padding: '4px 8px',
+                              color: '#EF4444',
+                              borderColor: '#FCA5A5',
+                              background: '#FEF2F2',
+                              fontWeight: 600,
+                              cursor: 'pointer'
+                            }}
+                          >
+                            🗑️ Remove
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}

@@ -29,22 +29,29 @@ export function AuthProvider({ children }) {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authModalTab, setAuthModalTab] = useState('personas'); // 'personas' | 'login' | 'register' | 'sso'
 
-  // 1. Fetch available personas, SSO providers, and RBAC matrix on mount
-  useEffect(() => {
-    async function fetchPersonas() {
-      try {
-        // 1. Fetch personas
-        const res = await fetch('/v1/auth/personas');
-        if (res.ok) {
-          const data = await res.json();
-          setPersonas(data);
-          
-          // If no user is logged in yet, default to first persona (Sarah Chen)
-          if (!user && data.length > 0) {
-            const defaultPersona = data.find(p => p.role === 'admin') || data[0];
-            loginAsPersona(defaultPersona);
-          }
+  // 1. Fetch available personas, SSO providers, and RBAC matrix
+  const refreshPersonas = async () => {
+    try {
+      const res = await fetch('/v1/auth/personas');
+      if (res.ok) {
+        const data = await res.json();
+        setPersonas(data);
+        if (!user && data.length > 0) {
+          const defaultPersona = data.find(p => p.role === 'admin') || data[0];
+          loginAsPersona(defaultPersona);
         }
+        return data;
+      }
+    } catch (err) {
+      console.warn('Failed to fetch personas:', err);
+    }
+    return [];
+  };
+
+  useEffect(() => {
+    async function initAuth() {
+      try {
+        await refreshPersonas();
         // 2. Fetch SSO providers
         const ssoRes = await fetch('/v1/auth/sso/providers');
         if (ssoRes.ok) {
@@ -58,12 +65,12 @@ export function AuthProvider({ children }) {
           setRbacMatrix(rbacData);
         }
       } catch (err) {
-        console.warn('Failed to fetch personas, SSO, or RBAC matrix:', err);
+        console.warn('Failed to init auth metadata:', err);
       } finally {
         setIsLoading(false);
       }
     }
-    fetchPersonas();
+    initAuth();
   }, []);
 
   // Update granted permissions whenever active user changes
@@ -338,6 +345,7 @@ export function AuthProvider({ children }) {
         loginWithCorporateDomain,
         switchOrganization,
         logout,
+        refreshPersonas,
       }}
     >
       {children}
