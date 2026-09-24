@@ -33,6 +33,8 @@ import McpIntegrationStudio from './components/McpIntegrationStudio';
 import SignInModal from './components/SignInModal';
 import OrganizationSettingsModal from './components/OrganizationSettingsModal';
 import RbacMatrixModal from './components/RbacMatrixModal';
+import ExecutiveRoiModal from './components/ExecutiveRoiModal';
+import ComplianceDossierModal from './components/ComplianceDossierModal';
 import { useAuth } from './context/AuthContext';
 
 export default function App() {
@@ -45,6 +47,8 @@ export default function App() {
   const [notification, setNotification] = useState(null);
   const [isOrgSettingsModalOpen, setIsOrgSettingsModalOpen] = useState(false);
   const [isRbacModalOpen, setIsRbacModalOpen] = useState(false);
+  const [isRoiModalOpen, setIsRoiModalOpen] = useState(false);
+  const [isDossierModalOpen, setIsDossierModalOpen] = useState(false);
 
   // -------------------------------------------------------------
   const {
@@ -2456,13 +2460,37 @@ export default function App() {
                   </p>
                 </div>
 
-                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
                   <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 14px', textAlign: 'right' }}>
                     <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>Audited Decisions</div>
                     <div style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--primary)' }}>
                       {decisionStream.length > 0 ? decisionStream.length : auditSummary.total_decisions || 0}
                     </div>
                   </div>
+
+                  <div
+                    onClick={() => setIsRoiModalOpen(true)}
+                    style={{ background: '#ECFDF5', border: '1px solid #A7F3D0', borderRadius: '8px', padding: '8px 14px', textAlign: 'right', cursor: 'pointer', transition: 'all 0.15s ease' }}
+                    title="Click to view Financial Liability ROI breakdown"
+                    onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-1px)'}
+                    onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+                  >
+                    <div style={{ fontSize: '0.7rem', color: '#047857', fontWeight: 700, textTransform: 'uppercase' }}>Liability Prevented</div>
+                    <div style={{ fontSize: '1.15rem', fontWeight: 800, color: '#059669' }}>
+                      ${auditSummary.financial_liability_prevented_usd ? Number(auditSummary.financial_liability_prevented_usd).toLocaleString() : '0'}
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => setIsDossierModalOpen(true)}
+                    className="btn btn-primary"
+                    style={{ fontSize: '0.8rem', padding: '8px 13px', background: 'linear-gradient(135deg, #4F46E5, #7C3AED)' }}
+                    title="Export Compliance Dossier (NIST AI 600-1 / EU AI Act)"
+                  >
+                    <span>🏛️</span>
+                    <span>Compliance Dossier</span>
+                  </button>
+
                   <button
                     onClick={() => fetchDecisionStream(activeOrg?.id)}
                     className="btn btn-secondary"
@@ -4335,18 +4363,25 @@ export default function App() {
                   </button>
                   <button
                     onClick={() => handleExportAuditLogs('json')}
-                    className="btn btn-primary"
-                    style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', padding: '7px 14px' }}
+                    className="btn btn-secondary"
+                    style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', padding: '7px 13px' }}
                   >
-                    <span>📜</span> Export SOC2 Compliance JSON
+                    <span>📜</span> Export JSON
+                  </button>
+                  <button
+                    onClick={() => setIsDossierModalOpen(true)}
+                    className="btn btn-primary"
+                    style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', padding: '7px 14px', background: 'linear-gradient(135deg, #4F46E5, #7C3AED)' }}
+                  >
+                    <span>🏛️</span> Compliance Dossier (NIST / EU AI Act)
                   </button>
                 </div>
               </div>
 
-              {/* 5 Compliance KPI Summary Cards */}
+              {/* 6 Compliance KPI Summary Cards */}
               <div style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
                 gap: '12px',
                 marginTop: '20px'
               }}>
@@ -4386,6 +4421,27 @@ export default function App() {
                   </div>
                 </div>
 
+                <div 
+                  onClick={() => setIsRoiModalOpen(true)}
+                  style={{ background: '#ECFDF5', padding: '14px 16px', borderRadius: '8px', border: '1px solid #A7F3D0', cursor: 'pointer', transition: 'transform 0.15s ease' }}
+                  onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
+                  onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+                  title="Click to view full Financial Liability ROI breakdown"
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ fontSize: '0.72rem', color: '#047857', fontWeight: 700, textTransform: 'uppercase' }}>
+                      Liability Prevented
+                    </div>
+                    <span className="badge badge-allow" style={{ fontSize: '0.62rem', padding: '1px 5px' }}>ROI View</span>
+                  </div>
+                  <div style={{ fontSize: '1.6rem', fontWeight: 900, color: '#059669', marginTop: '4px' }}>
+                    ${auditSummary.financial_liability_prevented_usd ? Number(auditSummary.financial_liability_prevented_usd).toLocaleString() : '0'}
+                  </div>
+                  <div style={{ fontSize: '0.7rem', color: '#047857', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <span>💰</span> {auditSummary.total_blocked_incidents || (auditSummary.block_count + auditSummary.review_count)} Incidents Intercepted
+                  </div>
+                </div>
+
                 <div style={{ background: 'var(--bg-card-subtle)', padding: '14px 16px', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
                   <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>
                     Crypto Signatures
@@ -4394,7 +4450,7 @@ export default function App() {
                     100% SHA-256
                   </div>
                   <div style={{ fontSize: '0.7rem', color: 'var(--success-text)', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <span>✓</span> Tamper-Evident Hash Chain
+                    <span>✓</span> Tamper-Evident Chain
                   </div>
                 </div>
 
@@ -5210,6 +5266,21 @@ export default function App() {
       <RbacMatrixModal
         isOpen={isRbacModalOpen}
         onClose={() => setIsRbacModalOpen(false)}
+      />
+
+      {/* Executive Financial Liability Prevented & Loss Avoidance ROI Modal */}
+      <ExecutiveRoiModal
+        isOpen={isRoiModalOpen}
+        onClose={() => setIsRoiModalOpen(false)}
+        activeOrg={activeOrg}
+        auditSummary={auditSummary}
+      />
+
+      {/* Regulatory Compliance Dossier Export Modal (NIST AI 600-1 / EU AI Act) */}
+      <ComplianceDossierModal
+        isOpen={isDossierModalOpen}
+        onClose={() => setIsDossierModalOpen(false)}
+        activeOrg={activeOrg}
       />
     </div>
   );
