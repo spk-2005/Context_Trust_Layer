@@ -22,7 +22,10 @@ import {
   Terminal,
   Cpu,
   History,
-  Sparkles
+  Sparkles,
+  Eye,
+  Lock,
+  Shield
 } from 'lucide-react';
 import TeamAndActivityHub from './components/TeamAndActivityHub';
 import AgentChatPlayground from './components/AgentChatPlayground';
@@ -60,7 +63,13 @@ export default function App() {
     setAuthModalTab,
     loginAsPersona: authLoginAsPersona,
     switchOrganization,
-    logout: authLogout
+    logout: authLogout,
+    effectiveRole,
+    simulatedRole,
+    setSimulatedRole,
+    isTabVisible,
+    getSodGuard,
+    roleMetadata,
   } = useAuth();
 
   // Atlan Active Persona & User Ecosystem State
@@ -74,6 +83,14 @@ export default function App() {
     avatar_url: 'https://api.dicebear.com/7.x/bottts/svg?seed=Sarah'
   });
   const [isPersonaDropdownOpen, setIsPersonaDropdownOpen] = useState(false);
+
+  // Auto-redirect if active tab is restricted under effective/simulated role
+  useEffect(() => {
+    if (activeTab && isTabVisible && !isTabVisible(activeTab)) {
+      setActiveTab('home');
+      setExpandedMenu('home');
+    }
+  }, [effectiveRole, activeTab, isTabVisible]);
 
   useEffect(() => {
     if (authUser) {
@@ -1385,7 +1402,7 @@ export default function App() {
           </div>
         </div>
 
-        {/* Set 1: Upper Workspace Tools (Flat, Compact, No Sub-Items) */}
+        {/* Set 1: Upper Workspace Tools (Flat, Compact, Role-Filtered) */}
         <div className="nav-group" style={{ flexShrink: 0, marginBottom: '6px' }}>
           <button
             onClick={() => setActiveTab('home')}
@@ -1394,54 +1411,69 @@ export default function App() {
             <Home size={16} strokeWidth={1.75} />
             <span>Home Overview</span>
           </button>
-          <button
-            onClick={() => { setActiveTab('demo'); }}
-            className={`nav-item ${activeTab === 'demo' ? 'nav-item-active' : ''}`}
-          >
-            <Brain size={16} strokeWidth={1.75} />
-            <span>Decision Gate Demo</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('live_ingestion')}
-            className={`nav-item ${activeTab === 'live_ingestion' ? 'nav-item-active' : ''}`}
-          >
-            <Zap size={16} strokeWidth={1.75} />
-            <span>Live Ingestion Studio</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('visual_lineage')}
-            className={`nav-item ${activeTab === 'visual_lineage' ? 'nav-item-active' : ''}`}
-          >
-            <Network size={16} strokeWidth={1.75} />
-            <span>Visual Lineage Graph</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('context_curator')}
-            className={`nav-item ${activeTab === 'context_curator' ? 'nav-item-active' : ''}`}
-          >
-            <ShieldAlert size={16} strokeWidth={1.75} />
-            <span>Context Curator Bot</span>
-            {conflicts.length > 0 && (
-              <span style={{
-                marginLeft: 'auto',
-                fontSize: '0.65rem',
-                padding: '1px 6px',
-                borderRadius: '10px',
-                background: '#FEE2E2',
-                color: '#991B1B',
-                fontWeight: 600
-              }}>
-                {conflicts.length}
-              </span>
-            )}
-          </button>
-          <button
-            onClick={() => setActiveTab('ingestion')}
-            className={`nav-item ${activeTab === 'ingestion' ? 'nav-item-active' : ''}`}
-          >
-            <FolderTree size={16} strokeWidth={1.75} />
-            <span>Document Explorer</span>
-          </button>
+
+          {isTabVisible('demo') && (
+            <button
+              onClick={() => { setActiveTab('demo'); }}
+              className={`nav-item ${activeTab === 'demo' ? 'nav-item-active' : ''}`}
+            >
+              <Brain size={16} strokeWidth={1.75} />
+              <span>Decision Gate Demo</span>
+            </button>
+          )}
+
+          {isTabVisible('live_ingestion') && (
+            <button
+              onClick={() => setActiveTab('live_ingestion')}
+              className={`nav-item ${activeTab === 'live_ingestion' ? 'nav-item-active' : ''}`}
+            >
+              <Zap size={16} strokeWidth={1.75} />
+              <span>Live Ingestion Studio</span>
+            </button>
+          )}
+
+          {isTabVisible('visual_lineage') && (
+            <button
+              onClick={() => setActiveTab('visual_lineage')}
+              className={`nav-item ${activeTab === 'visual_lineage' ? 'nav-item-active' : ''}`}
+            >
+              <Network size={16} strokeWidth={1.75} />
+              <span>Visual Lineage Graph</span>
+            </button>
+          )}
+
+          {isTabVisible('context_curator') && (
+            <button
+              onClick={() => setActiveTab('context_curator')}
+              className={`nav-item ${activeTab === 'context_curator' ? 'nav-item-active' : ''}`}
+            >
+              <ShieldAlert size={16} strokeWidth={1.75} />
+              <span>Context Curator Bot</span>
+              {conflicts.length > 0 && (
+                <span style={{
+                  marginLeft: 'auto',
+                  fontSize: '0.65rem',
+                  padding: '1px 6px',
+                  borderRadius: '10px',
+                  background: '#FEE2E2',
+                  color: '#991B1B',
+                  fontWeight: 600
+                }}>
+                  {conflicts.length}
+                </span>
+              )}
+            </button>
+          )}
+
+          {isTabVisible('ingestion') && (
+            <button
+              onClick={() => setActiveTab('ingestion')}
+              className={`nav-item ${activeTab === 'ingestion' ? 'nav-item-active' : ''}`}
+            >
+              <FolderTree size={16} strokeWidth={1.75} />
+              <span>Document Explorer</span>
+            </button>
+          )}
         </div>
 
         {/* Set Middle: AI Copilot Chat & Scrollable Previous Chats History (Fills Middle Space) */}
@@ -1600,27 +1632,33 @@ export default function App() {
 
         {/* Set 2: Bottom Pinned Governance & Administration Group */}
         <div className="sidebar-footer">
-          <button
-            onClick={() => setActiveTab('integrations')}
-            className={`nav-item ${activeTab === 'integrations' ? 'nav-item-active' : ''}`}
-          >
-            <Sliders size={16} strokeWidth={1.75} />
-            <span>Agent Integrations & MCP</span>
-          </button>
-          <button
-            onClick={() => { setActiveTab('audit'); fetchAuditLogs(activeOrg?.id); }}
-            className={`nav-item ${activeTab === 'audit' ? 'nav-item-active' : ''}`}
-          >
-            <BarChart3 size={16} strokeWidth={1.75} />
-            <span>Audit Trail & Lineage</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('team')}
-            className={`nav-item ${activeTab === 'team' ? 'nav-item-active' : ''}`}
-          >
-            <Users size={16} strokeWidth={1.75} />
-            <span>Team & Personas</span>
-          </button>
+          {isTabVisible('integrations') && (
+            <button
+              onClick={() => setActiveTab('integrations')}
+              className={`nav-item ${activeTab === 'integrations' ? 'nav-item-active' : ''}`}
+            >
+              <Sliders size={16} strokeWidth={1.75} />
+              <span>Agent Integrations & MCP</span>
+            </button>
+          )}
+          {isTabVisible('audit') && (
+            <button
+              onClick={() => { setActiveTab('audit'); fetchAuditLogs(activeOrg?.id); }}
+              className={`nav-item ${activeTab === 'audit' ? 'nav-item-active' : ''}`}
+            >
+              <BarChart3 size={16} strokeWidth={1.75} />
+              <span>Audit Trail & Lineage</span>
+            </button>
+          )}
+          {isTabVisible('team') && (
+            <button
+              onClick={() => setActiveTab('team')}
+              className={`nav-item ${activeTab === 'team' ? 'nav-item-active' : ''}`}
+            >
+              <Users size={16} strokeWidth={1.75} />
+              <span>Team & Personas</span>
+            </button>
+          )}
         </div>
       </aside>
 
@@ -1996,7 +2034,7 @@ export default function App() {
                   setIsWorkspaceDropdownOpen(false);
                 }}
                 className={`top-header-pill ${isPersonaDropdownOpen ? 'top-header-pill-active' : ''}`}
-                title="Active Enterprise Persona & Identity"
+                title={`Active Role: ${roleMetadata?.title || effectiveRole.toUpperCase()} • ${roleMetadata?.separation_of_duties}`}
                 style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
               >
                 {activePersona?.avatar_url && (
@@ -2009,9 +2047,30 @@ export default function App() {
                 <span style={{ maxWidth: '110px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {activePersona?.name || 'Sarah Chen'}
                 </span>
-                <span style={{ fontSize: '0.62rem', color: '#10b981', background: 'rgba(16,185,129,0.1)', padding: '1px 5px', borderRadius: '3px', border: '1px solid rgba(16,185,129,0.25)', fontWeight: 600, textTransform: 'uppercase' }}>
-                  {activePersona?.role || 'ADMIN'}
+                <span style={{
+                  fontSize: '0.62rem',
+                  color: roleMetadata?.badge_color || '#10b981',
+                  background: roleMetadata?.badge_bg || 'rgba(16,185,129,0.1)',
+                  padding: '1px 5px',
+                  borderRadius: '3px',
+                  border: `1px solid ${roleMetadata?.badge_color || '#10b981'}40`,
+                  fontWeight: 600,
+                  textTransform: 'uppercase'
+                }}>
+                  {effectiveRole.toUpperCase()}
                 </span>
+                {simulatedRole && (
+                  <span style={{
+                    fontSize: '0.58rem',
+                    background: '#F59E0B',
+                    color: '#FFFFFF',
+                    padding: '1px 4px',
+                    borderRadius: '3px',
+                    fontWeight: 700
+                  }}>
+                    SIM
+                  </span>
+                )}
                 <span style={{ fontSize: '0.62rem', color: '#94A3B8' }}>▾</span>
               </button>
 
@@ -2025,7 +2084,7 @@ export default function App() {
                   borderRadius: '8px',
                   boxShadow: '0 12px 32px rgba(0,0,0,0.35)',
                   zIndex: 250,
-                  width: '280px',
+                  width: '300px',
                   padding: '8px'
                 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 6px 6px 6px', borderBottom: '1px solid var(--border-subtle)', marginBottom: '6px' }}>
@@ -2077,6 +2136,88 @@ export default function App() {
                         </span>
                       </button>
                     ))}
+                  </div>
+
+                  {/* ADMIN ROLE SIMULATOR / PREVIEW UI AS */}
+                  <div style={{
+                    borderTop: '1px solid var(--border-subtle)',
+                    marginTop: '6px',
+                    paddingTop: '6px',
+                    marginBottom: '4px'
+                  }}>
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '2px 4px 5px 4px'
+                    }}>
+                      <span style={{
+                        fontSize: '0.66rem',
+                        color: 'var(--text-muted)',
+                        fontWeight: 700,
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.04em',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px'
+                      }}>
+                        <Eye size={12} />
+                        Preview UI As (Role Simulator)
+                      </span>
+                      {simulatedRole && (
+                        <button
+                          onClick={() => {
+                            setSimulatedRole(null);
+                            showToast('Exited Role Simulation');
+                          }}
+                          style={{
+                            background: 'transparent',
+                            border: 'none',
+                            color: '#F59E0B',
+                            fontSize: '0.65rem',
+                            fontWeight: 700,
+                            cursor: 'pointer'
+                          }}
+                        >
+                          Reset to CCO ✕
+                        </button>
+                      )}
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px' }}>
+                      {[
+                        { role: 'admin', label: '👔 Admin (CCO)', color: '#047857' },
+                        { role: 'data_owner', label: '📊 Data Steward', color: '#1D4ED8' },
+                        { role: 'reviewer', label: '⚖️ Risk Auditor', color: '#4338CA' },
+                        { role: 'developer', label: '💻 Operator / Dev', color: '#B45309' },
+                        { role: 'viewer', label: '👁️ Observer', color: '#64748B' },
+                      ].map(r => (
+                        <button
+                          key={r.role}
+                          onClick={() => {
+                            setSimulatedRole(r.role === 'admin' ? null : r.role);
+                            setIsPersonaDropdownOpen(false);
+                            showToast(r.role === 'admin' ? 'Switched to CCO Admin UI' : `Simulating UI as ${r.label}`);
+                          }}
+                          style={{
+                            padding: '5px 7px',
+                            borderRadius: '4px',
+                            border: effectiveRole === r.role ? `1px solid ${r.color}` : '1px solid var(--border-subtle)',
+                            background: effectiveRole === r.role ? `${r.color}15` : 'transparent',
+                            color: effectiveRole === r.role ? r.color : 'var(--text-main)',
+                            fontSize: '0.70rem',
+                            fontWeight: effectiveRole === r.role ? 700 : 500,
+                            cursor: 'pointer',
+                            textAlign: 'left',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between'
+                          }}
+                        >
+                          <span>{r.label}</span>
+                          {effectiveRole === r.role && <span style={{ fontSize: '0.65rem' }}>✓</span>}
+                        </button>
+                      ))}
+                    </div>
                   </div>
 
                   <div style={{ borderTop: '1px solid var(--border-subtle)', marginTop: '6px', paddingTop: '6px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
@@ -2181,6 +2322,103 @@ export default function App() {
             </span>
           </div>
         </div>
+
+        {/* ========================================================= */}
+        {/* ROLE CONTEXT & SEPARATION OF DUTIES GOVERNANCE BANNER     */}
+        {/* ========================================================= */}
+        {simulatedRole ? (
+          <div style={{
+            background: 'linear-gradient(90deg, #F59E0B 0%, #D97706 100%)',
+            color: '#FFFFFF',
+            padding: '7px 20px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            fontSize: '0.78rem',
+            fontWeight: 600,
+            boxShadow: '0 2px 10px rgba(245, 158, 11, 0.3)',
+            zIndex: 40,
+            position: 'relative'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <Eye size={15} />
+                <span>
+                  ROLE SIMULATION: Viewing UI as <strong>{roleMetadata?.title || simulatedRole.toUpperCase()}</strong>
+                </span>
+              </div>
+              <span style={{
+                background: 'rgba(0,0,0,0.22)',
+                padding: '2px 8px',
+                borderRadius: '12px',
+                fontSize: '0.70rem',
+                fontWeight: 500,
+                border: '1px solid rgba(255,255,255,0.2)'
+              }}>
+                ⚖️ {roleMetadata?.separation_of_duties}
+              </span>
+            </div>
+            <button
+              onClick={() => {
+                setSimulatedRole(null);
+                showToast('Exited Role Simulation. Restored CCO Admin privileges.');
+              }}
+              style={{
+                background: '#FFFFFF',
+                color: '#B45309',
+                border: 'none',
+                borderRadius: '4px',
+                padding: '3px 10px',
+                fontSize: '0.72rem',
+                fontWeight: 700,
+                cursor: 'pointer',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.15)',
+                whiteSpace: 'nowrap'
+              }}
+            >
+              Exit Simulation ✕
+            </button>
+          </div>
+        ) : (
+          <div style={{
+            background: 'var(--bg-card-subtle)',
+            borderBottom: '1px solid var(--border-subtle)',
+            padding: '4px 20px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            fontSize: '0.72rem',
+            color: 'var(--text-muted)'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+                fontWeight: 700,
+                color: roleMetadata?.badge_color || 'var(--text-main)'
+              }}>
+                <Shield size={12} />
+                {roleMetadata?.title || effectiveRole.toUpperCase()}
+              </span>
+              <span>•</span>
+              <span style={{ maxWidth: '600px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {roleMetadata?.description}
+              </span>
+            </div>
+            <span style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px',
+              color: '#10B981',
+              fontWeight: 600,
+              fontSize: '0.68rem'
+            }}>
+              <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#10B981' }} />
+              Separation of Duties (SoD) Active
+            </span>
+          </div>
+        )}
 
         {/* ========================================================= */}
         {/* TAB 0: HOME OVERVIEW & ARCHITECTURE DASHBOARD             */}
@@ -2786,24 +3024,36 @@ export default function App() {
                     </select>
                   </div>
 
-                  <button
-                    onClick={() => runKillerDemo()}
-                    disabled={demoRunning || !customActionText.trim()}
-                    className="btn btn-primary"
-                    style={{ height: '38px', padding: '0 16px', fontSize: '0.875rem', fontWeight: 700, whiteSpace: 'nowrap' }}
-                  >
-                    {demoRunning ? (
-                      <>
-                        <RefreshCw size={14} className="animate-spin" />
-                        <span>Evaluating...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Zap size={14} />
-                        <span>Evaluate Action</span>
-                      </>
-                    )}
-                  </button>
+                  {effectiveRole === 'viewer' ? (
+                    <button
+                      disabled
+                      className="btn btn-secondary"
+                      style={{ height: '38px', padding: '0 16px', fontSize: '0.80rem', fontWeight: 600, opacity: 0.65, cursor: 'not-allowed', whiteSpace: 'nowrap' }}
+                      title="Observer Mode: Decision evaluations are restricted for read-only roles."
+                    >
+                      <Lock size={13} style={{ marginRight: '6px' }} />
+                      <span>Observer (Read-Only)</span>
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => runKillerDemo()}
+                      disabled={demoRunning || !customActionText.trim()}
+                      className="btn btn-primary"
+                      style={{ height: '38px', padding: '0 16px', fontSize: '0.875rem', fontWeight: 700, whiteSpace: 'nowrap' }}
+                    >
+                      {demoRunning ? (
+                        <>
+                          <RefreshCw size={14} className="animate-spin" />
+                          <span>Evaluating...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Zap size={14} />
+                          <span>Evaluate Action</span>
+                        </>
+                      )}
+                    </button>
+                  )}
                 </div>
 
                 <div style={{ marginTop: '10px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
@@ -2827,24 +3077,36 @@ export default function App() {
                     </div>
                   </div>
 
-                  <button
-                    onClick={() => runKillerDemo()}
-                    disabled={demoRunning}
-                    className="btn btn-primary"
-                    style={{ padding: '9px 18px', fontSize: '0.875rem' }}
-                  >
-                    {demoRunning ? (
-                      <>
-                        <RefreshCw size={14} className="animate-spin" />
-                        <span>Evaluating...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Zap size={14} />
-                        <span>Evaluate Decision Gate</span>
-                      </>
-                    )}
-                  </button>
+                  {effectiveRole === 'viewer' ? (
+                    <button
+                      disabled
+                      className="btn btn-secondary"
+                      style={{ padding: '9px 18px', fontSize: '0.82rem', fontWeight: 600, opacity: 0.65, cursor: 'not-allowed' }}
+                      title="Observer Mode: Decision evaluations are restricted for read-only roles."
+                    >
+                      <Lock size={13} style={{ marginRight: '6px' }} />
+                      <span>Observer (Read-Only)</span>
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => runKillerDemo()}
+                      disabled={demoRunning}
+                      className="btn btn-primary"
+                      style={{ padding: '9px 18px', fontSize: '0.875rem' }}
+                    >
+                      {demoRunning ? (
+                        <>
+                          <RefreshCw size={14} className="animate-spin" />
+                          <span>Evaluating...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Zap size={14} />
+                          <span>Evaluate Decision Gate</span>
+                        </>
+                      )}
+                    </button>
+                  )}
                 </div>
               </div>
             )}

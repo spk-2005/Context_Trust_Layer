@@ -73,13 +73,19 @@ export function AuthProvider({ children }) {
     initAuth();
   }, []);
 
-  // Update granted permissions whenever active user changes
+  const [simulatedRole, setSimulatedRole] = useState(null);
+
+  // Compute effectiveRole (only admin users can simulate other roles)
+  const userActualRole = (user?.role || 'admin').toLowerCase();
+  const effectiveRole = (userActualRole === 'admin' && simulatedRole) ? simulatedRole.toLowerCase() : userActualRole;
+
+  // Update granted permissions whenever effectiveRole or rbacMatrix changes
   useEffect(() => {
-    if (!user) {
+    if (!user && !simulatedRole) {
       setPermissions([]);
       return;
     }
-    const roleKey = (user.role || '').toLowerCase();
+    const roleKey = effectiveRole;
     if (rbacMatrix?.roles?.[roleKey]?.permissions) {
       setPermissions(rbacMatrix.roles[roleKey].permissions);
     } else {
@@ -96,7 +102,7 @@ export function AuthProvider({ children }) {
         setPermissions(['sources:read', 'claims:read', 'conflicts:read']);
       }
     }
-  }, [user, rbacMatrix]);
+  }, [user, simulatedRole, rbacMatrix, effectiveRole]);
 
   // 2. Validate token and load user profile if token exists
   useEffect(() => {
@@ -307,6 +313,21 @@ export function AuthProvider({ children }) {
     return data;
   };
 
+  const isTabVisible = (tabKey) => {
+    const meta = ROLE_METADATA[effectiveRole] || ROLE_METADATA.admin;
+    return meta.allowed_tabs.includes(tabKey);
+  };
+
+  const getSodGuard = (actionKey) => {
+    const rule = SOD_RULES[actionKey];
+    if (!rule) return { allowed: true };
+    const reason = rule[effectiveRole];
+    if (reason) {
+      return { allowed: false, reason };
+    }
+    return { allowed: true };
+  };
+
   const hasPermission = (permissionKey) => {
     if (!permissions || permissions.length === 0) return false;
     return permissions.includes(permissionKey);
@@ -316,6 +337,7 @@ export function AuthProvider({ children }) {
     setToken(null);
     setUser(null);
     setOrganization(null);
+    setSimulatedRole(null);
     localStorage.removeItem('ctl_token');
     localStorage.removeItem('ctl_user');
     localStorage.removeItem('ctl_org');
@@ -332,6 +354,12 @@ export function AuthProvider({ children }) {
         rbacMatrix,
         permissions,
         hasPermission,
+        effectiveRole,
+        simulatedRole,
+        setSimulatedRole,
+        isTabVisible,
+        getSodGuard,
+        roleMetadata: ROLE_METADATA[effectiveRole] || ROLE_METADATA.admin,
         isLoading,
         isAuthenticated: !!token && !!user,
         isAuthModalOpen,
@@ -352,6 +380,76 @@ export function AuthProvider({ children }) {
     </AuthContext.Provider>
   );
 }
+
+export const ROLE_METADATA = {
+  admin: {
+    title: 'Chief Compliance Officer (CCO)',
+    role: 'admin',
+    description: 'Executive authority: full tenant governance, policy overrides, user promotions, and audit sign-offs.',
+    separation_of_duties: 'Executive override authority across all workflows.',
+    badge_color: '#047857',
+    badge_bg: 'rgba(4, 120, 87, 0.12)',
+    allowed_tabs: ['home', 'demo', 'live_ingestion', 'visual_lineage', 'context_curator', 'ingestion', 'integrations', 'audit', 'team', 'playground', 'conflicts'],
+  },
+  data_owner: {
+    title: 'Data Steward',
+    role: 'data_owner',
+    description: 'Authority over data source ingestion, pipeline syncs, document ingestion, and claim definition curation.',
+    separation_of_duties: 'Restricted from resolving policy conflicts to prevent unilateral compliance tampering (SoD enforced).',
+    badge_color: '#1D4ED8',
+    badge_bg: 'rgba(29, 78, 216, 0.12)',
+    allowed_tabs: ['home', 'live_ingestion', 'visual_lineage', 'ingestion', 'playground', 'audit'],
+  },
+  reviewer: {
+    title: 'Risk Auditor / Reviewer',
+    role: 'reviewer',
+    description: 'Authority to review, approve, and resolve semantic policy contradictions and evidence exceptions.',
+    separation_of_duties: 'Restricted from altering source ingestion connectors or uploading raw data (SoD enforced).',
+    badge_color: '#4338CA',
+    badge_bg: 'rgba(67, 56, 202, 0.12)',
+    allowed_tabs: ['home', 'demo', 'visual_lineage', 'context_curator', 'conflicts', 'audit', 'playground'],
+  },
+  developer: {
+    title: 'Operator / Developer / Agent',
+    role: 'developer',
+    description: 'Operational access to query verified context layer, run decision simulations, and configure MCP connectors.',
+    separation_of_duties: 'Read-only policy access; no authority to resolve conflicts or alter source pipelines (SoD enforced).',
+    badge_color: '#B45309',
+    badge_bg: 'rgba(180, 83, 9, 0.12)',
+    allowed_tabs: ['home', 'demo', 'visual_lineage', 'integrations', 'playground'],
+  },
+  viewer: {
+    title: 'Compliance Observer',
+    role: 'viewer',
+    description: 'Read-only access to trust score dashboards and lineage graphs. Zero mutation privileges.',
+    separation_of_duties: 'Zero mutation privileges across all systems (Observer Mode).',
+    badge_color: '#64748B',
+    badge_bg: 'rgba(100, 116, 139, 0.12)',
+    allowed_tabs: ['home', 'visual_lineage', 'audit', 'playground'],
+  },
+};
+
+export const SOD_RULES = {
+  'conflicts:resolve': {
+    data_owner: 'Restricted by Separation of Duties: Data Stewards cannot resolve conflicts on data they ingested. Requires Risk Auditor approval.',
+    developer: 'Restricted: Operators/Developers cannot resolve governance contradictions.',
+    viewer: 'Observer Mode: Read-only viewers cannot resolve governance conflicts.',
+  },
+  'sources:manage': {
+    reviewer: 'Restricted by Separation of Duties: Risk Auditors cannot alter raw data sources or trigger pipeline syncs.',
+    developer: 'Restricted: Developers cannot register or configure source ingestion connectors.',
+    viewer: 'Observer Mode: Viewers cannot upload documents or alter data sources.',
+  },
+  'decisions:simulate': {
+    viewer: 'Observer Mode: Decision simulations are restricted for read-only observers.',
+  },
+  'org:members': {
+    data_owner: 'Restricted: Member invitations and role assignments require Admin authority.',
+    reviewer: 'Restricted: Member invitations and role assignments require Admin authority.',
+    developer: 'Restricted: Member invitations and role assignments require Admin authority.',
+    viewer: 'Restricted: Member invitations and role assignments require Admin authority.',
+  },
+};
 
 export function useAuth() {
   const ctx = useContext(AuthContext);
