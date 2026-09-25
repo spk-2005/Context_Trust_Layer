@@ -123,6 +123,30 @@ async def init_db_schema():
         "CREATE INDEX IF NOT EXISTS idx_dispatch_webhook ON webhook_dispatch_logs(webhook_id);",
         "CREATE INDEX IF NOT EXISTS idx_dispatch_org ON webhook_dispatch_logs(organization_id);",
         "CREATE INDEX IF NOT EXISTS idx_dispatch_created_at ON webhook_dispatch_logs(created_at);",
+        """
+        CREATE TABLE IF NOT EXISTS hitl_escalations (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+            audit_id VARCHAR(100) NOT NULL,
+            actor_id VARCHAR(100) NOT NULL,
+            actor_role VARCHAR(100) NOT NULL,
+            action_prompt TEXT NOT NULL,
+            reasons JSONB DEFAULT '[]'::jsonb,
+            category VARCHAR(100) NOT NULL DEFAULT 'Operational Triage',
+            liability_prevented_usd NUMERIC(12,2) NOT NULL DEFAULT 0.0,
+            status VARCHAR(50) NOT NULL DEFAULT 'PENDING',
+            suggested_action TEXT,
+            resolved_by_name VARCHAR(255),
+            resolved_by_role VARCHAR(100),
+            resolution_decision VARCHAR(50),
+            resolution_notes TEXT,
+            resolved_at TIMESTAMPTZ,
+            created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+        );
+        """,
+        "CREATE INDEX IF NOT EXISTS idx_hitl_org ON hitl_escalations(organization_id);",
+        "CREATE INDEX IF NOT EXISTS idx_hitl_status ON hitl_escalations(organization_id, status);",
+        "CREATE INDEX IF NOT EXISTS idx_hitl_created_at ON hitl_escalations(created_at);",
     ]
 
     async with engine.begin() as conn:

@@ -26,7 +26,8 @@ import {
   Eye,
   Lock,
   Shield,
-  Bell
+  Bell,
+  UserCheck
 } from 'lucide-react';
 import TeamAndActivityHub from './components/TeamAndActivityHub';
 import AgentChatPlayground from './components/AgentChatPlayground';
@@ -40,6 +41,7 @@ import RbacMatrixModal from './components/RbacMatrixModal';
 import ExecutiveRoiModal from './components/ExecutiveRoiModal';
 import ComplianceDossierModal from './components/ComplianceDossierModal';
 import WebhookSettingsModal from './components/WebhookSettingsModal';
+import HitlEscalationModal from './components/HitlEscalationModal';
 import { useAuth } from './context/AuthContext';
 
 export default function App() {
@@ -55,6 +57,7 @@ export default function App() {
   const [isRoiModalOpen, setIsRoiModalOpen] = useState(false);
   const [isDossierModalOpen, setIsDossierModalOpen] = useState(false);
   const [isWebhookModalOpen, setIsWebhookModalOpen] = useState(false);
+  const [isHitlModalOpen, setIsHitlModalOpen] = useState(false);
 
   // -------------------------------------------------------------
   const {
@@ -2760,6 +2763,26 @@ export default function App() {
                   >
                     <Bell size={13} color="#EF4444" />
                     <span>Webhooks & Alerts</span>
+                  </button>
+
+                  <button
+                    onClick={() => setIsHitlModalOpen(true)}
+                    className="btn btn-secondary"
+                    style={{
+                      fontSize: '0.8rem',
+                      padding: '8px 12px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                      background: 'rgba(245, 158, 11, 0.08)',
+                      borderColor: '#FCD34D',
+                      color: '#B45309',
+                      fontWeight: 700
+                    }}
+                    title="Human-in-the-Loop Triage Queue (EU AI Act Article 14)"
+                  >
+                    <UserCheck size={14} color="#D97706" />
+                    <span>HITL Review Queue</span>
                   </button>
 
                   <button
@@ -5582,6 +5605,14 @@ export default function App() {
       <WebhookSettingsModal
         isOpen={isWebhookModalOpen}
         onClose={() => setIsWebhookModalOpen(false)}
+        organizationId={activeOrg?.id}
+        showToast={showToast}
+      />
+
+      {/* Human-in-the-Loop Decision Escalation Queue (EU AI Act Article 14) */}
+      <HitlEscalationModal
+        isOpen={isHitlModalOpen}
+        onClose={() => setIsHitlModalOpen(false)}
         organizationId={activeOrg?.id}
         showToast={showToast}
       />

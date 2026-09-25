@@ -23,6 +23,10 @@ class DecisionEvaluateRequest(BaseModel):
     organization_id: uuid.UUID | None = Field(default=None, description="Organization ID for multi-tenant context")
     required_scope: str | None = Field(default=None, description="Required target scope, e.g. Enterprise, US, EMEA")
 
+    @property
+    def decision_prompt(self) -> str:
+        return self.decision
+
 
 class DecisionEvaluateResponse(BaseModel):
     decision: str = Field(..., description="Policy decision: ALLOW, ALLOW_WITH_CONSTRAINT, CLARIFY, REVIEW, or BLOCK")
@@ -34,6 +38,15 @@ class DecisionEvaluateResponse(BaseModel):
     suggested_action: str | None = Field(default=None, description="Recommended next action or clarification prompt for the agent")
     audit_token: str | None = Field(default=None, description="Cryptographic SHA-256 audit signature")
     execution_ms: int | None = Field(default=10, description="Evaluation execution latency in milliseconds")
+
+    @property
+    def verdict(self) -> str:
+        return self.decision
+
+    @property
+    def risk_level(self) -> str:
+        return self.risk
+
 
 
 class DecisionStreamItemResponse(BaseModel):

@@ -12,6 +12,7 @@ from app.schemas.decision import (
     DecisionStreamItemResponse,
 )
 from app.services.webhook_service import dispatch_decision_event
+from app.services.hitl_service import record_hitl_escalation_if_needed
 
 router = APIRouter(prefix="/decisions", tags=["decisions"])
 
@@ -33,6 +34,17 @@ async def evaluate_decision(
             req=req,
             decision=response,
             organization_id=req.organization_id,
+        )
+
+    # Queue Human-in-the-Loop escalation for human oversight under EU AI Act Article 14
+    if response.verdict.upper() in ("REQUIRE_REVIEW", "REVIEW"):
+        audit_id_str = response.audit_token[:16] if response.audit_token else f"audit-{uuid.uuid4().hex[:8]}"
+        background_tasks.add_task(
+            record_hitl_escalation_if_needed,
+            req=req,
+            decision=response,
+            organization_id=req.organization_id,
+            audit_id=audit_id_str,
         )
 
     return response

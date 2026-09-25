@@ -18,6 +18,7 @@ from app.db.models.organization_invite import OrganizationInvite
 from app.db.models.user import User
 from app.db.models.user_activity import UserActivityLog
 from app.db.models.webhook import WebhookSubscription, WebhookDispatchLog
+from app.db.models.hitl_escalation import HitlEscalation
 
 __all__ = [
     "Base",
@@ -42,5 +43,6 @@ __all__ = [
     "ChatMessage",
     "WebhookSubscription",
     "WebhookDispatchLog",
+    "HitlEscalation",
 ]
 

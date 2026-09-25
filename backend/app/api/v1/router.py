@@ -15,6 +15,7 @@ from app.api.v1.sources import router as sources_router
 from app.api.v1.steward import router as steward_router
 from app.api.v1.users import router as users_router
 from app.api.v1.webhooks import router as webhooks_router
+from app.api.v1.hitl import router as hitl_router
 
 api_v1_router = APIRouter(prefix="/v1")
 
@@ -35,5 +36,6 @@ api_v1_router.include_router(mcp_router)
 api_v1_router.include_router(audit_router)
 api_v1_router.include_router(chat_router)
 api_v1_router.include_router(webhooks_router)
+api_v1_router.include_router(hitl_router)
 
 
