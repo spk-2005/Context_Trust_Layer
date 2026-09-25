@@ -28,7 +28,8 @@ import {
   Shield,
   Bell,
   UserCheck,
-  Crosshair
+  Crosshair,
+  Binary
 } from 'lucide-react';
 import TeamAndActivityHub from './components/TeamAndActivityHub';
 import AgentChatPlayground from './components/AgentChatPlayground';
@@ -44,6 +45,7 @@ import ComplianceDossierModal from './components/ComplianceDossierModal';
 import WebhookSettingsModal from './components/WebhookSettingsModal';
 import HitlEscalationModal from './components/HitlEscalationModal';
 import RedTeamModal from './components/RedTeamModal';
+import MerkleVerificationModal from './components/MerkleVerificationModal';
 import { useAuth } from './context/AuthContext';
 
 export default function App() {
@@ -61,6 +63,8 @@ export default function App() {
   const [isWebhookModalOpen, setIsWebhookModalOpen] = useState(false);
   const [isHitlModalOpen, setIsHitlModalOpen] = useState(false);
   const [isRedTeamModalOpen, setIsRedTeamModalOpen] = useState(false);
+  const [isMerkleModalOpen, setIsMerkleModalOpen] = useState(false);
+  const [merkleSelectedToken, setMerkleSelectedToken] = useState(null);
 
   // -------------------------------------------------------------
   const {
@@ -2806,6 +2810,29 @@ export default function App() {
                   >
                     <Crosshair size={14} color="#EF4444" />
                     <span>Red-Team Suite</span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setMerkleSelectedToken(null);
+                      setIsMerkleModalOpen(true);
+                    }}
+                    className="btn btn-secondary"
+                    style={{
+                      fontSize: '0.8rem',
+                      padding: '8px 12px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                      background: 'rgba(16, 185, 129, 0.08)',
+                      borderColor: '#A7F3D0',
+                      color: '#047857',
+                      fontWeight: 700
+                    }}
+                    title="Cryptographic Merkle Tree Audit Ledger (EU AI Act Article 12)"
+                  >
+                    <Binary size={14} color="#059669" />
+                    <span>Merkle Audit Ledger</span>
                   </button>
 
                   <button
@@ -5644,6 +5671,15 @@ export default function App() {
       <RedTeamModal
         isOpen={isRedTeamModalOpen}
         onClose={() => setIsRedTeamModalOpen(false)}
+        organizationId={activeOrg?.id}
+        showToast={showToast}
+      />
+
+      {/* Cryptographic Merkle Tree Audit Ledger & Verifier (EU AI Act Article 12) */}
+      <MerkleVerificationModal
+        isOpen={isMerkleModalOpen}
+        onClose={() => setIsMerkleModalOpen(false)}
+        initialAuditToken={merkleSelectedToken}
         organizationId={activeOrg?.id}
         showToast={showToast}
       />
