@@ -18,6 +18,7 @@ from app.api.v1.webhooks import router as webhooks_router
 from app.api.v1.hitl import router as hitl_router
 from app.api.v1.red_team import router as red_team_router
 from app.api.v1.merkle import router as merkle_router
+from app.api.v1.drift import router as drift_router
 
 api_v1_router = APIRouter(prefix="/v1")
 
@@ -41,5 +42,7 @@ api_v1_router.include_router(webhooks_router)
 api_v1_router.include_router(hitl_router)
 api_v1_router.include_router(red_team_router)
 api_v1_router.include_router(merkle_router)
+api_v1_router.include_router(drift_router)
+
 
 

@@ -27,6 +27,11 @@ export default function ContextCuratorStudio({
   const [reEvaluating, setReEvaluating] = useState(false);
   const [autoResolving, setAutoResolving] = useState(false);
 
+  // Pillar 3: Context Drift & Claim Decay State
+  const [driftData, setDriftData] = useState(null);
+  const [driftLoading, setDriftLoading] = useState(false);
+  const [remediatingId, setRemediatingId] = useState(null);
+
   useEffect(() => {
     if (initialSubView) {
       setCuratorSubView(initialSubView);
@@ -56,6 +61,65 @@ export default function ContextCuratorStudio({
       setIssuesLoading(false);
     }
   };
+
+  const fetchDriftData = async () => {
+    try {
+      setDriftLoading(true);
+      const orgId = activeOrg?.id || '11111111-1111-1111-1111-111111111111';
+      const res = await fetch(`/v1/steward/drift?organization_id=${orgId}`);
+      if (res.ok) {
+        const data = await res.json();
+        setDriftData(data);
+      }
+    } catch (e) {
+      console.warn("Failed to fetch drift data:", e);
+    } finally {
+      setDriftLoading(false);
+    }
+  };
+
+  const handleTriggerDriftScan = async () => {
+    try {
+      setDriftLoading(true);
+      const orgId = activeOrg?.id || '11111111-1111-1111-1111-111111111111';
+      const res = await fetch(`/v1/steward/drift/scan?organization_id=${orgId}`, { method: 'POST' });
+      if (res.ok) {
+        const data = await res.json();
+        setDriftData(data);
+        showToast?.("Drift sweep completed: Context freshness radar updated", "success");
+      }
+    } catch (e) {
+      showToast?.(`Error: ${e.message}`, "error");
+    } finally {
+      setDriftLoading(false);
+    }
+  };
+
+  const handleRemediateClaim = async (claimId, action) => {
+    try {
+      setRemediatingId(claimId);
+      const res = await fetch('/v1/steward/drift/remediate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ claim_id: claimId, action })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        showToast?.(data.message, "success");
+        fetchDriftData();
+      }
+    } catch (e) {
+      showToast?.(`Remediation error: ${e.message}`, "error");
+    } finally {
+      setRemediatingId(null);
+    }
+  };
+
+  useEffect(() => {
+    if (curatorSubView === 'drift') {
+      fetchDriftData();
+    }
+  }, [curatorSubView, activeOrg]);
 
   const handleResolveIssue = async (issueId, chosenSide, defaultReason) => {
     if (!hasPermission('conflicts:resolve')) {
@@ -349,6 +413,27 @@ export default function ContextCuratorStudio({
               <span>⚖️ Pairwise Conflict Resolver</span>
               <span className="badge badge-review" style={{ fontSize: '0.62rem' }}>
                 {conflicts.length} Pending
+              </span>
+            </button>
+            <button
+              onClick={() => handleSelectSubView('drift')}
+              style={{
+                padding: '7px 14px',
+                borderRadius: '6px',
+                border: 'none',
+                background: curatorSubView === 'drift' ? '#2026d2' : 'transparent',
+                color: curatorSubView === 'drift' ? '#fff' : 'var(--text-main)',
+                fontSize: '0.78rem',
+                fontWeight: 600,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}
+            >
+              <span>⏳ Drift & Claim Decay</span>
+              <span className="badge badge-warning" style={{ fontSize: '0.62rem', background: curatorSubView === 'drift' ? 'rgba(255,255,255,0.25)' : 'rgba(245,158,11,0.15)', color: curatorSubView === 'drift' ? '#fff' : '#f59e0b' }}>
+                {driftData?.decay_items ? driftData.decay_items.filter(d => d.decay_status === 'CRITICAL' || d.decay_status === 'DECAYED').length : 0} At Risk
               </span>
             </button>
           </div>
@@ -1163,6 +1248,223 @@ export default function ContextCuratorStudio({
           )}
         </div>
       )}
+
+      {/* ========================================================= */}
+      {/* SUB-VIEW 3: CONTEXT DRIFT & CLAIM DECAY RADAR             */}
+      {/* ========================================================= */}
+      {curatorSubView === 'drift' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          {/* Top KPI & Sweep Action Banner */}
+          <div style={{
+            background: 'var(--bg-surface)',
+            border: '1px solid var(--border-color)',
+            borderRadius: '16px',
+            padding: '20px 24px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '16px'
+          }}>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 700, color: 'var(--text-main)' }}>
+                  Continuous Context Drift & Claim Decay Radar
+                </h3>
+                <span className="badge badge-verified" style={{ background: '#ECFDF5', color: '#047857', border: '1px solid #A7F3D0' }}>
+                  Half-Life Attestation
+                </span>
+              </div>
+              <p style={{ margin: 0, fontSize: '0.84rem', color: 'var(--text-muted)' }}>
+                Monitors knowledge degradation over time. Claims older than 90 days lose authority score unless re-attested by verified Data Owners.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              disabled={driftLoading}
+              onClick={handleTriggerDriftScan}
+              className="btn btn-primary"
+              style={{
+                padding: '9px 18px',
+                background: 'linear-gradient(135deg, #10B981, #059669)',
+                border: 'none',
+                color: '#fff',
+                fontWeight: 700,
+                fontSize: '0.84rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
+              }}
+            >
+              <span>{driftLoading ? 'Running Background Sweep...' : '⚡ Run Active Drift Sweep'}</span>
+            </button>
+          </div>
+
+          {/* Metric Cards */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: '14px' }}>
+            <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '16px' }}>
+              <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 600 }}>FRESHNESS INDEX</div>
+              <div style={{ fontSize: '1.3rem', fontWeight: 800, color: '#059669', marginTop: '2px' }}>
+                {driftData?.freshness_index_pct ?? 92.5}%
+              </div>
+              <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+                Overall context health score
+              </div>
+            </div>
+
+            <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '16px' }}>
+              <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 600 }}>DECAYED CLAIMS (&gt;90d)</div>
+              <div style={{ fontSize: '1.3rem', fontWeight: 800, color: '#D97706', marginTop: '2px' }}>
+                {driftData?.decayed_claims_count ?? 3} Stale
+              </div>
+              <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+                Requires Data Owner review
+              </div>
+            </div>
+
+            <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '16px' }}>
+              <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 600 }}>AVERAGE KNOWLEDGE AGE</div>
+              <div style={{ fontSize: '1.3rem', fontWeight: 800, color: '#4F46E5', marginTop: '2px' }}>
+                {driftData?.average_age_days ?? 74} Days
+              </div>
+              <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+                Across all stored policies
+              </div>
+            </div>
+
+            <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '16px' }}>
+              <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 600 }}>AGING HORIZONS</div>
+              <div style={{ display: 'flex', gap: '6px', marginTop: '8px', flexWrap: 'wrap' }}>
+                {driftData?.decay_radar ? Object.entries(driftData.decay_radar).map(([k, v]) => (
+                  <span key={k} style={{ fontSize: '0.7rem', background: 'var(--bg-card)', padding: '2px 6px', borderRadius: '4px', border: '1px solid var(--border-color)' }}>
+                    {k}: <strong>{v}</strong>
+                  </span>
+                )) : null}
+              </div>
+            </div>
+          </div>
+
+          {/* Stale Claims List & Remediation Table */}
+          <div style={{
+            background: 'var(--bg-surface)',
+            border: '1px solid var(--border-color)',
+            borderRadius: '16px',
+            padding: '24px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '16px'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h4 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-main)' }}>
+                Temporal Claim Degradation & Remediation Ledger
+              </h4>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                {driftData?.decayed_claims?.length ?? 0} tracked policies
+              </span>
+            </div>
+
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
+                <thead>
+                  <tr style={{ background: 'var(--bg-card)', borderBottom: '2px solid var(--border-color)', textAlign: 'left' }}>
+                    <th style={{ padding: '10px 14px', color: 'var(--text-main)' }}>Claim & Source</th>
+                    <th style={{ padding: '10px 14px', color: 'var(--text-main)' }}>Age</th>
+                    <th style={{ padding: '10px 14px', color: 'var(--text-main)' }}>Trust Degradation</th>
+                    <th style={{ padding: '10px 14px', color: 'var(--text-main)' }}>Drift Status</th>
+                    <th style={{ padding: '10px 14px', color: 'var(--text-main)', textAlign: 'right' }}>Governance Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(driftData?.decayed_claims || []).map((item) => {
+                    const isStale = item.age_days > 90;
+                    return (
+                      <tr key={item.claim_id} style={{ borderBottom: '1px solid var(--border-color)', background: isStale ? 'rgba(245, 158, 11, 0.03)' : 'transparent' }}>
+                        <td style={{ padding: '12px 14px', maxWidth: '380px' }}>
+                          <div style={{ fontWeight: 600, color: 'var(--text-main)', marginBottom: '4px', lineHeight: '1.3' }}>
+                            {item.claim_text}
+                          </div>
+                          <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                            📄 {item.document_title}
+                          </div>
+                        </td>
+
+                        <td style={{ padding: '12px 14px', whiteSpace: 'nowrap' }}>
+                          <span style={{
+                            padding: '3px 8px',
+                            borderRadius: '6px',
+                            fontWeight: 700,
+                            fontSize: '0.74rem',
+                            background: item.age_days <= 30 ? '#ECFDF5' : item.age_days <= 90 ? '#EFF6FF' : item.age_days <= 180 ? '#FEF3C7' : '#FEE2E2',
+                            color: item.age_days <= 30 ? '#047857' : item.age_days <= 90 ? '#1D4ED8' : item.age_days <= 180 ? '#B45309' : '#B91C1C'
+                          }}>
+                            {item.age_days} days old
+                          </span>
+                        </td>
+
+                        <td style={{ padding: '12px 14px', whiteSpace: 'nowrap' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <span style={{ color: 'var(--text-muted)', textDecoration: 'line-through' }}>
+                              {(item.initial_trust * 100).toFixed(0)}%
+                            </span>
+                            <span style={{ fontWeight: 800, color: item.current_decayed_trust < 0.70 ? '#DC2626' : '#059669' }}>
+                              {(item.current_decayed_trust * 100).toFixed(0)}%
+                            </span>
+                            {item.decay_pct > 0 && (
+                              <span style={{ fontSize: '0.68rem', color: '#DC2626', fontWeight: 700 }}>
+                                (-{item.decay_pct}%)
+                              </span>
+                            )}
+                          </div>
+                        </td>
+
+                        <td style={{ padding: '12px 14px', whiteSpace: 'nowrap' }}>
+                          <span style={{
+                            fontSize: '0.72rem',
+                            fontWeight: 700,
+                            padding: '3px 8px',
+                            borderRadius: '4px',
+                            background: item.drift_category === 'ACTIVE_FRESH' ? '#ECFDF5' : item.drift_category === 'AGING_WARNING' ? '#FEF3C7' : '#FEE2E2',
+                            color: item.drift_category === 'ACTIVE_FRESH' ? '#047857' : item.drift_category === 'AGING_WARNING' ? '#B45309' : '#B91C1C'
+                          }}>
+                            {item.drift_category}
+                          </span>
+                        </td>
+
+                        <td style={{ padding: '12px 14px', textAlign: 'right', whiteSpace: 'nowrap' }}>
+                          <div style={{ display: 'inline-flex', gap: '6px' }}>
+                            <button
+                              type="button"
+                              disabled={remediatingId === item.claim_id}
+                              onClick={() => handleRemediateClaim(item.claim_id, 'RE_ATTEST')}
+                              className="btn btn-secondary"
+                              style={{ padding: '5px 10px', fontSize: '0.74rem', background: '#ECFDF5', borderColor: '#A7F3D0', color: '#047857', fontWeight: 700 }}
+                              title="Reset freshness clock to Day 0"
+                            >
+                              {remediatingId === item.claim_id ? 'Updating...' : '✓ Re-Attest'}
+                            </button>
+                            <button
+                              type="button"
+                              disabled={remediatingId === item.claim_id}
+                              onClick={() => handleRemediateClaim(item.claim_id, 'RETIRE')}
+                              className="btn btn-secondary"
+                              style={{ padding: '5px 10px', fontSize: '0.74rem', background: '#FEF2F2', borderColor: '#FECACA', color: '#B91C1C' }}
+                              title="Deprecate and exclude from agent retrieval"
+                            >
+                              Retire
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
