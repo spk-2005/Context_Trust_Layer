@@ -1,5 +1,4 @@
-import uuid
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -11,6 +10,7 @@ from app.schemas.decision import (
     DecisionEvaluateResponse,
     DecisionStreamItemResponse,
 )
+from app.services.webhook_service import dispatch_decision_event
 
 router = APIRouter(prefix="/decisions", tags=["decisions"])
 
@@ -18,11 +18,22 @@ router = APIRouter(prefix="/decisions", tags=["decisions"])
 @router.post("/evaluate", response_model=DecisionEvaluateResponse)
 async def evaluate_decision(
     req: DecisionEvaluateRequest,
+    background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
 ):
     """Evaluate an AI agent's intended decision and candidate evidence for validity, risk, and policy compliance."""
     evaluator = DecisionEvaluator(session=db)
     response = await evaluator.evaluate(req, session=db)
+
+    # Dispatch incident alert if action was intercepted by policy gate
+    if response.verdict.upper() in ("BLOCK", "REQUIRE_REVIEW", "REVIEW"):
+        background_tasks.add_task(
+            dispatch_decision_event,
+            req=req,
+            decision=response,
+            organization_id=req.organization_id,
+        )
+
     return response
 
 

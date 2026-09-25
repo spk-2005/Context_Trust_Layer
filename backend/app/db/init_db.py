@@ -85,6 +85,44 @@ async def init_db_schema():
         """,
         "CREATE INDEX IF NOT EXISTS idx_chat_messages_session ON chat_messages(session_id);",
         "CREATE INDEX IF NOT EXISTS idx_chat_messages_created_at ON chat_messages(created_at);",
+        """
+        CREATE TABLE IF NOT EXISTS webhook_subscriptions (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+            name VARCHAR(255) NOT NULL,
+            url VARCHAR(1000) NOT NULL,
+            channel_type VARCHAR(50) NOT NULL DEFAULT 'slack',
+            min_liability_threshold_usd NUMERIC(12,2) NOT NULL DEFAULT 5000.0,
+            trigger_on_block BOOLEAN NOT NULL DEFAULT TRUE,
+            trigger_on_review BOOLEAN NOT NULL DEFAULT TRUE,
+            is_active BOOLEAN NOT NULL DEFAULT TRUE,
+            secret_token VARCHAR(255),
+            last_triggered_at TIMESTAMPTZ,
+            last_status_code INTEGER,
+            last_error TEXT,
+            created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+            updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+        );
+        """,
+        "CREATE INDEX IF NOT EXISTS idx_webhooks_organization ON webhook_subscriptions(organization_id);",
+        "CREATE INDEX IF NOT EXISTS idx_webhooks_active ON webhook_subscriptions(organization_id, is_active);",
+        """
+        CREATE TABLE IF NOT EXISTS webhook_dispatch_logs (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            webhook_id UUID NOT NULL REFERENCES webhook_subscriptions(id) ON DELETE CASCADE,
+            organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+            event_type VARCHAR(50) NOT NULL,
+            liability_prevented_usd NUMERIC(12,2) NOT NULL DEFAULT 0.0,
+            actor_id VARCHAR(100) NOT NULL DEFAULT 'system',
+            verdict VARCHAR(50) NOT NULL,
+            response_status INTEGER,
+            response_body TEXT,
+            created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+        );
+        """,
+        "CREATE INDEX IF NOT EXISTS idx_dispatch_webhook ON webhook_dispatch_logs(webhook_id);",
+        "CREATE INDEX IF NOT EXISTS idx_dispatch_org ON webhook_dispatch_logs(organization_id);",
+        "CREATE INDEX IF NOT EXISTS idx_dispatch_created_at ON webhook_dispatch_logs(created_at);",
     ]
 
     async with engine.begin() as conn:

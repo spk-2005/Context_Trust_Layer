@@ -25,7 +25,8 @@ import {
   Sparkles,
   Eye,
   Lock,
-  Shield
+  Shield,
+  Bell
 } from 'lucide-react';
 import TeamAndActivityHub from './components/TeamAndActivityHub';
 import AgentChatPlayground from './components/AgentChatPlayground';
@@ -38,6 +39,7 @@ import OrganizationSettingsModal from './components/OrganizationSettingsModal';
 import RbacMatrixModal from './components/RbacMatrixModal';
 import ExecutiveRoiModal from './components/ExecutiveRoiModal';
 import ComplianceDossierModal from './components/ComplianceDossierModal';
+import WebhookSettingsModal from './components/WebhookSettingsModal';
 import { useAuth } from './context/AuthContext';
 
 export default function App() {
@@ -52,6 +54,7 @@ export default function App() {
   const [isRbacModalOpen, setIsRbacModalOpen] = useState(false);
   const [isRoiModalOpen, setIsRoiModalOpen] = useState(false);
   const [isDossierModalOpen, setIsDossierModalOpen] = useState(false);
+  const [isWebhookModalOpen, setIsWebhookModalOpen] = useState(false);
 
   // -------------------------------------------------------------
   const {
@@ -2315,6 +2318,26 @@ export default function App() {
               <span>RBAC Matrix</span>
             </button>
 
+            {/* Real-Time Incident Webhooks Button */}
+            <button
+              onClick={() => setIsWebhookModalOpen(true)}
+              className="top-header-pill"
+              title="Configure Real-Time Incident Webhooks (Slack, PagerDuty, MS Teams)"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '5px',
+                background: 'rgba(239, 68, 68, 0.08)',
+                borderColor: 'rgba(239, 68, 68, 0.28)',
+                color: '#EF4444',
+                fontWeight: 600,
+                cursor: 'pointer'
+              }}
+            >
+              <Bell size={12} />
+              <span>Webhooks & Alerts</span>
+            </button>
+
             {/* 4. SYSTEM OPERATIONAL BADGE */}
             <span className="top-status-badge">
               <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--success-solid, #10b981)', display: 'inline-block' }} />
@@ -2727,6 +2750,16 @@ export default function App() {
                   >
                     <span>🏛️</span>
                     <span>Compliance Dossier</span>
+                  </button>
+
+                  <button
+                    onClick={() => setIsWebhookModalOpen(true)}
+                    className="btn btn-secondary"
+                    style={{ fontSize: '0.8rem', padding: '8px 12px', display: 'flex', alignItems: 'center', gap: '5px' }}
+                    title="Configure Real-Time Incident Webhooks (Slack, PagerDuty, MS Teams)"
+                  >
+                    <Bell size={13} color="#EF4444" />
+                    <span>Webhooks & Alerts</span>
                   </button>
 
                   <button
@@ -5543,6 +5576,14 @@ export default function App() {
         isOpen={isDossierModalOpen}
         onClose={() => setIsDossierModalOpen(false)}
         activeOrg={activeOrg}
+      />
+
+      {/* Real-Time Webhook & Incident Dispatch Modal (Slack / PagerDuty / MS Teams) */}
+      <WebhookSettingsModal
+        isOpen={isWebhookModalOpen}
+        onClose={() => setIsWebhookModalOpen(false)}
+        organizationId={activeOrg?.id}
+        showToast={showToast}
       />
     </div>
   );

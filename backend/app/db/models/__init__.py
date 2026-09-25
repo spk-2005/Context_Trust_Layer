@@ -17,6 +17,7 @@ from app.db.models.organization import Organization
 from app.db.models.organization_invite import OrganizationInvite
 from app.db.models.user import User
 from app.db.models.user_activity import UserActivityLog
+from app.db.models.webhook import WebhookSubscription, WebhookDispatchLog
 
 __all__ = [
     "Base",
@@ -39,5 +40,7 @@ __all__ = [
     "DecisionEvaluation",
     "ChatSession",
     "ChatMessage",
+    "WebhookSubscription",
+    "WebhookDispatchLog",
 ]
 
