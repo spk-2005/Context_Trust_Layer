@@ -52,6 +52,46 @@ class DecisionEvaluator:
         preferred_source: str | None = None
         suggested_action: str | None = None
         now_utc = datetime.now(timezone.utc)
+        dec_lower = req.decision.lower()
+
+        # 0. Adversarial Prompt Injection & Threat Interceptor (OWASP LLM01)
+        injection_indicators = [
+            ("system override", "Direct Prompt Injection: System override instruction intercepted."),
+            ("ignore all previous", "Direct Prompt Injection: Attempted bypass of baseline safety directives."),
+            ("ignore previous instructions", "Direct Prompt Injection: Attempted instruction jailbreak."),
+            ("disregard safety", "Jailbreak Vector: Safety guardrail bypass directive."),
+            ("rm -rf", "Critical Remote Execution: Destructive shell command detected."),
+            ("cat /etc/shadow", "Host Integrity Breach: Attempt to read sensitive Linux password hash store."),
+            ("cat /etc/passwd", "Host Integrity Breach: Attempt to read system user accounts."),
+            ("dump passwords", "Credential Exfiltration: Unauthorized credential dump directive."),
+            ("credit card", "PCI-DSS Exfiltration: Unauthorized bulk payment card extraction."),
+            ("cvv", "PCI-DSS Exfiltration: Payment card CVV security code dump intercepted."),
+            ("social security", "PII Exfiltration: High-risk Social Security data extraction blocked."),
+            ("salary bands", "PII Exfiltration: Confidential executive compensation exfiltration blocked."),
+            ("payload.sh", "Code Injection: Suspicious remote bash payload execution vector."),
+            ("open port 22", "Cloud Security Violation: Direct ingress port 22 modification blocked without CISO approval."),
+        ]
+        injection_found = False
+        for indicator, reason_msg in injection_indicators:
+            if indicator in dec_lower:
+                reasons.append(f"Adversarial Guardrail Triggered (OWASP LLM01): {reason_msg}")
+                injection_found = True
+                break
+
+        if injection_found:
+            return await self._finalize_response(
+                req=req,
+                db_session=db_session,
+                audit_id=audit_id,
+                decision="BLOCK",
+                validity="INSUFFICIENT",
+                risk="CRITICAL",
+                reasons=reasons,
+                preferred_source="Deterministic Threat Interceptor (OWASP LLM01)",
+                suggested_action="Block execution immediately and dispatch security incident alert.",
+                t0=t0,
+                now_utc=now_utc,
+            )
 
         # 1. Access / Role Authorization Check
         restricted_roles = {

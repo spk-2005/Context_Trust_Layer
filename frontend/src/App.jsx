@@ -27,7 +27,8 @@ import {
   Lock,
   Shield,
   Bell,
-  UserCheck
+  UserCheck,
+  Crosshair
 } from 'lucide-react';
 import TeamAndActivityHub from './components/TeamAndActivityHub';
 import AgentChatPlayground from './components/AgentChatPlayground';
@@ -42,6 +43,7 @@ import ExecutiveRoiModal from './components/ExecutiveRoiModal';
 import ComplianceDossierModal from './components/ComplianceDossierModal';
 import WebhookSettingsModal from './components/WebhookSettingsModal';
 import HitlEscalationModal from './components/HitlEscalationModal';
+import RedTeamModal from './components/RedTeamModal';
 import { useAuth } from './context/AuthContext';
 
 export default function App() {
@@ -58,6 +60,7 @@ export default function App() {
   const [isDossierModalOpen, setIsDossierModalOpen] = useState(false);
   const [isWebhookModalOpen, setIsWebhookModalOpen] = useState(false);
   const [isHitlModalOpen, setIsHitlModalOpen] = useState(false);
+  const [isRedTeamModalOpen, setIsRedTeamModalOpen] = useState(false);
 
   // -------------------------------------------------------------
   const {
@@ -2783,6 +2786,26 @@ export default function App() {
                   >
                     <UserCheck size={14} color="#D97706" />
                     <span>HITL Review Queue</span>
+                  </button>
+
+                  <button
+                    onClick={() => setIsRedTeamModalOpen(true)}
+                    className="btn btn-secondary"
+                    style={{
+                      fontSize: '0.8rem',
+                      padding: '8px 12px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                      background: 'rgba(239, 68, 68, 0.08)',
+                      borderColor: '#FCA5A5',
+                      color: '#B91C1C',
+                      fontWeight: 700
+                    }}
+                    title="Automated Red-Teaming & Adversarial Benchmark (OWASP LLM Top 10)"
+                  >
+                    <Crosshair size={14} color="#EF4444" />
+                    <span>Red-Team Suite</span>
                   </button>
 
                   <button
@@ -5613,6 +5636,14 @@ export default function App() {
       <HitlEscalationModal
         isOpen={isHitlModalOpen}
         onClose={() => setIsHitlModalOpen(false)}
+        organizationId={activeOrg?.id}
+        showToast={showToast}
+      />
+
+      {/* Automated Red-Teaming & Adversarial Prompt Injector (OWASP LLM Top 10) */}
+      <RedTeamModal
+        isOpen={isRedTeamModalOpen}
+        onClose={() => setIsRedTeamModalOpen(false)}
         organizationId={activeOrg?.id}
         showToast={showToast}
       />
