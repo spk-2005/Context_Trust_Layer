@@ -12,6 +12,16 @@ from app.mcp.server import (
     MCP_TOOLS,
     execute_mcp_tool,
 )
+from app.schemas.mcp_middleware import (
+    ToolCallProposal,
+    ToolInterceptionResult,
+    WorkflowPlanEvaluateRequest,
+    WorkflowPlanEvaluateResponse,
+)
+from app.services.mcp_middleware_service import (
+    intercept_tool_call,
+    evaluate_workflow_plan,
+)
 
 router = APIRouter(prefix="/mcp", tags=["Model Context Protocol (MCP)"])
 
@@ -188,3 +198,19 @@ async def handle_mcp_jsonrpc(
                 "message": f"Method '{method}' not recognized by Context Trust Layer MCP Server."
             }
         }
+
+
+# -------------------------------------------------------------
+# Tool Call Interception & Multi-Step Workflow Endpoints
+# -------------------------------------------------------------
+@router.post("/intercept-tool", response_model=ToolInterceptionResult)
+async def intercept_tool(proposal: ToolCallProposal):
+    """Pre-execution gateway interceptor for AI agent tool invocations."""
+    return await intercept_tool_call(proposal)
+
+
+@router.post("/workflow/evaluate", response_model=WorkflowPlanEvaluateResponse)
+async def evaluate_workflow(plan: WorkflowPlanEvaluateRequest):
+    """Evaluates an entire multi-step agent workflow execution plan before tools execute."""
+    return await evaluate_workflow_plan(plan)
+

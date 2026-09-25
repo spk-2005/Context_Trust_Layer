@@ -176,6 +176,36 @@ MCP_TOOLS = [
                 }
             }
         }
+    },
+    {
+        "name": "context_trust_intercept_tool_call",
+        "description": "Pre-execution security middleware that evaluates external agent tool calls before invocation. Checks risk tier, SQL/shell injection, financial limits, and role entitlements. Returns PERMIT with cryptographic permit token or BLOCKS rogue execution.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "tool_name": {
+                    "type": "string",
+                    "description": "The name of the tool the agent plans to invoke, e.g. 'execute_sql', 'send_payment'."
+                },
+                "arguments": {
+                    "type": "object",
+                    "description": "The planned arguments/payload passed to the tool."
+                },
+                "actor_id": {
+                    "type": "string",
+                    "description": "The agent executing the tool."
+                },
+                "actor_role": {
+                    "type": "string",
+                    "description": "Role of the agent (e.g. 'support', 'developer', 'finance', 'admin')."
+                },
+                "justification": {
+                    "type": "string",
+                    "description": "Optional explanation of why the agent is invoking this tool."
+                }
+            },
+            "required": ["tool_name"]
+        }
     }
 ]
 
@@ -571,6 +601,20 @@ async def handle_steward_audit(session: AsyncSession, args: Dict[str, Any]) -> D
     return await service.run_context_audit(org_id)
 
 
+async def handle_intercept_tool_call(session: AsyncSession, args: Dict[str, Any]) -> Dict[str, Any]:
+    from app.services.mcp_middleware_service import intercept_tool_call
+    from app.schemas.mcp_middleware import ToolCallProposal
+    proposal = ToolCallProposal(
+        tool_name=args.get("tool_name", ""),
+        arguments=args.get("arguments", {}),
+        actor_id=args.get("actor_id", "mcp-agent"),
+        actor_role=args.get("actor_role", "support"),
+        justification=args.get("justification"),
+    )
+    result = await intercept_tool_call(proposal)
+    return result.model_dump(mode="json")
+
+
 # -------------------------------------------------------------
 # Dispatcher for Tool Invocations
 # -------------------------------------------------------------
@@ -581,6 +625,7 @@ TOOL_HANDLERS = {
     "context_trust_check_conflicts": handle_check_conflicts,
     "context_trust_get_lineage": handle_get_lineage,
     "context_trust_steward_audit": handle_steward_audit,
+    "context_trust_intercept_tool_call": handle_intercept_tool_call,
 }
 
 
@@ -589,4 +634,5 @@ async def execute_mcp_tool(tool_name: str, arguments: Dict[str, Any], session: A
     if not handler:
         raise ValueError(f"Tool '{tool_name}' not found. Available tools: {list(TOOL_HANDLERS.keys())}")
     return await handler(session, arguments)
+
 
