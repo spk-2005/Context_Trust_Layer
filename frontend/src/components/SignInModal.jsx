@@ -178,7 +178,7 @@ export default function SignInModal() {
         }}
       >
         {/* Top Accent Line */}
-        <div style={{ height: '4px', background: 'linear-gradient(90deg, #2563EB, #10B981, #6366F1)' }} />
+        <div style={{ height: '4px', background: 'linear-gradient(90deg, #FFAB4A, #F5982C, #EA580C)' }} />
 
         {/* Modal Header */}
         <div
@@ -192,36 +192,22 @@ export default function SignInModal() {
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div
-              style={{
-                width: '38px',
-                height: '38px',
-                borderRadius: '8px',
-                backgroundColor: '#EFF6FF',
-                border: '1px solid #DBEAFE',
-                color: '#2563EB',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0
-              }}
-            >
-              <Shield size={20} strokeWidth={2.2} />
-            </div>
+            <img 
+              src="/Trulin-main.png" 
+              alt="Trulin" 
+              style={{ height: '32px', maxWidth: '140px', objectFit: 'contain' }} 
+            />
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '1rem', fontWeight: 700, color: '#0F172A', letterSpacing: '-0.01em' }}>
-                  Context Trust Layer
-                </span>
                 <span
                   style={{
                     fontSize: '0.62rem',
                     fontWeight: 700,
                     textTransform: 'uppercase',
                     letterSpacing: '0.04em',
-                    backgroundColor: '#ECFDF5',
-                    color: '#059669',
-                    border: '1px solid #A7F3D0',
+                    backgroundColor: 'rgba(255,171,74,0.15)',
+                    color: '#B45309',
+                    border: '1px solid rgba(255,171,74,0.35)',
                     borderRadius: '4px',
                     padding: '1px 6px'
                   }}
@@ -528,7 +514,7 @@ export default function SignInModal() {
               >
                 <Globe size={18} style={{ color: '#2563EB', flexShrink: 0, marginTop: '2px' }} />
                 <div style={{ fontSize: '0.72rem', color: '#1E40AF', lineHeight: '1.4' }}>
-                  <strong style={{ fontWeight: 600 }}>Zero-Config Corporate Tenant Routing:</strong> Enter your work email address. Context Trust Layer automatically detects your enterprise domain (e.g. <code>@ssfa.com</code>) and authenticates you directly into your organization's isolated workspace.
+                  <strong style={{ fontWeight: 600 }}>Zero-Config Corporate Tenant Routing:</strong> Enter your work email address. Trulin automatically detects your enterprise domain (e.g. <code>@ssfa.com</code>) and authenticates you directly into your organization's isolated workspace.
                 </div>
               </div>
 

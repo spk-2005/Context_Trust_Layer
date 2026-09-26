@@ -344,13 +344,13 @@ export default function ContextCuratorStudio({
             width: '46px',
             height: '46px',
             borderRadius: '12px',
-            background: 'linear-gradient(135deg, #19c37d 0%, #2026d2 100%)',
+            background: 'linear-gradient(135deg, #FFAB4A 0%, #EA580C 100%)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             fontSize: '22px',
             color: '#fff',
-            boxShadow: '0 4px 12px rgba(25,195,125,0.25)',
+            boxShadow: '0 4px 12px rgba(255,171,74,0.3)',
             flexShrink: 0
           }}>
             🤖
@@ -379,10 +379,10 @@ export default function ContextCuratorStudio({
                 padding: '7px 14px',
                 borderRadius: '6px',
                 border: 'none',
-                background: curatorSubView === 'health' ? '#2026d2' : 'transparent',
-                color: curatorSubView === 'health' ? '#fff' : 'var(--text-main)',
+                background: curatorSubView === 'health' ? '#FFAB4A' : 'transparent',
+                color: curatorSubView === 'health' ? '#1A1207' : 'var(--text-main)',
                 fontSize: '0.78rem',
-                fontWeight: 600,
+                fontWeight: 700,
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
@@ -390,7 +390,7 @@ export default function ContextCuratorStudio({
               }}
             >
               <span>🤖 Context Health & Heuristics</span>
-              <span className="badge" style={{ fontSize: '0.62rem', background: curatorSubView === 'health' ? 'rgba(255,255,255,0.25)' : 'var(--bg-surface)', color: curatorSubView === 'health' ? '#fff' : 'var(--text-muted)' }}>
+              <span className="badge" style={{ fontSize: '0.62rem', background: curatorSubView === 'health' ? 'rgba(0,0,0,0.12)' : 'var(--bg-surface)', color: curatorSubView === 'health' ? '#1A1207' : 'var(--text-muted)' }}>
                 {scorecard.overall_score}%
               </span>
             </button>
@@ -400,10 +400,10 @@ export default function ContextCuratorStudio({
                 padding: '7px 14px',
                 borderRadius: '6px',
                 border: 'none',
-                background: curatorSubView === 'conflicts' ? '#2026d2' : 'transparent',
-                color: curatorSubView === 'conflicts' ? '#fff' : 'var(--text-main)',
+                background: curatorSubView === 'conflicts' ? '#FFAB4A' : 'transparent',
+                color: curatorSubView === 'conflicts' ? '#1A1207' : 'var(--text-main)',
                 fontSize: '0.78rem',
-                fontWeight: 600,
+                fontWeight: 700,
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
@@ -421,10 +421,10 @@ export default function ContextCuratorStudio({
                 padding: '7px 14px',
                 borderRadius: '6px',
                 border: 'none',
-                background: curatorSubView === 'drift' ? '#2026d2' : 'transparent',
-                color: curatorSubView === 'drift' ? '#fff' : 'var(--text-main)',
+                background: curatorSubView === 'drift' ? '#FFAB4A' : 'transparent',
+                color: curatorSubView === 'drift' ? '#1A1207' : 'var(--text-main)',
                 fontSize: '0.78rem',
-                fontWeight: 600,
+                fontWeight: 700,
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
@@ -432,7 +432,7 @@ export default function ContextCuratorStudio({
               }}
             >
               <span>⏳ Drift & Claim Decay</span>
-              <span className="badge badge-warning" style={{ fontSize: '0.62rem', background: curatorSubView === 'drift' ? 'rgba(255,255,255,0.25)' : 'rgba(245,158,11,0.15)', color: curatorSubView === 'drift' ? '#fff' : '#f59e0b' }}>
+              <span className="badge badge-warning" style={{ fontSize: '0.62rem', background: curatorSubView === 'drift' ? 'rgba(0,0,0,0.12)' : 'rgba(245,158,11,0.15)', color: curatorSubView === 'drift' ? '#1A1207' : '#f59e0b' }}>
                 {driftData?.decay_items ? driftData.decay_items.filter(d => d.decay_status === 'CRITICAL' || d.decay_status === 'DECAYED').length : 0} At Risk
               </span>
             </button>

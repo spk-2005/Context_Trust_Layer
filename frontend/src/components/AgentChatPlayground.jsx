@@ -290,16 +290,19 @@ export default function AgentChatPlayground({
                 flexDirection: 'column',
                 alignItems: 'center'
               }}>
-                {/* Ask Context Trust Layer - Smaller text */}
-                <h2 style={{
-                  fontSize: '1rem',
-                  fontWeight: 700,
-                  color: 'var(--text-main, #0F172A)',
-                  marginBottom: '4px',
-                  letterSpacing: '-0.01em'
-                }}>
-                  Ask Context Trust Layer
-                </h2>
+                {/* Ask Trulin - Smaller text */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                  <img src="/Trulin-main.png" alt="Trulin" style={{ height: '24px', objectFit: 'contain' }} />
+                  <h2 style={{
+                    fontSize: '1rem',
+                    fontWeight: 700,
+                    color: 'var(--text-main, #0F172A)',
+                    margin: 0,
+                    letterSpacing: '-0.01em'
+                  }}>
+                    Ask Trulin
+                  </h2>
+                </div>
 
                 {/* Subtitle - Smaller text */}
                 <p style={{

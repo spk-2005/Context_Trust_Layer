@@ -1404,14 +1404,32 @@ export default function App() {
       {/* ========================================================= */}
       <aside className="sidebar">
         {/* Brand Header */}
-        <div style={{ padding: '4px 6px 12px 6px', borderBottom: '1px solid var(--border-subtle)', marginBottom: '8px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span style={{ fontSize: '0.98rem', fontWeight: 700, color: 'var(--text-main)', letterSpacing: '-0.01em' }}>
-              Context Trust Layer
+        <div 
+          onClick={() => { setActiveTab('home'); setExpandedMenu('home'); }}
+          style={{ 
+            padding: '10px 12px', 
+            background: 'linear-gradient(135deg, #181411 0%, #241D17 100%)',
+            border: '1px solid rgba(255, 171, 74, 0.25)',
+            borderRadius: '10px',
+            marginBottom: '12px',
+            cursor: 'pointer',
+            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.12)'
+          }}
+          title="Trulin AI Decision & Context Trust Platform"
+        >
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+            <img 
+              src="/Trulin-white.png" 
+              alt="Trulin" 
+              style={{ height: '24px', maxWidth: '140px', objectFit: 'contain' }} 
+            />
+            <span style={{ fontSize: '0.62rem', padding: '2px 6px', background: 'rgba(255,171,74,0.2)', color: '#FFAB4A', border: '1px solid rgba(255,171,74,0.4)', borderRadius: '999px', fontWeight: 700 }}>
+              v1.0
             </span>
-            <span className="badge badge-verified" style={{ fontSize: '0.62rem', padding: '1px 5px' }}>
-              v0.1.0
-            </span>
+          </div>
+          <div style={{ fontSize: '0.65rem', color: '#D6D3D1', marginTop: '6px', fontWeight: 500, letterSpacing: '0.02em', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#FFAB4A', display: 'inline-block', boxShadow: '0 0 6px #FFAB4A' }} />
+            Context Trust Platform
           </div>
         </div>
 
@@ -2462,11 +2480,18 @@ export default function App() {
             <div className="clean-panel" style={{ padding: '28px 32px', marginBottom: '24px', background: 'linear-gradient(135deg, var(--bg-card) 0%, var(--bg-card-subtle) 100%)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '20px' }}>
                 <div style={{ maxWidth: '820px' }}>
-                  <span className="badge badge-verified" style={{ marginBottom: '8px' }}>
-                    Enterprise AI Safety Architecture
-                  </span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '10px', flexWrap: 'wrap' }}>
+                    <img 
+                      src="/Trulin-main.png" 
+                      alt="Trulin" 
+                      style={{ height: '36px', maxWidth: '170px', objectFit: 'contain' }} 
+                    />
+                    <span className="badge badge-verified">
+                      Enterprise AI Safety Architecture
+                    </span>
+                  </div>
                   <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-main)', marginTop: '4px', letterSpacing: '-0.02em' }}>
-                    Context Trust Layer
+                    Trulin Context Trust Gateway
                   </h1>
                   <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: '1.55', marginTop: '8px' }}>
                     A deterministic evidence validation gate that prevents autonomous AI agents from acting on outdated policies, unverified rumors, and contradictory instructions across enterprise knowledge bases.
@@ -3525,7 +3550,7 @@ export default function App() {
                                   reasons: item.reasons || [],
                                   preferred_source: item.preferred_source || "PostgreSQL Atomic Claims Knowledge Base",
                                   audit_id: item.audit_id,
-                                  suggested_action: item.suggested_action || "Decision evaluated and gated by Context Trust Layer.",
+                                  suggested_action: item.suggested_action || "Decision evaluated and gated by Trulin.",
                                   execution_ms: item.execution_ms,
                                   audit_token: item.audit_token
                                 });

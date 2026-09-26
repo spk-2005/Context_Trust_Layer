@@ -11,15 +11,20 @@
   --border-subtle: #E2E8F0;
   --border-medium: #CBD5E1;
   --border-strong: #94A3B8;
-  --border-focus: #2563EB;
+  --border-focus: #FFAB4A;
 
-  /* Primary Accent */
-  --primary-50: #EFF6FF;
-  --primary-100: #DBEAFE;
-  --primary-200: #BFDBFE;
-  --primary: #2563EB;
-  --primary-hover: #1D4ED8;
-  --primary-dark: #1E3A8A;
+  /* Primary Accent - Trulin Golden Amber (#FFAB4A) */
+  --primary-50: #FFF9F2;
+  --primary-100: #FFEED9;
+  --primary-200: #FFD8A8;
+  --primary-300: #FFC57E;
+  --primary-400: #FFB558;
+  --primary: #FFAB4A;
+  --primary-hover: #F5982C;
+  --primary-dark: #C96E07;
+  --primary-solid: #FFAB4A;
+  --primary-glow: rgba(255, 171, 74, 0.28);
+  --primary-text: #8C4700;
 
   /* Semantic Success (Verified / Allow) */
   --success-bg: #F0FDF4;
@@ -145,13 +150,14 @@ body {
 }
 
 .nav-item-active {
-  background: #EEF2FF;
-  color: #312E81;
+  background: #FFF7ED;
+  color: #C2410C;
   font-weight: 600;
+  box-shadow: inset 3px 0 0 #FFAB4A;
 }
 
 .nav-item-active svg {
-  color: #4F46E5;
+  color: #EA580C;
 }
 
 /* Chats / Workflows Section Header */
@@ -229,13 +235,14 @@ body {
 }
 
 .nav-chat-item-active {
-  background: #EEF2FF;
-  color: #312E81;
+  background: #FFF7ED;
+  color: #C2410C;
   font-weight: 600;
+  box-shadow: inset 2px 0 0 #FFAB4A;
 }
 
 .nav-chat-item-active svg {
-  color: #4F46E5;
+  color: #EA580C;
 }
 
 /* Sleek Scrollbar for Recent Chats in Sidebar */
@@ -355,7 +362,8 @@ body {
 .top-header-pill-active {
   border-color: var(--primary) !important;
   background: #FFFFFF !important;
-  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.12) !important;
+  box-shadow: 0 0 0 2px rgba(255, 171, 74, 0.22) !important;
+  color: #9A4900 !important;
 }
 
 .top-status-badge {
@@ -405,8 +413,9 @@ body {
 
 .scenario-btn-active {
   background: #FFFFFF;
-  color: var(--primary);
+  color: #9A4900;
   font-weight: 700;
+  box-shadow: 0 1px 3px rgba(255, 171, 74, 0.2);
 }
 
 /* Clean Flat Panels (No Shadows) */
@@ -448,8 +457,8 @@ body {
 }
 
 .badge-verified {
-  background: var(--primary-50);
-  color: var(--primary);
+  background: var(--primary-100);
+  color: #9A4900;
   border: 1px solid var(--primary-200);
 }
 
@@ -478,13 +487,18 @@ body {
 }
 
 .btn-primary {
-  background: var(--primary);
-  color: #FFFFFF;
-  border-color: var(--primary-hover);
+  background: linear-gradient(135deg, #FFAB4A 0%, #F5982C 100%);
+  color: #1A1207;
+  font-weight: 700;
+  border-color: #E2881E;
+  box-shadow: 0 1px 3px rgba(245, 152, 44, 0.25);
 }
 
 .btn-primary:hover {
-  background: var(--primary-hover);
+  background: linear-gradient(135deg, #F5982C 0%, #E68515 100%);
+  color: #1A1207;
+  border-color: #CC730E;
+  box-shadow: 0 2px 8px rgba(245, 152, 44, 0.35);
 }
 
 .btn-secondary {
@@ -501,8 +515,9 @@ body {
 
 .btn-secondary-active {
   background: var(--primary-50);
-  color: var(--primary);
+  color: #9A4900;
   border-color: var(--primary);
+  font-weight: 600;
 }
 
 .btn-success {
@@ -582,8 +597,8 @@ textarea:focus {
   }
 }
 
-/* User Question Bubble Animated Blue Gradient Border */
-@keyframes blueGradientBorder {
+/* User Question Bubble Animated Amber Gradient Border */
+@keyframes amberGradientBorder {
   0% {
     background-position: 0% 50%;
   }
@@ -599,46 +614,47 @@ textarea:focus {
   position: relative;
   background: 
     linear-gradient(var(--bg-card, #FFFFFF), var(--bg-card, #FFFFFF)) padding-box,
-    linear-gradient(135deg, #2563EB, #38BDF8, #60A5FA, #1D4ED8, #3B82F6, #06B6D4, #2563EB) border-box;
+    linear-gradient(135deg, #FFAB4A, #FDBA74, #F59E0B, #FB923C, #FFD8A8, #EA580C, #FFAB4A) border-box;
   border: 1.5px solid transparent;
   background-size: 100% 100%, 300% 300%;
-  animation: blueGradientBorder 3.5s linear infinite;
+  animation: amberGradientBorder 3.5s linear infinite;
   border-radius: 14px 14px 2px 14px;
-  box-shadow: 0 2px 10px rgba(37, 99, 235, 0.08);
+  box-shadow: 0 2px 12px rgba(255, 171, 74, 0.12);
 }
 
-/* Disco Type Animated Border with Highlighting Blue and Ambient Glow Shadow */
-@keyframes discoBlueGradient {
+/* Disco Type Animated Border with Highlighting Amber and Ambient Glow Shadow */
+@keyframes discoAmberGradient {
   0% {
     background-position: 0% 50%;
-    box-shadow: 0 6px 24px rgba(37, 99, 235, 0.22), 0 0 14px rgba(56, 189, 248, 0.2);
+    box-shadow: 0 6px 24px rgba(255, 171, 74, 0.25), 0 0 14px rgba(251, 146, 60, 0.2);
   }
   25% {
     background-position: 50% 100%;
-    box-shadow: 0 6px 28px rgba(59, 130, 246, 0.28), 0 0 18px rgba(14, 165, 233, 0.24);
+    box-shadow: 0 6px 28px rgba(245, 158, 11, 0.28), 0 0 18px rgba(254, 215, 170, 0.24);
   }
   50% {
     background-position: 100% 50%;
-    box-shadow: 0 6px 26px rgba(99, 102, 241, 0.25), 0 0 16px rgba(37, 99, 235, 0.26);
+    box-shadow: 0 6px 26px rgba(234, 88, 12, 0.25), 0 0 16px rgba(255, 171, 74, 0.26);
   }
   75% {
     background-position: 50% 0%;
-    box-shadow: 0 6px 30px rgba(6, 182, 212, 0.26), 0 0 20px rgba(37, 99, 235, 0.22);
+    box-shadow: 0 6px 30px rgba(249, 115, 22, 0.26), 0 0 20px rgba(255, 171, 74, 0.22);
   }
   100% {
     background-position: 0% 50%;
-    box-shadow: 0 6px 24px rgba(37, 99, 235, 0.22), 0 0 14px rgba(56, 189, 248, 0.2);
+    box-shadow: 0 6px 24px rgba(255, 171, 74, 0.25), 0 0 14px rgba(251, 146, 60, 0.2);
   }
 }
 
-.disco-blue-border-card {
+.disco-blue-border-card,
+.disco-amber-border-card {
   position: relative;
   background: 
     linear-gradient(var(--bg-card, #FFFFFF), var(--bg-card, #FFFFFF)) padding-box,
-    linear-gradient(135deg, #2563EB, #38BDF8, #60A5FA, #4F46E5, #06B6D4, #1D4ED8, #818CF8, #38BDF8, #2563EB) border-box;
+    linear-gradient(135deg, #FFAB4A, #F59E0B, #FED7AA, #FB923C, #FDE68A, #EA580C, #FFAB4A) border-box;
   border: 2px solid transparent;
   background-size: 100% 100%, 350% 350%;
-  animation: discoBlueGradient 4s ease infinite;
+  animation: discoAmberGradient 4s ease infinite;
   border-radius: 14px;
   transition: transform 0.2s ease;
 }

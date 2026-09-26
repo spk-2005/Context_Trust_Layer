@@ -202,7 +202,7 @@ import requests
 ollama_client = Client(host="http://localhost:11434")
 
 def query_with_trusted_context(prompt: str):
-    # 1. Fetch grounded enterprise facts from Context Trust Layer
+    # 1. Fetch grounded enterprise facts from Trulin
     res = requests.post("http://127.0.0.1:8000/v1/mcp/invoke", json={
         "tool": "context_trust_get_trusted_context",
         "arguments": {"query": prompt, "organization_id": "${orgId}", "min_trust_score": 0.80}
@@ -217,7 +217,7 @@ def query_with_trusted_context(prompt: str):
     ])
     return response['message']['content']`;
     } else if (activeSnippet === 'python') {
-      return `# Python Context Trust SDK / MCP Client
+      return `# Python Trulin SDK / MCP Client
 import httpx
 
 client = httpx.Client(base_url="http://127.0.0.1:8000/v1")
@@ -241,7 +241,7 @@ import requests
 
 @tool
 def get_enterprise_context(query: str) -> str:
-    """Queries verified enterprise policies from Context Trust Layer."""
+    """Queries verified enterprise policies from Trulin."""
     res = requests.post("http://127.0.0.1:8000/v1/mcp/invoke", json={
         "tool": "context_trust_get_trusted_context",
         "arguments": {"query": query, "organization_id": "${orgId}"}
@@ -328,10 +328,10 @@ context_tool = FunctionTool.from_defaults(fn=fetch_trusted_knowledge)`;
                 padding: '7px 14px',
                 borderRadius: '6px',
                 border: 'none',
-                background: activeSubView === 'tester' ? '#2026d2' : 'transparent',
-                color: activeSubView === 'tester' ? '#fff' : 'var(--text-main)',
+                background: activeSubView === 'tester' ? '#FFAB4A' : 'transparent',
+                color: activeSubView === 'tester' ? '#1A1207' : 'var(--text-main)',
                 fontSize: '0.78rem',
-                fontWeight: 600,
+                fontWeight: 700,
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
@@ -346,10 +346,10 @@ context_tool = FunctionTool.from_defaults(fn=fetch_trusted_knowledge)`;
                 padding: '7px 14px',
                 borderRadius: '6px',
                 border: 'none',
-                background: activeSubView === 'configs' ? '#2026d2' : 'transparent',
-                color: activeSubView === 'configs' ? '#fff' : 'var(--text-main)',
+                background: activeSubView === 'configs' ? '#FFAB4A' : 'transparent',
+                color: activeSubView === 'configs' ? '#1A1207' : 'var(--text-main)',
                 fontSize: '0.78rem',
-                fontWeight: 600,
+                fontWeight: 700,
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
@@ -364,10 +364,10 @@ context_tool = FunctionTool.from_defaults(fn=fetch_trusted_knowledge)`;
                 padding: '7px 14px',
                 borderRadius: '6px',
                 border: 'none',
-                background: activeSubView === 'sdks' ? '#2026d2' : 'transparent',
-                color: activeSubView === 'sdks' ? '#fff' : 'var(--text-main)',
+                background: activeSubView === 'sdks' ? '#FFAB4A' : 'transparent',
+                color: activeSubView === 'sdks' ? '#1A1207' : 'var(--text-main)',
                 fontSize: '0.78rem',
-                fontWeight: 600,
+                fontWeight: 700,
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
@@ -382,10 +382,10 @@ context_tool = FunctionTool.from_defaults(fn=fetch_trusted_knowledge)`;
                 padding: '7px 14px',
                 borderRadius: '6px',
                 border: 'none',
-                background: activeSubView === 'schemas' ? '#2026d2' : 'transparent',
-                color: activeSubView === 'schemas' ? '#fff' : 'var(--text-main)',
+                background: activeSubView === 'schemas' ? '#FFAB4A' : 'transparent',
+                color: activeSubView === 'schemas' ? '#1A1207' : 'var(--text-main)',
                 fontSize: '0.78rem',
-                fontWeight: 600,
+                fontWeight: 700,
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
@@ -400,10 +400,10 @@ context_tool = FunctionTool.from_defaults(fn=fetch_trusted_knowledge)`;
                 padding: '7px 14px',
                 borderRadius: '6px',
                 border: 'none',
-                background: activeSubView === 'middleware' ? '#2026d2' : 'transparent',
-                color: activeSubView === 'middleware' ? '#fff' : 'var(--text-main)',
+                background: activeSubView === 'middleware' ? '#FFAB4A' : 'transparent',
+                color: activeSubView === 'middleware' ? '#1A1207' : 'var(--text-main)',
                 fontSize: '0.78rem',
-                fontWeight: 600,
+                fontWeight: 700,
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
