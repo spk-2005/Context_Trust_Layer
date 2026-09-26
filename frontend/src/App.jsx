@@ -29,7 +29,10 @@ import {
   Bell,
   UserCheck,
   Crosshair,
-  Binary
+  Binary,
+  Building2,
+  FolderGit2,
+  ChevronDown
 } from 'lucide-react';
 import TeamAndActivityHub from './components/TeamAndActivityHub';
 import AgentChatPlayground from './components/AgentChatPlayground';
@@ -1849,12 +1852,14 @@ export default function App() {
                   setIsPersonaDropdownOpen(false);
                 }}
                 className={`top-header-pill ${isOrgDropdownOpen ? 'top-header-pill-active' : ''}`}
-                title="Active Client / Organization"
+                title={`Active Organization: ${activeOrg?.name || 'demo'}`}
+                style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
               >
-                <span style={{ maxWidth: '100px', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  {activeOrg?.name || 'demo'}
+                <Building2 size={12} style={{ color: 'var(--text-muted)' }} />
+                <span style={{ maxWidth: '140px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {activeOrg?.name || 'SSFA Capital'}
                 </span>
-                <span style={{ fontSize: '0.62rem', color: '#94A3B8' }}>▾</span>
+                <ChevronDown size={11} style={{ color: '#94A3B8' }} />
               </button>
 
               {isOrgDropdownOpen && (
@@ -1968,12 +1973,14 @@ export default function App() {
                   setIsPersonaDropdownOpen(false);
                 }}
                 className={`top-header-pill ${isWorkspaceDropdownOpen ? 'top-header-pill-active' : ''}`}
-                title="Active Workspace"
+                title={`Active Workspace: ${activeWorkspace?.name || 'All Workspaces'}`}
+                style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
               >
-                <span style={{ maxWidth: '120px', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  {activeWorkspace?.name || 'All Workspaces'}
+                <FolderGit2 size={12} style={{ color: 'var(--text-muted)' }} />
+                <span style={{ maxWidth: '130px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {activeWorkspace?.name ? activeWorkspace.name.replace(' (Universal)', '') : 'All Workspaces'}
                 </span>
-                <span style={{ fontSize: '0.62rem', color: '#94A3B8' }}>▾</span>
+                <ChevronDown size={11} style={{ color: '#94A3B8' }} />
               </button>
 
               {isWorkspaceDropdownOpen && (
@@ -2065,28 +2072,35 @@ export default function App() {
                   setIsWorkspaceDropdownOpen(false);
                 }}
                 className={`top-header-pill ${isPersonaDropdownOpen ? 'top-header-pill-active' : ''}`}
-                title={`Active Role: ${roleMetadata?.title || effectiveRole.toUpperCase()} • ${roleMetadata?.separation_of_duties}`}
+                title={`Active Role: ${roleMetadata?.title || effectiveRole.toUpperCase()}`}
                 style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
               >
-                {activePersona?.avatar_url && (
-                  <img
-                    src={activePersona.avatar_url}
-                    alt={activePersona.name}
-                    style={{ width: '16px', height: '16px', borderRadius: '4px', objectFit: 'cover' }}
-                  />
-                )}
-                <span style={{ maxWidth: '110px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <div style={{
+                  width: '18px',
+                  height: '18px',
+                  borderRadius: '50%',
+                  background: 'linear-gradient(135deg, #FFAB4A 0%, #EA580C 100%)',
+                  color: '#1A1207',
+                  fontWeight: 700,
+                  fontSize: '0.60rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0
+                }}>
+                  {activePersona?.name ? activePersona.name.split(' ').map(n => n[0]).join('').slice(0, 2) : 'SC'}
+                </div>
+                <span style={{ maxWidth: '110px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 600 }}>
                   {activePersona?.name || 'Sarah Chen'}
                 </span>
-                <span style={{
-                  fontSize: '0.62rem',
-                  color: roleMetadata?.badge_color || '#10b981',
-                  background: roleMetadata?.badge_bg || 'rgba(16,185,129,0.1)',
+                <span className="badge" style={{
+                  fontSize: '0.58rem',
+                  color: '#9A4900',
+                  background: 'rgba(255,171,74,0.15)',
                   padding: '1px 5px',
-                  borderRadius: '3px',
-                  border: `1px solid ${roleMetadata?.badge_color || '#10b981'}40`,
-                  fontWeight: 600,
-                  textTransform: 'uppercase'
+                  borderRadius: '4px',
+                  border: '1px solid rgba(255,171,74,0.3)',
+                  fontWeight: 700
                 }}>
                   {effectiveRole.toUpperCase()}
                 </span>
@@ -2102,7 +2116,7 @@ export default function App() {
                     SIM
                   </span>
                 )}
-                <span style={{ fontSize: '0.62rem', color: '#94A3B8' }}>▾</span>
+                <ChevronDown size={11} style={{ color: '#94A3B8' }} />
               </button>
 
               {isPersonaDropdownOpen && (
@@ -2327,6 +2341,7 @@ export default function App() {
             </div>
 
             {/* RBAC Matrix Top Header Pill */}
+            {/* RBAC Matrix Top Header Pill */}
             <button
               onClick={() => setIsRbacModalOpen(true)}
               className="top-header-pill"
@@ -2335,15 +2350,13 @@ export default function App() {
                 display: 'flex',
                 alignItems: 'center',
                 gap: '5px',
-                background: 'rgba(99, 102, 241, 0.08)',
-                borderColor: 'rgba(99, 102, 241, 0.28)',
-                color: '#4F46E5',
+                color: 'var(--text-secondary)',
                 fontWeight: 600,
                 cursor: 'pointer'
               }}
             >
-              <span style={{ fontSize: '0.75rem' }}>🛡️</span>
-              <span>RBAC Matrix</span>
+              <ShieldCheck size={13} style={{ color: 'var(--primary-dark)' }} />
+              <span>RBAC</span>
             </button>
 
             {/* Real-Time Incident Webhooks Button */}
@@ -2355,15 +2368,13 @@ export default function App() {
                 display: 'flex',
                 alignItems: 'center',
                 gap: '5px',
-                background: 'rgba(239, 68, 68, 0.08)',
-                borderColor: 'rgba(239, 68, 68, 0.28)',
-                color: '#EF4444',
+                color: 'var(--text-secondary)',
                 fontWeight: 600,
                 cursor: 'pointer'
               }}
             >
-              <Bell size={12} />
-              <span>Webhooks & Alerts</span>
+              <Bell size={12} style={{ color: '#EA580C' }} />
+              <span>Alerts</span>
             </button>
 
             {/* 4. SYSTEM OPERATIONAL BADGE */}
@@ -2381,32 +2392,20 @@ export default function App() {
           <div style={{
             background: 'linear-gradient(90deg, #F59E0B 0%, #D97706 100%)',
             color: '#FFFFFF',
-            padding: '7px 20px',
+            padding: '5px 20px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            fontSize: '0.78rem',
+            fontSize: '0.74rem',
             fontWeight: 600,
-            boxShadow: '0 2px 10px rgba(245, 158, 11, 0.3)',
             zIndex: 40,
             position: 'relative'
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <Eye size={15} />
-                <span>
-                  ROLE SIMULATION: Viewing UI as <strong>{roleMetadata?.title || simulatedRole.toUpperCase()}</strong>
-                </span>
-              </div>
-              <span style={{
-                background: 'rgba(0,0,0,0.22)',
-                padding: '2px 8px',
-                borderRadius: '12px',
-                fontSize: '0.70rem',
-                fontWeight: 500,
-                border: '1px solid rgba(255,255,255,0.2)'
-              }}>
-                ⚖️ {roleMetadata?.separation_of_duties}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Eye size={14} />
+              <span>Simulated Role: <strong>{roleMetadata?.title || simulatedRole.toUpperCase()}</strong></span>
+              <span className="badge" style={{ background: 'rgba(0,0,0,0.22)', color: '#FFF', fontSize: '0.62rem', border: '1px solid rgba(255,255,255,0.2)' }}>
+                SoD Restricted
               </span>
             </div>
             <button
@@ -2419,12 +2418,10 @@ export default function App() {
                 color: '#B45309',
                 border: 'none',
                 borderRadius: '4px',
-                padding: '3px 10px',
-                fontSize: '0.72rem',
+                padding: '2px 8px',
+                fontSize: '0.70rem',
                 fontWeight: 700,
-                cursor: 'pointer',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.15)',
-                whiteSpace: 'nowrap'
+                cursor: 'pointer'
               }}
             >
               Exit Simulation ✕
@@ -2432,42 +2429,38 @@ export default function App() {
           </div>
         ) : (
           <div style={{
-            background: 'var(--bg-card-subtle)',
+            background: 'var(--bg-card)',
             borderBottom: '1px solid var(--border-subtle)',
-            padding: '4px 20px',
+            padding: '5px 20px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            fontSize: '0.72rem',
-            color: 'var(--text-muted)'
+            fontSize: '0.73rem',
+            color: 'var(--text-secondary)'
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '4px',
-                fontWeight: 700,
-                color: roleMetadata?.badge_color || 'var(--text-main)'
+            {/* Left: Role & Clearance Badge */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 700, color: 'var(--text-main)' }}>
+                <Shield size={13} style={{ color: 'var(--primary-dark)' }} />
+                <span>{roleMetadata?.title || effectiveRole.toUpperCase()}</span>
+              </div>
+              <span className="badge" style={{
+                fontSize: '0.62rem',
+                padding: '1px 6px',
+                background: 'rgba(255,171,74,0.12)',
+                color: '#9A4900',
+                border: '1px solid rgba(255,171,74,0.3)',
+                fontWeight: 700
               }}>
-                <Shield size={12} />
-                {roleMetadata?.title || effectiveRole.toUpperCase()}
-              </span>
-              <span>•</span>
-              <span style={{ maxWidth: '600px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {roleMetadata?.description}
+                Full Governance Clearance
               </span>
             </div>
-            <span style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '4px',
-              color: '#10B981',
-              fontWeight: 600,
-              fontSize: '0.68rem'
-            }}>
-              <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#10B981' }} />
-              Separation of Duties (SoD) Active
-            </span>
+
+            {/* Right: Regulatory Status Indicator */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#15803D', fontWeight: 600, fontSize: '0.70rem' }}>
+              <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#16A34A', display: 'inline-block', boxShadow: '0 0 6px rgba(22,163,74,0.35)' }} />
+              Separation of Duties (SoD) Enforced
+            </div>
           </div>
         )}
 
