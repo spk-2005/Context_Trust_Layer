@@ -30,10 +30,12 @@ import {
   UserCheck,
   Crosshair,
   Binary,
+  User,
   Building2,
   FolderGit2,
   ChevronDown
 } from 'lucide-react';
+import UserProfileStudio from './components/UserProfileStudio';
 import TeamAndActivityHub from './components/TeamAndActivityHub';
 import AgentChatPlayground from './components/AgentChatPlayground';
 import LiveIngestionStudio from './components/LiveIngestionStudio';
@@ -1693,6 +1695,13 @@ export default function App() {
               <span>Team & Personas</span>
             </button>
           )}
+          <button
+            onClick={() => setActiveTab('profile')}
+            className={`nav-item ${activeTab === 'profile' ? 'nav-item-active' : ''}`}
+          >
+            <User size={16} strokeWidth={1.75} />
+            <span>Profile & Companies</span>
+          </button>
         </div>
       </aside>
 
@@ -1734,6 +1743,7 @@ export default function App() {
                    activeTab === 'ingestion' ? 'Document Explorer' :
                    activeTab === 'integrations' ? 'Agent Integrations & MCP' :
                    activeTab === 'audit' ? 'Decision Audit Trail & Lineage' :
+                   activeTab === 'profile' ? 'Profile & Company Switcher' :
                    'Team, Personas & Governance'}
                 </button>
               </>
@@ -1843,133 +1853,11 @@ export default function App() {
           {/* Right Side: Professional Enterprise Header Controls */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'nowrap', position: 'relative' }}>
 
-            {/* 1. ENTERPRISE CLIENT (TENANT ROOT) DROPDOWN */}
-            <div style={{ position: 'relative' }}>
-              <button
-                onClick={() => {
-                  setIsOrgDropdownOpen(prev => !prev);
-                  setIsWorkspaceDropdownOpen(false);
-                  setIsPersonaDropdownOpen(false);
-                }}
-                className={`top-header-pill ${isOrgDropdownOpen ? 'top-header-pill-active' : ''}`}
-                title={`Active Organization: ${activeOrg?.name || 'demo'}`}
-                style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
-              >
-                <Building2 size={12} style={{ color: 'var(--text-muted)' }} />
-                <span style={{ maxWidth: '140px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {activeOrg?.name || 'SSFA Capital'}
-                </span>
-                <ChevronDown size={11} style={{ color: '#94A3B8' }} />
-              </button>
-
-              {isOrgDropdownOpen && (
-                <div style={{
-                  position: 'absolute',
-                  top: 'calc(100% + 4px)',
-                  right: 0,
-                  background: 'var(--bg-card)',
-                  border: '1px solid var(--border-subtle)',
-                  borderRadius: '6px',
-                  boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
-                  zIndex: 250,
-                  width: '240px',
-                  padding: '6px'
-                }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 6px 4px 6px', borderBottom: '1px solid var(--border-subtle)', marginBottom: '4px' }}>
-                    <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                      Organizations
-                    </span>
-                    <span className="badge badge-muted" style={{ fontSize: '0.6rem', padding: '1px 4px' }}>Client Root</span>
-                  </div>
-
-                  <div style={{ maxHeight: '180px', overflowY: 'auto' }}>
-                    {organizations.map(org => (
-                      <button
-                        key={org.id}
-                        onClick={() => {
-                          handleSwitchOrganization(org);
-                          setIsOrgDropdownOpen(false);
-                        }}
-                        style={{
-                          width: '100%',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          padding: '6px 8px',
-                          background: activeOrg?.id === org.id ? 'var(--primary-subtle, rgba(99,102,241,0.1))' : 'transparent',
-                          border: 'none',
-                          borderRadius: '4px',
-                          color: activeOrg?.id === org.id ? 'var(--primary)' : 'var(--text-main)',
-                          fontSize: '0.75rem',
-                          fontWeight: activeOrg?.id === org.id ? 700 : 500,
-                          cursor: 'pointer',
-                          textAlign: 'left'
-                        }}
-                      >
-                        <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{org.name}</span>
-                        {activeOrg?.id === org.id && <span style={{ fontSize: '0.7rem', color: 'var(--primary)' }}>✓</span>}
-                      </button>
-                    ))}
-                  </div>
-
-                  <div style={{ borderTop: '1px solid var(--border-subtle)', marginTop: '4px', paddingTop: '4px', display: 'flex', flexDirection: 'column', gap: '3px' }}>
-                    <button
-                      onClick={() => {
-                        setIsOrgSettingsModalOpen(true);
-                        setIsOrgDropdownOpen(false);
-                      }}
-                      style={{
-                        width: '100%',
-                        padding: '6px 8px',
-                        background: 'rgba(37, 99, 235, 0.08)',
-                        border: '1px solid rgba(37, 99, 235, 0.22)',
-                        borderRadius: '4px',
-                        color: '#2563EB',
-                        fontSize: '0.72rem',
-                        fontWeight: 600,
-                        cursor: 'pointer',
-                        textAlign: 'left',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '6px'
-                      }}
-                    >
-                      <span>⚙️ Workspace Settings & Team</span>
-                    </button>
-
-                    <button
-                      onClick={() => {
-                        setShowNewOrgModal(true);
-                        setIsOrgDropdownOpen(false);
-                      }}
-                      style={{
-                        width: '100%',
-                        padding: '5px 8px',
-                        background: 'transparent',
-                        border: 'none',
-                        color: 'var(--text-muted)',
-                        fontSize: '0.70rem',
-                        fontWeight: 500,
-                        cursor: 'pointer',
-                        textAlign: 'left',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '4px'
-                      }}
-                    >
-                      + Register Organization
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* 2. ACTIVE DEPARTMENTAL WORKSPACE DROPDOWN */}
+            {/* 1. ACTIVE DEPARTMENTAL WORKSPACE DROPDOWN */}
             <div style={{ position: 'relative' }}>
               <button
                 onClick={() => {
                   setIsWorkspaceDropdownOpen(prev => !prev);
-                  setIsOrgDropdownOpen(false);
                   setIsPersonaDropdownOpen(false);
                 }}
                 className={`top-header-pill ${isWorkspaceDropdownOpen ? 'top-header-pill-active' : ''}`}
@@ -2063,17 +1951,16 @@ export default function App() {
               )}
             </div>
 
-            {/* 3. ACTIVE PERSONA SWITCHER DROPDOWN */}
+            {/* 2. USER PROFILE & COMPANY SWITCHER BUTTON (NAVIGATES TO PROFILE TAB) */}
             <div style={{ position: 'relative' }}>
               <button
                 onClick={() => {
-                  setIsPersonaDropdownOpen(prev => !prev);
-                  setIsOrgDropdownOpen(false);
+                  setActiveTab('profile');
                   setIsWorkspaceDropdownOpen(false);
                 }}
-                className={`top-header-pill ${isPersonaDropdownOpen ? 'top-header-pill-active' : ''}`}
-                title={`Active Role: ${roleMetadata?.title || effectiveRole.toUpperCase()}`}
-                style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+                className={`top-header-pill ${activeTab === 'profile' ? 'top-header-pill-active' : ''}`}
+                title={`Profile: ${activePersona?.name || 'Sarah Chen'} • Click to view details and switch company`}
+                style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}
               >
                 <div style={{
                   width: '18px',
@@ -2116,231 +2003,9 @@ export default function App() {
                     SIM
                   </span>
                 )}
-                <ChevronDown size={11} style={{ color: '#94A3B8' }} />
               </button>
-
-              {isPersonaDropdownOpen && (
-                <div style={{
-                  position: 'absolute',
-                  top: 'calc(100% + 4px)',
-                  right: 0,
-                  background: 'var(--bg-card)',
-                  border: '1px solid var(--border-subtle)',
-                  borderRadius: '8px',
-                  boxShadow: '0 12px 32px rgba(0,0,0,0.35)',
-                  zIndex: 250,
-                  width: '300px',
-                  padding: '8px'
-                }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 6px 6px 6px', borderBottom: '1px solid var(--border-subtle)', marginBottom: '6px' }}>
-                    <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                      Enterprise Identity
-                    </span>
-                    <span className="badge badge-verified" style={{ fontSize: '0.62rem', padding: '1px 6px' }}>
-                      {isAuthenticated ? 'Authenticated' : 'Demo Mode'}
-                    </span>
-                  </div>
-
-                  <div style={{ maxHeight: '180px', overflowY: 'auto' }}>
-                    {personas.map(p => (
-                      <button
-                        key={p.id}
-                        onClick={() => {
-                          authLoginAsPersona(p);
-                          setActivePersona(p);
-                          setIsPersonaDropdownOpen(false);
-                          showToast(`Switched active persona to ${p.name} (${p.role.toUpperCase()})`);
-                        }}
-                        style={{
-                          width: '100%',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          padding: '6px 8px',
-                          background: activePersona?.id === p.id ? 'var(--primary-subtle, rgba(99,102,241,0.1))' : 'transparent',
-                          border: 'none',
-                          borderRadius: '6px',
-                          color: activePersona?.id === p.id ? 'var(--primary)' : 'var(--text-main)',
-                          fontSize: '0.75rem',
-                          fontWeight: activePersona?.id === p.id ? 700 : 500,
-                          cursor: 'pointer',
-                          textAlign: 'left',
-                          marginBottom: '2px'
-                        }}
-                      >
-                        <div style={{ overflow: 'hidden' }}>
-                          <div style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontWeight: 600 }}>
-                            {p.name}
-                          </div>
-                          <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
-                            {p.title || p.role}
-                          </div>
-                        </div>
-                        <span className="badge badge-muted" style={{ fontSize: '0.6rem', padding: '1px 5px' }}>
-                          {p.role}
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-
-                  {/* ADMIN ROLE SIMULATOR / PREVIEW UI AS */}
-                  <div style={{
-                    borderTop: '1px solid var(--border-subtle)',
-                    marginTop: '6px',
-                    paddingTop: '6px',
-                    marginBottom: '4px'
-                  }}>
-                    <div style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      padding: '2px 4px 5px 4px'
-                    }}>
-                      <span style={{
-                        fontSize: '0.66rem',
-                        color: 'var(--text-muted)',
-                        fontWeight: 700,
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.04em',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '4px'
-                      }}>
-                        <Eye size={12} />
-                        Preview UI As (Role Simulator)
-                      </span>
-                      {simulatedRole && (
-                        <button
-                          onClick={() => {
-                            setSimulatedRole(null);
-                            showToast('Exited Role Simulation');
-                          }}
-                          style={{
-                            background: 'transparent',
-                            border: 'none',
-                            color: '#F59E0B',
-                            fontSize: '0.65rem',
-                            fontWeight: 700,
-                            cursor: 'pointer'
-                          }}
-                        >
-                          Reset to CCO ✕
-                        </button>
-                      )}
-                    </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px' }}>
-                      {[
-                        { role: 'admin', label: '👔 Admin (CCO)', color: '#047857' },
-                        { role: 'data_owner', label: '📊 Data Steward', color: '#1D4ED8' },
-                        { role: 'reviewer', label: '⚖️ Risk Auditor', color: '#4338CA' },
-                        { role: 'developer', label: '💻 Operator / Dev', color: '#B45309' },
-                        { role: 'viewer', label: '👁️ Observer', color: '#64748B' },
-                      ].map(r => (
-                        <button
-                          key={r.role}
-                          onClick={() => {
-                            setSimulatedRole(r.role === 'admin' ? null : r.role);
-                            setIsPersonaDropdownOpen(false);
-                            showToast(r.role === 'admin' ? 'Switched to CCO Admin UI' : `Simulating UI as ${r.label}`);
-                          }}
-                          style={{
-                            padding: '5px 7px',
-                            borderRadius: '4px',
-                            border: effectiveRole === r.role ? `1px solid ${r.color}` : '1px solid var(--border-subtle)',
-                            background: effectiveRole === r.role ? `${r.color}15` : 'transparent',
-                            color: effectiveRole === r.role ? r.color : 'var(--text-main)',
-                            fontSize: '0.70rem',
-                            fontWeight: effectiveRole === r.role ? 700 : 500,
-                            cursor: 'pointer',
-                            textAlign: 'left',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between'
-                          }}
-                        >
-                          <span>{r.label}</span>
-                          {effectiveRole === r.role && <span style={{ fontSize: '0.65rem' }}>✓</span>}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div style={{ borderTop: '1px solid var(--border-subtle)', marginTop: '6px', paddingTop: '6px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    <button
-                      onClick={() => {
-                        setIsRbacModalOpen(true);
-                        setIsPersonaDropdownOpen(false);
-                      }}
-                      style={{
-                        width: '100%',
-                        padding: '6px 10px',
-                        background: 'rgba(99, 102, 241, 0.12)',
-                        border: '1px solid rgba(99, 102, 241, 0.3)',
-                        borderRadius: '6px',
-                        color: '#6366F1',
-                        fontSize: '0.74rem',
-                        fontWeight: 600,
-                        textAlign: 'center',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '6px'
-                      }}
-                    >
-                      <span>🛡️ Atlan RBAC Matrix & SoD</span>
-                    </button>
-
-                    <button
-                      onClick={() => {
-                        setIsAuthModalOpen(true);
-                        setAuthModalTab('login');
-                        setIsPersonaDropdownOpen(false);
-                      }}
-                      style={{
-                        width: '100%',
-                        padding: '6px 10px',
-                        background: 'rgba(16, 185, 129, 0.12)',
-                        border: '1px solid rgba(16, 185, 129, 0.3)',
-                        borderRadius: '6px',
-                        color: '#10b981',
-                        fontSize: '0.74rem',
-                        fontWeight: 600,
-                        textAlign: 'center',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '6px'
-                      }}
-                    >
-                      <span>🔑 Enterprise Sign In / Register</span>
-                    </button>
-                    <button
-                      onClick={() => {
-                        setActiveTab('team');
-                        setIsPersonaDropdownOpen(false);
-                      }}
-                      style={{
-                        width: '100%',
-                        padding: '5px 8px',
-                        background: 'transparent',
-                        border: 'none',
-                        color: 'var(--text-muted)',
-                        fontSize: '0.70rem',
-                        fontWeight: 500,
-                        textAlign: 'center',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      Manage Team & Directory ➔
-                    </button>
-                  </div>
-                </div>
-              )}
             </div>
 
-            {/* RBAC Matrix Top Header Pill */}
             {/* RBAC Matrix Top Header Pill */}
             <button
               onClick={() => setIsRbacModalOpen(true)}
@@ -5151,6 +4816,28 @@ export default function App() {
             activeOrg={activeOrg}
             activePersona={activePersona}
             onSelectPersona={(p) => setActivePersona(p)}
+            showToast={showToast}
+          />
+        )}
+
+        {/* ========================================================= */}
+        {/* TAB 8: USER PROFILE, IDENTITY & COMPANY SWITCHER          */}
+        {/* ========================================================= */}
+        {activeTab === 'profile' && (
+          <UserProfileStudio
+            activeOrg={activeOrg}
+            organizations={organizations}
+            onSwitchOrg={handleSwitchOrganization}
+            activeWorkspace={activeWorkspace}
+            workspaces={workspaces}
+            onSwitchWorkspace={setActiveWorkspace}
+            activePersona={activePersona}
+            personas={personas}
+            onSelectPersona={setActivePersona}
+            effectiveRole={effectiveRole}
+            roleMetadata={roleMetadata}
+            onOpenRegisterOrg={() => setShowNewOrgModal(true)}
+            onOpenOrgSettings={() => setIsOrgSettingsModalOpen(true)}
             showToast={showToast}
           />
         )}
