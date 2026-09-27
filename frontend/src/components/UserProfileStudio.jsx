@@ -455,17 +455,18 @@ export default function UserProfileStudio({
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(290px, 1fr))', gap: '14px' }}>
             {personas.map((persona) => {
-              const isSelected = activePersona?.id === persona.id;
+              const isSelected = activePersona?.id === persona.id ||
+                (activePersona?.email && activePersona.email === persona.email) ||
+                (activePersona?.role === persona.role && activePersona?.name === persona.name);
               const initials = persona.name
                 ? persona.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
                 : 'U';
 
               return (
                 <div
-                  key={persona.id}
+                  key={persona.id || persona.email || persona.role}
                   onClick={() => {
                     if (onSelectPersona) onSelectPersona(persona);
-                    showToast?.(`Switched active user to ${persona.name} (${persona.role.toUpperCase()})`);
                   }}
                   style={{
                     background: isSelected ? '#FFFDF9' : 'var(--bg-card)',

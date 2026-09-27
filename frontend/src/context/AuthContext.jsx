@@ -2,14 +2,72 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 
 const AuthContext = createContext(null);
 
+export const DEFAULT_ENTERPRISE_PERSONAS = [
+  {
+    id: '22222222-2222-2222-2222-222222222222',
+    name: 'Sarah Chen',
+    email: 'sarah.chen@ssfa.com',
+    role: 'admin',
+    title: 'Chief Compliance Officer',
+    department: 'Risk, Trust & Security',
+    organization_name: 'SSFA Capital Holdings',
+    organization_id: '11111111-1111-1111-1111-111111111111',
+    avatar_url: 'https://api.dicebear.com/7.x/bottts/svg?seed=Sarah'
+  },
+  {
+    id: '33333333-3333-3333-3333-333333333333',
+    name: 'Marcus Vance',
+    email: 'marcus.vance@ssfa.com',
+    role: 'data_owner',
+    title: 'Principal Data Steward',
+    department: 'Enterprise Data Platform',
+    organization_name: 'SSFA Capital Holdings',
+    organization_id: '11111111-1111-1111-1111-111111111111',
+    avatar_url: 'https://api.dicebear.com/7.x/bottts/svg?seed=Marcus'
+  },
+  {
+    id: '44444444-4444-4444-4444-444444444444',
+    name: 'Elena Rostova',
+    email: 'elena.rostova@ssfa.com',
+    role: 'reviewer',
+    title: 'Lead Risk Auditor',
+    department: 'Independent Governance & Oversight',
+    organization_name: 'SSFA Capital Holdings',
+    organization_id: '11111111-1111-1111-1111-111111111111',
+    avatar_url: 'https://api.dicebear.com/7.x/bottts/svg?seed=Elena'
+  },
+  {
+    id: '55555555-5555-5555-5555-555555555555',
+    name: 'Alex Vance',
+    email: 'alex.vance@ssfa.com',
+    role: 'developer',
+    title: 'Autonomous Systems Engineer',
+    department: 'AI Operations & Platform Engineering',
+    organization_name: 'SSFA Capital Holdings',
+    organization_id: '11111111-1111-1111-1111-111111111111',
+    avatar_url: 'https://api.dicebear.com/7.x/bottts/svg?seed=Alex'
+  },
+  {
+    id: '66666666-6666-6666-6666-666666666666',
+    name: 'Devin Zhao',
+    email: 'devin.zhao@regulatory-watch.org',
+    role: 'viewer',
+    title: 'Compliance Observer',
+    department: 'Regulatory Assurance & Oversight',
+    organization_name: 'SSFA Capital Holdings',
+    organization_id: '11111111-1111-1111-1111-111111111111',
+    avatar_url: 'https://api.dicebear.com/7.x/bottts/svg?seed=Devin'
+  }
+];
+
 export function AuthProvider({ children }) {
   const [token, setToken] = useState(() => localStorage.getItem('ctl_token') || null);
   const [user, setUser] = useState(() => {
     try {
       const saved = localStorage.getItem('ctl_user');
-      return saved ? JSON.parse(saved) : null;
+      return saved ? JSON.parse(saved) : DEFAULT_ENTERPRISE_PERSONAS[0];
     } catch {
-      return null;
+      return DEFAULT_ENTERPRISE_PERSONAS[0];
     }
   });
   const [organization, setOrganization] = useState(() => {
@@ -21,7 +79,7 @@ export function AuthProvider({ children }) {
     }
   });
 
-  const [personas, setPersonas] = useState([]);
+  const [personas, setPersonas] = useState(DEFAULT_ENTERPRISE_PERSONAS);
   const [ssoProviders, setSsoProviders] = useState([]);
   const [rbacMatrix, setRbacMatrix] = useState(null);
   const [permissions, setPermissions] = useState([]);
@@ -35,17 +93,19 @@ export function AuthProvider({ children }) {
       const res = await fetch('/v1/auth/personas');
       if (res.ok) {
         const data = await res.json();
-        setPersonas(data);
-        if (!user && data.length > 0) {
-          const defaultPersona = data.find(p => p.role === 'admin') || data[0];
-          loginAsPersona(defaultPersona);
+        if (Array.isArray(data) && data.length > 0) {
+          setPersonas(data);
+          if (!user) {
+            const defaultPersona = data.find(p => p.role === 'admin') || data[0];
+            loginAsPersona(defaultPersona);
+          }
+          return data;
         }
-        return data;
       }
     } catch (err) {
-      console.warn('Failed to fetch personas:', err);
+      console.warn('Failed to fetch personas, using defaults:', err);
     }
-    return [];
+    return DEFAULT_ENTERPRISE_PERSONAS;
   };
 
   useEffect(() => {
@@ -192,6 +252,7 @@ export function AuthProvider({ children }) {
       if (res.ok) {
         const data = await res.json();
         handleAuthSuccess(data);
+        setSimulatedRole(null);
         return data;
       }
     } catch (err) {
@@ -199,6 +260,7 @@ export function AuthProvider({ children }) {
     }
     // Fallback: set local persona
     setUser(persona);
+    setSimulatedRole(null);
     localStorage.setItem('ctl_user', JSON.stringify(persona));
     setIsAuthModalOpen(false);
   };
@@ -314,8 +376,9 @@ export function AuthProvider({ children }) {
   };
 
   const isTabVisible = (tabKey) => {
+    if (tabKey === 'home' || tabKey === 'profile') return true;
     const meta = ROLE_METADATA[effectiveRole] || ROLE_METADATA.admin;
-    return meta.allowed_tabs.includes(tabKey);
+    return meta.allowed_tabs ? meta.allowed_tabs.includes(tabKey) : true;
   };
 
   const getSodGuard = (actionKey) => {
@@ -389,7 +452,7 @@ export const ROLE_METADATA = {
     separation_of_duties: 'Executive override authority across all workflows.',
     badge_color: '#047857',
     badge_bg: 'rgba(4, 120, 87, 0.12)',
-    allowed_tabs: ['home', 'demo', 'live_ingestion', 'visual_lineage', 'context_curator', 'ingestion', 'integrations', 'audit', 'team', 'playground', 'conflicts'],
+    allowed_tabs: ['home', 'profile', 'demo', 'live_ingestion', 'visual_lineage', 'context_curator', 'ingestion', 'integrations', 'audit', 'team', 'playground', 'conflicts'],
   },
   data_owner: {
     title: 'Data Steward',
@@ -398,7 +461,7 @@ export const ROLE_METADATA = {
     separation_of_duties: 'Restricted from resolving policy conflicts to prevent unilateral compliance tampering (SoD enforced).',
     badge_color: '#1D4ED8',
     badge_bg: 'rgba(29, 78, 216, 0.12)',
-    allowed_tabs: ['home', 'live_ingestion', 'visual_lineage', 'ingestion', 'playground', 'audit'],
+    allowed_tabs: ['home', 'profile', 'live_ingestion', 'visual_lineage', 'ingestion', 'playground', 'audit'],
   },
   reviewer: {
     title: 'Risk Auditor / Reviewer',
@@ -407,7 +470,7 @@ export const ROLE_METADATA = {
     separation_of_duties: 'Restricted from altering source ingestion connectors or uploading raw data (SoD enforced).',
     badge_color: '#4338CA',
     badge_bg: 'rgba(67, 56, 202, 0.12)',
-    allowed_tabs: ['home', 'demo', 'visual_lineage', 'context_curator', 'conflicts', 'audit', 'playground'],
+    allowed_tabs: ['home', 'profile', 'demo', 'visual_lineage', 'context_curator', 'conflicts', 'audit', 'playground'],
   },
   developer: {
     title: 'Operator / Developer / Agent',
@@ -416,7 +479,7 @@ export const ROLE_METADATA = {
     separation_of_duties: 'Read-only policy access; no authority to resolve conflicts or alter source pipelines (SoD enforced).',
     badge_color: '#B45309',
     badge_bg: 'rgba(180, 83, 9, 0.12)',
-    allowed_tabs: ['home', 'demo', 'visual_lineage', 'integrations', 'playground'],
+    allowed_tabs: ['home', 'profile', 'demo', 'visual_lineage', 'integrations', 'playground'],
   },
   viewer: {
     title: 'Compliance Observer',
@@ -425,7 +488,7 @@ export const ROLE_METADATA = {
     separation_of_duties: 'Zero mutation privileges across all systems (Observer Mode).',
     badge_color: '#64748B',
     badge_bg: 'rgba(100, 116, 139, 0.12)',
-    allowed_tabs: ['home', 'visual_lineage', 'audit', 'playground'],
+    allowed_tabs: ['home', 'profile', 'visual_lineage', 'audit', 'playground'],
   },
 };
 

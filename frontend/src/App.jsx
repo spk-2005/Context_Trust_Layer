@@ -51,7 +51,7 @@ import WebhookSettingsModal from './components/WebhookSettingsModal';
 import HitlEscalationModal from './components/HitlEscalationModal';
 import RedTeamModal from './components/RedTeamModal';
 import MerkleVerificationModal from './components/MerkleVerificationModal';
-import { useAuth } from './context/AuthContext';
+import { useAuth, DEFAULT_ENTERPRISE_PERSONAS } from './context/AuthContext';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('playground');
@@ -91,15 +91,8 @@ export default function App() {
   } = useAuth();
 
   // Atlan Active Persona & User Ecosystem State
-  const [personas, setPersonas] = useState([]);
-  const [activePersona, setActivePersona] = useState({
-    id: '22222222-2222-2222-2222-222222222222',
-    name: 'Sarah Chen',
-    role: 'admin',
-    title: 'Chief Compliance Officer',
-    department: 'Risk, Trust & Security',
-    avatar_url: 'https://api.dicebear.com/7.x/bottts/svg?seed=Sarah'
-  });
+  const [personas, setPersonas] = useState(DEFAULT_ENTERPRISE_PERSONAS);
+  const [activePersona, setActivePersona] = useState(DEFAULT_ENTERPRISE_PERSONAS[0]);
   const [isPersonaDropdownOpen, setIsPersonaDropdownOpen] = useState(false);
 
   // Auto-redirect if active tab is restricted under effective/simulated role
@@ -121,6 +114,14 @@ export default function App() {
       setPersonas(authPersonas);
     }
   }, [authPersonas]);
+
+  const handleSelectPersona = async (p) => {
+    setActivePersona(p);
+    if (authLoginAsPersona) {
+      await authLoginAsPersona(p);
+    }
+    showToast(`Switched active user to ${p.name} (${(p.role || 'user').toUpperCase()})`);
+  };
 
   const handleToggleParentTab = (tabName) => {
     setActiveTab(tabName);
@@ -4832,8 +4833,8 @@ export default function App() {
             workspaces={workspaces}
             onSwitchWorkspace={setActiveWorkspace}
             activePersona={activePersona}
-            personas={personas}
-            onSelectPersona={setActivePersona}
+            personas={personas && personas.length > 0 ? personas : DEFAULT_ENTERPRISE_PERSONAS}
+            onSelectPersona={handleSelectPersona}
             effectiveRole={effectiveRole}
             roleMetadata={roleMetadata}
             onOpenRegisterOrg={() => setShowNewOrgModal(true)}
