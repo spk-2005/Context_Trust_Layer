@@ -22,9 +22,10 @@ class ChatService:
         self,
         organization_id: uuid.UUID,
         user_id: uuid.UUID | None = None,
+        workspace_id: str | None = None,
         limit: int = 50,
     ) -> list[dict[str, Any]]:
-        sessions = await self.repo.list_sessions(organization_id, user_id, limit)
+        sessions = await self.repo.list_sessions(organization_id, user_id, workspace_id, limit)
         return [s.to_dict() for s in sessions]
 
     async def get_session(self, session_id: uuid.UUID) -> dict[str, Any] | None:
@@ -42,6 +43,8 @@ class ChatService:
         user_name: str,
         user_role: str,
         title: str = "New Conversation",
+        workspace_id: str | None = "all",
+        domain: str | None = "global",
     ) -> dict[str, Any]:
         s = await self.repo.create_session(
             organization_id=organization_id,
@@ -49,6 +52,8 @@ class ChatService:
             user_name=user_name,
             user_role=user_role,
             title=title,
+            workspace_id=workspace_id or "all",
+            domain=domain or "global",
         )
         await self.session.commit()
         return s.to_dict()
@@ -66,16 +71,22 @@ class ChatService:
         user_id: uuid.UUID | None = None,
         user_name: str = "User",
         user_role: str = "developer",
+        workspace_id: str | None = None,
+        domain: str | None = None,
     ) -> dict[str, Any]:
         # 1. Store user message in DB
         user_msg = await self.repo.add_message(
             session_id=session_id,
             role="user",
             content=content,
-            metadata_json={"author": user_name, "role": user_role},
+            metadata_json={"author": user_name, "role": user_role, "workspace_id": workspace_id, "domain": domain},
         )
 
         # 2. Query Context Retrieval Engine for grounded evidence
+        session_obj = await self.repo.get_session(session_id)
+        effective_domain = domain or (session_obj.domain if session_obj else None) or "global"
+        effective_workspace = workspace_id or (session_obj.workspace_id if session_obj else None) or "all"
+
         retrieval_engine = ContextRetrievalEngine(self.session, self.llm)
         # Use default seed agent or find agent for organization
         default_agent_id = uuid.UUID("88888888-8888-8888-8888-888888888888")
@@ -85,6 +96,8 @@ class ChatService:
             query=content,
             min_trust_score=decimal.Decimal("0.50"),
             max_results=8,
+            domain=effective_domain,
+            workspace_id=effective_workspace,
         )
         context_res = await retrieval_engine.query_context(context_req)
 

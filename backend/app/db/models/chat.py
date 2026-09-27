@@ -16,6 +16,8 @@ class ChatSession(Base):
     user_name = Column(String(255), nullable=False, default="Anonymous")
     user_role = Column(String(50), nullable=False, default="developer")
     title = Column(String(500), nullable=False, default="New Conversation")
+    workspace_id = Column(String(100), nullable=True, default="all")
+    domain = Column(String(100), nullable=True, default="global")
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
     updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False)
 
@@ -35,6 +37,8 @@ class ChatSession(Base):
             "user_name": self.user_name,
             "user_role": self.user_role,
             "title": self.title,
+            "workspace_id": self.workspace_id or "all",
+            "domain": self.domain or "global",
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
             "message_count": len(msgs) if msgs else 0,

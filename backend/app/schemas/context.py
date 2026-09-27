@@ -13,6 +13,8 @@ class ContextQueryRequest(BaseModel):
         le=1,
     )
     max_results: int = Field(default=10, gt=0)
+    domain: str | None = None
+    workspace_id: str | None = None
 
 
 class ContextSourceInfo(BaseModel):

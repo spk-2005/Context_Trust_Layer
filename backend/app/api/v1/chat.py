@@ -16,6 +16,8 @@ class CreateSessionRequest(BaseModel):
     user_name: str = "Anonymous"
     user_role: str = "developer"
     title: str = "New Conversation"
+    workspace_id: str | None = "all"
+    domain: str | None = "global"
 
 
 class SendMessageRequest(BaseModel):
@@ -24,18 +26,21 @@ class SendMessageRequest(BaseModel):
     user_id: uuid.UUID | None = None
     user_name: str = "User"
     user_role: str = "developer"
+    workspace_id: str | None = None
+    domain: str | None = None
 
 
 @router.get("/sessions")
 async def list_chat_sessions(
     organization_id: uuid.UUID = Query(...),
     user_id: uuid.UUID | None = Query(None),
+    workspace_id: str | None = Query(None),
     limit: int = Query(50, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
 ):
-    """List chat sessions for a specific organization and user/persona."""
+    """List chat sessions for a specific organization, user/persona, and departmental workspace."""
     service = ChatService(db)
-    return await service.list_sessions(organization_id, user_id, limit)
+    return await service.list_sessions(organization_id, user_id, workspace_id, limit)
 
 
 @router.post("/sessions")
@@ -43,7 +48,7 @@ async def create_chat_session(
     req: CreateSessionRequest,
     db: AsyncSession = Depends(get_db),
 ):
-    """Create a new conversational session."""
+    """Create a new conversational session tagged with active departmental workspace."""
     service = ChatService(db)
     return await service.create_session(
         organization_id=req.organization_id,
@@ -51,6 +56,8 @@ async def create_chat_session(
         user_name=req.user_name,
         user_role=req.user_role,
         title=req.title,
+        workspace_id=req.workspace_id,
+        domain=req.domain,
     )
 
 
@@ -100,5 +107,7 @@ async def send_chat_message(
         user_id=req.user_id,
         user_name=req.user_name,
         user_role=req.user_role,
+        workspace_id=req.workspace_id,
+        domain=req.domain,
     )
     return result

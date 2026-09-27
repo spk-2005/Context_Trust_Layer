@@ -111,6 +111,22 @@ class ContextRetrievalEngine:
                 elif qt in ["refund", "window", "enterprise", "exception", "limit", "procurement", "po", "downtime", "sla", "cfo", "approval"] and qt in claim_lower:
                     relevance_score += 2
 
+            # Departmental Workspace Domain Scoping Bonus
+            target_domain = (request_in.domain or request_in.workspace_id or "").lower()
+            if target_domain and target_domain not in ("global", "all"):
+                domain_keywords = {
+                    "finance": ["refund", "billing", "invoice", "arr", "tier", "payment", "accounting", "handbook", "confluence", "customer"],
+                    "secops": ["security", "firewall", "ingress", "iam", "mtls", "session", "token", "freeze", "infrastructure", "portal"],
+                    "hr": ["remote", "work", "leave", "vacation", "employee", "handbook", "people", "guideline"],
+                    "support": ["support", "dispute", "sla", "ticket", "escalation", "customer", "resolution", "arbitration"],
+                    "staging": ["sandbox", "staging", "test", "trial", "mock", "experiment"]
+                }
+                kws = domain_keywords.get(target_domain, [target_domain])
+                if any(kw in claim_lower for kw in kws):
+                    relevance_score += 25
+                elif any(kw in (claim.subject or "").lower() for kw in kws):
+                    relevance_score += 20
+
             # Filter decisions
             included = True
             exclusion_reason = None

@@ -1,12 +1,22 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 
-export default function VisualLineageGraph({ activeOrg, showToast }) {
+export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToast }) {
   const [graphData, setGraphData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [selectedNodeId, setSelectedNodeId] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [blastRadius, setBlastRadius] = useState(null);
   const [loadingBlastRadius, setLoadingBlastRadius] = useState(false);
+
+  // Departmental Workspace Scoping
+  const [lineageScopeAll, setLineageScopeAll] = useState(false);
+  const WORKSPACE_KEYWORDS = {
+    finance: ['refund', 'billing', 'invoice', 'arr', 'payment', 'confluence', 'salesforce', 'accounting', 'pricing', 'tier', 'annual', 'dispute'],
+    secops: ['security', 'firewall', 'ingress', 'iam', 'mtls', 'session', 'token', 'freeze', 'portal', 'github', 'kafka', 'baseline', 'policy'],
+    hr: ['remote', 'work', 'leave', 'vacation', 'employee', 'handbook', 'people', 'guideline', 'wifi', 'stipend', 'contractor'],
+    support: ['support', 'dispute', 'sla', 'ticket', 'escalation', 'jira', 'arbitration', 'customer'],
+    staging: ['staging', 'sandbox', 'test', 'mock', 'simulation']
+  };
 
   // View Mode: 'conflicts' (default clean DAG), 'focused' (centered around active asset), 'all' (sample overview)
   const [viewMode, setViewMode] = useState('conflicts');
@@ -333,6 +343,30 @@ export default function VisualLineageGraph({ activeOrg, showToast }) {
       });
     }
 
+    // 8. Departmental Workspace Scoping
+    if (activeWorkspace && activeWorkspace.id !== 'all' && !lineageScopeAll) {
+      const kw = WORKSPACE_KEYWORDS[activeWorkspace.id] || [];
+      if (kw.length > 0) {
+        const matchedIds = new Set();
+        result.forEach(n => {
+          const text = `${n.label || ''} ${n.fullText || ''} ${n.id || ''} ${n.subType || ''}`.toLowerCase();
+          if (kw.some(k => text.includes(k))) {
+            matchedIds.add(n.id);
+          }
+        });
+
+        // Expand to connected neighbors so DAG structure remains intact
+        edges.forEach(e => {
+          if (matchedIds.has(e.source)) matchedIds.add(e.target);
+          if (matchedIds.has(e.target)) matchedIds.add(e.source);
+        });
+
+        if (matchedIds.size > 0) {
+          result = result.filter(n => matchedIds.has(n.id));
+        }
+      }
+    }
+
     return result;
   }, [
     graphData,
@@ -344,7 +378,9 @@ export default function VisualLineageGraph({ activeOrg, showToast }) {
     showOnlyConflicted,
     visibleTiers,
     searchQuery,
-    conflictMap
+    conflictMap,
+    activeWorkspace,
+    lineageScopeAll
   ]);
 
   // 2. Smart DAG Layout: Adaptive Density & Immediate Visibility
@@ -678,6 +714,53 @@ export default function VisualLineageGraph({ activeOrg, showToast }) {
               ))
             )}
           </select>
+
+          {/* Departmental Workspace Scope Badge & All Combined Toggle */}
+          {activeWorkspace && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '5px',
+                padding: '4px 9px',
+                borderRadius: '6px',
+                background: activeWorkspace.id !== 'all' && !lineageScopeAll ? 'rgba(37,99,235,0.08)' : '#f1f5f9',
+                border: `1px solid ${activeWorkspace.id !== 'all' && !lineageScopeAll ? 'rgba(37,99,235,0.25)' : '#cbd5e1'}`,
+                fontSize: '0.74rem',
+                fontWeight: 700,
+                color: activeWorkspace.id !== 'all' && !lineageScopeAll ? '#1d4ed8' : '#475569'
+              }}>
+                <span>{activeWorkspace.icon || '🏢'}</span>
+                <span>{lineageScopeAll ? 'All Workspaces (Unified)' : activeWorkspace.name}</span>
+                {activeWorkspace.id !== 'all' && !lineageScopeAll && (
+                  <span style={{ fontSize: '0.66rem', color: '#16a34a', background: 'rgba(22,163,74,0.1)', padding: '1px 5px', borderRadius: '4px' }}>
+                    Isolated
+                  </span>
+                )}
+              </span>
+
+              {activeWorkspace.id !== 'all' && (
+                <button
+                  type="button"
+                  onClick={() => setLineageScopeAll(prev => !prev)}
+                  style={{
+                    padding: '4px 8px',
+                    borderRadius: '5px',
+                    border: '1px solid #cbd5e1',
+                    background: lineageScopeAll ? '#2563eb' : '#ffffff',
+                    color: lineageScopeAll ? '#ffffff' : '#334155',
+                    fontSize: '0.72rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease'
+                  }}
+                  title={lineageScopeAll ? "Return to scoped departmental pipeline" : "Show all combined enterprise resources across all departments"}
+                >
+                  {lineageScopeAll ? "↩ Back to Scoped" : "🌐 View All Combined"}
+                </button>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Center: DAG Perspective Switcher */}

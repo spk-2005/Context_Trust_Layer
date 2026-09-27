@@ -17,6 +17,7 @@ class ChatRepository(BaseRepository[ChatSession]):
         self,
         organization_id: uuid.UUID,
         user_id: uuid.UUID | None = None,
+        workspace_id: str | None = None,
         limit: int = 50,
     ) -> Sequence[ChatSession]:
         stmt = (
@@ -28,6 +29,17 @@ class ChatRepository(BaseRepository[ChatSession]):
             from sqlalchemy import or_
             stmt = stmt.where(or_(ChatSession.user_id == user_id, ChatSession.user_id.is_(None)))
         
+        if workspace_id and workspace_id != "all":
+            from sqlalchemy import or_
+            stmt = stmt.where(
+                or_(
+                    ChatSession.workspace_id == workspace_id,
+                    ChatSession.domain == workspace_id,
+                    ChatSession.workspace_id == "all",
+                    ChatSession.workspace_id.is_(None),
+                )
+            )
+
         stmt = stmt.order_by(ChatSession.updated_at.desc()).limit(limit)
         result = await self.session.execute(stmt)
         return result.scalars().all()
@@ -48,6 +60,8 @@ class ChatRepository(BaseRepository[ChatSession]):
         user_name: str,
         user_role: str,
         title: str = "New Conversation",
+        workspace_id: str | None = "all",
+        domain: str | None = "global",
     ) -> ChatSession:
         session_obj = ChatSession(
             organization_id=organization_id,
@@ -55,6 +69,8 @@ class ChatRepository(BaseRepository[ChatSession]):
             user_name=user_name,
             user_role=user_role,
             title=title,
+            workspace_id=workspace_id or "all",
+            domain=domain or "global",
         )
         self.session.add(session_obj)
         await self.session.flush()

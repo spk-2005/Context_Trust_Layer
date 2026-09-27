@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   Home,
   Brain,
@@ -401,55 +401,6 @@ export default function App() {
   const [renameOrgName, setRenameOrgName] = useState('');
   const [isCreatingOrg, setIsCreatingOrg] = useState(false);
 
-  // Chat Sessions for Sidebar History and AI Copilot Chat Sync
-  const [chatSessions, setChatSessions] = useState([]);
-  const [activeChatSessionId, setActiveChatSessionId] = useState(null);
-
-  const fetchChatSessions = async () => {
-    try {
-      const res = await fetch(`/v1/chat/sessions?organization_id=${activeOrg?.id || '11111111-1111-1111-1111-111111111111'}`);
-      if (res.ok) {
-        const data = await res.json();
-        setChatSessions(data);
-        if (data.length > 0 && !activeChatSessionId) {
-          setActiveChatSessionId(data[0].id);
-        }
-      }
-    } catch (e) {
-      console.error("Failed to load chat sessions for sidebar", e);
-    }
-  };
-
-  const handleStartNewChatFromSidebar = async () => {
-    try {
-      const res = await fetch('/v1/chat/sessions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          organization_id: activeOrg?.id || '11111111-1111-1111-1111-111111111111',
-          user_id: activePersona?.id || null,
-          user_name: activePersona?.name || 'Sarah Chen',
-          user_role: activePersona?.role || 'admin',
-          title: 'New Conversation',
-        }),
-      });
-      if (res.ok) {
-        const newSession = await res.json();
-        setChatSessions(prev => [newSession, ...prev]);
-        setActiveChatSessionId(newSession.id);
-        setActiveTab('playground');
-        setNotification({ msg: 'Started new conversation', type: 'success' });
-        setTimeout(() => setNotification(null), 3000);
-      }
-    } catch (e) {
-      console.error("Failed to create new chat session from sidebar", e);
-    }
-  };
-
-  useEffect(() => {
-    fetchChatSessions();
-  }, [activeOrg?.id]);
-
   // -------------------------------------------------------------
   // Departmental Workspaces under Active Company
   // -------------------------------------------------------------
@@ -469,6 +420,62 @@ export default function App() {
   const [newWorkspaceName, setNewWorkspaceName] = useState('');
   const [newWorkspaceDomain, setNewWorkspaceDomain] = useState('finance');
   const [newWorkspaceDescription, setNewWorkspaceDescription] = useState('');
+  const [docExplorerScopeAll, setDocExplorerScopeAll] = useState(false);
+
+  // Chat Sessions for Sidebar History and AI Copilot Chat Sync
+  const [chatSessions, setChatSessions] = useState([]);
+  const [activeChatSessionId, setActiveChatSessionId] = useState(null);
+
+  const fetchChatSessions = async () => {
+    try {
+      const workspaceParam = activeWorkspace?.id && activeWorkspace.id !== 'all' ? `&workspace_id=${activeWorkspace.id}` : '';
+      const res = await fetch(`/v1/chat/sessions?organization_id=${activeOrg?.id || '11111111-1111-1111-1111-111111111111'}${workspaceParam}`);
+      if (res.ok) {
+        const data = await res.json();
+        setChatSessions(data);
+        if (data.length > 0 && !activeChatSessionId) {
+          setActiveChatSessionId(data[0].id);
+        } else if (data.length === 0) {
+          setActiveChatSessionId(null);
+        }
+      }
+    } catch (e) {
+      console.error("Failed to load chat sessions for sidebar", e);
+    }
+  };
+
+  const handleStartNewChatFromSidebar = async () => {
+    try {
+      const deptPrefix = activeWorkspace && activeWorkspace.id !== 'all' ? `[${activeWorkspace.name.split(' ')[0]}] ` : '';
+      const res = await fetch('/v1/chat/sessions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          organization_id: activeOrg?.id || '11111111-1111-1111-1111-111111111111',
+          user_id: activePersona?.id || null,
+          user_name: activePersona?.name || 'Sarah Chen',
+          user_role: activePersona?.role || 'admin',
+          title: `${deptPrefix}New Conversation`,
+          workspace_id: activeWorkspace?.id || 'all',
+          domain: activeWorkspace?.domain || 'global',
+        }),
+      });
+      if (res.ok) {
+        const newSession = await res.json();
+        setChatSessions(prev => [newSession, ...prev]);
+        setActiveChatSessionId(newSession.id);
+        setActiveTab('playground');
+        setNotification({ msg: `Started new conversation in ${activeWorkspace?.name || 'workspace'}`, type: 'success' });
+        setTimeout(() => setNotification(null), 3000);
+      }
+    } catch (e) {
+      console.error("Failed to create new chat session from sidebar", e);
+    }
+  };
+
+  useEffect(() => {
+    fetchChatSessions();
+  }, [activeOrg?.id, activeWorkspace?.id]);
 
   const [catalogConnectors, setCatalogConnectors] = useState([]);
   const [catalogCategories, setCatalogCategories] = useState([]);
@@ -492,6 +499,45 @@ export default function App() {
   const [claimFilterStatus, setClaimFilterStatus] = useState('all');
   const [dbSearchQuery, setDbSearchQuery] = useState('');
   const [dbLoading, setDbLoading] = useState(false);
+
+  // Departmental Workspace Filtering for Document Explorer & Repositories
+  const WORKSPACE_DEPT_KEYWORDS = {
+    finance: ['refund', 'billing', 'invoice', 'arr', 'payment', 'confluence', 'salesforce', 'accounting', 'pricing', 'tier', 'annual', 'dispute', 'postgresql'],
+    secops: ['security', 'firewall', 'ingress', 'iam', 'mtls', 'session', 'token', 'freeze', 'portal', 'github', 'kafka', 'baseline', 'policy'],
+    hr: ['remote', 'work', 'leave', 'vacation', 'employee', 'handbook', 'people', 'guideline', 'wifi', 'stipend', 'contractor'],
+    support: ['support', 'dispute', 'sla', 'ticket', 'escalation', 'jira', 'arbitration', 'customer'],
+    staging: ['staging', 'sandbox', 'test', 'mock', 'simulation']
+  };
+
+  const displayedDataSources = useMemo(() => {
+    if (!activeWorkspace || activeWorkspace.id === 'all' || docExplorerScopeAll) return dataSources;
+    const kw = WORKSPACE_DEPT_KEYWORDS[activeWorkspace.id] || [];
+    const filtered = dataSources.filter(src => {
+      const text = `${src.name || ''} ${src.source_type || ''} ${src.external_id || ''}`.toLowerCase();
+      return kw.some(k => text.includes(k));
+    });
+    return filtered.length > 0 ? filtered : dataSources;
+  }, [dataSources, activeWorkspace, docExplorerScopeAll]);
+
+  const displayedDbDocuments = useMemo(() => {
+    if (!activeWorkspace || activeWorkspace.id === 'all' || docExplorerScopeAll) return dbDocuments;
+    const kw = WORKSPACE_DEPT_KEYWORDS[activeWorkspace.id] || [];
+    const filtered = dbDocuments.filter(doc => {
+      const text = `${doc.title || ''} ${doc.external_id || ''} ${doc.document_type || ''}`.toLowerCase();
+      return kw.some(k => text.includes(k));
+    });
+    return filtered.length > 0 ? filtered : dbDocuments;
+  }, [dbDocuments, activeWorkspace, docExplorerScopeAll]);
+
+  const displayedDbClaims = useMemo(() => {
+    if (!activeWorkspace || activeWorkspace.id === 'all' || docExplorerScopeAll) return dbClaims;
+    const kw = WORKSPACE_DEPT_KEYWORDS[activeWorkspace.id] || [];
+    const filtered = dbClaims.filter(cl => {
+      const text = `${cl.claim_text || ''} ${cl.subject || ''} ${cl.predicate || ''} ${cl.object_value || ''}`.toLowerCase();
+      return kw.some(k => text.includes(k));
+    });
+    return filtered.length > 0 ? filtered : dbClaims;
+  }, [dbClaims, activeWorkspace, docExplorerScopeAll]);
 
   // -------------------------------------------------------------
   // Model Context Protocol (MCP) & Agent Integration Hub State
@@ -1571,73 +1617,83 @@ export default function App() {
           </div>
 
           {/* Section Header for Recent Chats */}
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '6px 8px 4px 10px',
-            fontSize: '0.68rem',
-            fontWeight: 600,
-            color: '#94A3B8',
-            letterSpacing: '0.04em',
-            textTransform: 'uppercase'
-          }}>
-            <span>Recent Chats</span>
-            <span style={{
-              background: '#F1F5F9',
-              color: '#64748B',
-              padding: '1px 6px',
-              borderRadius: '10px',
-              fontSize: '0.65rem',
-              fontWeight: 600
-            }}>{chatSessions.length}</span>
-          </div>
+          {(() => {
+            const displayedChatSessions = chatSessions.filter(s => {
+              if (!activeWorkspace || activeWorkspace.id === 'all') return true;
+              return s.workspace_id === activeWorkspace.id || s.domain === activeWorkspace.domain;
+            });
 
-          {/* Scrollable Previous Chats List (Scrolls cleanly with comfortable gap) */}
-          <div className="sidebar-chat-scroll" style={{
-            flex: 1,
-            minHeight: 0,
-            overflowY: 'auto',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '6px',
-            paddingRight: '4px',
-            marginTop: '4px',
-            marginBottom: '4px'
-          }}>
-            {chatSessions.length === 0 ? (
-              <div style={{ padding: '8px 10px', fontSize: '0.82rem', color: '#94A3B8', fontStyle: 'italic' }}>
-                No previous chats yet
-              </div>
-            ) : (
-              chatSessions.map((session) => {
-                const isCurrent = activeTab === 'playground' && activeChatSessionId === session.id;
-                return (
-                  <button
-                    key={session.id}
-                    onClick={() => {
-                      setActiveTab('playground');
-                      setActiveChatSessionId(session.id);
-                    }}
-                    className={`nav-chat-item ${isCurrent ? 'nav-chat-item-active' : ''}`}
-                    title={session.title}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '9px',
-                      padding: '8px 10px',
-                      borderRadius: '7px',
-                      fontSize: '0.86rem',
-                      lineHeight: '1.25',
-                      border: 'none',
-                      cursor: 'pointer',
-                      textAlign: 'left',
-                      width: '100%',
-                      background: isCurrent ? '#EEF2FF' : 'transparent',
-                      color: isCurrent ? '#312E81' : '#475569',
-                      fontWeight: isCurrent ? 600 : 500,
-                      transition: 'all 0.15s ease'
-                    }}
+            return (
+              <>
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '6px 8px 4px 10px',
+                  fontSize: '0.68rem',
+                  fontWeight: 600,
+                  color: activeWorkspace && activeWorkspace.id !== 'all' ? 'var(--primary, #2563EB)' : '#94A3B8',
+                  letterSpacing: '0.04em',
+                  textTransform: 'uppercase'
+                }}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    {activeWorkspace && activeWorkspace.id !== 'all' ? `${activeWorkspace.icon || '🏢'} ${activeWorkspace.name.split(' ')[0]} Chats` : 'Recent Chats'}
+                  </span>
+                  <span style={{
+                    background: activeWorkspace && activeWorkspace.id !== 'all' ? 'rgba(37, 99, 235, 0.1)' : '#F1F5F9',
+                    color: activeWorkspace && activeWorkspace.id !== 'all' ? 'var(--primary, #2563EB)' : '#64748B',
+                    padding: '1px 6px',
+                    borderRadius: '10px',
+                    fontSize: '0.65rem',
+                    fontWeight: 600
+                  }}>{displayedChatSessions.length}</span>
+                </div>
+
+                {/* Scrollable Previous Chats List (Scrolls cleanly with comfortable gap) */}
+                <div className="sidebar-chat-scroll" style={{
+                  flex: 1,
+                  minHeight: 0,
+                  overflowY: 'auto',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '6px',
+                  paddingRight: '4px',
+                  marginTop: '4px',
+                  marginBottom: '4px'
+                }}>
+                  {displayedChatSessions.length === 0 ? (
+                    <div style={{ padding: '8px 10px', fontSize: '0.82rem', color: '#94A3B8', fontStyle: 'italic' }}>
+                      {activeWorkspace && activeWorkspace.id !== 'all' ? `No ${activeWorkspace.name.split(' ')[0]} chats yet` : 'No previous chats yet'}
+                    </div>
+                  ) : (
+                    displayedChatSessions.map((session) => {
+                      const isCurrent = activeTab === 'playground' && activeChatSessionId === session.id;
+                      return (
+                        <button
+                          key={session.id}
+                          onClick={() => {
+                            setActiveTab('playground');
+                            setActiveChatSessionId(session.id);
+                          }}
+                          className={`nav-chat-item ${isCurrent ? 'nav-chat-item-active' : ''}`}
+                          title={session.title}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '9px',
+                            padding: '8px 10px',
+                            borderRadius: '7px',
+                            fontSize: '0.86rem',
+                            lineHeight: '1.25',
+                            border: 'none',
+                            cursor: 'pointer',
+                            textAlign: 'left',
+                            width: '100%',
+                            background: isCurrent ? '#EEF2FF' : 'transparent',
+                            color: isCurrent ? '#312E81' : '#475569',
+                            fontWeight: isCurrent ? 600 : 500,
+                            transition: 'all 0.15s ease'
+                          }}
                     onMouseEnter={e => {
                       if (!isCurrent) {
                         e.currentTarget.style.background = '#F1F5F9';
@@ -1665,7 +1721,10 @@ export default function App() {
               })
             )}
           </div>
-        </div>
+        </>
+      );
+    })()}
+  </div>
 
         {/* Set 2: Bottom Pinned Governance & Administration Group */}
         <div className="sidebar-footer">
@@ -1952,60 +2011,7 @@ export default function App() {
               )}
             </div>
 
-            {/* 2. USER PROFILE & COMPANY SWITCHER BUTTON (NAVIGATES TO PROFILE TAB) */}
-            <div style={{ position: 'relative' }}>
-              <button
-                onClick={() => {
-                  setActiveTab('profile');
-                  setIsWorkspaceDropdownOpen(false);
-                }}
-                className={`top-header-pill ${activeTab === 'profile' ? 'top-header-pill-active' : ''}`}
-                title={`Profile: ${activePersona?.name || 'Sarah Chen'} • Click to view details and switch company`}
-                style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}
-              >
-                <div style={{
-                  width: '18px',
-                  height: '18px',
-                  borderRadius: '50%',
-                  background: 'linear-gradient(135deg, #FFAB4A 0%, #EA580C 100%)',
-                  color: '#1A1207',
-                  fontWeight: 700,
-                  fontSize: '0.60rem',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flexShrink: 0
-                }}>
-                  {activePersona?.name ? activePersona.name.split(' ').map(n => n[0]).join('').slice(0, 2) : 'SC'}
-                </div>
-                <span style={{ maxWidth: '110px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 600 }}>
-                  {activePersona?.name || 'Sarah Chen'}
-                </span>
-                <span className="badge" style={{
-                  fontSize: '0.58rem',
-                  color: '#9A4900',
-                  background: 'rgba(255,171,74,0.15)',
-                  padding: '1px 5px',
-                  borderRadius: '4px',
-                  border: '1px solid rgba(255,171,74,0.3)',
-                  fontWeight: 700
-                }}>
-                  {effectiveRole.toUpperCase()}
-                </span>
-                {simulatedRole && (
-                  <span style={{
-                    fontSize: '0.58rem',
-                    background: '#F59E0B',
-                    color: '#FFFFFF',
-                    padding: '1px 4px',
-                    borderRadius: '3px',
-                    fontWeight: 700
-                  }}>
-                    SIM
-                  </span>
-                )}
-              </button>
-            </div>
+          
 
             {/* RBAC Matrix Top Header Pill */}
             <button
@@ -2040,7 +2046,7 @@ export default function App() {
               }}
             >
               <Bell size={12} style={{ color: '#EA580C' }} />
-              <span>Alerts</span>
+            
             </button>
 
             {/* 4. SYSTEM OPERATIONAL BADGE */}
@@ -2145,12 +2151,10 @@ export default function App() {
                       alt="Trulin" 
                       style={{ height: '36px', maxWidth: '170px', objectFit: 'contain' }} 
                     />
-                    <span className="badge badge-verified">
-                      Enterprise AI Safety Architecture
-                    </span>
+                 
                   </div>
                   <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-main)', marginTop: '4px', letterSpacing: '-0.02em' }}>
-                    Trulin Context Trust Gateway
+                    Context Trust Gateway
                   </h1>
                   <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: '1.55', marginTop: '8px' }}>
                     A deterministic evidence validation gate that prevents autonomous AI agents from acting on outdated policies, unverified rumors, and contradictory instructions across enterprise knowledge bases.
@@ -3243,6 +3247,7 @@ export default function App() {
           <AgentChatPlayground
             activeOrg={activeOrg}
             activePersona={activePersona}
+            activeWorkspace={activeWorkspace}
             workspaces={workspaces}
             showToast={showToast}
             selectedSessionId={activeChatSessionId}
@@ -3278,10 +3283,10 @@ export default function App() {
                 {/* Active View Badge & Refresh Action */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <span className="badge badge-verified" style={{ fontSize: '0.8rem', padding: '5px 12px' }}>
-                    {docExplorerView === 'connectors' ? `Live Connectors & Sync (${dataSources.length})` :
+                    {docExplorerView === 'connectors' ? `Live Connectors & Sync (${displayedDataSources.length})` :
                       docExplorerView === 'ingest' ? 'Ingest New Document' :
-                        docExplorerView === 'documents' ? `Stored Documents (${dbDocuments.length})` :
-                          `Atomic Claims (${dbClaims.length})`}
+                        docExplorerView === 'documents' ? `Stored Documents (${displayedDbDocuments.length})` :
+                          `Atomic Claims (${displayedDbClaims.length})`}
                   </span>
 
                   <button
@@ -3293,6 +3298,65 @@ export default function App() {
                     {dbLoading ? "Loading..." : "Refresh"}
                   </button>
                 </div>
+              </div>
+            </div>
+
+            {/* Departmental Scope Banner & All Combined Toggle */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              gap: '12px',
+              padding: '12px 18px',
+              borderRadius: '8px',
+              marginBottom: '20px',
+              background: activeWorkspace && activeWorkspace.id !== 'all' && !docExplorerScopeAll
+                ? 'linear-gradient(135deg, rgba(37,99,235,0.06), rgba(99,102,241,0.06))'
+                : 'linear-gradient(135deg, rgba(100,116,139,0.06), rgba(148,163,184,0.06))',
+              border: `1px solid ${activeWorkspace && activeWorkspace.id !== 'all' && !docExplorerScopeAll ? 'rgba(37,99,235,0.2)' : 'rgba(148,163,184,0.2)'}`
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span style={{ fontSize: '1.25rem' }}>{activeWorkspace?.icon || '🏢'}</span>
+                <div>
+                  <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span>{docExplorerScopeAll ? 'All Workspaces (Unified Enterprise View)' : (activeWorkspace?.name || 'All Workspaces')}</span>
+                    {activeWorkspace && activeWorkspace.id !== 'all' && !docExplorerScopeAll ? (
+                      <span className="badge badge-verified" style={{ fontSize: '0.68rem', padding: '1px 6px' }}>
+                        Isolated Departmental Filter
+                      </span>
+                    ) : (
+                      <span className="badge badge-allow" style={{ fontSize: '0.68rem', padding: '1px 6px' }}>
+                        All Combined Resources
+                      </span>
+                    )}
+                  </div>
+                  <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                    {activeWorkspace && activeWorkspace.id !== 'all' && !docExplorerScopeAll
+                      ? `Viewing data sources, documents, and atomic claims scoped to ${activeWorkspace.domain} operations.`
+                      : 'Viewing unified data sources, stored documents, and atomic claims across all corporate departments.'}
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                {activeWorkspace && activeWorkspace.id !== 'all' && (
+                  <button
+                    type="button"
+                    onClick={() => setDocExplorerScopeAll(prev => !prev)}
+                    className="btn btn-secondary"
+                    style={{
+                      padding: '6px 12px',
+                      fontSize: '0.75rem',
+                      fontWeight: 600,
+                      background: docExplorerScopeAll ? 'var(--primary, #2563EB)' : '#FFFFFF',
+                      color: docExplorerScopeAll ? '#FFFFFF' : 'var(--text-main)',
+                      borderColor: docExplorerScopeAll ? 'var(--primary, #2563EB)' : 'var(--border-subtle)'
+                    }}
+                  >
+                    {docExplorerScopeAll ? "↩ Return to Scoped View" : "🌐 View All Combined Resources"}
+                  </button>
+                )}
               </div>
             </div>
 
@@ -3353,7 +3417,7 @@ export default function App() {
 
                 {/* Connectors Grid */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))', gap: '16px', marginBottom: '24px' }}>
-                  {dataSources.map((source, idx) => {
+                  {displayedDataSources.map((source, idx) => {
                     const isSyncing = syncingSourceId === source.id || syncingSourceId === 'all';
                     const stype = (source.source_type || '').toLowerCase();
                     const typeLabel = stype.toUpperCase();
@@ -4210,7 +4274,7 @@ export default function App() {
               <div className="clean-panel" style={{ padding: '20px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
                   <div style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--text-main)' }}>
-                    Documents in PostgreSQL ({dbDocuments.length})
+                    Documents in PostgreSQL ({displayedDbDocuments.length})
                   </div>
                   <input
                     type="text"
@@ -4221,13 +4285,15 @@ export default function App() {
                   />
                 </div>
 
-                {dbDocuments.length === 0 ? (
+                {displayedDbDocuments.length === 0 ? (
                   <div style={{ padding: '40px 20px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-                    No documents stored yet. Switch to "Ingest New Document" tab to add your first policy.
+                    {activeWorkspace && activeWorkspace.id !== 'all' && !docExplorerScopeAll
+                      ? `No documents found matching ${activeWorkspace.name}. Switch to "All Combined Resources" or ingest a new document.`
+                      : 'No documents stored yet. Switch to "Ingest New Document" tab to add your first policy.'}
                   </div>
                 ) : (
                   <div style={{ display: 'grid', gap: '12px' }}>
-                    {dbDocuments
+                    {displayedDbDocuments
                       .filter(d =>
                         !dbSearchQuery ||
                         d.title?.toLowerCase().includes(dbSearchQuery.toLowerCase()) ||
@@ -4274,14 +4340,14 @@ export default function App() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <span style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--text-main)' }}>
-                      Atomic Claims ({dbClaims.length})
+                      Atomic Claims ({displayedDbClaims.length})
                     </span>
                     <div className="scenario-bar">
                       <button
                         onClick={() => setClaimFilterStatus('all')}
                         className={`scenario-btn ${claimFilterStatus === 'all' ? 'scenario-btn-active' : ''}`}
                       >
-                        All ({dbClaims.length})
+                        All ({displayedDbClaims.length})
                       </button>
                       <button
                         onClick={() => setClaimFilterStatus('verified')}
@@ -4313,13 +4379,15 @@ export default function App() {
                   />
                 </div>
 
-                {dbClaims.length === 0 ? (
+                {displayedDbClaims.length === 0 ? (
                   <div style={{ padding: '40px 20px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-                    No claims stored in database yet.
+                    {activeWorkspace && activeWorkspace.id !== 'all' && !docExplorerScopeAll
+                      ? `No claims found matching ${activeWorkspace.name}. Switch to "All Combined Resources" or ingest a new document.`
+                      : 'No claims stored in database yet.'}
                   </div>
                 ) : (
                   <div style={{ display: 'grid', gap: '12px' }}>
-                    {dbClaims
+                    {displayedDbClaims
                       .filter(c => claimFilterStatus === 'all' || c.status?.toLowerCase() === claimFilterStatus)
                       .filter(c =>
                         !dbSearchQuery ||
@@ -4764,6 +4832,7 @@ export default function App() {
           <LiveIngestionStudio
             activeOrg={activeOrg}
             activePersona={activePersona}
+            activeWorkspace={activeWorkspace}
             onClaimExtracted={() => {
               fetchLiveDatabaseRecords();
               fetchHealthAndConflicts(activeOrg?.id);
@@ -4778,6 +4847,7 @@ export default function App() {
         {activeTab === 'visual_lineage' && (
           <VisualLineageGraph
             activeOrg={activeOrg}
+            activeWorkspace={activeWorkspace}
             showToast={showToast}
           />
         )}
@@ -4788,6 +4858,7 @@ export default function App() {
         {(activeTab === 'context_curator' || activeTab === 'conflicts') && (
           <ContextCuratorStudio
             activeOrg={activeOrg}
+            activeWorkspace={activeWorkspace}
             showToast={showToast}
             conflicts={conflicts}
             onResolveConflict={handleResolveConflict}

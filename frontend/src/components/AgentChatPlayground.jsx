@@ -1,32 +1,47 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { MessageSquare, Plus, MoreHorizontal, Search, Trash2 } from 'lucide-react';
 
-const STARTER_PROMPTS = [
-  {
-    title: "Enterprise Refund Policy",
-    query: "What is our company refund window for enterprise annual contracts?",
-    icon: "💳"
-  },
-  {
-    title: "Remote Work Wi-Fi Security",
-    query: "Can remote employees work from public Wi-Fi without VPN?",
-    icon: "🔒"
-  },
-  {
-    title: "Production Ingress Authority",
-    query: "Who is authorized to approve production ingress firewall exceptions?",
-    icon: "🛡️"
-  },
-  {
-    title: "Disputed Policies Review",
-    query: "Are there any conflicting refund rules between Slack and Confluence?",
-    icon: "⚠️"
-  }
-];
+const STARTER_PROMPTS_BY_WORKSPACE = {
+  all: [
+    { title: "Enterprise Refund Policy", query: "What is our company refund window for enterprise annual contracts?", icon: "💳" },
+    { title: "Remote Work Wi-Fi Security", query: "Can remote employees work from public Wi-Fi without VPN?", icon: "🔒" },
+    { title: "Production Ingress Authority", query: "Who is authorized to approve production ingress firewall exceptions?", icon: "🛡️" },
+    { title: "Disputed Policies Review", query: "Are there any conflicting refund rules between Slack and Confluence?", icon: "⚠️" }
+  ],
+  finance: [
+    { title: "Enterprise Refund Window", query: "What is our company refund window for enterprise annual contracts?", icon: "💳" },
+    { title: "Invoice Dispute Arbitration", query: "What are the financial approval thresholds and dispute arbitration rules for billing?", icon: "📊" },
+    { title: "Mid-Cycle Proration Rules", query: "How is billing proration calculated when enterprise accounts change contract tiers?", icon: "💰" },
+    { title: "Billing vs Slack Conflict", query: "Are there any conflicting refund statements in sales channels versus the billing handbook?", icon: "⚠️" }
+  ],
+  secops: [
+    { title: "Production Ingress Firewall", query: "Who is authorized to approve production ingress firewall exceptions?", icon: "🛡️" },
+    { title: "Zero Trust Token Expiry", query: "What is the mandatory session timeout and mTLS certificate renewal rule for core services?", icon: "🔐" },
+    { title: "Emergency Sev-1 Bypass", query: "Can emergency hotfixes bypass automated compliance verification during Sev-1 incidents?", icon: "⚡" },
+    { title: "KMS Key Rotation Policy", query: "What are the cryptographic key rotation intervals enforced by our SecOps baseline?", icon: "🔑" }
+  ],
+  hr: [
+    { title: "Remote Work Wi-Fi Security", query: "Can remote employees work from public Wi-Fi without VPN?", icon: "🔒" },
+    { title: "International Leave Policy", query: "What are the mandatory leave guidelines and annual holiday allowances for remote team members?", icon: "🌴" },
+    { title: "Home Office Stipend", query: "What is the reimbursement policy and expense allowance for home workstation equipment?", icon: "💻" },
+    { title: "Contractor Compliance Checks", query: "Are background checks and security sign-offs mandatory for external contractors?", icon: "📋" }
+  ],
+  support: [
+    { title: "Enterprise SLA Targets", query: "What is the guaranteed response time SLA for Tier-0 critical client incidents?", icon: "⏱️" },
+    { title: "Customer Escalation Hierarchy", query: "When does an unresolved customer ticket get escalated to Engineering and Executive leadership?", icon: "📈" },
+    { title: "Goodwill Credit Authorizations", query: "What is the maximum billing credit a frontline support lead can grant directly?", icon: "💵" },
+    { title: "SSO Login Incident Playbook", query: "What is the standard procedure when a customer tenant experiences SAML SSO auth failure?", icon: "🔍" }
+  ],
+  staging: [
+    { title: "Sandbox Test Claims", query: "What sandbox policy claims are currently staged for upcoming policy release?", icon: "🧪" },
+    { title: "Mock Ingestion Rules", query: "How are synthetic ingestion events validated against staging confidence gates?", icon: "🔬" }
+  ]
+};
 
 export default function AgentChatPlayground({
   activeOrg,
   activePersona,
+  activeWorkspace,
   workspaces,
   showToast,
   selectedSessionId,
@@ -86,13 +101,16 @@ export default function AgentChatPlayground({
     e.target.value = '';
   };
 
-  // Load chat sessions for active user/persona
+  // Load chat sessions for active user/persona & workspace
   const loadSessions = async (selectFirst = true) => {
     setIsLoadingSessions(true);
     try {
-      const url = userId
+      let url = userId
         ? `/v1/chat/sessions?organization_id=${orgId}&user_id=${userId}`
         : `/v1/chat/sessions?organization_id=${orgId}`;
+      if (activeWorkspace && activeWorkspace.id !== 'all') {
+        url += `&workspace_id=${activeWorkspace.id}`;
+      }
       const res = await fetch(url);
       if (res.ok) {
         const data = await res.json();
@@ -112,6 +130,11 @@ export default function AgentChatPlayground({
     }
   };
 
+  // Reload sessions whenever active workspace or org changes
+  useEffect(() => {
+    loadSessions(true);
+  }, [activeWorkspace?.id, orgId, userId]);
+
   // Load a single session details & messages
   const loadSessionDetails = async (sessionId) => {
     try {
@@ -128,9 +151,11 @@ export default function AgentChatPlayground({
     }
   };
 
-  // Create new session
+  // Create new session tagged with active departmental workspace
   const handleCreateNewChat = async (initialTitle = "New Conversation") => {
     try {
+      const wsPrefix = activeWorkspace && activeWorkspace.id !== 'all' ? `[${activeWorkspace.name.split(' ')[0]}] ` : '';
+      const finalTitle = initialTitle.startsWith('[') ? initialTitle : `${wsPrefix}${initialTitle}`;
       const res = await fetch('/v1/chat/sessions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -139,7 +164,9 @@ export default function AgentChatPlayground({
           user_id: userId,
           user_name: activePersona?.name || 'Anonymous',
           user_role: activePersona?.role || 'developer',
-          title: initialTitle,
+          title: finalTitle,
+          workspace_id: activeWorkspace?.id || 'all',
+          domain: activeWorkspace?.domain || 'global',
         }),
       });
       if (res.ok) {
@@ -148,7 +175,7 @@ export default function AgentChatPlayground({
         setActiveSessionId(newSession.id);
         setActiveSession(newSession);
         setMessages([]);
-        if (showToast) showToast("Started new chat session");
+        if (showToast) showToast(`Started new chat in ${activeWorkspace?.name || 'workspace'}`);
         return newSession.id;
       }
     } catch (err) {
@@ -219,6 +246,8 @@ export default function AgentChatPlayground({
           user_id: userId,
           user_name: activePersona?.name || 'User',
           user_role: activePersona?.role || 'developer',
+          workspace_id: activeWorkspace?.id || 'all',
+          domain: activeWorkspace?.domain || 'global',
         }),
       });
 
@@ -292,16 +321,17 @@ export default function AgentChatPlayground({
               }}>
                 {/* Ask Trulin - Smaller text */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                  <img src="/Trulin-Main-NoBg.png" alt="Trulin" style={{ height: '24px', objectFit: 'contain' }} />
-                  <h2 style={{
+                    <h2 style={{
                     fontSize: '1rem',
                     fontWeight: 700,
                     color: 'var(--text-main, #0F172A)',
                     margin: 0,
                     letterSpacing: '-0.01em'
                   }}>
-                    Ask Trulin
+                    Ask
                   </h2>
+                  <img src="/Trulin-Main-NoBg.png" alt="Trulin" style={{ height: '24px', objectFit: 'contain' }} />
+                
                 </div>
 
                 {/* Subtitle - Smaller text */}
@@ -310,10 +340,33 @@ export default function AgentChatPlayground({
                   color: 'var(--text-muted, #64748B)',
                   lineHeight: 1.45,
                   maxWidth: '540px',
-                  marginBottom: '16px'
+                  marginBottom: '10px'
                 }}>
                   Every answer is filtered by freshness decay, authority scoring, and contradiction detection. Expired or disputed claims are automatically highlighted.
                 </p>
+
+                {/* Workspace Retrieval Scope Badge */}
+                <div style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '4px 12px',
+                  borderRadius: '20px',
+                  fontSize: '0.74rem',
+                  fontWeight: 600,
+                  background: activeWorkspace && activeWorkspace.id !== 'all' ? 'rgba(37, 99, 235, 0.08)' : 'rgba(100, 116, 139, 0.08)',
+                  color: activeWorkspace && activeWorkspace.id !== 'all' ? 'var(--primary, #2563EB)' : '#64748B',
+                  border: `1px solid ${activeWorkspace && activeWorkspace.id !== 'all' ? 'rgba(37, 99, 235, 0.2)' : 'rgba(100, 116, 139, 0.2)'}`,
+                  marginBottom: '16px'
+                }}>
+                  <span>{activeWorkspace?.icon || '🏢'}</span>
+                  <span>Scope: <strong>{activeWorkspace?.name || 'All Workspaces (Unified)'}</strong></span>
+                  {activeWorkspace && activeWorkspace.id !== 'all' ? (
+                    <span style={{ fontSize: '0.68rem', color: '#16A34A', background: 'rgba(22, 163, 74, 0.1)', padding: '1px 6px', borderRadius: '10px', marginLeft: '4px' }}>● Isolated Departmental Retrieval</span>
+                  ) : (
+                    <span style={{ fontSize: '0.68rem', color: '#2563EB', background: 'rgba(37, 99, 235, 0.1)', padding: '1px 6px', borderRadius: '10px', marginLeft: '4px' }}>● Unified Enterprise Retrieval</span>
+                  )}
+                </div>
 
                 {/* Big Rectangular Chat Box at Center with Disco Blue Animated Border & Glow Shadow */}
                 <div
@@ -335,7 +388,7 @@ export default function AgentChatPlayground({
                         handleSendMessage();
                       }
                     }}
-                    placeholder="Search policy rules or ask AI Copilot a question..."
+                    placeholder={activeWorkspace && activeWorkspace.id !== 'all' ? `Ask Trulin in ${activeWorkspace.name} (queries scoped to ${activeWorkspace.domain} claims)...` : "Search policy rules or ask AI Copilot a question..."}
                     disabled={isSending}
                     style={{
                       width: '100%',
@@ -389,7 +442,7 @@ export default function AgentChatPlayground({
                   width: '100%',
                   textAlign: 'left'
                 }}>
-                  {STARTER_PROMPTS.map((starter, i) => (
+                  {(STARTER_PROMPTS_BY_WORKSPACE[activeWorkspace?.id || 'all'] || STARTER_PROMPTS_BY_WORKSPACE.all).map((starter, i) => (
                     <button
                       key={i}
                       onClick={() => handleSendMessage(starter.query)}
@@ -593,11 +646,28 @@ export default function AgentChatPlayground({
                 }}
               >
                 <Search size={18} color="#94A3B8" style={{ flexShrink: 0 }} />
+                {activeWorkspace && (
+                  <span style={{
+                    fontSize: '0.72rem',
+                    padding: '2px 8px',
+                    borderRadius: '12px',
+                    background: activeWorkspace.id !== 'all' ? 'rgba(37, 99, 235, 0.08)' : '#F1F5F9',
+                    color: activeWorkspace.id !== 'all' ? 'var(--primary, #2563EB)' : '#64748B',
+                    fontWeight: 600,
+                    flexShrink: 0,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px'
+                  }}>
+                    <span>{activeWorkspace.icon || '🏢'}</span>
+                    <span>{activeWorkspace.id === 'all' ? 'Unified' : activeWorkspace.name.split(' ')[0]}</span>
+                  </span>
+                )}
                 <input
                   type="text"
                   value={inputPrompt}
                   onChange={e => setInputPrompt(e.target.value)}
-                  placeholder="Search policy rules or ask AI Copilot a question..."
+                  placeholder={activeWorkspace && activeWorkspace.id !== 'all' ? `Ask in ${activeWorkspace.name}...` : "Search policy rules or ask AI Copilot a question..."}
                   disabled={isSending}
                   style={{
                     flex: 1,
