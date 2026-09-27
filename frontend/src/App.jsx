@@ -1425,7 +1425,7 @@ export default function App() {
         >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
             <img 
-              src="/Trulin-white.png" 
+              src="/Trulin-whiteNoBg.png" 
               alt="Trulin" 
               style={{ height: '24px', maxWidth: '140px', objectFit: 'contain' }} 
             />
@@ -2141,7 +2141,7 @@ export default function App() {
                 <div style={{ maxWidth: '820px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '10px', flexWrap: 'wrap' }}>
                     <img 
-                      src="/Trulin-main.png" 
+                      src="/Trulin-Main-NoBg.png" 
                       alt="Trulin" 
                       style={{ height: '36px', maxWidth: '170px', objectFit: 'contain' }} 
                     />

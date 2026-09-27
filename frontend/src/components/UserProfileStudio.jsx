@@ -122,7 +122,12 @@ export default function UserProfileStudio({
           </div>
 
           {/* Quick Profile Actions */}
-          <div style={{ display: 'flex', gap: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+            <img 
+              src="/Trulin-Main-NoBg.png" 
+              alt="Trulin" 
+              style={{ height: '26px', maxWidth: '120px', objectFit: 'contain', marginRight: '6px' }} 
+            />
             <button
               onClick={() => onOpenOrgSettings && onOpenOrgSettings()}
               className="btn btn-secondary"

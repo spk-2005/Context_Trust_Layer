@@ -292,7 +292,7 @@ export default function AgentChatPlayground({
               }}>
                 {/* Ask Trulin - Smaller text */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                  <img src="/Trulin-main.png" alt="Trulin" style={{ height: '24px', objectFit: 'contain' }} />
+                  <img src="/Trulin-Main-NoBg.png" alt="Trulin" style={{ height: '24px', objectFit: 'contain' }} />
                   <h2 style={{
                     fontSize: '1rem',
                     fontWeight: 700,

@@ -193,7 +193,7 @@ export default function SignInModal() {
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <img 
-              src="/Trulin-main.png" 
+              src="/Trulin-Main-NoBg.png" 
               alt="Trulin" 
               style={{ height: '32px', maxWidth: '140px', objectFit: 'contain' }} 
             />
