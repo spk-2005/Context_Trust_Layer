@@ -53,9 +53,83 @@ import RedTeamModal from './components/RedTeamModal';
 import MerkleVerificationModal from './components/MerkleVerificationModal';
 import { useAuth, DEFAULT_ENTERPRISE_PERSONAS } from './context/AuthContext';
 
+// -------------------------------------------------------------
+// Route URL & Navigation Configuration
+// -------------------------------------------------------------
+const TAB_TO_PATH = {
+  home: '/',
+  playground: '/chat',
+  demo: '/demo',
+  live_ingestion: '/live-ingestion',
+  visual_lineage: '/lineage',
+  context_curator: '/curator',
+  conflicts: '/conflicts',
+  ingestion: '/documents',
+  integrations: '/integrations',
+  audit: '/audit',
+  team: '/team',
+  profile: '/profile'
+};
+
+const PATH_TO_TAB = {
+  '/': 'home',
+  '/home': 'home',
+  '/chat': 'playground',
+  '/playground': 'playground',
+  '/demo': 'demo',
+  '/live-ingestion': 'live_ingestion',
+  '/lineage': 'visual_lineage',
+  '/visual-lineage': 'visual_lineage',
+  '/curator': 'context_curator',
+  '/context-curator': 'context_curator',
+  '/conflicts': 'conflicts',
+  '/documents': 'ingestion',
+  '/ingestion': 'ingestion',
+  '/integrations': 'integrations',
+  '/audit': 'audit',
+  '/team': 'team',
+  '/profile': 'profile'
+};
+
+const DEFAULT_WORKSPACES = [
+  { id: 'all', name: 'All Workspaces (Unified)', icon: '🌐', domain: 'global', description: 'Unified enterprise knowledge across all departments and systems' },
+  { id: 'finance', name: 'Finance & Billing Operations', icon: '💳', domain: 'finance', description: 'Invoices, customer refunds, ARR tiers, and accounting compliance SLAs' },
+  { id: 'secops', name: 'Engineering & Infrastructure SecOps', icon: '🛡️', domain: 'secops', description: 'IAM policies, mTLS authentication, Friday freezes, and session expiration' },
+  { id: 'hr', name: 'HR & People Operations', icon: '👥', domain: 'hr', description: 'Remote work guidelines, employee handbooks, and leave approval rules' },
+  { id: 'support', name: 'Customer Support & Success', icon: '💬', domain: 'support', description: 'Dispute arbitration workflows, tier exception matrices, and SLA escalations' },
+  { id: 'staging', name: 'Staging / Policy Sandbox', icon: '🧪', domain: 'staging', description: 'Isolated sandbox environment for dry-run conflict and gate simulations' },
+];
+
+const getInitialTabFromUrl = () => {
+  if (typeof window === 'undefined') return 'home';
+  const pathname = window.location.pathname.toLowerCase().replace(/\/$/, '') || '/';
+  return PATH_TO_TAB[pathname] || 'home';
+};
+
+const getInitialWorkspaceFromUrl = () => {
+  if (typeof window === 'undefined') return DEFAULT_WORKSPACES[0];
+  const params = new URLSearchParams(window.location.search);
+  const wsId = params.get('workspace');
+  if (wsId) {
+    const found = DEFAULT_WORKSPACES.find(w => w.id === wsId || w.domain === wsId);
+    if (found) return found;
+  }
+  return DEFAULT_WORKSPACES[0];
+};
+
+const getInitialDocViewFromUrl = () => {
+  if (typeof window === 'undefined') return 'connectors';
+  const params = new URLSearchParams(window.location.search);
+  const view = params.get('view');
+  if (view && ['connectors', 'ingest', 'documents', 'claims'].includes(view)) {
+    return view;
+  }
+  return 'connectors';
+};
+
 export default function App() {
-  const [activeTab, setActiveTab] = useState('playground');
-  const [expandedMenu, setExpandedMenu] = useState('playground');
+  const [activeTab, setActiveTab] = useState(getInitialTabFromUrl);
+  const [expandedMenu, setExpandedMenu] = useState(getInitialTabFromUrl);
   const [health, setHealth] = useState({ status: 'checking', database: false, version: '0.1.0' });
   const [conflicts, setConflicts] = useState([]);
   const [curatorSubView, setCuratorSubView] = useState('health'); // 'health' | 'conflicts'
@@ -404,23 +478,15 @@ export default function App() {
   // -------------------------------------------------------------
   // Departmental Workspaces under Active Company
   // -------------------------------------------------------------
-  const DEFAULT_WORKSPACES = [
-    { id: 'all', name: 'All Workspaces (Unified)', icon: '🌐', domain: 'global', description: 'Unified enterprise knowledge across all departments and systems' },
-    { id: 'finance', name: 'Finance & Billing Operations', icon: '💳', domain: 'finance', description: 'Invoices, customer refunds, ARR tiers, and accounting compliance SLAs' },
-    { id: 'secops', name: 'Engineering & Infrastructure SecOps', icon: '🛡️', domain: 'secops', description: 'IAM policies, mTLS authentication, Friday freezes, and session expiration' },
-    { id: 'hr', name: 'HR & People Operations', icon: '👥', domain: 'hr', description: 'Remote work guidelines, employee handbooks, and leave approval rules' },
-    { id: 'support', name: 'Customer Support & Success', icon: '💬', domain: 'support', description: 'Dispute arbitration workflows, tier exception matrices, and SLA escalations' },
-    { id: 'staging', name: 'Staging / Policy Sandbox', icon: '🧪', domain: 'staging', description: 'Isolated sandbox environment for dry-run conflict and gate simulations' },
-  ];
-
   const [workspaces, setWorkspaces] = useState(DEFAULT_WORKSPACES);
-  const [activeWorkspace, setActiveWorkspace] = useState(DEFAULT_WORKSPACES[0]);
+  const [activeWorkspace, setActiveWorkspace] = useState(getInitialWorkspaceFromUrl);
   const [isWorkspaceDropdownOpen, setIsWorkspaceDropdownOpen] = useState(false);
   const [showNewWorkspaceModal, setShowNewWorkspaceModal] = useState(false);
   const [newWorkspaceName, setNewWorkspaceName] = useState('');
   const [newWorkspaceDomain, setNewWorkspaceDomain] = useState('finance');
   const [newWorkspaceDescription, setNewWorkspaceDescription] = useState('');
   const [docExplorerScopeAll, setDocExplorerScopeAll] = useState(false);
+  const [docExplorerView, setDocExplorerView] = useState(getInitialDocViewFromUrl); // 'connectors' | 'ingest' | 'documents' | 'claims'
 
   // Chat Sessions for Sidebar History and AI Copilot Chat Sync
   const [chatSessions, setChatSessions] = useState([]);
@@ -477,6 +543,75 @@ export default function App() {
     fetchChatSessions();
   }, [activeOrg?.id, activeWorkspace?.id]);
 
+  // -------------------------------------------------------------
+  // Browser URL Routing & History Sync Engine
+  // -------------------------------------------------------------
+  useEffect(() => {
+    const targetPath = TAB_TO_PATH[activeTab] || '/';
+    const params = new URLSearchParams(window.location.search);
+
+    // Sync workspace query param
+    if (activeWorkspace && activeWorkspace.id !== 'all') {
+      params.set('workspace', activeWorkspace.id);
+    } else {
+      params.delete('workspace');
+    }
+
+    // Sync document explorer view query param
+    if (activeTab === 'ingestion' && docExplorerView && docExplorerView !== 'connectors') {
+      params.set('view', docExplorerView);
+    } else if (activeTab !== 'ingestion') {
+      params.delete('view');
+    }
+
+    // Retain chat session ID in query if on playground
+    if (activeTab === 'playground' && activeChatSessionId) {
+      params.set('session', activeChatSessionId);
+    } else if (activeTab !== 'playground') {
+      params.delete('session');
+    }
+
+    const queryString = params.toString() ? `?${params.toString()}` : '';
+    const targetUrl = `${targetPath}${queryString}`;
+    const currentUrl = window.location.pathname + window.location.search;
+
+    if (currentUrl !== targetUrl) {
+      window.history.pushState({ tab: activeTab, workspace: activeWorkspace?.id }, '', targetUrl);
+    }
+  }, [activeTab, activeWorkspace?.id, docExplorerView, activeChatSessionId]);
+
+  // Listen to browser Back / Forward navigation (popstate)
+  useEffect(() => {
+    const handlePopState = () => {
+      const cleanPath = window.location.pathname.toLowerCase().replace(/\/$/, '') || '/';
+      const targetTab = PATH_TO_TAB[cleanPath] || 'home';
+      setActiveTab(targetTab);
+      setExpandedMenu(targetTab);
+
+      const params = new URLSearchParams(window.location.search);
+      const wsId = params.get('workspace');
+      if (wsId && workspaces) {
+        const found = workspaces.find(w => w.id === wsId || w.domain === wsId);
+        if (found) setActiveWorkspace(found);
+      } else if (!wsId && workspaces) {
+        setActiveWorkspace(DEFAULT_WORKSPACES[0]);
+      }
+
+      const viewParam = params.get('view');
+      if (viewParam && ['connectors', 'ingest', 'documents', 'claims'].includes(viewParam)) {
+        setDocExplorerView(viewParam);
+      }
+
+      const sessionParam = params.get('session');
+      if (sessionParam) {
+        setActiveChatSessionId(sessionParam);
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [workspaces]);
+
   const [catalogConnectors, setCatalogConnectors] = useState([]);
   const [catalogCategories, setCatalogCategories] = useState([]);
   const [catalogFilterCategory, setCatalogFilterCategory] = useState('all');
@@ -495,7 +630,6 @@ export default function App() {
 
   const [dbDocuments, setDbDocuments] = useState([]);
   const [dbClaims, setDbClaims] = useState([]);
-  const [docExplorerView, setDocExplorerView] = useState('connectors'); // 'connectors' | 'ingest' | 'documents' | 'claims'
   const [claimFilterStatus, setClaimFilterStatus] = useState('all');
   const [dbSearchQuery, setDbSearchQuery] = useState('');
   const [dbLoading, setDbLoading] = useState(false);
@@ -509,7 +643,7 @@ export default function App() {
     staging: ['staging', 'sandbox', 'test', 'mock', 'simulation']
   };
 
-  const displayedDataSources = useMemo(() => {
+  const displayedDataSources = React.useMemo(() => {
     if (!activeWorkspace || activeWorkspace.id === 'all' || docExplorerScopeAll) return dataSources;
     const kw = WORKSPACE_DEPT_KEYWORDS[activeWorkspace.id] || [];
     const filtered = dataSources.filter(src => {
@@ -519,7 +653,7 @@ export default function App() {
     return filtered.length > 0 ? filtered : dataSources;
   }, [dataSources, activeWorkspace, docExplorerScopeAll]);
 
-  const displayedDbDocuments = useMemo(() => {
+  const displayedDbDocuments = React.useMemo(() => {
     if (!activeWorkspace || activeWorkspace.id === 'all' || docExplorerScopeAll) return dbDocuments;
     const kw = WORKSPACE_DEPT_KEYWORDS[activeWorkspace.id] || [];
     const filtered = dbDocuments.filter(doc => {
@@ -529,7 +663,7 @@ export default function App() {
     return filtered.length > 0 ? filtered : dbDocuments;
   }, [dbDocuments, activeWorkspace, docExplorerScopeAll]);
 
-  const displayedDbClaims = useMemo(() => {
+  const displayedDbClaims = React.useMemo(() => {
     if (!activeWorkspace || activeWorkspace.id === 'all' || docExplorerScopeAll) return dbClaims;
     const kw = WORKSPACE_DEPT_KEYWORDS[activeWorkspace.id] || [];
     const filtered = dbClaims.filter(cl => {
@@ -2057,84 +2191,7 @@ export default function App() {
           </div>
         </div>
 
-        {/* ========================================================= */}
-        {/* ROLE CONTEXT & SEPARATION OF DUTIES GOVERNANCE BANNER     */}
-        {/* ========================================================= */}
-        {simulatedRole ? (
-          <div style={{
-            background: 'linear-gradient(90deg, #F59E0B 0%, #D97706 100%)',
-            color: '#FFFFFF',
-            padding: '5px 20px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            fontSize: '0.74rem',
-            fontWeight: 600,
-            zIndex: 40,
-            position: 'relative'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Eye size={14} />
-              <span>Simulated Role: <strong>{roleMetadata?.title || simulatedRole.toUpperCase()}</strong></span>
-              <span className="badge" style={{ background: 'rgba(0,0,0,0.22)', color: '#FFF', fontSize: '0.62rem', border: '1px solid rgba(255,255,255,0.2)' }}>
-                SoD Restricted
-              </span>
-            </div>
-            <button
-              onClick={() => {
-                setSimulatedRole(null);
-                showToast('Exited Role Simulation. Restored CCO Admin privileges.');
-              }}
-              style={{
-                background: '#FFFFFF',
-                color: '#B45309',
-                border: 'none',
-                borderRadius: '4px',
-                padding: '2px 8px',
-                fontSize: '0.70rem',
-                fontWeight: 700,
-                cursor: 'pointer'
-              }}
-            >
-              Exit Simulation ✕
-            </button>
-          </div>
-        ) : (
-          <div style={{
-            background: 'var(--bg-card)',
-            borderBottom: '1px solid var(--border-subtle)',
-            padding: '5px 20px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            fontSize: '0.73rem',
-            color: 'var(--text-secondary)'
-          }}>
-            {/* Left: Role & Clearance Badge */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 700, color: 'var(--text-main)' }}>
-                <Shield size={13} style={{ color: 'var(--primary-dark)' }} />
-                <span>{roleMetadata?.title || effectiveRole.toUpperCase()}</span>
-              </div>
-              <span className="badge" style={{
-                fontSize: '0.62rem',
-                padding: '1px 6px',
-                background: 'rgba(255,171,74,0.12)',
-                color: '#9A4900',
-                border: '1px solid rgba(255,171,74,0.3)',
-                fontWeight: 700
-              }}>
-                Full Governance Clearance
-              </span>
-            </div>
 
-            {/* Right: Regulatory Status Indicator */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#15803D', fontWeight: 600, fontSize: '0.70rem' }}>
-              <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#16A34A', display: 'inline-block', boxShadow: '0 0 6px rgba(22,163,74,0.35)' }} />
-              Separation of Duties (SoD) Enforced
-            </div>
-          </div>
-        )}
 
         {/* ========================================================= */}
         {/* TAB 0: HOME OVERVIEW & ARCHITECTURE DASHBOARD             */}
@@ -2142,7 +2199,7 @@ export default function App() {
         {activeTab === 'home' && (
           <div>
             {/* Hero Banner */}
-            <div className="clean-panel" style={{ padding: '28px 32px', marginBottom: '24px', background: 'linear-gradient(135deg, var(--bg-card) 0%, var(--bg-card-subtle) 100%)' }}>
+            <div style={{ padding: '28px 32px', marginBottom: '24px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '20px' }}>
                 <div style={{ maxWidth: '820px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '10px', flexWrap: 'wrap' }}>
@@ -2187,7 +2244,7 @@ export default function App() {
                 style={{ padding: '18px 20px', cursor: 'pointer', transition: 'transform 0.15s ease' }}
                 onClick={() => { setActiveTab('ingestion'); setExpandedMenu('ingestion'); setDocExplorerView('connectors'); }}
               >
-                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>
+                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700 }}>
                   Connected Data Sources
                 </div>
                 <div style={{ fontSize: '1.65rem', fontWeight: 800, color: 'var(--primary)', marginTop: '4px' }}>
