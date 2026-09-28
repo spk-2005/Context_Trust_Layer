@@ -2449,18 +2449,7 @@ export default function App() {
           <div>
             {/* Centered Header Area */}
             <div className="tab-header-center" style={{ marginBottom: '24px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
-                <span className="badge badge-verified" style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
-                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#10B981', display: 'inline-block' }} />
-                  Live Decision Gateway
-                </span>
-                <span className="badge" style={{ background: '#F1F5F9', color: '#475569', border: '1px solid #CBD5E1' }}>
-                  PostgreSQL Truth Store
-                </span>
-                <span className="badge" style={{ background: '#EEF2FF', color: '#4F46E5', border: '1px solid #C7D2FE' }}>
-                  Sub-50ms Guardrail
-                </span>
-              </div>
+
 
               <h1 className="tab-main-heading">
                 Trust Decision Gate & Policy Simulator
@@ -3317,9 +3306,7 @@ export default function App() {
           <div>
             {/* Centered Header Area with Sub-View Switcher */}
             <div className="tab-header-center" style={{ marginBottom: '24px' }}>
-              <span className="badge badge-verified" style={{ marginBottom: '8px' }}>
-                PostgreSQL Repository Explorer
-              </span>
+
               <h1 className="tab-main-heading">
                 Document & Atomic Claim Repository
               </h1>
@@ -4489,14 +4476,7 @@ export default function App() {
 
             {/* Centered Top Header & Compliance Export Actions */}
             <div className="tab-header-center clean-panel" style={{ padding: '24px', background: 'var(--bg-card)', marginBottom: '24px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
-                <span className="badge badge-verified" style={{ fontSize: '0.72rem', padding: '2px 8px' }}>
-                  🛡️ AI GOVERNANCE & AUDIT TRAIL
-                </span>
-                <span className="badge badge-outline" style={{ fontSize: '0.72rem', padding: '2px 8px' }}>
-                  SOC2 Type II • ISO 42001 • EU AI Act Art. 12
-                </span>
-              </div>
+
               <h1 className="tab-main-heading">
                 Live Decision Audit Trail & Lineage Explorer
               </h1>
@@ -4873,9 +4853,7 @@ export default function App() {
         {activeTab === 'live_ingestion' && (
           <div>
             <div className="tab-header-center" style={{ marginBottom: '24px' }}>
-              <span className="badge badge-verified" style={{ marginBottom: '8px' }}>
-                Autonomous Parsing Pipeline
-              </span>
+
               <h1 className="tab-main-heading">
                 Live Ingestion & Autonomous Claim Extractor
               </h1>
@@ -4902,9 +4880,7 @@ export default function App() {
         {activeTab === 'visual_lineage' && (
           <div>
             <div className="tab-header-center" style={{ marginBottom: '20px' }}>
-              <span className="badge badge-verified" style={{ marginBottom: '6px' }}>
-                Interactive Knowledge DAG
-              </span>
+
               <h1 className="tab-main-heading">
                 Deep Visual Lineage DAG & Blast Radius Explorer
               </h1>
@@ -4926,9 +4902,7 @@ export default function App() {
         {(activeTab === 'context_curator' || activeTab === 'conflicts') && (
           <div>
             <div className="tab-header-center" style={{ marginBottom: '24px' }}>
-              <span className="badge badge-review" style={{ marginBottom: '8px' }}>
-                Knowledge Health & Governance
-              </span>
+
               <h1 className="tab-main-heading">
                 Autonomous Context Curator & Conflict Resolver
               </h1>
@@ -4955,9 +4929,7 @@ export default function App() {
         {activeTab === 'integrations' && (
           <div>
             <div className="tab-header-center" style={{ marginBottom: '20px' }}>
-              <span className="badge badge-verified" style={{ marginBottom: '6px' }}>
-                Model Context Protocol
-              </span>
+
               <h1 className="tab-main-heading">
                 Model Context Protocol (MCP) & Agent Integrations
               </h1>
@@ -4980,9 +4952,7 @@ export default function App() {
         {activeTab === 'team' && (
           <div>
             <div className="tab-header-center" style={{ marginBottom: '20px' }}>
-              <span className="badge badge-verified" style={{ marginBottom: '6px' }}>
-                Identity & Access Governance
-              </span>
+
               <h1 className="tab-main-heading">
                 Enterprise Team, Personas & Governance Activity
               </h1>
@@ -5005,9 +4975,7 @@ export default function App() {
         {activeTab === 'profile' && (
           <div>
             <div className="tab-header-center" style={{ marginBottom: '24px' }}>
-              <span className="badge badge-verified" style={{ marginBottom: '8px' }}>
-                Multi-Tenant Administration
-              </span>
+
               <h1 className="tab-main-heading">
                 Enterprise Profile & Company Switcher
               </h1>
