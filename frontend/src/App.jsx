@@ -2198,42 +2198,37 @@ export default function App() {
         {/* ========================================================= */}
         {activeTab === 'home' && (
           <div>
-            {/* Hero Banner */}
-            <div style={{ padding: '28px 32px', marginBottom: '24px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '20px' }}>
-                <div style={{ maxWidth: '820px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '10px', flexWrap: 'wrap' }}>
-                    <img 
-                      src="/Trulin-Main-NoBg.png" 
-                      alt="Trulin" 
-                      style={{ height: '36px', maxWidth: '170px', objectFit: 'contain' }} 
-                    />
-                 
-                  </div>
-                  <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-main)', marginTop: '4px', letterSpacing: '-0.02em' }}>
-                    Context Trust Gateway
-                  </h1>
-                  <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: '1.55', marginTop: '8px' }}>
-                    A deterministic evidence validation gate that prevents autonomous AI agents from acting on outdated policies, unverified rumors, and contradictory instructions across enterprise knowledge bases.
-                  </p>
-                </div>
+            {/* Centered Hero Banner */}
+            <div className="tab-header-center" style={{ padding: '16px 20px', marginBottom: '28px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '8px' }}>
+                <img 
+                  src="/Trulin-Main-NoBg.png" 
+                  alt="Trulin" 
+                  style={{ height: '38px', maxWidth: '175px', objectFit: 'contain' }} 
+                />
+              </div>
+              <h1 className="tab-main-heading">
+                Context Trust Gateway
+              </h1>
+              <p className="tab-subtitle">
+                A deterministic evidence validation gate that prevents autonomous AI agents from acting on outdated policies, unverified rumors, and contradictory instructions across enterprise knowledge bases.
+              </p>
 
-                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                  <button
-                    onClick={() => { setActiveTab('demo'); setExpandedMenu('demo'); }}
-                    className="btn btn-primary"
-                    style={{ padding: '8px 16px', fontSize: '0.85rem' }}
-                  >
-                    Launch Gate Demo
-                  </button>
-                  <button
-                    onClick={() => { setActiveTab('ingestion'); setExpandedMenu('ingestion'); setDocExplorerView('connectors'); }}
-                    className="btn btn-secondary"
-                    style={{ padding: '8px 16px', fontSize: '0.85rem' }}
-                  >
-                    Manage Connectors
-                  </button>
-                </div>
+              <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap', marginTop: '18px' }}>
+                <button
+                  onClick={() => { setActiveTab('demo'); setExpandedMenu('demo'); }}
+                  className="btn btn-primary"
+                  style={{ padding: '8px 18px', fontSize: '0.85rem' }}
+                >
+                  Launch Gate Demo
+                </button>
+                <button
+                  onClick={() => { setActiveTab('ingestion'); setExpandedMenu('ingestion'); setDocExplorerView('connectors'); }}
+                  className="btn btn-secondary"
+                  style={{ padding: '8px 18px', fontSize: '0.85rem' }}
+                >
+                  Manage Connectors
+                </button>
               </div>
             </div>
 
@@ -2452,145 +2447,144 @@ export default function App() {
         {/* ========================================================= */}
         {activeTab === 'demo' && (
           <div>
-            {/* Header Area */}
-            <div style={{ marginBottom: '20px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-                    <span className="badge badge-verified" style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
-                      <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#10B981', display: 'inline-block' }} />
-                      Live Decision Gateway
-                    </span>
-                    <span className="badge" style={{ background: '#F1F5F9', color: '#475569', border: '1px solid #CBD5E1' }}>
-                      PostgreSQL Truth Store
-                    </span>
-                    <span className="badge" style={{ background: '#EEF2FF', color: '#4F46E5', border: '1px solid #C7D2FE' }}>
-                      Sub-50ms Guardrail
-                    </span>
-                  </div>
-                  <h1 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-main)', marginTop: '4px' }}>
-                    Trust Decision Gate & Policy Simulator
-                  </h1>
-                  <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', marginTop: '4px', maxWidth: '800px' }}>
-                    Interactively simulate agent actions or stream live decisions evaluated by the gateway. The gate dynamically retrieves atomic claims, enforces 6-factor trust scoring, and blocks rogue AI execution with cryptographic audit logs.
-                  </p>
-                </div>
-
-                <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
-                  <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 14px', textAlign: 'right' }}>
-                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>Audited Decisions</div>
-                    <div style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--primary)' }}>
-                      {decisionStream.length > 0 ? decisionStream.length : auditSummary.total_decisions || 0}
-                    </div>
-                  </div>
-
-                  <div
-                    onClick={() => setIsRoiModalOpen(true)}
-                    style={{ background: '#ECFDF5', border: '1px solid #A7F3D0', borderRadius: '8px', padding: '8px 14px', textAlign: 'right', cursor: 'pointer', transition: 'all 0.15s ease' }}
-                    title="Click to view Financial Liability ROI breakdown"
-                    onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-1px)'}
-                    onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
-                  >
-                    <div style={{ fontSize: '0.7rem', color: '#047857', fontWeight: 700, textTransform: 'uppercase' }}>Liability Prevented</div>
-                    <div style={{ fontSize: '1.15rem', fontWeight: 800, color: '#059669' }}>
-                      ${auditSummary.financial_liability_prevented_usd ? Number(auditSummary.financial_liability_prevented_usd).toLocaleString() : '0'}
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={() => setIsDossierModalOpen(true)}
-                    className="btn btn-primary"
-                    style={{ fontSize: '0.8rem', padding: '8px 13px', background: 'linear-gradient(135deg, #4F46E5, #7C3AED)' }}
-                    title="Export Compliance Dossier (NIST AI 600-1 / EU AI Act)"
-                  >
-                    <span>🏛️</span>
-                    <span>Compliance Dossier</span>
-                  </button>
-
-                  <button
-                    onClick={() => setIsWebhookModalOpen(true)}
-                    className="btn btn-secondary"
-                    style={{ fontSize: '0.8rem', padding: '8px 12px', display: 'flex', alignItems: 'center', gap: '5px' }}
-                    title="Configure Real-Time Incident Webhooks (Slack, PagerDuty, MS Teams)"
-                  >
-                    <Bell size={13} color="#EF4444" />
-                    <span>Webhooks & Alerts</span>
-                  </button>
-
-                  <button
-                    onClick={() => setIsHitlModalOpen(true)}
-                    className="btn btn-secondary"
-                    style={{
-                      fontSize: '0.8rem',
-                      padding: '8px 12px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '5px',
-                      background: 'rgba(245, 158, 11, 0.08)',
-                      borderColor: '#FCD34D',
-                      color: '#B45309',
-                      fontWeight: 700
-                    }}
-                    title="Human-in-the-Loop Triage Queue (EU AI Act Article 14)"
-                  >
-                    <UserCheck size={14} color="#D97706" />
-                    <span>HITL Review Queue</span>
-                  </button>
-
-                  <button
-                    onClick={() => setIsRedTeamModalOpen(true)}
-                    className="btn btn-secondary"
-                    style={{
-                      fontSize: '0.8rem',
-                      padding: '8px 12px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '5px',
-                      background: 'rgba(239, 68, 68, 0.08)',
-                      borderColor: '#FCA5A5',
-                      color: '#B91C1C',
-                      fontWeight: 700
-                    }}
-                    title="Automated Red-Teaming & Adversarial Benchmark (OWASP LLM Top 10)"
-                  >
-                    <Crosshair size={14} color="#EF4444" />
-                    <span>Red-Team Suite</span>
-                  </button>
-
-                  <button
-                    onClick={() => {
-                      setMerkleSelectedToken(null);
-                      setIsMerkleModalOpen(true);
-                    }}
-                    className="btn btn-secondary"
-                    style={{
-                      fontSize: '0.8rem',
-                      padding: '8px 12px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '5px',
-                      background: 'rgba(16, 185, 129, 0.08)',
-                      borderColor: '#A7F3D0',
-                      color: '#047857',
-                      fontWeight: 700
-                    }}
-                    title="Cryptographic Merkle Tree Audit Ledger (EU AI Act Article 12)"
-                  >
-                    <Binary size={14} color="#059669" />
-                    <span>Merkle Audit Ledger</span>
-                  </button>
-
-                  <button
-                    onClick={() => fetchDecisionStream(activeOrg?.id)}
-                    className="btn btn-secondary"
-                    title="Refresh decision stream"
-                    style={{ padding: '8px 12px' }}
-                  >
-                    <RefreshCw size={14} className={streamLoading ? "animate-spin" : ""} />
-                    <span>Refresh</span>
-                  </button>
-                </div>
+            {/* Centered Header Area */}
+            <div className="tab-header-center" style={{ marginBottom: '24px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
+                <span className="badge badge-verified" style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#10B981', display: 'inline-block' }} />
+                  Live Decision Gateway
+                </span>
+                <span className="badge" style={{ background: '#F1F5F9', color: '#475569', border: '1px solid #CBD5E1' }}>
+                  PostgreSQL Truth Store
+                </span>
+                <span className="badge" style={{ background: '#EEF2FF', color: '#4F46E5', border: '1px solid #C7D2FE' }}>
+                  Sub-50ms Guardrail
+                </span>
               </div>
+
+              <h1 className="tab-main-heading">
+                Trust Decision Gate & Policy Simulator
+              </h1>
+
+              <p className="tab-subtitle">
+                Interactively simulate agent actions or stream live decisions evaluated by the gateway. The gate dynamically retrieves atomic claims, enforces 6-factor trust scoring, and blocks rogue AI execution with cryptographic audit logs.
+              </p>
+
+              <div style={{ display: 'flex', gap: '10px', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap', marginTop: '16px' }}>
+                <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 14px', textAlign: 'center' }}>
+                  <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>Audited Decisions</div>
+                  <div style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--primary)' }}>
+                    {decisionStream.length > 0 ? decisionStream.length : auditSummary.total_decisions || 0}
+                  </div>
+                </div>
+
+                <div
+                  onClick={() => setIsRoiModalOpen(true)}
+                  style={{ background: '#ECFDF5', border: '1px solid #A7F3D0', borderRadius: '8px', padding: '8px 14px', textAlign: 'center', cursor: 'pointer', transition: 'all 0.15s ease' }}
+                  title="Click to view Financial Liability ROI breakdown"
+                  onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-1px)'}
+                  onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+                >
+                  <div style={{ fontSize: '0.7rem', color: '#047857', fontWeight: 700, textTransform: 'uppercase' }}>Liability Prevented</div>
+                  <div style={{ fontSize: '1.15rem', fontWeight: 800, color: '#059669' }}>
+                    ${auditSummary.financial_liability_prevented_usd ? Number(auditSummary.financial_liability_prevented_usd).toLocaleString() : '0'}
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => setIsDossierModalOpen(true)}
+                  className="btn btn-primary"
+                  style={{ fontSize: '0.8rem', padding: '8px 13px', background: 'linear-gradient(135deg, #4F46E5, #7C3AED)' }}
+                  title="Export Compliance Dossier (NIST AI 600-1 / EU AI Act)"
+                >
+                  <span>🏛️</span>
+                  <span>Compliance Dossier</span>
+                </button>
+
+                <button
+                  onClick={() => setIsWebhookModalOpen(true)}
+                  className="btn btn-secondary"
+                  style={{ fontSize: '0.8rem', padding: '8px 12px', display: 'flex', alignItems: 'center', gap: '5px' }}
+                  title="Configure Real-Time Incident Webhooks (Slack, PagerDuty, MS Teams)"
+                >
+                  <Bell size={13} color="#EF4444" />
+                  <span>Webhooks & Alerts</span>
+                </button>
+
+                <button
+                  onClick={() => setIsHitlModalOpen(true)}
+                  className="btn btn-secondary"
+                  style={{
+                    fontSize: '0.8rem',
+                    padding: '8px 12px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '5px',
+                    background: 'rgba(245, 158, 11, 0.08)',
+                    borderColor: '#FCD34D',
+                    color: '#B45309',
+                    fontWeight: 700
+                  }}
+                  title="Human-in-the-Loop Triage Queue (EU AI Act Article 14)"
+                >
+                  <UserCheck size={14} color="#D97706" />
+                  <span>HITL Review Queue</span>
+                </button>
+
+                <button
+                  onClick={() => setIsRedTeamModalOpen(true)}
+                  className="btn btn-secondary"
+                  style={{
+                    fontSize: '0.8rem',
+                    padding: '8px 12px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '5px',
+                    background: 'rgba(239, 68, 68, 0.08)',
+                    borderColor: '#FCA5A5',
+                    color: '#B91C1C',
+                    fontWeight: 700
+                  }}
+                  title="Automated Red-Teaming & Adversarial Benchmark (OWASP LLM Top 10)"
+                >
+                  <Crosshair size={14} color="#EF4444" />
+                  <span>Red-Team Suite</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    setMerkleSelectedToken(null);
+                    setIsMerkleModalOpen(true);
+                  }}
+                  className="btn btn-secondary"
+                  style={{
+                    fontSize: '0.8rem',
+                    padding: '8px 12px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '5px',
+                    background: 'rgba(16, 185, 129, 0.08)',
+                    borderColor: '#A7F3D0',
+                    color: '#047857',
+                    fontWeight: 700
+                  }}
+                  title="Cryptographic Merkle Tree Audit Ledger (EU AI Act Article 12)"
+                >
+                  <Binary size={14} color="#059669" />
+                  <span>Merkle Audit Ledger</span>
+                </button>
+
+                <button
+                  onClick={() => fetchDecisionStream(activeOrg?.id)}
+                  className="btn btn-secondary"
+                  title="Refresh decision stream"
+                  style={{ padding: '8px 12px' }}
+                >
+                  <RefreshCw size={14} className={streamLoading ? "animate-spin" : ""} />
+                  <span>Refresh</span>
+                </button>
+              </div>
+            </div>
 
               {/* Mode Switcher: Interactive Simulator vs Benchmark Presets */}
               <div style={{
@@ -2733,7 +2727,6 @@ export default function App() {
                   </button>
                 </div>
               )}
-            </div>
 
             {/* Interactive Custom Simulator Box */}
             {simulatorMode === 'custom' ? (
@@ -3322,39 +3315,35 @@ export default function App() {
         {/* ========================================================= */}
         {activeTab === 'ingestion' && (
           <div>
-            {/* Header Area with Sub-View Switcher */}
-            <div style={{ marginBottom: '24px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
-                <div>
-                  <span className="badge badge-verified" style={{ marginBottom: '6px' }}>
-                    PostgreSQL Repository Explorer
-                  </span>
-                  <h1 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-main)', marginTop: '4px' }}>
-                    Document & Atomic Claim Repository
-                  </h1>
-                  <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', marginTop: '4px' }}>
-                    Ingest raw organizational policies, normalize markdown structure, and inspect live atomic facts stored in PostgreSQL.
-                  </p>
-                </div>
+            {/* Centered Header Area with Sub-View Switcher */}
+            <div className="tab-header-center" style={{ marginBottom: '24px' }}>
+              <span className="badge badge-verified" style={{ marginBottom: '8px' }}>
+                PostgreSQL Repository Explorer
+              </span>
+              <h1 className="tab-main-heading">
+                Document & Atomic Claim Repository
+              </h1>
+              <p className="tab-subtitle">
+                Ingest raw organizational policies, normalize markdown structure, and inspect live atomic facts stored in PostgreSQL.
+              </p>
 
-                {/* Active View Badge & Refresh Action */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <span className="badge badge-verified" style={{ fontSize: '0.8rem', padding: '5px 12px' }}>
-                    {docExplorerView === 'connectors' ? `Live Connectors & Sync (${displayedDataSources.length})` :
-                      docExplorerView === 'ingest' ? 'Ingest New Document' :
-                        docExplorerView === 'documents' ? `Stored Documents (${displayedDbDocuments.length})` :
-                          `Atomic Claims (${displayedDbClaims.length})`}
-                  </span>
+              {/* Active View Badge & Refresh Action (Centered) */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', marginTop: '16px', flexWrap: 'wrap' }}>
+                <span className="badge badge-verified" style={{ fontSize: '0.8rem', padding: '5px 14px' }}>
+                  {docExplorerView === 'connectors' ? `Live Connectors & Sync (${displayedDataSources.length})` :
+                    docExplorerView === 'ingest' ? 'Ingest New Document' :
+                      docExplorerView === 'documents' ? `Stored Documents (${displayedDbDocuments.length})` :
+                        `Atomic Claims (${displayedDbClaims.length})`}
+                </span>
 
-                  <button
-                    onClick={fetchLiveDatabaseRecords}
-                    className="btn btn-secondary"
-                    style={{ padding: '6px 12px', fontSize: '0.8rem' }}
-                    title="Refresh database records"
-                  >
-                    {dbLoading ? "Loading..." : "Refresh"}
-                  </button>
-                </div>
+                <button
+                  onClick={fetchLiveDatabaseRecords}
+                  className="btn btn-secondary"
+                  style={{ padding: '6px 14px', fontSize: '0.8rem' }}
+                  title="Refresh database records"
+                >
+                  {dbLoading ? "Loading..." : "Refresh"}
+                </button>
               </div>
             </div>
 
@@ -4498,62 +4487,59 @@ export default function App() {
         {activeTab === 'audit' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
 
-            {/* Top Header & Compliance Export Actions */}
-            <div className="clean-panel" style={{ padding: '24px', background: 'var(--bg-card)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                    <span className="badge badge-verified" style={{ fontSize: '0.72rem', padding: '2px 8px' }}>
-                      🛡️ AI GOVERNANCE & AUDIT TRAIL
-                    </span>
-                    <span className="badge badge-outline" style={{ fontSize: '0.72rem', padding: '2px 8px' }}>
-                      SOC2 Type II • ISO 42001 • EU AI Act Art. 12
-                    </span>
-                  </div>
-                  <h1 style={{ fontSize: '1.45rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
-                    Live Decision Audit Trail & Lineage Explorer
-                  </h1>
-                  <p style={{ fontSize: '0.84rem', color: 'var(--text-muted)', marginTop: '4px', margin: 0, maxWidth: '720px' }}>
-                    Cryptographically tamper-evident decision logs with 4-stage end-to-end lineage tracing, actor authorization gates, and candidate evidence provenance.
-                  </p>
-                </div>
-
-                {/* Right: Export & Refresh Buttons */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                  <button
-                    onClick={() => fetchAuditLogs(activeOrg?.id)}
-                    className="btn btn-secondary"
-                    disabled={auditLoading}
-                    style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', padding: '7px 13px' }}
-                  >
-                    <span style={{ display: 'inline-block', transform: auditLoading ? 'rotate(180deg)' : 'none', transition: 'transform 0.5s' }}>
-                      🔄
-                    </span>
-                    {auditLoading ? 'Refreshing...' : 'Refresh Logs'}
-                  </button>
-                  <button
-                    onClick={() => handleExportAuditLogs('csv')}
-                    className="btn btn-secondary"
-                    style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', padding: '7px 13px' }}
-                  >
-                    <span>📊</span> Export CSV
-                  </button>
-                  <button
-                    onClick={() => handleExportAuditLogs('json')}
-                    className="btn btn-secondary"
-                    style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', padding: '7px 13px' }}
-                  >
-                    <span>📜</span> Export JSON
-                  </button>
-                  <button
-                    onClick={() => setIsDossierModalOpen(true)}
-                    className="btn btn-primary"
-                    style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', padding: '7px 14px', background: 'linear-gradient(135deg, #4F46E5, #7C3AED)' }}
-                  >
-                    <span>🏛️</span> Compliance Dossier (NIST / EU AI Act)
-                  </button>
-                </div>
+            {/* Centered Top Header & Compliance Export Actions */}
+            <div className="tab-header-center clean-panel" style={{ padding: '24px', background: 'var(--bg-card)', marginBottom: '24px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
+                <span className="badge badge-verified" style={{ fontSize: '0.72rem', padding: '2px 8px' }}>
+                  🛡️ AI GOVERNANCE & AUDIT TRAIL
+                </span>
+                <span className="badge badge-outline" style={{ fontSize: '0.72rem', padding: '2px 8px' }}>
+                  SOC2 Type II • ISO 42001 • EU AI Act Art. 12
+                </span>
               </div>
+              <h1 className="tab-main-heading">
+                Live Decision Audit Trail & Lineage Explorer
+              </h1>
+              <p className="tab-subtitle">
+                Cryptographically tamper-evident decision logs with 4-stage end-to-end lineage tracing, actor authorization gates, and candidate evidence provenance.
+              </p>
+
+              {/* Centered Export & Refresh Buttons */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', flexWrap: 'wrap', marginTop: '16px' }}>
+                <button
+                  onClick={() => fetchAuditLogs(activeOrg?.id)}
+                  className="btn btn-secondary"
+                  disabled={auditLoading}
+                  style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', padding: '7px 14px' }}
+                >
+                  <span style={{ display: 'inline-block', transform: auditLoading ? 'rotate(180deg)' : 'none', transition: 'transform 0.5s' }}>
+                    🔄
+                  </span>
+                  {auditLoading ? 'Refreshing...' : 'Refresh Logs'}
+                </button>
+                <button
+                  onClick={() => handleExportAuditLogs('csv')}
+                  className="btn btn-secondary"
+                  style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', padding: '7px 14px' }}
+                >
+                  <span>📊</span> Export CSV
+                </button>
+                <button
+                  onClick={() => handleExportAuditLogs('json')}
+                  className="btn btn-secondary"
+                  style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', padding: '7px 14px' }}
+                >
+                  <span>📜</span> Export JSON
+                </button>
+                <button
+                  onClick={() => setIsDossierModalOpen(true)}
+                  className="btn btn-primary"
+                  style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', padding: '7px 14px', background: 'linear-gradient(135deg, #4F46E5, #7C3AED)' }}
+                >
+                  <span>🏛️</span> Compliance Dossier (NIST / EU AI Act)
+                </button>
+              </div>
+            </div>
 
               {/* 6 Compliance KPI Summary Cards */}
               <div style={{
@@ -4643,7 +4629,6 @@ export default function App() {
                   </div>
                 </div>
               </div>
-            </div>
 
             {/* Filter Toolbar & Live Audit Log Stream */}
             <div className="clean-panel" style={{ padding: '20px', background: 'var(--bg-card)' }}>
@@ -4886,89 +4871,167 @@ export default function App() {
         {/* ENTERPRISE TAB 1: LIVE INGESTION STUDIO (OPTION 1)        */}
         {/* ========================================================= */}
         {activeTab === 'live_ingestion' && (
-          <LiveIngestionStudio
-            activeOrg={activeOrg}
-            activePersona={activePersona}
-            activeWorkspace={activeWorkspace}
-            onClaimExtracted={() => {
-              fetchLiveDatabaseRecords();
-              fetchHealthAndConflicts(activeOrg?.id);
-            }}
-            showToast={showToast}
-          />
+          <div>
+            <div className="tab-header-center" style={{ marginBottom: '24px' }}>
+              <span className="badge badge-verified" style={{ marginBottom: '8px' }}>
+                Autonomous Parsing Pipeline
+              </span>
+              <h1 className="tab-main-heading">
+                Live Ingestion & Autonomous Claim Extractor
+              </h1>
+              <p className="tab-subtitle">
+                Upload PDFs, Word Docs, Markdown, or JSON. The engine auto-parses sections, extracts atomic claims, computes trust scores, and links lineage in real time.
+              </p>
+            </div>
+            <LiveIngestionStudio
+              activeOrg={activeOrg}
+              activePersona={activePersona}
+              activeWorkspace={activeWorkspace}
+              onClaimExtracted={() => {
+                fetchLiveDatabaseRecords();
+                fetchHealthAndConflicts(activeOrg?.id);
+              }}
+              showToast={showToast}
+            />
+          </div>
         )}
 
         {/* ========================================================= */}
         {/* ENTERPRISE TAB 2: VISUAL LINEAGE GRAPH (OPTION 2)         */}
         {/* ========================================================= */}
         {activeTab === 'visual_lineage' && (
-          <VisualLineageGraph
-            activeOrg={activeOrg}
-            activeWorkspace={activeWorkspace}
-            showToast={showToast}
-          />
+          <div>
+            <div className="tab-header-center" style={{ marginBottom: '20px' }}>
+              <span className="badge badge-verified" style={{ marginBottom: '6px' }}>
+                Interactive Knowledge DAG
+              </span>
+              <h1 className="tab-main-heading">
+                Deep Visual Lineage DAG & Blast Radius Explorer
+              </h1>
+              <p className="tab-subtitle">
+                Inspect 5-tier directional dependency graphs tracing raw enterprise data sources, normalized documents, extracted atomic claims, active contradictions, and evaluated agent decisions.
+              </p>
+            </div>
+            <VisualLineageGraph
+              activeOrg={activeOrg}
+              activeWorkspace={activeWorkspace}
+              showToast={showToast}
+            />
+          </div>
         )}
 
         {/* ========================================================= */}
         {/* ENTERPRISE TAB 3: CONTEXT CURATOR BOT (OPTION 3)          */}
         {/* ========================================================= */}
         {(activeTab === 'context_curator' || activeTab === 'conflicts') && (
-          <ContextCuratorStudio
-            activeOrg={activeOrg}
-            activeWorkspace={activeWorkspace}
-            showToast={showToast}
-            conflicts={conflicts}
-            onResolveConflict={handleResolveConflict}
-            onRefreshConflicts={() => fetchHealthAndConflicts(activeOrg?.id)}
-            initialSubView={activeTab === 'conflicts' ? 'conflicts' : curatorSubView}
-            onSubViewChange={setCuratorSubView}
-          />
+          <div>
+            <div className="tab-header-center" style={{ marginBottom: '24px' }}>
+              <span className="badge badge-review" style={{ marginBottom: '8px' }}>
+                Knowledge Health & Governance
+              </span>
+              <h1 className="tab-main-heading">
+                Autonomous Context Curator & Conflict Resolver
+              </h1>
+              <p className="tab-subtitle">
+                Continuous knowledge health auditing and pairwise policy arbitration. Approved claims become authoritative while stale rules are superseded.
+              </p>
+            </div>
+            <ContextCuratorStudio
+              activeOrg={activeOrg}
+              activeWorkspace={activeWorkspace}
+              showToast={showToast}
+              conflicts={conflicts}
+              onResolveConflict={handleResolveConflict}
+              onRefreshConflicts={() => fetchHealthAndConflicts(activeOrg?.id)}
+              initialSubView={activeTab === 'conflicts' ? 'conflicts' : curatorSubView}
+              onSubViewChange={setCuratorSubView}
+            />
+          </div>
         )}
 
         {/* ========================================================= */}
         {/* ENTERPRISE TAB 4: MCP INTEGRATION STUDIO (OPTION 4)       */}
         {/* ========================================================= */}
         {activeTab === 'integrations' && (
-          <McpIntegrationStudio
-            activeOrg={activeOrg}
-            showToast={showToast}
-            initialSubView={mcpActiveSubView}
-            onSubViewChange={setMcpActiveSubView}
-          />
+          <div>
+            <div className="tab-header-center" style={{ marginBottom: '20px' }}>
+              <span className="badge badge-verified" style={{ marginBottom: '6px' }}>
+                Model Context Protocol
+              </span>
+              <h1 className="tab-main-heading">
+                Model Context Protocol (MCP) & Agent Integrations
+              </h1>
+              <p className="tab-subtitle">
+                Connect external autonomous agent frameworks (LangChain, CrewAI, AutoGen, Claude Desktop) to the Context Trust Gateway via standardized MCP endpoints.
+              </p>
+            </div>
+            <McpIntegrationStudio
+              activeOrg={activeOrg}
+              showToast={showToast}
+              initialSubView={mcpActiveSubView}
+              onSubViewChange={setMcpActiveSubView}
+            />
+          </div>
         )}
 
         {/* ========================================================= */}
         {/* TAB 7: TEAM, PERSONAS & GOVERNANCE ACTIVITY HUB           */}
         {/* ========================================================= */}
         {activeTab === 'team' && (
-          <TeamAndActivityHub
-            activeOrg={activeOrg}
-            activePersona={activePersona}
-            onSelectPersona={(p) => setActivePersona(p)}
-            showToast={showToast}
-          />
+          <div>
+            <div className="tab-header-center" style={{ marginBottom: '20px' }}>
+              <span className="badge badge-verified" style={{ marginBottom: '6px' }}>
+                Identity & Access Governance
+              </span>
+              <h1 className="tab-main-heading">
+                Enterprise Team, Personas & Governance Activity
+              </h1>
+              <p className="tab-subtitle">
+                Manage organizational users, switch testing personas, review Atlan-grade separation of duties (SoD), and audit real-time user activities.
+              </p>
+            </div>
+            <TeamAndActivityHub
+              activeOrg={activeOrg}
+              activePersona={activePersona}
+              onSelectPersona={(p) => setActivePersona(p)}
+              showToast={showToast}
+            />
+          </div>
         )}
 
         {/* ========================================================= */}
         {/* TAB 8: USER PROFILE, IDENTITY & COMPANY SWITCHER          */}
         {/* ========================================================= */}
         {activeTab === 'profile' && (
-          <UserProfileStudio
-            activeOrg={activeOrg}
-            organizations={organizations}
-            onSwitchOrg={handleSwitchOrganization}
-            activeWorkspace={activeWorkspace}
-            workspaces={workspaces}
-            onSwitchWorkspace={setActiveWorkspace}
-            activePersona={activePersona}
-            personas={personas && personas.length > 0 ? personas : DEFAULT_ENTERPRISE_PERSONAS}
-            onSelectPersona={handleSelectPersona}
-            effectiveRole={effectiveRole}
-            roleMetadata={roleMetadata}
-            onOpenRegisterOrg={() => setShowNewOrgModal(true)}
-            onOpenOrgSettings={() => setIsOrgSettingsModalOpen(true)}
-            showToast={showToast}
-          />
+          <div>
+            <div className="tab-header-center" style={{ marginBottom: '24px' }}>
+              <span className="badge badge-verified" style={{ marginBottom: '8px' }}>
+                Multi-Tenant Administration
+              </span>
+              <h1 className="tab-main-heading">
+                Enterprise Profile & Company Switcher
+              </h1>
+              <p className="tab-subtitle">
+                Manage your enterprise identity, switch active organizations and departmental workspaces, and configure cross-tenant compliance policies.
+              </p>
+            </div>
+            <UserProfileStudio
+              activeOrg={activeOrg}
+              organizations={organizations}
+              onSwitchOrg={handleSwitchOrganization}
+              activeWorkspace={activeWorkspace}
+              workspaces={workspaces}
+              onSwitchWorkspace={setActiveWorkspace}
+              activePersona={activePersona}
+              personas={personas && personas.length > 0 ? personas : DEFAULT_ENTERPRISE_PERSONAS}
+              onSelectPersona={handleSelectPersona}
+              effectiveRole={effectiveRole}
+              roleMetadata={roleMetadata}
+              onOpenRegisterOrg={() => setShowNewOrgModal(true)}
+              onOpenOrgSettings={() => setIsOrgSettingsModalOpen(true)}
+              showToast={showToast}
+            />
+          </div>
         )}
       </main>
 
