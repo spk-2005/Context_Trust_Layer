@@ -1,4 +1,34 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
+import {
+  Zap,
+  Filter,
+  Layers,
+  FileText,
+  ShieldCheck,
+  Scale,
+  CheckCircle2,
+  AlertTriangle,
+  RotateCcw,
+  Sliders,
+  Eye,
+  RefreshCw,
+  Search,
+  Database,
+  Building2,
+  ChevronDown,
+  X,
+  Bot,
+  BarChart3,
+  Home,
+  ExternalLink,
+  Share2,
+  Download,
+  ChevronRight,
+  ChevronLeft
+} from 'lucide-react';
+
+const CARD_WIDTH = 260;
+const CARD_HEIGHT = 76;
 
 export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToast }) {
   const [graphData, setGraphData] = useState(null);
@@ -23,6 +53,7 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [drawerSearch, setDrawerSearch] = useState('');
   const [drawerDocFilter, setDrawerDocFilter] = useState('all');
+  const [isImpactReportOpen, setIsImpactReportOpen] = useState(false);
 
   // Enterprise Filter States
   const [selectedConflictId, setSelectedConflictId] = useState('all');
@@ -34,6 +65,12 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
   const [displayLimit, setDisplayLimit] = useState(12); // 6, 12, 24, 1000 ('all')
   const [visibleTiers, setVisibleTiers] = useState(new Set(['source', 'document', 'claim', 'conflict', 'decision']));
   const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(true);
+
+  // Enterprise Scalability & Grouping Controls
+  const [groupCleanClaims, setGroupCleanClaims] = useState(true);
+  const [causalSubgraphOnly, setCausalSubgraphOnly] = useState(false);
+  const [lineageGranularity, setLineageGranularity] = useState('document'); // 'document' (default clean flow) or 'claim' (granular provenance)
+  const [expandedDocIds, setExpandedDocIds] = useState(new Set());
 
   // Free-form Canvas Pan & Zoom State
   const [zoom, setZoom] = useState(0.78);
@@ -93,6 +130,18 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
   useEffect(() => {
     fetchLineage();
   }, [activeOrg?.id]);
+
+  const conflictsList = useMemo(() => {
+    return graphData?.nodes?.filter(n => n.type === 'conflict') || [];
+  }, [graphData]);
+
+  const documentsList = useMemo(() => {
+    return graphData?.nodes?.filter(n => n.type === 'document') || [];
+  }, [graphData]);
+
+  const decisionsList = useMemo(() => {
+    return graphData?.nodes?.filter(n => n.type === 'decision') || [];
+  }, [graphData]);
 
   const selectedNode = useMemo(() => {
     return graphData?.nodes?.find(n => n.id === selectedNodeId) || null;
@@ -179,6 +228,18 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
       if (down.has(e.source)) {
         down.add(e.target);
         all.add(e.target);
+        activeEdgeIds.add(e.id);
+      }
+    });
+
+    // Also include conflict nodes connecting any claims in 'all'
+    graphData.edges.forEach(e => {
+      if (all.has(e.source) && e.target.startsWith('cfl_')) {
+        all.add(e.target);
+        activeEdgeIds.add(e.id);
+      }
+      if (all.has(e.target) && e.source.startsWith('cfl_')) {
+        all.add(e.source);
         activeEdgeIds.add(e.id);
       }
     });
@@ -367,6 +428,81 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
       }
     }
 
+    // 9. Context-Driven Subgraph Query (k=2 depth causal trace)
+    if (causalSubgraphOnly && selectedNodeId) {
+      result = result.filter(n => connectedNodeMap.all.has(n.id));
+    }
+
+    // 10. Anomaly Grouping: Roll up clean/verified claims into summary cluster pills
+    // Keep only active contradictions and low-trust/disputed claims expanded!
+    if (groupCleanClaims) {
+      const allClaims = result.filter(n => n.type === 'claim');
+      const nonClaims = result.filter(n => n.type !== 'claim');
+      
+      const cleanClaims = [];
+      const anomalousClaims = [];
+
+      allClaims.forEach(cl => {
+        const isConflicted = allConflictedClaimIds.has(cl.id) || cl.status === 'conflicted';
+        const isLowTrust = cl.trustScore !== undefined && cl.trustScore < 0.85;
+        if (isConflicted || isLowTrust) {
+          anomalousClaims.push(cl);
+        } else {
+          cleanClaims.push(cl);
+        }
+      });
+
+      const clusterNodes = [];
+      if (cleanClaims.length > 0) {
+        const cleanByDoc = {};
+        cleanClaims.forEach(cl => {
+          let parentDoc = 'general';
+          edges.forEach(e => {
+            if (e.target === cl.id && e.source.startsWith('doc_')) parentDoc = e.source;
+          });
+          if (!cleanByDoc[parentDoc]) cleanByDoc[parentDoc] = [];
+          cleanByDoc[parentDoc].push(cl);
+        });
+
+        Object.entries(cleanByDoc).forEach(([docId, cList]) => {
+          const docNode = nodes.find(n => n.id === docId);
+          clusterNodes.push({
+            id: `cluster_clean_${docId}`,
+            type: 'claim_cluster',
+            label: `${cList.length} Verified Claims`,
+            subType: 'verified_cluster',
+            docId,
+            docTitle: docNode?.label || 'Policy Corpus',
+            count: cList.length,
+            claimIds: cList.map(c => c.id),
+            fullText: `Cluster of ${cList.length} verified baseline claims without contradictions.`
+          });
+        });
+      }
+
+      result = [...nonClaims, ...anomalousClaims, ...clusterNodes];
+    }
+
+    // 11. Document-Level vs Claim-Level Granularity Filter
+    if (lineageGranularity === 'document') {
+      result = result.filter(n => {
+        if (n.type !== 'claim' && n.type !== 'claim_cluster') return true;
+        let parentDocId = n.docId;
+        if (!parentDocId) {
+          edges.forEach(e => {
+            if (e.target === n.id && e.source.startsWith('doc_')) parentDocId = e.source;
+          });
+        }
+        if (parentDocId && expandedDocIds.has(parentDocId)) return true;
+        if (selectedNodeId === n.id) return true;
+        if (selectedConflictId !== 'all') {
+          const cItem = conflictMap[selectedConflictId];
+          if (cItem?.claimAId === n.id || cItem?.claimBId === n.id) return true;
+        }
+        return false;
+      });
+    }
+
     return result;
   }, [
     graphData,
@@ -380,7 +516,14 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
     searchQuery,
     conflictMap,
     activeWorkspace,
-    lineageScopeAll
+    lineageScopeAll,
+    causalSubgraphOnly,
+    selectedNodeId,
+    groupCleanClaims,
+    allConflictedClaimIds,
+    connectedNodeMap,
+    lineageGranularity,
+    expandedDocIds
   ]);
 
   // 2. Smart DAG Layout: Adaptive Density & Immediate Visibility
@@ -390,7 +533,7 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
 
     const sources = filteredNodes.filter(n => n.type === 'source');
     const documents = filteredNodes.filter(n => n.type === 'document');
-    const claims = filteredNodes.filter(n => n.type === 'claim');
+    const claims = filteredNodes.filter(n => n.type === 'claim' || n.type === 'claim_cluster');
     const conflicts = filteredNodes.filter(n => n.type === 'conflict');
     const decisions = filteredNodes.filter(n => n.type === 'decision');
 
@@ -409,16 +552,31 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
         if (cItem?.claimBId) conflictRelatedClaimIds.add(cItem.claimBId);
       });
       activeClaims = [
-        ...claims.filter(cl => conflictRelatedClaimIds.has(cl.id)),
-        ...claims.filter(cl => !conflictRelatedClaimIds.has(cl.id))
-      ].slice(0, limit);
+        ...claims.filter(cl => cl.type === 'claim_cluster' || conflictRelatedClaimIds.has(cl.id)),
+        ...claims.filter(cl => cl.type !== 'claim_cluster' && !conflictRelatedClaimIds.has(cl.id))
+      ];
     } else if (viewMode === 'focused' && selectedNodeId) {
       activeClaims = [
-        ...claims.filter(n => connectedNodeMap.all.has(n.id)),
-        ...claims.filter(n => !connectedNodeMap.all.has(n.id))
-      ].slice(0, limit);
+        ...claims.filter(n => connectedNodeMap.all.has(n.id) || n.type === 'claim_cluster'),
+        ...claims.filter(n => !connectedNodeMap.all.has(n.id) && n.type !== 'claim_cluster')
+      ];
+    }
+
+    // High-Density Column Overflow Cluster Pill (when > 12 nodes in claims column)
+    if (activeClaims.length > 12 && displayLimit !== 'all') {
+      const topCount = 11;
+      const overflowCount = activeClaims.length - topCount;
+      const topClaims = activeClaims.slice(0, topCount);
+      const densityCluster = {
+        id: 'cluster_overflow_claims',
+        type: 'density_cluster',
+        label: `+${overflowCount} More Claims`,
+        count: overflowCount,
+        desc: 'Click to expand full column density'
+      };
+      activeClaims = [...topClaims, densityCluster];
     } else {
-      activeClaims = claims.slice(0, limit);
+      activeClaims = activeClaims.slice(0, limit);
     }
 
     const activeConflicts = conflicts.slice(0, limit);
@@ -428,32 +586,164 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
     if (selectedNode && filteredNodes.some(n => n.id === selectedNode.id)) {
       if (selectedNode.type === 'source' && !activeSources.some(n => n.id === selectedNode.id)) activeSources.unshift(selectedNode);
       if (selectedNode.type === 'document' && !activeDocs.some(n => n.id === selectedNode.id)) activeDocs.unshift(selectedNode);
-      if (selectedNode.type === 'claim' && !activeClaims.some(n => n.id === selectedNode.id)) activeClaims.unshift(selectedNode);
+      if ((selectedNode.type === 'claim' || selectedNode.type === 'claim_cluster') && !activeClaims.some(n => n.id === selectedNode.id)) activeClaims.unshift(selectedNode);
       if (selectedNode.type === 'conflict' && !activeConflicts.some(n => n.id === selectedNode.id)) activeConflicts.unshift(selectedNode);
       if (selectedNode.type === 'decision' && !activeDecisions.some(n => n.id === selectedNode.id)) activeDecisions.unshift(selectedNode);
     }
 
-    // Compact X positions so all 5 columns fit comfortably in viewport
-    const levels = [
-      { nodes: activeSources, x: 40, type: 'source' },
-      { nodes: activeDocs, x: 350, type: 'document' },
-      { nodes: activeClaims, x: 660, type: 'claim' },
-      { nodes: activeConflicts, x: 970, type: 'conflict' },
-      { nodes: activeDecisions, x: 1280, type: 'decision' }
+    // Connection-Driven & Document-Tree Layout Engine
+    // Instead of sticking nodes into static arbitrary slots, nodes align with their real parent/child connections!
+    const edges = graphData?.edges || [];
+    const CARD_SPACING = 118;
+    const START_Y = 40;
+
+    const isDocMode = lineageGranularity === 'document';
+    const X_SOURCE = 50;
+    const X_DOC = 390;
+    const X_CLAIM = 730;
+    const X_CONFLICT = isDocMode ? 730 : 1070;
+    const X_DECISION = isDocMode ? 1070 : 1410;
+
+    // 1. Position Sources (Column 0)
+    activeSources.forEach((src, idx) => {
+      map[src.id] = {
+        x: X_SOURCE,
+        y: START_Y + idx * (CARD_SPACING * 1.5)
+      };
+    });
+
+    // 2. Position Documents based on their parent Sources (Column 1)
+    const docsBySource = {};
+    const unparentedDocs = [];
+
+    activeDocs.forEach(doc => {
+      let parentSrcId = null;
+      edges.forEach(e => {
+        if (e.target === doc.id && e.source.startsWith('src_')) parentSrcId = e.source;
+      });
+      if (parentSrcId && map[parentSrcId]) {
+        if (!docsBySource[parentSrcId]) docsBySource[parentSrcId] = [];
+        docsBySource[parentSrcId].push(doc);
+      } else {
+        unparentedDocs.push(doc);
+      }
+    });
+
+    let currentDocY = START_Y;
+    activeSources.forEach(src => {
+      const childDocs = docsBySource[src.id] || [];
+      const srcPos = map[src.id];
+      if (childDocs.length > 0) {
+        const totalHeight = (childDocs.length - 1) * CARD_SPACING;
+        const startDocY = Math.max(START_Y, (srcPos?.y || START_Y) - totalHeight / 2);
+        childDocs.forEach((doc, idx) => {
+          const docY = startDocY + idx * CARD_SPACING;
+          map[doc.id] = { x: X_DOC, y: docY };
+          currentDocY = Math.max(currentDocY, docY + CARD_SPACING);
+        });
+      }
+    });
+
+    unparentedDocs.forEach((doc, idx) => {
+      map[doc.id] = { x: X_DOC, y: currentDocY + idx * CARD_SPACING };
+    });
+
+    // 3. Position Claims based on their parent Document (Column 2)
+    const claimsByDoc = {};
+    const unparentedClaims = [];
+
+    activeClaims.forEach(cl => {
+      let parentDocId = cl.docId || null;
+      if (!parentDocId) {
+        edges.forEach(e => {
+          if (e.target === cl.id && e.source.startsWith('doc_')) parentDocId = e.source;
+        });
+      }
+      if (parentDocId && map[parentDocId]) {
+        if (!claimsByDoc[parentDocId]) claimsByDoc[parentDocId] = [];
+        claimsByDoc[parentDocId].push(cl);
+      } else {
+        unparentedClaims.push(cl);
+      }
+    });
+
+    let currentClaimY = START_Y;
+    activeDocs.forEach(doc => {
+      const childClaims = claimsByDoc[doc.id] || [];
+      const docPos = map[doc.id];
+      if (childClaims.length > 0) {
+        const totalHeight = (childClaims.length - 1) * (CARD_SPACING * 0.92);
+        const startClaimY = Math.max(START_Y, (docPos?.y || START_Y) - totalHeight / 2);
+        childClaims.forEach((cl, idx) => {
+          const claimY = startClaimY + idx * (CARD_SPACING * 0.92);
+          map[cl.id] = { x: X_CLAIM, y: claimY };
+          currentClaimY = Math.max(currentClaimY, claimY + CARD_SPACING);
+        });
+      }
+    });
+
+    unparentedClaims.forEach((cl, idx) => {
+      map[cl.id] = { x: X_CLAIM, y: currentClaimY + idx * CARD_SPACING };
+    });
+
+    // 4. Position Conflicts based on their connected claims or documents (Column 3 or Column 2 in Doc Mode)
+    activeConflicts.forEach((c, idx) => {
+      const cItem = conflictMap[c.id];
+      let yAnchor = null;
+      if (cItem?.claimAId && cItem?.claimBId && map[cItem.claimAId] && map[cItem.claimBId]) {
+        yAnchor = (map[cItem.claimAId].y + map[cItem.claimBId].y) / 2;
+      } else {
+        const docYs = [];
+        edges.forEach(e => {
+          if (e.target === c.id && map[e.source]) docYs.push(map[e.source].y);
+        });
+        if (docYs.length >= 2) {
+          yAnchor = (docYs[0] + docYs[1]) / 2;
+        }
+      }
+
+      const assignedY = yAnchor !== null ? yAnchor : START_Y + idx * (CARD_SPACING * 1.15);
+      map[c.id] = { x: X_CONFLICT, y: assignedY };
+    });
+
+    // 5. Position Decisions based on their grounding claims or conflicts (Column 4 or Column 3 in Doc Mode)
+    activeDecisions.forEach((dec, idx) => {
+      const parentYs = [];
+      edges.forEach(e => {
+        if (e.target === dec.id && map[e.source]) {
+          parentYs.push(map[e.source].y);
+        }
+      });
+
+      let decY = START_Y + idx * (CARD_SPACING * 1.15);
+      if (parentYs.length > 0) {
+        decY = parentYs.reduce((a, b) => a + b, 0) / parentYs.length;
+      }
+      map[dec.id] = { x: X_DECISION, y: decY };
+    });
+
+    // Relaxation Pass: Prevent any overlapping nodes within the same column
+    const columns = [
+      activeSources.map(n => n.id),
+      activeDocs.map(n => n.id),
+      activeClaims.map(n => n.id),
+      activeConflicts.map(n => n.id),
+      activeDecisions.map(n => n.id)
     ];
 
-    levels.forEach(lvl => {
-      const count = lvl.nodes.length;
-      const cardSpacing = count > 10 ? 104 : count > 5 ? 116 : 124;
-      // Start near top so nodes are immediately visible without scrolling
-      const startY = 30;
+    const MIN_GAP = 96;
+    columns.forEach(colNodeIds => {
+      const colNodes = colNodeIds.filter(id => !!map[id]).map(id => ({ id, ...map[id] }));
+      colNodes.sort((a, b) => a.y - b.y);
 
-      lvl.nodes.forEach((node, idx) => {
-        map[node.id] = {
-          x: lvl.x,
-          y: startY + idx * cardSpacing
-        };
-      });
+      for (let i = 1; i < colNodes.length; i++) {
+        const prev = colNodes[i - 1];
+        const curr = colNodes[i];
+        if (curr.y < prev.y + MIN_GAP) {
+          curr.y = prev.y + MIN_GAP;
+          map[curr.id].y = curr.y;
+        }
+      }
     });
 
     return map;
@@ -465,7 +755,9 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
     selectedConflictId,
     selectedNode,
     connectedNodeMap,
-    conflictMap
+    conflictMap,
+    graphData,
+    lineageGranularity
   ]);
 
   // Merged positions (custom user drags take precedence)
@@ -476,24 +768,119 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
   // Filter rendered nodes based on calculated positions
   const renderedNodes = useMemo(() => {
     if (!filteredNodes) return [];
-    return filteredNodes.filter(n => !!nodePositions[n.id]);
+    const base = filteredNodes.filter(n => !!nodePositions[n.id]);
+    if (nodePositions['cluster_overflow_claims'] && !base.some(n => n.id === 'cluster_overflow_claims')) {
+      const claimsCount = filteredNodes.filter(n => n.type === 'claim').length;
+      base.push({
+        id: 'cluster_overflow_claims',
+        type: 'density_cluster',
+        label: `+${Math.max(1, claimsCount - 11)} More Claims`,
+        count: Math.max(1, claimsCount - 11),
+        desc: 'Click to expand full column density'
+      });
+    }
+    return base;
   }, [filteredNodes, nodePositions]);
 
   // Directional Bezier Connecting Edges
   const renderedEdges = useMemo(() => {
     if (!graphData?.edges) return [];
-    return graphData.edges
+    const allEdges = [...graphData.edges];
+
+    // Add synthesized cluster edges from parent documents to claim clusters
+    filteredNodes.forEach(n => {
+      if (n.type === 'claim_cluster' && n.docId && n.docId !== 'general') {
+        allEdges.push({
+          id: `cluster_edge_${n.docId}_${n.id}`,
+          source: n.docId,
+          target: n.id,
+          type: 'hierarchy'
+        });
+      }
+    });
+
+    // In document mode, synthesize direct Document -> Conflict and Conflict -> Decision edges
+    if (lineageGranularity === 'document') {
+      conflictsList.forEach(c => {
+        const cItem = conflictMap[c.id];
+        let docAId = null;
+        let docBId = null;
+        if (cItem?.claimAId) {
+          graphData.edges.forEach(e => {
+            if (e.target === cItem.claimAId && e.source.startsWith('doc_')) docAId = e.source;
+          });
+        }
+        if (cItem?.claimBId) {
+          graphData.edges.forEach(e => {
+            if (e.target === cItem.claimBId && e.source.startsWith('doc_')) docBId = e.source;
+          });
+        }
+        if (docAId && nodePositions[docAId] && nodePositions[c.id] && !nodePositions[cItem.claimAId]) {
+          allEdges.push({
+            id: `synth_doc_${docAId}_cfl_${c.id}`,
+            source: docAId,
+            target: c.id,
+            type: 'conflict',
+            isConflictConnection: true
+          });
+        }
+        if (docBId && nodePositions[docBId] && nodePositions[c.id] && !nodePositions[cItem.claimBId]) {
+          allEdges.push({
+            id: `synth_doc_${docBId}_cfl_${c.id}`,
+            source: docBId,
+            target: c.id,
+            type: 'conflict',
+            isConflictConnection: true
+          });
+        }
+      });
+
+      decisionsList.forEach(dec => {
+        graphData.edges.forEach(e => {
+          if (e.target === dec.id) {
+            conflictsList.forEach(c => {
+              const cItem = conflictMap[c.id];
+              if (cItem?.claimAId === e.source || cItem?.claimBId === e.source) {
+                if (nodePositions[c.id] && nodePositions[dec.id]) {
+                  allEdges.push({
+                    id: `synth_cfl_${c.id}_dec_${dec.id}`,
+                    source: c.id,
+                    target: dec.id,
+                    type: 'decision_grounding'
+                  });
+                }
+              }
+            });
+          }
+        });
+      });
+    }
+
+    return allEdges
       .filter(e => nodePositions[e.source] && nodePositions[e.target])
       .map(e => {
         const src = nodePositions[e.source];
         const tgt = nodePositions[e.target];
-        const x1 = src.x + CARD_WIDTH;
-        const y1 = src.y + CARD_HEIGHT / 2;
-        const x2 = tgt.x;
-        const y2 = tgt.y + CARD_HEIGHT / 2;
-        const dx = Math.max(50, (x2 - x1) * 0.5);
 
-        const pathData = `M ${x1} ${y1} C ${x1 + dx} ${y1}, ${x2 - dx} ${y2}, ${x2} ${y2}`;
+        // Professional port-to-port bezier routing
+        const isForward = tgt.x >= src.x + 30;
+        let x1, y1, x2, y2, dx;
+
+        if (isForward) {
+          x1 = src.x + CARD_WIDTH;
+          y1 = src.y + CARD_HEIGHT / 2;
+          x2 = tgt.x;
+          y2 = tgt.y + CARD_HEIGHT / 2;
+          dx = Math.max(50, (x2 - x1) * 0.45);
+        } else {
+          x1 = src.x;
+          y1 = src.y + CARD_HEIGHT / 2;
+          x2 = tgt.x + CARD_WIDTH;
+          y2 = tgt.y + CARD_HEIGHT / 2;
+          dx = Math.max(50, Math.abs(x2 - x1) * 0.45);
+        }
+
+        const pathData = `M ${x1} ${y1} C ${x1 + (isForward ? dx : -dx)} ${y1}, ${x2 - (isForward ? dx : -dx)} ${y2}, ${x2} ${y2}`;
         const midX = (x1 + x2) / 2;
         const midY = (y1 + y2) / 2;
         const isActive = connectedNodeMap.activeEdgeIds.has(e.id);
@@ -511,7 +898,7 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
           isConflictConnection
         };
       });
-  }, [graphData, nodePositions, connectedNodeMap, selectedConflictId]);
+  }, [graphData, nodePositions, connectedNodeMap, selectedConflictId, filteredNodes, lineageGranularity, conflictsList, decisionsList, conflictMap]);
 
   // Canvas Pan Handlers
   const handleCanvasMouseDown = (e) => {
@@ -647,13 +1034,29 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
     visibleTiers
   ]);
 
-  const conflictsList = useMemo(() => {
-    return graphData?.nodes?.filter(n => n.type === 'conflict') || [];
-  }, [graphData]);
-
-  const documentsList = useMemo(() => {
-    return graphData?.nodes?.filter(n => n.type === 'document') || [];
-  }, [graphData]);
+  const activeFilterCount = useMemo(() => {
+    let count = 0;
+    if (selectedConflictId !== 'all') count++;
+    if (selectedDocFilter !== 'all') count++;
+    if (filterSeverity !== 'all') count++;
+    if (filterStatus !== 'all') count++;
+    if (filterClaimTrust !== 'all') count++;
+    if (showOnlyConflicted) count++;
+    if (displayLimit !== 12) count++;
+    if (searchQuery.trim() !== '') count++;
+    if (visibleTiers.size < 5) count++;
+    return count;
+  }, [
+    selectedConflictId,
+    selectedDocFilter,
+    filterSeverity,
+    filterStatus,
+    filterClaimTrust,
+    showOnlyConflicted,
+    displayLimit,
+    searchQuery,
+    visibleTiers
+  ]);
 
   // Auto-recenter when selecting a specific conflict
   useEffect(() => {
@@ -668,531 +1071,691 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
   return (
     <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '10px' }}>
       
-      {/* 1. Top Atlan-Style Asset Bar with Presets & Navigation */}
+      {/* Unified Executive Lineage Command Card (Single Card Container) */}
       <div style={{
-        background: 'var(--bg-surface)',
-        border: '1px solid var(--border-color)',
+        background: '#FFFFFF',
+        border: '1px solid #E2E8F0',
         borderRadius: '10px',
-        padding: '8px 14px',
+        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.02)',
         display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        flexWrap: 'wrap',
-        gap: '8px'
+        flexDirection: 'column',
+        overflow: 'hidden',
+        width: '100%',
+        boxSizing: 'border-box'
       }}>
-        {/* Left: Focus Asset Dropdown Selector */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-          <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: 600 }}>All assets</span>
-          <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>&rsaquo;</span>
-          
-          <select
-            value={selectedNodeId || ''}
-            onChange={(e) => {
-              setSelectedNodeId(e.target.value);
-              if (viewMode === 'conflicts') setViewMode('focused');
-            }}
-            style={{
-              padding: '5px 8px',
-              borderRadius: '6px',
-              border: '1px solid #cbd5e1',
-              background: '#f8fafc',
-              fontSize: '0.78rem',
-              fontWeight: 700,
-              color: '#2026d2',
-              cursor: 'pointer',
-              maxWidth: '280px',
-              outline: 'none'
-            }}
-          >
-            {(!graphData?.nodes || graphData.nodes.length === 0) ? (
-              <option value="">No assets ingested yet</option>
-            ) : (
-              graphData.nodes.map(n => (
-                <option key={n.id} value={n.id}>
-                  [{n.type.toUpperCase()}] {n.label}
-                </option>
-              ))
-            )}
-          </select>
+        {/* Row 1: Primary Toolbar Controls */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '6px',
+          padding: '5px 10px',
+          background: '#FAFAFA'
+        }}>
+          {/* Left: Asset Focus & Workspace Pill */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '5px', flexWrap: 'wrap' }}>
+            <span style={{ fontSize: '0.68rem', color: '#64748B', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.02em' }}>
+              Asset:
+            </span>
 
-          {/* Departmental Workspace Scope Badge & All Combined Toggle */}
-          {activeWorkspace && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <select
+              value={selectedNodeId || ''}
+              onChange={(e) => {
+                const val = e.target.value;
+                setSelectedNodeId(val);
+                if (val) {
+                  setCausalSubgraphOnly(true);
+                  showToast?.("Loaded direct 2-hop causal path");
+                }
+                if (viewMode === 'conflicts') setViewMode('focused');
+              }}
+              style={{
+                padding: '2px 6px',
+                borderRadius: '5px',
+                border: '1px solid #CBD5E1',
+                background: '#FFFFFF',
+                fontSize: '0.72rem',
+                fontWeight: 600,
+                color: '#0F172A',
+                cursor: 'pointer',
+                maxWidth: '220px',
+                outline: 'none',
+                height: '26px'
+              }}
+            >
+              {(!graphData?.nodes || graphData.nodes.length === 0) ? (
+                <option value="">No assets ingested</option>
+              ) : (
+                graphData.nodes.map(n => (
+                  <option key={n.id} value={n.id}>
+                    [{n.type.toUpperCase()}] {n.label}
+                  </option>
+                ))
+              )}
+            </select>
+
+            {/* Departmental Workspace Pill */}
+            {activeWorkspace && (
               <span style={{
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: '5px',
-                padding: '4px 9px',
-                borderRadius: '6px',
-                background: activeWorkspace.id !== 'all' && !lineageScopeAll ? 'rgba(37,99,235,0.08)' : '#f1f5f9',
-                border: `1px solid ${activeWorkspace.id !== 'all' && !lineageScopeAll ? 'rgba(37,99,235,0.25)' : '#cbd5e1'}`,
-                fontSize: '0.74rem',
+                gap: '3px',
+                padding: '2px 6px',
+                borderRadius: '5px',
+                background: activeWorkspace.id !== 'all' && !lineageScopeAll ? '#EFF6FF' : '#F1F5F9',
+                border: `1px solid ${activeWorkspace.id !== 'all' && !lineageScopeAll ? '#BFDBFE' : '#E2E8F0'}`,
+                fontSize: '0.68rem',
                 fontWeight: 700,
-                color: activeWorkspace.id !== 'all' && !lineageScopeAll ? '#1d4ed8' : '#475569'
+                color: activeWorkspace.id !== 'all' && !lineageScopeAll ? '#1D4ED8' : '#475569',
+                height: '26px',
+                boxSizing: 'border-box'
               }}>
                 <span>{activeWorkspace.icon || '🏢'}</span>
-                <span>{lineageScopeAll ? 'All Workspaces (Unified)' : activeWorkspace.name}</span>
+                <span>{lineageScopeAll ? 'Unified All' : activeWorkspace.name}</span>
                 {activeWorkspace.id !== 'all' && !lineageScopeAll && (
-                  <span style={{ fontSize: '0.66rem', color: '#16a34a', background: 'rgba(22,163,74,0.1)', padding: '1px 5px', borderRadius: '4px' }}>
+                  <span style={{ fontSize: '0.60rem', color: '#16A34A', background: '#DCFCE7', padding: '0 3px', borderRadius: '3px' }}>
                     Isolated
                   </span>
                 )}
               </span>
-
-              {activeWorkspace.id !== 'all' && (
-                <button
-                  type="button"
-                  onClick={() => setLineageScopeAll(prev => !prev)}
-                  style={{
-                    padding: '4px 8px',
-                    borderRadius: '5px',
-                    border: '1px solid #cbd5e1',
-                    background: lineageScopeAll ? '#2563eb' : '#ffffff',
-                    color: lineageScopeAll ? '#ffffff' : '#334155',
-                    fontSize: '0.72rem',
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    transition: 'all 0.15s ease'
-                  }}
-                  title={lineageScopeAll ? "Return to scoped departmental pipeline" : "Show all combined enterprise resources across all departments"}
-                >
-                  {lineageScopeAll ? "↩ Back to Scoped" : "🌐 View All Combined"}
-                </button>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* Center: DAG Perspective Switcher */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '3px', background: '#f1f5f9', padding: '2px', borderRadius: '7px', border: '1px solid #e2e8f0' }}>
-          <button
-            onClick={() => {
-              setViewMode('conflicts');
-              const firstConf = conflictsList[0];
-              if (firstConf) setSelectedNodeId(firstConf.id);
-            }}
-            style={{
-              padding: '4px 10px',
-              fontSize: '0.72rem',
-              fontWeight: 700,
-              borderRadius: '5px',
-              border: 'none',
-              cursor: 'pointer',
-              background: viewMode === 'conflicts' ? '#ea580c' : 'transparent',
-              color: viewMode === 'conflicts' ? '#fff' : '#475569',
-              boxShadow: viewMode === 'conflicts' ? '0 1px 4px rgba(234,88,12,0.3)' : 'none',
-              transition: 'all 0.15s ease'
-            }}
-            title="Focus exclusively on contradictory claims and their lineage"
-          >
-            ⚡ Contradictions DAG ({conflictsList.length})
-          </button>
-          <button
-            onClick={() => setViewMode('focused')}
-            style={{
-              padding: '4px 10px',
-              fontSize: '0.72rem',
-              fontWeight: 700,
-              borderRadius: '5px',
-              border: 'none',
-              cursor: 'pointer',
-              background: viewMode === 'focused' ? '#2563eb' : 'transparent',
-              color: viewMode === 'focused' ? '#fff' : '#475569',
-              boxShadow: viewMode === 'focused' ? '0 1px 4px rgba(37,99,235,0.3)' : 'none',
-              transition: 'all 0.15s ease'
-            }}
-            title="Focus on active node's direct lineage path"
-          >
-            🔍 Active Focus DAG
-          </button>
-          <button
-            onClick={() => setViewMode('all')}
-            style={{
-              padding: '4px 10px',
-              fontSize: '0.72rem',
-              fontWeight: 700,
-              borderRadius: '5px',
-              border: 'none',
-              cursor: 'pointer',
-              background: viewMode === 'all' ? '#0284c7' : 'transparent',
-              color: viewMode === 'all' ? '#fff' : '#475569',
-              boxShadow: viewMode === 'all' ? '0 1px 4px rgba(2,132,199,0.3)' : 'none',
-              transition: 'all 0.15s ease'
-            }}
-            title="Clean top-tier overview across all asset types"
-          >
-            🌐 Full Overview DAG
-          </button>
-        </div>
-
-        {/* Right Action Buttons */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <button
-            onClick={() => setIsFilterPanelOpen(prev => !prev)}
-            style={{
-              padding: '5px 10px',
-              fontSize: '0.74rem',
-              fontWeight: 700,
-              borderRadius: '6px',
-              border: isAnyFilterActive ? '1.5px solid #ea580c' : '1px solid #cbd5e1',
-              background: isAnyFilterActive ? '#fff7ed' : '#f8fafc',
-              color: isAnyFilterActive ? '#ea580c' : '#334155',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '4px'
-            }}
-            title="Toggle Filter Control Panel"
-          >
-            <span>⚙️ Filters</span>
-            {isAnyFilterActive && (
-              <span style={{
-                background: '#ea580c',
-                color: '#fff',
-                borderRadius: '8px',
-                padding: '1px 5px',
-                fontSize: '0.62rem'
-              }}>
-                Active
-              </span>
             )}
-          </button>
-
-          <button
-            onClick={() => setIsDrawerOpen(true)}
-            className="btn btn-secondary canvas-btn"
-            style={{ padding: '5px 10px', fontSize: '0.74rem', display: 'flex', alignItems: 'center', gap: '4px', background: '#f8fafc', border: '1px solid #cbd5e1' }}
-            title="Browse all extracted atomic claims in searchable list"
-          >
-            <span>📋</span>
-            <span>Claims Drawer ({graphData?.nodes?.filter(n => n.type === 'claim')?.length || 0})</span>
-          </button>
-          
-          <button
-            onClick={fetchLineage}
-            disabled={loading}
-            className="btn btn-secondary canvas-btn"
-            style={{ padding: '5px 10px', fontSize: '0.74rem', display: 'flex', alignItems: 'center', gap: '4px' }}
-          >
-            <span>🔄</span>
-            <span>Refresh</span>
-          </button>
-        </div>
-      </div>
-
-      {/* 2. Compact Enterprise Filtering Console */}
-      {isFilterPanelOpen && (
-        <div style={{
-          background: 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)',
-          border: '1px solid #cbd5e1',
-          borderRadius: '10px',
-          padding: '10px 14px',
-          boxShadow: '0 2px 6px rgba(0,0,0,0.03)',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '8px'
-        }}>
-          {/* Row 1: Primary Selectors in a Tight Grid */}
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))',
-            gap: '8px',
-            alignItems: 'center'
-          }}>
-            {/* A. Conflict Isolation Selector */}
-            <div>
-              <label style={{ display: 'block', fontSize: '0.66rem', fontWeight: 700, color: '#ea580c', marginBottom: '2px', textTransform: 'uppercase' }}>
-                ⚡ Focus Conflict
-              </label>
-              <select
-                value={selectedConflictId}
-                onChange={(e) => {
-                  const val = e.target.value;
-                  setSelectedConflictId(val);
-                  if (val !== 'all') {
-                    setSelectedNodeId(val);
-                    setViewMode('conflicts');
-                    showToast?.(`Spotlighted Conflict in DAG`);
-                  }
-                }}
-                style={{
-                  width: '100%',
-                  padding: '4px 8px',
-                  borderRadius: '6px',
-                  border: selectedConflictId !== 'all' ? '1.5px solid #ea580c' : '1px solid #cbd5e1',
-                  background: selectedConflictId !== 'all' ? '#fff7ed' : '#ffffff',
-                  fontSize: '0.75rem',
-                  fontWeight: selectedConflictId !== 'all' ? 700 : 500,
-                  color: selectedConflictId !== 'all' ? '#ea580c' : '#334155',
-                  outline: 'none',
-                  cursor: 'pointer'
-                }}
-              >
-                <option value="all">All Conflicts ({conflictsList.length})</option>
-                {conflictsList.map((c, i) => (
-                  <option key={c.id} value={c.id}>
-                    #{i + 1} [{c.severity || 'HIGH'}] {c.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* B. Document / Policy Selector */}
-            <div>
-              <label style={{ display: 'block', fontSize: '0.66rem', fontWeight: 700, color: '#0284c7', marginBottom: '2px', textTransform: 'uppercase' }}>
-                📄 Filter by Document
-              </label>
-              <select
-                value={selectedDocFilter}
-                onChange={(e) => {
-                  setSelectedDocFilter(e.target.value);
-                  if (e.target.value !== 'all') {
-                    setSelectedNodeId(e.target.value);
-                  }
-                }}
-                style={{
-                  width: '100%',
-                  padding: '4px 8px',
-                  borderRadius: '6px',
-                  border: selectedDocFilter !== 'all' ? '1.5px solid #0284c7' : '1px solid #cbd5e1',
-                  background: selectedDocFilter !== 'all' ? '#f0f9ff' : '#ffffff',
-                  fontSize: '0.75rem',
-                  fontWeight: selectedDocFilter !== 'all' ? 700 : 500,
-                  color: selectedDocFilter !== 'all' ? '#0284c7' : '#334155',
-                  outline: 'none',
-                  cursor: 'pointer'
-                }}
-              >
-                <option value="all">All Policies ({documentsList.length})</option>
-                {documentsList.map(d => (
-                  <option key={d.id} value={d.id}>
-                    {d.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* C. Conflict Severity Filter */}
-            <div>
-              <label style={{ display: 'block', fontSize: '0.66rem', fontWeight: 700, color: '#64748b', marginBottom: '2px', textTransform: 'uppercase' }}>
-                ⚖️ Severity
-              </label>
-              <select
-                value={filterSeverity}
-                onChange={(e) => setFilterSeverity(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '4px 8px',
-                  borderRadius: '6px',
-                  border: filterSeverity !== 'all' ? '1.5px solid #2563eb' : '1px solid #cbd5e1',
-                  background: filterSeverity !== 'all' ? '#eff6ff' : '#ffffff',
-                  fontSize: '0.75rem',
-                  color: '#334155',
-                  outline: 'none',
-                  cursor: 'pointer'
-                }}
-              >
-                <option value="all">All Severities</option>
-                <option value="HIGH">High Severity Only</option>
-                <option value="CRITICAL">Critical Severity Only</option>
-                <option value="MEDIUM">Medium Severity</option>
-                <option value="LOW">Low Severity</option>
-              </select>
-            </div>
-
-            {/* D. Conflict Status Filter */}
-            <div>
-              <label style={{ display: 'block', fontSize: '0.66rem', fontWeight: 700, color: '#64748b', marginBottom: '2px', textTransform: 'uppercase' }}>
-                🏷️ Status
-              </label>
-              <select
-                value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '4px 8px',
-                  borderRadius: '6px',
-                  border: filterStatus !== 'all' ? '1.5px solid #2563eb' : '1px solid #cbd5e1',
-                  background: filterStatus !== 'all' ? '#eff6ff' : '#ffffff',
-                  fontSize: '0.75rem',
-                  color: '#334155',
-                  outline: 'none',
-                  cursor: 'pointer'
-                }}
-              >
-                <option value="all">All Statuses</option>
-                <option value="review">Review Required</option>
-                <option value="resolved">Resolved</option>
-              </select>
-            </div>
-
-            {/* E. Claim Trust Filter */}
-            <div>
-              <label style={{ display: 'block', fontSize: '0.66rem', fontWeight: 700, color: '#64748b', marginBottom: '2px', textTransform: 'uppercase' }}>
-                🛡️ Claim Trust
-              </label>
-              <select
-                value={filterClaimTrust}
-                onChange={(e) => setFilterClaimTrust(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '4px 8px',
-                  borderRadius: '6px',
-                  border: filterClaimTrust !== 'all' ? '1.5px solid #16a34a' : '1px solid #cbd5e1',
-                  background: filterClaimTrust !== 'all' ? '#f0fdf4' : '#ffffff',
-                  fontSize: '0.75rem',
-                  color: '#334155',
-                  outline: 'none',
-                  cursor: 'pointer'
-                }}
-              >
-                <option value="all">All Trust Levels</option>
-                <option value="verified">Verified (≥ 90%)</option>
-                <option value="review">Review Needed (&lt; 90%)</option>
-                <option value="outdated">Outdated / Superseded</option>
-              </select>
-            </div>
-
-            {/* F. Display Density */}
-            <div>
-              <label style={{ display: 'block', fontSize: '0.66rem', fontWeight: 700, color: '#64748b', marginBottom: '2px', textTransform: 'uppercase' }}>
-                📊 Column Density
-              </label>
-              <select
-                value={displayLimit}
-                onChange={(e) => setDisplayLimit(e.target.value === 'all' ? 'all' : Number(e.target.value))}
-                style={{
-                  width: '100%',
-                  padding: '4px 8px',
-                  borderRadius: '6px',
-                  border: '1px solid #cbd5e1',
-                  background: '#ffffff',
-                  fontSize: '0.75rem',
-                  color: '#334155',
-                  outline: 'none',
-                  cursor: 'pointer'
-                }}
-              >
-                <option value={6}>Compact (6 per column)</option>
-                <option value={12}>Standard (12 per column)</option>
-                <option value={24}>Expanded (24 per column)</option>
-                <option value="all">All Matched (Unlimited)</option>
-              </select>
-            </div>
           </div>
 
-          {/* Row 2: Quick Toggles & Tier Visibility Pills */}
+          {/* Document-Level vs Claim-Level Granularity Switcher */}
           <div style={{
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'space-between',
-            flexWrap: 'wrap',
-            gap: '8px',
-            borderTop: '1px solid #e2e8f0',
-            paddingTop: '6px'
+            gap: '2px',
+            background: '#F8FAFC',
+            padding: '2px',
+            borderRadius: '6px',
+            border: '1px solid #CBD5E1'
           }}>
-            {/* Left: Conflicted-Only Mode & Visible Tiers */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-              <button
-                onClick={() => {
-                  setShowOnlyConflicted(prev => !prev);
-                  if (!showOnlyConflicted) {
-                    showToast?.("Focused strictly on contradictory policy paths");
-                  }
-                }}
-                style={{
-                  padding: '3px 10px',
-                  borderRadius: '16px',
-                  fontSize: '0.72rem',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  border: showOnlyConflicted ? '1.5px solid #ea580c' : '1px solid #cbd5e1',
-                  background: showOnlyConflicted ? '#ea580c' : '#ffffff',
-                  color: showOnlyConflicted ? '#ffffff' : '#475569',
-                  boxShadow: showOnlyConflicted ? '0 1px 4px rgba(234,88,12,0.3)' : 'none',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '4px',
-                  transition: 'all 0.15s ease'
-                }}
-              >
-                <span>⚠️ Conflicted Only</span>
-                {showOnlyConflicted && <span>✓</span>}
-              </button>
+            <button
+              type="button"
+              onClick={() => {
+                setLineageGranularity('document');
+                showToast?.("Document Flow: Macro policy lineage");
+              }}
+              style={{
+                padding: '2px 8px',
+                fontSize: '0.68rem',
+                fontWeight: 700,
+                borderRadius: '4px',
+                border: 'none',
+                cursor: 'pointer',
+                background: lineageGranularity === 'document' ? '#0284C7' : 'transparent',
+                color: lineageGranularity === 'document' ? '#FFFFFF' : '#475569',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '3px',
+                height: '24px',
+                boxShadow: lineageGranularity === 'document' ? '0 1px 2px rgba(2,132,199,0.25)' : 'none',
+                transition: 'all 0.15s ease'
+              }}
+              title="Document-Level Lineage: Clean system-to-policy flow without claim clutter"
+            >
+              <FileText size={11} />
+              <span>Document Flow</span>
+            </button>
 
-              <span style={{ fontSize: '0.68rem', color: '#94a3b8', margin: '0 2px' }}>| Tiers:</span>
+            <button
+              type="button"
+              onClick={() => {
+                setLineageGranularity('claim');
+                showToast?.("Claim Provenance: Granular atomic assertions");
+              }}
+              style={{
+                padding: '2px 8px',
+                fontSize: '0.68rem',
+                fontWeight: 700,
+                borderRadius: '4px',
+                border: 'none',
+                cursor: 'pointer',
+                background: lineageGranularity === 'claim' ? '#059669' : 'transparent',
+                color: lineageGranularity === 'claim' ? '#FFFFFF' : '#475569',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '3px',
+                height: '24px',
+                boxShadow: lineageGranularity === 'claim' ? '0 1px 2px rgba(5,150,105,0.25)' : 'none',
+                transition: 'all 0.15s ease'
+              }}
+              title="Claim-Level Lineage: Granular atomic assertions drill-down"
+            >
+              <Zap size={11} />
+              <span>Claim Provenance</span>
+            </button>
+          </div>
 
-              {/* Tier Toggle Pills */}
-              {[
-                { type: 'source', label: 'Sources', icon: '🔌', count: graphData?.nodes?.filter(n => n.type === 'source')?.length || 0, color: '#2026d2' },
-                { type: 'document', label: 'Docs', icon: '📄', count: documentsList.length, color: '#0284c7' },
-                { type: 'claim', label: 'Claims', icon: '⚡', count: graphData?.nodes?.filter(n => n.type === 'claim')?.length || 0, color: '#16a34a' },
-                { type: 'conflict', label: 'Conflicts', icon: '⚖️', count: conflictsList.length, color: '#ea580c' },
-                { type: 'decision', label: 'Decisions', icon: '🤖', count: graphData?.nodes?.filter(n => n.type === 'decision')?.length || 0, color: '#7c3aed' },
-              ].map(t => {
-                const isVisible = visibleTiers.has(t.type);
-                return (
-                  <button
-                    key={t.type}
-                    onClick={() => toggleTier(t.type)}
-                    style={{
-                      padding: '3px 7px',
-                      borderRadius: '5px',
-                      fontSize: '0.68rem',
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      border: isVisible ? `1px solid ${t.color}` : '1px solid #e2e8f0',
-                      background: isVisible ? `${t.color}12` : '#f1f5f9',
-                      color: isVisible ? t.color : '#94a3b8',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '3px',
-                      opacity: isVisible ? 1 : 0.6,
-                      transition: 'all 0.15s ease'
-                    }}
-                    title={`Toggle visibility of ${t.label} tier`}
-                  >
-                    <span>{t.icon}</span>
-                    <span>{t.label}</span>
-                    <span style={{ fontSize: '0.62rem', fontWeight: 800, background: isVisible ? `${t.color}25` : '#cbd5e1', padding: '1px 3px', borderRadius: '3px' }}>
-                      {t.count}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
+          {/* Center: Minimal Segmented Tabs */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '2px', background: '#F1F5F9', padding: '2px', borderRadius: '6px', border: '1px solid #E2E8F0' }}>
+            <button
+              onClick={() => {
+                setViewMode('conflicts');
+                const firstConf = conflictsList[0];
+                if (firstConf) setSelectedNodeId(firstConf.id);
+              }}
+              style={{
+                padding: '3px 8px',
+                fontSize: '0.69rem',
+                fontWeight: 700,
+                borderRadius: '4px',
+                border: 'none',
+                cursor: 'pointer',
+                background: viewMode === 'conflicts' ? '#EA580C' : 'transparent',
+                color: viewMode === 'conflicts' ? '#FFFFFF' : '#475569',
+                boxShadow: viewMode === 'conflicts' ? '0 1px 2px rgba(234,88,12,0.25)' : 'none',
+                transition: 'all 0.15s ease',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '3px',
+                height: '24px'
+              }}
+              title="Focus on contradictions"
+            >
+              <Zap size={11} />
+              <span>Contradictions ({conflictsList.length})</span>
+            </button>
 
-            {/* Right: Active Count Summary & Clear Filters */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span style={{ fontSize: '0.7rem', color: '#64748b' }}>
-                Showing <strong>{renderedNodes.length}</strong> of <strong>{graphData?.nodes?.length || 0}</strong> nodes
-              </span>
+            <button
+              onClick={() => setViewMode('focused')}
+              style={{
+                padding: '3px 8px',
+                fontSize: '0.69rem',
+                fontWeight: 700,
+                borderRadius: '4px',
+                border: 'none',
+                cursor: 'pointer',
+                background: viewMode === 'focused' ? '#2563EB' : 'transparent',
+                color: viewMode === 'focused' ? '#FFFFFF' : '#475569',
+                boxShadow: viewMode === 'focused' ? '0 1px 2px rgba(37,99,235,0.25)' : 'none',
+                transition: 'all 0.15s ease',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '3px',
+                height: '24px'
+              }}
+              title="Focus on active node path"
+            >
+              <Eye size={11} />
+              <span>Focus</span>
+            </button>
 
-              {isAnyFilterActive && (
-                <button
-                  onClick={resetAllFilters}
-                  style={{
-                    padding: '3px 8px',
-                    borderRadius: '5px',
-                    border: '1px solid #cbd5e1',
-                    background: '#ffffff',
-                    color: '#ef4444',
-                    fontSize: '0.68rem',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '3px'
-                  }}
-                  title="Reset all filters to standard view"
-                >
-                  <span>✕ Clear Filters</span>
-                </button>
+            <button
+              onClick={() => setViewMode('all')}
+              style={{
+                padding: '3px 8px',
+                fontSize: '0.69rem',
+                fontWeight: 700,
+                borderRadius: '4px',
+                border: 'none',
+                cursor: 'pointer',
+                background: viewMode === 'all' ? '#0284C7' : 'transparent',
+                color: viewMode === 'all' ? '#FFFFFF' : '#475569',
+                boxShadow: viewMode === 'all' ? '0 1px 2px rgba(2,132,199,0.25)' : 'none',
+                transition: 'all 0.15s ease',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '3px',
+                height: '24px'
+              }}
+              title="Full overview DAG"
+            >
+              <Database size={11} />
+              <span>Overview</span>
+            </button>
+          </div>
+
+          {/* Right: Minimal Action Buttons */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+            <button
+              onClick={() => setIsFilterPanelOpen(prev => !prev)}
+              style={{
+                padding: '3px 8px',
+                fontSize: '0.70rem',
+                fontWeight: 700,
+                borderRadius: '5px',
+                border: activeFilterCount > 0 ? '1px solid #EA580C' : '1px solid #CBD5E1',
+                background: isFilterPanelOpen || activeFilterCount > 0 ? '#FFF7ED' : '#FFFFFF',
+                color: isFilterPanelOpen || activeFilterCount > 0 ? '#EA580C' : '#334155',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '3px',
+                height: '26px'
+              }}
+              title="Toggle Filters"
+            >
+              <Sliders size={11} />
+              <span>Filters</span>
+              {activeFilterCount > 0 && (
+                <span style={{
+                  background: '#EA580C',
+                  color: '#FFFFFF',
+                  borderRadius: '6px',
+                  padding: '0 3px',
+                  fontSize: '0.60rem',
+                  fontWeight: 800
+                }}>
+                  {activeFilterCount}
+                </span>
               )}
-            </div>
+              <ChevronDown size={10} style={{ transform: isFilterPanelOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s ease' }} />
+            </button>
+
+            <button
+              onClick={() => setIsDrawerOpen(true)}
+              style={{
+                padding: '3px 8px',
+                fontSize: '0.70rem',
+                fontWeight: 600,
+                borderRadius: '5px',
+                border: '1px solid #CBD5E1',
+                background: '#FFFFFF',
+                color: '#334155',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '3px',
+                height: '26px'
+              }}
+              title="Claims Drawer"
+            >
+              <FileText size={11} />
+              <span>Claims ({graphData?.nodes?.filter(n => n.type === 'claim')?.length || 0})</span>
+            </button>
+
+            <button
+              onClick={() => setIsImpactReportOpen(true)}
+              style={{
+                padding: '3px 8px',
+                fontSize: '0.70rem',
+                fontWeight: 700,
+                borderRadius: '5px',
+                border: '1px solid #7C3AED',
+                background: isImpactReportOpen ? '#7C3AED' : '#FAF5FF',
+                color: isImpactReportOpen ? '#FFFFFF' : '#7C3AED',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '3px',
+                height: '26px',
+                boxShadow: isImpactReportOpen ? '0 1px 3px rgba(124,58,237,0.3)' : 'none',
+                transition: 'all 0.15s ease'
+              }}
+              title="Open Atlan-style Proactive Impact & Blast Radius Report"
+            >
+              <BarChart3 size={11} />
+              <span>Impact Report</span>
+            </button>
+
+            <button
+              onClick={fetchLineage}
+              disabled={loading}
+              style={{
+                padding: '3px 7px',
+                fontSize: '0.70rem',
+                fontWeight: 600,
+                borderRadius: '5px',
+                border: '1px solid #CBD5E1',
+                background: '#FFFFFF',
+                color: '#334155',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '3px',
+                height: '26px'
+              }}
+              title="Refresh Graph"
+            >
+              <RefreshCw size={11} className={loading ? "animate-spin" : ""} />
+            </button>
           </div>
         </div>
-      )}
+
+        {/* Row 2: Integrated Filter Section (Inside the SAME Card) */}
+        {isFilterPanelOpen && (
+          <div style={{
+            borderTop: '1px solid #E2E8F0',
+            padding: '6px 10px',
+            background: '#FFFFFF',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '6px'
+          }}>
+            {/* Filter Selects Strip */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              flexWrap: 'wrap'
+            }}>
+              {/* Conflict Selector */}
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                <span style={{ fontSize: '0.66rem', fontWeight: 700, color: '#EA580C', textTransform: 'uppercase' }}>
+                  Conflict:
+                </span>
+                <select
+                  value={selectedConflictId}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setSelectedConflictId(val);
+                    if (val !== 'all') {
+                      setSelectedNodeId(val);
+                      setViewMode('conflicts');
+                      showToast?.(`Spotlighted Conflict in DAG`);
+                    }
+                  }}
+                  style={{
+                    padding: '2px 5px',
+                    borderRadius: '4px',
+                    border: selectedConflictId !== 'all' ? '1px solid #EA580C' : '1px solid #CBD5E1',
+                    background: selectedConflictId !== 'all' ? '#FFF7ED' : '#F8FAFC',
+                    fontSize: '0.70rem',
+                    fontWeight: selectedConflictId !== 'all' ? 700 : 500,
+                    color: selectedConflictId !== 'all' ? '#C2410C' : '#334155',
+                    outline: 'none',
+                    cursor: 'pointer',
+                    height: '24px'
+                  }}
+                >
+                  <option value="all">All ({conflictsList.length})</option>
+                  {conflictsList.map((c, i) => (
+                    <option key={c.id} value={c.id}>
+                      #{i + 1} [{c.severity || 'HIGH'}] {c.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Policy Selector */}
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                <span style={{ fontSize: '0.66rem', fontWeight: 700, color: '#0284C7', textTransform: 'uppercase' }}>
+                  Policy:
+                </span>
+                <select
+                  value={selectedDocFilter}
+                  onChange={(e) => {
+                    setSelectedDocFilter(e.target.value);
+                    if (e.target.value !== 'all') setSelectedNodeId(e.target.value);
+                  }}
+                  style={{
+                    padding: '2px 5px',
+                    borderRadius: '4px',
+                    border: selectedDocFilter !== 'all' ? '1px solid #0284C7' : '1px solid #CBD5E1',
+                    background: selectedDocFilter !== 'all' ? '#F0F9FF' : '#F8FAFC',
+                    fontSize: '0.70rem',
+                    fontWeight: selectedDocFilter !== 'all' ? 700 : 500,
+                    color: selectedDocFilter !== 'all' ? '#0369A1' : '#334155',
+                    outline: 'none',
+                    cursor: 'pointer',
+                    height: '24px'
+                  }}
+                >
+                  <option value="all">All ({documentsList.length})</option>
+                  {documentsList.map(d => (
+                    <option key={d.id} value={d.id}>
+                      {d.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Severity Selector */}
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                <span style={{ fontSize: '0.66rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase' }}>
+                  Severity:
+                </span>
+                <select
+                  value={filterSeverity}
+                  onChange={(e) => setFilterSeverity(e.target.value)}
+                  style={{
+                    padding: '2px 5px',
+                    borderRadius: '4px',
+                    border: filterSeverity !== 'all' ? '1px solid #2563EB' : '1px solid #CBD5E1',
+                    background: filterSeverity !== 'all' ? '#EFF6FF' : '#F8FAFC',
+                    fontSize: '0.70rem',
+                    color: filterSeverity !== 'all' ? '#1D4ED8' : '#334155',
+                    fontWeight: filterSeverity !== 'all' ? 700 : 500,
+                    outline: 'none',
+                    cursor: 'pointer',
+                    height: '24px'
+                  }}
+                >
+                  <option value="all">All</option>
+                  <option value="HIGH">High</option>
+                  <option value="CRITICAL">Critical</option>
+                  <option value="MEDIUM">Med</option>
+                  <option value="LOW">Low</option>
+                </select>
+              </div>
+
+              {/* Trust Selector */}
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                <span style={{ fontSize: '0.66rem', fontWeight: 700, color: '#16A34A', textTransform: 'uppercase' }}>
+                  Trust:
+                </span>
+                <select
+                  value={filterClaimTrust}
+                  onChange={(e) => setFilterClaimTrust(e.target.value)}
+                  style={{
+                    padding: '2px 5px',
+                    borderRadius: '4px',
+                    border: filterClaimTrust !== 'all' ? '1px solid #16A34A' : '1px solid #CBD5E1',
+                    background: filterClaimTrust !== 'all' ? '#F0FDF4' : '#F8FAFC',
+                    fontSize: '0.70rem',
+                    color: filterClaimTrust !== 'all' ? '#15803D' : '#334155',
+                    fontWeight: filterClaimTrust !== 'all' ? 700 : 500,
+                    outline: 'none',
+                    cursor: 'pointer',
+                    height: '24px'
+                  }}
+                >
+                  <option value="all">All</option>
+                  <option value="verified">Verified (≥90%)</option>
+                  <option value="review">Review (&lt;90%)</option>
+                  <option value="outdated">Outdated</option>
+                </select>
+              </div>
+
+              {/* Density Selector */}
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                <span style={{ fontSize: '0.66rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase' }}>
+                  Density:
+                </span>
+                <select
+                  value={displayLimit}
+                  onChange={(e) => setDisplayLimit(e.target.value === 'all' ? 'all' : Number(e.target.value))}
+                  style={{
+                    padding: '2px 5px',
+                    borderRadius: '4px',
+                    border: '1px solid #CBD5E1',
+                    background: '#F8FAFC',
+                    fontSize: '0.70rem',
+                    color: '#334155',
+                    outline: 'none',
+                    cursor: 'pointer',
+                    height: '24px'
+                  }}
+                >
+                  <option value={6}>6</option>
+                  <option value={12}>12</option>
+                  <option value={24}>24</option>
+                  <option value="all">All</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Tiers & Status Summary */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              gap: '6px',
+              borderTop: '1px solid #F1F5F9',
+              paddingTop: '4px'
+            }}>
+              {/* Tiers + Conflicted */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexWrap: 'wrap' }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowOnlyConflicted(prev => !prev);
+                    if (!showOnlyConflicted) showToast?.("Focused on contradictory paths");
+                  }}
+                  style={{
+                    padding: '1px 6px',
+                    borderRadius: '4px',
+                    fontSize: '0.66rem',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    border: showOnlyConflicted ? '1px solid #EA580C' : '1px solid #CBD5E1',
+                    background: showOnlyConflicted ? '#EA580C' : '#FFFFFF',
+                    color: showOnlyConflicted ? '#FFFFFF' : '#475569',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '3px',
+                    height: '22px'
+                  }}
+                >
+                  <AlertTriangle size={10} />
+                  <span>Conflicted</span>
+                  {showOnlyConflicted && <span>✓</span>}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setGroupCleanClaims(prev => !prev);
+                    showToast?.(!groupCleanClaims ? "Anomaly Mode: Clean claims rolled into clusters" : "Expanded all individual claims");
+                  }}
+                  style={{
+                    padding: '1px 6px',
+                    borderRadius: '4px',
+                    fontSize: '0.66rem',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    border: groupCleanClaims ? '1px solid #059669' : '1px solid #CBD5E1',
+                    background: groupCleanClaims ? '#ECFDF5' : '#FFFFFF',
+                    color: groupCleanClaims ? '#059669' : '#475569',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '3px',
+                    height: '22px'
+                  }}
+                  title="Group clean, non-conflicting claims into summary clusters to focus exclusively on anomalies"
+                >
+                  <ShieldCheck size={10} color={groupCleanClaims ? '#059669' : '#64748B'} />
+                  <span>Group Clean</span>
+                  {groupCleanClaims && <span>✓</span>}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCausalSubgraphOnly(prev => !prev);
+                    showToast?.(!causalSubgraphOnly ? "Causal Trace: Isolated direct 2-hop causal path" : "Showing full enterprise graph");
+                  }}
+                  style={{
+                    padding: '1px 6px',
+                    borderRadius: '4px',
+                    fontSize: '0.66rem',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    border: causalSubgraphOnly ? '1px solid #2563EB' : '1px solid #CBD5E1',
+                    background: causalSubgraphOnly ? '#EFF6FF' : '#FFFFFF',
+                    color: causalSubgraphOnly ? '#2563EB' : '#475569',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '3px',
+                    height: '22px'
+                  }}
+                  title="Isolate direct 2-hop causal lineage path (Decisions ➔ Causal Claims ➔ Policies)"
+                >
+                  <Eye size={10} color={causalSubgraphOnly ? '#2563EB' : '#64748B'} />
+                  <span>Causal (k=2)</span>
+                  {causalSubgraphOnly && <span>✓</span>}
+                </button>
+
+                <span style={{ fontSize: '0.64rem', color: '#94A3B8', margin: '0 1px' }}>Tiers:</span>
+
+                {[
+                  { type: 'source', label: 'Src', count: graphData?.nodes?.filter(n => n.type === 'source')?.length || 0, color: '#2563EB' },
+                  { type: 'document', label: 'Doc', count: documentsList.length, color: '#0284C7' },
+                  { type: 'claim', label: 'Clm', count: graphData?.nodes?.filter(n => n.type === 'claim')?.length || 0, color: '#059669' },
+                  { type: 'conflict', label: 'Cfl', count: conflictsList.length, color: '#EA580C' },
+                  { type: 'decision', label: 'Dec', count: graphData?.nodes?.filter(n => n.type === 'decision')?.length || 0, color: '#7C3AED' }
+                ].map(t => {
+                  const isVisible = visibleTiers.has(t.type);
+                  return (
+                    <button
+                      key={t.type}
+                      type="button"
+                      onClick={() => toggleTier(t.type)}
+                      style={{
+                        padding: '1px 5px',
+                        borderRadius: '4px',
+                        fontSize: '0.65rem',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        border: isVisible ? `1px solid ${t.color}` : '1px solid #E2E8F0',
+                        background: isVisible ? `${t.color}15` : '#F8FAFC',
+                        color: isVisible ? t.color : '#94A3B8',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '3px',
+                        height: '22px',
+                        opacity: isVisible ? 1 : 0.6
+                      }}
+                      title={`Toggle ${t.label}`}
+                    >
+                      <span>{t.label}</span>
+                      <span style={{ fontSize: '0.58rem', fontWeight: 800, background: isVisible ? `${t.color}25` : '#E2E8F0', padding: '0 2px', borderRadius: '2px' }}>
+                        {t.count}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Counts & Reset */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span style={{ fontSize: '0.66rem', color: '#64748B' }}>
+                  <strong>{renderedNodes.length}</strong> / <strong>{graphData?.nodes?.length || 0}</strong>
+                </span>
+
+                {activeFilterCount > 0 && (
+                  <button
+                    type="button"
+                    onClick={resetAllFilters}
+                    style={{
+                      padding: '1px 5px',
+                      borderRadius: '3px',
+                      border: '1px solid #FCA5A5',
+                      background: '#FEF2F2',
+                      color: '#DC2626',
+                      fontSize: '0.64rem',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '2px',
+                      height: '22px'
+                    }}
+                    title="Reset all filters"
+                  >
+                    <RotateCcw size={9} />
+                    <span>Reset</span>
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* 3. Interactive DAG Canvas */}
       <div style={{ position: 'relative', width: '100%', borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--border-color)', background: '#fff' }}>
@@ -1348,29 +1911,29 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
               }}
             >
               <defs>
-                <marker id="atlan-arrow-default" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
-                  <path d="M0,0 L0,6 L6,3 z" fill="#94a3b8" />
+                <marker id="atlan-arrow-default" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+                  <polygon points="0 1, 8 4, 0 7" fill="#94A3B8" />
                 </marker>
-                <marker id="atlan-arrow-active" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
-                  <path d="M0,0 L0,8 L8,4 z" fill="#2563eb" />
+                <marker id="atlan-arrow-active" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+                  <polygon points="0 1, 8 4, 0 7" fill="#2563EB" />
                 </marker>
-                <marker id="atlan-arrow-conflict" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
-                  <path d="M0,0 L0,8 L8,4 z" fill="#ea580c" />
+                <marker id="atlan-arrow-conflict" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+                  <polygon points="0 1, 8 4, 0 7" fill="#EA580C" />
                 </marker>
-                <marker id="atlan-arrow-decision" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
-                  <path d="M0,0 L0,8 L8,4 z" fill="#7c3aed" />
+                <marker id="atlan-arrow-decision" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+                  <polygon points="0 1, 8 4, 0 7" fill="#7C3AED" />
                 </marker>
               </defs>
 
               {renderedEdges.map(edge => {
                 const isConflictLine = edge.type === 'conflict' || edge.isConflictConnection;
                 const strokeColor = isConflictLine
-                  ? '#ea580c'
+                  ? '#EA580C'
                   : edge.isActive
-                    ? edge.type === 'decision_grounding' ? '#7c3aed' : '#2563eb'
-                    : '#cbd5e1';
+                    ? edge.type === 'decision_grounding' ? '#7C3AED' : '#2563EB'
+                    : '#94A3B8';
 
-                const strokeWidth = isConflictLine ? 2.5 : edge.isActive ? 2.2 : 1.5;
+                const strokeWidth = isConflictLine ? 2.5 : edge.isActive ? 2.2 : 1.75;
                 const marker = isConflictLine
                   ? 'url(#atlan-arrow-conflict)'
                   : edge.isActive
@@ -1384,33 +1947,12 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
                       fill="none"
                       stroke={strokeColor}
                       strokeWidth={strokeWidth}
-                      strokeDasharray={isConflictLine || edge.isActive ? '6 3' : 'none'}
+                      strokeDasharray="none"
                       markerEnd={marker}
                       style={{
-                        transition: 'stroke 0.2s ease, stroke-width 0.2s ease',
-                        animation: isConflictLine || edge.isActive ? 'dash-flow 1.5s linear infinite' : 'none'
+                        transition: 'stroke 0.2s ease, stroke-width 0.2s ease'
                       }}
                     />
-
-                    {/* Connector badge on bezier curve */}
-                    <circle
-                      cx={edge.midX}
-                      cy={edge.midY}
-                      r="9"
-                      fill="#fff"
-                      stroke={strokeColor}
-                      strokeWidth={isConflictLine ? 2 : 1.5}
-                    />
-                    <text
-                      x={edge.midX}
-                      y={edge.midY + 3}
-                      fontSize="9"
-                      textAnchor="middle"
-                      fill={strokeColor}
-                      fontWeight="bold"
-                    >
-                      {edge.type === 'conflict' ? '⚖️' : edge.type === 'decision_grounding' ? '🤖' : '❄️'}
-                    </text>
                   </g>
                 );
               })}
@@ -1499,6 +2041,118 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
                 badgeColor = '#ea580c';
               }
 
+              // Anomaly Roll-up Cluster Card
+              if (node.type === 'claim_cluster') {
+                return (
+                  <div
+                    key={node.id}
+                    className="atlan-node-card"
+                    onClick={() => {
+                      setDrawerDocFilter(node.docId || 'all');
+                      setIsDrawerOpen(true);
+                      showToast?.(`Viewing ${node.count} clean claims from ${node.docTitle}`);
+                    }}
+                    style={{
+                      position: 'absolute',
+                      left: `${pos.x}px`,
+                      top: `${pos.y}px`,
+                      width: `${CARD_WIDTH}px`,
+                      height: `${CARD_HEIGHT}px`,
+                      background: 'linear-gradient(135deg, #F0FDF4 0%, #DCFCE7 100%)',
+                      borderRadius: '10px',
+                      border: '1.5px dashed #059669',
+                      boxShadow: '0 2px 8px rgba(5,150,105,0.12)',
+                      boxSizing: 'border-box',
+                      padding: '10px 12px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                      cursor: 'pointer',
+                      zIndex: 10,
+                      userSelect: 'none',
+                      transition: 'all 0.15s ease'
+                    }}
+                    title="Click to view all clean, verified claims in Claims Drawer"
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <span style={{ fontSize: '0.64rem', fontWeight: 800, color: '#166534', background: '#BBF7D0', padding: '1px 6px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '3px' }}>
+                        <ShieldCheck size={11} /> CLUSTER (CLEAN)
+                      </span>
+                      <span style={{ fontSize: '0.66rem', color: '#15803D', fontWeight: 700 }}>
+                        {node.count} Claims
+                      </span>
+                    </div>
+                    <div>
+                      <h4 style={{ margin: 0, fontSize: '0.78rem', fontWeight: 700, color: '#14532D', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        🛡️ {node.label}
+                      </h4>
+                      <p style={{ margin: '2px 0 0 0', fontSize: '0.68rem', color: '#166534', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        Source: {node.docTitle}
+                      </p>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid rgba(5,150,105,0.2)', paddingTop: '4px', fontSize: '0.65rem', color: '#15803D' }}>
+                      <span>Non-Conflicting</span>
+                      <span style={{ fontWeight: 700, textDecoration: 'underline' }}>Browse Claims ›</span>
+                    </div>
+                  </div>
+                );
+              }
+
+              // High-Density Column Overflow Cluster Card
+              if (node.type === 'density_cluster') {
+                return (
+                  <div
+                    key={node.id}
+                    className="atlan-node-card"
+                    onClick={() => {
+                      setDisplayLimit('all');
+                      showToast?.("Expanded all claims in column");
+                    }}
+                    style={{
+                      position: 'absolute',
+                      left: `${pos.x}px`,
+                      top: `${pos.y}px`,
+                      width: `${CARD_WIDTH}px`,
+                      height: `${CARD_HEIGHT}px`,
+                      background: 'linear-gradient(135deg, #F8FAFC 0%, #EEF2F6 100%)',
+                      borderRadius: '10px',
+                      border: '1.5px dashed #64748B',
+                      boxShadow: '0 1px 4px rgba(0,0,0,0.02)',
+                      boxSizing: 'border-box',
+                      padding: '10px 12px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                      cursor: 'pointer',
+                      zIndex: 10,
+                      userSelect: 'none',
+                      transition: 'all 0.15s ease'
+                    }}
+                    title="Click to expand full column density"
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <span style={{ fontSize: '0.64rem', fontWeight: 800, color: '#334155', background: '#E2E8F0', padding: '1px 6px', borderRadius: '4px' }}>
+                        COLUMN OVERFLOW
+                      </span>
+                      <span style={{ fontSize: '0.66rem', color: '#64748B', fontWeight: 700 }}>
+                        +{node.count} Hidden
+                      </span>
+                    </div>
+                    <div>
+                      <h4 style={{ margin: 0, fontSize: '0.78rem', fontWeight: 700, color: '#0F172A' }}>
+                        {node.label}
+                      </h4>
+                      <p style={{ margin: '2px 0 0 0', fontSize: '0.68rem', color: '#64748B' }}>
+                        {node.desc}
+                      </p>
+                    </div>
+                    <div style={{ borderTop: '1px solid #CBD5E1', paddingTop: '4px', fontSize: '0.66rem', color: '#2563EB', fontWeight: 700, textAlign: 'center' }}>
+                      ⚡ Click to Expand All
+                    </div>
+                  </div>
+                );
+              }
+
               return (
                 <div
                   key={node.id}
@@ -1538,82 +2192,98 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
                     transition: draggedNodeId === node.id ? 'none' : 'box-shadow 0.15s ease, border-color 0.15s ease'
                   }}
                 >
-                  {/* Home / Focus Asset Badge */}
+                  {/* Atlan-Style Home / Origin Beacon */}
                   {isSelected && (
                     <div style={{
                       position: 'absolute',
-                      top: '-14px',
-                      left: '12px',
-                      background: borderColor,
+                      top: '-16px',
+                      left: '10px',
+                      background: '#1D4ED8',
                       color: '#fff',
-                      borderRadius: '5px 5px 0 0',
+                      borderRadius: '4px 4px 0 0',
                       padding: '2px 8px',
                       fontSize: '0.62rem',
-                      fontWeight: 700,
-                      boxShadow: `0 2px 6px ${borderColor}40`,
+                      fontWeight: 800,
+                      letterSpacing: '0.04em',
+                      boxShadow: '0 2px 6px rgba(29,78,216,0.35)',
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '3px'
+                      gap: '4px'
                     }}>
-                      <span>🏠 Focus Asset</span>
+                      <Home size={10} />
+                      <span>YOU ARE HERE</span>
                     </div>
                   )}
 
-                  {/* Left Connection Port (-/+) */}
+                  {/* Left Connection Port: Shows Upstream Parent Count */}
                   {node.type !== 'source' && (
                     <div
-                      onClick={(e) => toggleCollapseNode(e, node.id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedNodeId(node.id);
+                        setViewMode('focused');
+                        setCausalSubgraphOnly(true);
+                        showToast?.(`Tracing upstream root causes of ${node.label}`);
+                      }}
                       style={{
                         position: 'absolute',
-                        left: '-10px',
-                        top: 'calc(50% - 10px)',
-                        width: '20px',
-                        height: '20px',
-                        borderRadius: '50%',
+                        left: '-12px',
+                        top: 'calc(50% - 9px)',
+                        padding: '1px 5px',
+                        borderRadius: '8px',
                         background: '#fff',
                         border: `1.5px solid ${borderColor}`,
                         boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        fontSize: '11px',
+                        gap: '2px',
+                        fontSize: '0.58rem',
                         fontWeight: 800,
                         color: borderColor,
                         cursor: 'pointer',
                         zIndex: 25
                       }}
-                      title="Expand/Collapse incoming branches"
+                      title={`${graphData?.edges?.filter(e => e.target === node.id).length || 0} Upstream Dependencies — Click to trace upstream`}
                     >
-                      {collapsedNodes.has(node.id) ? '+' : '-'}
+                      <span>◀</span>
+                      <span>{graphData?.edges?.filter(e => e.target === node.id).length || 0}</span>
                     </div>
                   )}
 
-                  {/* Right Connection Port (-/+) */}
+                  {/* Right Connection Port: Shows Downstream Impact Count */}
                   {node.type !== 'decision' && (
                     <div
-                      onClick={(e) => toggleCollapseNode(e, node.id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedNodeId(node.id);
+                        setViewMode('focused');
+                        setCausalSubgraphOnly(true);
+                        showToast?.(`Tracing downstream blast radius of ${node.label}`);
+                      }}
                       style={{
                         position: 'absolute',
-                        right: '-10px',
-                        top: 'calc(50% - 10px)',
-                        width: '20px',
-                        height: '20px',
-                        borderRadius: '50%',
+                        right: '-12px',
+                        top: 'calc(50% - 9px)',
+                        padding: '1px 5px',
+                        borderRadius: '8px',
                         background: '#fff',
                         border: `1.5px solid ${borderColor}`,
                         boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        fontSize: '11px',
+                        gap: '2px',
+                        fontSize: '0.58rem',
                         fontWeight: 800,
                         color: borderColor,
                         cursor: 'pointer',
                         zIndex: 25
                       }}
-                      title="Expand/Collapse downstream branches"
+                      title={`${graphData?.edges?.filter(e => e.source === node.id).length || 0} Downstream Impacts — Click to trace blast radius`}
                     >
-                      {collapsedNodes.has(node.id) ? '+' : '-'}
+                      <span>{graphData?.edges?.filter(e => e.source === node.id).length || 0}</span>
+                      <span>▶</span>
                     </div>
                   )}
 
@@ -1667,9 +2337,35 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
                     <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '170px' }}>
                       {subtitleText}
                     </span>
-                    <span style={{ color: '#2563eb', fontWeight: 600, fontSize: '0.62rem' }}>
-                      view lineage &rsaquo;
-                    </span>
+                    {node.type === 'document' ? (
+                      <span
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setLineageGranularity('claim');
+                          setSelectedDocFilter(node.id);
+                          showToast?.(`Drilled down to claims for ${node.label}`);
+                        }}
+                        style={{
+                          color: '#0284c7',
+                          fontWeight: 700,
+                          fontSize: '0.64rem',
+                          cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '2px',
+                          background: '#f0f9ff',
+                          padding: '1px 5px',
+                          borderRadius: '4px'
+                        }}
+                        title="Drill down to atomic claims (Atlan Column-Level Lineage)"
+                      >
+                        <span>View Claims &rsaquo;</span>
+                      </span>
+                    ) : (
+                      <span style={{ color: '#2563eb', fontWeight: 600, fontSize: '0.62rem' }}>
+                        view lineage &rsaquo;
+                      </span>
+                    )}
                   </div>
                 </div>
               );
@@ -2056,6 +2752,390 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
                   );
                 });
               })()}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 5. Atlan-Style Proactive Impact Analysis & Blast Radius Drawer */}
+      {isImpactReportOpen && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(15, 23, 42, 0.45)',
+          backdropFilter: 'blur(4px)',
+          zIndex: 9999,
+          display: 'flex',
+          justifyContent: 'flex-end',
+          animation: 'fadeIn 0.15s ease'
+        }}>
+          <div style={{
+            width: '600px',
+            maxWidth: '92vw',
+            height: '100%',
+            background: '#ffffff',
+            boxShadow: '-8px 0 32px rgba(0,0,0,0.15)',
+            display: 'flex',
+            flexDirection: 'column',
+            overflow: 'hidden'
+          }}>
+            {/* Header */}
+            <div style={{
+              padding: '16px 22px',
+              borderBottom: '1px solid #E2E8F0',
+              background: '#FAFAFA',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between'
+            }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span style={{ fontSize: '0.66rem', fontWeight: 800, color: '#7C3AED', background: '#F5F3FF', padding: '1px 6px', borderRadius: '4px', textTransform: 'uppercase' }}>
+                    ATLAN IMPACT ENGINE
+                  </span>
+                  <span style={{ fontSize: '0.64rem', color: '#16A34A', fontWeight: 700, background: '#DCFCE7', padding: '1px 6px', borderRadius: '4px' }}>
+                    Live Blast Radius
+                  </span>
+                </div>
+                <h3 style={{ margin: '4px 0 0 0', fontSize: '1.05rem', fontWeight: 800, color: '#0F172A' }}>
+                  Proactive Impact & Root Cause Analysis
+                </h3>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <button
+                  onClick={() => {
+                    const targetNode = selectedNode || graphData?.nodes?.[0];
+                    const rows = [
+                      ['Asset ID', 'Asset Type', 'Label', 'Relationship', 'Trust Score'],
+                      [targetNode?.id, targetNode?.type, targetNode?.label, 'TARGET_ENTITY', targetNode?.trustScore || 'N/A'],
+                      ...Array.from(connectedNodeMap.up).map(id => {
+                        const n = graphData?.nodes?.find(x => x.id === id);
+                        return [id, n?.type, n?.label, 'UPSTREAM_ROOT_CAUSE', n?.trustScore || 'N/A'];
+                      }),
+                      ...Array.from(connectedNodeMap.down).map(id => {
+                        const n = graphData?.nodes?.find(x => x.id === id);
+                        return [id, n?.type, n?.label, 'DOWNSTREAM_BLAST_RADIUS', n?.trustScore || 'N/A'];
+                      })
+                    ];
+                    const csvContent = "data:text/csv;charset=utf-8," + rows.map(e => e.map(cell => `"${cell || ''}"`).join(",")).join("\n");
+                    const encodedUri = encodeURI(csvContent);
+                    const link = document.createElement("a");
+                    link.setAttribute("href", encodedUri);
+                    link.setAttribute("download", `trulin_impact_report_${targetNode?.id || 'export'}.csv`);
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    showToast?.("Exported Impact Analysis Report to CSV");
+                  }}
+                  style={{
+                    padding: '4px 9px',
+                    borderRadius: '6px',
+                    border: '1px solid #CBD5E1',
+                    background: '#FFFFFF',
+                    fontSize: '0.72rem',
+                    fontWeight: 700,
+                    color: '#334155',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px'
+                  }}
+                  title="Export Impact Report as CSV"
+                >
+                  <Download size={12} />
+                  <span>CSV</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    const targetNode = selectedNode || graphData?.nodes?.[0];
+                    const text = `Trulin Impact Analysis for ${targetNode?.label} (${targetNode?.type})\nUpstream Roots: ${connectedNodeMap.up.size} assets\nDownstream Blast Radius: ${connectedNodeMap.down.size} decisions/systems affected\nActive Conflicts: ${conflictsList.length}`;
+                    navigator.clipboard.writeText(text);
+                    showToast?.("Copied Impact Summary to Clipboard");
+                  }}
+                  style={{
+                    padding: '4px 9px',
+                    borderRadius: '6px',
+                    border: '1px solid #CBD5E1',
+                    background: '#FFFFFF',
+                    fontSize: '0.72rem',
+                    fontWeight: 700,
+                    color: '#334155',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px'
+                  }}
+                  title="Copy Report Summary for Slack / Jira"
+                >
+                  <Share2 size={12} />
+                  <span>Copy</span>
+                </button>
+
+                <button
+                  onClick={() => setIsImpactReportOpen(false)}
+                  style={{
+                    width: '28px',
+                    height: '28px',
+                    borderRadius: '6px',
+                    border: '1px solid #CBD5E1',
+                    background: '#FFFFFF',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#64748B'
+                  }}
+                >
+                  <X size={14} />
+                </button>
+              </div>
+            </div>
+
+            {/* Scrollable Report Content */}
+            <div style={{ flex: 1, overflowY: 'auto', padding: '18px 22px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              {/* Target Entity Overview */}
+              {(() => {
+                const target = selectedNode || graphData?.nodes?.[0];
+                if (!target) return null;
+                const upstreamCount = graphData?.edges?.filter(e => e.target === target.id).length || 0;
+                const downstreamCount = graphData?.edges?.filter(e => e.source === target.id).length || 0;
+
+                return (
+                  <div style={{
+                    padding: '14px 16px',
+                    borderRadius: '10px',
+                    border: '1.5px solid #2563EB',
+                    background: 'linear-gradient(135deg, #EFF6FF 0%, #FFFFFF 100%)',
+                    boxShadow: '0 2px 8px rgba(37,99,235,0.08)'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                      <span style={{ fontSize: '0.64rem', fontWeight: 800, color: '#1D4ED8', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'flex', alignItems: 'center', gap: '3px' }}>
+                        <Home size={11} /> TARGET INVESTIGATED ASSET
+                      </span>
+                      <span style={{ fontSize: '0.64rem', fontWeight: 700, color: '#64748B' }}>
+                        ID: <code>{target.id}</code>
+                      </span>
+                    </div>
+
+                    <h4 style={{ margin: '0 0 6px 0', fontSize: '0.92rem', fontWeight: 800, color: '#0F172A' }}>
+                      {target.label}
+                    </h4>
+                    {target.fullText && (
+                      <p style={{ margin: '0 0 10px 0', fontSize: '0.78rem', color: '#475569', lineHeight: 1.45 }}>
+                        "{target.fullText}"
+                      </p>
+                    )}
+
+                    {/* Stats Grid */}
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', paddingTop: '10px', borderTop: '1px solid #DBEAFE' }}>
+                      <div style={{ background: '#FFFFFF', padding: '8px 10px', borderRadius: '6px', border: '1px solid #BFDBFE' }}>
+                        <div style={{ fontSize: '0.62rem', color: '#64748B', fontWeight: 700 }}>UPSTREAM ROOTS</div>
+                        <div style={{ fontSize: '1.1rem', fontWeight: 900, color: '#1D4ED8' }}>{upstreamCount}</div>
+                      </div>
+                      <div style={{ background: '#FFFFFF', padding: '8px 10px', borderRadius: '6px', border: '1px solid #BFDBFE' }}>
+                        <div style={{ fontSize: '0.62rem', color: '#64748B', fontWeight: 700 }}>DOWNSTREAM IMPACT</div>
+                        <div style={{ fontSize: '1.1rem', fontWeight: 900, color: '#7C3AED' }}>{downstreamCount}</div>
+                      </div>
+                      <div style={{ background: '#FFFFFF', padding: '8px 10px', borderRadius: '6px', border: '1px solid #BFDBFE' }}>
+                        <div style={{ fontSize: '0.62rem', color: '#64748B', fontWeight: 700 }}>BAYESIAN TRUST</div>
+                        <div style={{ fontSize: '1.1rem', fontWeight: 900, color: (target.trustScore || 0.9) >= 0.85 ? '#16A34A' : '#EA580C' }}>
+                          {((target.trustScore || 0.92) * 100).toFixed(0)}%
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* 1. Root Cause Analysis (Upstream Dependencies) */}
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                  <h4 style={{ margin: 0, fontSize: '0.84rem', fontWeight: 800, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                    <span>🔌</span> Upstream Root Causes ({connectedNodeMap.up.size})
+                  </h4>
+                  <span style={{ fontSize: '0.68rem', color: '#64748B' }}>Where this asset originates</span>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  {Array.from(connectedNodeMap.up).length === 0 ? (
+                    <div style={{ padding: '12px', background: '#F8FAFC', borderRadius: '6px', fontSize: '0.74rem', color: '#94A3B8', textAlign: 'center' }}>
+                      No direct upstream dependencies identified.
+                    </div>
+                  ) : (
+                    Array.from(connectedNodeMap.up).map(id => {
+                      const n = graphData?.nodes?.find(x => x.id === id);
+                      if (!n) return null;
+                      return (
+                        <div key={id} style={{
+                          padding: '8px 12px',
+                          borderRadius: '6px',
+                          border: '1px solid #E2E8F0',
+                          background: '#FFFFFF',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between'
+                        }}>
+                          <div>
+                            <span style={{ fontSize: '0.62rem', fontWeight: 800, color: '#2563EB', background: '#EFF6FF', padding: '1px 5px', borderRadius: '3px', marginRight: '6px' }}>
+                              {n.type.toUpperCase()}
+                            </span>
+                            <span style={{ fontSize: '0.76rem', fontWeight: 700, color: '#1E293B' }}>
+                              {n.label}
+                            </span>
+                          </div>
+                          <button
+                            onClick={() => {
+                              setSelectedNodeId(n.id);
+                              setViewMode('focused');
+                              setIsImpactReportOpen(false);
+                              showToast?.(`Focused on ${n.label}`);
+                            }}
+                            style={{
+                              padding: '2px 6px',
+                              borderRadius: '4px',
+                              border: '1px solid #CBD5E1',
+                              background: '#F8FAFC',
+                              fontSize: '0.66rem',
+                              fontWeight: 700,
+                              color: '#2563EB',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            Trace
+                          </button>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+
+              {/* 2. Active Policy Contradictions */}
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                  <h4 style={{ margin: 0, fontSize: '0.84rem', fontWeight: 800, color: '#EA580C', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                    <span>⚖️</span> Active Contradictions & Rule Clashes ({conflictsList.length})
+                  </h4>
+                  <span style={{ fontSize: '0.68rem', color: '#64748B' }}>Requires human verification</span>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {conflictsList.slice(0, 5).map((c, i) => (
+                    <div key={c.id} style={{
+                      padding: '10px 12px',
+                      borderRadius: '8px',
+                      border: '1.5px solid #EA580C',
+                      background: '#FFF7ED',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '5px'
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <span style={{ fontSize: '0.64rem', fontWeight: 800, color: '#C2410C', background: '#FFEDD5', padding: '1px 6px', borderRadius: '4px' }}>
+                          #{i + 1} [{c.severity || 'HIGH'}]
+                        </span>
+                        <span style={{ fontSize: '0.64rem', color: '#9A3412', fontWeight: 700 }}>
+                          {c.status || 'REVIEW_NEEDED'}
+                        </span>
+                      </div>
+                      <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#9A3412' }}>
+                        {c.label}
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'flex-end', borderTop: '1px solid #FED7AA', paddingTop: '4px' }}>
+                        <button
+                          onClick={() => {
+                            setSelectedConflictId(c.id);
+                            setSelectedNodeId(c.id);
+                            setViewMode('conflicts');
+                            setIsImpactReportOpen(false);
+                            showToast?.(`Spotlighted Contradiction #${i + 1}`);
+                          }}
+                          style={{
+                            padding: '2px 8px',
+                            borderRadius: '4px',
+                            border: '1px solid #EA580C',
+                            background: '#EA580C',
+                            color: '#FFFFFF',
+                            fontSize: '0.68rem',
+                            fontWeight: 700,
+                            cursor: 'pointer'
+                          }}
+                        >
+                          Spotlight Conflict in DAG
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* 3. Downstream Blast Radius (Impacted AI Decisions & Agents) */}
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                  <h4 style={{ margin: 0, fontSize: '0.84rem', fontWeight: 800, color: '#7C3AED', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                    <span>🤖</span> Downstream Blast Radius ({connectedNodeMap.down.size})
+                  </h4>
+                  <span style={{ fontSize: '0.68rem', color: '#64748B' }}>AI decisions & workflows influenced</span>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  {Array.from(connectedNodeMap.down).length === 0 ? (
+                    <div style={{ padding: '12px', background: '#F8FAFC', borderRadius: '6px', fontSize: '0.74rem', color: '#94A3B8', textAlign: 'center' }}>
+                      No direct downstream decisions identified.
+                    </div>
+                  ) : (
+                    Array.from(connectedNodeMap.down).map(id => {
+                      const n = graphData?.nodes?.find(x => x.id === id);
+                      if (!n) return null;
+                      return (
+                        <div key={id} style={{
+                          padding: '8px 12px',
+                          borderRadius: '6px',
+                          border: '1px solid #E2E8F0',
+                          background: '#FFFFFF',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between'
+                        }}>
+                          <div>
+                            <span style={{ fontSize: '0.62rem', fontWeight: 800, color: '#7C3AED', background: '#FAF5FF', padding: '1px 5px', borderRadius: '3px', marginRight: '6px' }}>
+                              {n.type.toUpperCase()}
+                            </span>
+                            <span style={{ fontSize: '0.76rem', fontWeight: 700, color: '#1E293B' }}>
+                              {n.label}
+                            </span>
+                          </div>
+                          <button
+                            onClick={() => {
+                              setSelectedNodeId(n.id);
+                              setViewMode('focused');
+                              setIsImpactReportOpen(false);
+                              showToast?.(`Focused on decision ${n.label}`);
+                            }}
+                            style={{
+                              padding: '2px 6px',
+                              borderRadius: '4px',
+                              border: '1px solid #7C3AED',
+                              background: '#FAF5FF',
+                              fontSize: '0.66rem',
+                              fontWeight: 700,
+                              color: '#7C3AED',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            Inspect
+                          </button>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         </div>

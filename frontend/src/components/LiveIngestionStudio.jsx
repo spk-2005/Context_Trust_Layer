@@ -1,4 +1,32 @@
 import React, { useState, useRef } from 'react';
+import {
+  UploadCloud,
+  FileText,
+  Layers,
+  Zap,
+  ShieldCheck,
+  Scale,
+  CheckCircle2,
+  Clock,
+  Sparkles,
+  Sliders,
+  Database,
+  Lock,
+  RefreshCw,
+  FileCode,
+  AlertCircle,
+  FileSpreadsheet,
+  Check,
+  X,
+  ArrowRight,
+  GitBranch,
+  Shield,
+  BookOpen,
+  Send,
+  Server,
+  Terminal,
+  Activity
+} from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export default function LiveIngestionStudio({ activeOrg, activePersona, onClaimExtracted, showToast }) {
@@ -7,29 +35,98 @@ export default function LiveIngestionStudio({ activeOrg, activePersona, onClaimE
   const [dragOver, setDragOver] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
   const [documentType, setDocumentType] = useState('policy');
-  const [authorityLevel, setAuthorityLevel] = useState(90);
+  const [documentScope, setDocumentScope] = useState('Enterprise');
+  const [authorityLevel, setAuthorityLevel] = useState(95);
   const [isProcessing, setIsProcessing] = useState(false);
   const [pipelineStage, setPipelineStage] = useState(0); // 0: Idle, 1: Uploading, 2: Parsing, 3: Extracting Claims, 4: Scoring Trust, 5: Conflict Check, 6: Done
   const [pipelineResult, setPipelineResult] = useState(null);
   const [history, setHistory] = useState([]);
+  const [activeSampleId, setActiveSampleId] = useState(null);
+
+  // 1-Click Pre-Loaded Enterprise Samples
+  const PRESET_SAMPLES = [
+    {
+      id: 'handbook',
+      name: 'Enterprise_Customer_Handbook_2026.pdf',
+      type: 'handbook',
+      scope: 'Enterprise',
+      authority: 95,
+      size: '248 KB',
+      claimsCount: 2,
+      claimsPreview: [
+        { text: "Enterprise tier customers have a 60-day exception window for refunds.", trust: 95, scope: "Enterprise" },
+        { text: "Standard tier refunds strictly adhere to the 30-day baseline.", trust: 88, scope: "Global Standard" }
+      ]
+    },
+    {
+      id: 'memo',
+      name: 'VP_Engineering_Remote_Work_Memo.md',
+      type: 'memo',
+      scope: 'Engineering',
+      authority: 85,
+      size: '34 KB',
+      claimsCount: 2,
+      claimsPreview: [
+        { text: "Engineering personnel are authorized for 4 days remote per week.", trust: 92, scope: "Engineering" },
+        { text: "Core office attendance required on Wednesdays for sprint review.", trust: 90, scope: "Engineering" }
+      ]
+    },
+    {
+      id: 'security',
+      name: 'SecOps_Prod_Firewall_Mandate_v3.json',
+      type: 'security_guideline',
+      scope: 'Production',
+      authority: 98,
+      size: '19 KB',
+      claimsCount: 2,
+      claimsPreview: [
+        { text: "Plaintext HTTP port 80/8080 ingress is strictly barred in Production.", trust: 99, scope: "Production" },
+        { text: "Production deployments require mTLS and CISO cryptographic sign-off.", trust: 97, scope: "Production" }
+      ]
+    }
+  ];
 
   const stages = [
-    { label: "File Ingestion & Parsing", icon: "📄", desc: "Extract raw structure, headers, and metadata" },
-    { label: "Entity & Semantic Chunking", icon: "🧩", desc: "Identify policy domains, authority roles, and temporal bounds" },
-    { label: "Atomic Claim Extraction", icon: "⚡", desc: "Break document down into discrete, testable assertions" },
-    { label: "Trust & Provenance Scoring", icon: "🛡️", desc: "Compute authority, freshness, and citation confidence" },
-    { label: "Cross-Policy Conflict Analysis", icon: "⚖️", desc: "Run contradiction matrix against all existing knowledge" }
+    { id: 1, label: "File Intake & Parsing", icon: FileText, desc: "Raw headers & OCR" },
+    { id: 2, label: "Entity & Semantic Chunking", icon: Layers, desc: "Temporal & domain tags" },
+    { id: 3, label: "Atomic Claim Extraction", icon: Zap, desc: "Discrete testable assertions" },
+    { id: 4, label: "Trust & Provenance Scoring", icon: ShieldCheck, desc: "Bayesian calibrated weight" },
+    { id: 5, label: "Conflict Matrix & Merkle Seal", icon: Scale, desc: "Contradiction resolution" }
   ];
+
+  const handleSelectSample = (sample) => {
+    setActiveSampleId(sample.id);
+    const mockBlob = new Blob([`Sample content for ${sample.name}`], { type: 'text/plain' });
+    const file = new File([mockBlob], sample.name, { type: 'text/plain', lastModified: Date.now() });
+    setSelectedFile(file);
+    setDocumentType(sample.type);
+    setDocumentScope(sample.scope);
+    setAuthorityLevel(sample.authority);
+    setPipelineStage(0);
+    setPipelineResult(null);
+  };
 
   const handleFileSelect = (file) => {
     if (!file) return;
+    setActiveSampleId(null);
     setSelectedFile(file);
     const lower = file.name.toLowerCase();
-    if (lower.includes("handbook")) setDocumentType("handbook");
-    else if (lower.includes("memo")) setDocumentType("memo");
-    else if (lower.includes("security") || lower.includes("secops")) setDocumentType("security_guideline");
-    else if (lower.includes("runbook")) setDocumentType("runbook");
-    else setDocumentType("policy");
+    if (lower.includes("handbook")) {
+      setDocumentType("handbook");
+      setDocumentScope("Enterprise");
+    } else if (lower.includes("memo")) {
+      setDocumentType("memo");
+      setDocumentScope("Engineering");
+    } else if (lower.includes("security") || lower.includes("secops") || lower.includes("firewall")) {
+      setDocumentType("security_guideline");
+      setDocumentScope("Production");
+    } else if (lower.includes("runbook")) {
+      setDocumentType("runbook");
+      setDocumentScope("Staging");
+    } else {
+      setDocumentType("policy");
+      setDocumentScope("Enterprise");
+    }
   };
 
   const handleDrop = (e) => {
@@ -42,7 +139,7 @@ export default function LiveIngestionStudio({ activeOrg, activePersona, onClaimE
 
   const handleExecuteExtractionPipeline = async () => {
     if (!selectedFile) {
-      showToast?.("Please select a file to ingest", "error");
+      showToast?.("Please select or drop a document to ingest", "error");
       return;
     }
     if (!hasPermission('claims:extract')) {
@@ -92,9 +189,10 @@ export default function LiveIngestionStudio({ activeOrg, activePersona, onClaimE
             filename: selectedFile.name,
             title: data.document?.title || selectedFile.name,
             claimsCount: data.claims_extracted_count,
-            durationMs: data.duration_ms || 420,
+            durationMs: data.duration_ms || 380,
             time: "Just now",
             type: documentType,
+            scope: documentScope,
             status: "verified"
           },
           ...prev
@@ -117,88 +215,181 @@ export default function LiveIngestionStudio({ activeOrg, activePersona, onClaimE
     }
   };
 
+  // Authority tier descriptor helper
+  const getAuthorityBadge = (level) => {
+    if (level >= 90) return { label: 'Tier 1: Sovereign Mandate', color: '#EA580C', bg: '#FFF7ED' };
+    if (level >= 75) return { label: 'Tier 2: VP Directive', color: '#2563EB', bg: '#EFF6FF' };
+    return { label: 'Tier 3: Standard SOP', color: '#64748B', bg: '#F1F5F9' };
+  };
+
+  const authBadge = getAuthorityBadge(authorityLevel);
+
   return (
-    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-      {/* Header Banner */}
+    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+
+      {/* ========================================================
+          1. TOP COMMAND BAR & QUICK-LOAD ENTERPRISE SAMPLES
+          ======================================================== */}
       <div style={{
-        background: 'linear-gradient(135deg, rgba(32,38,210,0.06) 0%, rgba(98,225,252,0.06) 100%)',
-        border: '1px solid rgba(32,38,210,0.15)',
+        background: 'var(--bg-surface)',
+        border: '1px solid var(--border-color)',
         borderRadius: '12px',
-        padding: '18px 22px',
+        padding: '12px 18px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
         flexWrap: 'wrap',
-        gap: '14px'
+        gap: '12px',
+        boxShadow: '0 1px 4px rgba(0,0,0,0.02)'
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flex: 1, minWidth: '280px' }}>
+        {/* Left: Hub Title & Status */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <div style={{
-            width: '42px',
-            height: '42px',
-            borderRadius: '10px',
-            background: 'linear-gradient(135deg, #2026d2 0%, #62e1fc 100%)',
+            width: '32px',
+            height: '32px',
+            borderRadius: '8px',
+            background: 'linear-gradient(135deg, #FFF7ED 0%, #FFEDD5 100%)',
+            border: '1px solid rgba(234, 88, 12, 0.25)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            fontSize: '20px',
-            boxShadow: '0 4px 12px rgba(32,38,210,0.22)',
-            color: '#fff',
-            flexShrink: 0
+            color: '#EA580C'
           }}>
-            ⚡
+            <Sparkles size={17} />
           </div>
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-              <h2 style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0, color: 'var(--text-main)' }}>
-                Live Ingestion & Autonomous Claim Extractor
-              </h2>
-              <span className="badge badge-verified" style={{ fontSize: '0.65rem' }}>
-                Zero Manual Tagging
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '0.94rem', fontWeight: 800, color: 'var(--text-main)', letterSpacing: '-0.01em' }}>
+                Autonomous Ingestion Hub
+              </span>
+              <span className="badge badge-verified" style={{ fontSize: '0.64rem', padding: '1px 6px' }}>
+                Sub-500ms Extractor
               </span>
             </div>
-            <p style={{ margin: '3px 0 0 0', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-              Drag-and-drop PDFs, Word Docs, Markdown, or JSON. The engine auto-parses sections, extracts atomic claims, computes trust scores, and links lineage in real time.
-            </p>
+            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+              Select an enterprise sample or drop any custom PDF/Markdown/JSON to parse atomic assertions.
+            </span>
           </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Supported formats:</span>
-          <span className="badge" style={{ background: '#f0f4ff', color: '#2026d2', border: '1px solid rgba(32,38,210,0.2)' }}>.PDF</span>
-          <span className="badge" style={{ background: '#f0f4ff', color: '#2026d2', border: '1px solid rgba(32,38,210,0.2)' }}>.MD</span>
-          <span className="badge" style={{ background: '#f0f4ff', color: '#2026d2', border: '1px solid rgba(32,38,210,0.2)' }}>.DOCX</span>
-          <span className="badge" style={{ background: '#f0f4ff', color: '#2026d2', border: '1px solid rgba(32,38,210,0.2)' }}>.JSON</span>
+        {/* Right: Quick-Load Enterprise Presets */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+          <span style={{ fontSize: '0.70rem', fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.04em', marginRight: '4px' }}>
+            Quick Samples:
+          </span>
+          {PRESET_SAMPLES.map((sample) => (
+            <button
+              key={sample.id}
+              type="button"
+              onClick={() => handleSelectSample(sample)}
+              className={`ingest-sample-pill ${activeSampleId === sample.id ? 'active' : ''}`}
+              title={sample.name}
+            >
+              <FileText size={12} color={activeSampleId === sample.id ? '#EA580C' : '#64748B'} />
+              <span>{sample.id === 'handbook' ? '1. Handbook (Refund)' : sample.id === 'memo' ? '2. VP Memo (Remote)' : '3. SecOps (Firewall)'}</span>
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* Main Grid: Upload Zone + Pipeline Stage Tracker */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '20px', alignItems: 'start', width: '100%' }}>
-        {/* Left Column: Dropzone & Parameters */}
+      {/* ========================================================
+          2. FULL-WIDTH HORIZONTAL PIPELINE STREAM (ALL 5 STAGES)
+          ======================================================== */}
+      <div className="ingest-pipeline-strip">
+        <div className="ingest-pipeline-header">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Activity size={14} color="#EA580C" />
+            <span style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--text-main)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              Real-Time Extraction Pipeline
+            </span>
+            <span style={{ fontSize: '0.72rem', color: '#64748B' }}>
+              {pipelineStage === 0
+                ? '• Standby'
+                : pipelineStage === 6
+                ? '• Complete (All 5 Stages Verified)'
+                : `• Processing Stage ${pipelineStage} of 5...`}
+            </span>
+          </div>
+
+          {pipelineStage === 6 && (
+            <span className="badge badge-verified" style={{ fontSize: '0.66rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <CheckCircle2 size={11} />
+              <span>Merkle Provenance Sealed</span>
+            </span>
+          )}
+        </div>
+
+        {/* 5-Step Horizontal Grid Flow */}
+        <div className="ingest-stages-flow">
+          {stages.map((st) => {
+            const isDone = pipelineStage > st.id || pipelineStage === 6;
+            const isCurrent = pipelineStage === st.id;
+            const isPending = pipelineStage < st.id && pipelineStage !== 6;
+            const Icon = st.icon;
+
+            return (
+              <div
+                key={st.id}
+                className={`ingest-stage-card ${isDone ? 'done' : isCurrent ? 'current' : 'pending'}`}
+              >
+                <div className="ingest-stage-top">
+                  <span className="ingest-stage-num">0{st.id}</span>
+                  {isDone ? (
+                    <CheckCircle2 size={14} color="#059669" />
+                  ) : isCurrent ? (
+                    <RefreshCw size={13} className="animate-spin" color="#EA580C" />
+                  ) : (
+                    <Icon size={13} color="#94A3B8" />
+                  )}
+                </div>
+                <h4 className="ingest-stage-title">{st.label}</h4>
+                <p className="ingest-stage-desc">{st.desc}</p>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ========================================================
+          3. MAIN SPLIT CANVAS: DOCUMENT CONTROLLER (38%) + GROUNDING MATRIX (62%)
+          ======================================================== */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(320px, 400px) 1fr', gap: '16px', alignItems: 'start', width: '100%' }}>
+
+        {/* Left: Document Intake & Authority Tuning */}
         <div style={{
           background: 'var(--bg-surface)',
           border: '1px solid var(--border-color)',
-          borderRadius: '12px',
+          borderRadius: '14px',
           padding: '20px',
           display: 'flex',
           flexDirection: 'column',
-          gap: '18px',
-          minWidth: 0
+          gap: '16px',
+          boxShadow: '0 2px 10px rgba(0, 0, 0, 0.02)'
         }}>
-          <h3 style={{ fontSize: '0.95rem', fontWeight: 600, margin: 0, color: 'var(--text-main)' }}>
-            1. Document Upload & Configuration
-          </h3>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--border-color)', paddingBottom: '12px' }}>
+            <span style={{ fontSize: '0.82rem', fontWeight: 800, color: 'var(--text-main)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              Document Controller
+            </span>
+            <span style={{ fontSize: '0.70rem', color: '#64748B' }}>
+              {selectedFile ? 'Ready to Ingest' : 'No File Selected'}
+            </span>
+          </div>
 
-          {/* Drag & Drop Area */}
+          {/* Interactive Drop Zone */}
           <div
             onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
             onDragLeave={() => setDragOver(false)}
             onDrop={handleDrop}
             onClick={() => fileInputRef.current?.click()}
             style={{
-              border: `2px dashed ${dragOver ? '#2026d2' : selectedFile ? '#19c37d' : 'rgba(32,38,210,0.25)'}`,
-              background: dragOver ? 'rgba(32,38,210,0.05)' : selectedFile ? 'rgba(25,195,125,0.04)' : 'rgba(240,244,255,0.4)',
+              border: `2px dashed ${dragOver ? '#EA580C' : selectedFile ? '#059669' : 'rgba(234, 88, 12, 0.3)'}`,
+              background: dragOver
+                ? '#FFF7ED'
+                : selectedFile
+                ? 'rgba(240, 253, 244, 0.6)'
+                : 'linear-gradient(180deg, #FAFAF9 0%, #FFFFFF 100%)',
               borderRadius: '12px',
-              padding: '28px 16px',
+              padding: '20px 14px',
               textAlign: 'center',
               cursor: 'pointer',
               transition: 'all 0.2s ease',
@@ -217,71 +408,93 @@ export default function LiveIngestionStudio({ activeOrg, activePersona, onClaimE
             />
 
             <div style={{
-              width: '56px',
-              height: '56px',
-              borderRadius: '50%',
-              background: selectedFile ? '#19c37d' : '#2026d2',
-              color: '#fff',
+              width: '44px',
+              height: '44px',
+              borderRadius: '12px',
+              background: selectedFile
+                ? 'linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%)'
+                : 'linear-gradient(135deg, #FFF7ED 0%, #FFEDD5 100%)',
+              border: `1px solid ${selectedFile ? 'rgba(5, 150, 105, 0.3)' : 'rgba(234, 88, 12, 0.3)'}`,
+              color: selectedFile ? '#059669' : '#EA580C',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontSize: '24px',
-              boxShadow: '0 4px 14px rgba(0,0,0,0.1)'
+              boxShadow: selectedFile ? '0 2px 8px rgba(5,150,105,0.15)' : '0 2px 8px rgba(234,88,12,0.12)'
             }}>
-              {selectedFile ? '✓' : '☁️'}
+              {selectedFile ? <CheckCircle2 size={20} /> : <UploadCloud size={20} />}
             </div>
 
             {selectedFile ? (
               <div>
-                <p style={{ margin: 0, fontWeight: 600, fontSize: '0.95rem', color: 'var(--text-main)' }}>
+                <p style={{ margin: 0, fontWeight: 700, fontSize: '0.84rem', color: 'var(--text-main)', wordBreak: 'break-all' }}>
                   {selectedFile.name}
                 </p>
-                <p style={{ margin: '4px 0 0 0', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                  {(selectedFile.size / 1024).toFixed(1)} KB &bull; Click or drop another file to replace
+                <p style={{ margin: '3px 0 0 0', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                  {(selectedFile.size / 1024).toFixed(1)} KB &bull; <span style={{ color: '#EA580C', textDecoration: 'underline' }}>Click to replace</span>
                 </p>
               </div>
             ) : (
               <div>
-                <p style={{ margin: 0, fontWeight: 600, fontSize: '0.95rem', color: 'var(--text-main)' }}>
-                  Drop policy document here, or <span style={{ color: '#2026d2', textDecoration: 'underline' }}>browse files</span>
+                <p style={{ margin: 0, fontWeight: 700, fontSize: '0.84rem', color: 'var(--text-main)' }}>
+                  Drop document here, or <span style={{ color: '#EA580C', textDecoration: 'underline' }}>browse</span>
                 </p>
-                <p style={{ margin: '4px 0 0 0', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                  Supports enterprise manuals, memos, security rules, and data contracts
+                <p style={{ margin: '3px 0 0 0', fontSize: '0.70rem', color: 'var(--text-muted)' }}>
+                  PDF, DOCX, Markdown, or JSON schemas
                 </p>
               </div>
             )}
           </div>
 
-          {/* Form Options */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-            <div>
-              <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '6px' }}>
-                Document Category
-              </label>
-              <select
-                value={documentType}
-                onChange={(e) => setDocumentType(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '9px 12px',
-                  borderRadius: '8px',
-                  border: '1px solid var(--border-color)',
-                  background: 'var(--bg-card)',
-                  fontSize: '0.85rem'
-                }}
-              >
-                <option value="policy">Corporate Policy Document</option>
-                <option value="handbook">Employee / Operations Handbook</option>
-                <option value="memo">Executive / VP Directive Memo</option>
-                <option value="security_guideline">SecOps / Infrastructure Mandate</option>
-                <option value="runbook">DevOps / Staging Runbook</option>
-              </select>
+          {/* Configuration Form */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {/* Category & Scope Row */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.70rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '5px', textTransform: 'uppercase' }}>
+                  Document Category
+                </label>
+                <select
+                  value={documentType}
+                  onChange={(e) => setDocumentType(e.target.value)}
+                  className="sim-input-control"
+                  style={{ width: '100%', fontSize: '0.78rem', height: '34px', padding: '0 8px' }}
+                >
+                  <option value="policy">Corporate Policy</option>
+                  <option value="handbook">Employee Handbook</option>
+                  <option value="memo">VP Directive Memo</option>
+                  <option value="security_guideline">SecOps Mandate</option>
+                  <option value="runbook">DevOps Runbook</option>
+                </select>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.70rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '5px', textTransform: 'uppercase' }}>
+                  Target Scope
+                </label>
+                <select
+                  value={documentScope}
+                  onChange={(e) => setDocumentScope(e.target.value)}
+                  className="sim-input-control"
+                  style={{ width: '100%', fontSize: '0.78rem', height: '34px', padding: '0 8px' }}
+                >
+                  <option value="Enterprise">Enterprise</option>
+                  <option value="Production">Production</option>
+                  <option value="Engineering">Engineering</option>
+                  <option value="General">Global Standard</option>
+                </select>
+              </div>
             </div>
 
+            {/* Authority Weight Dial */}
             <div>
-              <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '6px' }}>
-                Authority Tier Weight ({authorityLevel}/100)
-              </label>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                <span style={{ fontSize: '0.70rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+                  Authority Weight
+                </span>
+                <span style={{ fontSize: '0.70rem', fontWeight: 800, color: authBadge.color, background: authBadge.bg, padding: '2px 6px', borderRadius: '4px' }}>
+                  {authorityLevel} / 100 &bull; {authBadge.label}
+                </span>
+              </div>
               <input
                 type="range"
                 min="30"
@@ -289,277 +502,269 @@ export default function LiveIngestionStudio({ activeOrg, activePersona, onClaimE
                 step="5"
                 value={authorityLevel}
                 onChange={(e) => setAuthorityLevel(Number(e.target.value))}
-                style={{ width: '100%', accentColor: '#2026d2', marginTop: '8px' }}
+                style={{ width: '100%', accentColor: '#EA580C', cursor: 'pointer' }}
               />
             </div>
           </div>
 
-          {/* Ingest Action Button */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <button
-              onClick={handleExecuteExtractionPipeline}
-              disabled={!selectedFile || isProcessing || !hasPermission('claims:extract')}
-              style={{
-                padding: '12px 24px',
-                borderRadius: '10px',
-                background: !selectedFile || isProcessing || !hasPermission('claims:extract')
-                  ? 'var(--border-color)'
-                  : 'linear-gradient(135deg, #2026d2 0%, #3737d8 100%)',
-                color: !hasPermission('claims:extract') ? '#94A3B8' : '#fff',
-                border: 'none',
-                fontWeight: 600,
-                fontSize: '0.95rem',
-                cursor: !selectedFile || isProcessing || !hasPermission('claims:extract') ? 'not-allowed' : 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '10px',
-                boxShadow: hasPermission('claims:extract') ? '0 4px 14px rgba(32,38,210,0.25)' : 'none',
-                transition: 'all 0.2s ease'
-              }}
-              title={
-                hasPermission('claims:extract')
-                  ? "Execute live parsing and claim extraction"
-                  : "Separation of Duties (SoD) Barred: Only Data Stewards or CCO can execute ingestion pipelines"
-              }
-            >
-              {isProcessing ? (
-                <>
-                  <span className="spinner-sm"></span>
-                  <span>Executing Ingestion Pipeline...</span>
-                </>
-              ) : !hasPermission('claims:extract') ? (
-                <>
-                  <span>🔒 Ingestion Barred: Data Steward Clearance Required (SoD)</span>
-                </>
-              ) : (
-                <>
-                  <span>⚡ Run Live Ingestion & Claim Extractor</span>
-                </>
-              )}
-            </button>
-            {!hasPermission('claims:extract') && (
-              <span style={{ fontSize: '0.72rem', color: '#DC2626', textAlign: 'center', fontWeight: 600 }}>
-                ⚠️ Your active role ({user?.role?.toUpperCase() || 'USER'}) cannot ingest documents. Switch to Data Steward (Marcus Vance) to test extraction.
-              </span>
+          {/* Action Trigger Button */}
+          <button
+            type="button"
+            onClick={handleExecuteExtractionPipeline}
+            disabled={!selectedFile || isProcessing || !hasPermission('claims:extract')}
+            style={{
+              height: '42px',
+              borderRadius: '10px',
+              background: !selectedFile || isProcessing || !hasPermission('claims:extract')
+                ? '#F1F5F9'
+                : 'linear-gradient(135deg, #EA580C 0%, #C2410C 100%)',
+              color: !selectedFile || isProcessing || !hasPermission('claims:extract') ? '#94A3B8' : '#FFFFFF',
+              border: 'none',
+              fontWeight: 800,
+              fontSize: '0.84rem',
+              cursor: !selectedFile || isProcessing || !hasPermission('claims:extract') ? 'not-allowed' : 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              boxShadow: selectedFile && !isProcessing && hasPermission('claims:extract')
+                ? '0 4px 14px rgba(234, 88, 12, 0.32)'
+                : 'none',
+              transition: 'all 0.2s ease'
+            }}
+          >
+            {isProcessing ? (
+              <>
+                <RefreshCw size={15} className="animate-spin" />
+                <span>Running Pipeline...</span>
+              </>
+            ) : !hasPermission('claims:extract') ? (
+              <>
+                <Lock size={15} />
+                <span>Data Steward Clearance Required</span>
+              </>
+            ) : (
+              <>
+                <Zap size={15} />
+                <span>Launch Extraction Pipeline</span>
+              </>
             )}
-          </div>
+          </button>
         </div>
 
-        {/* Right Column: Live Pipeline Progress & Verification */}
+        {/* Right: Live Assertion Grounding Matrix */}
         <div style={{
           background: 'var(--bg-surface)',
           border: '1px solid var(--border-color)',
-          borderRadius: '12px',
-          padding: '20px',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '16px',
-          minWidth: 0
-        }}>
-          <h3 style={{ fontSize: '0.95rem', fontWeight: 600, margin: 0, color: 'var(--text-main)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
-            <span>2. Real-Time Pipeline Execution</span>
-            {pipelineStage === 6 && (
-              <span className="badge badge-verified" style={{ fontSize: '0.7rem' }}>
-                Pipeline Completed
-              </span>
-            )}
-          </h3>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            {stages.map((stage, idx) => {
-              const stepNum = idx + 1;
-              const isDone = pipelineStage > stepNum || pipelineStage === 6;
-              const isCurrent = pipelineStage === stepNum;
-              const isPending = pipelineStage < stepNum;
-
-              return (
-                <div
-                  key={idx}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '12px',
-                    padding: '10px 12px',
-                    borderRadius: '10px',
-                    border: `1px solid ${isCurrent ? 'rgba(32,38,210,0.3)' : isDone ? 'rgba(25,195,125,0.2)' : 'var(--border-color)'}`,
-                    background: isCurrent ? 'rgba(32,38,210,0.05)' : isDone ? 'rgba(25,195,125,0.03)' : 'transparent',
-                    transition: 'all 0.2s ease',
-                    minWidth: 0
-                  }}
-                >
-                  <div style={{
-                    width: '30px',
-                    height: '30px',
-                    borderRadius: '8px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '14px',
-                    flexShrink: 0,
-                    background: isDone ? '#19c37d' : isCurrent ? '#2026d2' : 'var(--bg-card)',
-                    color: isDone || isCurrent ? '#fff' : 'var(--text-muted)'
-                  }}>
-                    {isDone ? '✓' : isCurrent ? '⏳' : stage.icon}
-                  </div>
-
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px' }}>
-                      <span style={{ fontSize: '0.82rem', fontWeight: 600, color: isDone || isCurrent ? 'var(--text-main)' : 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                        {stage.label}
-                      </span>
-                      {isCurrent && (
-                        <span style={{ fontSize: '0.68rem', color: '#2026d2', fontWeight: 600, flexShrink: 0 }}>
-                          Processing...
-                        </span>
-                      )}
-                      {isDone && (
-                        <span style={{ fontSize: '0.68rem', color: '#19c37d', fontWeight: 600, flexShrink: 0 }}>
-                          Verified
-                        </span>
-                      )}
-                    </div>
-                    <p style={{ margin: '2px 0 0 0', fontSize: '0.72rem', color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {stage.desc}
-                    </p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-
-      {/* Extraction Results Showcase */}
-      {pipelineResult && (
-        <div style={{
-          background: 'var(--bg-surface)',
-          border: '1px solid rgba(25,195,125,0.3)',
-          borderRadius: '12px',
+          borderRadius: '14px',
           padding: '20px',
           display: 'flex',
           flexDirection: 'column',
           gap: '14px',
-          boxShadow: '0 4px 16px rgba(25,195,125,0.06)',
-          width: '100%',
-          minWidth: 0
+          minHeight: '380px',
+          boxShadow: '0 2px 10px rgba(0, 0, 0, 0.02)'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
-              <span style={{ fontSize: '20px', flexShrink: 0 }}>✨</span>
-              <div style={{ minWidth: 0 }}>
-                <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: 'var(--text-main)', wordBreak: 'break-word' }}>
-                  Extraction Summary: {pipelineResult.document?.title}
-                </h3>
-                <p style={{ margin: '2px 0 0 0', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                  Generated {pipelineResult.claims_extracted_count} atomic claims with calibrated trust scores in {pipelineResult.duration_ms}ms.
-                </p>
-              </div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--border-color)', paddingBottom: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <ShieldCheck size={16} color="#059669" />
+              <span style={{ fontSize: '0.82rem', fontWeight: 800, color: 'var(--text-main)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                Extracted Assertion Grounding Matrix
+              </span>
             </div>
 
-            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-              <span className="badge badge-verified" style={{ fontSize: '0.7rem' }}>Lineage Linked</span>
-              <span className="badge badge-verified" style={{ fontSize: '0.7rem' }}>Vector Embeddings Synced</span>
-            </div>
+            {pipelineResult && (
+              <span className="badge badge-verified" style={{ fontSize: '0.68rem' }}>
+                {pipelineResult.claims_extracted_count} Claims Parsed ({pipelineResult.duration_ms}ms)
+              </span>
+            )}
           </div>
 
-          {/* Claims Cards Grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '12px', width: '100%' }}>
-            {pipelineResult.claims?.map((claim, idx) => (
-              <div
-                key={idx}
-                style={{
-                  background: 'var(--bg-card)',
-                  border: '1px solid var(--border-color)',
-                  borderRadius: '10px',
-                  padding: '14px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '8px',
-                  minWidth: 0
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <span className="badge" style={{ fontSize: '0.65rem', background: '#f0f4ff', color: '#2026d2' }}>
-                    Claim #{idx + 1}
-                  </span>
-                  <span className="badge badge-verified" style={{ fontSize: '0.65rem' }}>
-                    Trust Score: {claim.trust_score ? (claim.trust_score.overall_score * 100).toFixed(0) : '95'}%
-                  </span>
+          {/* Content Area: If result is available, show claims; else show empty state / preview */}
+          {pipelineResult ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#F0FDF4', border: '1px solid #BBF7D0', padding: '10px 14px', borderRadius: '8px' }}>
+                <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#15803D' }}>
+                  ✓ Ingestion Complete: {pipelineResult.document?.title || selectedFile?.name}
+                </span>
+                <span style={{ fontSize: '0.70rem', color: '#166534', fontWeight: 600 }}>
+                  Vector Embeddings Synced &bull; Merkle Root Verified
+                </span>
+              </div>
+
+              {/* Claims Cards */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '10px' }}>
+                {pipelineResult.claims?.map((claim, idx) => (
+                  <div
+                    key={idx}
+                    style={{
+                      background: '#FFFFFF',
+                      border: '1px solid #E2E8F0',
+                      borderRadius: '10px',
+                      padding: '12px 14px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '8px',
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.02)'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <span className="sim-chip-tag" style={{ background: '#FFF7ED', color: '#EA580C', border: '1px solid rgba(234,88,12,0.25)' }}>
+                        Assertion #{idx + 1}
+                      </span>
+                      <span className="badge badge-verified" style={{ fontSize: '0.66rem' }}>
+                        Trust: {claim.trust_score ? (claim.trust_score.overall_score * 100).toFixed(0) : '95'}%
+                      </span>
+                    </div>
+
+                    <p style={{ margin: 0, fontSize: '0.80rem', color: '#0F172A', fontWeight: 600, lineHeight: 1.45 }}>
+                      "{claim.claim_text}"
+                    </p>
+
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid #F1F5F9', paddingTop: '8px', fontSize: '0.68rem', color: '#64748B' }}>
+                      <span>Scope: <strong style={{ color: '#0F172A' }}>{claim.scope || documentScope}</strong></span>
+                      <span style={{ color: '#059669', fontWeight: 700 }}>● {claim.status || 'verified'}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            /* Standby State: Autonomous Ingestion Feature Showcase */
+            <div style={{
+              flex: 1,
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center',
+              alignItems: 'center',
+              textAlign: 'center',
+              padding: '24px 16px',
+              gap: '14px',
+              background: '#FAFAF9',
+              borderRadius: '10px',
+              border: '1px dashed #E2E8F0'
+            }}>
+              <div style={{
+                width: '46px',
+                height: '46px',
+                borderRadius: '12px',
+                background: 'linear-gradient(135deg, #FFF7ED 0%, #FFEDD5 100%)',
+                border: '1px solid rgba(234, 88, 12, 0.25)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#EA580C'
+              }}>
+                <Zap size={22} />
+              </div>
+
+              <div>
+                <h4 style={{ margin: 0, fontSize: '0.88rem', fontWeight: 800, color: 'var(--text-main)' }}>
+                  Autonomous Deconstruction & Grounding Standby
+                </h4>
+                <p style={{ margin: '4px 0 0 0', fontSize: '0.74rem', color: 'var(--text-muted)', maxWidth: '420px', lineHeight: 1.45 }}>
+                  Select one of the <strong>Quick Samples</strong> above or upload a document to decompose corporate policies into calibrated, tamper-proof assertions.
+                </p>
+              </div>
+
+              {/* Feature Highlights Grid */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', width: '100%', maxWidth: '520px', marginTop: '4px' }}>
+                <div style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '8px', padding: '10px 8px' }}>
+                  <ShieldCheck size={14} color="#059669" style={{ marginBottom: '4px' }} />
+                  <p style={{ margin: 0, fontSize: '0.70rem', fontWeight: 700, color: '#0F172A' }}>6-Factor Trust</p>
+                  <p style={{ margin: '2px 0 0 0', fontSize: '0.64rem', color: '#64748B' }}>Bayesian authority</p>
                 </div>
 
-                <p style={{ margin: 0, fontSize: '0.82rem', color: 'var(--text-main)', lineHeight: 1.4, fontWeight: 500, wordBreak: 'break-word' }}>
-                  "{claim.claim_text}"
-                </p>
+                <div style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '8px', padding: '10px 8px' }}>
+                  <Scale size={14} color="#2563EB" style={{ marginBottom: '4px' }} />
+                  <p style={{ margin: 0, fontSize: '0.70rem', fontWeight: 700, color: '#0F172A' }}>Conflict Check</p>
+                  <p style={{ margin: '2px 0 0 0', fontSize: '0.64rem', color: '#64748B' }}>Scope & date trap</p>
+                </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid var(--border-color)', paddingTop: '8px', fontSize: '0.7rem', color: 'var(--text-muted)' }}>
-                  <span>Scope: {claim.scope || 'Enterprise'}</span>
-                  <span>Status: {claim.status || 'verified'}</span>
+                <div style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '8px', padding: '10px 8px' }}>
+                  <GitBranch size={14} color="#EA580C" style={{ marginBottom: '4px' }} />
+                  <p style={{ margin: 0, fontSize: '0.70rem', fontWeight: 700, color: '#0F172A' }}>DAG Lineage</p>
+                  <p style={{ margin: '2px 0 0 0', fontSize: '0.64rem', color: '#64748B' }}>Audit traceability</p>
                 </div>
               </div>
-            ))}
-          </div>
+            </div>
+          )}
         </div>
-      )}
+      </div>
 
-      {/* Ingestion History Table */}
+      {/* ========================================================
+          4. BOTTOM: RECENT INGESTIONS & EXTRACTED CORPORA LEDGER
+          ======================================================== */}
       <div style={{
         background: 'var(--bg-surface)',
         border: '1px solid var(--border-color)',
         borderRadius: '12px',
-        padding: '20px',
+        padding: '16px 20px',
         display: 'flex',
         flexDirection: 'column',
-        gap: '14px',
-        width: '100%',
-        minWidth: 0
+        gap: '12px',
+        boxShadow: '0 1px 4px rgba(0,0,0,0.02)'
       }}>
-        <h3 style={{ fontSize: '0.95rem', fontWeight: 600, margin: 0, color: 'var(--text-main)' }}>
-          Recent Document Ingestions & Extracted Corpora
-        </h3>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Database size={15} color="#EA580C" />
+            <span style={{ fontSize: '0.82rem', fontWeight: 800, color: 'var(--text-main)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              Corpora Ingestion Ledger
+            </span>
+          </div>
+          <span style={{ fontSize: '0.70rem', color: '#64748B', fontWeight: 600 }}>
+            {history.length} Ingested Corpora in Current Session
+          </span>
+        </div>
 
         <div style={{ overflowX: 'auto', width: '100%' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem', minWidth: '600px' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.78rem', minWidth: '600px' }}>
             <thead>
-              <tr style={{ borderBottom: '1px solid var(--border-color)', color: 'var(--text-muted)', textAlign: 'left' }}>
+              <tr style={{ borderBottom: '1px solid var(--border-color)', color: '#64748B', textAlign: 'left', fontSize: '0.68rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                 <th style={{ padding: '8px 12px' }}>Document Title</th>
-                <th style={{ padding: '8px 12px' }}>Type</th>
-                <th style={{ padding: '8px 12px' }}>Extracted Claims</th>
+                <th style={{ padding: '8px 12px' }}>Category</th>
+                <th style={{ padding: '8px 12px' }}>Operational Scope</th>
+                <th style={{ padding: '8px 12px' }}>Claims Extracted</th>
                 <th style={{ padding: '8px 12px' }}>Pipeline Latency</th>
-                <th style={{ padding: '8px 12px' }}>Status</th>
+                <th style={{ padding: '8px 12px' }}>Provenance</th>
                 <th style={{ padding: '8px 12px' }}>Ingested</th>
               </tr>
             </thead>
             <tbody>
               {history.length === 0 ? (
                 <tr>
-                  <td colSpan="6" style={{ padding: '24px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.82rem' }}>
-                    No documents ingested in this session yet. Upload a PDF file above to trigger the ingestion & auto-claim extraction pipeline.
+                  <td colSpan="7" style={{ padding: '22px', textAlign: 'center', color: '#94A3B8', fontSize: '0.78rem' }}>
+                    No corpora ingested in this session yet. Select an enterprise sample above to test autonomous extraction.
                   </td>
                 </tr>
               ) : (
                 history.map((item, idx) => (
                   <tr key={idx} style={{ borderBottom: '1px solid var(--border-color)' }}>
-                    <td style={{ padding: '10px 12px', fontWeight: 600, color: 'var(--text-main)', wordBreak: 'break-word' }}>
-                      📄 {item.title}
+                    <td style={{ padding: '8px 12px', fontWeight: 600, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <FileText size={13} color="#EA580C" />
+                      <span>{item.title}</span>
                     </td>
-                    <td style={{ padding: '10px 12px' }}>
-                      <span className="badge" style={{ textTransform: 'capitalize', fontSize: '0.68rem' }}>
+                    <td style={{ padding: '8px 12px' }}>
+                      <span className="sim-chip-tag" style={{ background: '#F1F5F9', color: '#475569', textTransform: 'capitalize' }}>
                         {item.type}
                       </span>
                     </td>
-                    <td style={{ padding: '10px 12px' }}>
-                      <span style={{ fontWeight: 600, color: '#2026d2' }}>{item.claimsCount} claims</span>
-                    </td>
-                    <td style={{ padding: '10px 12px', color: 'var(--text-muted)' }}>
-                      {item.durationMs}ms
-                    </td>
-                    <td style={{ padding: '10px 12px' }}>
-                      <span className="badge badge-verified" style={{ fontSize: '0.65rem' }}>
-                        Verified
+                    <td style={{ padding: '8px 12px' }}>
+                      <span className="sim-chip-tag" style={{ background: '#EFF6FF', color: '#1D4ED8' }}>
+                        {item.scope}
                       </span>
                     </td>
-                    <td style={{ padding: '10px 12px', color: 'var(--text-muted)' }}>
+                    <td style={{ padding: '8px 12px', fontWeight: 700, color: '#EA580C' }}>
+                      {item.claimsCount} claims
+                    </td>
+                    <td style={{ padding: '8px 12px', color: '#64748B' }}>
+                      {item.durationMs}ms
+                    </td>
+                    <td style={{ padding: '8px 12px' }}>
+                      <span className="badge badge-verified" style={{ fontSize: '0.62rem' }}>
+                        Merkle Sealed
+                      </span>
+                    </td>
+                    <td style={{ padding: '8px 12px', color: '#64748B' }}>
                       {item.time}
                     </td>
                   </tr>

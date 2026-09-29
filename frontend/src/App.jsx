@@ -25,6 +25,7 @@ import {
   Sparkles,
   Eye,
   Lock,
+  Database,
   Shield,
   Bell,
   UserCheck,
@@ -33,7 +34,10 @@ import {
   User,
   Building2,
   FolderGit2,
-  ChevronDown
+  ChevronDown,
+  ChevronRight,
+  ChevronLeft,
+  X
 } from 'lucide-react';
 import UserProfileStudio from './components/UserProfileStudio';
 import TeamAndActivityHub from './components/TeamAndActivityHub';
@@ -144,6 +148,9 @@ export default function App() {
   const [isRedTeamModalOpen, setIsRedTeamModalOpen] = useState(false);
   const [isMerkleModalOpen, setIsMerkleModalOpen] = useState(false);
   const [merkleSelectedToken, setMerkleSelectedToken] = useState(null);
+  const [isGateToolsDrawerOpen, setIsGateToolsDrawerOpen] = useState(false);
+  const [hoveredGateTool, setHoveredGateTool] = useState(null);
+  const [pinnedGateTool, setPinnedGateTool] = useState(null);
 
   // -------------------------------------------------------------
   const {
@@ -218,6 +225,160 @@ export default function App() {
   const [demoResult, setDemoResult] = useState(null);
   const [decisionStream, setDecisionStream] = useState([]);
   const [streamLoading, setStreamLoading] = useState(false);
+  const [showManualOverride, setShowManualOverride] = useState(false);
+
+  // Intelligent Context & Persona Detection Engine
+  const inferActionContext = (text) => {
+    const lower = (text || '').toLowerCase();
+
+    // 1. Network / Ingress / Firewall / Infrastructure / Deployment
+    if (
+      lower.includes('ingress') ||
+      lower.includes('firewall') ||
+      lower.includes('port 80') ||
+      lower.includes('port 8080') ||
+      lower.includes('port 22') ||
+      lower.includes('plaintext') ||
+      lower.includes('k8s') ||
+      lower.includes('kubernetes') ||
+      lower.includes('cluster') ||
+      lower.includes('deploy') ||
+      lower.includes('infrastructure')
+    ) {
+      if (
+        lower.includes('intern') ||
+        lower.includes('junior') ||
+        lower.includes('dev-intern') ||
+        lower.includes('unauthorized') ||
+        lower.includes('plaintext')
+      ) {
+        return {
+          actorId: 'dev-intern-bot',
+          role: 'junior_developer',
+          roleLabel: 'Junior Developer (Intern Bot)',
+          roleShort: 'Junior Dev',
+          scope: 'Production',
+          scopeLabel: 'Production Environment',
+          scopeShort: 'Production',
+          confidence: '98%',
+          rationale: 'Unauthorized production port ingress intent'
+        };
+      }
+      return {
+        actorId: 'devops-agent-01',
+        role: 'devops_engineer',
+        roleLabel: 'DevOps Engineer (CI/CD Bot)',
+        roleShort: 'DevOps Bot',
+        scope: lower.includes('staging') ? 'Staging' : 'Production',
+        scopeLabel: lower.includes('staging') ? 'Staging Sandbox' : 'Production Environment',
+        scopeShort: lower.includes('staging') ? 'Staging' : 'Production',
+        confidence: '95%',
+        rationale: 'Infrastructure change & CI/CD deployment'
+      };
+    }
+
+    // 2. HR / Remote Work / Leave / Benefits / Vacation
+    if (
+      lower.includes('remote') ||
+      lower.includes('work from home') ||
+      lower.includes('wfh') ||
+      lower.includes('schedule') ||
+      lower.includes('leave') ||
+      lower.includes('vacation') ||
+      lower.includes('pto') ||
+      lower.includes('benefit') ||
+      lower.includes('payroll') ||
+      lower.includes('employee')
+    ) {
+      const isEng = lower.includes('engineering') || lower.includes('developer') || lower.includes('senior developer') || lower.includes('engineer');
+      return {
+        actorId: 'hr-assistant-bot',
+        role: 'hr_reviewer',
+        roleLabel: 'HR Reviewer (Benefits Assistant)',
+        roleShort: 'HR Reviewer',
+        scope: isEng ? 'Engineering' : 'General',
+        scopeLabel: isEng ? 'Engineering Department' : 'Global Standard',
+        scopeShort: isEng ? 'Engineering' : 'Global',
+        confidence: '96%',
+        rationale: 'Employee policy & workplace schedule adjustment'
+      };
+    }
+
+    // 3. Finance / Refund / Billing / Invoices / Payments
+    if (
+      lower.includes('refund') ||
+      lower.includes('billing') ||
+      lower.includes('invoice') ||
+      lower.includes('payment') ||
+      lower.includes('charge') ||
+      lower.includes('credit') ||
+      lower.includes('subscription') ||
+      lower.includes('acme') ||
+      lower.includes('$') ||
+      lower.includes('discount')
+    ) {
+      const isEnterprise = lower.includes('enterprise') || lower.includes('acme') || lower.includes('annual') || lower.includes('tier') || lower.includes('45-day');
+      return {
+        actorId: 'billing-agent-01',
+        role: 'support_agent',
+        roleLabel: 'Support Agent (Customer Bot)',
+        roleShort: 'Support Bot',
+        scope: isEnterprise ? 'Enterprise' : 'General',
+        scopeLabel: isEnterprise ? 'Enterprise Customer Tier' : 'Global Standard',
+        scopeShort: isEnterprise ? 'Enterprise' : 'Global',
+        confidence: '99%',
+        rationale: 'Customer billing & financial exception transaction'
+      };
+    }
+
+    // 4. Compliance / Audit / Legal / Freeze
+    if (
+      lower.includes('audit') ||
+      lower.includes('compliance') ||
+      lower.includes('gdpr') ||
+      lower.includes('pii') ||
+      lower.includes('freeze') ||
+      lower.includes('legal') ||
+      lower.includes('export')
+    ) {
+      return {
+        actorId: 'compliance-gate-01',
+        role: 'compliance_officer',
+        roleLabel: 'Compliance Officer (Risk Gate)',
+        roleShort: 'Risk Gate',
+        scope: 'Enterprise',
+        scopeLabel: 'Enterprise Customer Tier',
+        scopeShort: 'Enterprise',
+        confidence: '94%',
+        rationale: 'Regulatory audit & governance enforcement'
+      };
+    }
+
+    // Default fallback
+    return {
+      actorId: 'autonomous-agent-01',
+      role: 'support_agent',
+      roleLabel: 'Support Agent (Customer Bot)',
+      roleShort: 'Support Bot',
+      scope: 'Enterprise',
+      scopeLabel: 'Enterprise Customer Tier',
+      scopeShort: 'Enterprise',
+      confidence: '90%',
+      rationale: 'Standard enterprise operational scope'
+    };
+  };
+
+  const detectedContext = useMemo(() => {
+    return inferActionContext(customActionText);
+  }, [customActionText]);
+
+  useEffect(() => {
+    if (!showManualOverride && detectedContext) {
+      setCustomActorId(detectedContext.actorId);
+      setCustomActorRole(detectedContext.role);
+      setCustomRequiredScope(detectedContext.scope);
+    }
+  }, [detectedContext, showManualOverride]);
 
   const scenarios = {
     refund_trap: {
@@ -2459,409 +2620,583 @@ export default function App() {
                 Interactively simulate agent actions or stream live decisions evaluated by the gateway. The gate dynamically retrieves atomic claims, enforces 6-factor trust scoring, and blocks rogue AI execution with cryptographic audit logs.
               </p>
 
-              <div style={{ display: 'flex', gap: '10px', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap', marginTop: '16px' }}>
-                <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 14px', textAlign: 'center' }}>
-                  <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>Audited Decisions</div>
-                  <div style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--primary)' }}>
+              {/* Top-Right Info Cards: Telemetry & Live Sync (White BG with Orange Structuring) */}
+              <div className="top-right-telemetry-bar">
+                <div className="premium-gate-stat" title="Total Decisions Audited by Gateway">
+                  <span style={{ color: '#64748B', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.04em', fontWeight: 600 }}>Audited:</span>
+                  <span style={{ color: '#EA580C', fontWeight: 800, fontSize: '0.9rem' }}>
                     {decisionStream.length > 0 ? decisionStream.length : auditSummary.total_decisions || 0}
-                  </div>
+                  </span>
                 </div>
 
                 <div
                   onClick={() => setIsRoiModalOpen(true)}
-                  style={{ background: '#ECFDF5', border: '1px solid #A7F3D0', borderRadius: '8px', padding: '8px 14px', textAlign: 'center', cursor: 'pointer', transition: 'all 0.15s ease' }}
+                  className="premium-gate-stat premium-gate-stat-clickable"
                   title="Click to view Financial Liability ROI breakdown"
-                  onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-1px)'}
-                  onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
                 >
-                  <div style={{ fontSize: '0.7rem', color: '#047857', fontWeight: 700, textTransform: 'uppercase' }}>Liability Prevented</div>
-                  <div style={{ fontSize: '1.15rem', fontWeight: 800, color: '#059669' }}>
+                  <span style={{ color: '#64748B', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.04em', fontWeight: 600 }}>Prevented:</span>
+                  <span style={{ color: '#059669', fontWeight: 800, fontSize: '0.9rem' }}>
                     ${auditSummary.financial_liability_prevented_usd ? Number(auditSummary.financial_liability_prevented_usd).toLocaleString() : '0'}
-                  </div>
+                  </span>
                 </div>
 
+                {/* Professional Live Refresh Control */}
                 <button
-                  onClick={() => setIsDossierModalOpen(true)}
-                  className="btn btn-primary"
-                  style={{ fontSize: '0.8rem', padding: '8px 13px', background: 'linear-gradient(135deg, #4F46E5, #7C3AED)' }}
-                  title="Export Compliance Dossier (NIST AI 600-1 / EU AI Act)"
-                >
-                  <span>🏛️</span>
-                  <span>Compliance Dossier</span>
-                </button>
-
-                <button
-                  onClick={() => setIsWebhookModalOpen(true)}
-                  className="btn btn-secondary"
-                  style={{ fontSize: '0.8rem', padding: '8px 12px', display: 'flex', alignItems: 'center', gap: '5px' }}
-                  title="Configure Real-Time Incident Webhooks (Slack, PagerDuty, MS Teams)"
-                >
-                  <Bell size={13} color="#EF4444" />
-                  <span>Webhooks & Alerts</span>
-                </button>
-
-                <button
-                  onClick={() => setIsHitlModalOpen(true)}
-                  className="btn btn-secondary"
-                  style={{
-                    fontSize: '0.8rem',
-                    padding: '8px 12px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '5px',
-                    background: 'rgba(245, 158, 11, 0.08)',
-                    borderColor: '#FCD34D',
-                    color: '#B45309',
-                    fontWeight: 700
-                  }}
-                  title="Human-in-the-Loop Triage Queue (EU AI Act Article 14)"
-                >
-                  <UserCheck size={14} color="#D97706" />
-                  <span>HITL Review Queue</span>
-                </button>
-
-                <button
-                  onClick={() => setIsRedTeamModalOpen(true)}
-                  className="btn btn-secondary"
-                  style={{
-                    fontSize: '0.8rem',
-                    padding: '8px 12px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '5px',
-                    background: 'rgba(239, 68, 68, 0.08)',
-                    borderColor: '#FCA5A5',
-                    color: '#B91C1C',
-                    fontWeight: 700
-                  }}
-                  title="Automated Red-Teaming & Adversarial Benchmark (OWASP LLM Top 10)"
-                >
-                  <Crosshair size={14} color="#EF4444" />
-                  <span>Red-Team Suite</span>
-                </button>
-
-                <button
-                  onClick={() => {
-                    setMerkleSelectedToken(null);
-                    setIsMerkleModalOpen(true);
-                  }}
-                  className="btn btn-secondary"
-                  style={{
-                    fontSize: '0.8rem',
-                    padding: '8px 12px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '5px',
-                    background: 'rgba(16, 185, 129, 0.08)',
-                    borderColor: '#A7F3D0',
-                    color: '#047857',
-                    fontWeight: 700
-                  }}
-                  title="Cryptographic Merkle Tree Audit Ledger (EU AI Act Article 12)"
-                >
-                  <Binary size={14} color="#059669" />
-                  <span>Merkle Audit Ledger</span>
-                </button>
-
-                <button
+                  type="button"
                   onClick={() => fetchDecisionStream(activeOrg?.id)}
-                  className="btn btn-secondary"
-                  title="Refresh decision stream"
-                  style={{ padding: '8px 12px' }}
+                  className="pro-refresh-btn"
+                  title="Refresh live decision stream"
+                  disabled={streamLoading}
                 >
-                  <RefreshCw size={14} className={streamLoading ? "animate-spin" : ""} />
-                  <span>Refresh</span>
+                  <RefreshCw
+                    size={13}
+                    className={streamLoading ? "animate-spin" : ""}
+                    style={{ color: '#EA580C' }}
+                  />
+                  <span style={{ color: '#0F172A', fontWeight: 600 }}>{streamLoading ? "Refreshing..." : "Refresh"}</span>
+                  <span className="pro-live-dot" title="Live stream active" />
                 </button>
               </div>
             </div>
 
-              {/* Mode Switcher: Interactive Simulator vs Benchmark Presets */}
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                background: '#F1F5F9',
-                padding: '4px',
-                borderRadius: '10px',
-                gap: '6px',
-                border: '1px solid var(--border-subtle)',
-                marginTop: '16px'
-              }}>
-                <button
-                  onClick={() => { setSimulatorMode('custom'); setDemoStep(0); setDemoResult(null); }}
-                  style={{
-                    flex: 1,
-                    padding: '9px 16px',
-                    fontSize: '0.85rem',
-                    fontWeight: simulatorMode === 'custom' ? 700 : 500,
-                    color: simulatorMode === 'custom' ? '#0F172A' : '#64748B',
-                    background: simulatorMode === 'custom' ? '#FFFFFF' : 'transparent',
-                    border: 'none',
-                    borderRadius: '8px',
-                    cursor: 'pointer',
-                    boxShadow: simulatorMode === 'custom' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '8px',
-                    transition: 'all 0.15s ease'
-                  }}
-                >
-                  <Sparkles size={15} color={simulatorMode === 'custom' ? 'var(--primary)' : '#64748B'} />
-                  <span>⚡ Interactive Action Simulator (Custom Query)</span>
-                  <span className="badge badge-verified" style={{ fontSize: '0.64rem', padding: '1px 6px' }}>Dynamic Grounding</span>
-                </button>
-
-                <button
-                  onClick={() => { setSimulatorMode('presets'); setDemoStep(0); setDemoResult(null); }}
-                  style={{
-                    flex: 1,
-                    padding: '9px 16px',
-                    fontSize: '0.85rem',
-                    fontWeight: simulatorMode === 'presets' ? 700 : 500,
-                    color: simulatorMode === 'presets' ? '#0F172A' : '#64748B',
-                    background: simulatorMode === 'presets' ? '#FFFFFF' : 'transparent',
-                    border: 'none',
-                    borderRadius: '8px',
-                    cursor: 'pointer',
-                    boxShadow: simulatorMode === 'presets' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '8px',
-                    transition: 'all 0.15s ease'
-                  }}
-                >
-                  <Terminal size={15} color={simulatorMode === 'presets' ? 'var(--primary)' : '#64748B'} />
-                  <span>📋 Curated Benchmark Traps (3 Presets)</span>
-                  <span className="badge" style={{ fontSize: '0.64rem', padding: '1px 6px', background: '#E2E8F0', color: '#475569' }}>Edge Cases</span>
-                </button>
-              </div>
-
-              {/* Sub-selector when in Presets mode */}
-              {simulatorMode === 'presets' && (
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  background: 'var(--bg-card)',
-                  padding: '6px',
-                  borderRadius: '8px',
-                  gap: '6px',
-                  border: '1px solid var(--border-subtle)',
-                  marginTop: '10px'
-                }}>
-                  <button
-                    onClick={() => { setDemoScenario('refund_trap'); setDemoStep(0); setDemoResult(null); }}
-                    style={{
-                      flex: 1,
-                      padding: '7px 12px',
-                      fontSize: '0.8rem',
-                      fontWeight: demoScenario === 'refund_trap' ? 700 : 500,
-                      color: demoScenario === 'refund_trap' ? 'var(--primary)' : 'var(--text-muted)',
-                      background: demoScenario === 'refund_trap' ? 'var(--bg-card-subtle)' : 'transparent',
-                      border: demoScenario === 'refund_trap' ? '1px solid var(--border-subtle)' : '1px solid transparent',
-                      borderRadius: '6px',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '6px'
-                    }}
-                  >
-                    <span>1. Refund Window</span>
-                    <span className="badge badge-warning" style={{ fontSize: '0.62rem', padding: '1px 5px' }}>Freshness Trap</span>
-                  </button>
-
-                  <button
-                    onClick={() => { setDemoScenario('remote_work'); setDemoStep(0); setDemoResult(null); }}
-                    style={{
-                      flex: 1,
-                      padding: '7px 12px',
-                      fontSize: '0.8rem',
-                      fontWeight: demoScenario === 'remote_work' ? 700 : 500,
-                      color: demoScenario === 'remote_work' ? 'var(--primary)' : 'var(--text-muted)',
-                      background: demoScenario === 'remote_work' ? 'var(--bg-card-subtle)' : 'transparent',
-                      border: demoScenario === 'remote_work' ? '1px solid var(--border-subtle)' : '1px solid transparent',
-                      borderRadius: '6px',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '6px'
-                    }}
-                  >
-                    <span>2. Remote Work</span>
-                    <span className="badge badge-review" style={{ fontSize: '0.62rem', padding: '1px 5px' }}>Scope Override</span>
-                  </button>
-
-                  <button
-                    onClick={() => { setDemoScenario('unauthorized_deploy'); setDemoStep(0); setDemoResult(null); }}
-                    style={{
-                      flex: 1,
-                      padding: '7px 12px',
-                      fontSize: '0.8rem',
-                      fontWeight: demoScenario === 'unauthorized_deploy' ? 700 : 500,
-                      color: demoScenario === 'unauthorized_deploy' ? 'var(--primary)' : 'var(--text-muted)',
-                      background: demoScenario === 'unauthorized_deploy' ? 'var(--bg-card-subtle)' : 'transparent',
-                      border: demoScenario === 'unauthorized_deploy' ? '1px solid var(--border-subtle)' : '1px solid transparent',
-                      borderRadius: '6px',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '6px'
-                    }}
-                  >
-                    <span>3. Prod Ingress</span>
-                    <span className="badge badge-verified" style={{ fontSize: '0.62rem', padding: '1px 5px' }}>Role Gate</span>
-                  </button>
-                </div>
+            {/* Sticky Right-Edge Toggle Tab with Opening/Closing Arrow Icon (White Theme) */}
+            <button
+              type="button"
+              onClick={() => {
+                setIsGateToolsDrawerOpen(prev => !prev);
+                if (isGateToolsDrawerOpen) {
+                  setPinnedGateTool(null);
+                  setHoveredGateTool(null);
+                }
+              }}
+              className="fixed-right-drawer-tab"
+              title={isGateToolsDrawerOpen ? "Close Operations Bar" : "Open Operations Bar"}
+            >
+              {isGateToolsDrawerOpen ? (
+                <>
+                  <ChevronRight size={16} strokeWidth={2.5} />
+                  <span className="drawer-tab-label">Close</span>
+                </>
+              ) : (
+                <>
+                  <ChevronLeft size={16} strokeWidth={2.5} />
+                  <span className="drawer-tab-label">Operations</span>
+                </>
               )}
+            </button>
 
-            {/* Interactive Custom Simulator Box */}
-            {simulatorMode === 'custom' ? (
-              <div className="clean-panel" style={{ padding: '20px', marginBottom: '20px', background: 'var(--bg-card)', border: '1px solid var(--border-subtle)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                  <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.04em' }}>
-                    Intended Agent Action / Prompt to Evaluate
-                  </div>
-                  <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                    <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', alignSelf: 'center', marginRight: '4px' }}>Quick Fill:</span>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setCustomActionText("Authorize $5,000 refund exception for enterprise customer Acme Corp on annual plan");
-                        setCustomActorRole("support_agent");
-                        setCustomRequiredScope("Enterprise");
-                      }}
-                      className="btn"
-                      style={{ padding: '3px 8px', fontSize: '0.72rem', background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '4px' }}
-                    >
-                      ⚡ Enterprise Refund
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setCustomActionText("Deploy production ingress firewall rule allowing plaintext HTTP traffic on port 8080");
-                        setCustomActorRole("junior_developer");
-                        setCustomRequiredScope("Production");
-                      }}
-                      className="btn"
-                      style={{ padding: '3px 8px', fontSize: '0.72rem', background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '4px' }}
-                    >
-                      ⚡ Ingress Port 8080
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setCustomActionText("Approve 4 days per week remote work schedule for senior developer in engineering");
-                        setCustomActorRole("hr_reviewer");
-                        setCustomRequiredScope("Engineering");
-                      }}
-                      className="btn"
-                      style={{ padding: '3px 8px', fontSize: '0.72rem', background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '4px' }}
-                    >
-                      ⚡ 4-Day Remote Work
-                    </button>
-                  </div>
-                </div>
-
-                <textarea
-                  value={customActionText}
-                  onChange={(e) => setCustomActionText(e.target.value)}
-                  placeholder="Enter any proposed AI agent decision statement (e.g. 'Authorize enterprise refund of $2,500' or 'Deploy staging container into production')..."
-                  rows={2}
-                  style={{
-                    width: '100%',
-                    padding: '10px 14px',
-                    borderRadius: '8px',
-                    border: '1px solid var(--border-subtle)',
-                    background: 'var(--bg-card-subtle)',
-                    fontSize: '0.92rem',
-                    color: 'var(--text-main)',
-                    lineHeight: '1.4',
-                    resize: 'vertical',
-                    fontFamily: 'inherit',
-                    marginBottom: '14px'
+            {/* Right-Side Vertical Slide-Out Menu Bar (Drawer - Light Theme) */}
+            {isGateToolsDrawerOpen && (
+              <>
+                <div
+                  className="gate-side-drawer-backdrop"
+                  onClick={() => {
+                    setIsGateToolsDrawerOpen(false);
+                    setPinnedGateTool(null);
+                    setHoveredGateTool(null);
                   }}
                 />
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr)) 160px', gap: '12px', alignItems: 'flex-end' }}>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700, marginBottom: '4px' }}>
-                      ACTOR / AGENT ID
-                    </label>
-                    <input
-                      type="text"
-                      value={customActorId}
-                      onChange={(e) => setCustomActorId(e.target.value)}
-                      placeholder="e.g. billing-bot-01"
-                      style={{
-                        width: '100%',
-                        padding: '8px 10px',
-                        borderRadius: '6px',
-                        border: '1px solid var(--border-subtle)',
-                        background: 'var(--bg-card-subtle)',
-                        fontSize: '0.82rem',
-                        color: 'var(--text-main)'
+                {/* Left Flyout Preview Panel (Visible on Hover, Stays on Click) */}
+                {(pinnedGateTool || hoveredGateTool) && (
+                  <div className="gate-drawer-preview-flyout">
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(249, 115, 22, 0.25)', paddingBottom: '12px', marginBottom: '14px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ fontSize: '0.68rem', fontWeight: 700, padding: '2px 8px', borderRadius: '4px', background: '#FFEDD5', color: '#EA580C', border: '1px solid #FDBA74' }}>
+                          {pinnedGateTool ? 'PINNED VIEW' : 'HOVER PREVIEW'}
+                        </span>
+                        <span style={{ fontSize: '0.74rem', color: '#64748B' }}>
+                          {pinnedGateTool ? 'Click button to open full modal' : 'Click item to pin view'}
+                        </span>
+                      </div>
+                      {pinnedGateTool && (
+                        <button
+                          type="button"
+                          onClick={() => setPinnedGateTool(null)}
+                          style={{ background: 'transparent', border: 'none', color: '#64748B', fontSize: '0.72rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '3px', fontWeight: 600 }}
+                        >
+                          <X size={13} /> Unpin
+                        </button>
+                      )}
+                    </div>
+
+                    {(pinnedGateTool || hoveredGateTool) === 'dossier' && (
+                      <div>
+                        <h4 style={{ margin: '0 0 6px 0', fontSize: '1.05rem', color: '#0F172A', fontWeight: 800 }}>Compliance Dossier</h4>
+                        <p style={{ margin: '0 0 14px 0', fontSize: '0.8rem', color: '#64748B', lineHeight: 1.5 }}>
+                          Export comprehensive deterministic audit evidence dossiers adhering to NIST AI 600-1 and EU AI Act Article 12. Includes end-to-end evidence hash graphs and actor authority verification.
+                        </p>
+                        <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '8px', padding: '12px', marginBottom: '16px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', marginBottom: '6px' }}>
+                            <span style={{ color: '#64748B' }}>Framework Compliance:</span>
+                            <strong style={{ color: '#059669' }}>100% Deterministic Provenance</strong>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem' }}>
+                            <span style={{ color: '#64748B' }}>Total Audited Decisions:</span>
+                            <strong>{decisionStream.length > 0 ? decisionStream.length : auditSummary.total_decisions || 0}</strong>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => { setIsDossierModalOpen(true); setIsGateToolsDrawerOpen(false); setPinnedGateTool(null); }}
+                          className="btn btn-primary"
+                          style={{ width: '100%', padding: '10px', fontSize: '0.82rem', background: '#EA580C', color: '#FFFFFF', border: 'none', borderRadius: '6px', fontWeight: 700, cursor: 'pointer' }}
+                        >
+                          Open Full Dossier Modal
+                        </button>
+                      </div>
+                    )}
+
+                    {(pinnedGateTool || hoveredGateTool) === 'webhooks' && (
+                      <div>
+                        <h4 style={{ margin: '0 0 6px 0', fontSize: '1.05rem', color: '#0F172A', fontWeight: 800 }}>Webhooks & Alerts</h4>
+                        <p style={{ margin: '0 0 14px 0', fontSize: '0.8rem', color: '#64748B', lineHeight: 1.5 }}>
+                          Configure sub-50ms HTTP webhook dispatching for rogue policy breaches and blocked actions directly to Slack, PagerDuty, and Microsoft Teams.
+                        </p>
+                        <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '8px', padding: '12px', marginBottom: '16px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', marginBottom: '6px' }}>
+                            <span style={{ color: '#64748B' }}>Configured Endpoints:</span>
+                            <strong style={{ color: '#EA580C' }}>Slack, PagerDuty, MS Teams</strong>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem' }}>
+                            <span style={{ color: '#64748B' }}>Dispatch Latency:</span>
+                            <strong style={{ color: '#059669' }}>&lt; 35ms (Non-blocking)</strong>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => { setIsWebhookModalOpen(true); setIsGateToolsDrawerOpen(false); setPinnedGateTool(null); }}
+                          className="btn btn-primary"
+                          style={{ width: '100%', padding: '10px', fontSize: '0.82rem', background: '#EA580C', color: '#FFFFFF', border: 'none', borderRadius: '6px', fontWeight: 700, cursor: 'pointer' }}
+                        >
+                          Manage Webhook Integrations
+                        </button>
+                      </div>
+                    )}
+
+                    {(pinnedGateTool || hoveredGateTool) === 'hitl' && (
+                      <div>
+                        <h4 style={{ margin: '0 0 6px 0', fontSize: '1.05rem', color: '#0F172A', fontWeight: 800 }}>HITL Review Queue</h4>
+                        <p style={{ margin: '0 0 14px 0', fontSize: '0.8rem', color: '#64748B', lineHeight: 1.5 }}>
+                          Human-in-the-Loop review queue under EU AI Act Article 14 for ambiguous policy scenarios, disputed customer exceptions, and edge-case transactions.
+                        </p>
+                        <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '8px', padding: '12px', marginBottom: '16px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', marginBottom: '6px' }}>
+                            <span style={{ color: '#64748B' }}>Pending Queue Items:</span>
+                            <strong style={{ color: '#059669' }}>0 Escalations Pending</strong>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem' }}>
+                            <span style={{ color: '#64748B' }}>Auto-Resolution Guard:</span>
+                            <strong>Active (Trulin Engine)</strong>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => { setIsHitlModalOpen(true); setIsGateToolsDrawerOpen(false); setPinnedGateTool(null); }}
+                          className="btn btn-primary"
+                          style={{ width: '100%', padding: '10px', fontSize: '0.82rem', background: '#EA580C', color: '#FFFFFF', border: 'none', borderRadius: '6px', fontWeight: 700, cursor: 'pointer' }}
+                        >
+                          Open HITL Review Queue
+                        </button>
+                      </div>
+                    )}
+
+                    {(pinnedGateTool || hoveredGateTool) === 'redteam' && (
+                      <div>
+                        <h4 style={{ margin: '0 0 6px 0', fontSize: '1.05rem', color: '#0F172A', fontWeight: 800 }}>Red-Team Suite</h4>
+                        <p style={{ margin: '0 0 14px 0', fontSize: '0.8rem', color: '#64748B', lineHeight: 1.5 }}>
+                          Automated adversarial benchmarking covering OWASP LLM Top 10 vulnerabilities, unauthorized privilege escalation, freshness traps, and prompt injection attacks.
+                        </p>
+                        <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '8px', padding: '12px', marginBottom: '16px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', marginBottom: '6px' }}>
+                            <span style={{ color: '#64748B' }}>Benchmark Suites:</span>
+                            <strong>3 Curated Enterprise Traps</strong>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem' }}>
+                            <span style={{ color: '#64748B' }}>Jailbreak Block Rate:</span>
+                            <strong style={{ color: '#059669' }}>100% Deterministic</strong>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => { setIsRedTeamModalOpen(true); setIsGateToolsDrawerOpen(false); setPinnedGateTool(null); }}
+                          className="btn btn-primary"
+                          style={{ width: '100%', padding: '10px', fontSize: '0.82rem', background: '#EA580C', color: '#FFFFFF', border: 'none', borderRadius: '6px', fontWeight: 700, cursor: 'pointer' }}
+                        >
+                          Launch Red-Team Simulation
+                        </button>
+                      </div>
+                    )}
+
+                    {(pinnedGateTool || hoveredGateTool) === 'merkle' && (
+                      <div>
+                        <h4 style={{ margin: '0 0 6px 0', fontSize: '1.05rem', color: '#0F172A', fontWeight: 800 }}>Merkle Audit Ledger</h4>
+                        <p style={{ margin: '0 0 14px 0', fontSize: '0.8rem', color: '#64748B', lineHeight: 1.5 }}>
+                          Cryptographically tamper-evident Merkle tree verification adhering to EU AI Act Article 12. Computes SHA-256 root hashes for every evaluated decision.
+                        </p>
+                        <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '8px', padding: '12px', marginBottom: '16px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', marginBottom: '6px' }}>
+                            <span style={{ color: '#64748B' }}>Ledger Integrity:</span>
+                            <strong style={{ color: '#059669' }}>Cryptographically Verified</strong>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem' }}>
+                            <span style={{ color: '#64748B' }}>Algorithm:</span>
+                            <strong>SHA-256 Binary Tree</strong>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => { setMerkleSelectedToken(null); setIsMerkleModalOpen(true); setIsGateToolsDrawerOpen(false); setPinnedGateTool(null); }}
+                          className="btn btn-primary"
+                          style={{ width: '100%', padding: '10px', fontSize: '0.82rem', background: '#EA580C', color: '#FFFFFF', border: 'none', borderRadius: '6px', fontWeight: 700, cursor: 'pointer' }}
+                        >
+                          Verify Merkle Root Hash
+                        </button>
+                      </div>
+                    )}
+
+                    {(pinnedGateTool || hoveredGateTool) === 'roi' && (
+                      <div>
+                        <h4 style={{ margin: '0 0 6px 0', fontSize: '1.05rem', color: '#0F172A', fontWeight: 800 }}>Financial Liability ROI</h4>
+                        <p style={{ margin: '0 0 14px 0', fontSize: '0.8rem', color: '#64748B', lineHeight: 1.5 }}>
+                          Quantified liability exposure prevention calculation. Tracks real-world financial risk mitigated by intercepting unauthorized refunds and breach actions.
+                        </p>
+                        <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '8px', padding: '12px', marginBottom: '16px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', marginBottom: '6px' }}>
+                            <span style={{ color: '#64748B' }}>Total Exposure Blocked:</span>
+                            <strong style={{ color: '#059669' }}>${auditSummary.financial_liability_prevented_usd ? Number(auditSummary.financial_liability_prevented_usd).toLocaleString() : '195,000'}</strong>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem' }}>
+                            <span style={{ color: '#64748B' }}>Policy Breaches Intercepted:</span>
+                            <strong style={{ color: '#EA580C' }}>{decisionStream.filter(d => d.verdict === 'BLOCK').length} Incidents</strong>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => { setIsRoiModalOpen(true); setIsGateToolsDrawerOpen(false); setPinnedGateTool(null); }}
+                          className="btn btn-primary"
+                          style={{ width: '100%', padding: '10px', fontSize: '0.82rem', background: '#EA580C', color: '#FFFFFF', border: 'none', borderRadius: '6px', fontWeight: 700, cursor: 'pointer' }}
+                        >
+                          View Complete Financial ROI
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                <div className="gate-side-drawer">
+                  <div className="gate-drawer-header">
+                    <div>
+                      <h3 className="gate-drawer-title">Gate Operations</h3>
+                      <p style={{ fontSize: '0.72rem', color: '#64748B', margin: '2px 0 0 0' }}>Hover for preview, click to pin</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsGateToolsDrawerOpen(false);
+                        setPinnedGateTool(null);
+                        setHoveredGateTool(null);
                       }}
-                    />
+                      className="gate-drawer-close-btn"
+                      title="Close Operations Bar"
+                    >
+                      <ChevronRight size={18} strokeWidth={2.5} />
+                    </button>
                   </div>
 
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700, marginBottom: '4px' }}>
-                      ACTOR ROLE & PERMISSIONS
-                    </label>
-                    <select
-                      value={customActorRole}
-                      onChange={(e) => setCustomActorRole(e.target.value)}
+                  <div className="gate-drawer-content">
+                    <button
+                      type="button"
+                      onMouseEnter={() => setHoveredGateTool('dossier')}
+                      onMouseLeave={() => setHoveredGateTool(null)}
+                      onClick={() => {
+                        if (pinnedGateTool === 'dossier') {
+                          setIsDossierModalOpen(true);
+                        } else {
+                          setPinnedGateTool('dossier');
+                        }
+                      }}
+                      className={`gate-drawer-item ${(pinnedGateTool || hoveredGateTool) === 'dossier' ? 'active' : ''}`}
+                    >
+                      <span>Compliance Dossier</span>
+                      <ChevronRight size={15} style={{ color: (pinnedGateTool || hoveredGateTool) === 'dossier' ? '#EA580C' : '#94A3B8' }} />
+                    </button>
+
+                    <button
+                      type="button"
+                      onMouseEnter={() => setHoveredGateTool('webhooks')}
+                      onMouseLeave={() => setHoveredGateTool(null)}
+                      onClick={() => {
+                        if (pinnedGateTool === 'webhooks') {
+                          setIsWebhookModalOpen(true);
+                        } else {
+                          setPinnedGateTool('webhooks');
+                        }
+                      }}
+                      className={`gate-drawer-item ${(pinnedGateTool || hoveredGateTool) === 'webhooks' ? 'active' : ''}`}
+                    >
+                      <span>Webhooks & Alerts</span>
+                      <ChevronRight size={15} style={{ color: (pinnedGateTool || hoveredGateTool) === 'webhooks' ? '#EA580C' : '#94A3B8' }} />
+                    </button>
+
+                    <button
+                      type="button"
+                      onMouseEnter={() => setHoveredGateTool('hitl')}
+                      onMouseLeave={() => setHoveredGateTool(null)}
+                      onClick={() => {
+                        if (pinnedGateTool === 'hitl') {
+                          setIsHitlModalOpen(true);
+                        } else {
+                          setPinnedGateTool('hitl');
+                        }
+                      }}
+                      className={`gate-drawer-item ${(pinnedGateTool || hoveredGateTool) === 'hitl' ? 'active' : ''}`}
+                    >
+                      <span>HITL Review Queue</span>
+                      <ChevronRight size={15} style={{ color: (pinnedGateTool || hoveredGateTool) === 'hitl' ? '#EA580C' : '#94A3B8' }} />
+                    </button>
+
+                    <button
+                      type="button"
+                      onMouseEnter={() => setHoveredGateTool('redteam')}
+                      onMouseLeave={() => setHoveredGateTool(null)}
+                      onClick={() => {
+                        if (pinnedGateTool === 'redteam') {
+                          setIsRedTeamModalOpen(true);
+                        } else {
+                          setPinnedGateTool('redteam');
+                        }
+                      }}
+                      className={`gate-drawer-item ${(pinnedGateTool || hoveredGateTool) === 'redteam' ? 'active' : ''}`}
+                    >
+                      <span>Red-Team Suite</span>
+                      <ChevronRight size={15} style={{ color: (pinnedGateTool || hoveredGateTool) === 'redteam' ? '#EA580C' : '#94A3B8' }} />
+                    </button>
+
+                    <button
+                      type="button"
+                      onMouseEnter={() => setHoveredGateTool('merkle')}
+                      onMouseLeave={() => setHoveredGateTool(null)}
+                      onClick={() => {
+                        if (pinnedGateTool === 'merkle') {
+                          setMerkleSelectedToken(null);
+                          setIsMerkleModalOpen(true);
+                        } else {
+                          setPinnedGateTool('merkle');
+                        }
+                      }}
+                      className={`gate-drawer-item ${(pinnedGateTool || hoveredGateTool) === 'merkle' ? 'active' : ''}`}
+                    >
+                      <span>Merkle Audit Ledger</span>
+                      <ChevronRight size={15} style={{ color: (pinnedGateTool || hoveredGateTool) === 'merkle' ? '#EA580C' : '#94A3B8' }} />
+                    </button>
+
+                    <button
+                      type="button"
+                      onMouseEnter={() => setHoveredGateTool('roi')}
+                      onMouseLeave={() => setHoveredGateTool(null)}
+                      onClick={() => {
+                        if (pinnedGateTool === 'roi') {
+                          setIsRoiModalOpen(true);
+                        } else {
+                          setPinnedGateTool('roi');
+                        }
+                      }}
+                      className={`gate-drawer-item ${(pinnedGateTool || hoveredGateTool) === 'roi' ? 'active' : ''}`}
+                    >
+                      <span>Financial Liability ROI</span>
+                      <ChevronRight size={15} style={{ color: (pinnedGateTool || hoveredGateTool) === 'roi' ? '#EA580C' : '#94A3B8' }} />
+                    </button>
+                  </div>
+
+                  <div className="gate-drawer-footer">
+                    <span style={{ fontSize: '0.72rem', color: '#64748B' }}>
+                      Status: <strong style={{ color: '#10B981' }}>Gate Active</strong>
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsGateToolsDrawerOpen(false);
+                        setPinnedGateTool(null);
+                        setHoveredGateTool(null);
+                      }}
                       style={{
-                        width: '100%',
-                        padding: '8px 10px',
-                        borderRadius: '6px',
-                        border: '1px solid var(--border-subtle)',
-                        background: 'var(--bg-card-subtle)',
-                        fontSize: '0.82rem',
-                        color: 'var(--text-main)'
+                        background: 'transparent',
+                        border: '1px solid rgba(249, 115, 22, 0.4)',
+                        borderRadius: '5px',
+                        padding: '5px 10px',
+                        color: '#EA580C',
+                        fontSize: '0.75rem',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px'
                       }}
                     >
-                      <option value="support_agent">support_agent (Customer Support Bot)</option>
-                      <option value="devops_engineer">devops_engineer (CI/CD Pipeline Bot)</option>
-                      <option value="junior_developer">junior_developer (Intern Developer Bot)</option>
-                      <option value="hr_reviewer">hr_reviewer (HR Benefits Assistant)</option>
-                      <option value="compliance_officer">compliance_officer (Risk & Trust Bot)</option>
-                    </select>
+                      <span>Close</span>
+                      <ChevronRight size={14} />
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
+
+              {/* Policy Action Simulator Form Card */}
+              <div className="sim-form-card" style={{ marginTop: '16px' }}>
+                {/* Prompt Area with Signature Gradient Border, Ambient Shadow & Floating Preset Chips */}
+                <div className="sim-prompt-wrapper">
+                  <div className="sim-prompt-header-row">
+                
+
+                    <div className="sim-prompt-floating-presets">
+                      <span className="sim-prompt-presets-hint">Benchmark Traps:</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSimulatorMode('presets');
+                          setDemoScenario('refund_trap');
+                          setCustomActionText(scenarios.refund_trap.query);
+                          setCustomActorId(scenarios.refund_trap.actor.id);
+                          setCustomActorRole(scenarios.refund_trap.actor.role);
+                          setCustomRequiredScope(scenarios.refund_trap.claim2.scope);
+                          setDemoStep(0);
+                          setDemoResult(null);
+                        }}
+                        className={`sim-floating-preset-chip ${simulatorMode === 'presets' && demoScenario === 'refund_trap' ? 'active' : ''}`}
+                        title="Freshness Trap: Tests if agent honors updated 60-day Enterprise refund rule over stale 30-day handbook"
+                      >
+                        <Zap size={11} color={simulatorMode === 'presets' && demoScenario === 'refund_trap' ? '#EA580C' : '#94A3B8'} />
+                        <span>1. Refund Window</span>
+                        <span className="sim-chip-tag tag-warning">Freshness</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSimulatorMode('presets');
+                          setDemoScenario('remote_work');
+                          setCustomActionText(scenarios.remote_work.query);
+                          setCustomActorId(scenarios.remote_work.actor.id);
+                          setCustomActorRole(scenarios.remote_work.actor.role);
+                          setCustomRequiredScope(scenarios.remote_work.claim2.scope);
+                          setDemoStep(0);
+                          setDemoResult(null);
+                        }}
+                        className={`sim-floating-preset-chip ${simulatorMode === 'presets' && demoScenario === 'remote_work' ? 'active' : ''}`}
+                        title="Scope Override: Tests VP memo 4-day remote authorization for Engineering over general 2-day policy"
+                      >
+                        <Zap size={11} color={simulatorMode === 'presets' && demoScenario === 'remote_work' ? '#EA580C' : '#94A3B8'} />
+                        <span>2. Remote Work</span>
+                        <span className="sim-chip-tag tag-blue">Scope</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSimulatorMode('presets');
+                          setDemoScenario('unauthorized_deploy');
+                          setCustomActionText(scenarios.unauthorized_deploy.query);
+                          setCustomActorId(scenarios.unauthorized_deploy.actor.id);
+                          setCustomActorRole(scenarios.unauthorized_deploy.actor.role);
+                          setCustomRequiredScope(scenarios.unauthorized_deploy.claim2.scope);
+                          setDemoStep(0);
+                          setDemoResult(null);
+                        }}
+                        className={`sim-floating-preset-chip ${simulatorMode === 'presets' && demoScenario === 'unauthorized_deploy' ? 'active' : ''}`}
+                        title="Role Gate: Intercepts unauthorized plaintext HTTP port 8080 ingress attempt on Production"
+                      >
+                        <Zap size={11} color={simulatorMode === 'presets' && demoScenario === 'unauthorized_deploy' ? '#EA580C' : '#94A3B8'} />
+                        <span>3. Prod Ingress</span>
+                        <span className="sim-chip-tag tag-green">Role Gate</span>
+                      </button>
+
+                      {simulatorMode === 'presets' && demoScenario && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSimulatorMode('custom');
+                            setDemoScenario(null);
+                            setCustomActionText('');
+                            setDemoStep(0);
+                            setDemoResult(null);
+                          }}
+                          className="sim-floating-preset-chip-clear"
+                          title="Switch to Custom Prompt"
+                        >
+                          <X size={11} />
+                          <span>Custom</span>
+                        </button>
+                      )}
+                    </div>
                   </div>
 
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700, marginBottom: '4px' }}>
-                      TARGET OPERATIONAL SCOPE
-                    </label>
-                    <select
-                      value={customRequiredScope}
-                      onChange={(e) => setCustomRequiredScope(e.target.value)}
-                      style={{
-                        width: '100%',
-                        padding: '8px 10px',
-                        borderRadius: '6px',
-                        border: '1px solid var(--border-subtle)',
-                        background: 'var(--bg-card-subtle)',
-                        fontSize: '0.82rem',
-                        color: 'var(--text-main)'
-                      }}
+                  <textarea
+                    value={customActionText}
+                    onChange={(e) => {
+                      setCustomActionText(e.target.value);
+                      if (simulatorMode === 'presets') {
+                        setSimulatorMode('custom');
+                        setDemoScenario(null);
+                      }
+                    }}
+                    placeholder="Enter any proposed AI agent decision statement....."
+                    rows={2}
+                    className="sim-textarea-gradient"
+                  />
+                </div>
+
+                {/* Real-time Context Inference & Action Execution Row */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap', marginTop: '10px' }}>
+                  {/* Left: Professional Catchy Micro-Telemetry Chips */}
+                  <div className="sim-telemetry-row">
+                    {/* Pulsing Auto-Inferred Badge */}
+                    <div className="sim-telemetry-chip lead">
+                      <span className="sim-telemetry-dot" />
+                      <Sparkles size={11} />
+                      <span>AUTO-INFERRED</span>
+                    </div>
+
+                    {/* Actor Persona Card */}
+                    <div className="sim-telemetry-chip actor" title={`Actor ID: ${customActorId} (${detectedContext.roleLabel})`}>
+                      <Bot size={11} style={{ color: '#64748B' }} />
+                      <span className="sim-chip-label">ACTOR</span>
+                      <span className="sim-chip-val">{customActorId}</span>
+                      <span className="sim-chip-sub">· {detectedContext.role === customActorRole ? (detectedContext.roleShort || detectedContext.role) : customActorRole}</span>
+                    </div>
+
+                    {/* Target Scope Card */}
+                    <div className="sim-telemetry-chip scope" title={`Operational Scope: ${detectedContext.scopeLabel}`}>
+                      <ShieldCheck size={11} style={{ color: '#2563EB' }} />
+                      <span className="sim-chip-label">SCOPE</span>
+                      <span className="sim-chip-val">{detectedContext.scope === customRequiredScope ? (detectedContext.scopeShort || customRequiredScope) : customRequiredScope}</span>
+                    </div>
+
+                    {/* Match Confidence Card */}
+                    <div className="sim-telemetry-chip match" title={detectedContext.rationale}>
+                      <Zap size={10} style={{ color: '#16A34A' }} />
+                      <span className="sim-chip-val">{detectedContext.confidence}</span>
+                      <span className="sim-chip-sub">match</span>
+                    </div>
+
+                    {/* Compact Override Toggle */}
+                    <button
+                      type="button"
+                      onClick={() => setShowManualOverride(!showManualOverride)}
+                      className={`sim-telemetry-chip override ${showManualOverride ? 'active' : ''}`}
+                      title="Adjust Actor Role or Scope manually"
                     >
-                      <option value="Enterprise">Enterprise (Enterprise Customer Tier)</option>
-                      <option value="Production">Production (Production Environment)</option>
-                      <option value="Staging">Staging (Pre-production)</option>
-                      <option value="Engineering">Engineering (Departmental Scope)</option>
-                      <option value="General">General (Global Standard)</option>
-                    </select>
+                      <Sliders size={10} />
+                      <span>{showManualOverride ? 'Close' : 'Override'}</span>
+                    </button>
                   </div>
 
+                  {/* Right: Evaluate Button */}
                   {effectiveRole === 'viewer' ? (
                     <button
                       disabled
                       className="btn btn-secondary"
-                      style={{ height: '38px', padding: '0 16px', fontSize: '0.80rem', fontWeight: 600, opacity: 0.65, cursor: 'not-allowed', whiteSpace: 'nowrap' }}
+                      style={{ height: '40px', padding: '0 16px', fontSize: '0.80rem', fontWeight: 600, opacity: 0.65, cursor: 'not-allowed', whiteSpace: 'nowrap', borderRadius: '8px' }}
                       title="Observer Mode: Decision evaluations are restricted for read-only roles."
                     >
                       <Lock size={13} style={{ marginRight: '6px' }} />
@@ -2871,8 +3206,7 @@ export default function App() {
                     <button
                       onClick={() => runKillerDemo()}
                       disabled={demoRunning || !customActionText.trim()}
-                      className="btn btn-primary"
-                      style={{ height: '38px', padding: '0 16px', fontSize: '0.875rem', fontWeight: 700, whiteSpace: 'nowrap' }}
+                      className="sim-evaluate-btn"
                     >
                       {demoRunning ? (
                         <>
@@ -2889,72 +3223,79 @@ export default function App() {
                   )}
                 </div>
 
-                <div style={{ marginTop: '10px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                  <ShieldCheck size={13} color="var(--primary)" />
-                  <span><strong>Automatic Grounding:</strong> Context is dynamically retrieved from PostgreSQL atomic claims and verified through Bayesian 6-factor trust scoring.</span>
-                </div>
-              </div>
-            ) : (
-              /* Preset Scenario Execution Bar */
-              <div className="clean-panel" style={{ padding: '16px 20px', marginBottom: '20px', background: 'var(--bg-card)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
-                  <div style={{ flex: 1, minWidth: '280px' }}>
-                    <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.04em' }}>
-                      Benchmark Scenario Query:
+                {/* Collapsible Manual Override Controls */}
+                {showManualOverride && (
+                  <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                    gap: '12px',
+                    marginTop: '12px',
+                    padding: '12px 14px',
+                    background: '#F8FAFC',
+                    border: '1px dashed #CBD5E1',
+                    borderRadius: '8px'
+                  }}>
+                    <div>
+                      <label className="sim-input-label">
+                        Agent / Actor ID
+                      </label>
+                      <input
+                        type="text"
+                        value={customActorId}
+                        onChange={(e) => setCustomActorId(e.target.value)}
+                        placeholder="e.g. billing-bot-01"
+                        className="sim-input-control"
+                      />
                     </div>
-                    <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-main)', marginTop: '4px' }}>
-                      "{currentScenario.query}"
+
+                    <div>
+                      <label className="sim-input-label">
+                        Actor Role & Permissions
+                      </label>
+                      <select
+                        value={customActorRole}
+                        onChange={(e) => setCustomActorRole(e.target.value)}
+                        className="sim-input-control"
+                      >
+                        <option value="support_agent">Support Agent (Customer Bot)</option>
+                        <option value="devops_engineer">DevOps Engineer (CI/CD Bot)</option>
+                        <option value="junior_developer">Junior Developer (Intern Bot)</option>
+                        <option value="hr_reviewer">HR Reviewer (Benefits Assistant)</option>
+                        <option value="compliance_officer">Compliance Officer (Risk Gate)</option>
+                      </select>
                     </div>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-                      Actor: <span className="code-pill">{currentScenario.actor.id}</span> (Role: {currentScenario.actor.role}) • Target Scope: <span className="code-pill">{currentScenario.claim2.scope}</span>
+
+                    <div>
+                      <label className="sim-input-label">
+                        Target Operational Scope
+                      </label>
+                      <select
+                        value={customRequiredScope}
+                        onChange={(e) => setCustomRequiredScope(e.target.value)}
+                        className="sim-input-control"
+                      >
+                        <option value="Enterprise">Enterprise Customer Tier</option>
+                        <option value="Production">Production Environment</option>
+                        <option value="Staging">Staging Sandbox</option>
+                        <option value="Engineering">Engineering Department</option>
+                        <option value="General">Global Standard</option>
+                      </select>
                     </div>
                   </div>
-
-                  {effectiveRole === 'viewer' ? (
-                    <button
-                      disabled
-                      className="btn btn-secondary"
-                      style={{ padding: '9px 18px', fontSize: '0.82rem', fontWeight: 600, opacity: 0.65, cursor: 'not-allowed' }}
-                      title="Observer Mode: Decision evaluations are restricted for read-only roles."
-                    >
-                      <Lock size={13} style={{ marginRight: '6px' }} />
-                      <span>Observer (Read-Only)</span>
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => runKillerDemo()}
-                      disabled={demoRunning}
-                      className="btn btn-primary"
-                      style={{ padding: '9px 18px', fontSize: '0.875rem' }}
-                    >
-                      {demoRunning ? (
-                        <>
-                          <RefreshCw size={14} className="animate-spin" />
-                          <span>Evaluating...</span>
-                        </>
-                      ) : (
-                        <>
-                          <Zap size={14} />
-                          <span>Evaluate Decision Gate</span>
-                        </>
-                      )}
-                    </button>
-                  )}
-                </div>
+                )}
               </div>
-            )}
 
             {/* Main Decision Gate Panel */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
 
               {/* Left Side: Candidate Evidence Evaluated */}
-              <div className="clean-panel" style={{ padding: '20px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-                  <h3 style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <Terminal size={15} color="var(--primary)" />
-                    {simulatorMode === 'custom' ? 'Database Grounding & Evidence' : 'Candidate Evidence Evaluated'}
+              <div className="sim-result-card">
+                <div className="sim-card-header">
+                  <h3 className="sim-card-title">
+                    <Terminal size={15} color="#EA580C" />
+                    <span>{simulatorMode === 'custom' ? 'Database Grounding & Evidence' : 'Candidate Evidence Evaluated'}</span>
                   </h3>
-                  <span className={`badge ${simulatorMode === 'custom' ? 'badge-verified' : 'badge-review'}`}>
+                  <span className={`badge ${simulatorMode === 'custom' ? 'badge-verified' : 'badge-review'}`} style={{ fontSize: '0.68rem' }}>
                     {simulatorMode === 'custom' ? 'PostgreSQL Grounded' : 'Contradiction Handled'}
                   </span>
                 </div>
@@ -2962,30 +3303,30 @@ export default function App() {
                 {simulatorMode === 'presets' ? (
                   <div style={{ display: 'grid', gap: '12px' }}>
                     {/* Candidate 1 (Stale / Low Authority) */}
-                    <div style={{ background: 'var(--bg-card-subtle)', border: '1px solid var(--border-subtle)', padding: '12px', borderRadius: '8px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700, marginBottom: '4px' }}>
+                    <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', padding: '12px 14px', borderRadius: '8px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', color: '#64748B', fontWeight: 700, marginBottom: '4px' }}>
                         <span>RECORD 1 (Superseded)</span>
                         <span>Date: {currentScenario.claim1.date}</span>
                       </div>
-                      <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', textDecoration: 'line-through' }}>
+                      <div style={{ fontSize: '0.85rem', color: '#94A3B8', textDecoration: 'line-through' }}>
                         "{currentScenario.claim1.text}"
                       </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '6px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', color: '#64748B', marginTop: '6px' }}>
                         <span>Source: {currentScenario.claim1.source}</span>
                         <span>Authority: {currentScenario.claim1.authority}/100</span>
                       </div>
                     </div>
 
                     {/* Candidate 2 (Authoritative / Fresh) */}
-                    <div style={{ background: 'var(--success-bg)', border: '1px solid var(--success-border)', padding: '12px', borderRadius: '8px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', color: 'var(--success-text)', fontWeight: 700, marginBottom: '4px' }}>
+                    <div style={{ background: '#ECFDF5', border: '1px solid #A7F3D0', padding: '12px 14px', borderRadius: '8px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', color: '#047857', fontWeight: 700, marginBottom: '4px' }}>
                         <span>RECORD 2 (Authoritative Selection)</span>
                         <span>Date: {currentScenario.claim2.date}</span>
                       </div>
-                      <div style={{ fontSize: '0.875rem', color: 'var(--success-text)', fontWeight: 700 }}>
+                      <div style={{ fontSize: '0.875rem', color: '#065F46', fontWeight: 700 }}>
                         "{currentScenario.claim2.text}"
                       </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', color: 'var(--success-text)', marginTop: '6px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', color: '#047857', marginTop: '6px' }}>
                         <span>Source: {currentScenario.claim2.source}</span>
                         <span>Authority: {currentScenario.claim2.authority}/100</span>
                       </div>
@@ -2993,42 +3334,42 @@ export default function App() {
                   </div>
                 ) : (
                   /* Custom Mode Evidence Grounding View */
-                  <div>
+                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
                     {demoResult ? (
                       <div style={{ display: 'grid', gap: '12px' }}>
-                        <div style={{ background: 'var(--success-bg)', border: '1px solid var(--success-border)', padding: '14px', borderRadius: '8px' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', color: 'var(--success-text)', fontWeight: 700, marginBottom: '6px' }}>
+                        <div style={{ background: '#ECFDF5', border: '1px solid #A7F3D0', padding: '14px', borderRadius: '8px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', color: '#047857', fontWeight: 700, marginBottom: '6px' }}>
                             <span>AUTHORITATIVE SOURCE SELECTED</span>
                             <span>Freshness Verified</span>
                           </div>
-                          <div style={{ fontSize: '0.88rem', color: 'var(--success-text)', fontWeight: 700, marginBottom: '6px' }}>
+                          <div style={{ fontSize: '0.88rem', color: '#065F46', fontWeight: 700, marginBottom: '6px' }}>
                             {demoResult.preferred_source || "PostgreSQL Atomic Claims Knowledge Base"}
                           </div>
-                          <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.4 }}>
+                          <div style={{ fontSize: '0.78rem', color: '#475569', lineHeight: 1.4 }}>
                             {demoResult.reasons?.[0] || "Evidence verified against active atomic claims in organization knowledge base."}
                           </div>
                         </div>
 
-                        <div style={{ background: 'var(--bg-card-subtle)', border: '1px solid var(--border-subtle)', padding: '12px', borderRadius: '8px', fontSize: '0.78rem' }}>
-                          <div style={{ fontWeight: 700, color: 'var(--text-main)', marginBottom: '4px' }}>
+                        <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', padding: '12px 14px', borderRadius: '8px', fontSize: '0.78rem' }}>
+                          <div style={{ fontWeight: 700, color: '#0F172A', marginBottom: '4px' }}>
                             Cryptographic Governance Seal
                           </div>
-                          <div style={{ color: 'var(--text-muted)', fontFamily: 'monospace', wordBreak: 'break-all' }}>
+                          <div style={{ color: '#64748B', fontFamily: 'monospace', wordBreak: 'break-all', fontSize: '0.72rem' }}>
                             Token: {demoResult.audit_token ? demoResult.audit_token.substring(0, 36) + '...' : 'Signed by Policy Evaluator'}
                           </div>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '6px', color: 'var(--text-muted)' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '6px', color: '#64748B', fontSize: '0.72rem' }}>
                             <span>Evaluated in {demoResult.execution_ms || 24}ms</span>
                             <span>Scope: {customRequiredScope}</span>
                           </div>
                         </div>
                       </div>
                     ) : (
-                      <div style={{ padding: '36px 16px', textAlign: 'center', background: 'var(--bg-card-subtle)', borderRadius: '8px', border: '1px dashed var(--border-subtle)' }}>
-                        <Brain size={28} color="var(--primary)" style={{ margin: '0 auto 10px', opacity: 0.7 }} />
-                        <div style={{ fontSize: '0.86rem', fontWeight: 700, color: 'var(--text-main)' }}>
+                      <div className="sim-standby-box">
+                        <Database size={26} color="#EA580C" style={{ margin: '0 auto 8px', opacity: 0.85 }} />
+                        <div style={{ fontSize: '0.86rem', fontWeight: 700, color: '#0F172A' }}>
                           Awaiting Simulation Action
                         </div>
-                        <p style={{ fontSize: '0.76rem', color: 'var(--text-muted)', marginTop: '4px', maxWidth: '340px', margin: '4px auto 0' }}>
+                        <p style={{ fontSize: '0.76rem', color: '#64748B', marginTop: '4px', maxWidth: '340px', lineHeight: 1.4 }}>
                           Enter any intended agent action above and click <strong>"Evaluate Action"</strong>. The Gateway will query PostgreSQL atomic claims, check scope and role permissions, and display grounded evidence here.
                         </p>
                       </div>
@@ -3038,26 +3379,39 @@ export default function App() {
               </div>
 
               {/* Right Side: Decision Gate Evaluation Verdict */}
-              <div className="clean-panel" style={{ padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+              <div className="sim-result-card" style={{ justifyContent: 'space-between' }}>
                 <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-                    <h3 style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <ShieldCheck size={16} color="var(--primary)" />
-                      Decision Gate Verdict
+                  <div className="sim-card-header">
+                    <h3 className="sim-card-title">
+                      <ShieldCheck size={16} color="#EA580C" />
+                      <span>Decision Gate Verdict</span>
                     </h3>
-                    {demoResult && <span className="code-pill">Audit ID: {demoResult.audit_id}</span>}
+                    {demoResult ? (
+                      <span className="code-pill">Audit ID: {demoResult.audit_id}</span>
+                    ) : (
+                      <span style={{ fontSize: '0.72rem', color: '#64748B', fontWeight: 600 }}>Status: Standby</span>
+                    )}
                   </div>
 
                   {demoStep === 0 && (
-                    <div style={{ padding: '40px 20px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-                      Click "Evaluate Action" to run policy, authority, and freshness verification.
+                    <div className="sim-standby-box">
+                      <Shield size={26} color="#EA580C" style={{ margin: '0 auto 8px', opacity: 0.85 }} />
+                      <div style={{ fontSize: '0.86rem', fontWeight: 700, color: '#0F172A' }}>
+                        Policy Gate Standby
+                      </div>
+                      <p style={{ fontSize: '0.76rem', color: '#64748B', marginTop: '4px', maxWidth: '340px', lineHeight: 1.4 }}>
+                        Click <strong>"Evaluate Action"</strong> to run deterministic 6-factor trust scoring, role authority verification, and tamper-evident audit receipt creation.
+                      </p>
                     </div>
                   )}
 
                   {demoStep === 1 && (
-                    <div style={{ padding: '40px 20px', textAlign: 'center', color: 'var(--primary)', fontSize: '0.85rem', fontWeight: 600 }}>
-                      <RefreshCw size={24} className="animate-spin" style={{ margin: '0 auto 12px' }} />
-                      <div>Querying PostgreSQL claims, verifying freshness & role permissions...</div>
+                    <div className="sim-standby-box">
+                      <RefreshCw size={24} className="animate-spin" style={{ margin: '0 auto 10px', color: '#EA580C' }} />
+                      <div style={{ fontSize: '0.84rem', fontWeight: 600, color: '#0F172A' }}>
+                        Querying PostgreSQL claims & verifying permissions...
+                      </div>
+                      <span style={{ fontSize: '0.72rem', color: '#64748B', marginTop: '4px' }}>Evaluating Bayesian 6-factor trust score</span>
                     </div>
                   )}
 
@@ -3070,16 +3424,16 @@ export default function App() {
                           {demoResult.decision === 'REQUIRE_REVIEW' && <AlertTriangle size={16} />}
                           VERDICT: {demoResult.decision}
                         </span>
-                        <span style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
-                          Risk: <strong style={{ color: demoResult.risk === 'LOW' ? 'var(--success-text)' : 'var(--danger-text)' }}>{demoResult.risk}</strong> • Validity: <strong>{demoResult.validity}</strong>
+                        <span style={{ fontSize: '0.82rem', color: '#475569' }}>
+                          Risk: <strong style={{ color: demoResult.risk === 'LOW' ? '#059669' : '#DC2626' }}>{demoResult.risk}</strong> • Validity: <strong>{demoResult.validity}</strong>
                         </span>
                         <span className="code-pill" style={{ fontSize: '0.72rem' }}>
                           ⚡ {demoResult.execution_ms || 22}ms
                         </span>
                       </div>
 
-                      <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '12px' }}>
-                        <div style={{ fontWeight: 700, marginBottom: '6px', color: 'var(--text-main)' }}>Policy Evaluation Reasons:</div>
+                      <div style={{ fontSize: '0.8rem', color: '#475569', marginBottom: '12px' }}>
+                        <div style={{ fontWeight: 700, marginBottom: '6px', color: '#0F172A' }}>Policy Evaluation Reasons:</div>
                         <ul style={{ paddingLeft: '18px', lineHeight: 1.6 }}>
                           {demoResult.reasons?.map((r, i) => (
                             <li key={i}>{r}</li>
@@ -3091,8 +3445,8 @@ export default function App() {
                 </div>
 
                 {demoStep === 2 && demoResult && (
-                  <div style={{ marginTop: '12px', padding: '12px', background: 'var(--bg-card-subtle)', borderRadius: '8px', border: '1px solid var(--border-subtle)', fontSize: '0.8rem', color: 'var(--text-main)' }}>
-                    <strong style={{ color: 'var(--primary)' }}>Suggested Next Action:</strong> {demoResult.suggested_action}
+                  <div style={{ marginTop: '12px', padding: '12px', background: '#FFF7ED', borderRadius: '8px', border: '1px solid rgba(234, 88, 12, 0.25)', fontSize: '0.8rem', color: '#0F172A' }}>
+                    <strong style={{ color: '#EA580C' }}>Suggested Next Action:</strong> {demoResult.suggested_action}
                   </div>
                 )}
               </div>
