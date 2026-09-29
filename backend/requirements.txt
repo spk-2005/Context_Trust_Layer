@@ -21,4 +21,9 @@ python-docx
 motor
 openai
 psycopg[binary]
+greenlet
+email-validator
+bcrypt
+pyjwt
+passlib
 
