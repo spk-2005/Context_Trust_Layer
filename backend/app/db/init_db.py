@@ -28,6 +28,8 @@ async def init_db_schema():
         "CREATE INDEX IF NOT EXISTS idx_activity_user ON user_activity_logs(user_id);",
         "CREATE INDEX IF NOT EXISTS idx_activity_created_at ON user_activity_logs(created_at);",
         "CREATE INDEX IF NOT EXISTS idx_activity_action_type ON user_activity_logs(action_type);",
+        "ALTER TABLE organizations ADD COLUMN IF NOT EXISTS domain_whitelist JSONB DEFAULT '[]'::jsonb;",
+        "ALTER TABLE organizations ADD COLUMN IF NOT EXISTS allowed_auth_methods JSONB DEFAULT '[]'::jsonb;",
         "ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_url VARCHAR(500);",
         "ALTER TABLE users ADD COLUMN IF NOT EXISTS title VARCHAR(100);",
         "ALTER TABLE users ADD COLUMN IF NOT EXISTS department VARCHAR(100);",
@@ -38,6 +40,8 @@ async def init_db_schema():
         "ALTER TABLE data_sources ADD COLUMN IF NOT EXISTS connection_config JSONB DEFAULT '{}'::jsonb;",
         "ALTER TABLE documents ADD COLUMN IF NOT EXISTS domain VARCHAR(100) DEFAULT 'General';",
         "ALTER TABLE documents ADD COLUMN IF NOT EXISTS owner_id UUID REFERENCES users(id) ON DELETE SET NULL;",
+        "ALTER TABLE chat_sessions ADD COLUMN IF NOT EXISTS workspace_id VARCHAR(100) DEFAULT 'all';",
+        "ALTER TABLE chat_sessions ADD COLUMN IF NOT EXISTS domain VARCHAR(100) DEFAULT 'global';",
         """
         CREATE TABLE IF NOT EXISTS decision_evaluations (
             id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
