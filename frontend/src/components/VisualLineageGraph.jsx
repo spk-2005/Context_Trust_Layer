@@ -56,6 +56,7 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
   const [vaultConflictFilter, setVaultConflictFilter] = useState('all'); // 'all' | 'active' | 'resolved'
   const [vaultClaimFilter, setVaultClaimFilter] = useState('all'); // 'all' | 'verified' | 'conflicted' | 'decisions'
   const [openedAssetId, setOpenedAssetId] = useState(null); // null = show full List of Documents/Connectors; non-null = open Split View (Original Document + All Facilities beside it)
+  const [isFileViewerOpen, setIsFileViewerOpen] = useState(true); // Toggle to show or collapse document viewer and expand facilities to full width
   const [docReaderSearch, setDocReaderSearch] = useState('');
   const [docReaderClauseFilter, setDocReaderClauseFilter] = useState('all'); // 'all' | 'conflicted' | 'verified'
   const [highlightedClaimIdInReader, setHighlightedClaimIdInReader] = useState(null);
@@ -1867,232 +1868,185 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
         return (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%' }}>
 
-            {/* TOP BAR WHEN A DOCUMENT/CONNECTOR IS OPENED */}
-            {(vaultSubTab === 'documents' || vaultSubTab === 'connectors') && selectedAsset360 && (
+            {/* CLEAN MINIMALIST EXECUTIVE HEADER: BACK BUTTON, FILE NAME, TOGGLE FILE VIEW, & UNDERLINED TABS */}
+            {selectedAsset360 && (
               <div style={{
                 background: '#FFFFFF',
                 border: '1px solid #E2E8F0',
                 borderRadius: '10px',
-                padding: '10px 14px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                flexWrap: 'wrap',
-                gap: '10px'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-                  <button
-                    type="button"
-                    onClick={() => setOpenedAssetId(null)}
-                    style={{
-                      padding: '6px 12px',
-                      borderRadius: '6px',
-                      border: '1px solid #CBD5E1',
-                      background: '#F8FAFC',
-                      color: '#0F172A',
-                      fontSize: '0.76rem',
-                      fontWeight: 600,
-                      cursor: 'pointer'
-                    }}
-                  >
-                    ← Back to {vaultSubTab === 'documents' ? `Documents List (${enrichedAssets.length})` : `Connectors List (${enrichedAssets.length})`}
-                  </button>
-
-                  <div>
-                    <div style={{ fontSize: '0.88rem', fontWeight: 800, color: '#0F172A' }}>
-                      {selectedAsset360.node.label}
-                    </div>
-                    <div style={{ fontSize: '0.68rem', color: '#64748B' }}>
-                      {(selectedAsset360.node.subType || selectedAsset360.mode).toUpperCase()} &bull; {(selectedAsset360.node.status || 'ACTIVE').toUpperCase()} &bull; {selectedAsset360.claims.length} Claims &bull; {selectedAsset360.activeConflicts.length} Active Conflicts
-                    </div>
-                  </div>
-                </div>
-
-                {/* Prev / Next Document Stepper */}
-                {enrichedAssets.length > 1 && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <button
-                      type="button"
-                      disabled={currentIndex <= 0}
-                      onClick={() => currentIndex > 0 && selectAssetItem(enrichedAssets[currentIndex - 1])}
-                      style={{
-                        padding: '5px 10px',
-                        borderRadius: '6px',
-                        border: '1px solid #E2E8F0',
-                        background: '#FFFFFF',
-                        color: currentIndex > 0 ? '#0F172A' : '#CBD5E1',
-                        cursor: currentIndex > 0 ? 'pointer' : 'not-allowed',
-                        fontSize: '0.74rem',
-                        fontWeight: 600
-                      }}
-                    >
-                      ‹ Prev
-                    </button>
-                    <span style={{ fontSize: '0.73rem', color: '#64748B', fontWeight: 600 }}>
-                      {currentIndex >= 0 ? currentIndex + 1 : 1} of {enrichedAssets.length}
-                    </span>
-                    <button
-                      type="button"
-                      disabled={currentIndex < 0 || currentIndex >= enrichedAssets.length - 1}
-                      onClick={() => currentIndex < enrichedAssets.length - 1 && selectAssetItem(enrichedAssets[currentIndex + 1])}
-                      style={{
-                        padding: '5px 10px',
-                        borderRadius: '6px',
-                        border: '1px solid #E2E8F0',
-                        background: '#FFFFFF',
-                        color: currentIndex < enrichedAssets.length - 1 ? '#0F172A' : '#CBD5E1',
-                        cursor: currentIndex < enrichedAssets.length - 1 ? 'pointer' : 'not-allowed',
-                        fontSize: '0.74rem',
-                        fontWeight: 600
-                      }}
-                    >
-                      Next ›
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* TOP FULL-WIDTH MENU HEADER CARD (ABOVE ORIGINAL DOCUMENT AND FACILITIES) */}
-            {selectedAsset360 && (
-              <div style={{
-                background: '#FFFFFF',
-                border: '1px solid #CBD5E1',
-                borderRadius: '10px',
-                padding: '16px 20px',
+                padding: '16px 20px 0px 20px',
                 marginBottom: '16px',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '12px',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.02)'
+                gap: '12px'
               }}>
-                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
-                  <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px', flexWrap: 'wrap' }}>
-                      <span style={{ fontSize: '0.66rem', fontWeight: 800, padding: '3px 9px', borderRadius: '4px', background: '#E0F2FE', color: '#0284C7', textTransform: 'uppercase' }}>
-                        {selectedAsset360.mode === 'document' ? `📄 ${selectedAsset360.node.subType || 'POLICY DOCUMENT'}` : `🔌 ${selectedAsset360.node.subType || 'DATA CONNECTOR'}`}
-                      </span>
-                      <span style={{ fontSize: '0.66rem', fontWeight: 800, padding: '3px 9px', borderRadius: '4px', background: '#DCFCE7', color: '#15803D' }}>
-                        ● {(selectedAsset360.node.status || 'ACTIVE').toUpperCase()}
-                      </span>
-                      {selectedAsset360.mode === 'document' && (
-                        <span style={{ fontSize: '0.66rem', fontWeight: 700, padding: '3px 9px', borderRadius: '4px', background: '#F1F5F9', color: '#475569' }}>
-                          Version v{selectedAsset360.node.data?.version_count || 1}.0 &bull; Source: {selectedAsset360.parentSource?.label || 'Direct Upload'}
-                        </span>
-                      )}
-                      {selectedAsset360.mode === 'connector' && (
-                        <span style={{ fontSize: '0.66rem', fontWeight: 700, padding: '3px 9px', borderRadius: '4px', background: '#EFF6FF', color: '#1D4ED8' }}>
-                          Authority Weight: {selectedAsset360.node.authority ? `${(Number(selectedAsset360.node.authority) * 100).toFixed(0)}%` : '95%'}
-                        </span>
-                      )}
-                    </div>
-                    <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 800, color: '#0F172A' }}>
+                {/* Top Row: Back Button, File Name, and File Viewer Toggle / Stepper */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+                    <button
+                      type="button"
+                      onClick={() => setOpenedAssetId(null)}
+                      style={{
+                        padding: '6px 12px',
+                        borderRadius: '6px',
+                        border: '1px solid #CBD5E1',
+                        background: '#FFFFFF',
+                        color: '#0F172A',
+                        fontSize: '0.76rem',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px'
+                      }}
+                      title="Back to asset list"
+                    >
+                      ← Back to {vaultSubTab === 'documents' ? `Documents (${enrichedAssets.length})` : `Connectors (${enrichedAssets.length})`}
+                    </button>
+
+                    <h2 style={{ margin: 0, fontSize: '1.22rem', fontWeight: 800, color: '#0F172A' }}>
                       {selectedAsset360.node.label}
                     </h2>
                   </div>
 
-                  {/* Modern Interactive Facility Menu Tabs */}
-                  <div style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '4px',
-                    background: '#F1F5F9',
-                    padding: '4px',
-                    borderRadius: '8px',
-                    border: '1px solid #E2E8F0',
-                    flexWrap: 'wrap'
-                  }}>
-                    {[
-                      { id: 'extraction', label: '⚡ Visual Claim Extraction' },
-                      { id: 'dag', label: '🗺️ DAG Lineage' },
-                      { id: 'conflicts', label: `⚖️ Conflicts (${selectedAsset360.conflicts.length})` },
-                      { id: 'claims', label: `📋 Claims (${selectedAsset360.claims.length})` },
-                      { id: 'all', label: '🔍 All Facilities' }
-                    ].map(sec => {
-                      const active = asset360Section === sec.id;
-                      return (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    {/* Toggle File View: Close / Open file viewer to view facilities full width */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsFileViewerOpen(prev => !prev);
+                        showToast?.(!isFileViewerOpen ? 'Opened document view' : 'Closed document view — facilities expanded to full width');
+                      }}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '5px',
+                        padding: '6px 12px',
+                        borderRadius: '6px',
+                        border: `1px solid ${isFileViewerOpen ? '#CBD5E1' : '#2563EB'}`,
+                        background: isFileViewerOpen ? '#FFFFFF' : '#EFF6FF',
+                        color: isFileViewerOpen ? '#475569' : '#1D4ED8',
+                        fontSize: '0.74rem',
+                        fontWeight: 700,
+                        cursor: 'pointer'
+                      }}
+                    >
+                      {isFileViewerOpen ? '✕ Close File View' : '📄 Open File View'}
+                    </button>
+
+                    {/* Stepper (Prev / Next) if multiple assets */}
+                    {enrichedAssets.length > 1 && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                         <button
-                          key={sec.id}
                           type="button"
-                          onClick={() => {
-                            setAsset360Section(sec.id);
-                            showToast?.(`Switched facility to ${sec.label}`);
-                          }}
+                          disabled={currentIndex <= 0}
+                          onClick={() => currentIndex > 0 && selectAssetItem(enrichedAssets[currentIndex - 1])}
                           style={{
-                            padding: '6px 12px',
-                            border: 'none',
-                            boxShadow: active ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
-                            outline: 'none',
-                            borderRadius: '6px',
-                            background: active ? '#FFFFFF' : 'transparent',
-                            color: active ? '#2563EB' : '#64748B',
-                            fontSize: '0.78rem',
-                            fontWeight: active ? 700 : 500,
-                            cursor: 'pointer',
-                            whiteSpace: 'nowrap',
-                            transition: 'all 0.15s ease'
+                            padding: '4px 8px',
+                            borderRadius: '5px',
+                            border: '1px solid #E2E8F0',
+                            background: '#FFFFFF',
+                            color: currentIndex > 0 ? '#0F172A' : '#CBD5E1',
+                            cursor: currentIndex > 0 ? 'pointer' : 'not-allowed',
+                            fontSize: '0.72rem',
+                            fontWeight: 600
                           }}
                         >
-                          {sec.label}
+                          ‹ Prev
                         </button>
-                      );
-                    })}
+                        <span style={{ fontSize: '0.70rem', color: '#64748B', fontWeight: 600 }}>
+                          {currentIndex >= 0 ? currentIndex + 1 : 1} / {enrichedAssets.length}
+                        </span>
+                        <button
+                          type="button"
+                          disabled={currentIndex < 0 || currentIndex >= enrichedAssets.length - 1}
+                          onClick={() => currentIndex < enrichedAssets.length - 1 && selectAssetItem(enrichedAssets[currentIndex + 1])}
+                          style={{
+                            padding: '4px 8px',
+                            borderRadius: '5px',
+                            border: '1px solid #E2E8F0',
+                            background: '#FFFFFF',
+                            color: currentIndex < enrichedAssets.length - 1 ? '#0F172A' : '#CBD5E1',
+                            cursor: currentIndex < enrichedAssets.length - 1 ? 'pointer' : 'not-allowed',
+                            fontSize: '0.72rem',
+                            fontWeight: 600
+                          }}
+                        >
+                          Next ›
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
 
-                {/* Asset Description Callout */}
-                <p style={{ margin: 0, fontSize: '0.80rem', color: '#475569', lineHeight: 1.5, background: '#F8FAFC', padding: '10px 14px', borderRadius: '7px', borderLeft: '3px solid #0284C7' }}>
-                  <strong>Asset Description:</strong> {selectedAsset360.description}
-                </p>
-
-                {/* Connected Documents Strip for Connectors */}
-                {selectedAsset360.mode === 'connector' && selectedAsset360.connectedDocs.length > 0 && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-                    <span style={{ fontSize: '0.68rem', fontWeight: 800, color: '#64748B', textTransform: 'uppercase' }}>
-                      Synced Documents ({selectedAsset360.connectedDocs.length}):
-                    </span>
-                    {selectedAsset360.connectedDocs.map(d => (
+                {/* Plane Text Tabs with Separator Line (No Background, No Shadow, Hover/Active Effects) */}
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '24px',
+                  borderBottom: '1px solid #E2E8F0',
+                  paddingBottom: '0px',
+                  marginTop: '6px',
+                  overflowX: 'auto'
+                }}>
+                  {[
+                    { id: 'extraction', label: 'Visual Claim Extraction' },
+                    { id: 'dag', label: 'DAG Lineage' },
+                    { id: 'conflicts', label: `Conflicts (${selectedAsset360.conflicts.length})` },
+                    { id: 'claims', label: `Claims (${selectedAsset360.claims.length})` },
+                    { id: 'all', label: 'All Facilities' }
+                  ].map(sec => {
+                    const active = asset360Section === sec.id;
+                    return (
                       <button
-                        key={d.id}
+                        key={sec.id}
                         type="button"
                         onClick={() => {
-                          setVaultSubTab('documents');
-                          setSelectedNodeId(d.id);
-                          setInteractiveRootId(d.id);
-                          setExpandedUpstreamSet(new Set());
-                          setExpandedDownstreamSet(new Set());
+                          setAsset360Section(sec.id);
+                          showToast?.(`Switched facility to ${sec.label}`);
+                        }}
+                        onMouseEnter={e => {
+                          if (!active) e.currentTarget.style.color = '#0F172A';
+                        }}
+                        onMouseLeave={e => {
+                          if (!active) e.currentTarget.style.color = '#64748B';
                         }}
                         style={{
-                          padding: '3px 8px',
-                          borderRadius: '5px',
-                          border: '1px solid #CBD5E1',
-                          background: '#FFFFFF',
-                          fontSize: '0.7rem',
-                          fontWeight: 700,
-                          color: '#0284C7',
-                          cursor: 'pointer'
+                          padding: '10px 2px',
+                          border: 'none',
+                          outline: 'none',
+                          background: 'transparent',
+                          boxShadow: 'none',
+                          borderBottom: active ? '2px solid #2563EB' : '2px solid transparent',
+                          color: active ? '#2563EB' : '#64748B',
+                          fontSize: '0.84rem',
+                          fontWeight: active ? 700 : 500,
+                          cursor: 'pointer',
+                          whiteSpace: 'nowrap',
+                          transition: 'color 0.15s ease, border-color 0.15s ease',
+                          marginBottom: '-1px'
                         }}
                       >
-                        📄 {d.label} ➔
+                        {sec.label}
                       </button>
-                    ))}
-                  </div>
-                )}
+                    );
+                  })}
+                </div>
               </div>
             )}
 
-            {/* SIDE-BY-SIDE SPLIT LAYOUT: LEFT = ORIGINAL DOCUMENT | RIGHT = DETAILS & ALL FACILITIES */}
+            {/* SIDE-BY-SIDE SPLIT LAYOUT: LEFT = ORIGINAL DOCUMENT (IF OPEN) | RIGHT = DETAILS & ALL FACILITIES */}
             <div style={{
-              display: (vaultSubTab === 'documents' || vaultSubTab === 'connectors') && selectedAsset360 ? 'grid' : 'flex',
-              gridTemplateColumns: (vaultSubTab === 'documents' || vaultSubTab === 'connectors') && selectedAsset360 ? 'minmax(380px, 44%) 1fr' : undefined,
+              display: isFileViewerOpen && (vaultSubTab === 'documents' || vaultSubTab === 'connectors') && selectedAsset360 ? 'grid' : 'flex',
+              gridTemplateColumns: isFileViewerOpen && (vaultSubTab === 'documents' || vaultSubTab === 'connectors') && selectedAsset360 ? 'minmax(380px, 44%) 1fr' : undefined,
               flexDirection: 'column',
               gap: '16px',
               alignItems: 'start',
               width: '100%'
             }}>
 
-              {/* LEFT PANE: DIRECT UPLOADED DOCUMENT VIEWER (PDF / Original File) */}
-              {(vaultSubTab === 'documents' || vaultSubTab === 'connectors') && selectedAsset360 && (() => {
+              {/* LEFT PANE: DIRECT UPLOADED DOCUMENT VIEWER (PDF / Original File - COLLAPSIBLE) */}
+              {isFileViewerOpen && (vaultSubTab === 'documents' || vaultSubTab === 'connectors') && selectedAsset360 && (() => {
                 const rawDocId = selectedAsset360.node.data?.doc_id || String(selectedAsset360.node.id || '').replace(/^doc_/, '');
                 const pdfUrl = `/v1/documents/${rawDocId}/file`;
                 const rawOriginalText = selectedAsset360.node.data?.content_uri || '';
@@ -2175,6 +2129,26 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
                           >
                             Open ↗
                           </a>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setIsFileViewerOpen(false);
+                              showToast?.("Document view closed — facilities expanded to full width");
+                            }}
+                            style={{
+                              padding: '4px 8px',
+                              borderRadius: '4px',
+                              border: '1px solid #CBD5E1',
+                              background: '#FFFFFF',
+                              color: '#475569',
+                              fontSize: '0.72rem',
+                              fontWeight: 600,
+                              cursor: 'pointer'
+                            }}
+                            title="Close file viewer and view facilities full width"
+                          >
+                            ✕ Close View
+                          </button>
                         </div>
                       )}
                     </div>
