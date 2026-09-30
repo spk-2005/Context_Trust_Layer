@@ -37,6 +37,8 @@ import {
   ChevronDown,
   ChevronRight,
   ChevronLeft,
+  PanelLeftClose,
+  PanelLeftOpen,
   X
 } from 'lucide-react';
 import UserProfileStudio from './components/UserProfileStudio';
@@ -55,6 +57,8 @@ import WebhookSettingsModal from './components/WebhookSettingsModal';
 import HitlEscalationModal from './components/HitlEscalationModal';
 import RedTeamModal from './components/RedTeamModal';
 import MerkleVerificationModal from './components/MerkleVerificationModal';
+import AssetInspectorDrawer from './components/AssetInspectorDrawer';
+import MillionScaleClaimsGrid from './components/MillionScaleClaimsGrid';
 import { useAuth, DEFAULT_ENTERPRISE_PERSONAS } from './context/AuthContext';
 
 // -------------------------------------------------------------
@@ -134,6 +138,7 @@ const getInitialDocViewFromUrl = () => {
 export default function App() {
   const [activeTab, setActiveTab] = useState(getInitialTabFromUrl);
   const [expandedMenu, setExpandedMenu] = useState(getInitialTabFromUrl);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [health, setHealth] = useState({ status: 'checking', database: false, version: '0.1.0' });
   const [conflicts, setConflicts] = useState([]);
   const [curatorSubView, setCuratorSubView] = useState('health'); // 'health' | 'conflicts'
@@ -151,6 +156,12 @@ export default function App() {
   const [isGateToolsDrawerOpen, setIsGateToolsDrawerOpen] = useState(false);
   const [hoveredGateTool, setHoveredGateTool] = useState(null);
   const [pinnedGateTool, setPinnedGateTool] = useState(null);
+  const [inspectorState, setInspectorState] = useState({
+    isOpen: false,
+    assetType: 'document', // 'document' | 'connector'
+    assetId: null,
+    assetTitle: ''
+  });
 
   // -------------------------------------------------------------
   const {
@@ -805,13 +816,18 @@ export default function App() {
   };
 
   const displayedDataSources = React.useMemo(() => {
-    if (!activeWorkspace || activeWorkspace.id === 'all' || docExplorerScopeAll) return dataSources;
+    const externalOnly = (dataSources || []).filter(src => {
+      const st = (src.source_type || '').toLowerCase().trim();
+      const nm = (src.name || '').toLowerCase().trim();
+      return st !== 'file' && st !== 'upload' && st !== 'local_file' && !nm.includes('file upload') && !nm.includes('direct document upload');
+    });
+    if (!activeWorkspace || activeWorkspace.id === 'all' || docExplorerScopeAll) return externalOnly;
     const kw = WORKSPACE_DEPT_KEYWORDS[activeWorkspace.id] || [];
-    const filtered = dataSources.filter(src => {
+    const filtered = externalOnly.filter(src => {
       const text = `${src.name || ''} ${src.source_type || ''} ${src.external_id || ''}`.toLowerCase();
       return kw.some(k => text.includes(k));
     });
-    return filtered.length > 0 ? filtered : dataSources;
+    return filtered.length > 0 ? filtered : externalOnly;
   }, [dataSources, activeWorkspace, docExplorerScopeAll]);
 
   const displayedDbDocuments = React.useMemo(() => {
@@ -1747,44 +1763,81 @@ export default function App() {
       )}
 
       {/* ========================================================= */}
-      {/* LEFT SIDEBAR MENU (STRUCTURE MATCHING USER SAMPLE)        */}
+      {/* LEFT SIDEBAR MENU (COLLAPSIBLE ICON RAIL WHEN CLOSED)     */}
       {/* ========================================================= */}
-      <aside className="sidebar">
-        {/* Brand Header */}
-        <div 
-          onClick={() => { setActiveTab('home'); setExpandedMenu('home'); }}
-          style={{ 
-            padding: '10px 12px', 
-            background: 'linear-gradient(135deg, #181411 0%, #241D17 100%)',
-            border: '1px solid rgba(255, 171, 74, 0.25)',
-            borderRadius: '10px',
-            marginBottom: '12px',
-            cursor: 'pointer',
-            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.12)'
-          }}
-          title="Trulin AI Decision & Context Trust Platform"
-        >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
-            <img 
-              src="/Trulin-whiteNoBg.png" 
-              alt="Trulin" 
-              style={{ height: '24px', maxWidth: '140px', objectFit: 'contain' }} 
-            />
-            <span style={{ fontSize: '0.62rem', padding: '2px 6px', background: 'rgba(255,171,74,0.2)', color: '#FFAB4A', border: '1px solid rgba(255,171,74,0.4)', borderRadius: '999px', fontWeight: 700 }}>
-              v1.0
-            </span>
-          </div>
-          <div style={{ fontSize: '0.65rem', color: '#D6D3D1', marginTop: '6px', fontWeight: 500, letterSpacing: '0.02em', display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#FFAB4A', display: 'inline-block', boxShadow: '0 0 6px #FFAB4A' }} />
-            Context Trust Platform
-          </div>
+      <aside className={`sidebar ${!isSidebarOpen ? 'sidebar-collapsed' : ''}`}>
+        {/* Brand Header + Icon-Only Open/Close Toggle Button */}
+        <div style={{ display: 'flex', alignItems: 'stretch', justifyContent: isSidebarOpen ? 'space-between' : 'center', gap: '6px', marginBottom: '12px' }}>
+          {isSidebarOpen && (
+            <div 
+              onClick={() => { setActiveTab('home'); setExpandedMenu('home'); }}
+              style={{ 
+                flex: 1,
+                padding: '10px 12px', 
+                background: 'linear-gradient(135deg, #181411 0%, #241D17 100%)',
+                border: '1px solid rgba(255, 171, 74, 0.25)',
+                borderRadius: '10px',
+                cursor: 'pointer',
+                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.12)'
+              }}
+              title="Trulin AI Decision & Context Trust Platform"
+            >
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+                <img 
+                  src="/Trulin-whiteNoBg.png" 
+                  alt="Trulin" 
+                  style={{ height: '22px', maxWidth: '120px', objectFit: 'contain' }} 
+                />
+                <span style={{ fontSize: '0.6rem', padding: '2px 5px', background: 'rgba(255,171,74,0.2)', color: '#FFAB4A', border: '1px solid rgba(255,171,74,0.4)', borderRadius: '999px', fontWeight: 700 }}>
+                  v1.0
+                </span>
+              </div>
+              <div style={{ fontSize: '0.63rem', color: '#D6D3D1', marginTop: '5px', fontWeight: 500, letterSpacing: '0.02em', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#FFAB4A', display: 'inline-block', boxShadow: '0 0 6px #FFAB4A' }} />
+                Context Trust Platform
+              </div>
+            </div>
+          )}
+
+          <button
+            type="button"
+            onClick={() => setIsSidebarOpen(prev => !prev)}
+            title={isSidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
+            style={{
+              width: isSidebarOpen ? '32px' : '42px',
+              height: isSidebarOpen ? 'auto' : '40px',
+              borderRadius: '10px',
+              border: '1px solid var(--border-subtle)',
+              background: '#F8FAFC',
+              color: '#475569',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+              transition: 'all 0.15s ease'
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.background = '#FFF7ED';
+              e.currentTarget.style.color = '#C2410C';
+              e.currentTarget.style.borderColor = '#FED7AA';
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.background = '#F8FAFC';
+              e.currentTarget.style.color = '#475569';
+              e.currentTarget.style.borderColor = 'var(--border-subtle)';
+            }}
+          >
+            {isSidebarOpen ? <PanelLeftClose size={16} /> : <PanelLeftOpen size={16} />}
+          </button>
         </div>
 
         {/* Set 1: Upper Workspace Tools (Flat, Compact, Role-Filtered) */}
-        <div className="nav-group" style={{ flexShrink: 0, marginBottom: '6px' }}>
+        <div className="nav-group" style={{ flexShrink: 0, marginBottom: '6px', width: '100%' }}>
           <button
             onClick={() => setActiveTab('home')}
             className={`nav-item ${activeTab === 'home' ? 'nav-item-active' : ''}`}
+            title="Home Overview"
           >
             <Home size={16} strokeWidth={1.75} />
             <span>Home Overview</span>
@@ -1794,6 +1847,7 @@ export default function App() {
             <button
               onClick={() => { setActiveTab('demo'); }}
               className={`nav-item ${activeTab === 'demo' ? 'nav-item-active' : ''}`}
+              title="Decision Gate Demo"
             >
               <Brain size={16} strokeWidth={1.75} />
               <span>Decision Gate Demo</span>
@@ -1804,6 +1858,7 @@ export default function App() {
             <button
               onClick={() => setActiveTab('live_ingestion')}
               className={`nav-item ${activeTab === 'live_ingestion' ? 'nav-item-active' : ''}`}
+              title="Live Ingestion Studio"
             >
               <Zap size={16} strokeWidth={1.75} />
               <span>Live Ingestion Studio</span>
@@ -1814,9 +1869,10 @@ export default function App() {
             <button
               onClick={() => setActiveTab('visual_lineage')}
               className={`nav-item ${activeTab === 'visual_lineage' ? 'nav-item-active' : ''}`}
+              title="Vault"
             >
-              <Network size={16} strokeWidth={1.75} />
-              <span>Visual Lineage Graph</span>
+              <Database size={16} strokeWidth={1.75} />
+              <span>Vault</span>
             </button>
           )}
 
@@ -1824,10 +1880,11 @@ export default function App() {
             <button
               onClick={() => setActiveTab('context_curator')}
               className={`nav-item ${activeTab === 'context_curator' ? 'nav-item-active' : ''}`}
+              title="Context Curator Bot"
             >
               <ShieldAlert size={16} strokeWidth={1.75} />
               <span>Context Curator Bot</span>
-              {conflicts.length > 0 && (
+              {isSidebarOpen && conflicts.length > 0 && (
                 <span style={{
                   marginLeft: 'auto',
                   fontSize: '0.65rem',
@@ -1847,6 +1904,7 @@ export default function App() {
             <button
               onClick={() => setActiveTab('ingestion')}
               className={`nav-item ${activeTab === 'ingestion' ? 'nav-item-active' : ''}`}
+              title="Document Explorer"
             >
               <FolderTree size={16} strokeWidth={1.75} />
               <span>Document Explorer</span>
@@ -1858,6 +1916,7 @@ export default function App() {
         <div className="sidebar-middle-section" style={{
           flex: 1,
           minHeight: 0,
+          width: '100%',
           display: 'flex',
           flexDirection: 'column',
           borderTop: '1px solid var(--border-subtle)',
@@ -1866,7 +1925,7 @@ export default function App() {
           overflow: 'hidden'
         }}>
           {/* AI Copilot Chat Button with + New Chat Action */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '4px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '4px', width: '100%' }}>
             <button
               onClick={() => {
                 setActiveTab('playground');
@@ -1874,45 +1933,48 @@ export default function App() {
               }}
               className={`nav-item ${activeTab === 'playground' ? 'nav-item-active' : ''}`}
               style={{ flex: 1 }}
+              title="AI Copilot Chat"
             >
               <Bot size={16} strokeWidth={1.75} />
               <span>AI Copilot Chat</span>
             </button>
-            <button
-              type="button"
-              onClick={handleStartNewChatFromSidebar}
-              title="Start New Chat"
-              style={{
-                width: '28px',
-                height: '28px',
-                borderRadius: '6px',
-                border: '1px solid var(--border-subtle)',
-                background: 'transparent',
-                color: '#64748B',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                transition: 'all 0.15s ease',
-                flexShrink: 0
-              }}
-              onMouseEnter={e => {
-                e.currentTarget.style.color = 'var(--primary)';
-                e.currentTarget.style.borderColor = 'var(--primary)';
-                e.currentTarget.style.background = '#F1F5F9';
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.color = '#64748B';
-                e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                e.currentTarget.style.background = 'transparent';
-              }}
-            >
-              <Plus size={14} strokeWidth={2.2} />
-            </button>
+            {isSidebarOpen && (
+              <button
+                type="button"
+                onClick={handleStartNewChatFromSidebar}
+                title="Start New Chat"
+                style={{
+                  width: '28px',
+                  height: '28px',
+                  borderRadius: '6px',
+                  border: '1px solid var(--border-subtle)',
+                  background: 'transparent',
+                  color: '#64748B',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'all 0.15s ease',
+                  flexShrink: 0
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.color = 'var(--primary)';
+                  e.currentTarget.style.borderColor = 'var(--primary)';
+                  e.currentTarget.style.background = '#F1F5F9';
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.color = '#64748B';
+                  e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                  e.currentTarget.style.background = 'transparent';
+                }}
+              >
+                <Plus size={14} strokeWidth={2.2} />
+              </button>
+            )}
           </div>
 
-          {/* Section Header for Recent Chats */}
-          {(() => {
+          {/* Section Header for Recent Chats (Only shown when sidebar is expanded) */}
+          {isSidebarOpen && (() => {
             const displayedChatSessions = chatSessions.filter(s => {
               if (!activeWorkspace || activeWorkspace.id === 'all') return true;
               return s.workspace_id === activeWorkspace.id || s.domain === activeWorkspace.domain;
@@ -2022,11 +2084,12 @@ export default function App() {
   </div>
 
         {/* Set 2: Bottom Pinned Governance & Administration Group */}
-        <div className="sidebar-footer">
+        <div className="sidebar-footer" style={{ width: '100%' }}>
           {isTabVisible('integrations') && (
             <button
               onClick={() => setActiveTab('integrations')}
               className={`nav-item ${activeTab === 'integrations' ? 'nav-item-active' : ''}`}
+              title="Agent Integrations & MCP"
             >
               <Sliders size={16} strokeWidth={1.75} />
               <span>Agent Integrations & MCP</span>
@@ -2036,6 +2099,7 @@ export default function App() {
             <button
               onClick={() => { setActiveTab('audit'); fetchAuditLogs(activeOrg?.id); }}
               className={`nav-item ${activeTab === 'audit' ? 'nav-item-active' : ''}`}
+              title="Audit Trail & Lineage"
             >
               <BarChart3 size={16} strokeWidth={1.75} />
               <span>Audit Trail & Lineage</span>
@@ -2045,6 +2109,7 @@ export default function App() {
             <button
               onClick={() => setActiveTab('team')}
               className={`nav-item ${activeTab === 'team' ? 'nav-item-active' : ''}`}
+              title="Team & Personas"
             >
               <Users size={16} strokeWidth={1.75} />
               <span>Team & Personas</span>
@@ -2053,6 +2118,7 @@ export default function App() {
           <button
             onClick={() => setActiveTab('profile')}
             className={`nav-item ${activeTab === 'profile' ? 'nav-item-active' : ''}`}
+            title="Profile & Companies"
           >
             <User size={16} strokeWidth={1.75} />
             <span>Profile & Companies</span>
@@ -2092,7 +2158,7 @@ export default function App() {
                   {activeTab === 'demo' ? 'Decision Gate Demo' :
                    activeTab === 'playground' ? 'Agent Playground' :
                    activeTab === 'live_ingestion' ? 'Live Ingestion Studio' :
-                   activeTab === 'visual_lineage' ? 'Visual Lineage Graph' :
+                   activeTab === 'visual_lineage' ? 'Vault' :
                    activeTab === 'context_curator' ? 'Context Curator Bot' :
                    activeTab === 'conflicts' ? 'Conflict Resolver' :
                    activeTab === 'ingestion' ? 'Document Explorer' :
@@ -2117,7 +2183,7 @@ export default function App() {
               <>
                 <span className="breadcrumb-separator">/</span>
                 <span className="breadcrumb-current">
-                  Deep Visual Lineage DAG & Blast Radius Explorer
+                  Enterprise Context Vault & Lineage Explorer
                 </span>
               </>
             )}
@@ -3668,19 +3734,112 @@ export default function App() {
                 Ingest raw organizational policies, normalize markdown structure, and inspect live atomic facts stored in PostgreSQL.
               </p>
 
-              {/* Active View Badge & Refresh Action (Centered) */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', marginTop: '16px', flexWrap: 'wrap' }}>
-                <span className="badge badge-verified" style={{ fontSize: '0.8rem', padding: '5px 14px' }}>
-                  {docExplorerView === 'connectors' ? `Live Connectors & Sync (${displayedDataSources.length})` :
-                    docExplorerView === 'ingest' ? 'Ingest New Document' :
-                      docExplorerView === 'documents' ? `Stored Documents (${displayedDbDocuments.length})` :
-                        `Atomic Claims (${displayedDbClaims.length})`}
-                </span>
+              {/* Modern Interactive Sub-View Switcher Bar */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', marginTop: '16px', flexWrap: 'wrap' }}>
+                <div style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  background: '#F1F5F9',
+                  padding: '4px',
+                  borderRadius: '10px',
+                  gap: '4px',
+                  border: '1px solid var(--border-subtle)'
+                }}>
+                  <button
+                    type="button"
+                    onClick={() => setDocExplorerView('connectors')}
+                    style={{
+                      padding: '7px 14px',
+                      fontSize: '0.8rem',
+                      fontWeight: docExplorerView === 'connectors' ? 700 : 500,
+                      borderRadius: '7px',
+                      border: 'none',
+                      background: docExplorerView === 'connectors' ? '#FFFFFF' : 'transparent',
+                      color: docExplorerView === 'connectors' ? 'var(--primary, #2563EB)' : '#64748B',
+                      boxShadow: docExplorerView === 'connectors' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px'
+                    }}
+                  >
+                    <span>📡 Live Connectors</span>
+                    <span style={{ fontSize: '0.68rem', padding: '1px 6px', borderRadius: '999px', background: docExplorerView === 'connectors' ? 'rgba(37,99,235,0.1)' : '#E2E8F0', color: docExplorerView === 'connectors' ? 'var(--primary, #2563EB)' : '#64748B', fontWeight: 700 }}>
+                      {displayedDataSources.length}
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setDocExplorerView('documents')}
+                    style={{
+                      padding: '7px 14px',
+                      fontSize: '0.8rem',
+                      fontWeight: docExplorerView === 'documents' ? 700 : 500,
+                      borderRadius: '7px',
+                      border: 'none',
+                      background: docExplorerView === 'documents' ? '#FFFFFF' : 'transparent',
+                      color: docExplorerView === 'documents' ? 'var(--primary, #2563EB)' : '#64748B',
+                      boxShadow: docExplorerView === 'documents' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px'
+                    }}
+                  >
+                    <span>📄 Stored Documents</span>
+                    <span style={{ fontSize: '0.68rem', padding: '1px 6px', borderRadius: '999px', background: docExplorerView === 'documents' ? 'rgba(37,99,235,0.1)' : '#E2E8F0', color: docExplorerView === 'documents' ? 'var(--primary, #2563EB)' : '#64748B', fontWeight: 700 }}>
+                      {displayedDbDocuments.length}
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setDocExplorerView('claims')}
+                    style={{
+                      padding: '7px 14px',
+                      fontSize: '0.8rem',
+                      fontWeight: docExplorerView === 'claims' ? 700 : 500,
+                      borderRadius: '7px',
+                      border: 'none',
+                      background: docExplorerView === 'claims' ? '#FFFFFF' : 'transparent',
+                      color: docExplorerView === 'claims' ? 'var(--primary, #2563EB)' : '#64748B',
+                      boxShadow: docExplorerView === 'claims' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px'
+                    }}
+                  >
+                    <span>⚡ Atomic Claims Discovery</span>
+                    <span style={{ fontSize: '0.68rem', padding: '1px 6px', borderRadius: '999px', background: docExplorerView === 'claims' ? 'rgba(37,99,235,0.1)' : '#E2E8F0', color: docExplorerView === 'claims' ? 'var(--primary, #2563EB)' : '#64748B', fontWeight: 700 }}>
+                      {displayedDbClaims.length}
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setDocExplorerView('ingest')}
+                    style={{
+                      padding: '7px 14px',
+                      fontSize: '0.8rem',
+                      fontWeight: docExplorerView === 'ingest' ? 700 : 500,
+                      borderRadius: '7px',
+                      border: 'none',
+                      background: docExplorerView === 'ingest' ? '#FFFFFF' : 'transparent',
+                      color: docExplorerView === 'ingest' ? 'var(--primary, #2563EB)' : '#64748B',
+                      boxShadow: docExplorerView === 'ingest' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    📤 Ingest New
+                  </button>
+                </div>
 
                 <button
                   onClick={fetchLiveDatabaseRecords}
                   className="btn btn-secondary"
-                  style={{ padding: '6px 14px', fontSize: '0.8rem' }}
+                  style={{ padding: '7px 14px', fontSize: '0.8rem' }}
                   title="Refresh database records"
                 >
                   {dbLoading ? "Loading..." : "Refresh"}
@@ -3852,14 +4011,30 @@ export default function App() {
                             <span>Last Synced: <strong>{lastSyncText}</strong></span>
                           </div>
 
-                          <button
-                            onClick={() => handleSyncSource(source.id, source.name)}
-                            disabled={isSyncing}
-                            className="btn btn-secondary"
-                            style={{ width: '100%', padding: '8px', fontSize: '0.8rem', justifyContent: 'center' }}
-                          >
-                            {isSyncing ? "Syncing & Extracting Claims..." : `Sync ${source.name.split(' ')[0]} Now`}
-                          </button>
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                            <button
+                              type="button"
+                              onClick={() => setInspectorState({
+                                isOpen: true,
+                                assetType: 'connector',
+                                assetId: source.id,
+                                assetTitle: source.name
+                              })}
+                              className="btn btn-secondary"
+                              style={{ padding: '8px', fontSize: '0.78rem', justifyContent: 'center' }}
+                              title="Inspect all documents, claims, and conflicts from this connector"
+                            >
+                              🔍 Inspect Assets
+                            </button>
+                            <button
+                              onClick={() => handleSyncSource(source.id, source.name)}
+                              disabled={isSyncing}
+                              className="btn btn-primary"
+                              style={{ padding: '8px', fontSize: '0.78rem', justifyContent: 'center' }}
+                            >
+                              {isSyncing ? "Syncing..." : `Sync Now`}
+                            </button>
+                          </div>
                         </div>
                       </div>
                     );
@@ -4710,9 +4885,25 @@ export default function App() {
                             </span>
                           </div>
 
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px', paddingTop: '8px', borderTop: '1px solid var(--border-subtle)', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px', paddingTop: '10px', borderTop: '1px solid var(--border-subtle)', fontSize: '0.74rem', color: 'var(--text-muted)', flexWrap: 'wrap', gap: '8px' }}>
                             <span>SHA-256 Hash: <code style={{ color: 'var(--text-secondary)' }}>{doc.content_hash?.substring(0, 24)}...</code></span>
-                            <span>Versions Count: <strong style={{ color: 'var(--primary)' }}>{doc.versions?.length || 1}</strong></span>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                              <span>Versions: <strong style={{ color: 'var(--primary)' }}>{doc.versions?.length || 1}</strong></span>
+                              <button
+                                type="button"
+                                onClick={() => setInspectorState({
+                                  isOpen: true,
+                                  assetType: 'document',
+                                  assetId: doc.id,
+                                  assetTitle: doc.title
+                                })}
+                                className="btn btn-secondary"
+                                style={{ padding: '5px 12px', fontSize: '0.74rem', fontWeight: 700, color: 'var(--primary, #2563EB)', borderColor: 'var(--primary, #2563EB)' }}
+                                title="Deep-dive into this document's atomic claims, conflicts, and provenance"
+                              >
+                                🔍 Inspect Claims & Conflicts ➔
+                              </button>
+                            </div>
                           </div>
                         </div>
                       ))}
@@ -4721,102 +4912,31 @@ export default function App() {
               </div>
             )}
 
-            {/* VIEW 3: ATOMIC CLAIMS BROWSER */}
+            {/* VIEW 3: ATOMIC CLAIMS BROWSER (MILLION-SCALE DISCOVERY ENGINE) */}
             {docExplorerView === 'claims' && (
               <div className="clean-panel" style={{ padding: '20px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--text-main)' }}>
-                      Atomic Claims ({displayedDbClaims.length})
-                    </span>
-                    <div className="scenario-bar">
-                      <button
-                        onClick={() => setClaimFilterStatus('all')}
-                        className={`scenario-btn ${claimFilterStatus === 'all' ? 'scenario-btn-active' : ''}`}
-                      >
-                        All ({displayedDbClaims.length})
-                      </button>
-                      <button
-                        onClick={() => setClaimFilterStatus('verified')}
-                        className={`scenario-btn ${claimFilterStatus === 'verified' ? 'scenario-btn-active' : ''}`}
-                      >
-                        Verified
-                      </button>
-                      <button
-                        onClick={() => setClaimFilterStatus('outdated')}
-                        className={`scenario-btn ${claimFilterStatus === 'outdated' ? 'scenario-btn-active' : ''}`}
-                      >
-                        Outdated
-                      </button>
-                      <button
-                        onClick={() => setClaimFilterStatus('conflicted')}
-                        className={`scenario-btn ${claimFilterStatus === 'conflicted' ? 'scenario-btn-active' : ''}`}
-                      >
-                        Conflicted
-                      </button>
-                    </div>
-                  </div>
-
-                  <input
-                    type="text"
-                    placeholder="Search claims by keyword, subject, or predicate..."
-                    value={dbSearchQuery}
-                    onChange={e => setDbSearchQuery(e.target.value)}
-                    style={{ padding: '6px 12px', fontSize: '0.8rem', width: '280px' }}
-                  />
-                </div>
-
-                {displayedDbClaims.length === 0 ? (
-                  <div style={{ padding: '40px 20px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-                    {activeWorkspace && activeWorkspace.id !== 'all' && !docExplorerScopeAll
-                      ? `No claims found matching ${activeWorkspace.name}. Switch to "All Combined Resources" or ingest a new document.`
-                      : 'No claims stored in database yet.'}
-                  </div>
-                ) : (
-                  <div style={{ display: 'grid', gap: '12px' }}>
-                    {displayedDbClaims
-                      .filter(c => claimFilterStatus === 'all' || c.status?.toLowerCase() === claimFilterStatus)
-                      .filter(c =>
-                        !dbSearchQuery ||
-                        c.claim_text?.toLowerCase().includes(dbSearchQuery.toLowerCase()) ||
-                        c.subject?.toLowerCase().includes(dbSearchQuery.toLowerCase()) ||
-                        c.predicate?.toLowerCase().includes(dbSearchQuery.toLowerCase())
-                      )
-                      .map((claim, idx) => {
-                        const score = claim.trust_scores?.[0]?.overall_score || claim.trust_scores?.[0]?.source_score || 0.95;
-                        const validity = claim.validity_records?.[0]?.validity_status || 'valid';
-                        return (
-                          <div key={claim.id || idx} style={{ background: '#FFFFFF', border: '1px solid var(--border-subtle)', padding: '14px', borderRadius: '8px' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                              <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                                <span className="code-pill">Subject: {claim.subject || 'General'}</span>
-                                <span className="code-pill">Predicate: {claim.predicate || 'specifies'}</span>
-                                {claim.object && <span className="code-pill">Object: {claim.object}</span>}
-                              </div>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <span className={`badge ${claim.status === 'verified' ? 'badge-allow' : claim.status === 'outdated' ? 'badge-outdated' : 'badge-review'}`}>
-                                  {claim.status}
-                                </span>
-                                <span className="badge badge-verified">
-                                  Trust: {(Number(score) * 100).toFixed(0)}%
-                                </span>
-                              </div>
-                            </div>
-
-                            <p style={{ fontSize: '0.875rem', fontWeight: 600, color: claim.status === 'outdated' ? 'var(--text-muted)' : 'var(--text-main)', lineHeight: '1.4' }}>
-                              "{claim.claim_text}"
-                            </p>
-
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '8px', paddingTop: '6px', borderTop: '1px solid var(--border-subtle)', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                              <span>Section: {claim.evidence?.[0]?.section || 'General'}</span>
-                              <span>Validity: <strong style={{ color: validity === 'valid' ? 'var(--success-text)' : 'var(--danger-text)' }}>{validity.toUpperCase()}</strong></span>
-                              <span>ID: <code style={{ color: 'var(--text-secondary)' }}>{claim.id?.substring(0, 8)}</code></span>
-                            </div>
-                          </div>
-                        );
-                      })}
-                  </div>
-                )}
+                <MillionScaleClaimsGrid
+                  claims={displayedDbClaims}
+                  documents={displayedDbDocuments}
+                  activeWorkspace={activeWorkspace}
+                  onInspectDocument={(doc) => setInspectorState({
+                    isOpen: true,
+                    assetType: 'document',
+                    assetId: doc.id,
+                    assetTitle: doc.title
+                  })}
+                  onInspectClaim={(claim) => {
+                    const foundDoc = displayedDbDocuments.find(d => d.id === claim.document_id || d.versions?.some(v => v.id === claim.document_version_id));
+                    if (foundDoc) {
+                      setInspectorState({
+                        isOpen: true,
+                        assetType: 'document',
+                        assetId: foundDoc.id,
+                        assetTitle: foundDoc.title
+                      });
+                    }
+                  }}
+                />
               </div>
             )}
           </div>
@@ -5229,19 +5349,11 @@ export default function App() {
         )}
 
         {/* ========================================================= */}
-        {/* ENTERPRISE TAB 2: VISUAL LINEAGE GRAPH (OPTION 2)         */}
+        {/* ENTERPRISE TAB 2: VAULT (DATA EXPLORATION & DAG LINEAGE)  */}
         {/* ========================================================= */}
         {activeTab === 'visual_lineage' && (
           <div>
-            <div className="tab-header-center" style={{ marginBottom: '20px' }}>
-
-              <h1 className="tab-main-heading">
-                Deep Visual Lineage DAG & Blast Radius Explorer
-              </h1>
-              <p className="tab-subtitle">
-                Inspect 5-tier directional dependency graphs tracing raw enterprise data sources, normalized documents, extracted atomic claims, active contradictions, and evaluated agent decisions.
-              </p>
-            </div>
+            
             <VisualLineageGraph
               activeOrg={activeOrg}
               activeWorkspace={activeWorkspace}
@@ -5901,6 +6013,19 @@ export default function App() {
         initialAuditToken={merkleSelectedToken}
         organizationId={activeOrg?.id}
         showToast={showToast}
+      />
+
+      {/* Interactive Asset Deep-Dive Inspector Drawer (Documents, Connectors, Claims & Conflicts) */}
+      <AssetInspectorDrawer
+        isOpen={inspectorState.isOpen}
+        onClose={() => setInspectorState(prev => ({ ...prev, isOpen: false }))}
+        assetType={inspectorState.assetType}
+        assetId={inspectorState.assetId}
+        assetTitle={inspectorState.assetTitle}
+        onNavigateToCurator={() => {
+          setActiveTab('conflicts');
+          window.history.pushState(null, '', '/conflicts');
+        }}
       />
     </div>
   );

@@ -48,8 +48,27 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
     staging: ['staging', 'sandbox', 'test', 'mock', 'simulation']
   };
 
+  // Vault Top-Level Sub-Tab: 'documents' (default 360° hub) | 'connectors' (360° hub) | 'conflicts' | 'claims' | 'dag'
+  const [vaultSubTab, setVaultSubTab] = useState('documents');
+  const [asset360Section, setAsset360Section] = useState('all'); // 'all' | 'dag' | 'conflicts' | 'claims'
+  const [vaultSearch, setVaultSearch] = useState('');
+  const [vaultConflictFilter, setVaultConflictFilter] = useState('all'); // 'all' | 'active' | 'resolved'
+  const [vaultClaimFilter, setVaultClaimFilter] = useState('all'); // 'all' | 'verified' | 'conflicted' | 'decisions'
+  const [openedAssetId, setOpenedAssetId] = useState(null); // null = show full List of Documents/Connectors; non-null = open Split View (Original Document + All Facilities beside it)
+  const [docReaderSearch, setDocReaderSearch] = useState('');
+  const [docReaderClauseFilter, setDocReaderClauseFilter] = useState('all'); // 'all' | 'conflicted' | 'verified'
+  const [highlightedClaimIdInReader, setHighlightedClaimIdInReader] = useState(null);
+  const [isAssetDirectoryOpen, setIsAssetDirectoryOpen] = useState(false);
+  const [isAssetDropdownOpen, setIsAssetDropdownOpen] = useState(false);
+  const [assetDropdownSearch, setAssetDropdownSearch] = useState('');
+  const [assetListFilter, setAssetListFilter] = useState('all'); // 'all' | 'conflicted' | 'clean'
+  const [assetListSort, setAssetListSort] = useState('conflicts'); // 'conflicts' | 'claims' | 'name'
+  const [assetListPage, setAssetListPage] = useState(1);
+  const [assetListPageSize, setAssetListPageSize] = useState(15);
+
   // View Mode: 'interactive' (default single-node on-demand flow), 'conflicts' (contradictions focus), 'all' (sample overview)
   const [viewMode, setViewMode] = useState('interactive');
+  const [interactiveRootId, setInteractiveRootId] = useState(null);
   const [expandedUpstreamSet, setExpandedUpstreamSet] = useState(new Set());
   const [expandedDownstreamSet, setExpandedDownstreamSet] = useState(new Set());
   const [expandedConflictClaimsSet, setExpandedConflictClaimsSet] = useState(new Set());
@@ -62,7 +81,7 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
   const [selectedConflictId, setSelectedConflictId] = useState('all');
   const [selectedDocFilter, setSelectedDocFilter] = useState('all');
   const [filterSeverity, setFilterSeverity] = useState('all'); // 'all', 'HIGH', 'CRITICAL', 'MEDIUM', 'LOW'
-  const [filterStatus, setFilterStatus] = useState('all'); // 'all', 'review', 'resolved'
+  const [filterStatus, setFilterStatus] = useState('active'); // 'active' (default: unresolved only), 'resolved', 'all'
   const [filterClaimTrust, setFilterClaimTrust] = useState('all'); // 'all', 'verified', 'review', 'outdated'
   const [showOnlyConflicted, setShowOnlyConflicted] = useState(false);
   const [displayLimit, setDisplayLimit] = useState(12); // 6, 12, 24, 1000 ('all')
@@ -102,7 +121,9 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
         if (data.nodes && data.nodes.length > 0 && !selectedNodeId) {
           const firstDoc = data.nodes.find(n => n.type === 'document');
           const firstConflict = data.nodes.find(n => n.type === 'conflict');
-          setSelectedNodeId(firstDoc ? firstDoc.id : (firstConflict ? firstConflict.id : data.nodes[0].id));
+          const initialId = firstDoc ? firstDoc.id : (firstConflict ? firstConflict.id : data.nodes[0].id);
+          setSelectedNodeId(initialId);
+          setInteractiveRootId(initialId);
         }
       } else {
         showToast?.("Failed to fetch lineage graph", "error");
@@ -134,17 +155,58 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
     fetchLineage();
   }, [activeOrg?.id]);
 
-  const conflictsList = useMemo(() => {
+  const matchesConflictStatus = (cNode) => {
+    const st = (cNode?.status || '').toLowerCase();
+    if (filterStatus === 'active') return st !== 'resolved' && st !== 'dismissed';
+    if (filterStatus === 'resolved') return st === 'resolved' || st === 'dismissed';
+    return true;
+  };
+
+  const allConflictsRaw = useMemo(() => {
     return graphData?.nodes?.filter(n => n.type === 'conflict') || [];
   }, [graphData]);
 
+  const sourcesList = useMemo(() => {
+    return (graphData?.nodes?.filter(n =>
+      n.type === 'source' &&
+      (n.subType || '').toLowerCase() !== 'file' &&
+      !(n.label || '').toLowerCase().includes('file upload') &&
+      !(n.label || '').toLowerCase().includes('direct document upload')
+    ) || []);
+  }, [graphData]);
+
+  const allClaimsRaw = useMemo(() => {
+    return graphData?.nodes?.filter(n => n.type === 'claim') || [];
+  }, [graphData]);
+
+  const conflictsList = useMemo(() => {
+    return (graphData?.nodes?.filter(n => n.type === 'conflict' && matchesConflictStatus(n)) || []);
+  }, [graphData, filterStatus]);
+
   const documentsList = useMemo(() => {
-    return graphData?.nodes?.filter(n => n.type === 'document') || [];
+    return (graphData?.nodes?.filter(n =>
+      n.type === 'document' &&
+      n.data?.isUploadedFile !== false
+    ) || []);
   }, [graphData]);
 
   const decisionsList = useMemo(() => {
     return graphData?.nodes?.filter(n => n.type === 'decision') || [];
   }, [graphData]);
+
+  const visualizeNodeInDag = (nodeId, nodeLabel, isResolvedConflict = false) => {
+    if (isResolvedConflict) {
+      setFilterStatus('all');
+    }
+    setVaultSubTab('dag');
+    setViewMode('interactive');
+    setSelectedNodeId(nodeId);
+    setInteractiveRootId(nodeId);
+    setExpandedUpstreamSet(new Set());
+    setExpandedDownstreamSet(new Set());
+    setExpandedConflictClaimsSet(new Set());
+    showToast?.(`Loaded "${nodeLabel || nodeId}" in DAG Visualize — click + or − to expand lineage`);
+  };
 
   const selectedNode = useMemo(() => {
     return graphData?.nodes?.find(n => n.id === selectedNodeId) || null;
@@ -334,7 +396,16 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
     setExpandedUpstreamSet(prev => {
       const next = new Set(prev);
       if (next.has(nodeId)) {
-        next.delete(nodeId);
+        // Collapse this node's upstream and recursively collapse its upstream parents
+        const toCollapse = [nodeId];
+        while (toCollapse.length > 0) {
+          const curr = toCollapse.pop();
+          if (next.has(curr)) {
+            next.delete(curr);
+            const parents = getUpstreamParentIds(curr);
+            parents.forEach(p => toCollapse.push(p));
+          }
+        }
       } else {
         next.add(nodeId);
       }
@@ -346,7 +417,16 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
     setExpandedDownstreamSet(prev => {
       const next = new Set(prev);
       if (next.has(nodeId)) {
-        next.delete(nodeId);
+        // Collapse this node's downstream and recursively collapse its downstream children
+        const toCollapse = [nodeId];
+        while (toCollapse.length > 0) {
+          const curr = toCollapse.pop();
+          if (next.has(curr)) {
+            next.delete(curr);
+            const children = getDownstreamChildIds(curr);
+            children.forEach(c => toCollapse.push(c));
+          }
+        }
       } else {
         next.add(nodeId);
       }
@@ -559,11 +639,11 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
       });
     }
 
-    // 5. Filter conflicts by resolution status
+    // 5. Filter conflicts by resolution status (Default: Active/Unresolved Only)
     if (filterStatus !== 'all') {
       result = result.filter(n => {
         if (n.type !== 'conflict') return true;
-        return (n.status || '').toLowerCase().includes(filterStatus.toLowerCase());
+        return matchesConflictStatus(n);
       });
     }
 
@@ -683,7 +763,6 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
           });
         }
         if (parentDocId && expandedDocIds.has(parentDocId)) return true;
-        if (selectedNodeId === n.id) return true;
         if (selectedConflictId !== 'all') {
           const cItem = conflictMap[selectedConflictId];
           if (cItem?.claimAId === n.id || cItem?.claimBId === n.id) return true;
@@ -693,13 +772,15 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
     }
 
     // 12. Interactive On-Demand Flow Filter (Single Node at Start)
+    // IMPORTANT: Uses interactiveRootId (NOT selectedNodeId) so clicking a card to inspect it
+    // never closes or resets previously expanded upstream/downstream nodes!
     if (viewMode === 'interactive') {
-      const rootId = selectedNodeId || (documentsList[0]?.id || graphData?.nodes?.[0]?.id);
+      const rootId = interactiveRootId || (documentsList[0]?.id || graphData?.nodes?.[0]?.id);
       if (!rootId) return [];
 
       const visibleIds = new Set([rootId]);
 
-      // Iteratively expand upstream parents and downstream children
+      // Iteratively expand upstream parents and downstream children ONLY when their + button was clicked
       let changed = true;
       while (changed) {
         changed = false;
@@ -756,6 +837,7 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
     lineageGranularity,
     expandedDocIds,
     viewMode,
+    interactiveRootId,
     expandedUpstreamSet,
     expandedDownstreamSet,
     getUpstreamParentIds,
@@ -768,9 +850,9 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
     const map = {};
     if (!filteredNodes.length) return map;
 
-    // Single Starting Node Centering in Interactive Mode
+    // Single Starting Node Centering in Interactive Mode (placed at X_DOC = 390 so expanding upstream/downstream never shifts it horizontally)
     if (viewMode === 'interactive' && filteredNodes.length === 1) {
-      map[filteredNodes[0].id] = { x: 480, y: 160 };
+      map[filteredNodes[0].id] = { x: 390, y: 160 };
       return map;
     }
 
@@ -780,7 +862,7 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
     const conflicts = filteredNodes.filter(n => n.type === 'conflict');
     const decisions = filteredNodes.filter(n => n.type === 'decision');
 
-    const limit = displayLimit === 'all' ? 1000 : Number(displayLimit);
+    const limit = (displayLimit === 'all' || viewMode === 'interactive') ? 1000 : Number(displayLimit);
 
     const activeSources = sources.slice(0, limit);
     const activeDocs = documents.slice(0, limit);
@@ -825,8 +907,8 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
     const activeConflicts = conflicts.slice(0, limit);
     const activeDecisions = decisions.slice(0, limit);
 
-    // Always guarantee selected node is included if present in filteredNodes
-    if (selectedNode && filteredNodes.some(n => n.id === selectedNode.id)) {
+    // Always guarantee selected node is included in non-interactive modes if present in filteredNodes
+    if (viewMode !== 'interactive' && selectedNode && filteredNodes.some(n => n.id === selectedNode.id)) {
       if (selectedNode.type === 'source' && !activeSources.some(n => n.id === selectedNode.id)) activeSources.unshift(selectedNode);
       if (selectedNode.type === 'document' && !activeDocs.some(n => n.id === selectedNode.id)) activeDocs.unshift(selectedNode);
       if ((selectedNode.type === 'claim' || selectedNode.type === 'claim_cluster') && !activeClaims.some(n => n.id === selectedNode.id)) activeClaims.unshift(selectedNode);
@@ -1245,16 +1327,16 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
     setSelectedConflictId('all');
     setSelectedDocFilter('all');
     setFilterSeverity('all');
-    setFilterStatus('all');
+    setFilterStatus('active');
     setFilterClaimTrust('all');
     setShowOnlyConflicted(false);
     setDisplayLimit(12);
     setSearchQuery('');
     setVisibleTiers(new Set(['source', 'document', 'claim', 'conflict', 'decision']));
-    setViewMode('conflicts');
+    setViewMode('interactive');
     setPan({ x: 30, y: 30 });
     setZoom(0.78);
-    showToast?.("All filters reset to standard view");
+    showToast?.("All filters reset to default active view");
   };
 
   const isAnyFilterActive = useMemo(() => {
@@ -1262,7 +1344,7 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
       selectedConflictId !== 'all' ||
       selectedDocFilter !== 'all' ||
       filterSeverity !== 'all' ||
-      filterStatus !== 'all' ||
+      filterStatus !== 'active' ||
       filterClaimTrust !== 'all' ||
       showOnlyConflicted ||
       displayLimit !== 12 ||
@@ -1286,7 +1368,7 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
     if (selectedConflictId !== 'all') count++;
     if (selectedDocFilter !== 'all') count++;
     if (filterSeverity !== 'all') count++;
-    if (filterStatus !== 'all') count++;
+    if (filterStatus !== 'active') count++;
     if (filterClaimTrust !== 'all') count++;
     if (showOnlyConflicted) count++;
     if (displayLimit !== 12) count++;
@@ -1315,9 +1397,844 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
     }
   }, [selectedConflictId]);
 
+  const activeConflictsCount = useMemo(() => {
+    return allConflictsRaw.filter(c => {
+      const st = (c.status || '').toLowerCase();
+      return st !== 'resolved' && st !== 'dismissed';
+    }).length;
+  }, [allConflictsRaw]);
+
+  const resolvedConflictsCount = useMemo(() => {
+    return allConflictsRaw.filter(c => {
+      const st = (c.status || '').toLowerCase();
+      return st === 'resolved' || st === 'dismissed';
+    }).length;
+  }, [allConflictsRaw]);
+
+  // Compute Selected Asset 360° Profile for Documents & Connectors tabs
+  const selectedAsset360 = useMemo(() => {
+    if (!graphData?.nodes || !graphData?.edges) return null;
+    const edges = graphData.edges;
+    const nodes = graphData.nodes;
+
+    if (vaultSubTab === 'documents') {
+      const activeDoc = (selectedNode?.type === 'document' ? selectedNode : documentsList[0]) || null;
+      if (!activeDoc) return null;
+      const parentEdge = edges.find(e => e.target === activeDoc.id && e.source.startsWith('src_'));
+      const parentSource = nodes.find(n => n.id === parentEdge?.source) || null;
+      const claimIds = new Set(edges.filter(e => e.source === activeDoc.id && e.target.startsWith('cl_')).map(e => e.target));
+      const assetClaims = allClaimsRaw.filter(cl => claimIds.has(cl.id));
+      const assetConflicts = allConflictsRaw.filter(c => {
+        const cItem = conflictMap[c.id];
+        return claimIds.has(cItem?.claimAId) || claimIds.has(cItem?.claimBId);
+      });
+      const activeAssetConflicts = assetConflicts.filter(c => {
+        const st = (c.status || '').toLowerCase();
+        return st !== 'resolved' && st !== 'dismissed';
+      });
+      const assetDecisions = decisionsList.filter(dec =>
+        edges.some(e => e.target === dec.id && claimIds.has(e.source))
+      );
+
+      return {
+        mode: 'document',
+        node: activeDoc,
+        parentSource,
+        connectedDocs: [activeDoc],
+        claims: assetClaims,
+        conflicts: assetConflicts,
+        activeConflicts: activeAssetConflicts,
+        decisions: assetDecisions,
+        description: `Normalized enterprise ${activeDoc.subType || 'policy document'} synced via ${parentSource?.label || 'Direct Enterprise Upload'}. Contains ${assetClaims.length} extracted atomic rules governing autonomous agent decisions, with ${activeAssetConflicts.length} active contradiction(s) and ${assetConflicts.length - activeAssetConflicts.length} resolved historical conflict(s).`
+      };
+    }
+
+    if (vaultSubTab === 'connectors') {
+      const activeSrc = (selectedNode?.type === 'source' ? selectedNode : sourcesList[0]) || null;
+      if (!activeSrc) return null;
+      const docIds = new Set(edges.filter(e => e.source === activeSrc.id && e.target.startsWith('doc_')).map(e => e.target));
+      const connectedDocs = nodes.filter(d => d.type === 'document' && docIds.has(d.id));
+      const claimIds = new Set(edges.filter(e => docIds.has(e.source) && e.target.startsWith('cl_')).map(e => e.target));
+      const assetClaims = allClaimsRaw.filter(cl => claimIds.has(cl.id));
+      const assetConflicts = allConflictsRaw.filter(c => {
+        const cItem = conflictMap[c.id];
+        return claimIds.has(cItem?.claimAId) || claimIds.has(cItem?.claimBId);
+      });
+      const activeAssetConflicts = assetConflicts.filter(c => {
+        const st = (c.status || '').toLowerCase();
+        return st !== 'resolved' && st !== 'dismissed';
+      });
+      const assetDecisions = decisionsList.filter(dec =>
+        edges.some(e => e.target === dec.id && claimIds.has(e.source))
+      );
+
+      return {
+        mode: 'connector',
+        node: activeSrc,
+        parentSource: null,
+        connectedDocs,
+        claims: assetClaims,
+        conflicts: assetConflicts,
+        activeConflicts: activeAssetConflicts,
+        decisions: assetDecisions,
+        description: `Live ${activeSrc.subType || 'Enterprise'} connector (${activeSrc.label}) operating at ${activeSrc.authority ? `${Number(activeSrc.authority) > 1 ? Number(activeSrc.authority).toFixed(0) : (Number(activeSrc.authority) * 100).toFixed(0)}%` : '95%'} authority weight. Actively synchronizes ${connectedDocs.length} schema/policy record(s) yielding ${assetClaims.length} atomic claims and ${activeAssetConflicts.length} active contradiction(s).`
+      };
+    }
+
+    return null;
+  }, [vaultSubTab, selectedNode, documentsList, sourcesList, allClaimsRaw, allConflictsRaw, decisionsList, conflictMap, graphData]);
+
   return (
-    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-      
+    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+
+      {/* ========================================================= */}
+      {/* VAULT SUB-NAVIGATION TABS (SINGLE LINE, NO BORDERS/ICONS) */}
+      {/* ========================================================= */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        flexWrap: 'nowrap',
+        gap: '16px',
+        background: 'transparent',
+        padding: '4px 2px',
+        border: 'none',
+        boxShadow: 'none',
+        width: '100%',
+        overflowX: 'auto'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'nowrap', whiteSpace: 'nowrap' }}>
+          {[
+            { id: 'documents', label: `Documents (${documentsList.length})` },
+            { id: 'connectors', label: `Connectors (${sourcesList.length})` },
+            { id: 'conflicts', label: `Conflicts Registry (${allConflictsRaw.length})` },
+            { id: 'claims', label: `Claims and Decisions (${allClaimsRaw.length + decisionsList.length})` },
+            { id: 'dag', label: `Full Canvas DAG (${activeConflictsCount})` }
+          ].map(tab => {
+            const isActive = vaultSubTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => {
+                  setVaultSubTab(tab.id);
+                  if (tab.id === 'documents' || tab.id === 'connectors') {
+                    // Always return to the clean List of Documents / Connectors when clicking the top tab
+                    setOpenedAssetId(null);
+                  }
+                  if (tab.id === 'documents' && documentsList.length > 0 && (!selectedNode || selectedNode.type !== 'document')) {
+                    setSelectedNodeId(documentsList[0].id);
+                    setInteractiveRootId(documentsList[0].id);
+                    setExpandedUpstreamSet(new Set());
+                    setExpandedDownstreamSet(new Set());
+                  } else if (tab.id === 'connectors' && sourcesList.length > 0 && (!selectedNode || selectedNode.type !== 'source')) {
+                    setSelectedNodeId(sourcesList[0].id);
+                    setInteractiveRootId(sourcesList[0].id);
+                    setExpandedUpstreamSet(new Set());
+                    setExpandedDownstreamSet(new Set());
+                  }
+                }}
+                onMouseEnter={(e) => {
+                  if (!isActive) {
+                    e.currentTarget.style.color = '#1E293B';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isActive) {
+                    e.currentTarget.style.color = '#64748B';
+                  }
+                }}
+                style={{
+                  padding: '6px 10px',
+                  border: 'none',
+                  boxShadow: 'none',
+                  outline: 'none',
+                  background: 'transparent',
+                  color: isActive ? '#C2410C' : '#64748B',
+                  fontSize: '0.82rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  whiteSpace: 'nowrap',
+                  transition: 'color 0.15s ease'
+                }}
+              >
+                {tab.label}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Quick Search across Vault on the same line */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+          <input
+            type="text"
+            placeholder={`Filter ${vaultSubTab}...`}
+            value={vaultSearch}
+            onChange={(e) => setVaultSearch(e.target.value)}
+            style={{
+              padding: '5px 10px',
+              borderRadius: '6px',
+              border: 'none',
+              background: '#F1F5F9',
+              color: '#0F172A',
+              fontSize: '0.75rem',
+              width: '180px',
+              outline: 'none',
+              boxShadow: 'none'
+            }}
+          />
+          {vaultSearch && (
+            <button
+              type="button"
+              onClick={() => setVaultSearch('')}
+              style={{ border: 'none', background: 'transparent', padding: '4px 6px', fontSize: '0.72rem', cursor: 'pointer', color: '#C2410C', fontWeight: 700 }}
+            >
+              Clear
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* ========================================================= */}
+      {/* MASTER-DETAIL 360° WORKBENCH (DOCUMENTS, CONNECTORS, DAG) */}
+      {/* ========================================================= */}
+      {(vaultSubTab === 'documents' || vaultSubTab === 'connectors' || vaultSubTab === 'dag') && (() => {
+        const rawItems = vaultSubTab === 'documents' ? documentsList : sourcesList;
+        const itemEdges = graphData?.edges || [];
+
+        // Enrich items with claim & conflict metrics for fast sorting, filtering & pagination across 1,000s of items
+        const enrichedAssets = rawItems.map(item => {
+          let claimCount = 0;
+          let activeConflictCount = 0;
+          if (item.type === 'document') {
+            const cIds = new Set(itemEdges.filter(e => e.source === item.id && e.target.startsWith('cl_')).map(e => e.target));
+            claimCount = cIds.size;
+            activeConflictCount = allConflictsRaw.filter(c => {
+              const st = (c.status || '').toLowerCase();
+              if (st === 'resolved' || st === 'dismissed') return false;
+              const cItem = conflictMap[c.id];
+              return cIds.has(cItem?.claimAId) || cIds.has(cItem?.claimBId);
+            }).length;
+          } else {
+            const dIds = new Set(itemEdges.filter(e => e.source === item.id && e.target.startsWith('doc_')).map(e => e.target));
+            claimCount = dIds.size;
+            const cIds = new Set(itemEdges.filter(e => dIds.has(e.source) && e.target.startsWith('cl_')).map(e => e.target));
+            activeConflictCount = allConflictsRaw.filter(c => {
+              const st = (c.status || '').toLowerCase();
+              if (st === 'resolved' || st === 'dismissed') return false;
+              const cItem = conflictMap[c.id];
+              return cIds.has(cItem?.claimAId) || cIds.has(cItem?.claimBId);
+            }).length;
+          }
+          return { ...item, claimCount, activeConflictCount };
+        });
+
+        const filteredAssets = enrichedAssets
+          .filter(item => {
+            const q = (vaultSearch || assetDropdownSearch || '').trim().toLowerCase();
+            if (q && !(item.label || '').toLowerCase().includes(q) && !(item.subType || '').toLowerCase().includes(q) && !(item.id || '').toLowerCase().includes(q)) {
+              return false;
+            }
+            if (assetListFilter === 'conflicted' && item.activeConflictCount === 0) return false;
+            if (assetListFilter === 'clean' && item.activeConflictCount > 0) return false;
+            return true;
+          })
+          .sort((a, b) => {
+            if (assetListSort === 'conflicts') return (b.activeConflictCount - a.activeConflictCount) || (b.claimCount - a.claimCount);
+            if (assetListSort === 'claims') return (b.claimCount - a.claimCount) || (b.activeConflictCount - a.activeConflictCount);
+            return (a.label || '').localeCompare(b.label || '');
+          });
+
+        const totalPages = Math.max(1, Math.ceil(filteredAssets.length / assetListPageSize));
+        const safePage = Math.min(assetListPage, totalPages);
+        const pagedAssets = filteredAssets.slice((safePage - 1) * assetListPageSize, safePage * assetListPageSize);
+        const currentIndex = enrichedAssets.findIndex(a => a.id === selectedAsset360?.node?.id);
+
+        const selectAssetItem = (item) => {
+          setOpenedAssetId(item.id);
+          setSelectedNodeId(item.id);
+          setInteractiveRootId(item.id);
+          setExpandedUpstreamSet(new Set());
+          setExpandedDownstreamSet(new Set());
+          setExpandedConflictClaimsSet(new Set());
+          setIsAssetDropdownOpen(false);
+          setIsAssetDirectoryOpen(false);
+          setDocReaderSearch('');
+        };
+
+        // ============================================================================
+        // STAGE 1: FULL-WIDTH LIST OF DOCUMENTS / CONNECTORS (When no item is opened)
+        // ============================================================================
+        if ((vaultSubTab === 'documents' || vaultSubTab === 'connectors') && !openedAssetId) {
+          return (
+            <div style={{
+              background: '#FFFFFF',
+              border: '1px solid #E2E8F0',
+              borderRadius: '10px',
+              padding: '16px 18px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '12px',
+              width: '100%'
+            }}>
+              {/* List Header & Controls */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px', borderBottom: '1px solid #F1F5F9', paddingBottom: '10px' }}>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '0.96rem', fontWeight: 800, color: '#0F172A' }}>
+                    {vaultSubTab === 'documents'
+                      ? `Policy & Enterprise Documents (${enrichedAssets.length})`
+                      : `Connected Databases & External Sources (${enrichedAssets.length})`}
+                  </h3>
+                  <p style={{ margin: '2px 0 0 0', fontSize: '0.75rem', color: '#64748B' }}>
+                    {vaultSubTab === 'documents'
+                      ? 'Click any document row below to open the Original Document alongside its DAG Lineage, Conflicts, and Extracted Claims.'
+                      : 'Click any connected database or SaaS source below to inspect its schema objects, DAG lineage, conflicts, and claims.'}
+                  </p>
+                </div>
+
+                {/* Filter & Sort Controls */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    {[
+                      { id: 'all', label: `All (${enrichedAssets.length})` },
+                      { id: 'conflicted', label: `With Conflicts (${enrichedAssets.filter(a => a.activeConflictCount > 0).length})` },
+                      { id: 'clean', label: `Clean (${enrichedAssets.filter(a => a.activeConflictCount === 0).length})` }
+                    ].map(f => {
+                      const active = assetListFilter === f.id;
+                      return (
+                        <button
+                          key={f.id}
+                          type="button"
+                          onClick={() => { setAssetListFilter(f.id); setAssetListPage(1); }}
+                          style={{
+                            padding: '4px 8px',
+                            border: 'none',
+                            background: 'transparent',
+                            color: active ? '#C2410C' : '#64748B',
+                            fontSize: '0.75rem',
+                            fontWeight: 600,
+                            cursor: 'pointer'
+                          }}
+                        >
+                          {f.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <select
+                    value={assetListSort}
+                    onChange={(e) => { setAssetListSort(e.target.value); setAssetListPage(1); }}
+                    style={{ padding: '5px 8px', fontSize: '0.74rem', borderRadius: '6px', border: '1px solid #CBD5E1', color: '#0F172A', background: '#FFFFFF' }}
+                  >
+                    <option value="conflicts">Sort: Most Conflicts First</option>
+                    <option value="claims">Sort: Most Claims First</option>
+                    <option value="name">Sort: Title (A–Z)</option>
+                  </select>
+
+                  <select
+                    value={assetListPageSize}
+                    onChange={(e) => { setAssetListPageSize(Number(e.target.value)); setAssetListPage(1); }}
+                    style={{ padding: '5px 8px', fontSize: '0.74rem', borderRadius: '6px', border: '1px solid #CBD5E1', color: '#0F172A', background: '#FFFFFF' }}
+                  >
+                    <option value={15}>15 / page</option>
+                    <option value={30}>30 / page</option>
+                    <option value={50}>50 / page</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Clean Table List of Documents / Connectors */}
+              {filteredAssets.length === 0 ? (
+                <div style={{ padding: '28px', textAlign: 'center', color: '#64748B', fontSize: '0.8rem', background: '#F8FAFC', borderRadius: '8px' }}>
+                  {vaultSubTab === 'documents'
+                    ? 'No uploaded PDF or policy documents match the current filter.'
+                    : 'No external databases or data sources connected yet in this workspace.'}
+                </div>
+              ) : (
+                <div style={{ overflowX: 'auto', border: '1px solid #E2E8F0', borderRadius: '8px' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.78rem', textAlign: 'left' }}>
+                    <thead>
+                      <tr style={{ background: '#F8FAFC', borderBottom: '1px solid #E2E8F0', color: '#64748B', fontSize: '0.68rem', textTransform: 'uppercase', letterSpacing: '0.03em' }}>
+                        <th style={{ padding: '10px 14px' }}>{vaultSubTab === 'documents' ? 'Document Name' : 'Connector Name'}</th>
+                        <th style={{ padding: '10px 14px' }}>Type</th>
+                        <th style={{ padding: '10px 14px' }}>{vaultSubTab === 'documents' ? 'Version & Source' : 'Authority'}</th>
+                        <th style={{ padding: '10px 14px' }}>Status</th>
+                        <th style={{ padding: '10px 14px' }}>{vaultSubTab === 'documents' ? 'Extracted Claims' : 'Synced Objects'}</th>
+                        <th style={{ padding: '10px 14px' }}>Conflicts</th>
+                        <th style={{ padding: '10px 14px', textAlign: 'right' }}>Open</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {pagedAssets.map((item, idx) => (
+                        <tr
+                          key={item.id}
+                          onClick={() => selectAssetItem(item)}
+                          onMouseEnter={(e) => { e.currentTarget.style.background = '#FFF7ED'; }}
+                          onMouseLeave={(e) => { e.currentTarget.style.background = '#FFFFFF'; }}
+                          style={{
+                            borderBottom: idx < pagedAssets.length - 1 ? '1px solid #F1F5F9' : 'none',
+                            background: '#FFFFFF',
+                            cursor: 'pointer',
+                            transition: 'background 0.12s ease'
+                          }}
+                        >
+                          <td style={{ padding: '11px 14px' }}>
+                            <div style={{ fontWeight: 700, color: '#0F172A', fontSize: '0.81rem' }}>
+                              {item.label}
+                            </div>
+                            {item.data?.external_id && (
+                              <div style={{ fontSize: '0.68rem', color: '#64748B', marginTop: '2px', fontFamily: 'monospace' }}>
+                                {item.data.external_id}
+                              </div>
+                            )}
+                          </td>
+                          <td style={{ padding: '11px 14px', color: '#475569', textTransform: 'uppercase', fontSize: '0.7rem', fontWeight: 600 }}>
+                            {item.subType || item.type}
+                          </td>
+                          <td style={{ padding: '11px 14px', color: '#64748B', fontSize: '0.73rem' }}>
+                            {item.type === 'document'
+                              ? `v${item.data?.version_count || 1}.0 • ${item.data?.domain || 'Enterprise'}`
+                              : `${item.authority ? `${(Number(item.authority) * 100).toFixed(0)}%` : '95%'} weight`}
+                          </td>
+                          <td style={{ padding: '11px 14px' }}>
+                            <span style={{ fontSize: '0.68rem', fontWeight: 600, color: '#15803D' }}>
+                              {(item.status || 'ACTIVE').toUpperCase()}
+                            </span>
+                          </td>
+                          <td style={{ padding: '11px 14px', color: '#059669', fontWeight: 600 }}>
+                            {item.type === 'document' ? `${item.claimCount} Claims` : `${item.claimCount} Objects`}
+                          </td>
+                          <td style={{ padding: '11px 14px', color: item.activeConflictCount > 0 ? '#C2410C' : '#64748B', fontWeight: 600 }}>
+                            {item.activeConflictCount > 0 ? `${item.activeConflictCount} Conflicts` : 'Clean'}
+                          </td>
+                          <td style={{ padding: '11px 14px', textAlign: 'right', color: '#C2410C', fontWeight: 600, whiteSpace: 'nowrap' }}>
+                            Open Document →
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+
+              {/* Pagination Footer */}
+              {filteredAssets.length > assetListPageSize && (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.74rem', color: '#64748B', paddingTop: '4px' }}>
+                  <span>
+                    Showing {(safePage - 1) * assetListPageSize + 1}–{Math.min(safePage * assetListPageSize, filteredAssets.length)} of {filteredAssets.length}
+                  </span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <button
+                      type="button"
+                      disabled={safePage <= 1}
+                      onClick={() => setAssetListPage(p => Math.max(1, p - 1))}
+                      style={{ padding: '4px 10px', border: '1px solid #E2E8F0', borderRadius: '6px', background: '#FFFFFF', cursor: safePage > 1 ? 'pointer' : 'not-allowed', color: safePage > 1 ? '#0F172A' : '#CBD5E1' }}
+                    >
+                      ‹ Prev
+                    </button>
+                    <span>Page {safePage} of {totalPages}</span>
+                    <button
+                      type="button"
+                      disabled={safePage >= totalPages}
+                      onClick={() => setAssetListPage(p => Math.min(totalPages, p + 1))}
+                      style={{ padding: '4px 10px', border: '1px solid #E2E8F0', borderRadius: '6px', background: '#FFFFFF', cursor: safePage < totalPages ? 'pointer' : 'not-allowed', color: safePage < totalPages ? '#0F172A' : '#CBD5E1' }}
+                    >
+                      Next ›
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        }
+
+        // ============================================================================
+        // STAGE 2: SPLIT-SCREEN WORKSPACE (LEFT: ORIGINAL DOCUMENT | RIGHT: FACILITIES)
+        // ============================================================================
+        const docClaimsForReader = (selectedAsset360?.claims || []).filter(cl => {
+          const text = (cl.fullText || cl.label || '').toLowerCase();
+          if (docReaderSearch.trim() && !text.includes(docReaderSearch.trim().toLowerCase())) return false;
+          const isConf = allConflictedClaimIds.has(cl.id);
+          if (docReaderClauseFilter === 'conflicted' && !isConf) return false;
+          if (docReaderClauseFilter === 'verified' && isConf) return false;
+          return true;
+        });
+
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%' }}>
+
+            {/* TOP BAR WHEN A DOCUMENT/CONNECTOR IS OPENED */}
+            {(vaultSubTab === 'documents' || vaultSubTab === 'connectors') && selectedAsset360 && (
+              <div style={{
+                background: '#FFFFFF',
+                border: '1px solid #E2E8F0',
+                borderRadius: '10px',
+                padding: '10px 14px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: '10px'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+                  <button
+                    type="button"
+                    onClick={() => setOpenedAssetId(null)}
+                    style={{
+                      padding: '6px 12px',
+                      borderRadius: '6px',
+                      border: '1px solid #CBD5E1',
+                      background: '#F8FAFC',
+                      color: '#0F172A',
+                      fontSize: '0.76rem',
+                      fontWeight: 600,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    ← Back to {vaultSubTab === 'documents' ? `Documents List (${enrichedAssets.length})` : `Connectors List (${enrichedAssets.length})`}
+                  </button>
+
+                  <div>
+                    <div style={{ fontSize: '0.88rem', fontWeight: 800, color: '#0F172A' }}>
+                      {selectedAsset360.node.label}
+                    </div>
+                    <div style={{ fontSize: '0.68rem', color: '#64748B' }}>
+                      {(selectedAsset360.node.subType || selectedAsset360.mode).toUpperCase()} &bull; {(selectedAsset360.node.status || 'ACTIVE').toUpperCase()} &bull; {selectedAsset360.claims.length} Claims &bull; {selectedAsset360.activeConflicts.length} Active Conflicts
+                    </div>
+                  </div>
+                </div>
+
+                {/* Prev / Next Document Stepper */}
+                {enrichedAssets.length > 1 && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <button
+                      type="button"
+                      disabled={currentIndex <= 0}
+                      onClick={() => currentIndex > 0 && selectAssetItem(enrichedAssets[currentIndex - 1])}
+                      style={{
+                        padding: '5px 10px',
+                        borderRadius: '6px',
+                        border: '1px solid #E2E8F0',
+                        background: '#FFFFFF',
+                        color: currentIndex > 0 ? '#0F172A' : '#CBD5E1',
+                        cursor: currentIndex > 0 ? 'pointer' : 'not-allowed',
+                        fontSize: '0.74rem',
+                        fontWeight: 600
+                      }}
+                    >
+                      ‹ Prev
+                    </button>
+                    <span style={{ fontSize: '0.73rem', color: '#64748B', fontWeight: 600 }}>
+                      {currentIndex >= 0 ? currentIndex + 1 : 1} of {enrichedAssets.length}
+                    </span>
+                    <button
+                      type="button"
+                      disabled={currentIndex < 0 || currentIndex >= enrichedAssets.length - 1}
+                      onClick={() => currentIndex < enrichedAssets.length - 1 && selectAssetItem(enrichedAssets[currentIndex + 1])}
+                      style={{
+                        padding: '5px 10px',
+                        borderRadius: '6px',
+                        border: '1px solid #E2E8F0',
+                        background: '#FFFFFF',
+                        color: currentIndex < enrichedAssets.length - 1 ? '#0F172A' : '#CBD5E1',
+                        cursor: currentIndex < enrichedAssets.length - 1 ? 'pointer' : 'not-allowed',
+                        fontSize: '0.74rem',
+                        fontWeight: 600
+                      }}
+                    >
+                      Next ›
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* SIDE-BY-SIDE SPLIT LAYOUT: LEFT = ORIGINAL DOCUMENT | RIGHT = DETAILS & ALL FACILITIES */}
+            <div style={{
+              display: (vaultSubTab === 'documents' || vaultSubTab === 'connectors') && selectedAsset360 ? 'grid' : 'flex',
+              gridTemplateColumns: (vaultSubTab === 'documents' || vaultSubTab === 'connectors') && selectedAsset360 ? 'minmax(380px, 44%) 1fr' : undefined,
+              flexDirection: 'column',
+              gap: '16px',
+              alignItems: 'start',
+              width: '100%'
+            }}>
+
+              {/* LEFT PANE: DIRECT UPLOADED DOCUMENT VIEWER (PDF / Original File) */}
+              {(vaultSubTab === 'documents' || vaultSubTab === 'connectors') && selectedAsset360 && (() => {
+                const rawDocId = selectedAsset360.node.data?.doc_id || String(selectedAsset360.node.id || '').replace(/^doc_/, '');
+                const pdfUrl = `/v1/documents/${rawDocId}/file`;
+                const rawOriginalText = selectedAsset360.node.data?.content_uri || '';
+
+                return (
+                  <div style={{
+                    background: '#FFFFFF',
+                    border: '1px solid #CBD5E1',
+                    borderRadius: '10px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    height: '920px',
+                    overflow: 'hidden',
+                    position: 'sticky',
+                    top: '12px'
+                  }}>
+                    {/* Original Document Top Bar */}
+                    <div style={{
+                      padding: '10px 14px',
+                      background: '#F8FAFC',
+                      borderBottom: '1px solid #E2E8F0',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: '8px',
+                      flexWrap: 'wrap'
+                    }}>
+                      <div>
+                        <div style={{ fontSize: '0.76rem', fontWeight: 800, color: '#0F172A' }}>
+                          {selectedAsset360.node.label}
+                        </div>
+                        <div style={{ fontSize: '0.66rem', color: '#64748B' }}>
+                          {selectedAsset360.node.data?.external_id || 'Uploaded Document'} &bull; v{selectedAsset360.node.data?.version_count || 1}.0
+                        </div>
+                      </div>
+
+                      {selectedAsset360.mode === 'document' && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <button
+                            type="button"
+                            onClick={() => setDocReaderClauseFilter('all')}
+                            style={{
+                              padding: '4px 8px',
+                              border: 'none',
+                              background: 'transparent',
+                              color: docReaderClauseFilter === 'all' ? '#C2410C' : '#64748B',
+                              fontSize: '0.73rem',
+                              fontWeight: 600,
+                              cursor: 'pointer'
+                            }}
+                          >
+                            PDF View
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setDocReaderClauseFilter('raw')}
+                            style={{
+                              padding: '4px 8px',
+                              border: 'none',
+                              background: 'transparent',
+                              color: docReaderClauseFilter === 'raw' ? '#C2410C' : '#64748B',
+                              fontSize: '0.73rem',
+                              fontWeight: 600,
+                              cursor: 'pointer'
+                            }}
+                          >
+                            Raw Text
+                          </button>
+                          <a
+                            href={pdfUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            style={{
+                              fontSize: '0.72rem',
+                              fontWeight: 600,
+                              color: '#0284C7',
+                              textDecoration: 'none',
+                              padding: '4px 6px'
+                            }}
+                          >
+                            Open ↗
+                          </a>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Direct Embedded PDF Viewer (Default) or Original Raw File View */}
+                    {selectedAsset360.mode === 'document' ? (
+                      docReaderClauseFilter === 'raw' ? (
+                        <div style={{
+                          flex: 1,
+                          padding: '18px 20px',
+                          overflowY: 'auto',
+                          background: '#FFFFFF',
+                          fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+                          fontSize: '0.78rem',
+                          lineHeight: 1.65,
+                          color: '#0F172A',
+                          whiteSpace: 'pre-wrap'
+                        }}>
+                          {rawOriginalText || 'Original document content is displayed in PDF View.'}
+                        </div>
+                      ) : (
+                        <iframe
+                          key={rawDocId}
+                          src={`${pdfUrl}#toolbar=1&navpanes=0&view=FitH`}
+                          title={selectedAsset360.node.label}
+                          style={{
+                            width: '100%',
+                            flex: 1,
+                            border: 'none',
+                            background: '#525659'
+                          }}
+                        />
+                      )
+                    ) : (
+                      <div style={{
+                        flex: 1,
+                        padding: '18px 20px',
+                        overflowY: 'auto',
+                        background: '#FFFFFF',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '12px'
+                      }}>
+                        <div style={{ fontSize: '0.8rem', color: '#334155', lineHeight: 1.55 }}>
+                          <strong>Connector Source:</strong> {selectedAsset360.node.label}<br />
+                          <strong>Source Type:</strong> {(selectedAsset360.node.subType || 'DATABASE').toUpperCase()}<br />
+                          <strong>Authority Level:</strong> {selectedAsset360.node.authority ? `${(Number(selectedAsset360.node.authority) * 100).toFixed(0)}%` : '95%'}<br />
+                          <strong>Synced Records:</strong> {selectedAsset360.connectedDocs.length} Objects &bull; {selectedAsset360.claims.length} Claims
+                        </div>
+                        {selectedAsset360.connectedDocs.map(d => (
+                          <div key={d.id} style={{ padding: '10px 12px', borderRadius: '6px', border: '1px solid #E2E8F0', background: '#F8FAFC', fontSize: '0.78rem', fontWeight: 600, color: '#0F172A' }}>
+                            {d.label}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
+
+              {/* RIGHT PANE (JUST BESIDE ORIGINAL DOCUMENT): DETAILS & ALL FACILITIES */}
+              <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '12px', width: '100%' }}>
+
+              {/* 1. ASSET 360° DESCRIPTION & METADATA HEADER (Shown in Documents 360° & Connectors 360°) */}
+              {selectedAsset360 && (
+                <div style={{
+                  background: '#FFFFFF',
+                  border: '1px solid #CBD5E1',
+                  borderRadius: '10px',
+                  padding: '14px 18px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '10px',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.02)'
+                }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px', flexWrap: 'wrap' }}>
+                      <span style={{ fontSize: '0.64rem', fontWeight: 800, padding: '2px 8px', borderRadius: '4px', background: '#E0F2FE', color: '#0284C7', textTransform: 'uppercase' }}>
+                        {selectedAsset360.mode === 'document' ? `📄 ${selectedAsset360.node.subType || 'POLICY DOCUMENT'}` : `🔌 ${selectedAsset360.node.subType || 'DATA CONNECTOR'}`}
+                      </span>
+                      <span style={{ fontSize: '0.64rem', fontWeight: 800, padding: '2px 8px', borderRadius: '4px', background: '#DCFCE7', color: '#15803D' }}>
+                        ● {(selectedAsset360.node.status || 'ACTIVE').toUpperCase()}
+                      </span>
+                      {selectedAsset360.mode === 'document' && (
+                        <span style={{ fontSize: '0.64rem', fontWeight: 700, padding: '2px 8px', borderRadius: '4px', background: '#F1F5F9', color: '#475569' }}>
+                          Version v{selectedAsset360.node.data?.version_count || 1}.0 &bull; Source: {selectedAsset360.parentSource?.label || 'Direct Upload'}
+                        </span>
+                      )}
+                      {selectedAsset360.mode === 'connector' && (
+                        <span style={{ fontSize: '0.64rem', fontWeight: 700, padding: '2px 8px', borderRadius: '4px', background: '#EFF6FF', color: '#1D4ED8' }}>
+                          Authority Weight: {selectedAsset360.node.authority ? `${(Number(selectedAsset360.node.authority) * 100).toFixed(0)}%` : '95%'}
+                        </span>
+                      )}
+                    </div>
+                    <h2 style={{ margin: 0, fontSize: '1.08rem', fontWeight: 800, color: '#0F172A' }}>
+                      {selectedAsset360.node.label}
+                    </h2>
+                  </div>
+
+                  {/* Inline Section Filter Tabs (Single Line, No Icons/Borders/Shadows) */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'transparent', padding: '0', border: 'none', boxShadow: 'none', flexWrap: 'nowrap' }}>
+                    {[
+                      { id: 'all', label: 'All Sections' },
+                      { id: 'dag', label: 'DAG Lineage' },
+                      { id: 'conflicts', label: `Conflicts (${selectedAsset360.conflicts.length})` },
+                      { id: 'claims', label: `Claims (${selectedAsset360.claims.length})` }
+                    ].map(sec => {
+                      const active = asset360Section === sec.id;
+                      return (
+                        <button
+                          key={sec.id}
+                          type="button"
+                          onClick={() => setAsset360Section(sec.id)}
+                          onMouseEnter={(e) => {
+                            if (!active) {
+                              e.currentTarget.style.color = '#1E293B';
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            if (!active) {
+                              e.currentTarget.style.color = '#64748B';
+                            }
+                          }}
+                          style={{
+                            padding: '4px 8px',
+                            border: 'none',
+                            boxShadow: 'none',
+                            outline: 'none',
+                            background: 'transparent',
+                            color: active ? '#C2410C' : '#64748B',
+                            fontSize: '0.76rem',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            whiteSpace: 'nowrap',
+                            transition: 'color 0.15s ease'
+                          }}
+                        >
+                          {sec.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Asset Description & Summary Metrics */}
+                <p style={{ margin: 0, fontSize: '0.78rem', color: '#475569', lineHeight: 1.45, background: '#F8FAFC', padding: '8px 12px', borderRadius: '7px', borderLeft: '3px solid #0284C7' }}>
+                  <strong>Asset Description:</strong> {selectedAsset360.description}
+                </p>
+
+                {/* Connected Documents Strip for Connectors */}
+                {selectedAsset360.mode === 'connector' && selectedAsset360.connectedDocs.length > 0 && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                    <span style={{ fontSize: '0.68rem', fontWeight: 800, color: '#64748B', textTransform: 'uppercase' }}>
+                      Synced Documents ({selectedAsset360.connectedDocs.length}):
+                    </span>
+                    {selectedAsset360.connectedDocs.map(d => (
+                      <button
+                        key={d.id}
+                        type="button"
+                        onClick={() => {
+                          setVaultSubTab('documents');
+                          setSelectedNodeId(d.id);
+                          setInteractiveRootId(d.id);
+                          setExpandedUpstreamSet(new Set());
+                          setExpandedDownstreamSet(new Set());
+                        }}
+                        style={{
+                          padding: '2px 8px',
+                          borderRadius: '5px',
+                          border: '1px solid #CBD5E1',
+                          background: '#FFFFFF',
+                          fontSize: '0.7rem',
+                          fontWeight: 700,
+                          color: '#0284C7',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        📄 {d.label} ➔
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* 2. INTERACTIVE DAG LINEAGE FOR THIS FILE / CONNECTOR */}
+            {(vaultSubTab === 'dag' || asset360Section === 'all' || asset360Section === 'dag') && (
+              <>
       {/* Unified Executive Lineage Command Card (Single Card Container) */}
       <div style={{
         background: '#FFFFFF',
@@ -1351,11 +2268,12 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
               onChange={(e) => {
                 const val = e.target.value;
                 setSelectedNodeId(val);
+                setInteractiveRootId(val);
                 setExpandedUpstreamSet(new Set());
                 setExpandedDownstreamSet(new Set());
                 setExpandedConflictClaimsSet(new Set());
                 if (val) {
-                  showToast?.("Focused on single starting asset — click ◀ or ▶ to expand flow");
+                  showToast?.("Focused on single starting asset — click + or − to expand flow");
                 }
               }}
               style={{
@@ -1782,8 +2700,12 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
                 <select
                   value={selectedDocFilter}
                   onChange={(e) => {
-                    setSelectedDocFilter(e.target.value);
-                    if (e.target.value !== 'all') setSelectedNodeId(e.target.value);
+                    const val = e.target.value;
+                    setSelectedDocFilter(val);
+                    if (val !== 'all') {
+                      setSelectedNodeId(val);
+                      setInteractiveRootId(val);
+                    }
                   }}
                   style={{
                     padding: '2px 5px',
@@ -1804,6 +2726,34 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
                       {d.label}
                     </option>
                   ))}
+                </select>
+              </div>
+
+              {/* Conflict Status Selector (Default: Active / Unresolved Only) */}
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                <span style={{ fontSize: '0.66rem', fontWeight: 700, color: '#EA580C', textTransform: 'uppercase' }}>
+                  Status:
+                </span>
+                <select
+                  value={filterStatus}
+                  onChange={(e) => setFilterStatus(e.target.value)}
+                  style={{
+                    padding: '2px 5px',
+                    borderRadius: '4px',
+                    border: filterStatus === 'active' ? '1px solid #EA580C' : '1px solid #CBD5E1',
+                    background: filterStatus === 'active' ? '#FFF7ED' : '#F8FAFC',
+                    fontSize: '0.70rem',
+                    color: filterStatus === 'active' ? '#C2410C' : '#334155',
+                    fontWeight: 700,
+                    outline: 'none',
+                    cursor: 'pointer',
+                    height: '24px'
+                  }}
+                  title="Filter contradictions by resolution status (defaults to Active/Unresolved Only)"
+                >
+                  <option value="active">Active / Unresolved Only</option>
+                  <option value="resolved">Resolved Only</option>
+                  <option value="all">All (Active + Resolved)</option>
                 </select>
               </div>
 
@@ -2210,6 +3160,7 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
                 left: 0,
                 width: '3600px',
                 height: '2400px',
+                overflow: 'visible',
                 pointerEvents: 'none',
                 zIndex: 2
               }}
@@ -2318,7 +3269,7 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
               }}>
                 <span style={{ fontSize: '13px' }}>🎯</span>
                 <span>
-                  <strong>Interactive Flow:</strong> Click <strong>◀ Upstream</strong> to reveal origins, or <strong>Downstream ▶</strong> to reveal impact.
+                  <strong>Interactive Flow:</strong> Click <strong>+</strong> / <strong>−</strong> on the left for Upstream or <strong>+</strong> / <strong>−</strong> on the right for Downstream.
                 </span>
               </div>
             )}
@@ -2561,95 +3512,81 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
                     </div>
                   )}
 
-                  {/* Left Connection Port: Shows Upstream Parents & Click to Expand/Collapse */}
-                  {node.type !== 'source' && (
+                  {/* Left Connection Port: Upstream Expand (+) / Collapse (−) Only */}
+                  {node.type !== 'source' && upstreamCount > 0 && (
                     <div
+                      onMouseDown={(e) => e.stopPropagation()}
                       onClick={(e) => {
                         e.stopPropagation();
                         toggleUpstream(node.id);
-                      
                       }}
                       style={{
                         position: 'absolute',
-                        left: '-14px',
+                        left: '-13px',
                         top: (node.type === 'conflict' && isClaimsExpanded) ? '26px' : 'calc(50% - 11px)',
-                        padding: '2px 6px',
-                        borderRadius: '10px',
+                        width: '22px',
+                        height: '22px',
+                        borderRadius: '50%',
                         background: isUpstreamExpanded ? '#1D4ED8' : '#fff',
                         border: `1.5px solid ${isUpstreamExpanded ? '#1D4ED8' : borderColor}`,
                         color: isUpstreamExpanded ? '#fff' : borderColor,
-                        boxShadow: '0 2px 6px rgba(0,0,0,0.12)',
+                        boxShadow: '0 2px 6px rgba(0,0,0,0.14)',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        gap: '2px',
-                        fontSize: '0.58rem',
-                        fontWeight: 800,
-                        cursor: upstreamCount > 0 ? 'pointer' : 'default',
+                        fontSize: '0.85rem',
+                        fontWeight: 900,
+                        lineHeight: 1,
+                        cursor: 'pointer',
                         zIndex: 25,
                         transition: 'all 0.15s ease'
                       }}
                       title={
-                        upstreamCount > 0
-                          ? isUpstreamExpanded
-                            ? `Click to collapse ${upstreamCount} upstream parents`
-                            : `Click to reveal ${upstreamCount} upstream parents`
-                          : 'No upstream dependencies'
+                        isUpstreamExpanded
+                          ? 'Click (−) to collapse upstream nodes'
+                          : 'Click (+) to expand upstream nodes'
                       }
                     >
-                      <span>◀</span>
-                      <span>{upstreamCount}</span>
-                      {upstreamCount > 0 && (
-                        <span style={{ fontSize: '0.62rem', fontWeight: 900, marginLeft: '1px' }}>
-                          {isUpstreamExpanded ? '−' : '+'}
-                        </span>
-                      )}
+                      {isUpstreamExpanded ? '−' : '+'}
                     </div>
                   )}
 
-                  {/* Right Connection Port: Shows Downstream Impacts & Click to Expand/Collapse */}
-                  {node.type !== 'decision' && (
+                  {/* Right Connection Port: Downstream Expand (+) / Collapse (−) Only */}
+                  {node.type !== 'decision' && downstreamCount > 0 && (
                     <div
+                      onMouseDown={(e) => e.stopPropagation()}
                       onClick={(e) => {
                         e.stopPropagation();
                         toggleDownstream(node.id);
-                       
                       }}
                       style={{
                         position: 'absolute',
-                        right: '-14px',
+                        right: '-13px',
                         top: (node.type === 'conflict' && isClaimsExpanded) ? '26px' : 'calc(50% - 11px)',
-                        padding: '2px 6px',
-                        borderRadius: '10px',
+                        width: '22px',
+                        height: '22px',
+                        borderRadius: '50%',
                         background: isDownstreamExpanded ? '#1D4ED8' : '#fff',
                         border: `1.5px solid ${isDownstreamExpanded ? '#1D4ED8' : borderColor}`,
                         color: isDownstreamExpanded ? '#fff' : borderColor,
-                        boxShadow: '0 2px 6px rgba(0,0,0,0.12)',
+                        boxShadow: '0 2px 6px rgba(0,0,0,0.14)',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        gap: '2px',
-                        fontSize: '0.58rem',
-                        fontWeight: 800,
-                        cursor: downstreamCount > 0 ? 'pointer' : 'default',
+                        fontSize: '0.85rem',
+                        fontWeight: 900,
+                        lineHeight: 1,
+                        cursor: 'pointer',
                         zIndex: 25,
                         transition: 'all 0.15s ease'
                       }}
                       title={
-                        downstreamCount > 0
-                          ? isDownstreamExpanded
-                            ? `Click to collapse ${downstreamCount} downstream impacts`
-                            : `Click to reveal ${downstreamCount} downstream impacts`
-                          : 'No downstream impacts'
+                        isDownstreamExpanded
+                          ? 'Click (−) to collapse downstream nodes'
+                          : 'Click (+) to expand downstream nodes'
                       }
                     >
-                      {downstreamCount > 0 && (
-                        <span style={{ fontSize: '0.62rem', fontWeight: 900, marginRight: '1px' }}>
-                          {isDownstreamExpanded ? '−' : '+'}
-                        </span>
-                      )}
-                      <span>{downstreamCount}</span>
-                      <span>▶</span>
+                      {isDownstreamExpanded ? '−' : '+'}
                     </div>
                   )}
 
@@ -2705,27 +3642,13 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
                     </span>
                     {node.type === 'document' ? (
                       <span
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setLineageGranularity('claim');
-                          setSelectedDocFilter(node.id);
-                          showToast?.(`Drilled down to claims for ${node.label}`);
-                        }}
                         style={{
                           color: '#0284c7',
                           fontWeight: 700,
-                          fontSize: '0.64rem',
-                          cursor: 'pointer',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '2px',
-                          background: '#f0f9ff',
-                          padding: '1px 5px',
-                          borderRadius: '4px'
+                          fontSize: '0.62rem'
                         }}
-                        title="Drill down to atomic claims (Atlan Column-Level Lineage)"
                       >
-                        <span>View Claims &rsaquo;</span>
+                        inspect doc &rsaquo;
                       </span>
                     ) : node.type === 'conflict' ? (
                       <span
@@ -3032,6 +3955,537 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
               </div>
             )}
           </div>
+        </div>
+      )}
+              </>
+            )}
+
+            {/* 3. SELECTED ASSET'S CONTRADICTIONS & CONFLICTS (Active & Resolved for THIS Document / Connector) */}
+            {selectedAsset360 && (asset360Section === 'all' || asset360Section === 'conflicts') && (
+              <div style={{
+                background: '#FFFFFF',
+                border: '1px solid #E2E8F0',
+                borderRadius: '10px',
+                padding: '14px 18px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '12px'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', borderBottom: '1px solid #F1F5F9', paddingBottom: '8px' }}>
+                  <div>
+                    <h4 style={{ margin: 0, fontSize: '0.88rem', fontWeight: 800, color: '#0F172A' }}>
+                      ⚖️ Contradictions & Conflicts for "{selectedAsset360.node.label}" ({selectedAsset360.conflicts.length})
+                    </h4>
+                    <span style={{ fontSize: '0.72rem', color: '#64748B' }}>
+                      {selectedAsset360.activeConflicts.length} Active / Unresolved &bull; {selectedAsset360.conflicts.length - selectedAsset360.activeConflicts.length} Resolved
+                    </span>
+                  </div>
+                </div>
+
+                {selectedAsset360.conflicts.length === 0 ? (
+                  <div style={{ padding: '14px', background: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: '8px', fontSize: '0.78rem', color: '#15803D', fontWeight: 600 }}>
+                    ✅ Zero contradictions detected for this {selectedAsset360.mode}. All extracted policy claims are consistent.
+                  </div>
+                ) : (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(380px, 1fr))', gap: '10px' }}>
+                    {selectedAsset360.conflicts.map((c, idx) => {
+                      const cItem = conflictMap[c.id];
+                      const clA = graphData?.nodes?.find(n => n.id === cItem?.claimAId);
+                      const clB = graphData?.nodes?.find(n => n.id === cItem?.claimBId);
+                      const st = (c.status || '').toLowerCase();
+                      const isResolved = st === 'resolved' || st === 'dismissed';
+
+                      return (
+                        <div
+                          key={c.id}
+                          style={{
+                            border: isResolved ? '1px solid #BBF7D0' : '1.5px solid #FED7AA',
+                            background: isResolved ? '#F0FDF4' : '#FFF7ED',
+                            borderRadius: '9px',
+                            padding: '12px 14px',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '8px'
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px' }}>
+                            <span style={{
+                              fontSize: '0.62rem',
+                              fontWeight: 800,
+                              padding: '2px 7px',
+                              borderRadius: '999px',
+                              background: isResolved ? '#DCFCE7' : '#FFEDD5',
+                              color: isResolved ? '#15803D' : '#C2410C'
+                            }}>
+                              {isResolved ? '✅ RESOLVED' : '⚠️ ACTIVE / UNRESOLVED'} &bull; {c.severity || 'HIGH'}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (isResolved) setFilterStatus('all');
+                                setExpandedDownstreamSet(prev => new Set(prev).add(selectedAsset360.node.id));
+                                setSelectedNodeId(c.id);
+                                showToast?.(`Selected "${c.label}" in the DAG above`);
+                              }}
+                              style={{
+                                padding: '3px 8px',
+                                borderRadius: '5px',
+                                border: '1px solid #EA580C',
+                                background: '#FFFFFF',
+                                color: '#C2410C',
+                                fontSize: '0.66rem',
+                                fontWeight: 700,
+                                cursor: 'pointer'
+                              }}
+                            >
+                              Focus in DAG ↑
+                            </button>
+                          </div>
+
+                          <div style={{ fontSize: '0.8rem', fontWeight: 800, color: '#0F172A' }}>
+                            #{idx + 1} {c.label}
+                          </div>
+
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+                            <div style={{ background: '#FFFFFF', padding: '7px 9px', borderRadius: '6px', borderLeft: '3px solid #0284C7', fontSize: '0.7rem', color: '#1E293B' }}>
+                              <strong style={{ color: '#0284C7', display: 'block', fontSize: '0.6rem' }}>ASSERTION A</strong>
+                              "{clA?.fullText || clA?.label}"
+                            </div>
+                            <div style={{ background: '#FFFFFF', padding: '7px 9px', borderRadius: '6px', borderLeft: '3px solid #EA580C', fontSize: '0.7rem', color: '#1E293B' }}>
+                              <strong style={{ color: '#EA580C', display: 'block', fontSize: '0.6rem' }}>ASSERTION B</strong>
+                              "{clB?.fullText || clB?.label}"
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* 4. SELECTED ASSET'S ATOMIC CLAIMS & DOWNSTREAM AI DECISIONS */}
+            {selectedAsset360 && (asset360Section === 'all' || asset360Section === 'claims') && (
+              <div style={{
+                background: '#FFFFFF',
+                border: '1px solid #E2E8F0',
+                borderRadius: '10px',
+                padding: '14px 18px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '12px'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', borderBottom: '1px solid #F1F5F9', paddingBottom: '8px' }}>
+                  <div>
+                    <h4 style={{ margin: 0, fontSize: '0.88rem', fontWeight: 800, color: '#0F172A' }}>
+                      ⚡ Extracted Atomic Claims ({selectedAsset360.claims.length}) & Downstream AI Decisions ({selectedAsset360.decisions.length})
+                    </h4>
+                    <span style={{ fontSize: '0.72rem', color: '#64748B' }}>
+                      All atomic rules and governance verdicts derived from "{selectedAsset360.node.label}"
+                    </span>
+                  </div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))', gap: '10px' }}>
+                  {selectedAsset360.claims.map(cl => {
+                    const isConf = allConflictedClaimIds.has(cl.id);
+                    return (
+                      <div
+                        key={cl.id}
+                        style={{
+                          border: isConf ? '1.5px solid #FED7AA' : '1px solid #E2E8F0',
+                          background: isConf ? '#FFF7ED' : '#F8FAFC',
+                          borderRadius: '8px',
+                          padding: '10px 12px',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          justifyContent: 'space-between',
+                          gap: '6px'
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                          <span className={isConf ? 'badge badge-warning' : 'badge badge-verified'} style={{ fontSize: '0.62rem' }}>
+                            {isConf ? '⚠️ In Conflict' : '✅ Verified Claim'}
+                          </span>
+                          <span style={{ fontSize: '0.66rem', fontWeight: 700, color: '#059669' }}>
+                            Trust: {((cl.trustScore || 0.92) * 100).toFixed(0)}%
+                          </span>
+                        </div>
+                        <p style={{ margin: 0, fontSize: '0.75rem', color: '#1E293B', lineHeight: 1.38, fontWeight: 500 }}>
+                          "{cl.fullText || cl.label}"
+                        </p>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ========================================================= */}
+      {/* SUB-TAB 2: CONFLICTS REGISTRY (ACTIVE & RESOLVED)         */}
+      {/* ========================================================= */}
+      {vaultSubTab === 'conflicts' && (
+        <div style={{
+          background: '#FFFFFF',
+          border: '1px solid #E2E8F0',
+          borderRadius: '12px',
+          padding: '18px 20px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '16px'
+        }}>
+          {/* Top Header & Status Filter Bar */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px', borderBottom: '1px solid #F1F5F9', paddingBottom: '12px' }}>
+            <div>
+              <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 800, color: '#0F172A' }}>
+                ⚖️ Enterprise Contradictions Registry (Active & Resolved)
+              </h3>
+              <p style={{ margin: '3px 0 0 0', fontSize: '0.76rem', color: '#64748B' }}>
+                Browse all policy contradictions without cluttering the visual DAG canvas. Click <strong>Visualize in DAG</strong> on any conflict to trace its exact lineage.
+              </p>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              {[
+                { id: 'all', label: `All Conflicts (${allConflictsRaw.length})`, color: '#334155' },
+                { id: 'active', label: `⚠️ Active / Unresolved (${activeConflictsCount})`, color: '#EA580C' },
+                { id: 'resolved', label: `✅ Resolved (${resolvedConflictsCount})`, color: '#16A34A' }
+              ].map(btn => {
+                const isSel = vaultConflictFilter === btn.id;
+                return (
+                  <button
+                    key={btn.id}
+                    type="button"
+                    onClick={() => setVaultConflictFilter(btn.id)}
+                    style={{
+                      padding: '5px 12px',
+                      borderRadius: '6px',
+                      border: isSel ? `1.5px solid ${btn.color}` : '1px solid #CBD5E1',
+                      background: isSel ? `${btn.color}12` : '#F8FAFC',
+                      color: isSel ? btn.color : '#475569',
+                      fontSize: '0.73rem',
+                      fontWeight: isSel ? 800 : 600,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    {btn.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Conflict Cards Grid */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(440px, 1fr))', gap: '14px' }}>
+            {allConflictsRaw
+              .filter(c => {
+                const st = (c.status || '').toLowerCase();
+                if (vaultConflictFilter === 'active') return st !== 'resolved' && st !== 'dismissed';
+                if (vaultConflictFilter === 'resolved') return st === 'resolved' || st === 'dismissed';
+                return true;
+              })
+              .filter(c => {
+                if (!vaultSearch.trim()) return true;
+                const q = vaultSearch.toLowerCase();
+                const cItem = conflictMap[c.id];
+                const clA = graphData?.nodes?.find(n => n.id === cItem?.claimAId);
+                const clB = graphData?.nodes?.find(n => n.id === cItem?.claimBId);
+                return (
+                  (c.label || '').toLowerCase().includes(q) ||
+                  (clA?.fullText || '').toLowerCase().includes(q) ||
+                  (clB?.fullText || '').toLowerCase().includes(q)
+                );
+              })
+              .map((c, idx) => {
+                const cItem = conflictMap[c.id];
+                const clA = graphData?.nodes?.find(n => n.id === cItem?.claimAId);
+                const clB = graphData?.nodes?.find(n => n.id === cItem?.claimBId);
+                const st = (c.status || '').toLowerCase();
+                const isResolved = st === 'resolved' || st === 'dismissed';
+
+                const docEdgeA = graphData?.edges?.find(e => e.target === cItem?.claimAId && e.source.startsWith('doc_'));
+                const docEdgeB = graphData?.edges?.find(e => e.target === cItem?.claimBId && e.source.startsWith('doc_'));
+                const docA = graphData?.nodes?.find(n => n.id === docEdgeA?.source);
+                const docB = graphData?.nodes?.find(n => n.id === docEdgeB?.source);
+
+                return (
+                  <div
+                    key={c.id}
+                    style={{
+                      border: isResolved ? '1px solid #BBF7D0' : '1.5px solid #FED7AA',
+                      background: isResolved ? '#F0FDF4' : '#FFF7ED',
+                      borderRadius: '10px',
+                      padding: '14px 16px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '10px',
+                      boxShadow: '0 2px 6px rgba(0,0,0,0.03)'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span style={{
+                          fontSize: '0.64rem',
+                          fontWeight: 800,
+                          padding: '2px 8px',
+                          borderRadius: '999px',
+                          background: isResolved ? '#DCFCE7' : '#FFEDD5',
+                          color: isResolved ? '#15803D' : '#C2410C',
+                          border: isResolved ? '1px solid #86EFAC' : '1px solid #FDBA74'
+                        }}>
+                          {isResolved ? '✅ RESOLVED' : '⚠️ ACTIVE / HUMAN REVIEW'}
+                        </span>
+                        <span style={{
+                          fontSize: '0.62rem',
+                          fontWeight: 800,
+                          padding: '2px 6px',
+                          borderRadius: '4px',
+                          background: '#FFFFFF',
+                          color: '#475569',
+                          border: '1px solid #CBD5E1'
+                        }}>
+                          {c.severity || 'HIGH'} SEVERITY
+                        </span>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => visualizeNodeInDag(c.id, c.label, isResolved)}
+                        style={{
+                          padding: '4px 10px',
+                          borderRadius: '6px',
+                          border: '1px solid #1D4ED8',
+                          background: '#1D4ED8',
+                          color: '#FFFFFF',
+                          fontSize: '0.7rem',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px'
+                        }}
+                      >
+                        <span>🕸️ Visualize in DAG</span>
+                      </button>
+                    </div>
+
+                    <div style={{ fontSize: '0.84rem', fontWeight: 800, color: '#0F172A' }}>
+                      #{idx + 1} {c.label}
+                    </div>
+
+                    {/* Side-by-Side Clashing Claims */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                      <div style={{ background: '#FFFFFF', padding: '9px 10px', borderRadius: '7px', borderLeft: '3px solid #0284C7', border: '1px solid #E2E8F0' }}>
+                        <div style={{ fontSize: '0.62rem', fontWeight: 800, color: '#0284C7', marginBottom: '3px' }}>
+                          CLAIM A &bull; {docA?.label || 'Policy Doc'}
+                        </div>
+                        <p style={{ margin: 0, fontSize: '0.72rem', color: '#1E293B', lineHeight: 1.35 }}>
+                          "{clA?.fullText || clA?.label || 'Baseline policy rule'}"
+                        </p>
+                      </div>
+
+                      <div style={{ background: '#FFFFFF', padding: '9px 10px', borderRadius: '7px', borderLeft: '3px solid #EA580C', border: '1px solid #E2E8F0' }}>
+                        <div style={{ fontSize: '0.62rem', fontWeight: 800, color: '#EA580C', marginBottom: '3px' }}>
+                          CLAIM B &bull; {docB?.label || 'Policy Doc'}
+                        </div>
+                        <p style={{ margin: 0, fontSize: '0.72rem', color: '#1E293B', lineHeight: 1.35 }}>
+                          "{clB?.fullText || clB?.label || 'Conflicting assertion'}"
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================= */}
+      {/* SUB-TAB 5: ATOMIC CLAIMS & AI DECISIONS CATALOG           */}
+      {/* ========================================================= */}
+      {vaultSubTab === 'claims' && (
+        <div style={{
+          background: '#FFFFFF',
+          border: '1px solid #E2E8F0',
+          borderRadius: '12px',
+          padding: '18px 20px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '14px'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px', borderBottom: '1px solid #F1F5F9', paddingBottom: '10px' }}>
+            <div>
+              <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 800, color: '#0F172A' }}>
+                ⚡ Extracted Atomic Claims & Evaluated AI Decisions
+              </h3>
+              <p style={{ margin: '3px 0 0 0', fontSize: '0.76rem', color: '#64748B' }}>
+                Search atomic assertions and governance verdicts. Click <strong>Visualize in DAG</strong> to trace any claim or decision on the lineage canvas.
+              </p>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              {[
+                { id: 'all', label: `All Claims (${allClaimsRaw.length})` },
+                { id: 'verified', label: '✅ Verified Claims' },
+                { id: 'conflicted', label: '⚠️ In Conflict' },
+                { id: 'decisions', label: `🤖 AI Decisions (${decisionsList.length})` }
+              ].map(f => {
+                const isSel = vaultClaimFilter === f.id;
+                return (
+                  <button
+                    key={f.id}
+                    type="button"
+                    onClick={() => setVaultClaimFilter(f.id)}
+                    style={{
+                      padding: '5px 10px',
+                      borderRadius: '6px',
+                      border: isSel ? '1.5px solid #059669' : '1px solid #CBD5E1',
+                      background: isSel ? '#ECFDF5' : '#F8FAFC',
+                      color: isSel ? '#059669' : '#475569',
+                      fontSize: '0.72rem',
+                      fontWeight: isSel ? 800 : 600,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    {f.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {vaultClaimFilter === 'decisions' ? (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '12px' }}>
+              {decisionsList
+                .filter(d => !vaultSearch.trim() || (d.label || '').toLowerCase().includes(vaultSearch.toLowerCase()))
+                .map(dec => (
+                  <div
+                    key={dec.id}
+                    style={{
+                      border: '1px solid #DDD6FE',
+                      borderRadius: '10px',
+                      padding: '12px 14px',
+                      background: '#FAF5FF',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                      gap: '8px'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <span style={{ fontSize: '0.64rem', fontWeight: 800, color: '#7C3AED', background: '#EDE9FE', padding: '2px 7px', borderRadius: '4px' }}>
+                        🤖 AI GOVERNANCE DECISION
+                      </span>
+                      <span className={dec.verdict === 'ALLOW' ? 'badge badge-verified' : 'badge badge-warning'} style={{ fontSize: '0.66rem' }}>
+                        {dec.verdict || 'EVALUATED'}
+                      </span>
+                    </div>
+                    <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#0F172A' }}>
+                      {dec.label}
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', borderTop: '1px solid #E9D5FF', paddingTop: '6px' }}>
+                      <button
+                        type="button"
+                        onClick={() => visualizeNodeInDag(dec.id, dec.label)}
+                        style={{
+                          padding: '4px 10px',
+                          borderRadius: '6px',
+                          border: '1px solid #7C3AED',
+                          background: '#7C3AED',
+                          color: '#FFFFFF',
+                          fontSize: '0.7rem',
+                          fontWeight: 700,
+                          cursor: 'pointer'
+                        }}
+                      >
+                        🕸️ Visualize in DAG
+                      </button>
+                    </div>
+                  </div>
+                ))}
+            </div>
+          ) : (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))', gap: '10px' }}>
+              {allClaimsRaw
+                .filter(cl => {
+                  const isConf = allConflictedClaimIds.has(cl.id);
+                  if (vaultClaimFilter === 'verified') return !isConf;
+                  if (vaultClaimFilter === 'conflicted') return isConf;
+                  return true;
+                })
+                .filter(cl => !vaultSearch.trim() || (cl.fullText || cl.label || '').toLowerCase().includes(vaultSearch.toLowerCase()))
+                .map(cl => {
+                  const isConf = allConflictedClaimIds.has(cl.id);
+                  const docEdge = graphData?.edges?.find(e => e.target === cl.id && e.source.startsWith('doc_'));
+                  const parentDoc = graphData?.nodes?.find(n => n.id === docEdge?.source);
+
+                  return (
+                    <div
+                      key={cl.id}
+                      style={{
+                        border: isConf ? '1.5px solid #FED7AA' : '1px solid #E2E8F0',
+                        background: isConf ? '#FFF7ED' : '#F8FAFC',
+                        borderRadius: '9px',
+                        padding: '12px 14px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'space-between',
+                        gap: '8px'
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px' }}>
+                        <span style={{ fontSize: '0.66rem', fontWeight: 700, color: '#0284C7' }}>
+                          📄 {parentDoc?.label || 'Policy Document'}
+                        </span>
+                        <div style={{ display: 'flex', gap: '6px' }}>
+                          <span className={isConf ? 'badge badge-warning' : 'badge badge-verified'} style={{ fontSize: '0.62rem' }}>
+                            {isConf ? '⚠️ In Conflict' : '✅ Verified'}
+                          </span>
+                          <span className="badge badge-verified" style={{ fontSize: '0.62rem' }}>
+                            {((cl.trustScore || 0.92) * 100).toFixed(0)}% Trust
+                          </span>
+                        </div>
+                      </div>
+
+                      <p style={{ margin: 0, fontSize: '0.78rem', color: '#1E293B', lineHeight: 1.4, fontWeight: 500 }}>
+                        "{cl.fullText || cl.label}"
+                      </p>
+
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid #E2E8F0', paddingTop: '6px' }}>
+                        <span style={{ fontSize: '0.64rem', color: '#64748B' }}>
+                          ID: <code>{cl.id.slice(0, 12)}</code>
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setLineageGranularity('claim');
+                            visualizeNodeInDag(cl.id, cl.label);
+                          }}
+                          style={{
+                            padding: '3px 9px',
+                            borderRadius: '5px',
+                            border: '1px solid #059669',
+                            background: '#059669',
+                            color: '#FFFFFF',
+                            fontSize: '0.68rem',
+                            fontWeight: 700,
+                            cursor: 'pointer'
+                          }}
+                        >
+                          🕸️ Visualize in DAG
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+            </div>
+          )}
         </div>
       )}
 

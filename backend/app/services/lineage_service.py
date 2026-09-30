@@ -75,8 +75,21 @@ class LineageService:
         nodes: List[Dict[str, Any]] = []
         edges: List[Dict[str, Any]] = []
 
-        # Build Source Nodes
-        for src in sources:
+        # Also fetch any referenced source_ids across all orgs so we can classify file uploads vs external connectors accurately
+        all_src_stmt = select(DataSource)
+        all_src_res = await self.db.execute(all_src_stmt)
+        all_sources_map = {s.id: s for s in all_src_res.scalars().all()}
+
+        def _is_file_upload_source(src_obj: Optional[DataSource]) -> bool:
+            if not src_obj:
+                return True
+            st = (src_obj.source_type or "").lower().strip()
+            nm = (src_obj.name or "").lower().strip()
+            return st in ("file", "upload", "local_file") or "file upload" in nm or "direct document upload" in nm
+
+        # Build External Connector Nodes (ONLY real DBs and external SaaS sources, NEVER internal file upload buckets)
+        external_sources = [s for s in sources if not _is_file_upload_source(s)]
+        for src in external_sources:
             nodes.append({
                 "id": f"src_{src.id}",
                 "type": "source",
@@ -88,12 +101,16 @@ class LineageService:
                     "source_id": str(src.id),
                     "external_id": src.external_id,
                     "last_synced_at": src.last_synced_at.isoformat() if src.last_synced_at else None,
+                    "isConnector": True,
                 }
             })
 
         # Build Document Nodes & Edges from Source
         for doc in documents:
             doc_node_id = f"doc_{doc.id}"
+            parent_src = all_sources_map.get(doc.source_id)
+            is_uploaded_file = _is_file_upload_source(parent_src) or (doc.external_id or "").startswith("file://")
+            sorted_versions = sorted(doc.versions, key=lambda v: v.version_number, reverse=True) if doc.versions else []
             nodes.append({
                 "id": doc_node_id,
                 "type": "document",
@@ -103,11 +120,26 @@ class LineageService:
                 "data": {
                     "doc_id": str(doc.id),
                     "external_id": doc.external_id,
+                    "domain": getattr(doc, "domain", "General"),
+                    "content_uri": getattr(doc, "content_uri", None),
+                    "content_hash": getattr(doc, "content_hash", None),
                     "version_count": len(doc.versions),
+                    "versions": [
+                        {
+                            "version_number": v.version_number,
+                            "content_hash": v.content_hash,
+                            "is_current": v.is_current,
+                            "created_at": v.created_at.isoformat() if v.created_at else None,
+                        }
+                        for v in sorted_versions
+                    ],
                     "created_at": doc.created_at.isoformat() if doc.created_at else None,
+                    "updated_at": doc.updated_at.isoformat() if getattr(doc, "updated_at", None) else None,
+                    "isUploadedFile": is_uploaded_file,
+                    "parentSourceType": parent_src.source_type if parent_src else "file",
                 }
             })
-            if doc.source_id:
+            if doc.source_id and not _is_file_upload_source(parent_src):
                 edges.append({
                     "id": f"e_src_{doc.source_id}_doc_{doc.id}",
                     "source": f"src_{doc.source_id}",

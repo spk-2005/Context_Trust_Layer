@@ -189,14 +189,20 @@ async def list_data_sources(
     offset: int = Query(0, ge=0),
     db: AsyncSession = Depends(get_db),
 ):
-    """List all configured data sources and live connector statuses for an organization."""
+    """List all configured external data sources and DB connectors (excluding internal file upload buckets)."""
     repo = DataSourceRepository(db)
     sources = await repo.list_by_organization(
         organization_id=organization_id,
         limit=limit,
         offset=offset,
     )
-    return [DataSourceResponse.model_validate(s) for s in sources]
+    external_connectors = [
+        s for s in sources
+        if (s.source_type or "").lower().strip() not in ("file", "upload", "local_file")
+        and "file upload" not in (s.name or "").lower()
+        and "direct document upload" not in (s.name or "").lower()
+    ]
+    return [DataSourceResponse.model_validate(s) for s in external_connectors]
 
 
 @router.post("", response_model=DataSourceResponse, status_code=status.HTTP_201_CREATED)
@@ -296,4 +302,131 @@ async def sync_all_sources(
         return results
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Bulk sync failed: {str(e)}")
+
+
+@router.get("/{source_id}/artifacts")
+async def get_source_artifacts(
+    source_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Returns full deep-dive artifacts for a specific data source connector:
+    - connector metadata
+    - all synced documents
+    - all extracted atomic claims
+    - all conflicts originating from this connector
+    """
+    from sqlalchemy import or_, select
+    from sqlalchemy.orm import selectinload
+    from app.db.models.claim import Claim
+    from app.db.models.claim_conflict import ClaimConflict
+    from app.db.models.data_source import DataSource
+    from app.db.models.document import Document
+    from app.db.models.document_version import DocumentVersion
+
+    src = await db.get(DataSource, source_id)
+    if not src:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Data source connector not found")
+
+    # Get documents synced by this source
+    doc_stmt = (
+        select(Document)
+        .where(Document.source_id == source_id)
+        .options(selectinload(Document.versions))
+    )
+    res_docs = await db.execute(doc_stmt)
+    docs = res_docs.scalars().all()
+
+    version_ids = []
+    docs_output = []
+    for d in docs:
+        for v in (d.versions or []):
+            version_ids.append(v.id)
+        docs_output.append({
+            "id": str(d.id),
+            "title": d.title,
+            "document_type": d.document_type,
+            "external_id": d.external_id,
+            "status": d.status.value if hasattr(d.status, "value") else str(d.status),
+            "created_at": d.created_at.isoformat() if d.created_at else None,
+            "versions_count": len(d.versions) if d.versions else 1
+        })
+
+    claims_output = []
+    conflicts_list = []
+
+    if version_ids:
+        claims_stmt = (
+            select(Claim)
+            .where(Claim.document_version_id.in_(version_ids))
+            .options(
+                selectinload(Claim.evidence),
+                selectinload(Claim.validity_records),
+                selectinload(Claim.trust_scores),
+            )
+        )
+        res_claims = await db.execute(claims_stmt)
+        claims = res_claims.scalars().all()
+        claim_ids = [c.id for c in claims]
+
+        if claim_ids:
+            conflicts_stmt = (
+                select(ClaimConflict)
+                .where(
+                    or_(
+                        ClaimConflict.claim_a_id.in_(claim_ids),
+                        ClaimConflict.claim_b_id.in_(claim_ids)
+                    )
+                )
+                .options(
+                    selectinload(ClaimConflict.claim_a).selectinload(Claim.trust_scores),
+                    selectinload(ClaimConflict.claim_b).selectinload(Claim.trust_scores),
+                )
+            )
+            res_conflicts = await db.execute(conflicts_stmt)
+            raw_conflicts = res_conflicts.scalars().all()
+            for cf in raw_conflicts:
+                conflicts_list.append({
+                    "id": str(cf.id),
+                    "claim_a_id": str(cf.claim_a_id),
+                    "claim_b_id": str(cf.claim_b_id),
+                    "claim_a_text": cf.claim_a.claim_text if cf.claim_a else "Unknown",
+                    "claim_b_text": cf.claim_b.claim_text if cf.claim_b else "Unknown",
+                    "conflict_type": cf.conflict_type.value if hasattr(cf.conflict_type, "value") else str(cf.conflict_type),
+                    "resolution_status": cf.resolution_status.value if hasattr(cf.resolution_status, "value") else str(cf.resolution_status),
+                    "severity": getattr(cf, "severity", "HIGH"),
+                    "created_at": cf.created_at.isoformat() if cf.created_at else None
+                })
+
+        for c in claims:
+            score = c.trust_scores[0].overall_score if c.trust_scores else 0.95
+            validity = c.validity_records[0].validity_status if c.validity_records else "valid"
+            claims_output.append({
+                "id": str(c.id),
+                "subject": c.subject or "General",
+                "predicate": c.predicate or "specifies",
+                "object": c.object or "",
+                "claim_text": c.claim_text,
+                "status": c.status.value if hasattr(c.status, "value") else str(c.status),
+                "trust_score": float(score),
+                "validity": str(validity),
+                "created_at": c.created_at.isoformat() if c.created_at else None
+            })
+
+    return {
+        "source": {
+            "id": str(src.id),
+            "name": src.name,
+            "source_type": src.source_type,
+            "authority_level": src.authority_level,
+            "status": src.status.value if hasattr(src.status, "value") else str(src.status),
+            "created_at": src.created_at.isoformat() if src.created_at else None
+        },
+        "documents": docs_output,
+        "claims": claims_output,
+        "conflicts": conflicts_list,
+        "total_documents": len(docs_output),
+        "total_claims": len(claims_output),
+        "total_conflicts": len(conflicts_list)
+    }
 

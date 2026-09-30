@@ -89,13 +89,31 @@ body {
   z-index: 40;
   padding: 14px 10px 14px 10px;
   box-sizing: border-box;
+  transition: width 0.18s ease, min-width 0.18s ease, padding 0.18s ease;
+}
+
+.sidebar.sidebar-collapsed {
+  width: 62px;
+  min-width: 62px;
+  padding: 14px 8px;
+}
+
+.sidebar.sidebar-collapsed .nav-item {
+  justify-content: center;
+  padding: 10px 0;
+}
+
+.sidebar.sidebar-collapsed .nav-item span {
+  display: none;
 }
 
 .main-content {
   flex: 1;
-  padding: 16px 36px 24px 36px;
-  max-width: 1400px;
-  width: calc(100% - 250px);
+  padding: 16px 28px 24px 28px;
+  max-width: 100%;
+  min-width: 0;
+  width: 100%;
+  transition: all 0.2s ease;
 }
 
 /* Sidebar Scrollable Body */
