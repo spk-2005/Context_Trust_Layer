@@ -44,6 +44,7 @@ class LineageService:
                 selectinload(Claim.trust_scores),
                 selectinload(Claim.validity_records),
                 selectinload(Claim.document_version),
+                selectinload(Claim.evidence),
             )
         )
         res_claims = await self.db.execute(stmt_claims)
@@ -154,6 +155,13 @@ class LineageService:
             ts = cl.trust_scores[0] if cl.trust_scores else None
             trust_val = float(ts.overall_score) if ts and ts.overall_score else 0.85
             vr = cl.validity_records[0] if cl.validity_records else None
+            ev_snippet = None
+            ev_section = None
+            if cl.evidence:
+                first_ev = cl.evidence[0]
+                ev_snippet = getattr(first_ev, "exact_quote", None) or getattr(first_ev, "snippet", None)
+                ev_section = getattr(first_ev, "section", None)
+
             nodes.append({
                 "id": cl_node_id,
                 "type": "claim",
@@ -161,10 +169,21 @@ class LineageService:
                 "fullText": cl.claim_text,
                 "status": cl.status.value if hasattr(cl.status, "value") else str(cl.status),
                 "trustScore": trust_val,
+                "subject": cl.subject or "Policy Assertion",
+                "predicate": cl.predicate or "governs",
+                "object": cl.object or "",
                 "data": {
                     "claim_id": str(cl.id),
                     "document_version_id": str(cl.document_version_id),
                     "scope": getattr(cl, "scope", "Enterprise"),
+                    "subject": cl.subject or "Policy Assertion",
+                    "predicate": cl.predicate or "governs",
+                    "object": cl.object or "",
+                    "claim_type": getattr(cl, "claim_type", "assertion"),
+                    "extraction_method": getattr(cl, "extraction_method", "autonomous_agent"),
+                    "extraction_model": getattr(cl, "extraction_model", "Gemini 2.0 Flash Enterprise"),
+                    "evidence_snippet": ev_snippet,
+                    "evidence_section": ev_section,
                     "temporal_validity": {
                         "valid_from": vr.valid_from.isoformat() if vr and vr.valid_from else None,
                         "valid_until": vr.valid_until.isoformat() if vr and vr.valid_until else None,

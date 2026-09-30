@@ -26,6 +26,7 @@ import {
   ChevronRight,
   ChevronLeft
 } from 'lucide-react';
+import VisualClaimExtractionStudio from './VisualClaimExtractionStudio';
 
 const CARD_WIDTH = 260;
 const CARD_HEIGHT = 76;
@@ -50,7 +51,7 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
 
   // Vault Top-Level Sub-Tab: 'documents' (default 360° hub) | 'connectors' (360° hub) | 'conflicts' | 'claims' | 'dag'
   const [vaultSubTab, setVaultSubTab] = useState('documents');
-  const [asset360Section, setAsset360Section] = useState('all'); // 'all' | 'dag' | 'conflicts' | 'claims'
+  const [asset360Section, setAsset360Section] = useState('extraction'); // 'extraction' | 'dag' | 'conflicts' | 'claims' | 'all'
   const [vaultSearch, setVaultSearch] = useState('');
   const [vaultConflictFilter, setVaultConflictFilter] = useState('all'); // 'all' | 'active' | 'resolved'
   const [vaultClaimFilter, setVaultClaimFilter] = useState('all'); // 'all' | 'verified' | 'conflicted' | 'decisions'
@@ -1952,6 +1953,134 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
               </div>
             )}
 
+            {/* TOP FULL-WIDTH MENU HEADER CARD (ABOVE ORIGINAL DOCUMENT AND FACILITIES) */}
+            {selectedAsset360 && (
+              <div style={{
+                background: '#FFFFFF',
+                border: '1px solid #CBD5E1',
+                borderRadius: '10px',
+                padding: '16px 20px',
+                marginBottom: '16px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '12px',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.02)'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px', flexWrap: 'wrap' }}>
+                      <span style={{ fontSize: '0.66rem', fontWeight: 800, padding: '3px 9px', borderRadius: '4px', background: '#E0F2FE', color: '#0284C7', textTransform: 'uppercase' }}>
+                        {selectedAsset360.mode === 'document' ? `📄 ${selectedAsset360.node.subType || 'POLICY DOCUMENT'}` : `🔌 ${selectedAsset360.node.subType || 'DATA CONNECTOR'}`}
+                      </span>
+                      <span style={{ fontSize: '0.66rem', fontWeight: 800, padding: '3px 9px', borderRadius: '4px', background: '#DCFCE7', color: '#15803D' }}>
+                        ● {(selectedAsset360.node.status || 'ACTIVE').toUpperCase()}
+                      </span>
+                      {selectedAsset360.mode === 'document' && (
+                        <span style={{ fontSize: '0.66rem', fontWeight: 700, padding: '3px 9px', borderRadius: '4px', background: '#F1F5F9', color: '#475569' }}>
+                          Version v{selectedAsset360.node.data?.version_count || 1}.0 &bull; Source: {selectedAsset360.parentSource?.label || 'Direct Upload'}
+                        </span>
+                      )}
+                      {selectedAsset360.mode === 'connector' && (
+                        <span style={{ fontSize: '0.66rem', fontWeight: 700, padding: '3px 9px', borderRadius: '4px', background: '#EFF6FF', color: '#1D4ED8' }}>
+                          Authority Weight: {selectedAsset360.node.authority ? `${(Number(selectedAsset360.node.authority) * 100).toFixed(0)}%` : '95%'}
+                        </span>
+                      )}
+                    </div>
+                    <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 800, color: '#0F172A' }}>
+                      {selectedAsset360.node.label}
+                    </h2>
+                  </div>
+
+                  {/* Modern Interactive Facility Menu Tabs */}
+                  <div style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    background: '#F1F5F9',
+                    padding: '4px',
+                    borderRadius: '8px',
+                    border: '1px solid #E2E8F0',
+                    flexWrap: 'wrap'
+                  }}>
+                    {[
+                      { id: 'extraction', label: '⚡ Visual Claim Extraction' },
+                      { id: 'dag', label: '🗺️ DAG Lineage' },
+                      { id: 'conflicts', label: `⚖️ Conflicts (${selectedAsset360.conflicts.length})` },
+                      { id: 'claims', label: `📋 Claims (${selectedAsset360.claims.length})` },
+                      { id: 'all', label: '🔍 All Facilities' }
+                    ].map(sec => {
+                      const active = asset360Section === sec.id;
+                      return (
+                        <button
+                          key={sec.id}
+                          type="button"
+                          onClick={() => {
+                            setAsset360Section(sec.id);
+                            showToast?.(`Switched facility to ${sec.label}`);
+                          }}
+                          style={{
+                            padding: '6px 12px',
+                            border: 'none',
+                            boxShadow: active ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                            outline: 'none',
+                            borderRadius: '6px',
+                            background: active ? '#FFFFFF' : 'transparent',
+                            color: active ? '#2563EB' : '#64748B',
+                            fontSize: '0.78rem',
+                            fontWeight: active ? 700 : 500,
+                            cursor: 'pointer',
+                            whiteSpace: 'nowrap',
+                            transition: 'all 0.15s ease'
+                          }}
+                        >
+                          {sec.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Asset Description Callout */}
+                <p style={{ margin: 0, fontSize: '0.80rem', color: '#475569', lineHeight: 1.5, background: '#F8FAFC', padding: '10px 14px', borderRadius: '7px', borderLeft: '3px solid #0284C7' }}>
+                  <strong>Asset Description:</strong> {selectedAsset360.description}
+                </p>
+
+                {/* Connected Documents Strip for Connectors */}
+                {selectedAsset360.mode === 'connector' && selectedAsset360.connectedDocs.length > 0 && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                    <span style={{ fontSize: '0.68rem', fontWeight: 800, color: '#64748B', textTransform: 'uppercase' }}>
+                      Synced Documents ({selectedAsset360.connectedDocs.length}):
+                    </span>
+                    {selectedAsset360.connectedDocs.map(d => (
+                      <button
+                        key={d.id}
+                        type="button"
+                        onClick={() => {
+                          setVaultSubTab('documents');
+                          setSelectedNodeId(d.id);
+                          setInteractiveRootId(d.id);
+                          setExpandedUpstreamSet(new Set());
+                          setExpandedDownstreamSet(new Set());
+                        }}
+                        style={{
+                          padding: '3px 8px',
+                          borderRadius: '5px',
+                          border: '1px solid #CBD5E1',
+                          background: '#FFFFFF',
+                          fontSize: '0.7rem',
+                          fontWeight: 700,
+                          color: '#0284C7',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        📄 {d.label} ➔
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* SIDE-BY-SIDE SPLIT LAYOUT: LEFT = ORIGINAL DOCUMENT | RIGHT = DETAILS & ALL FACILITIES */}
             <div style={{
               display: (vaultSubTab === 'documents' || vaultSubTab === 'connectors') && selectedAsset360 ? 'grid' : 'flex',
@@ -2106,134 +2235,27 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
                 );
               })()}
 
-              {/* RIGHT PANE (JUST BESIDE ORIGINAL DOCUMENT): DETAILS & ALL FACILITIES */}
-              <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '12px', width: '100%' }}>
+              {/* RIGHT PANE (JUST BESIDE ORIGINAL DOCUMENT): CORRESPONDING FACILITY BASED ON SELECTION */}
+              <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '14px', width: '100%' }}>
 
-              {/* 1. ASSET 360° DESCRIPTION & METADATA HEADER (Shown in Documents 360° & Connectors 360°) */}
-              {selectedAsset360 && (
-                <div style={{
-                  background: '#FFFFFF',
-                  border: '1px solid #CBD5E1',
-                  borderRadius: '10px',
-                  padding: '14px 18px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '10px',
-                  boxShadow: '0 1px 3px rgba(0,0,0,0.02)'
-                }}>
-                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
-                  <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px', flexWrap: 'wrap' }}>
-                      <span style={{ fontSize: '0.64rem', fontWeight: 800, padding: '2px 8px', borderRadius: '4px', background: '#E0F2FE', color: '#0284C7', textTransform: 'uppercase' }}>
-                        {selectedAsset360.mode === 'document' ? `📄 ${selectedAsset360.node.subType || 'POLICY DOCUMENT'}` : `🔌 ${selectedAsset360.node.subType || 'DATA CONNECTOR'}`}
-                      </span>
-                      <span style={{ fontSize: '0.64rem', fontWeight: 800, padding: '2px 8px', borderRadius: '4px', background: '#DCFCE7', color: '#15803D' }}>
-                        ● {(selectedAsset360.node.status || 'ACTIVE').toUpperCase()}
-                      </span>
-                      {selectedAsset360.mode === 'document' && (
-                        <span style={{ fontSize: '0.64rem', fontWeight: 700, padding: '2px 8px', borderRadius: '4px', background: '#F1F5F9', color: '#475569' }}>
-                          Version v{selectedAsset360.node.data?.version_count || 1}.0 &bull; Source: {selectedAsset360.parentSource?.label || 'Direct Upload'}
-                        </span>
-                      )}
-                      {selectedAsset360.mode === 'connector' && (
-                        <span style={{ fontSize: '0.64rem', fontWeight: 700, padding: '2px 8px', borderRadius: '4px', background: '#EFF6FF', color: '#1D4ED8' }}>
-                          Authority Weight: {selectedAsset360.node.authority ? `${(Number(selectedAsset360.node.authority) * 100).toFixed(0)}%` : '95%'}
-                        </span>
-                      )}
-                    </div>
-                    <h2 style={{ margin: 0, fontSize: '1.08rem', fontWeight: 800, color: '#0F172A' }}>
-                      {selectedAsset360.node.label}
-                    </h2>
-                  </div>
-
-                  {/* Inline Section Filter Tabs (Single Line, No Icons/Borders/Shadows) */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'transparent', padding: '0', border: 'none', boxShadow: 'none', flexWrap: 'nowrap' }}>
-                    {[
-                      { id: 'all', label: 'All Sections' },
-                      { id: 'dag', label: 'DAG Lineage' },
-                      { id: 'conflicts', label: `Conflicts (${selectedAsset360.conflicts.length})` },
-                      { id: 'claims', label: `Claims (${selectedAsset360.claims.length})` }
-                    ].map(sec => {
-                      const active = asset360Section === sec.id;
-                      return (
-                        <button
-                          key={sec.id}
-                          type="button"
-                          onClick={() => setAsset360Section(sec.id)}
-                          onMouseEnter={(e) => {
-                            if (!active) {
-                              e.currentTarget.style.color = '#1E293B';
-                            }
-                          }}
-                          onMouseLeave={(e) => {
-                            if (!active) {
-                              e.currentTarget.style.color = '#64748B';
-                            }
-                          }}
-                          style={{
-                            padding: '4px 8px',
-                            border: 'none',
-                            boxShadow: 'none',
-                            outline: 'none',
-                            background: 'transparent',
-                            color: active ? '#C2410C' : '#64748B',
-                            fontSize: '0.76rem',
-                            fontWeight: 600,
-                            cursor: 'pointer',
-                            whiteSpace: 'nowrap',
-                            transition: 'color 0.15s ease'
-                          }}
-                        >
-                          {sec.label}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Asset Description & Summary Metrics */}
-                <p style={{ margin: 0, fontSize: '0.78rem', color: '#475569', lineHeight: 1.45, background: '#F8FAFC', padding: '8px 12px', borderRadius: '7px', borderLeft: '3px solid #0284C7' }}>
-                  <strong>Asset Description:</strong> {selectedAsset360.description}
-                </p>
-
-                {/* Connected Documents Strip for Connectors */}
-                {selectedAsset360.mode === 'connector' && selectedAsset360.connectedDocs.length > 0 && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-                    <span style={{ fontSize: '0.68rem', fontWeight: 800, color: '#64748B', textTransform: 'uppercase' }}>
-                      Synced Documents ({selectedAsset360.connectedDocs.length}):
-                    </span>
-                    {selectedAsset360.connectedDocs.map(d => (
-                      <button
-                        key={d.id}
-                        type="button"
-                        onClick={() => {
-                          setVaultSubTab('documents');
-                          setSelectedNodeId(d.id);
-                          setInteractiveRootId(d.id);
-                          setExpandedUpstreamSet(new Set());
-                          setExpandedDownstreamSet(new Set());
-                        }}
-                        style={{
-                          padding: '2px 8px',
-                          borderRadius: '5px',
-                          border: '1px solid #CBD5E1',
-                          background: '#FFFFFF',
-                          fontSize: '0.7rem',
-                          fontWeight: 700,
-                          color: '#0284C7',
-                          cursor: 'pointer'
-                        }}
-                      >
-                        📄 {d.label} ➔
-                      </button>
-                    ))}
-                  </div>
+                {/* 1. VISUAL CLAIM EXTRACTION FLOW STUDIO */}
+                {selectedAsset360 && (asset360Section === 'extraction' || asset360Section === 'all') && (
+                  <VisualClaimExtractionStudio
+                    documentTitle={selectedAsset360.node.label}
+                    documentId={selectedAsset360.node.data?.doc_id || selectedAsset360.node.id}
+                    claims={selectedAsset360.claims}
+                    conflicts={selectedAsset360.conflicts}
+                    rawOriginalText={selectedAsset360.node.data?.content_uri || ''}
+                    onHighlightClause={(clause) => {
+                      setDocReaderClauseFilter('raw');
+                      showToast?.(`Locating clause in document view: "${clause.substring(0, 45)}..."`);
+                    }}
+                    showToast={showToast}
+                  />
                 )}
-              </div>
-            )}
 
-            {/* 2. INTERACTIVE DAG LINEAGE FOR THIS FILE / CONNECTOR */}
-            {(vaultSubTab === 'dag' || asset360Section === 'all' || asset360Section === 'dag') && (
+                {/* 2. INTERACTIVE DAG LINEAGE FOR THIS FILE / CONNECTOR */}
+                {(vaultSubTab === 'dag' || asset360Section === 'dag' || asset360Section === 'all') && (
               <>
       {/* Unified Executive Lineage Command Card (Single Card Container) */}
       <div style={{
