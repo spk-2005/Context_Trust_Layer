@@ -48,8 +48,11 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
     staging: ['staging', 'sandbox', 'test', 'mock', 'simulation']
   };
 
-  // View Mode: 'conflicts' (default clean DAG), 'focused' (centered around active asset), 'all' (sample overview)
-  const [viewMode, setViewMode] = useState('conflicts');
+  // View Mode: 'interactive' (default single-node on-demand flow), 'conflicts' (contradictions focus), 'all' (sample overview)
+  const [viewMode, setViewMode] = useState('interactive');
+  const [expandedUpstreamSet, setExpandedUpstreamSet] = useState(new Set());
+  const [expandedDownstreamSet, setExpandedDownstreamSet] = useState(new Set());
+  const [expandedConflictClaimsSet, setExpandedConflictClaimsSet] = useState(new Set());
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [drawerSearch, setDrawerSearch] = useState('');
   const [drawerDocFilter, setDrawerDocFilter] = useState('all');
@@ -97,9 +100,9 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
         const data = await res.json();
         setGraphData(data);
         if (data.nodes && data.nodes.length > 0 && !selectedNodeId) {
+          const firstDoc = data.nodes.find(n => n.type === 'document');
           const firstConflict = data.nodes.find(n => n.type === 'conflict');
-          const firstClaim = data.nodes.find(n => n.type === 'claim');
-          setSelectedNodeId(firstConflict ? firstConflict.id : (firstClaim ? firstClaim.id : data.nodes[0].id));
+          setSelectedNodeId(firstDoc ? firstDoc.id : (firstConflict ? firstConflict.id : data.nodes[0].id));
         }
       } else {
         showToast?.("Failed to fetch lineage graph", "error");
@@ -193,6 +196,192 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
     });
     return set;
   }, [conflictMap, graphData]);
+
+  // Upstream Parent Identifiers (Document & Claim Granular Aware)
+  const getUpstreamParentIds = useMemo(() => {
+    return (nodeId) => {
+      if (!graphData?.edges) return [];
+      const parents = new Set();
+      const edges = graphData.edges;
+
+      if (lineageGranularity === 'document') {
+        // 1. Document -> upstream Data Source
+        if (nodeId.startsWith('doc_')) {
+          edges.forEach(e => {
+            if (e.target === nodeId && e.source.startsWith('src_')) {
+              parents.add(e.source);
+            }
+          });
+        }
+        // 2. Conflict -> upstream Source Documents (not raw claims)
+        else if (nodeId.startsWith('cfl_')) {
+          const cItem = conflictMap[nodeId];
+          if (cItem?.claimAId) {
+            edges.forEach(e => {
+              if (e.target === cItem.claimAId && e.source.startsWith('doc_')) parents.add(e.source);
+            });
+          }
+          if (cItem?.claimBId) {
+            edges.forEach(e => {
+              if (e.target === cItem.claimBId && e.source.startsWith('doc_')) parents.add(e.source);
+            });
+          }
+        }
+        // 3. AI Decision -> upstream Contradictions (or Documents)
+        else if (nodeId.startsWith('dec_')) {
+          edges.forEach(e => {
+            if (e.target === nodeId) {
+              conflictsList.forEach(c => {
+                const cItem = conflictMap[c.id];
+                if (cItem?.claimAId === e.source || cItem?.claimBId === e.source) {
+                  parents.add(c.id);
+                }
+              });
+              if (e.source.startsWith('doc_')) parents.add(e.source);
+            }
+          });
+        }
+        // Fallback for claim nodes if explicitly selected
+        else {
+          edges.forEach(e => {
+            if (e.target === nodeId) parents.add(e.source);
+          });
+        }
+      } else {
+        // Claim Flow Mode: Full 5-tier granular DAG edges
+        edges.forEach(e => {
+          if (e.target === nodeId) {
+            parents.add(e.source);
+          }
+        });
+      }
+
+      return Array.from(parents);
+    };
+  }, [graphData, lineageGranularity, conflictMap, conflictsList]);
+
+  // Downstream Child Identifiers (Document & Claim Granular Aware)
+  const getDownstreamChildIds = useMemo(() => {
+    return (nodeId) => {
+      if (!graphData?.edges) return [];
+      const children = new Set();
+      const edges = graphData.edges;
+
+      if (lineageGranularity === 'document') {
+        // 1. Data Source -> downstream Documents
+        if (nodeId.startsWith('src_')) {
+          edges.forEach(e => {
+            if (e.source === nodeId && e.target.startsWith('doc_')) {
+              children.add(e.target);
+            }
+          });
+        }
+        // 2. Document -> downstream Contradictions ONLY (claims are inspected inline inside Conflict card)
+        else if (nodeId.startsWith('doc_')) {
+          conflictsList.forEach(c => {
+            const cItem = conflictMap[c.id];
+            let touchesDoc = false;
+            edges.forEach(e => {
+              if (e.source === nodeId && (e.target === cItem?.claimAId || e.target === cItem?.claimBId)) {
+                touchesDoc = true;
+              }
+            });
+            if (touchesDoc) children.add(c.id);
+          });
+        }
+        // 3. Conflict -> downstream AI Decisions grounded by its clashing claims
+        else if (nodeId.startsWith('cfl_')) {
+          const cItem = conflictMap[nodeId];
+          decisionsList.forEach(dec => {
+            edges.forEach(e => {
+              if (e.target === dec.id && (e.source === cItem?.claimAId || e.source === cItem?.claimBId || e.source === nodeId)) {
+                children.add(dec.id);
+              }
+            });
+          });
+        }
+        // Fallback for claim nodes if explicitly selected
+        else {
+          edges.forEach(e => {
+            if (e.source === nodeId) children.add(e.target);
+          });
+        }
+      } else {
+        // Claim Flow Mode: Full 5-tier granular DAG edges
+        edges.forEach(e => {
+          if (e.source === nodeId) {
+            children.add(e.target);
+          }
+        });
+        // Also allow Conflict -> AI Decision expansion in Claim Flow
+        if (nodeId.startsWith('cfl_')) {
+          const cItem = conflictMap[nodeId];
+          decisionsList.forEach(dec => {
+            edges.forEach(e => {
+              if (e.target === dec.id && (e.source === cItem?.claimAId || e.source === cItem?.claimBId)) {
+                children.add(dec.id);
+              }
+            });
+          });
+        }
+      }
+
+      return Array.from(children);
+    };
+  }, [graphData, lineageGranularity, conflictMap, conflictsList, decisionsList]);
+
+  const toggleUpstream = (nodeId) => {
+    setExpandedUpstreamSet(prev => {
+      const next = new Set(prev);
+      if (next.has(nodeId)) {
+        next.delete(nodeId);
+      } else {
+        next.add(nodeId);
+      }
+      return next;
+    });
+  };
+
+  const toggleDownstream = (nodeId) => {
+    setExpandedDownstreamSet(prev => {
+      const next = new Set(prev);
+      if (next.has(nodeId)) {
+        next.delete(nodeId);
+      } else {
+        next.add(nodeId);
+      }
+      return next;
+    });
+  };
+
+  const toggleConflictClaims = (conflictId) => {
+    setExpandedConflictClaimsSet(prev => {
+      const next = new Set(prev);
+      if (next.has(conflictId)) {
+        next.delete(conflictId);
+      } else {
+        next.add(conflictId);
+      }
+      return next;
+    });
+  };
+
+  const resetToSingleNode = () => {
+    setExpandedUpstreamSet(new Set());
+    setExpandedDownstreamSet(new Set());
+    setExpandedConflictClaimsSet(new Set());
+    setTimeout(() => handleFitView(), 50);
+    showToast?.("Reset to single focal node");
+  };
+
+  const expandAllFlow = () => {
+    if (!graphData?.nodes) return;
+    const allIds = new Set(graphData.nodes.map(n => n.id));
+    setExpandedUpstreamSet(allIds);
+    setExpandedDownstreamSet(allIds);
+    setTimeout(() => handleFitView(), 50);
+    showToast?.("Expanded complete flow");
+  };
 
   // Compute Connected Sets from real edges
   const connectedNodeMap = useMemo(() => {
@@ -503,6 +692,48 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
       });
     }
 
+    // 12. Interactive On-Demand Flow Filter (Single Node at Start)
+    if (viewMode === 'interactive') {
+      const rootId = selectedNodeId || (documentsList[0]?.id || graphData?.nodes?.[0]?.id);
+      if (!rootId) return [];
+
+      const visibleIds = new Set([rootId]);
+
+      // Iteratively expand upstream parents and downstream children
+      let changed = true;
+      while (changed) {
+        changed = false;
+        Array.from(visibleIds).forEach(vId => {
+          if (expandedUpstreamSet.has(vId)) {
+            const parents = getUpstreamParentIds(vId);
+            parents.forEach(pId => {
+              if (!visibleIds.has(pId)) {
+                visibleIds.add(pId);
+                changed = true;
+              }
+            });
+          }
+          if (expandedDownstreamSet.has(vId)) {
+            const children = getDownstreamChildIds(vId);
+            children.forEach(cId => {
+              if (!visibleIds.has(cId)) {
+                visibleIds.add(cId);
+                changed = true;
+              }
+            });
+          }
+        });
+      }
+
+      const nodeMap = new Map((graphData?.nodes || []).map(n => [n.id, n]));
+      const interactiveNodes = [];
+      visibleIds.forEach(id => {
+        const found = nodeMap.get(id);
+        if (found) interactiveNodes.push(found);
+      });
+      return interactiveNodes;
+    }
+
     return result;
   }, [
     graphData,
@@ -523,13 +754,25 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
     allConflictedClaimIds,
     connectedNodeMap,
     lineageGranularity,
-    expandedDocIds
+    expandedDocIds,
+    viewMode,
+    expandedUpstreamSet,
+    expandedDownstreamSet,
+    getUpstreamParentIds,
+    getDownstreamChildIds,
+    documentsList
   ]);
 
   // 2. Smart DAG Layout: Adaptive Density & Immediate Visibility
   const defaultPositions = useMemo(() => {
     const map = {};
     if (!filteredNodes.length) return map;
+
+    // Single Starting Node Centering in Interactive Mode
+    if (viewMode === 'interactive' && filteredNodes.length === 1) {
+      map[filteredNodes[0].id] = { x: 480, y: 160 };
+      return map;
+    }
 
     const sources = filteredNodes.filter(n => n.type === 'source');
     const documents = filteredNodes.filter(n => n.type === 'document');
@@ -739,8 +982,11 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
       for (let i = 1; i < colNodes.length; i++) {
         const prev = colNodes[i - 1];
         const curr = colNodes[i];
-        if (curr.y < prev.y + MIN_GAP) {
-          curr.y = prev.y + MIN_GAP;
+        const prevNode = filteredNodes.find(n => n.id === prev.id);
+        const isPrevExpanded = prevNode?.type === 'conflict' && expandedConflictClaimsSet.has(prev.id);
+        const requiredGap = isPrevExpanded ? 240 : MIN_GAP;
+        if (curr.y < prev.y + requiredGap) {
+          curr.y = prev.y + requiredGap;
           map[curr.id].y = curr.y;
         }
       }
@@ -757,7 +1003,8 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
     connectedNodeMap,
     conflictMap,
     graphData,
-    lineageGranularity
+    lineageGranularity,
+    expandedConflictClaimsSet
   ]);
 
   // Merged positions (custom user drags take precedence)
@@ -1104,11 +1351,12 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
               onChange={(e) => {
                 const val = e.target.value;
                 setSelectedNodeId(val);
+                setExpandedUpstreamSet(new Set());
+                setExpandedDownstreamSet(new Set());
+                setExpandedConflictClaimsSet(new Set());
                 if (val) {
-                  setCausalSubgraphOnly(true);
-                  showToast?.("Loaded direct 2-hop causal path");
+                  showToast?.("Focused on single starting asset — click ◀ or ▶ to expand flow");
                 }
-                if (viewMode === 'conflicts') setViewMode('focused');
               }}
               style={{
                 padding: '2px 6px',
@@ -1229,9 +1477,38 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
             </button>
           </div>
 
-          {/* Center: Minimal Segmented Tabs */}
+          {/* Center: View Mode Segmented Controls */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '2px', background: '#F1F5F9', padding: '2px', borderRadius: '6px', border: '1px solid #E2E8F0' }}>
             <button
+              type="button"
+              onClick={() => {
+                setViewMode('interactive');
+                showToast?.("Interactive Flow: Step-by-step on-demand exploration");
+              }}
+              style={{
+                padding: '3px 8px',
+                fontSize: '0.69rem',
+                fontWeight: 700,
+                borderRadius: '4px',
+                border: 'none',
+                cursor: 'pointer',
+                background: viewMode === 'interactive' ? '#1D4ED8' : 'transparent',
+                color: viewMode === 'interactive' ? '#FFFFFF' : '#475569',
+                boxShadow: viewMode === 'interactive' ? '0 1px 2px rgba(29,78,216,0.25)' : 'none',
+                transition: 'all 0.15s ease',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '3px',
+                height: '24px'
+              }}
+              title="Interactive Flow: Start from single node and expand upstream/downstream on demand"
+            >
+              <Layers size={11} />
+              <span>Interactive Flow</span>
+            </button>
+
+            <button
+              type="button"
               onClick={() => {
                 setViewMode('conflicts');
                 const firstConf = conflictsList[0];
@@ -1260,30 +1537,7 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
             </button>
 
             <button
-              onClick={() => setViewMode('focused')}
-              style={{
-                padding: '3px 8px',
-                fontSize: '0.69rem',
-                fontWeight: 700,
-                borderRadius: '4px',
-                border: 'none',
-                cursor: 'pointer',
-                background: viewMode === 'focused' ? '#2563EB' : 'transparent',
-                color: viewMode === 'focused' ? '#FFFFFF' : '#475569',
-                boxShadow: viewMode === 'focused' ? '0 1px 2px rgba(37,99,235,0.25)' : 'none',
-                transition: 'all 0.15s ease',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '3px',
-                height: '24px'
-              }}
-              title="Focus on active node path"
-            >
-              <Eye size={11} />
-              <span>Focus</span>
-            </button>
-
-            <button
+              type="button"
               onClick={() => setViewMode('all')}
               style={{
                 padding: '3px 8px',
@@ -1307,6 +1561,56 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
               <span>Overview</span>
             </button>
           </div>
+
+          {/* Interactive Flow Quick Controls */}
+          {viewMode === 'interactive' && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <button
+                type="button"
+                onClick={resetToSingleNode}
+                style={{
+                  padding: '2px 8px',
+                  fontSize: '0.67rem',
+                  fontWeight: 700,
+                  borderRadius: '5px',
+                  border: '1px solid #CBD5E1',
+                  background: '#FFFFFF',
+                  color: '#334155',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '3px',
+                  height: '24px'
+                }}
+                title="Reset canvas to only the single starting node"
+              >
+                <RotateCcw size={10} />
+                <span>Single Node</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={expandAllFlow}
+                style={{
+                  padding: '2px 8px',
+                  fontSize: '0.67rem',
+                  fontWeight: 700,
+                  borderRadius: '5px',
+                  border: '1px solid #BFDBFE',
+                  background: '#EFF6FF',
+                  color: '#1D4ED8',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '3px',
+                  height: '24px'
+                }}
+                title="Expand all upstream and downstream connections"
+              >
+                <span>➕ Expand All</span>
+              </button>
+            </div>
+          )}
 
           {/* Right: Minimal Action Buttons */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
@@ -1991,12 +2295,51 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
               </div>
             )}
 
+            {/* Interactive Mode Initial Guidance Pill */}
+            {viewMode === 'interactive' && renderedNodes.length === 1 && (
+              <div style={{
+                position: 'absolute',
+                top: '90px',
+                left: '480px',
+                transform: 'translateX(-50%)',
+                background: 'rgba(255, 255, 255, 0.96)',
+                border: '1px solid #BFDBFE',
+                borderRadius: '20px',
+                padding: '6px 18px',
+                boxShadow: '0 4px 14px rgba(29, 78, 216, 0.08)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                fontSize: '0.72rem',
+                color: '#1E293B',
+                pointerEvents: 'none',
+                zIndex: 10,
+                whiteSpace: 'nowrap'
+              }}>
+                <span style={{ fontSize: '13px' }}>🎯</span>
+                <span>
+                  <strong>Interactive Flow:</strong> Click <strong>◀ Upstream</strong> to reveal origins, or <strong>Downstream ▶</strong> to reveal impact.
+                </span>
+              </div>
+            )}
+
             {/* Draggable Node Cards */}
             {renderedNodes.map(node => {
               const pos = nodePositions[node.id] || { x: 100, y: 100 };
               const isSelected = selectedNodeId === node.id;
               const isConnected = connectedNodeMap.all.has(node.id);
               const isConflictedClaim = allConflictedClaimIds.has(node.id);
+
+              const upstreamParents = getUpstreamParentIds(node.id);
+              const downstreamChildren = getDownstreamChildIds(node.id);
+              const upstreamCount = upstreamParents.length;
+              const downstreamCount = downstreamChildren.length;
+              const isUpstreamExpanded = expandedUpstreamSet.has(node.id);
+              const isDownstreamExpanded = expandedDownstreamSet.has(node.id);
+              const isClaimsExpanded = expandedConflictClaimsSet.has(node.id);
+              const cItem = conflictMap[node.id];
+              const claimANode = cItem?.claimAId ? graphData?.nodes?.find(n => n.id === cItem.claimAId) : null;
+              const claimBNode = cItem?.claimBId ? graphData?.nodes?.find(n => n.id === cItem.claimBId) : null;
 
               let borderColor = '#3b82f6';
               let badgeBg = '#f0f7ff';
@@ -2163,8 +2506,9 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
                     position: 'absolute',
                     left: `${pos.x}px`,
                     top: `${pos.y}px`,
-                    width: `${CARD_WIDTH}px`,
-                    height: `${CARD_HEIGHT}px`,
+                    width: (node.type === 'conflict' && isClaimsExpanded) ? '310px' : `${CARD_WIDTH}px`,
+                    height: (node.type === 'conflict' && isClaimsExpanded) ? 'auto' : `${CARD_HEIGHT}px`,
+                    minHeight: `${CARD_HEIGHT}px`,
                     background: '#fff',
                     borderRadius: '10px',
                     border: isSelected
@@ -2176,11 +2520,13 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
                           : '1px solid #cbd5e1',
                     boxShadow: isSelected
                       ? `0 0 0 4px ${borderColor}30, 0 8px 24px rgba(0,0,0,0.12)`
-                      : isConflictedClaim
-                        ? '0 0 0 2px rgba(234,88,12,0.25), 0 4px 14px rgba(234,88,12,0.15)'
-                        : isConnected
-                          ? `0 0 0 2px ${borderColor}20, 0 4px 12px rgba(0,0,0,0.06)`
-                          : '0 2px 8px rgba(0,0,0,0.04)',
+                      : (node.type === 'conflict' && isClaimsExpanded)
+                        ? '0 0 0 3px rgba(234,88,12,0.3), 0 12px 32px rgba(234,88,12,0.18)'
+                        : isConflictedClaim
+                          ? '0 0 0 2px rgba(234,88,12,0.25), 0 4px 14px rgba(234,88,12,0.15)'
+                          : isConnected
+                            ? `0 0 0 2px ${borderColor}20, 0 4px 12px rgba(0,0,0,0.06)`
+                            : '0 2px 8px rgba(0,0,0,0.04)',
                     boxSizing: 'border-box',
                     padding: '10px 14px',
                     display: 'flex',
@@ -2188,7 +2534,7 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
                     justifyContent: 'space-between',
                     cursor: draggedNodeId === node.id ? 'grabbing' : 'pointer',
                     userSelect: 'none',
-                    zIndex: isSelected ? 20 : isConflictedClaim ? 15 : isConnected ? 10 : 5,
+                    zIndex: (node.type === 'conflict' && isClaimsExpanded) ? 40 : (isSelected ? 20 : isConflictedClaim ? 15 : isConnected ? 10 : 5),
                     transition: draggedNodeId === node.id ? 'none' : 'box-shadow 0.15s ease, border-color 0.15s ease'
                   }}
                 >
@@ -2215,74 +2561,94 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
                     </div>
                   )}
 
-                  {/* Left Connection Port: Shows Upstream Parent Count */}
+                  {/* Left Connection Port: Shows Upstream Parents & Click to Expand/Collapse */}
                   {node.type !== 'source' && (
                     <div
                       onClick={(e) => {
                         e.stopPropagation();
-                        setSelectedNodeId(node.id);
-                        setViewMode('focused');
-                        setCausalSubgraphOnly(true);
-                        showToast?.(`Tracing upstream root causes of ${node.label}`);
+                        toggleUpstream(node.id);
+                      
                       }}
                       style={{
                         position: 'absolute',
-                        left: '-12px',
-                        top: 'calc(50% - 9px)',
-                        padding: '1px 5px',
-                        borderRadius: '8px',
-                        background: '#fff',
-                        border: `1.5px solid ${borderColor}`,
-                        boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
+                        left: '-14px',
+                        top: (node.type === 'conflict' && isClaimsExpanded) ? '26px' : 'calc(50% - 11px)',
+                        padding: '2px 6px',
+                        borderRadius: '10px',
+                        background: isUpstreamExpanded ? '#1D4ED8' : '#fff',
+                        border: `1.5px solid ${isUpstreamExpanded ? '#1D4ED8' : borderColor}`,
+                        color: isUpstreamExpanded ? '#fff' : borderColor,
+                        boxShadow: '0 2px 6px rgba(0,0,0,0.12)',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                         gap: '2px',
                         fontSize: '0.58rem',
                         fontWeight: 800,
-                        color: borderColor,
-                        cursor: 'pointer',
-                        zIndex: 25
+                        cursor: upstreamCount > 0 ? 'pointer' : 'default',
+                        zIndex: 25,
+                        transition: 'all 0.15s ease'
                       }}
-                      title={`${graphData?.edges?.filter(e => e.target === node.id).length || 0} Upstream Dependencies — Click to trace upstream`}
+                      title={
+                        upstreamCount > 0
+                          ? isUpstreamExpanded
+                            ? `Click to collapse ${upstreamCount} upstream parents`
+                            : `Click to reveal ${upstreamCount} upstream parents`
+                          : 'No upstream dependencies'
+                      }
                     >
                       <span>◀</span>
-                      <span>{graphData?.edges?.filter(e => e.target === node.id).length || 0}</span>
+                      <span>{upstreamCount}</span>
+                      {upstreamCount > 0 && (
+                        <span style={{ fontSize: '0.62rem', fontWeight: 900, marginLeft: '1px' }}>
+                          {isUpstreamExpanded ? '−' : '+'}
+                        </span>
+                      )}
                     </div>
                   )}
 
-                  {/* Right Connection Port: Shows Downstream Impact Count */}
+                  {/* Right Connection Port: Shows Downstream Impacts & Click to Expand/Collapse */}
                   {node.type !== 'decision' && (
                     <div
                       onClick={(e) => {
                         e.stopPropagation();
-                        setSelectedNodeId(node.id);
-                        setViewMode('focused');
-                        setCausalSubgraphOnly(true);
-                        showToast?.(`Tracing downstream blast radius of ${node.label}`);
+                        toggleDownstream(node.id);
+                       
                       }}
                       style={{
                         position: 'absolute',
-                        right: '-12px',
-                        top: 'calc(50% - 9px)',
-                        padding: '1px 5px',
-                        borderRadius: '8px',
-                        background: '#fff',
-                        border: `1.5px solid ${borderColor}`,
-                        boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
+                        right: '-14px',
+                        top: (node.type === 'conflict' && isClaimsExpanded) ? '26px' : 'calc(50% - 11px)',
+                        padding: '2px 6px',
+                        borderRadius: '10px',
+                        background: isDownstreamExpanded ? '#1D4ED8' : '#fff',
+                        border: `1.5px solid ${isDownstreamExpanded ? '#1D4ED8' : borderColor}`,
+                        color: isDownstreamExpanded ? '#fff' : borderColor,
+                        boxShadow: '0 2px 6px rgba(0,0,0,0.12)',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                         gap: '2px',
                         fontSize: '0.58rem',
                         fontWeight: 800,
-                        color: borderColor,
-                        cursor: 'pointer',
-                        zIndex: 25
+                        cursor: downstreamCount > 0 ? 'pointer' : 'default',
+                        zIndex: 25,
+                        transition: 'all 0.15s ease'
                       }}
-                      title={`${graphData?.edges?.filter(e => e.source === node.id).length || 0} Downstream Impacts — Click to trace blast radius`}
+                      title={
+                        downstreamCount > 0
+                          ? isDownstreamExpanded
+                            ? `Click to collapse ${downstreamCount} downstream impacts`
+                            : `Click to reveal ${downstreamCount} downstream impacts`
+                          : 'No downstream impacts'
+                      }
                     >
-                      <span>{graphData?.edges?.filter(e => e.source === node.id).length || 0}</span>
+                      {downstreamCount > 0 && (
+                        <span style={{ fontSize: '0.62rem', fontWeight: 900, marginRight: '1px' }}>
+                          {isDownstreamExpanded ? '−' : '+'}
+                        </span>
+                      )}
+                      <span>{downstreamCount}</span>
                       <span>▶</span>
                     </div>
                   )}
@@ -2361,12 +2727,139 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
                       >
                         <span>View Claims &rsaquo;</span>
                       </span>
+                    ) : node.type === 'conflict' ? (
+                      <span
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleConflictClaims(node.id);
+                          if (!isClaimsExpanded) {
+                            showToast?.(`Revealed clashing assertions for ${node.label}`);
+                          }
+                        }}
+                        style={{
+                          color: isClaimsExpanded ? '#C2410C' : '#EA580C',
+                          fontWeight: 800,
+                          fontSize: '0.64rem',
+                          cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '3px',
+                          background: isClaimsExpanded ? '#FFEDD5' : '#FFF7ED',
+                          padding: '1px 6px',
+                          borderRadius: '4px',
+                          border: '1px solid #FED7AA',
+                          transition: 'all 0.15s ease'
+                        }}
+                        title="Inspect the 2 conflicting assertions"
+                      >
+                        <span>⚖️ {isClaimsExpanded ? 'Hide Claims ▲' : 'Claims (2) ▾'}</span>
+                      </span>
                     ) : (
                       <span style={{ color: '#2563eb', fontWeight: 600, fontSize: '0.62rem' }}>
                         view lineage &rsaquo;
                       </span>
                     )}
                   </div>
+
+                  {/* Inline Clashing Claims Drawer for Contradiction Card */}
+                  {node.type === 'conflict' && isClaimsExpanded && (
+                    <div
+                      onClick={(e) => e.stopPropagation()}
+                      style={{
+                        marginTop: '8px',
+                        padding: '8px 10px',
+                        background: '#FFF7ED',
+                        borderRadius: '8px',
+                        border: '1px solid #FED7AA',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '6px',
+                        fontSize: '0.66rem',
+                        boxShadow: 'inset 0 1px 3px rgba(234,88,12,0.06)'
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <span style={{ fontWeight: 800, color: '#9A3412', textTransform: 'uppercase', fontSize: '0.59rem', letterSpacing: '0.03em' }}>
+                          ⚖️ CLASHING ASSERTIONS
+                        </span>
+                        <span style={{ fontSize: '0.58rem', color: '#EA580C', fontWeight: 800, background: '#FFEDD5', padding: '1px 5px', borderRadius: '3px' }}>
+                          {node.severity || cItem?.severity || 'HIGH'} SEVERITY
+                        </span>
+                      </div>
+
+                      {/* Assertion A */}
+                      <div style={{
+                        background: '#FFFFFF',
+                        padding: '6px 8px',
+                        borderRadius: '5px',
+                        borderLeft: '3px solid #0284C7',
+                        boxShadow: '0 1px 2px rgba(0,0,0,0.04)'
+                      }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', color: '#0369A1', fontWeight: 700, fontSize: '0.58rem', marginBottom: '2px' }}>
+                          <span>ASSERTION A (BASELINE)</span>
+                          <span>{claimANode?.trustScore ? `${(claimANode.trustScore * 100).toFixed(0)}% TRUST` : 'VERIFIED'}</span>
+                        </div>
+                        <p style={{ margin: 0, color: '#1E293B', fontSize: '0.65rem', lineHeight: 1.35, fontWeight: 500 }}>
+                          "{claimANode?.fullText || claimANode?.label || cItem?.claimAId || 'SOP refund eligibility window is strictly 30 days.'}"
+                        </p>
+                        {claimANode?.docTitle && (
+                          <span style={{ fontSize: '0.56rem', color: '#64748B', display: 'block', marginTop: '2px' }}>
+                            Doc: {claimANode.docTitle}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Assertion B */}
+                      <div style={{
+                        background: '#FFFFFF',
+                        padding: '6px 8px',
+                        borderRadius: '5px',
+                        borderLeft: '3px solid #EA580C',
+                        boxShadow: '0 1px 2px rgba(0,0,0,0.04)'
+                      }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', color: '#C2410C', fontWeight: 700, fontSize: '0.58rem', marginBottom: '2px' }}>
+                          <span>ASSERTION B (CONTRADICTION)</span>
+                          <span>{claimBNode?.trustScore ? `${(claimBNode.trustScore * 100).toFixed(0)}% TRUST` : 'FLAGGED'}</span>
+                        </div>
+                        <p style={{ margin: 0, color: '#1E293B', fontSize: '0.65rem', lineHeight: 1.35, fontWeight: 500 }}>
+                          "{claimBNode?.fullText || claimBNode?.label || cItem?.claimBId || 'VIP Tier-1 customer exceptions allow 45-day refund grants.'}"
+                        </p>
+                        {claimBNode?.docTitle && (
+                          <span style={{ fontSize: '0.56rem', color: '#64748B', display: 'block', marginTop: '2px' }}>
+                            Doc: {claimBNode.docTitle}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Resolution Action */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedNodeId(node.id);
+                          showToast?.(`Selected contradiction: ${node.label} for curator review`);
+                        }}
+                        style={{
+                          marginTop: '2px',
+                          padding: '4px 8px',
+                          background: '#EA580C',
+                          color: '#FFFFFF',
+                          border: 'none',
+                          borderRadius: '4px',
+                          fontWeight: 700,
+                          fontSize: '0.62rem',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '4px',
+                          boxShadow: '0 1px 3px rgba(234,88,12,0.3)',
+                          transition: 'background 0.15s ease'
+                        }}
+                      >
+                        <span>⚖️ Inspect Full Evidence & Resolve</span>
+                      </button>
+                    </div>
+                  )}
                 </div>
               );
             })}
