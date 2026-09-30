@@ -2057,125 +2057,70 @@ export default function VisualLineageGraph({
         return (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%' }}>
 
-            {/* CLEAN MINIMALIST EXECUTIVE HEADER: BACK BUTTON, FILE NAME, TOGGLE FILE VIEW, & UNDERLINED TABS */}
+            {/* CLEAN MINIMALIST EXECUTIVE HEADER: MINIMAL BACK BUTTON (<), FILE NAME, TOGGLE FILE VIEW, & UNDERLINED TABS */}
             {selectedAsset360 && (
               <div style={{
-                background: '#FFFFFF',
-                border: '1px solid #E2E8F0',
-                borderRadius: '10px',
-                padding: '16px 20px 0px 20px',
-                marginBottom: '16px',
+                background: 'transparent',
+                border: 'none',
+                boxShadow: 'none',
+                padding: '0 0 2px 0',
+                marginBottom: '10px',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '12px'
+                gap: '10px'
               }}>
-                {/* Top Row: Back Button, File Name, and File Viewer Toggle / Stepper */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+                {/* Top Row: Minimal Back Button (<), File Name, and File Viewer Toggle / Stepper */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
                     <button
                       type="button"
                       onClick={() => setOpenedAssetId(null)}
                       style={{
-                        padding: '6px 12px',
+                        width: '28px',
+                        height: '28px',
                         borderRadius: '6px',
-                        border: '1px solid #CBD5E1',
+                        border: '1px solid #E2E8F0',
                         background: '#FFFFFF',
                         color: '#0F172A',
-                        fontSize: '0.76rem',
-                        fontWeight: 600,
-                        cursor: 'pointer',
-                        display: 'flex',
+                        display: 'inline-flex',
                         alignItems: 'center',
-                        gap: '4px'
+                        justifyContent: 'center',
+                        cursor: 'pointer',
+                        padding: 0,
+                        boxShadow: 'none',
+                        transition: 'all 0.18s cubic-bezier(0.16, 1, 0.3, 1)'
                       }}
-                      title="Back to asset list"
+                      title={`Back to ${vaultSubTab === 'documents' ? 'Documents' : 'Connectors'} list`}
+                      onMouseEnter={e => {
+                        e.currentTarget.style.background = '#FFF7ED';
+                        e.currentTarget.style.borderColor = '#FED7AA';
+                        e.currentTarget.style.color = '#EA580C';
+                        e.currentTarget.style.transform = 'translateX(-2px)';
+                      }}
+                      onMouseLeave={e => {
+                        e.currentTarget.style.background = '#FFFFFF';
+                        e.currentTarget.style.borderColor = '#E2E8F0';
+                        e.currentTarget.style.color = '#0F172A';
+                        e.currentTarget.style.transform = 'none';
+                      }}
                     >
-                      ← Back to {vaultSubTab === 'documents' ? `Documents (${enrichedAssets.length})` : `Connectors (${enrichedAssets.length})`}
+                      <ChevronLeft size={16} strokeWidth={2.5} />
                     </button>
 
-                    <h2 style={{ margin: 0, fontSize: '1.22rem', fontWeight: 800, color: '#0F172A' }}>
+                    <h2 style={{ margin: 0, fontSize: '1.16rem', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.01em' }}>
                       {selectedAsset360.node.label}
                     </h2>
                   </div>
-
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    {/* Toggle File View: Close / Open file viewer to view facilities full width */}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setIsFileViewerOpen(prev => !prev);
-                        showToast?.(!isFileViewerOpen ? 'Opened document view' : 'Closed document view — facilities expanded to full width');
-                      }}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '5px',
-                        padding: '6px 12px',
-                        borderRadius: '6px',
-                        border: `1px solid ${isFileViewerOpen ? '#CBD5E1' : '#2563EB'}`,
-                        background: isFileViewerOpen ? '#FFFFFF' : '#EFF6FF',
-                        color: isFileViewerOpen ? '#475569' : '#1D4ED8',
-                        fontSize: '0.74rem',
-                        fontWeight: 700,
-                        cursor: 'pointer'
-                      }}
-                    >
-                      {isFileViewerOpen ? '✕ Close File View' : '📄 Open File View'}
-                    </button>
-
-                    {/* Stepper (Prev / Next) if multiple assets */}
-                    {enrichedAssets.length > 1 && (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                        <button
-                          type="button"
-                          disabled={currentIndex <= 0}
-                          onClick={() => currentIndex > 0 && selectAssetItem(enrichedAssets[currentIndex - 1])}
-                          style={{
-                            padding: '4px 8px',
-                            borderRadius: '5px',
-                            border: '1px solid #E2E8F0',
-                            background: '#FFFFFF',
-                            color: currentIndex > 0 ? '#0F172A' : '#CBD5E1',
-                            cursor: currentIndex > 0 ? 'pointer' : 'not-allowed',
-                            fontSize: '0.72rem',
-                            fontWeight: 600
-                          }}
-                        >
-                          ‹ Prev
-                        </button>
-                        <span style={{ fontSize: '0.70rem', color: '#64748B', fontWeight: 600 }}>
-                          {currentIndex >= 0 ? currentIndex + 1 : 1} / {enrichedAssets.length}
-                        </span>
-                        <button
-                          type="button"
-                          disabled={currentIndex < 0 || currentIndex >= enrichedAssets.length - 1}
-                          onClick={() => currentIndex < enrichedAssets.length - 1 && selectAssetItem(enrichedAssets[currentIndex + 1])}
-                          style={{
-                            padding: '4px 8px',
-                            borderRadius: '5px',
-                            border: '1px solid #E2E8F0',
-                            background: '#FFFFFF',
-                            color: currentIndex < enrichedAssets.length - 1 ? '#0F172A' : '#CBD5E1',
-                            cursor: currentIndex < enrichedAssets.length - 1 ? 'pointer' : 'not-allowed',
-                            fontSize: '0.72rem',
-                            fontWeight: 600
-                          }}
-                        >
-                          Next ›
-                        </button>
-                      </div>
-                    )}
-                  </div>
                 </div>
 
-                {/* Plane Text Tabs with Separator Line (No Background, No Shadow, Hover/Active Effects) */}
+                {/* Plane Text Tabs with Separator Line (No Background, No Shadow, Hover/Active Orange Effects) */}
                 <div style={{
                   display: 'flex',
                   alignItems: 'center',
                   gap: '24px',
                   borderBottom: '1px solid #E2E8F0',
                   paddingBottom: '0px',
-                  marginTop: '6px',
+                  marginTop: '4px',
                   overflowX: 'auto'
                 }}>
                   {[
@@ -2201,13 +2146,13 @@ export default function VisualLineageGraph({
                           if (!active) e.currentTarget.style.color = '#64748B';
                         }}
                         style={{
-                          padding: '10px 2px',
+                          padding: '8px 2px',
                           border: 'none',
                           outline: 'none',
                           background: 'transparent',
                           boxShadow: 'none',
-                          borderBottom: active ? '2px solid #2563EB' : '2px solid transparent',
-                          color: active ? '#2563EB' : '#64748B',
+                          borderBottom: active ? '2px solid #EA580C' : '2px solid transparent',
+                          color: active ? '#EA580C' : '#64748B',
                           fontSize: '0.84rem',
                           fontWeight: active ? 700 : 500,
                           cursor: 'pointer',
@@ -2254,34 +2199,31 @@ export default function VisualLineageGraph({
                   }}>
                     {/* Original Document Top Bar */}
                     <div style={{
-                      padding: '10px 14px',
+                      padding: '8px 14px',
                       background: '#F8FAFC',
                       borderBottom: '1px solid #E2E8F0',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'space-between',
-                      gap: '8px',
-                      flexWrap: 'wrap'
+                      gap: '8px'
                     }}>
-                      <div>
-                        <div style={{ fontSize: '0.76rem', fontWeight: 800, color: '#0F172A' }}>
-                          {selectedAsset360.node.label}
-                        </div>
-                        <div style={{ fontSize: '0.66rem', color: '#64748B' }}>
-                          {selectedAsset360.node.data?.external_id || 'Uploaded Document'} &bull; v{selectedAsset360.node.data?.version_count || 1}.0
-                        </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ fontSize: '0.73rem', fontWeight: 600, color: '#64748B' }}>
+                          Document Preview
+                        </span>
                       </div>
 
                       {selectedAsset360.mode === 'document' && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                           <button
                             type="button"
                             onClick={() => setDocReaderClauseFilter('all')}
                             style={{
-                              padding: '4px 8px',
-                              border: 'none',
-                              background: 'transparent',
-                              color: docReaderClauseFilter === 'all' ? '#C2410C' : '#64748B',
+                              padding: '3px 8px',
+                              borderRadius: '4px',
+                              border: docReaderClauseFilter === 'all' ? '1px solid #FED7AA' : '1px solid transparent',
+                              background: docReaderClauseFilter === 'all' ? '#FFF7ED' : 'transparent',
+                              color: docReaderClauseFilter === 'all' ? '#EA580C' : '#64748B',
                               fontSize: '0.73rem',
                               fontWeight: 600,
                               cursor: 'pointer'
@@ -2293,10 +2235,11 @@ export default function VisualLineageGraph({
                             type="button"
                             onClick={() => setDocReaderClauseFilter('raw')}
                             style={{
-                              padding: '4px 8px',
-                              border: 'none',
-                              background: 'transparent',
-                              color: docReaderClauseFilter === 'raw' ? '#C2410C' : '#64748B',
+                              padding: '3px 8px',
+                              borderRadius: '4px',
+                              border: docReaderClauseFilter === 'raw' ? '1px solid #FED7AA' : '1px solid transparent',
+                              background: docReaderClauseFilter === 'raw' ? '#FFF7ED' : 'transparent',
+                              color: docReaderClauseFilter === 'raw' ? '#EA580C' : '#64748B',
                               fontSize: '0.73rem',
                               fontWeight: 600,
                               cursor: 'pointer'
@@ -2313,31 +2256,11 @@ export default function VisualLineageGraph({
                               fontWeight: 600,
                               color: '#0284C7',
                               textDecoration: 'none',
-                              padding: '4px 6px'
+                              padding: '3px 6px'
                             }}
                           >
                             Open ↗
                           </a>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setIsFileViewerOpen(false);
-                              showToast?.("Document view closed — facilities expanded to full width");
-                            }}
-                            style={{
-                              padding: '4px 8px',
-                              borderRadius: '4px',
-                              border: '1px solid #CBD5E1',
-                              background: '#FFFFFF',
-                              color: '#475569',
-                              fontSize: '0.72rem',
-                              fontWeight: 600,
-                              cursor: 'pointer'
-                            }}
-                            title="Close file viewer and view facilities full width"
-                          >
-                            ✕ Close View
-                          </button>
                         </div>
                       )}
                     </div>
@@ -2432,369 +2355,328 @@ export default function VisualLineageGraph({
         width: '100%',
         boxSizing: 'border-box'
       }}>
-        {/* Row 1: Primary Toolbar Controls */}
+        {/* Row 1: Primary Command Bar */}
         <div style={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           flexWrap: 'wrap',
-          gap: '6px',
-          padding: '5px 10px',
-          background: '#FAFAFA'
+          gap: '8px',
+          padding: '6px 12px',
+          background: '#F8FAFC',
+          borderBottom: isFilterPanelOpen ? '1px solid #E2E8F0' : 'none'
         }}>
-          {/* Left: Asset Focus & Workspace Pill */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '5px', flexWrap: 'wrap' }}>
-            <span style={{ fontSize: '0.68rem', color: '#64748B', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.02em' }}>
-              Asset:
-            </span>
+          {/* Left Group: Granularity & View Modes */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+            
+            {/* Granularity Switcher */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '2px',
+              background: '#EDF2F7',
+              padding: '2px',
+              borderRadius: '7px',
+              border: '1px solid #E2E8F0'
+            }}>
+              <button
+                type="button"
+                onClick={() => {
+                  setLineageGranularity('document');
+                  showToast?.("Document Flow: Macro policy lineage");
+                }}
+                style={{
+                  padding: '3px 10px',
+                  fontSize: '0.70rem',
+                  fontWeight: 700,
+                  borderRadius: '5px',
+                  border: 'none',
+                  cursor: 'pointer',
+                  background: lineageGranularity === 'document' ? '#0284C7' : 'transparent',
+                  color: lineageGranularity === 'document' ? '#FFFFFF' : '#475569',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  height: '25px',
+                  boxShadow: lineageGranularity === 'document' ? '0 1px 2px rgba(2,132,199,0.3)' : 'none',
+                  transition: 'all 0.15s ease'
+                }}
+                title="Document-Level Lineage: Clean system-to-policy flow without claim clutter"
+              >
+                <FileText size={12} />
+                <span>Document Flow</span>
+              </button>
 
-            <select
-              value={selectedNodeId || ''}
-              onChange={(e) => {
-                const val = e.target.value;
-                setSelectedNodeId(val);
-                setInteractiveRootId(val);
-                setExpandedUpstreamSet(new Set());
-                setExpandedDownstreamSet(new Set());
-                setExpandedConflictClaimsSet(new Set());
-                if (val) {
-                  showToast?.("Focused on single starting asset — click + or − to expand flow");
-                }
-              }}
-              style={{
-                padding: '2px 6px',
-                borderRadius: '5px',
-                border: '1px solid #CBD5E1',
-                background: '#FFFFFF',
-                fontSize: '0.72rem',
-                fontWeight: 600,
-                color: '#0F172A',
-                cursor: 'pointer',
-                maxWidth: '220px',
-                outline: 'none',
-                height: '26px'
-              }}
-            >
-              {(!graphData?.nodes || graphData.nodes.length === 0) ? (
-                <option value="">No assets ingested</option>
-              ) : (
-                graphData.nodes.map(n => (
-                  <option key={n.id} value={n.id}>
-                    [{n.type.toUpperCase()}] {n.label}
-                  </option>
-                ))
-              )}
-            </select>
+              <button
+                type="button"
+                onClick={() => {
+                  setLineageGranularity('claim');
+                  showToast?.("Claim Provenance: Granular atomic assertions");
+                }}
+                style={{
+                  padding: '3px 10px',
+                  fontSize: '0.70rem',
+                  fontWeight: 700,
+                  borderRadius: '5px',
+                  border: 'none',
+                  cursor: 'pointer',
+                  background: lineageGranularity === 'claim' ? '#059669' : 'transparent',
+                  color: lineageGranularity === 'claim' ? '#FFFFFF' : '#475569',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  height: '25px',
+                  boxShadow: lineageGranularity === 'claim' ? '0 1px 2px rgba(5,150,105,0.3)' : 'none',
+                  transition: 'all 0.15s ease'
+                }}
+                title="Claim-Level Lineage: Granular atomic assertions drill-down"
+              >
+                <Zap size={12} />
+                <span>Claim Provenance</span>
+              </button>
+            </div>
 
-            {/* Departmental Workspace Pill */}
-            {activeWorkspace && (
-              <span style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '3px',
-                padding: '2px 6px',
-                borderRadius: '5px',
-                background: activeWorkspace.id !== 'all' && !lineageScopeAll ? '#EFF6FF' : '#F1F5F9',
-                border: `1px solid ${activeWorkspace.id !== 'all' && !lineageScopeAll ? '#BFDBFE' : '#E2E8F0'}`,
-                fontSize: '0.68rem',
-                fontWeight: 700,
-                color: activeWorkspace.id !== 'all' && !lineageScopeAll ? '#1D4ED8' : '#475569',
-                height: '26px',
-                boxSizing: 'border-box'
-              }}>
-                <span>{activeWorkspace.icon || '🏢'}</span>
-                <span>{lineageScopeAll ? 'Unified All' : activeWorkspace.name}</span>
-                {activeWorkspace.id !== 'all' && !lineageScopeAll && (
-                  <span style={{ fontSize: '0.60rem', color: '#16A34A', background: '#DCFCE7', padding: '0 3px', borderRadius: '3px' }}>
-                    Isolated
-                  </span>
-                )}
-              </span>
+            <div style={{ width: '1px', height: '18px', background: '#CBD5E1' }} />
+
+            {/* View Mode Segmented Controls */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '2px',
+              background: '#EDF2F7',
+              padding: '2px',
+              borderRadius: '7px',
+              border: '1px solid #E2E8F0'
+            }}>
+              <button
+                type="button"
+                onClick={() => {
+                  setViewMode('interactive');
+                  showToast?.("Interactive Flow: Step-by-step on-demand exploration");
+                }}
+                style={{
+                  padding: '3px 10px',
+                  fontSize: '0.70rem',
+                  fontWeight: 700,
+                  borderRadius: '5px',
+                  border: 'none',
+                  cursor: 'pointer',
+                  background: viewMode === 'interactive' ? '#1D4ED8' : 'transparent',
+                  color: viewMode === 'interactive' ? '#FFFFFF' : '#475569',
+                  boxShadow: viewMode === 'interactive' ? '0 1px 2px rgba(29,78,216,0.3)' : 'none',
+                  transition: 'all 0.15s ease',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  height: '25px'
+                }}
+                title="Interactive Flow: Start from single node and expand upstream/downstream on demand"
+              >
+                <Layers size={12} />
+                <span>Interactive Flow</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setViewMode('conflicts');
+                  const firstConf = conflictsList[0];
+                  if (firstConf) setSelectedNodeId(firstConf.id);
+                }}
+                style={{
+                  padding: '3px 10px',
+                  fontSize: '0.70rem',
+                  fontWeight: 700,
+                  borderRadius: '5px',
+                  border: 'none',
+                  cursor: 'pointer',
+                  background: viewMode === 'conflicts' ? '#EA580C' : 'transparent',
+                  color: viewMode === 'conflicts' ? '#FFFFFF' : (conflictsList.length > 0 ? '#C2410C' : '#475569'),
+                  boxShadow: viewMode === 'conflicts' ? '0 1px 2px rgba(234,88,12,0.3)' : 'none',
+                  transition: 'all 0.15s ease',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  height: '25px'
+                }}
+                title="Focus on contradictions"
+              >
+                <AlertTriangle size={12} />
+                <span>Contradictions ({conflictsList.length})</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setViewMode('all')}
+                style={{
+                  padding: '3px 10px',
+                  fontSize: '0.70rem',
+                  fontWeight: 700,
+                  borderRadius: '5px',
+                  border: 'none',
+                  cursor: 'pointer',
+                  background: viewMode === 'all' ? '#0F172A' : 'transparent',
+                  color: viewMode === 'all' ? '#FFFFFF' : '#475569',
+                  boxShadow: viewMode === 'all' ? '0 1px 2px rgba(15,23,42,0.3)' : 'none',
+                  transition: 'all 0.15s ease',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  height: '25px'
+                }}
+                title="Full overview DAG"
+              >
+                <Database size={12} />
+                <span>Overview</span>
+              </button>
+            </div>
+
+            {/* Interactive Flow Quick Controls */}
+            {viewMode === 'interactive' && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <button
+                  type="button"
+                  onClick={resetToSingleNode}
+                  style={{
+                    padding: '3px 9px',
+                    fontSize: '0.68rem',
+                    fontWeight: 600,
+                    borderRadius: '5px',
+                    border: '1px solid #CBD5E1',
+                    background: '#FFFFFF',
+                    color: '#334155',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    height: '25px',
+                    transition: 'all 0.15s ease'
+                  }}
+                  title="Reset canvas to only the single starting node"
+                >
+                  <RotateCcw size={11} />
+                  <span>Single Node</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={expandAllFlow}
+                  style={{
+                    padding: '3px 9px',
+                    fontSize: '0.68rem',
+                    fontWeight: 700,
+                    borderRadius: '5px',
+                    border: '1px solid #BFDBFE',
+                    background: '#EFF6FF',
+                    color: '#1D4ED8',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    height: '25px',
+                    transition: 'all 0.15s ease'
+                  }}
+                  title="Expand all upstream and downstream connections"
+                >
+                  <span>➕ Expand All</span>
+                </button>
+              </div>
             )}
           </div>
 
-          {/* Document-Level vs Claim-Level Granularity Switcher */}
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '2px',
-            background: '#F8FAFC',
-            padding: '2px',
-            borderRadius: '6px',
-            border: '1px solid #CBD5E1'
-          }}>
-            <button
-              type="button"
-              onClick={() => {
-                setLineageGranularity('document');
-                showToast?.("Document Flow: Macro policy lineage");
-              }}
-              style={{
-                padding: '2px 8px',
-                fontSize: '0.68rem',
-                fontWeight: 700,
-                borderRadius: '4px',
-                border: 'none',
-                cursor: 'pointer',
-                background: lineageGranularity === 'document' ? '#0284C7' : 'transparent',
-                color: lineageGranularity === 'document' ? '#FFFFFF' : '#475569',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '3px',
-                height: '24px',
-                boxShadow: lineageGranularity === 'document' ? '0 1px 2px rgba(2,132,199,0.25)' : 'none',
-                transition: 'all 0.15s ease'
-              }}
-              title="Document-Level Lineage: Clean system-to-policy flow without claim clutter"
-            >
-              <FileText size={11} />
-              <span>Document Flow</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => {
-                setLineageGranularity('claim');
-                showToast?.("Claim Provenance: Granular atomic assertions");
-              }}
-              style={{
-                padding: '2px 8px',
-                fontSize: '0.68rem',
-                fontWeight: 700,
-                borderRadius: '4px',
-                border: 'none',
-                cursor: 'pointer',
-                background: lineageGranularity === 'claim' ? '#059669' : 'transparent',
-                color: lineageGranularity === 'claim' ? '#FFFFFF' : '#475569',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '3px',
-                height: '24px',
-                boxShadow: lineageGranularity === 'claim' ? '0 1px 2px rgba(5,150,105,0.25)' : 'none',
-                transition: 'all 0.15s ease'
-              }}
-              title="Claim-Level Lineage: Granular atomic assertions drill-down"
-            >
-              <Zap size={11} />
-              <span>Claim Provenance</span>
-            </button>
-          </div>
-
-          {/* Center: View Mode Segmented Controls */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '2px', background: '#F1F5F9', padding: '2px', borderRadius: '6px', border: '1px solid #E2E8F0' }}>
-            <button
-              type="button"
-              onClick={() => {
-                setViewMode('interactive');
-                showToast?.("Interactive Flow: Step-by-step on-demand exploration");
-              }}
-              style={{
-                padding: '3px 8px',
-                fontSize: '0.69rem',
-                fontWeight: 700,
-                borderRadius: '4px',
-                border: 'none',
-                cursor: 'pointer',
-                background: viewMode === 'interactive' ? '#1D4ED8' : 'transparent',
-                color: viewMode === 'interactive' ? '#FFFFFF' : '#475569',
-                boxShadow: viewMode === 'interactive' ? '0 1px 2px rgba(29,78,216,0.25)' : 'none',
-                transition: 'all 0.15s ease',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '3px',
-                height: '24px'
-              }}
-              title="Interactive Flow: Start from single node and expand upstream/downstream on demand"
-            >
-              <Layers size={11} />
-              <span>Interactive Flow</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => {
-                setViewMode('conflicts');
-                const firstConf = conflictsList[0];
-                if (firstConf) setSelectedNodeId(firstConf.id);
-              }}
-              style={{
-                padding: '3px 8px',
-                fontSize: '0.69rem',
-                fontWeight: 700,
-                borderRadius: '4px',
-                border: 'none',
-                cursor: 'pointer',
-                background: viewMode === 'conflicts' ? '#EA580C' : 'transparent',
-                color: viewMode === 'conflicts' ? '#FFFFFF' : '#475569',
-                boxShadow: viewMode === 'conflicts' ? '0 1px 2px rgba(234,88,12,0.25)' : 'none',
-                transition: 'all 0.15s ease',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '3px',
-                height: '24px'
-              }}
-              title="Focus on contradictions"
-            >
-              <Zap size={11} />
-              <span>Contradictions ({conflictsList.length})</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setViewMode('all')}
-              style={{
-                padding: '3px 8px',
-                fontSize: '0.69rem',
-                fontWeight: 700,
-                borderRadius: '4px',
-                border: 'none',
-                cursor: 'pointer',
-                background: viewMode === 'all' ? '#0284C7' : 'transparent',
-                color: viewMode === 'all' ? '#FFFFFF' : '#475569',
-                boxShadow: viewMode === 'all' ? '0 1px 2px rgba(2,132,199,0.25)' : 'none',
-                transition: 'all 0.15s ease',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '3px',
-                height: '24px'
-              }}
-              title="Full overview DAG"
-            >
-              <Database size={11} />
-              <span>Overview</span>
-            </button>
-          </div>
-
-          {/* Interactive Flow Quick Controls */}
-          {viewMode === 'interactive' && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <button
-                type="button"
-                onClick={resetToSingleNode}
-                style={{
-                  padding: '2px 8px',
-                  fontSize: '0.67rem',
-                  fontWeight: 700,
-                  borderRadius: '5px',
-                  border: '1px solid #CBD5E1',
-                  background: '#FFFFFF',
-                  color: '#334155',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '3px',
-                  height: '24px'
-                }}
-                title="Reset canvas to only the single starting node"
-              >
-                <RotateCcw size={10} />
-                <span>Single Node</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={expandAllFlow}
-                style={{
-                  padding: '2px 8px',
-                  fontSize: '0.67rem',
-                  fontWeight: 700,
-                  borderRadius: '5px',
-                  border: '1px solid #BFDBFE',
-                  background: '#EFF6FF',
-                  color: '#1D4ED8',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '3px',
-                  height: '24px'
-                }}
-                title="Expand all upstream and downstream connections"
-              >
-                <span>➕ Expand All</span>
-              </button>
-            </div>
-          )}
-
-          {/* Right: Minimal Action Buttons */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+          {/* Right Group: Action Tools */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <button
               onClick={() => setIsFilterPanelOpen(prev => !prev)}
               style={{
-                padding: '3px 8px',
+                padding: '4px 10px',
                 fontSize: '0.70rem',
                 fontWeight: 700,
-                borderRadius: '5px',
-                border: activeFilterCount > 0 ? '1px solid #EA580C' : '1px solid #CBD5E1',
+                borderRadius: '6px',
+                border: activeFilterCount > 0 ? '1px solid #EA580C' : (isFilterPanelOpen ? '1px solid #CBD5E1' : '1px solid #E2E8F0'),
                 background: isFilterPanelOpen || activeFilterCount > 0 ? '#FFF7ED' : '#FFFFFF',
                 color: isFilterPanelOpen || activeFilterCount > 0 ? '#EA580C' : '#334155',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '3px',
-                height: '26px'
+                gap: '5px',
+                height: '27px',
+                transition: 'all 0.15s ease'
               }}
               title="Toggle Filters"
             >
-              <Sliders size={11} />
+              <Sliders size={12} />
               <span>Filters</span>
               {activeFilterCount > 0 && (
                 <span style={{
                   background: '#EA580C',
                   color: '#FFFFFF',
-                  borderRadius: '6px',
-                  padding: '0 3px',
-                  fontSize: '0.60rem',
-                  fontWeight: 800
+                  borderRadius: '10px',
+                  padding: '1px 5px',
+                  fontSize: '0.62rem',
+                  fontWeight: 800,
+                  lineHeight: 1
                 }}>
                   {activeFilterCount}
                 </span>
               )}
-              <ChevronDown size={10} style={{ transform: isFilterPanelOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s ease' }} />
+              <ChevronDown size={11} style={{ transform: isFilterPanelOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s ease' }} />
             </button>
 
             <button
               onClick={() => setIsDrawerOpen(true)}
               style={{
-                padding: '3px 8px',
+                padding: '4px 10px',
                 fontSize: '0.70rem',
                 fontWeight: 600,
-                borderRadius: '5px',
-                border: '1px solid #CBD5E1',
+                borderRadius: '6px',
+                border: '1px solid #E2E8F0',
                 background: '#FFFFFF',
                 color: '#334155',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '3px',
-                height: '26px'
+                gap: '5px',
+                height: '27px',
+                transition: 'all 0.15s ease'
               }}
               title="Claims Drawer"
             >
-              <FileText size={11} />
-              <span>Claims ({graphData?.nodes?.filter(n => n.type === 'claim')?.length || 0})</span>
+              <FileText size={12} color="#64748B" />
+              <span>Claims</span>
+              <span style={{
+                background: '#F1F5F9',
+                color: '#475569',
+                borderRadius: '10px',
+                padding: '1px 5px',
+                fontSize: '0.62rem',
+                fontWeight: 700
+              }}>
+                {graphData?.nodes?.filter(n => n.type === 'claim')?.length || 0}
+              </span>
             </button>
 
             <button
               onClick={() => setIsImpactReportOpen(true)}
               style={{
-                padding: '3px 8px',
+                padding: '4px 10px',
                 fontSize: '0.70rem',
                 fontWeight: 700,
-                borderRadius: '5px',
-                border: '1px solid #7C3AED',
-                background: isImpactReportOpen ? '#7C3AED' : '#FAF5FF',
+                borderRadius: '6px',
+                border: '1px solid #DDD6FE',
+                background: isImpactReportOpen ? '#7C3AED' : 'linear-gradient(135deg, #FAF5FF 0%, #F3E8FF 100%)',
                 color: isImpactReportOpen ? '#FFFFFF' : '#7C3AED',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '3px',
-                height: '26px',
-                boxShadow: isImpactReportOpen ? '0 1px 3px rgba(124,58,237,0.3)' : 'none',
+                gap: '5px',
+                height: '27px',
+                boxShadow: isImpactReportOpen ? '0 1px 3px rgba(124,58,237,0.3)' : '0 1px 2px rgba(124,58,237,0.06)',
                 transition: 'all 0.15s ease'
               }}
-              title="Open Atlan-style Proactive Impact & Blast Radius Report"
+              title="Open Proactive Impact & Blast Radius Report"
             >
-              <BarChart3 size={11} />
+              <BarChart3 size={12} />
               <span>Impact Report</span>
             </button>
 
@@ -2802,22 +2684,23 @@ export default function VisualLineageGraph({
               onClick={fetchLineage}
               disabled={loading}
               style={{
-                padding: '3px 7px',
+                padding: '4px 8px',
                 fontSize: '0.70rem',
                 fontWeight: 600,
-                borderRadius: '5px',
-                border: '1px solid #CBD5E1',
+                borderRadius: '6px',
+                border: '1px solid #E2E8F0',
                 background: '#FFFFFF',
-                color: '#334155',
+                color: '#475569',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '3px',
-                height: '26px'
+                justifyContent: 'center',
+                height: '27px',
+                transition: 'all 0.15s ease'
               }}
               title="Refresh Graph"
             >
-              <RefreshCw size={11} className={loading ? "animate-spin" : ""} />
+              <RefreshCw size={12} className={loading ? "animate-spin" : ""} />
             </button>
           </div>
         </div>
@@ -2826,23 +2709,31 @@ export default function VisualLineageGraph({
         {isFilterPanelOpen && (
           <div style={{
             borderTop: '1px solid #E2E8F0',
-            padding: '6px 10px',
+            padding: '8px 12px',
             background: '#FFFFFF',
             display: 'flex',
             flexDirection: 'column',
-            gap: '6px'
+            gap: '8px'
           }}>
             {/* Filter Selects Strip */}
             <div style={{
               display: 'flex',
               alignItems: 'center',
-              gap: '6px',
+              gap: '8px',
               flexWrap: 'wrap'
             }}>
               {/* Conflict Selector */}
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
-                <span style={{ fontSize: '0.66rem', fontWeight: 700, color: '#EA580C', textTransform: 'uppercase' }}>
-                  Conflict:
+              <div style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '5px',
+                background: selectedConflictId !== 'all' ? '#FFF7ED' : '#F8FAFC',
+                border: selectedConflictId !== 'all' ? '1px solid #FDBA74' : '1px solid #E2E8F0',
+                padding: '2px 6px',
+                borderRadius: '6px'
+              }}>
+                <span style={{ fontSize: '0.64rem', fontWeight: 700, color: '#EA580C', textTransform: 'uppercase', letterSpacing: '0.02em' }}>
+                  Conflict
                 </span>
                 <select
                   value={selectedConflictId}
@@ -2856,16 +2747,14 @@ export default function VisualLineageGraph({
                     }
                   }}
                   style={{
-                    padding: '2px 5px',
-                    borderRadius: '4px',
-                    border: selectedConflictId !== 'all' ? '1px solid #EA580C' : '1px solid #CBD5E1',
-                    background: selectedConflictId !== 'all' ? '#FFF7ED' : '#F8FAFC',
-                    fontSize: '0.70rem',
+                    padding: '2px 4px',
+                    border: 'none',
+                    background: 'transparent',
+                    fontSize: '0.69rem',
                     fontWeight: selectedConflictId !== 'all' ? 700 : 500,
                     color: selectedConflictId !== 'all' ? '#C2410C' : '#334155',
                     outline: 'none',
-                    cursor: 'pointer',
-                    height: '24px'
+                    cursor: 'pointer'
                   }}
                 >
                   <option value="all">All ({conflictsList.length})</option>
@@ -2878,9 +2767,17 @@ export default function VisualLineageGraph({
               </div>
 
               {/* Policy Selector */}
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
-                <span style={{ fontSize: '0.66rem', fontWeight: 700, color: '#0284C7', textTransform: 'uppercase' }}>
-                  Policy:
+              <div style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '5px',
+                background: selectedDocFilter !== 'all' ? '#F0F9FF' : '#F8FAFC',
+                border: selectedDocFilter !== 'all' ? '1px solid #BAE6FD' : '1px solid #E2E8F0',
+                padding: '2px 6px',
+                borderRadius: '6px'
+              }}>
+                <span style={{ fontSize: '0.64rem', fontWeight: 700, color: '#0284C7', textTransform: 'uppercase', letterSpacing: '0.02em' }}>
+                  Policy
                 </span>
                 <select
                   value={selectedDocFilter}
@@ -2893,16 +2790,14 @@ export default function VisualLineageGraph({
                     }
                   }}
                   style={{
-                    padding: '2px 5px',
-                    borderRadius: '4px',
-                    border: selectedDocFilter !== 'all' ? '1px solid #0284C7' : '1px solid #CBD5E1',
-                    background: selectedDocFilter !== 'all' ? '#F0F9FF' : '#F8FAFC',
-                    fontSize: '0.70rem',
+                    padding: '2px 4px',
+                    border: 'none',
+                    background: 'transparent',
+                    fontSize: '0.69rem',
                     fontWeight: selectedDocFilter !== 'all' ? 700 : 500,
                     color: selectedDocFilter !== 'all' ? '#0369A1' : '#334155',
                     outline: 'none',
-                    cursor: 'pointer',
-                    height: '24px'
+                    cursor: 'pointer'
                   }}
                 >
                   <option value="all">All ({documentsList.length})</option>
@@ -2914,27 +2809,32 @@ export default function VisualLineageGraph({
                 </select>
               </div>
 
-              {/* Conflict Status Selector (Default: Active / Unresolved Only) */}
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
-                <span style={{ fontSize: '0.66rem', fontWeight: 700, color: '#EA580C', textTransform: 'uppercase' }}>
-                  Status:
+              {/* Conflict Status Selector */}
+              <div style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '5px',
+                background: filterStatus === 'active' ? '#FFF7ED' : '#F8FAFC',
+                border: filterStatus === 'active' ? '1px solid #FDBA74' : '1px solid #E2E8F0',
+                padding: '2px 6px',
+                borderRadius: '6px'
+              }}>
+                <span style={{ fontSize: '0.64rem', fontWeight: 700, color: '#EA580C', textTransform: 'uppercase', letterSpacing: '0.02em' }}>
+                  Status
                 </span>
                 <select
                   value={filterStatus}
                   onChange={(e) => setFilterStatus(e.target.value)}
                   style={{
-                    padding: '2px 5px',
-                    borderRadius: '4px',
-                    border: filterStatus === 'active' ? '1px solid #EA580C' : '1px solid #CBD5E1',
-                    background: filterStatus === 'active' ? '#FFF7ED' : '#F8FAFC',
-                    fontSize: '0.70rem',
+                    padding: '2px 4px',
+                    border: 'none',
+                    background: 'transparent',
+                    fontSize: '0.69rem',
                     color: filterStatus === 'active' ? '#C2410C' : '#334155',
                     fontWeight: 700,
                     outline: 'none',
-                    cursor: 'pointer',
-                    height: '24px'
+                    cursor: 'pointer'
                   }}
-                  title="Filter contradictions by resolution status (defaults to Active/Unresolved Only)"
                 >
                   <option value="active">Active / Unresolved Only</option>
                   <option value="resolved">Resolved Only</option>
@@ -2943,24 +2843,30 @@ export default function VisualLineageGraph({
               </div>
 
               {/* Severity Selector */}
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
-                <span style={{ fontSize: '0.66rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase' }}>
-                  Severity:
+              <div style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '5px',
+                background: filterSeverity !== 'all' ? '#EFF6FF' : '#F8FAFC',
+                border: filterSeverity !== 'all' ? '1px solid #BFDBFE' : '1px solid #E2E8F0',
+                padding: '2px 6px',
+                borderRadius: '6px'
+              }}>
+                <span style={{ fontSize: '0.64rem', fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.02em' }}>
+                  Severity
                 </span>
                 <select
                   value={filterSeverity}
                   onChange={(e) => setFilterSeverity(e.target.value)}
                   style={{
-                    padding: '2px 5px',
-                    borderRadius: '4px',
-                    border: filterSeverity !== 'all' ? '1px solid #2563EB' : '1px solid #CBD5E1',
-                    background: filterSeverity !== 'all' ? '#EFF6FF' : '#F8FAFC',
-                    fontSize: '0.70rem',
+                    padding: '2px 4px',
+                    border: 'none',
+                    background: 'transparent',
+                    fontSize: '0.69rem',
                     color: filterSeverity !== 'all' ? '#1D4ED8' : '#334155',
                     fontWeight: filterSeverity !== 'all' ? 700 : 500,
                     outline: 'none',
-                    cursor: 'pointer',
-                    height: '24px'
+                    cursor: 'pointer'
                   }}
                 >
                   <option value="all">All</option>
@@ -2972,24 +2878,30 @@ export default function VisualLineageGraph({
               </div>
 
               {/* Trust Selector */}
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
-                <span style={{ fontSize: '0.66rem', fontWeight: 700, color: '#16A34A', textTransform: 'uppercase' }}>
-                  Trust:
+              <div style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '5px',
+                background: filterClaimTrust !== 'all' ? '#F0FDF4' : '#F8FAFC',
+                border: filterClaimTrust !== 'all' ? '1px solid #BBF7D0' : '1px solid #E2E8F0',
+                padding: '2px 6px',
+                borderRadius: '6px'
+              }}>
+                <span style={{ fontSize: '0.64rem', fontWeight: 700, color: '#16A34A', textTransform: 'uppercase', letterSpacing: '0.02em' }}>
+                  Trust
                 </span>
                 <select
                   value={filterClaimTrust}
                   onChange={(e) => setFilterClaimTrust(e.target.value)}
                   style={{
-                    padding: '2px 5px',
-                    borderRadius: '4px',
-                    border: filterClaimTrust !== 'all' ? '1px solid #16A34A' : '1px solid #CBD5E1',
-                    background: filterClaimTrust !== 'all' ? '#F0FDF4' : '#F8FAFC',
-                    fontSize: '0.70rem',
+                    padding: '2px 4px',
+                    border: 'none',
+                    background: 'transparent',
+                    fontSize: '0.69rem',
                     color: filterClaimTrust !== 'all' ? '#15803D' : '#334155',
                     fontWeight: filterClaimTrust !== 'all' ? 700 : 500,
                     outline: 'none',
-                    cursor: 'pointer',
-                    height: '24px'
+                    cursor: 'pointer'
                   }}
                 >
                   <option value="all">All</option>
@@ -3000,23 +2912,30 @@ export default function VisualLineageGraph({
               </div>
 
               {/* Density Selector */}
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
-                <span style={{ fontSize: '0.66rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase' }}>
-                  Density:
+              <div style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '5px',
+                background: '#F8FAFC',
+                border: '1px solid #E2E8F0',
+                padding: '2px 6px',
+                borderRadius: '6px'
+              }}>
+                <span style={{ fontSize: '0.64rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.02em' }}>
+                  Density
                 </span>
                 <select
                   value={displayLimit}
                   onChange={(e) => setDisplayLimit(e.target.value === 'all' ? 'all' : Number(e.target.value))}
                   style={{
-                    padding: '2px 5px',
-                    borderRadius: '4px',
-                    border: '1px solid #CBD5E1',
-                    background: '#F8FAFC',
-                    fontSize: '0.70rem',
+                    padding: '2px 4px',
+                    border: 'none',
+                    background: 'transparent',
+                    fontSize: '0.69rem',
                     color: '#334155',
+                    fontWeight: 600,
                     outline: 'none',
-                    cursor: 'pointer',
-                    height: '24px'
+                    cursor: 'pointer'
                   }}
                 >
                   <option value={6}>6</option>
@@ -3033,12 +2952,12 @@ export default function VisualLineageGraph({
               alignItems: 'center',
               justifyContent: 'space-between',
               flexWrap: 'wrap',
-              gap: '6px',
+              gap: '8px',
               borderTop: '1px solid #F1F5F9',
-              paddingTop: '4px'
+              paddingTop: '6px'
             }}>
               {/* Tiers + Conflicted */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '5px', flexWrap: 'wrap' }}>
                 <button
                   type="button"
                   onClick={() => {
@@ -3046,9 +2965,9 @@ export default function VisualLineageGraph({
                     if (!showOnlyConflicted) showToast?.("Focused on contradictory paths");
                   }}
                   style={{
-                    padding: '1px 6px',
-                    borderRadius: '4px',
-                    fontSize: '0.66rem',
+                    padding: '2px 8px',
+                    borderRadius: '5px',
+                    fontSize: '0.67rem',
                     fontWeight: 700,
                     cursor: 'pointer',
                     border: showOnlyConflicted ? '1px solid #EA580C' : '1px solid #CBD5E1',
@@ -3056,11 +2975,11 @@ export default function VisualLineageGraph({
                     color: showOnlyConflicted ? '#FFFFFF' : '#475569',
                     display: 'inline-flex',
                     alignItems: 'center',
-                    gap: '3px',
-                    height: '22px'
+                    gap: '4px',
+                    height: '24px'
                   }}
                 >
-                  <AlertTriangle size={10} />
+                  <AlertTriangle size={11} />
                   <span>Conflicted</span>
                   {showOnlyConflicted && <span>✓</span>}
                 </button>
@@ -3072,9 +2991,9 @@ export default function VisualLineageGraph({
                     showToast?.(!groupCleanClaims ? "Anomaly Mode: Clean claims rolled into clusters" : "Expanded all individual claims");
                   }}
                   style={{
-                    padding: '1px 6px',
-                    borderRadius: '4px',
-                    fontSize: '0.66rem',
+                    padding: '2px 8px',
+                    borderRadius: '5px',
+                    fontSize: '0.67rem',
                     fontWeight: 700,
                     cursor: 'pointer',
                     border: groupCleanClaims ? '1px solid #059669' : '1px solid #CBD5E1',
@@ -3082,12 +3001,12 @@ export default function VisualLineageGraph({
                     color: groupCleanClaims ? '#059669' : '#475569',
                     display: 'inline-flex',
                     alignItems: 'center',
-                    gap: '3px',
-                    height: '22px'
+                    gap: '4px',
+                    height: '24px'
                   }}
                   title="Group clean, non-conflicting claims into summary clusters to focus exclusively on anomalies"
                 >
-                  <ShieldCheck size={10} color={groupCleanClaims ? '#059669' : '#64748B'} />
+                  <ShieldCheck size={11} color={groupCleanClaims ? '#059669' : '#64748B'} />
                   <span>Group Clean</span>
                   {groupCleanClaims && <span>✓</span>}
                 </button>
@@ -3099,9 +3018,9 @@ export default function VisualLineageGraph({
                     showToast?.(!causalSubgraphOnly ? "Causal Trace: Isolated direct 2-hop causal path" : "Showing full enterprise graph");
                   }}
                   style={{
-                    padding: '1px 6px',
-                    borderRadius: '4px',
-                    fontSize: '0.66rem',
+                    padding: '2px 8px',
+                    borderRadius: '5px',
+                    fontSize: '0.67rem',
                     fontWeight: 700,
                     cursor: 'pointer',
                     border: causalSubgraphOnly ? '1px solid #2563EB' : '1px solid #CBD5E1',
@@ -3109,17 +3028,17 @@ export default function VisualLineageGraph({
                     color: causalSubgraphOnly ? '#2563EB' : '#475569',
                     display: 'inline-flex',
                     alignItems: 'center',
-                    gap: '3px',
-                    height: '22px'
+                    gap: '4px',
+                    height: '24px'
                   }}
                   title="Isolate direct 2-hop causal lineage path (Decisions ➔ Causal Claims ➔ Policies)"
                 >
-                  <Eye size={10} color={causalSubgraphOnly ? '#2563EB' : '#64748B'} />
+                  <Eye size={11} color={causalSubgraphOnly ? '#2563EB' : '#64748B'} />
                   <span>Causal (k=2)</span>
                   {causalSubgraphOnly && <span>✓</span>}
                 </button>
 
-                <span style={{ fontSize: '0.64rem', color: '#94A3B8', margin: '0 1px' }}>Tiers:</span>
+                <span style={{ fontSize: '0.65rem', color: '#94A3B8', margin: '0 2px' }}>Tiers:</span>
 
                 {[
                   { type: 'source', label: 'Src', count: graphData?.nodes?.filter(n => n.type === 'source')?.length || 0, color: '#2563EB' },
@@ -3135,9 +3054,9 @@ export default function VisualLineageGraph({
                       type="button"
                       onClick={() => toggleTier(t.type)}
                       style={{
-                        padding: '1px 5px',
-                        borderRadius: '4px',
-                        fontSize: '0.65rem',
+                        padding: '2px 6px',
+                        borderRadius: '5px',
+                        fontSize: '0.66rem',
                         fontWeight: 700,
                         cursor: 'pointer',
                         border: isVisible ? `1px solid ${t.color}` : '1px solid #E2E8F0',
@@ -3146,13 +3065,14 @@ export default function VisualLineageGraph({
                         display: 'inline-flex',
                         alignItems: 'center',
                         gap: '3px',
-                        height: '22px',
-                        opacity: isVisible ? 1 : 0.6
+                        height: '24px',
+                        opacity: isVisible ? 1 : 0.6,
+                        transition: 'all 0.15s ease'
                       }}
                       title={`Toggle ${t.label}`}
                     >
                       <span>{t.label}</span>
-                      <span style={{ fontSize: '0.58rem', fontWeight: 800, background: isVisible ? `${t.color}25` : '#E2E8F0', padding: '0 2px', borderRadius: '2px' }}>
+                      <span style={{ fontSize: '0.60rem', fontWeight: 800, background: isVisible ? `${t.color}25` : '#E2E8F0', padding: '0 3px', borderRadius: '3px' }}>
                         {t.count}
                       </span>
                     </button>
@@ -3162,7 +3082,7 @@ export default function VisualLineageGraph({
 
               {/* Counts & Reset */}
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span style={{ fontSize: '0.66rem', color: '#64748B' }}>
+                <span style={{ fontSize: '0.68rem', color: '#64748B' }}>
                   <strong>{renderedNodes.length}</strong> / <strong>{graphData?.nodes?.length || 0}</strong>
                 </span>
 
@@ -3171,18 +3091,18 @@ export default function VisualLineageGraph({
                     type="button"
                     onClick={resetAllFilters}
                     style={{
-                      padding: '1px 5px',
-                      borderRadius: '3px',
+                      padding: '2px 6px',
+                      borderRadius: '4px',
                       border: '1px solid #FCA5A5',
                       background: '#FEF2F2',
                       color: '#DC2626',
-                      fontSize: '0.64rem',
+                      fontSize: '0.65rem',
                       fontWeight: 700,
                       cursor: 'pointer',
                       display: 'inline-flex',
                       alignItems: 'center',
                       gap: '2px',
-                      height: '22px'
+                      height: '24px'
                     }}
                     title="Reset all filters"
                   >

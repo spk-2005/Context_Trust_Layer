@@ -1876,21 +1876,30 @@ export default function App() {
                 }}
                 className={`nav-item ${activeTab === 'visual_lineage' ? 'nav-item-active' : ''}`}
                 title="Vault"
-                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: isSidebarOpen ? 'space-between' : 'center',
+                  width: '100%'
+                }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                {isSidebarOpen ? (
+                  <>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <Database size={16} strokeWidth={1.75} />
+                      <span>Vault</span>
+                    </div>
+                    <ChevronDown
+                      size={13}
+                      style={{
+                        transform: isVaultMenuOpen || activeTab === 'visual_lineage' ? 'rotate(180deg)' : 'rotate(0deg)',
+                        transition: 'transform 0.2s ease',
+                        opacity: 0.6
+                      }}
+                    />
+                  </>
+                ) : (
                   <Database size={16} strokeWidth={1.75} />
-                  <span>Vault</span>
-                </div>
-                {isSidebarOpen && (
-                  <ChevronDown
-                    size={13}
-                    style={{
-                      transform: isVaultMenuOpen || activeTab === 'visual_lineage' ? 'rotate(180deg)' : 'rotate(0deg)',
-                      transition: 'transform 0.2s ease',
-                      opacity: 0.6
-                    }}
-                  />
                 )}
               </button>
 
