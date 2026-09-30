@@ -138,6 +138,8 @@ const getInitialDocViewFromUrl = () => {
 export default function App() {
   const [activeTab, setActiveTab] = useState(getInitialTabFromUrl);
   const [expandedMenu, setExpandedMenu] = useState(getInitialTabFromUrl);
+  const [vaultSubTab, setVaultSubTab] = useState('documents');
+  const [isVaultMenuOpen, setIsVaultMenuOpen] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [health, setHealth] = useState({ status: 'checking', database: false, version: '0.1.0' });
   const [conflicts, setConflicts] = useState([]);
@@ -1866,14 +1868,111 @@ export default function App() {
           )}
 
           {isTabVisible('visual_lineage') && (
-            <button
-              onClick={() => setActiveTab('visual_lineage')}
-              className={`nav-item ${activeTab === 'visual_lineage' ? 'nav-item-active' : ''}`}
-              title="Vault"
-            >
-              <Database size={16} strokeWidth={1.75} />
-              <span>Vault</span>
-            </button>
+            <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+              <button
+                onClick={() => {
+                  setActiveTab('visual_lineage');
+                  setIsVaultMenuOpen(prev => activeTab === 'visual_lineage' ? !prev : true);
+                }}
+                className={`nav-item ${activeTab === 'visual_lineage' ? 'nav-item-active' : ''}`}
+                title="Vault"
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Database size={16} strokeWidth={1.75} />
+                  <span>Vault</span>
+                </div>
+                {isSidebarOpen && (
+                  <ChevronDown
+                    size={13}
+                    style={{
+                      transform: isVaultMenuOpen || activeTab === 'visual_lineage' ? 'rotate(180deg)' : 'rotate(0deg)',
+                      transition: 'transform 0.2s ease',
+                      opacity: 0.6
+                    }}
+                  />
+                )}
+              </button>
+
+              {/* Sub-items of Vault */}
+              {isSidebarOpen && (isVaultMenuOpen || activeTab === 'visual_lineage') && (
+                <div style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '2px',
+                  paddingLeft: '10px',
+                  paddingTop: '2px',
+                  paddingBottom: '3px',
+                  borderLeft: '2px solid #E2E8F0',
+                  marginLeft: '14px',
+                  marginTop: '2px',
+                  marginBottom: '4px'
+                }}>
+                  {[
+                    { id: 'documents', label: 'Documents', count: dbDocuments.length },
+                    { id: 'connectors', label: 'Connectors', count: dataSources.length },
+                    { id: 'conflicts', label: 'Conflicts Registry', count: conflicts.length },
+                    { id: 'claims', label: 'Claims and Decisions', count: dbClaims.length },
+                    { id: 'dag', label: 'Full Canvas DAG', count: null }
+                  ].map(sub => {
+                    const isSubActive = activeTab === 'visual_lineage' && vaultSubTab === sub.id;
+                    return (
+                      <button
+                        key={sub.id}
+                        type="button"
+                        onClick={() => {
+                          setActiveTab('visual_lineage');
+                          setVaultSubTab(sub.id);
+                        }}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          padding: '5px 8px',
+                          borderRadius: '6px',
+                          border: 'none',
+                          background: isSubActive ? '#EFF6FF' : 'transparent',
+                          color: isSubActive ? '#1D4ED8' : '#64748B',
+                          fontSize: '0.74rem',
+                          fontWeight: isSubActive ? 700 : 500,
+                          cursor: 'pointer',
+                          textAlign: 'left',
+                          transition: 'all 0.15s ease'
+                        }}
+                        onMouseEnter={e => {
+                          if (!isSubActive) {
+                            e.currentTarget.style.background = '#F8FAFC';
+                            e.currentTarget.style.color = '#0F172A';
+                          }
+                        }}
+                        onMouseLeave={e => {
+                          if (!isSubActive) {
+                            e.currentTarget.style.background = 'transparent';
+                            e.currentTarget.style.color = '#64748B';
+                          }
+                        }}
+                      >
+                        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {sub.label}
+                        </span>
+                        {sub.count !== null && sub.count !== undefined && (
+                          <span style={{
+                            fontSize: '0.64rem',
+                            fontWeight: 600,
+                            color: isSubActive ? '#2563EB' : '#94A3B8',
+                            background: isSubActive ? '#DBEAFE' : '#F1F5F9',
+                            padding: '1px 5px',
+                            borderRadius: '4px'
+                          }}>
+                            {sub.count}
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           )}
 
           {isTabVisible('context_curator') && (
@@ -5358,6 +5457,8 @@ export default function App() {
               activeOrg={activeOrg}
               activeWorkspace={activeWorkspace}
               showToast={showToast}
+              vaultSubTab={vaultSubTab}
+              onVaultSubTabChange={setVaultSubTab}
             />
           </div>
         )}

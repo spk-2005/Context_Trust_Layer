@@ -31,7 +31,13 @@ import VisualClaimExtractionStudio from './VisualClaimExtractionStudio';
 const CARD_WIDTH = 260;
 const CARD_HEIGHT = 76;
 
-export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToast }) {
+export default function VisualLineageGraph({
+  activeOrg,
+  activeWorkspace,
+  showToast,
+  vaultSubTab: externalVaultSubTab,
+  onVaultSubTabChange
+}) {
   const [graphData, setGraphData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [selectedNodeId, setSelectedNodeId] = useState(null);
@@ -50,7 +56,16 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
   };
 
   // Vault Top-Level Sub-Tab: 'documents' (default 360° hub) | 'connectors' (360° hub) | 'conflicts' | 'claims' | 'dag'
-  const [vaultSubTab, setVaultSubTab] = useState('documents');
+  const [internalVaultSubTab, setInternalVaultSubTab] = useState('documents');
+  const vaultSubTab = externalVaultSubTab !== undefined ? externalVaultSubTab : internalVaultSubTab;
+  const setVaultSubTab = onVaultSubTabChange || setInternalVaultSubTab;
+
+  useEffect(() => {
+    if (externalVaultSubTab) {
+      setOpenedAssetId(null);
+    }
+  }, [externalVaultSubTab]);
+
   const [asset360Section, setAsset360Section] = useState('extraction'); // 'extraction' | 'dag' | 'conflicts' | 'claims' | 'all'
   const [vaultSearch, setVaultSearch] = useState('');
   const [vaultConflictFilter, setVaultConflictFilter] = useState('all'); // 'all' | 'active' | 'resolved'
@@ -1490,114 +1505,51 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
     <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '12px' }}>
 
       {/* ========================================================= */}
-      {/* VAULT SUB-NAVIGATION TABS (SINGLE LINE, NO BORDERS/ICONS) */}
+      {/* VAULT HEADER & QUICK FILTER (WHEN NO ASSET IS OPENED)      */}
       {/* ========================================================= */}
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        flexWrap: 'nowrap',
-        gap: '16px',
-        background: 'transparent',
-        padding: '4px 2px',
-        border: 'none',
-        boxShadow: 'none',
-        width: '100%',
-        overflowX: 'auto'
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'nowrap', whiteSpace: 'nowrap' }}>
-          {[
-            { id: 'documents', label: `Documents (${documentsList.length})` },
-            { id: 'connectors', label: `Connectors (${sourcesList.length})` },
-            { id: 'conflicts', label: `Conflicts Registry (${allConflictsRaw.length})` },
-            { id: 'claims', label: `Claims and Decisions (${allClaimsRaw.length + decisionsList.length})` },
-            { id: 'dag', label: `Full Canvas DAG (${activeConflictsCount})` }
-          ].map(tab => {
-            const isActive = vaultSubTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => {
-                  setVaultSubTab(tab.id);
-                  if (tab.id === 'documents' || tab.id === 'connectors') {
-                    // Always return to the clean List of Documents / Connectors when clicking the top tab
-                    setOpenedAssetId(null);
-                  }
-                  if (tab.id === 'documents' && documentsList.length > 0 && (!selectedNode || selectedNode.type !== 'document')) {
-                    setSelectedNodeId(documentsList[0].id);
-                    setInteractiveRootId(documentsList[0].id);
-                    setExpandedUpstreamSet(new Set());
-                    setExpandedDownstreamSet(new Set());
-                  } else if (tab.id === 'connectors' && sourcesList.length > 0 && (!selectedNode || selectedNode.type !== 'source')) {
-                    setSelectedNodeId(sourcesList[0].id);
-                    setInteractiveRootId(sourcesList[0].id);
-                    setExpandedUpstreamSet(new Set());
-                    setExpandedDownstreamSet(new Set());
-                  }
-                }}
-                onMouseEnter={(e) => {
-                  if (!isActive) {
-                    e.currentTarget.style.color = '#1E293B';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!isActive) {
-                    e.currentTarget.style.color = '#64748B';
-                  }
-                }}
-                style={{
-                  padding: '6px 10px',
-                  border: 'none',
-                  boxShadow: 'none',
-                  outline: 'none',
-                  background: 'transparent',
-                  color: isActive ? '#C2410C' : '#64748B',
-                  fontSize: '0.82rem',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  whiteSpace: 'nowrap',
-                  transition: 'color 0.15s ease'
-                }}
-              >
-                {tab.label}
-              </button>
-            );
-          })}
-        </div>
+      {!selectedAsset360 && (
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '12px',
+          padding: '2px 0 6px 0'
+        }}>
+          <div style={{ fontSize: '0.94rem', fontWeight: 800, color: '#0F172A', textTransform: 'capitalize' }}>
+            {vaultSubTab === 'dag' ? 'Full Canvas DAG Lineage' : vaultSubTab === 'conflicts' ? 'Enterprise Conflicts Registry' : vaultSubTab === 'claims' ? 'Atomic Claims & Decisions' : vaultSubTab === 'connectors' ? 'Connected Enterprise Data Sources' : 'Ingested Policy Documents'}
+          </div>
 
-        {/* Quick Search across Vault on the same line */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
-          <input
-            type="text"
-            placeholder={`Filter ${vaultSubTab}...`}
-            value={vaultSearch}
-            onChange={(e) => setVaultSearch(e.target.value)}
-            style={{
-              padding: '5px 10px',
-              borderRadius: '6px',
-              border: 'none',
-              background: '#F1F5F9',
-              color: '#0F172A',
-              fontSize: '0.75rem',
-              width: '180px',
-              outline: 'none',
-              boxShadow: 'none'
-            }}
-          />
-          {vaultSearch && (
-            <button
-              type="button"
-              onClick={() => setVaultSearch('')}
-              style={{ border: 'none', background: 'transparent', padding: '4px 6px', fontSize: '0.72rem', cursor: 'pointer', color: '#C2410C', fontWeight: 700 }}
-            >
-              Clear
-            </button>
-          )}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <input
+              type="text"
+              placeholder={`Filter ${vaultSubTab}...`}
+              value={vaultSearch}
+              onChange={(e) => setVaultSearch(e.target.value)}
+              style={{
+                padding: '6px 12px',
+                borderRadius: '6px',
+                border: '1px solid #E2E8F0',
+                background: '#FFFFFF',
+                color: '#0F172A',
+                fontSize: '0.78rem',
+                width: '210px',
+                outline: 'none',
+                boxShadow: 'none'
+              }}
+            />
+            {vaultSearch && (
+              <button
+                type="button"
+                onClick={() => setVaultSearch('')}
+                style={{ border: 'none', background: 'transparent', padding: '4px 6px', fontSize: '0.72rem', cursor: 'pointer', color: '#2563EB', fontWeight: 700 }}
+              >
+                Clear
+              </button>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* ========================================================= */}
       {/* MASTER-DETAIL 360° WORKBENCH (DOCUMENTS, CONNECTORS, DAG) */}
