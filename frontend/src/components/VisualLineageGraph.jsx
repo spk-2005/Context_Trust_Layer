@@ -1502,22 +1502,22 @@ export default function VisualLineageGraph({
   }, [vaultSubTab, selectedNode, documentsList, sourcesList, allClaimsRaw, allConflictsRaw, decisionsList, conflictMap, graphData]);
 
   return (
-    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '8px' }}>
 
       {/* ========================================================= */}
-      {/* VAULT HEADER & QUICK FILTER (WHEN NO ASSET IS OPENED)      */}
+      {/* VAULT HEADER & QUICK FILTER (DAG / CONFLICTS / CLAIMS)     */}
       {/* ========================================================= */}
-      {!selectedAsset360 && (
+      {!selectedAsset360 && (vaultSubTab === 'dag' || vaultSubTab === 'conflicts' || vaultSubTab === 'claims') && (
         <div style={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           flexWrap: 'wrap',
-          gap: '12px',
-          padding: '2px 0 6px 0'
+          gap: '10px',
+          padding: '0 0 4px 0'
         }}>
           <div style={{ fontSize: '0.94rem', fontWeight: 800, color: '#0F172A', textTransform: 'capitalize' }}>
-            {vaultSubTab === 'dag' ? 'Full Canvas DAG Lineage' : vaultSubTab === 'conflicts' ? 'Enterprise Conflicts Registry' : vaultSubTab === 'claims' ? 'Atomic Claims & Decisions' : vaultSubTab === 'connectors' ? 'Connected Enterprise Data Sources' : 'Ingested Policy Documents'}
+            {vaultSubTab === 'dag' ? 'Full Canvas DAG Lineage' : vaultSubTab === 'conflicts' ? 'Enterprise Conflicts Registry' : 'Atomic Claims & Decisions'}
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -1624,33 +1624,42 @@ export default function VisualLineageGraph({
         if ((vaultSubTab === 'documents' || vaultSubTab === 'connectors') && !openedAssetId) {
           return (
             <div style={{
-              background: '#FFFFFF',
-              border: '1px solid #E2E8F0',
-              borderRadius: '10px',
-              padding: '16px 18px',
+              width: '100%',
               display: 'flex',
               flexDirection: 'column',
-              gap: '12px',
-              width: '100%'
+              gap: '8px',
+              background: 'transparent',
+              border: 'none',
+              padding: 0
             }}>
-              {/* List Header & Controls */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px', borderBottom: '1px solid #F1F5F9', paddingBottom: '10px' }}>
-                <div>
-                  <h3 style={{ margin: 0, fontSize: '0.96rem', fontWeight: 800, color: '#0F172A' }}>
-                    {vaultSubTab === 'documents'
-                      ? `Policy & Enterprise Documents (${enrichedAssets.length})`
-                      : `Connected Databases & External Sources (${enrichedAssets.length})`}
-                  </h3>
-                  <p style={{ margin: '2px 0 0 0', fontSize: '0.75rem', color: '#64748B' }}>
-                    {vaultSubTab === 'documents'
-                      ? 'Click any document row below to open the Original Document alongside its DAG Lineage, Conflicts, and Extracted Claims.'
-                      : 'Click any connected database or SaaS source below to inspect its schema objects, DAG lineage, conflicts, and claims.'}
-                  </p>
-                </div>
+              {/* Sleek Toolbar: Title, Filter Pills, Search, Sort */}
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: '10px',
+                padding: '0 0 2px 0'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <h3 style={{ margin: 0, fontSize: '0.94rem', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.01em' }}>
+                      {vaultSubTab === 'documents' ? 'Policy & Enterprise Documents' : 'Connected Enterprise Data Sources'}
+                    </h3>
+                    <span style={{
+                      fontSize: '0.72rem',
+                      fontWeight: 700,
+                      color: '#475569',
+                      background: '#F1F5F9',
+                      padding: '2px 8px',
+                      borderRadius: '12px'
+                    }}>
+                      {enrichedAssets.length}
+                    </span>
+                  </div>
 
-                {/* Filter & Sort Controls */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  {/* Compact Filter Pills */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: '#F1F5F9', padding: '3px', borderRadius: '7px' }}>
                     {[
                       { id: 'all', label: `All (${enrichedAssets.length})` },
                       { id: 'conflicted', label: `With Conflicts (${enrichedAssets.filter(a => a.activeConflictCount > 0).length})` },
@@ -1663,13 +1672,16 @@ export default function VisualLineageGraph({
                           type="button"
                           onClick={() => { setAssetListFilter(f.id); setAssetListPage(1); }}
                           style={{
-                            padding: '4px 8px',
+                            padding: '3px 9px',
                             border: 'none',
-                            background: 'transparent',
-                            color: active ? '#C2410C' : '#64748B',
-                            fontSize: '0.75rem',
-                            fontWeight: 600,
-                            cursor: 'pointer'
+                            borderRadius: '5px',
+                            background: active ? '#FFFFFF' : 'transparent',
+                            color: active ? '#0F172A' : '#64748B',
+                            boxShadow: active ? '0 1px 2px rgba(0,0,0,0.06)' : 'none',
+                            fontSize: '0.74rem',
+                            fontWeight: active ? 700 : 500,
+                            cursor: 'pointer',
+                            transition: 'all 0.15s ease'
                           }}
                         >
                           {f.label}
@@ -1677,21 +1689,85 @@ export default function VisualLineageGraph({
                       );
                     })}
                   </div>
+                </div>
+
+                {/* Search, Sort & Page Size Controls */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                  <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                    <Search size={14} style={{ position: 'absolute', left: '10px', color: '#94A3B8', pointerEvents: 'none' }} />
+                    <input
+                      type="text"
+                      placeholder={`Search ${vaultSubTab === 'documents' ? 'files' : 'connectors'}...`}
+                      value={vaultSearch}
+                      onChange={(e) => setVaultSearch(e.target.value)}
+                      style={{
+                        paddingLeft: '30px',
+                        paddingRight: vaultSearch ? '28px' : '10px',
+                        height: '31px',
+                        borderRadius: '6px',
+                        border: '1px solid #E2E8F0',
+                        background: '#FFFFFF',
+                        color: '#0F172A',
+                        fontSize: '0.76rem',
+                        width: '180px',
+                        outline: 'none'
+                      }}
+                    />
+                    {vaultSearch && (
+                      <button
+                        type="button"
+                        onClick={() => setVaultSearch('')}
+                        style={{
+                          position: 'absolute',
+                          right: '6px',
+                          border: 'none',
+                          background: 'transparent',
+                          color: '#94A3B8',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          padding: '2px'
+                        }}
+                      >
+                        <X size={13} />
+                      </button>
+                    )}
+                  </div>
 
                   <select
                     value={assetListSort}
                     onChange={(e) => { setAssetListSort(e.target.value); setAssetListPage(1); }}
-                    style={{ padding: '5px 8px', fontSize: '0.74rem', borderRadius: '6px', border: '1px solid #CBD5E1', color: '#0F172A', background: '#FFFFFF' }}
+                    style={{
+                      height: '31px',
+                      padding: '0 8px',
+                      fontSize: '0.74rem',
+                      borderRadius: '6px',
+                      border: '1px solid #E2E8F0',
+                      color: '#0F172A',
+                      background: '#FFFFFF',
+                      outline: 'none',
+                      cursor: 'pointer'
+                    }}
                   >
-                    <option value="conflicts">Sort: Most Conflicts First</option>
-                    <option value="claims">Sort: Most Claims First</option>
+                    <option value="conflicts">Sort: Conflicts First</option>
+                    <option value="claims">Sort: Claims First</option>
                     <option value="name">Sort: Title (A–Z)</option>
                   </select>
 
                   <select
                     value={assetListPageSize}
                     onChange={(e) => { setAssetListPageSize(Number(e.target.value)); setAssetListPage(1); }}
-                    style={{ padding: '5px 8px', fontSize: '0.74rem', borderRadius: '6px', border: '1px solid #CBD5E1', color: '#0F172A', background: '#FFFFFF' }}
+                    style={{
+                      height: '31px',
+                      padding: '0 8px',
+                      fontSize: '0.74rem',
+                      borderRadius: '6px',
+                      border: '1px solid #E2E8F0',
+                      color: '#0F172A',
+                      background: '#FFFFFF',
+                      outline: 'none',
+                      cursor: 'pointer'
+                    }}
                   >
                     <option value={15}>15 / page</option>
                     <option value={30}>30 / page</option>
@@ -1700,25 +1776,25 @@ export default function VisualLineageGraph({
                 </div>
               </div>
 
-              {/* Clean Table List of Documents / Connectors */}
+              {/* Clean Table List of Files */}
               {filteredAssets.length === 0 ? (
-                <div style={{ padding: '28px', textAlign: 'center', color: '#64748B', fontSize: '0.8rem', background: '#F8FAFC', borderRadius: '8px' }}>
+                <div style={{ padding: '36px 16px', textAlign: 'center', color: '#64748B', fontSize: '0.8rem', background: '#F8FAFC', borderRadius: '8px', border: '1px dashed #CBD5E1' }}>
                   {vaultSubTab === 'documents'
-                    ? 'No uploaded PDF or policy documents match the current filter.'
-                    : 'No external databases or data sources connected yet in this workspace.'}
+                    ? 'No documents match the current filter or search criteria.'
+                    : 'No external databases or connectors connected yet.'}
                 </div>
               ) : (
-                <div style={{ overflowX: 'auto', border: '1px solid #E2E8F0', borderRadius: '8px' }}>
+                <div style={{ overflowX: 'auto', border: '1px solid #E2E8F0', borderRadius: '8px', background: '#FFFFFF' }}>
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.78rem', textAlign: 'left' }}>
                     <thead>
-                      <tr style={{ background: '#F8FAFC', borderBottom: '1px solid #E2E8F0', color: '#64748B', fontSize: '0.68rem', textTransform: 'uppercase', letterSpacing: '0.03em' }}>
-                        <th style={{ padding: '10px 14px' }}>{vaultSubTab === 'documents' ? 'Document Name' : 'Connector Name'}</th>
-                        <th style={{ padding: '10px 14px' }}>Type</th>
-                        <th style={{ padding: '10px 14px' }}>{vaultSubTab === 'documents' ? 'Version & Source' : 'Authority'}</th>
-                        <th style={{ padding: '10px 14px' }}>Status</th>
-                        <th style={{ padding: '10px 14px' }}>{vaultSubTab === 'documents' ? 'Extracted Claims' : 'Synced Objects'}</th>
-                        <th style={{ padding: '10px 14px' }}>Conflicts</th>
-                        <th style={{ padding: '10px 14px', textAlign: 'right' }}>Open</th>
+                      <tr style={{ background: '#F8FAFC', borderBottom: '1px solid #E2E8F0', color: '#475569', fontSize: '0.68rem', textTransform: 'uppercase', letterSpacing: '0.04em', fontWeight: 700 }}>
+                        <th style={{ padding: '9px 14px' }}>{vaultSubTab === 'documents' ? 'Document / File' : 'Connector / Source'}</th>
+                        <th style={{ padding: '9px 14px' }}>Type</th>
+                        <th style={{ padding: '9px 14px' }}>{vaultSubTab === 'documents' ? 'Version & Source' : 'Authority'}</th>
+                        <th style={{ padding: '9px 14px' }}>Status</th>
+                        <th style={{ padding: '9px 14px' }}>{vaultSubTab === 'documents' ? 'Extracted Claims' : 'Synced Objects'}</th>
+                        <th style={{ padding: '9px 14px' }}>Conflicts</th>
+                        <th style={{ padding: '9px 14px', textAlign: 'right' }}>Action</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -1726,7 +1802,7 @@ export default function VisualLineageGraph({
                         <tr
                           key={item.id}
                           onClick={() => selectAssetItem(item)}
-                          onMouseEnter={(e) => { e.currentTarget.style.background = '#FFF7ED'; }}
+                          onMouseEnter={(e) => { e.currentTarget.style.background = '#F8FAFC'; }}
                           onMouseLeave={(e) => { e.currentTarget.style.background = '#FFFFFF'; }}
                           style={{
                             borderBottom: idx < pagedAssets.length - 1 ? '1px solid #F1F5F9' : 'none',
@@ -1735,37 +1811,128 @@ export default function VisualLineageGraph({
                             transition: 'background 0.12s ease'
                           }}
                         >
-                          <td style={{ padding: '11px 14px' }}>
-                            <div style={{ fontWeight: 700, color: '#0F172A', fontSize: '0.81rem' }}>
-                              {item.label}
-                            </div>
-                            {item.data?.external_id && (
-                              <div style={{ fontSize: '0.68rem', color: '#64748B', marginTop: '2px', fontFamily: 'monospace' }}>
-                                {item.data.external_id}
+                          <td style={{ padding: '10px 14px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                              <div style={{
+                                width: '28px',
+                                height: '28px',
+                                borderRadius: '6px',
+                                background: vaultSubTab === 'documents' ? '#EFF6FF' : '#F0FDF4',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                flexShrink: 0
+                              }}>
+                                {vaultSubTab === 'documents' ? (
+                                  <FileText size={15} color="#2563EB" />
+                                ) : (
+                                  <Database size={15} color="#16A34A" />
+                                )}
                               </div>
-                            )}
+                              <div style={{ minWidth: 0 }}>
+                                <div style={{ fontWeight: 600, color: '#0F172A', fontSize: '0.81rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                  {item.label}
+                                </div>
+                                {item.data?.external_id && (
+                                  <div style={{ fontSize: '0.68rem', color: '#64748B', fontFamily: 'monospace', marginTop: '1px' }}>
+                                    {item.data.external_id}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
                           </td>
-                          <td style={{ padding: '11px 14px', color: '#475569', textTransform: 'uppercase', fontSize: '0.7rem', fontWeight: 600 }}>
-                            {item.subType || item.type}
+                          <td style={{ padding: '10px 14px' }}>
+                            <span style={{ background: '#F1F5F9', color: '#475569', padding: '2px 7px', borderRadius: '4px', fontSize: '0.68rem', fontWeight: 600, textTransform: 'uppercase' }}>
+                              {item.subType || item.type}
+                            </span>
                           </td>
-                          <td style={{ padding: '11px 14px', color: '#64748B', fontSize: '0.73rem' }}>
+                          <td style={{ padding: '10px 14px', color: '#64748B', fontSize: '0.73rem' }}>
                             {item.type === 'document'
                               ? `v${item.data?.version_count || 1}.0 • ${item.data?.domain || 'Enterprise'}`
                               : `${item.authority ? `${(Number(item.authority) * 100).toFixed(0)}%` : '95%'} weight`}
                           </td>
-                          <td style={{ padding: '11px 14px' }}>
-                            <span style={{ fontSize: '0.68rem', fontWeight: 600, color: '#15803D' }}>
+                          <td style={{ padding: '10px 14px' }}>
+                            <span style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                              fontSize: '0.68rem',
+                              fontWeight: 600,
+                              color: '#15803D',
+                              background: '#DCFCE7',
+                              padding: '2px 7px',
+                              borderRadius: '10px'
+                            }}>
+                              <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#16A34A' }} />
                               {(item.status || 'ACTIVE').toUpperCase()}
                             </span>
                           </td>
-                          <td style={{ padding: '11px 14px', color: '#059669', fontWeight: 600 }}>
+                          <td style={{ padding: '10px 14px', color: '#059669', fontWeight: 600, fontSize: '0.78rem' }}>
                             {item.type === 'document' ? `${item.claimCount} Claims` : `${item.claimCount} Objects`}
                           </td>
-                          <td style={{ padding: '11px 14px', color: item.activeConflictCount > 0 ? '#C2410C' : '#64748B', fontWeight: 600 }}>
-                            {item.activeConflictCount > 0 ? `${item.activeConflictCount} Conflicts` : 'Clean'}
+                          <td style={{ padding: '10px 14px' }}>
+                            {item.activeConflictCount > 0 ? (
+                              <span style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                                fontSize: '0.72rem',
+                                fontWeight: 700,
+                                color: '#DC2626',
+                                background: '#FEE2E2',
+                                padding: '2px 7px',
+                                borderRadius: '5px'
+                              }}>
+                                <AlertTriangle size={12} color="#DC2626" />
+                                {item.activeConflictCount} Conflicts
+                              </span>
+                            ) : (
+                              <span style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                                fontSize: '0.72rem',
+                                fontWeight: 600,
+                                color: '#16A34A'
+                              }}>
+                                <CheckCircle2 size={13} color="#16A34A" />
+                                Clean
+                              </span>
+                            )}
                           </td>
-                          <td style={{ padding: '11px 14px', textAlign: 'right', color: '#C2410C', fontWeight: 600, whiteSpace: 'nowrap' }}>
-                            Open Document →
+                          <td style={{ padding: '10px 14px', textAlign: 'right' }}>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                selectAssetItem(item);
+                              }}
+                              style={{
+                                padding: '3px 9px',
+                                borderRadius: '5px',
+                                border: '1px solid #E2E8F0',
+                                background: '#FFFFFF',
+                                color: '#2563EB',
+                                fontSize: '0.73rem',
+                                fontWeight: 600,
+                                cursor: 'pointer',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '3px',
+                                transition: 'all 0.12s ease'
+                              }}
+                              onMouseEnter={e => {
+                                e.currentTarget.style.background = '#EFF6FF';
+                                e.currentTarget.style.borderColor = '#BFDBFE';
+                              }}
+                              onMouseLeave={e => {
+                                e.currentTarget.style.background = '#FFFFFF';
+                                e.currentTarget.style.borderColor = '#E2E8F0';
+                              }}
+                            >
+                              <span>Open</span>
+                              <ChevronRight size={13} />
+                            </button>
                           </td>
                         </tr>
                       ))}
