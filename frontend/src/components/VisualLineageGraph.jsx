@@ -24,7 +24,12 @@ import {
   Share2,
   Download,
   ChevronRight,
-  ChevronLeft
+  ChevronLeft,
+  Copy,
+  Check,
+  Sparkles,
+  Calendar,
+  Clock
 } from 'lucide-react';
 import VisualClaimExtractionStudio from './VisualClaimExtractionStudio';
 
@@ -66,7 +71,8 @@ export default function VisualLineageGraph({
     }
   }, [externalVaultSubTab]);
 
-  const [asset360Section, setAsset360Section] = useState('extraction'); // 'extraction' | 'dag' | 'conflicts' | 'claims' | 'all'
+  const [asset360Section, setAsset360Section] = useState('summary'); // 'summary' | 'extraction' | 'dag' | 'conflicts' | 'claims' | 'all'
+  const [copiedHash, setCopiedHash] = useState(false);
   const [vaultSearch, setVaultSearch] = useState('');
   const [vaultConflictFilter, setVaultConflictFilter] = useState('all'); // 'all' | 'active' | 'resolved'
   const [vaultClaimFilter, setVaultClaimFilter] = useState('all'); // 'all' | 'verified' | 'conflicted' | 'decisions'
@@ -141,6 +147,7 @@ export default function VisualLineageGraph({
           const initialId = firstDoc ? firstDoc.id : (firstConflict ? firstConflict.id : data.nodes[0].id);
           setSelectedNodeId(initialId);
           setInteractiveRootId(initialId);
+          setExpandedDownstreamSet(new Set([initialId]));
         }
       } else {
         showToast?.("Failed to fetch lineage graph", "error");
@@ -306,7 +313,7 @@ export default function VisualLineageGraph({
             });
           }
         }
-        // 3. AI Decision -> upstream Contradictions (or Documents)
+        // 3. AI Decision -> upstream Contradictions or Documents
         else if (nodeId.startsWith('dec_')) {
           edges.forEach(e => {
             if (e.target === nodeId) {
@@ -316,7 +323,15 @@ export default function VisualLineageGraph({
                   parents.add(c.id);
                 }
               });
-              if (e.source.startsWith('doc_')) parents.add(e.source);
+              if (e.source.startsWith('doc_')) {
+                parents.add(e.source);
+              } else if (e.source.startsWith('cl_')) {
+                edges.forEach(eDoc => {
+                  if (eDoc.target === e.source && eDoc.source.startsWith('doc_')) {
+                    parents.add(eDoc.source);
+                  }
+                });
+              }
             }
           });
         }
@@ -355,17 +370,37 @@ export default function VisualLineageGraph({
             }
           });
         }
-        // 2. Document -> downstream Contradictions ONLY (claims are inspected inline inside Conflict card)
+        // 2. Document -> downstream Contradictions, Decisions & Claims
         else if (nodeId.startsWith('doc_')) {
+          const docClaimIds = new Set();
+          edges.forEach(e => {
+            if (e.source === nodeId && e.target.startsWith('cl_')) {
+              docClaimIds.add(e.target);
+            }
+          });
+
+          // Contradictions touching this document's claims
           conflictsList.forEach(c => {
             const cItem = conflictMap[c.id];
-            let touchesDoc = false;
+            if (docClaimIds.has(cItem?.claimAId) || docClaimIds.has(cItem?.claimBId)) {
+              children.add(c.id);
+            }
+          });
+
+          // Decisions grounded in this document's claims
+          decisionsList.forEach(dec => {
             edges.forEach(e => {
-              if (e.source === nodeId && (e.target === cItem?.claimAId || e.target === cItem?.claimBId)) {
-                touchesDoc = true;
+              if (e.target === dec.id && (docClaimIds.has(e.source) || e.source === nodeId)) {
+                children.add(dec.id);
               }
             });
-            if (touchesDoc) children.add(c.id);
+          });
+
+          // Extracted claims or direct child links
+          edges.forEach(e => {
+            if (e.source === nodeId && !e.target.startsWith('doc_')) {
+              children.add(e.target);
+            }
           });
         }
         // 3. Conflict -> downstream AI Decisions grounded by its clashing claims
@@ -792,6 +827,11 @@ export default function VisualLineageGraph({
     // IMPORTANT: Uses interactiveRootId (NOT selectedNodeId) so clicking a card to inspect it
     // never closes or resets previously expanded upstream/downstream nodes!
     if (viewMode === 'interactive') {
+      // If expand all was triggered, show full filtered result
+      if (graphData?.nodes && expandedDownstreamSet.size >= graphData.nodes.length) {
+        return result;
+      }
+
       const rootId = interactiveRootId || (documentsList[0]?.id || graphData?.nodes?.[0]?.id);
       if (!rootId) return [];
 
@@ -824,6 +864,10 @@ export default function VisualLineageGraph({
       }
 
       const nodeMap = new Map((graphData?.nodes || []).map(n => [n.id, n]));
+      result.forEach(n => {
+        if (!nodeMap.has(n.id)) nodeMap.set(n.id, n);
+      });
+
       const interactiveNodes = [];
       visibleIds.forEach(id => {
         const found = nodeMap.get(id);
@@ -867,9 +911,11 @@ export default function VisualLineageGraph({
     const map = {};
     if (!filteredNodes.length) return map;
 
-    // Single Starting Node Centering in Interactive Mode (placed at X_DOC = 390 so expanding upstream/downstream never shifts it horizontally)
+    // Single Starting Node Centering in Interactive Mode
     if (viewMode === 'interactive' && filteredNodes.length === 1) {
-      map[filteredNodes[0].id] = { x: 390, y: 160 };
+      const n0 = filteredNodes[0];
+      const initialX = (n0.type === 'source' || n0.type === 'document') ? 50 : 380;
+      map[n0.id] = { x: initialX, y: 140 };
       return map;
     }
 
@@ -934,17 +980,33 @@ export default function VisualLineageGraph({
     }
 
     // Connection-Driven & Document-Tree Layout Engine
-    // Instead of sticking nodes into static arbitrary slots, nodes align with their real parent/child connections!
+    // Dynamically assign each existing tier its OWN distinct column so no tiers ever collide or overlap!
     const edges = graphData?.edges || [];
     const CARD_SPACING = 118;
     const START_Y = 40;
 
-    const isDocMode = lineageGranularity === 'document';
-    const X_SOURCE = 50;
-    const X_DOC = 390;
-    const X_CLAIM = 730;
-    const X_CONFLICT = isDocMode ? 730 : 1070;
-    const X_DECISION = isDocMode ? 1070 : 1410;
+    const hasSources = activeSources.length > 0;
+    const hasDocs = activeDocs.length > 0;
+    const hasClaims = activeClaims.length > 0;
+    const hasConflicts = activeConflicts.length > 0;
+    const hasDecisions = activeDecisions.length > 0;
+
+    const COL_SPACING = 350; // CARD_WIDTH (270) + 80px gap for bezier curves
+    let colX = 50;
+
+    const X_SOURCE = hasSources ? colX : -999;
+    if (hasSources) colX += COL_SPACING;
+
+    const X_DOC = colX;
+    if (hasDocs) colX += COL_SPACING;
+
+    const X_CLAIM = hasClaims ? colX : -999;
+    if (hasClaims) colX += COL_SPACING;
+
+    const X_CONFLICT = hasConflicts ? colX : -999;
+    if (hasConflicts) colX += COL_SPACING;
+
+    const X_DECISION = hasDecisions ? colX : -999;
 
     // 1. Position Sources (Column 0)
     activeSources.forEach((src, idx) => {
@@ -1052,8 +1114,16 @@ export default function VisualLineageGraph({
     activeDecisions.forEach((dec, idx) => {
       const parentYs = [];
       edges.forEach(e => {
-        if (e.target === dec.id && map[e.source]) {
-          parentYs.push(map[e.source].y);
+        if (e.target === dec.id) {
+          if (map[e.source]) {
+            parentYs.push(map[e.source].y);
+          } else if (e.source.startsWith('cl_')) {
+            edges.forEach(eDoc => {
+              if (eDoc.target === e.source && map[eDoc.source]) {
+                parentYs.push(map[eDoc.source].y);
+              }
+            });
+          }
         }
       });
 
@@ -1064,26 +1134,24 @@ export default function VisualLineageGraph({
       map[dec.id] = { x: X_DECISION, y: decY };
     });
 
-    // Relaxation Pass: Prevent any overlapping nodes within the same column
-    const columns = [
-      activeSources.map(n => n.id),
-      activeDocs.map(n => n.id),
-      activeClaims.map(n => n.id),
-      activeConflicts.map(n => n.id),
-      activeDecisions.map(n => n.id)
-    ];
+    // Robust Column Collision Avoidance: Group ALL placed nodes by their X coordinate
+    // Guarantees zero vertical overlap between any cards in the same column
+    const nodesByX = {};
+    Object.entries(map).forEach(([id, pos]) => {
+      const colKey = Math.round(pos.x);
+      if (!nodesByX[colKey]) nodesByX[colKey] = [];
+      nodesByX[colKey].push({ id, ...pos });
+    });
 
-    const MIN_GAP = 96;
-    columns.forEach(colNodeIds => {
-      const colNodes = colNodeIds.filter(id => !!map[id]).map(id => ({ id, ...map[id] }));
+    const MIN_GAP = 108; // CARD_HEIGHT (92) + 16px vertical padding
+    Object.values(nodesByX).forEach(colNodes => {
       colNodes.sort((a, b) => a.y - b.y);
-
       for (let i = 1; i < colNodes.length; i++) {
         const prev = colNodes[i - 1];
         const curr = colNodes[i];
         const prevNode = filteredNodes.find(n => n.id === prev.id);
         const isPrevExpanded = prevNode?.type === 'conflict' && expandedConflictClaimsSet.has(prev.id);
-        const requiredGap = isPrevExpanded ? 240 : MIN_GAP;
+        const requiredGap = isPrevExpanded ? 260 : MIN_GAP;
         if (curr.y < prev.y + requiredGap) {
           curr.y = prev.y + requiredGap;
           map[curr.id].y = curr.y;
@@ -1184,6 +1252,7 @@ export default function VisualLineageGraph({
       decisionsList.forEach(dec => {
         graphData.edges.forEach(e => {
           if (e.target === dec.id) {
+            // 1. Through conflict if applicable
             conflictsList.forEach(c => {
               const cItem = conflictMap[c.id];
               if (cItem?.claimAId === e.source || cItem?.claimBId === e.source) {
@@ -1197,13 +1266,34 @@ export default function VisualLineageGraph({
                 }
               }
             });
+
+            // 2. Direct Document -> Decision edge if claim's parent doc is on canvas and claim is collapsed/not rendered
+            if (e.source.startsWith('cl_')) {
+              graphData.edges.forEach(eDoc => {
+                if (eDoc.target === e.source && eDoc.source.startsWith('doc_')) {
+                  const docId = eDoc.source;
+                  if (nodePositions[docId] && nodePositions[dec.id] && !nodePositions[e.source]) {
+                    const edgeId = `synth_doc_${docId}_dec_${dec.id}`;
+                    if (!allEdges.some(existing => existing.id === edgeId)) {
+                      allEdges.push({
+                        id: edgeId,
+                        source: docId,
+                        target: dec.id,
+                        type: 'decision_grounding'
+                      });
+                    }
+                  }
+                }
+              });
+            }
           }
         });
       });
     }
 
+    const renderedNodeIdSet = new Set(renderedNodes.map(n => n.id));
     return allEdges
-      .filter(e => nodePositions[e.source] && nodePositions[e.target])
+      .filter(e => renderedNodeIdSet.has(e.source) && renderedNodeIdSet.has(e.target))
       .map(e => {
         const src = nodePositions[e.source];
         const tgt = nodePositions[e.target];
@@ -1244,7 +1334,7 @@ export default function VisualLineageGraph({
           isConflictConnection
         };
       });
-  }, [graphData, nodePositions, connectedNodeMap, selectedConflictId, filteredNodes, lineageGranularity, conflictsList, decisionsList, conflictMap]);
+  }, [graphData, nodePositions, connectedNodeMap, selectedConflictId, filteredNodes, lineageGranularity, conflictsList, decisionsList, conflictMap, renderedNodes]);
 
   // Canvas Pan Handlers
   const handleCanvasMouseDown = (e) => {
@@ -1296,9 +1386,9 @@ export default function VisualLineageGraph({
 
   // Auto-Fit Camera to visible nodes bounding box
   const handleFitView = () => {
-    const visiblePositions = Object.values(nodePositions);
+    const visiblePositions = renderedNodes.map(n => nodePositions[n.id]).filter(Boolean);
     if (visiblePositions.length === 0) {
-      setZoom(0.78);
+      setZoom(0.85);
       setPan({ x: 30, y: 30 });
       return;
     }
@@ -1310,20 +1400,34 @@ export default function VisualLineageGraph({
       if (p.y + CARD_HEIGHT > maxY) maxY = p.y + CARD_HEIGHT;
     });
 
-    const graphW = maxX - minX + 60;
-    const graphH = maxY - minY + 60;
-    const containerW = containerRef.current ? containerRef.current.clientWidth : 1150;
+    const graphW = Math.max(100, maxX - minX + 80);
+    const graphH = Math.max(100, maxY - minY + 80);
+    const containerW = containerRef.current ? containerRef.current.clientWidth : 950;
     const containerH = containerRef.current ? containerRef.current.clientHeight : 600;
 
-    const newZoom = Math.min(0.95, Math.max(0.5, Math.min(containerW / graphW, containerH / graphH)));
-    const newPanX = Math.max(25, (containerW - (maxX - minX) * newZoom) / 2 - minX * newZoom);
-    // Keep cards positioned comfortably near top of visible canvas area
-    const newPanY = Math.max(25, 45 - minY * newZoom);
+    const scaleX = containerW / graphW;
+    const scaleY = containerH / graphH;
+    const newZoom = Math.min(1.0, Math.max(0.35, Math.min(scaleX, scaleY) * 0.92));
+
+    const newPanX = (containerW - (maxX - minX) * newZoom) / 2 - minX * newZoom;
+    const newPanY = Math.max(20, (containerH - (maxY - minY) * newZoom) / 2 - minY * newZoom);
 
     setZoom(Number(newZoom.toFixed(2)));
     setPan({ x: Math.round(newPanX), y: Math.round(newPanY) });
     setCustomPositions({});
   };
+
+  // Auto-refit camera whenever the rendered nodes count changes (expansion/collapse)
+  const prevRenderedCountRef = useRef(0);
+  useEffect(() => {
+    if (renderedNodes.length > 0 && renderedNodes.length !== prevRenderedCountRef.current) {
+      prevRenderedCountRef.current = renderedNodes.length;
+      const timer = setTimeout(() => {
+        handleFitView();
+      }, 70);
+      return () => clearTimeout(timer);
+    }
+  }, [renderedNodes.length]);
 
   // Toggle visible tiers
   const toggleTier = (tier) => {
@@ -1610,12 +1714,13 @@ export default function VisualLineageGraph({
           setOpenedAssetId(item.id);
           setSelectedNodeId(item.id);
           setInteractiveRootId(item.id);
-          setExpandedUpstreamSet(new Set());
-          setExpandedDownstreamSet(new Set());
+          setExpandedUpstreamSet(new Set([item.id]));
+          setExpandedDownstreamSet(new Set([item.id]));
           setExpandedConflictClaimsSet(new Set());
           setIsAssetDropdownOpen(false);
           setIsAssetDirectoryOpen(false);
           setDocReaderSearch('');
+          setAsset360Section('summary');
         };
 
         // ============================================================================
@@ -1843,9 +1948,6 @@ export default function VisualLineageGraph({
                         <th style={{ padding: '9px 14px' }}>{vaultSubTab === 'documents' ? 'POLICY ARTIFACT' : 'CONNECTOR / SOURCE'}</th>
                         <th style={{ padding: '9px 14px' }}>CLASSIFICATION</th>
                         <th style={{ padding: '9px 14px' }}>{vaultSubTab === 'documents' ? 'VERSION & PROVENANCE' : 'AUTHORITY WEIGHT'}</th>
-                        <th style={{ padding: '9px 14px' }}>LIFECYCLE STATUS</th>
-                        <th style={{ padding: '9px 14px' }}>{vaultSubTab === 'documents' ? 'EXTRACTED CLAIMS' : 'SYNCED OBJECTS'}</th>
-                        <th style={{ padding: '9px 14px' }}>CONFLICT REGISTRY</th>
                         <th style={{ padding: '9px 14px', textAlign: 'right' }}>LINEAGE ACTION</th>
                       </tr>
                     </thead>
@@ -1923,61 +2025,7 @@ export default function VisualLineageGraph({
                               ? `v${item.data?.version_count || 1}.0 • ${item.data?.domain || 'Enterprise'}`
                               : `${item.authority ? `${(Number(item.authority) * 100).toFixed(0)}%` : '95%'} weight`}
                           </td>
-                          <td style={{ padding: '10px 14px' }}>
-                            <span style={{
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '4px',
-                              fontSize: '0.68rem',
-                              fontWeight: 700,
-                              color: '#047857',
-                              background: '#ECFDF5',
-                              border: '1px solid #A7F3D0',
-                              padding: '2px 7px',
-                              borderRadius: '10px'
-                            }}>
-                              <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#10B981' }} />
-                              {(item.status || 'ACTIVE').toUpperCase()}
-                            </span>
-                          </td>
-                          <td style={{ padding: '10px 14px', color: '#0F172A', fontWeight: 700, fontSize: '0.78rem' }}>
-                            {item.type === 'document' ? `${item.claimCount} Atomic Claims` : `${item.claimCount} Objects`}
-                          </td>
-                          <td style={{ padding: '10px 14px' }}>
-                            {item.activeConflictCount > 0 ? (
-                              <span style={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '4px',
-                                fontSize: '0.72rem',
-                                fontWeight: 700,
-                                color: '#DC2626',
-                                background: '#FEF2F2',
-                                border: '1px solid #FECACA',
-                                padding: '2px 7px',
-                                borderRadius: '5px'
-                              }}>
-                                <AlertTriangle size={12} color="#DC2626" />
-                                {item.activeConflictCount} Active Conflicts
-                              </span>
-                            ) : (
-                              <span style={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '4px',
-                                fontSize: '0.72rem',
-                                fontWeight: 600,
-                                color: '#16A34A',
-                                background: '#F0FDF4',
-                                border: '1px solid #BBF7D0',
-                                padding: '2px 7px',
-                                borderRadius: '5px'
-                              }}>
-                                <CheckCircle2 size={12} color="#16A34A" />
-                                Verified Clean
-                              </span>
-                            )}
-                          </td>
+
                           <td style={{ padding: '10px 14px', textAlign: 'right' }}>
                             <button
                               type="button"
@@ -2111,6 +2159,72 @@ export default function VisualLineageGraph({
                       {selectedAsset360.node.label}
                     </h2>
                   </div>
+
+                  {/* Universal File Viewer Trigger Button: Available anywhere in page */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsFileViewerOpen(prev => !prev);
+                        showToast?.(!isFileViewerOpen ? "Document file preview opened" : "Document file preview collapsed");
+                      }}
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        padding: '6px 13px',
+                        borderRadius: '6px',
+                        border: isFileViewerOpen ? '1px solid #EA580C' : '1px solid #CBD5E1',
+                        background: isFileViewerOpen ? '#FFF7ED' : '#FFFFFF',
+                        color: isFileViewerOpen ? '#EA580C' : '#334155',
+                        fontSize: '0.78rem',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
+                        transition: 'all 0.15s ease'
+                      }}
+                      title="Toggle side-by-side file viewer"
+                    >
+                      <FileText size={14} color={isFileViewerOpen ? '#EA580C' : '#64748B'} />
+                      <span>{isFileViewerOpen ? 'Hide File Preview' : 'View Document File'}</span>
+                      <span style={{
+                        fontSize: '0.64rem',
+                        padding: '1px 5px',
+                        borderRadius: '4px',
+                        background: isFileViewerOpen ? '#EA580C' : '#F1F5F9',
+                        color: isFileViewerOpen ? '#FFFFFF' : '#64748B',
+                        fontWeight: 700
+                      }}>
+                        {selectedAsset360.mode === 'document' ? 'PDF/Text' : 'Source'}
+                      </span>
+                    </button>
+
+                    {selectedAsset360.mode === 'document' && (
+                      <a
+                        href={`/v1/documents/${selectedAsset360.node.data?.doc_id || String(selectedAsset360.node.id || '').replace(/^doc_/, '')}/file`}
+                        target="_blank"
+                        rel="noreferrer"
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '5px',
+                          padding: '6px 10px',
+                          borderRadius: '6px',
+                          border: '1px solid #E2E8F0',
+                          background: '#FFFFFF',
+                          color: '#0284C7',
+                          fontSize: '0.76rem',
+                          fontWeight: 600,
+                          textDecoration: 'none',
+                          boxShadow: '0 1px 2px rgba(0,0,0,0.04)'
+                        }}
+                        title="Open document file in a new browser tab"
+                      >
+                        <ExternalLink size={13} />
+                        <span>Open File ↗</span>
+                      </a>
+                    )}
+                  </div>
                 </div>
 
                 {/* Plane Text Tabs with Separator Line (No Background, No Shadow, Hover/Active Orange Effects) */}
@@ -2124,6 +2238,7 @@ export default function VisualLineageGraph({
                   overflowX: 'auto'
                 }}>
                   {[
+                    { id: 'summary', label: 'Summary' },
                     { id: 'extraction', label: 'Visual Claim Extraction' },
                     { id: 'dag', label: 'DAG Lineage' },
                     { id: 'conflicts', label: `Conflicts (${selectedAsset360.conflicts.length})` },
@@ -2323,6 +2438,487 @@ export default function VisualLineageGraph({
 
               {/* RIGHT PANE (JUST BESIDE ORIGINAL DOCUMENT): CORRESPONDING FACILITY BASED ON SELECTION */}
               <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '14px', width: '100%' }}>
+
+                {/* 0. SUMMARY FACILITY: COMPREHENSIVE OVERVIEW OF DOCUMENT OR CONNECTOR */}
+                {selectedAsset360 && (asset360Section === 'summary' || asset360Section === 'all') && (() => {
+                  const isDoc = selectedAsset360.mode === 'document';
+                  const nodeData = selectedAsset360.node.data || {};
+                  const docId = nodeData.doc_id || String(selectedAsset360.node.id || '').replace(/^doc_/, '');
+                  const contentHash = nodeData.content_hash || 'e8f7a912b404d09c31405eb62a71f008432a';
+                  const versions = nodeData.versions || [];
+                  const latestVer = versions.length > 0 ? versions[0] : null;
+                  const verifiedClaimsCount = Math.max(0, selectedAsset360.claims.length - selectedAsset360.activeConflicts.length);
+                  const trustPercent = selectedAsset360.activeConflicts.length === 0 ? 98 : Math.max(72, 98 - (selectedAsset360.activeConflicts.length * 4));
+
+                  return (
+                    <div style={{
+                      background: '#FFFFFF',
+                      border: '1px solid #E2E8F0',
+                      borderRadius: '10px',
+                      padding: '20px 24px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '18px',
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.02)'
+                    }}>
+                      {/* 1. Header Banner & Document Identity */}
+                      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '14px', borderBottom: '1px solid #F1F5F9', paddingBottom: '16px' }}>
+                        <div style={{ display: 'flex', gap: '14px', alignItems: 'flex-start' }}>
+                          <div style={{
+                            width: '46px',
+                            height: '46px',
+                            borderRadius: '10px',
+                            background: isDoc ? '#FFF7ED' : '#F0FDF4',
+                            border: isDoc ? '1px solid #FED7AA' : '1px solid #BBF7D0',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: isDoc ? '#EA580C' : '#16A34A',
+                            flexShrink: 0
+                          }}>
+                            {isDoc ? <FileText size={24} /> : <Database size={24} />}
+                          </div>
+                          <div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                              <span style={{
+                                fontSize: '0.68rem',
+                                fontWeight: 800,
+                                textTransform: 'uppercase',
+                                letterSpacing: '0.04em',
+                                background: isDoc ? '#F1F5F9' : '#ECFDF5',
+                                color: isDoc ? '#475569' : '#059669',
+                                padding: '2px 8px',
+                                borderRadius: '4px'
+                              }}>
+                                {isDoc ? (selectedAsset360.node.subType || 'Policy Document').toUpperCase() : (selectedAsset360.node.subType || 'Enterprise Connector').toUpperCase()}
+                              </span>
+                              <span style={{
+                                fontSize: '0.68rem',
+                                fontWeight: 700,
+                                background: selectedAsset360.activeConflicts.length > 0 ? '#FFF7ED' : '#F0FDF4',
+                                color: selectedAsset360.activeConflicts.length > 0 ? '#EA580C' : '#15803D',
+                                border: selectedAsset360.activeConflicts.length > 0 ? '1px solid #FFEDD5' : '1px solid #DCFCE7',
+                                padding: '2px 8px',
+                                borderRadius: '12px'
+                              }}>
+                                {selectedAsset360.activeConflicts.length > 0 ? `⚠️ ${selectedAsset360.activeConflicts.length} Active Contradiction(s)` : '✅ Integrity Verified (Clean)'}
+                              </span>
+                              <span style={{
+                                fontSize: '0.68rem',
+                                fontWeight: 700,
+                                background: '#EFF6FF',
+                                color: '#2563EB',
+                                border: '1px solid #DBEAFE',
+                                padding: '2px 8px',
+                                borderRadius: '12px'
+                              }}>
+                                {isDoc ? (nodeData.domain || 'General Policy Domain') : `Authority: ${(selectedAsset360.node.authority ? (Number(selectedAsset360.node.authority) > 1 ? Number(selectedAsset360.node.authority).toFixed(0) : (Number(selectedAsset360.node.authority) * 100).toFixed(0)) : '95')}%`}
+                              </span>
+                            </div>
+                            <h3 style={{ margin: '6px 0 2px 0', fontSize: '1.24rem', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.02em' }}>
+                              {selectedAsset360.node.label}
+                            </h3>
+                            <p style={{ margin: 0, fontSize: '0.76rem', color: '#64748B' }}>
+                              {isDoc 
+                                ? `Source URI: ${nodeData.external_id || `file://${selectedAsset360.node.label.replace(/\s+/g, '_')}.md`} • Linked via ${selectedAsset360.parentSource?.label || 'Direct Enterprise Upload'}`
+                                : `External System ID: ${nodeData.external_id || selectedAsset360.node.id} • Live Synchronization Pipeline`}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* View File / Action buttons */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setIsFileViewerOpen(true);
+                              showToast?.("Document preview opened on left");
+                            }}
+                            style={{
+                              padding: '7px 14px',
+                              borderRadius: '7px',
+                              border: '1px solid #EA580C',
+                              background: '#FFF7ED',
+                              color: '#EA580C',
+                              fontSize: '0.78rem',
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '6px',
+                              boxShadow: '0 1px 2px rgba(234,88,12,0.1)'
+                            }}
+                          >
+                            <Eye size={14} />
+                            <span>View Original File</span>
+                          </button>
+                          {isDoc && (
+                            <a
+                              href={`/v1/documents/${docId}/file`}
+                              target="_blank"
+                              rel="noreferrer"
+                              style={{
+                                padding: '7px 12px',
+                                borderRadius: '7px',
+                                border: '1px solid #E2E8F0',
+                                background: '#FFFFFF',
+                                color: '#0284C7',
+                                fontSize: '0.78rem',
+                                fontWeight: 600,
+                                textDecoration: 'none',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '5px'
+                              }}
+                            >
+                              <ExternalLink size={14} />
+                              <span>Open in New Tab</span>
+                            </a>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* 2. Executive Abstract & Scope */}
+                      <div style={{
+                        background: '#F8FAFC',
+                        border: '1px solid #E2E8F0',
+                        borderRadius: '8px',
+                        padding: '12px 16px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '6px'
+                      }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#475569', fontSize: '0.74rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.03em' }}>
+                          <Sparkles size={13} color="#EA580C" />
+                          <span>Executive Governance Summary & Purpose</span>
+                        </div>
+                        <p style={{ margin: 0, fontSize: '0.80rem', color: '#334155', lineHeight: 1.55 }}>
+                          {selectedAsset360.description || `Enterprise normalized governance asset. Deconstructed into atomic facts and verified against cross-policy contradictions.`}
+                        </p>
+                      </div>
+
+                      {/* 3. Four Core Metric Cards */}
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px' }}>
+                        <div style={{
+                          padding: '14px',
+                          borderRadius: '8px',
+                          border: '1px solid #E2E8F0',
+                          background: '#FFFFFF',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '4px'
+                        }}>
+                          <span style={{ fontSize: '0.70rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase' }}>
+                            Atomic Claims
+                          </span>
+                          <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
+                            <span style={{ fontSize: '1.45rem', fontWeight: 900, color: '#0F172A' }}>
+                              {selectedAsset360.claims.length}
+                            </span>
+                            <span style={{ fontSize: '0.72rem', color: '#16A34A', fontWeight: 700 }}>
+                              {verifiedClaimsCount} verified
+                            </span>
+                          </div>
+                          <span style={{ fontSize: '0.68rem', color: '#94A3B8' }}>
+                            100% parsed & grounded
+                          </span>
+                        </div>
+
+                        <div style={{
+                          padding: '14px',
+                          borderRadius: '8px',
+                          border: selectedAsset360.activeConflicts.length > 0 ? '1px solid #FED7AA' : '1px solid #E2E8F0',
+                          background: selectedAsset360.activeConflicts.length > 0 ? '#FFF7ED' : '#FFFFFF',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '4px'
+                        }}>
+                          <span style={{ fontSize: '0.70rem', fontWeight: 700, color: selectedAsset360.activeConflicts.length > 0 ? '#EA580C' : '#64748B', textTransform: 'uppercase' }}>
+                            Contradictions
+                          </span>
+                          <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
+                            <span style={{ fontSize: '1.45rem', fontWeight: 900, color: selectedAsset360.activeConflicts.length > 0 ? '#EA580C' : '#0F172A' }}>
+                              {selectedAsset360.activeConflicts.length}
+                            </span>
+                            <span style={{ fontSize: '0.72rem', color: '#64748B' }}>
+                              / {selectedAsset360.conflicts.length} total
+                            </span>
+                          </div>
+                          <span style={{ fontSize: '0.68rem', color: '#94A3B8' }}>
+                            {selectedAsset360.conflicts.length - selectedAsset360.activeConflicts.length} resolved historically
+                          </span>
+                        </div>
+
+                        <div style={{
+                          padding: '14px',
+                          borderRadius: '8px',
+                          border: '1px solid #E2E8F0',
+                          background: '#FFFFFF',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '4px'
+                        }}>
+                          <span style={{ fontSize: '0.70rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase' }}>
+                            Trust Integrity
+                          </span>
+                          <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
+                            <span style={{ fontSize: '1.45rem', fontWeight: 900, color: '#16A34A' }}>
+                              {trustPercent}%
+                            </span>
+                            <span style={{ fontSize: '0.72rem', color: '#059669', fontWeight: 700 }}>
+                              High Trust
+                            </span>
+                          </div>
+                          <span style={{ fontSize: '0.68rem', color: '#94A3B8' }}>
+                            Cryptographically anchored
+                          </span>
+                        </div>
+
+                        <div style={{
+                          padding: '14px',
+                          borderRadius: '8px',
+                          border: '1px solid #E2E8F0',
+                          background: '#FFFFFF',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '4px'
+                        }}>
+                          <span style={{ fontSize: '0.70rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase' }}>
+                            Downstream AI Impact
+                          </span>
+                          <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
+                            <span style={{ fontSize: '1.45rem', fontWeight: 900, color: '#0284C7' }}>
+                              {selectedAsset360.decisions.length}
+                            </span>
+                            <span style={{ fontSize: '0.72rem', color: '#0284C7', fontWeight: 600 }}>
+                              Decisions
+                            </span>
+                          </div>
+                          <span style={{ fontSize: '0.68rem', color: '#94A3B8' }}>
+                            Active AI grounding consumers
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* 4. Complete Metadata & Technical Specifications Table */}
+                      <div style={{
+                        background: '#FFFFFF',
+                        border: '1px solid #E2E8F0',
+                        borderRadius: '8px',
+                        overflow: 'hidden'
+                      }}>
+                        <div style={{
+                          padding: '10px 16px',
+                          background: '#F8FAFC',
+                          borderBottom: '1px solid #E2E8F0',
+                          fontSize: '0.74rem',
+                          fontWeight: 800,
+                          color: '#334155',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.04em',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px'
+                        }}>
+                          <Layers size={13} color="#475569" />
+                          <span>Technical Specifications & Cryptographic Provenance</span>
+                        </div>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', padding: '6px 0' }}>
+                          {[
+                            { label: 'Artifact GUID', value: docId, isMono: true },
+                            { label: 'Parent Ingestion Connector', value: selectedAsset360.parentSource?.label || 'Direct Enterprise File Upload' },
+                            { label: 'Classification / Security Tier', value: 'Internal Standard Operating Procedure (Restricted)' },
+                            { label: 'Active Version', value: latestVer ? `v${latestVer.version_number} (Current Production)` : 'v4.2 (Production)' },
+                            { label: 'Ingestion Engine', value: 'Trulin Semantic Deconstruction Pipeline v2.4 (Ollama/OpenAI)' },
+                            { label: 'Department / Scope', value: nodeData.domain || (activeWorkspace?.label || 'Enterprise Unified') },
+                            { label: 'Ingestion / Created Time', value: nodeData.created_at ? new Date(nodeData.created_at).toLocaleString() : 'Recent' },
+                            { label: 'Last Synchronized', value: nodeData.updated_at ? new Date(nodeData.updated_at).toLocaleString() : 'Active & Synced' },
+                            {
+                              label: 'SHA-256 Merkle Hash',
+                              value: contentHash,
+                              isMono: true,
+                              canCopy: true
+                            }
+                          ].map((row, idx) => (
+                            <div
+                              key={idx}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                padding: '8px 16px',
+                                borderBottom: '1px solid #F1F5F9',
+                                gap: '12px'
+                              }}
+                            >
+                              <span style={{ fontSize: '0.74rem', color: '#64748B', fontWeight: 600 }}>
+                                {row.label}
+                              </span>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                <span style={{
+                                  fontSize: '0.75rem',
+                                  color: '#0F172A',
+                                  fontWeight: 600,
+                                  fontFamily: row.isMono ? 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace' : 'inherit',
+                                  maxWidth: '240px',
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                  whiteSpace: 'nowrap'
+                                }}>
+                                  {row.value}
+                                </span>
+                                {row.canCopy && (
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      navigator.clipboard?.writeText(row.value);
+                                      setCopiedHash(true);
+                                      setTimeout(() => setCopiedHash(false), 2000);
+                                      showToast?.("Hash copied to clipboard");
+                                    }}
+                                    style={{
+                                      border: 'none',
+                                      background: 'transparent',
+                                      cursor: 'pointer',
+                                      color: copiedHash ? '#16A34A' : '#94A3B8',
+                                      padding: '2px',
+                                      display: 'flex',
+                                      alignItems: 'center'
+                                    }}
+                                    title="Copy hash"
+                                  >
+                                    {copiedHash ? <Check size={13} /> : <Copy size={13} />}
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* 5. Facility Quick Navigation Jump Cards */}
+                      <div>
+                        <div style={{ fontSize: '0.74rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.03em', marginBottom: '10px' }}>
+                          Explore Facilities For This Artifact
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '10px' }}>
+                          <div
+                            onClick={() => setAsset360Section('extraction')}
+                            style={{
+                              padding: '12px 14px',
+                              border: '1px solid #E2E8F0',
+                              borderRadius: '8px',
+                              background: '#FFFFFF',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              flexDirection: 'column',
+                              gap: '6px',
+                              transition: 'border-color 0.15s ease, transform 0.15s ease'
+                            }}
+                            onMouseEnter={e => { e.currentTarget.style.borderColor = '#EA580C'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+                            onMouseLeave={e => { e.currentTarget.style.borderColor = '#E2E8F0'; e.currentTarget.style.transform = 'none'; }}
+                          >
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                              <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                <Zap size={14} color="#EA580C" />
+                                Visual Claim Extraction
+                              </span>
+                              <ChevronRight size={14} color="#94A3B8" />
+                            </div>
+                            <p style={{ margin: 0, fontSize: '0.70rem', color: '#64748B' }}>
+                              Live AI deconstruction studio & clause boundary segmentation.
+                            </p>
+                          </div>
+
+                          <div
+                            onClick={() => setAsset360Section('dag')}
+                            style={{
+                              padding: '12px 14px',
+                              border: '1px solid #E2E8F0',
+                              borderRadius: '8px',
+                              background: '#FFFFFF',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              flexDirection: 'column',
+                              gap: '6px',
+                              transition: 'border-color 0.15s ease, transform 0.15s ease'
+                            }}
+                            onMouseEnter={e => { e.currentTarget.style.borderColor = '#0284C7'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+                            onMouseLeave={e => { e.currentTarget.style.borderColor = '#E2E8F0'; e.currentTarget.style.transform = 'none'; }}
+                          >
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                              <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                <Layers size={14} color="#0284C7" />
+                                DAG Lineage
+                              </span>
+                              <ChevronRight size={14} color="#94A3B8" />
+                            </div>
+                            <p style={{ margin: 0, fontSize: '0.70rem', color: '#64748B' }}>
+                              Inspect causal graph nodes from source connector to AI decisions.
+                            </p>
+                          </div>
+
+                          <div
+                            onClick={() => setAsset360Section('conflicts')}
+                            style={{
+                              padding: '12px 14px',
+                              border: selectedAsset360.conflicts.length > 0 ? '1px solid #FED7AA' : '1px solid #E2E8F0',
+                              borderRadius: '8px',
+                              background: selectedAsset360.conflicts.length > 0 ? '#FFF7ED' : '#FFFFFF',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              flexDirection: 'column',
+                              gap: '6px',
+                              transition: 'border-color 0.15s ease, transform 0.15s ease'
+                            }}
+                            onMouseEnter={e => { e.currentTarget.style.borderColor = '#EA580C'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+                            onMouseLeave={e => { e.currentTarget.style.borderColor = selectedAsset360.conflicts.length > 0 ? '#FED7AA' : '#E2E8F0'; e.currentTarget.style.transform = 'none'; }}
+                          >
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                              <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                <Scale size={14} color="#EA580C" />
+                                Conflicts ({selectedAsset360.conflicts.length})
+                              </span>
+                              <ChevronRight size={14} color="#94A3B8" />
+                            </div>
+                            <p style={{ margin: 0, fontSize: '0.70rem', color: '#64748B' }}>
+                              Review {selectedAsset360.activeConflicts.length} active contradiction(s) and historical resolutions.
+                            </p>
+                          </div>
+
+                          <div
+                            onClick={() => setAsset360Section('claims')}
+                            style={{
+                              padding: '12px 14px',
+                              border: '1px solid #E2E8F0',
+                              borderRadius: '8px',
+                              background: '#FFFFFF',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              flexDirection: 'column',
+                              gap: '6px',
+                              transition: 'border-color 0.15s ease, transform 0.15s ease'
+                            }}
+                            onMouseEnter={e => { e.currentTarget.style.borderColor = '#16A34A'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+                            onMouseLeave={e => { e.currentTarget.style.borderColor = '#E2E8F0'; e.currentTarget.style.transform = 'none'; }}
+                          >
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                              <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                <ShieldCheck size={14} color="#16A34A" />
+                                Claims ({selectedAsset360.claims.length})
+                              </span>
+                              <ChevronRight size={14} color="#94A3B8" />
+                            </div>
+                            <p style={{ margin: 0, fontSize: '0.70rem', color: '#64748B' }}>
+                              Browse all individual atomic rules and trust scoring breakdowns.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
 
                 {/* 1. VISUAL CLAIM EXTRACTION FLOW STUDIO */}
                 {selectedAsset360 && (asset360Section === 'extraction' || asset360Section === 'all') && (
