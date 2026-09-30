@@ -1632,6 +1632,56 @@ export default function VisualLineageGraph({
               border: 'none',
               padding: 0
             }}>
+              <style>{`
+                .trulin-artifact-row {
+                  transition: background 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+                  background: #FFFFFF;
+                  cursor: pointer;
+                }
+                .trulin-artifact-row:hover {
+                  background: #FFFBF5 !important;
+                }
+                .trulin-artifact-row:hover > td:first-child {
+                  box-shadow: inset 3px 0 0 #EA580C;
+                }
+                .trulin-artifact-row:hover .trulin-row-title {
+                  color: #EA580C !important;
+                }
+                .trulin-artifact-row:hover .trulin-row-icon-box {
+                  background: #FFEDD5 !important;
+                  border-color: #FDBA74 !important;
+                  transform: scale(1.08);
+                }
+                .trulin-artifact-row:hover .trulin-inspect-btn {
+                  background: #EA580C !important;
+                  color: #FFFFFF !important;
+                  border-color: #EA580C !important;
+                  box-shadow: 0 3px 10px rgba(234, 88, 12, 0.32) !important;
+                }
+                .trulin-artifact-row:hover .trulin-inspect-arrow {
+                  transform: translateX(4px);
+                }
+                .trulin-inspect-btn {
+                  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+                }
+                .trulin-inspect-arrow {
+                  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+                }
+                .trulin-row-icon-box {
+                  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+                }
+                .trulin-row-title {
+                  transition: color 0.2s ease;
+                }
+                .trulin-filter-btn {
+                  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+                }
+                .trulin-search-box input:focus {
+                  border-color: #EA580C !important;
+                  box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.14) !important;
+                }
+              `}</style>
+
               {/* Sleek Toolbar: Title, Filter Pills, Search, Sort */}
               <div style={{
                 display: 'flex',
@@ -1644,44 +1694,45 @@ export default function VisualLineageGraph({
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <h3 style={{ margin: 0, fontSize: '0.94rem', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.01em' }}>
-                      {vaultSubTab === 'documents' ? 'Policy & Enterprise Documents' : 'Connected Enterprise Data Sources'}
+                      {vaultSubTab === 'documents' ? 'Enterprise Policy Artifacts' : 'Enterprise Connectors & Sources'}
                     </h3>
                     <span style={{
                       fontSize: '0.72rem',
                       fontWeight: 700,
-                      color: '#475569',
-                      background: '#F1F5F9',
+                      color: '#EA580C',
+                      background: '#FFF7ED',
+                      border: '1px solid #FFEDD5',
                       padding: '2px 8px',
                       borderRadius: '12px'
                     }}>
-                      {enrichedAssets.length}
+                      {enrichedAssets.length} Indexed
                     </span>
                   </div>
 
-                  {/* Compact Filter Pills */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: '#F1F5F9', padding: '3px', borderRadius: '7px' }}>
+                  {/* Compact Professional Filter Pills */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: '#F8FAFC', padding: '3px', borderRadius: '7px', border: '1px solid #E2E8F0' }}>
                     {[
-                      { id: 'all', label: `All (${enrichedAssets.length})` },
-                      { id: 'conflicted', label: `With Conflicts (${enrichedAssets.filter(a => a.activeConflictCount > 0).length})` },
-                      { id: 'clean', label: `Clean (${enrichedAssets.filter(a => a.activeConflictCount === 0).length})` }
+                      { id: 'all', label: `All Artifacts (${enrichedAssets.length})` },
+                      { id: 'conflicted', label: `Conflicted (${enrichedAssets.filter(a => a.activeConflictCount > 0).length})` },
+                      { id: 'clean', label: `Integrity Verified (${enrichedAssets.filter(a => a.activeConflictCount === 0).length})` }
                     ].map(f => {
                       const active = assetListFilter === f.id;
                       return (
                         <button
                           key={f.id}
                           type="button"
+                          className="trulin-filter-btn"
                           onClick={() => { setAssetListFilter(f.id); setAssetListPage(1); }}
                           style={{
-                            padding: '3px 9px',
+                            padding: '3px 10px',
                             border: 'none',
                             borderRadius: '5px',
-                            background: active ? '#FFFFFF' : 'transparent',
-                            color: active ? '#0F172A' : '#64748B',
-                            boxShadow: active ? '0 1px 2px rgba(0,0,0,0.06)' : 'none',
-                            fontSize: '0.74rem',
+                            background: active ? '#EA580C' : 'transparent',
+                            color: active ? '#FFFFFF' : '#64748B',
+                            boxShadow: active ? '0 2px 6px rgba(234, 88, 12, 0.28)' : 'none',
+                            fontSize: '0.73rem',
                             fontWeight: active ? 700 : 500,
-                            cursor: 'pointer',
-                            transition: 'all 0.15s ease'
+                            cursor: 'pointer'
                           }}
                         >
                           {f.label}
@@ -1693,11 +1744,11 @@ export default function VisualLineageGraph({
 
                 {/* Search, Sort & Page Size Controls */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                  <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                  <div className="trulin-search-box" style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
                     <Search size={14} style={{ position: 'absolute', left: '10px', color: '#94A3B8', pointerEvents: 'none' }} />
                     <input
                       type="text"
-                      placeholder={`Search ${vaultSubTab === 'documents' ? 'files' : 'connectors'}...`}
+                      placeholder={`Search ${vaultSubTab === 'documents' ? 'policy artifacts & claims' : 'connectors & tables'}...`}
                       value={vaultSearch}
                       onChange={(e) => setVaultSearch(e.target.value)}
                       style={{
@@ -1709,8 +1760,9 @@ export default function VisualLineageGraph({
                         background: '#FFFFFF',
                         color: '#0F172A',
                         fontSize: '0.76rem',
-                        width: '180px',
-                        outline: 'none'
+                        width: '210px',
+                        outline: 'none',
+                        transition: 'all 0.2s ease'
                       }}
                     />
                     {vaultSearch && (
@@ -1749,8 +1801,8 @@ export default function VisualLineageGraph({
                       cursor: 'pointer'
                     }}
                   >
-                    <option value="conflicts">Sort: Conflicts First</option>
-                    <option value="claims">Sort: Claims First</option>
+                    <option value="conflicts">Sort: Conflict Severity</option>
+                    <option value="claims">Sort: Claim Density</option>
                     <option value="name">Sort: Title (A–Z)</option>
                   </select>
 
@@ -1780,61 +1832,71 @@ export default function VisualLineageGraph({
               {filteredAssets.length === 0 ? (
                 <div style={{ padding: '36px 16px', textAlign: 'center', color: '#64748B', fontSize: '0.8rem', background: '#F8FAFC', borderRadius: '8px', border: '1px dashed #CBD5E1' }}>
                   {vaultSubTab === 'documents'
-                    ? 'No documents match the current filter or search criteria.'
-                    : 'No external databases or connectors connected yet.'}
+                    ? 'No enterprise policy artifacts match the active governance filter or search criteria.'
+                    : 'No external databases or connectors connected yet in this workspace.'}
                 </div>
               ) : (
                 <div style={{ overflowX: 'auto', border: '1px solid #E2E8F0', borderRadius: '8px', background: '#FFFFFF' }}>
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.78rem', textAlign: 'left' }}>
                     <thead>
-                      <tr style={{ background: '#F8FAFC', borderBottom: '1px solid #E2E8F0', color: '#475569', fontSize: '0.68rem', textTransform: 'uppercase', letterSpacing: '0.04em', fontWeight: 700 }}>
-                        <th style={{ padding: '9px 14px' }}>{vaultSubTab === 'documents' ? 'Document / File' : 'Connector / Source'}</th>
-                        <th style={{ padding: '9px 14px' }}>Type</th>
-                        <th style={{ padding: '9px 14px' }}>{vaultSubTab === 'documents' ? 'Version & Source' : 'Authority'}</th>
-                        <th style={{ padding: '9px 14px' }}>Status</th>
-                        <th style={{ padding: '9px 14px' }}>{vaultSubTab === 'documents' ? 'Extracted Claims' : 'Synced Objects'}</th>
-                        <th style={{ padding: '9px 14px' }}>Conflicts</th>
-                        <th style={{ padding: '9px 14px', textAlign: 'right' }}>Action</th>
+                      <tr style={{ background: '#F8FAFC', borderBottom: '1px solid #E2E8F0', color: '#475569', fontSize: '0.67rem', textTransform: 'uppercase', letterSpacing: '0.04em', fontWeight: 700 }}>
+                        <th style={{ padding: '9px 14px' }}>{vaultSubTab === 'documents' ? 'POLICY ARTIFACT' : 'CONNECTOR / SOURCE'}</th>
+                        <th style={{ padding: '9px 14px' }}>CLASSIFICATION</th>
+                        <th style={{ padding: '9px 14px' }}>{vaultSubTab === 'documents' ? 'VERSION & PROVENANCE' : 'AUTHORITY WEIGHT'}</th>
+                        <th style={{ padding: '9px 14px' }}>LIFECYCLE STATUS</th>
+                        <th style={{ padding: '9px 14px' }}>{vaultSubTab === 'documents' ? 'EXTRACTED CLAIMS' : 'SYNCED OBJECTS'}</th>
+                        <th style={{ padding: '9px 14px' }}>CONFLICT REGISTRY</th>
+                        <th style={{ padding: '9px 14px', textAlign: 'right' }}>LINEAGE ACTION</th>
                       </tr>
                     </thead>
                     <tbody>
                       {pagedAssets.map((item, idx) => (
                         <tr
                           key={item.id}
+                          className="trulin-artifact-row"
                           onClick={() => selectAssetItem(item)}
-                          onMouseEnter={(e) => { e.currentTarget.style.background = '#F8FAFC'; }}
-                          onMouseLeave={(e) => { e.currentTarget.style.background = '#FFFFFF'; }}
                           style={{
-                            borderBottom: idx < pagedAssets.length - 1 ? '1px solid #F1F5F9' : 'none',
-                            background: '#FFFFFF',
-                            cursor: 'pointer',
-                            transition: 'background 0.12s ease'
+                            borderBottom: idx < pagedAssets.length - 1 ? '1px solid #F1F5F9' : 'none'
                           }}
                         >
                           <td style={{ padding: '10px 14px' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                              <div style={{
-                                width: '28px',
-                                height: '28px',
-                                borderRadius: '6px',
-                                background: vaultSubTab === 'documents' ? '#EFF6FF' : '#F0FDF4',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                flexShrink: 0
-                              }}>
+                              <div
+                                className="trulin-row-icon-box"
+                                style={{
+                                  width: '30px',
+                                  height: '30px',
+                                  borderRadius: '6px',
+                                  background: '#FFF7ED',
+                                  border: '1px solid #FFEDD5',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  flexShrink: 0
+                                }}
+                              >
                                 {vaultSubTab === 'documents' ? (
-                                  <FileText size={15} color="#2563EB" />
+                                  <FileText size={15} color="#EA580C" />
                                 ) : (
-                                  <Database size={15} color="#16A34A" />
+                                  <Database size={15} color="#EA580C" />
                                 )}
                               </div>
                               <div style={{ minWidth: 0 }}>
-                                <div style={{ fontWeight: 600, color: '#0F172A', fontSize: '0.81rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                <div
+                                  className="trulin-row-title"
+                                  style={{
+                                    fontWeight: 700,
+                                    color: '#0F172A',
+                                    fontSize: '0.81rem',
+                                    whiteSpace: 'nowrap',
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis'
+                                  }}
+                                >
                                   {item.label}
                                 </div>
                                 {item.data?.external_id && (
-                                  <div style={{ fontSize: '0.68rem', color: '#64748B', fontFamily: 'monospace', marginTop: '1px' }}>
+                                  <div style={{ fontSize: '0.67rem', color: '#64748B', fontFamily: 'monospace', marginTop: '1px' }}>
                                     {item.data.external_id}
                                   </div>
                                 )}
@@ -1842,7 +1904,17 @@ export default function VisualLineageGraph({
                             </div>
                           </td>
                           <td style={{ padding: '10px 14px' }}>
-                            <span style={{ background: '#F1F5F9', color: '#475569', padding: '2px 7px', borderRadius: '4px', fontSize: '0.68rem', fontWeight: 600, textTransform: 'uppercase' }}>
+                            <span style={{
+                              background: '#FFF7ED',
+                              color: '#C2410C',
+                              border: '1px solid #FED7AA',
+                              padding: '2px 7px',
+                              borderRadius: '4px',
+                              fontSize: '0.68rem',
+                              fontWeight: 700,
+                              textTransform: 'uppercase',
+                              letterSpacing: '0.02em'
+                            }}>
                               {item.subType || item.type}
                             </span>
                           </td>
@@ -1857,18 +1929,19 @@ export default function VisualLineageGraph({
                               alignItems: 'center',
                               gap: '4px',
                               fontSize: '0.68rem',
-                              fontWeight: 600,
-                              color: '#15803D',
-                              background: '#DCFCE7',
+                              fontWeight: 700,
+                              color: '#047857',
+                              background: '#ECFDF5',
+                              border: '1px solid #A7F3D0',
                               padding: '2px 7px',
                               borderRadius: '10px'
                             }}>
-                              <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#16A34A' }} />
+                              <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#10B981' }} />
                               {(item.status || 'ACTIVE').toUpperCase()}
                             </span>
                           </td>
-                          <td style={{ padding: '10px 14px', color: '#059669', fontWeight: 600, fontSize: '0.78rem' }}>
-                            {item.type === 'document' ? `${item.claimCount} Claims` : `${item.claimCount} Objects`}
+                          <td style={{ padding: '10px 14px', color: '#0F172A', fontWeight: 700, fontSize: '0.78rem' }}>
+                            {item.type === 'document' ? `${item.claimCount} Atomic Claims` : `${item.claimCount} Objects`}
                           </td>
                           <td style={{ padding: '10px 14px' }}>
                             {item.activeConflictCount > 0 ? (
@@ -1879,12 +1952,13 @@ export default function VisualLineageGraph({
                                 fontSize: '0.72rem',
                                 fontWeight: 700,
                                 color: '#DC2626',
-                                background: '#FEE2E2',
+                                background: '#FEF2F2',
+                                border: '1px solid #FECACA',
                                 padding: '2px 7px',
                                 borderRadius: '5px'
                               }}>
                                 <AlertTriangle size={12} color="#DC2626" />
-                                {item.activeConflictCount} Conflicts
+                                {item.activeConflictCount} Active Conflicts
                               </span>
                             ) : (
                               <span style={{
@@ -1893,45 +1967,41 @@ export default function VisualLineageGraph({
                                 gap: '4px',
                                 fontSize: '0.72rem',
                                 fontWeight: 600,
-                                color: '#16A34A'
+                                color: '#16A34A',
+                                background: '#F0FDF4',
+                                border: '1px solid #BBF7D0',
+                                padding: '2px 7px',
+                                borderRadius: '5px'
                               }}>
-                                <CheckCircle2 size={13} color="#16A34A" />
-                                Clean
+                                <CheckCircle2 size={12} color="#16A34A" />
+                                Verified Clean
                               </span>
                             )}
                           </td>
                           <td style={{ padding: '10px 14px', textAlign: 'right' }}>
                             <button
                               type="button"
+                              className="trulin-inspect-btn"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 selectAssetItem(item);
                               }}
                               style={{
-                                padding: '3px 9px',
-                                borderRadius: '5px',
-                                border: '1px solid #E2E8F0',
-                                background: '#FFFFFF',
-                                color: '#2563EB',
+                                padding: '4px 11px',
+                                borderRadius: '6px',
+                                border: '1px solid #FED7AA',
+                                background: '#FFF7ED',
+                                color: '#EA580C',
                                 fontSize: '0.73rem',
-                                fontWeight: 600,
+                                fontWeight: 700,
                                 cursor: 'pointer',
                                 display: 'inline-flex',
                                 alignItems: 'center',
-                                gap: '3px',
-                                transition: 'all 0.12s ease'
-                              }}
-                              onMouseEnter={e => {
-                                e.currentTarget.style.background = '#EFF6FF';
-                                e.currentTarget.style.borderColor = '#BFDBFE';
-                              }}
-                              onMouseLeave={e => {
-                                e.currentTarget.style.background = '#FFFFFF';
-                                e.currentTarget.style.borderColor = '#E2E8F0';
+                                gap: '4px'
                               }}
                             >
-                              <span>Open</span>
-                              <ChevronRight size={13} />
+                              <span>Inspect Lineage</span>
+                              <ChevronRight size={13} className="trulin-inspect-arrow" />
                             </button>
                           </td>
                         </tr>
