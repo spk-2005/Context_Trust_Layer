@@ -122,8 +122,8 @@ class LineageService:
                     "doc_id": str(doc.id),
                     "external_id": doc.external_id,
                     "domain": getattr(doc, "domain", "General"),
-                    "content_uri": getattr(doc, "content_uri", None),
-                    "content_hash": getattr(doc, "content_hash", None),
+                    "content_uri": getattr(doc, "content_uri", None) or (sorted_versions[0].content_uri if sorted_versions else None),
+                    "content_hash": getattr(doc, "content_hash", None) or (sorted_versions[0].content_hash if sorted_versions else None),
                     "version_count": len(doc.versions),
                     "versions": [
                         {
@@ -159,7 +159,7 @@ class LineageService:
             ev_section = None
             if cl.evidence:
                 first_ev = cl.evidence[0]
-                ev_snippet = getattr(first_ev, "exact_quote", None) or getattr(first_ev, "snippet", None)
+                ev_snippet = getattr(first_ev, "text_span", None) or getattr(first_ev, "exact_quote", None) or getattr(first_ev, "snippet", None)
                 ev_section = getattr(first_ev, "section", None)
 
             nodes.append({

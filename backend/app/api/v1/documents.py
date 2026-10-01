@@ -723,8 +723,8 @@ async def get_document_artifacts(
                     "claim_b_text": cf.claim_b.claim_text if cf.claim_b else "Unknown",
                     "claim_a_subject": cf.claim_a.subject if cf.claim_a else "",
                     "claim_b_subject": cf.claim_b.subject if cf.claim_b else "",
-                    "claim_a_score": cf.claim_a.trust_scores[0].overall_score if cf.claim_a and cf.claim_a.trust_scores else 0.95,
-                    "claim_b_score": cf.claim_b.trust_scores[0].overall_score if cf.claim_b and cf.claim_b.trust_scores else 0.95,
+                    "claim_a_score": float(cf.claim_a.trust_scores[0].overall_score) if cf.claim_a and cf.claim_a.trust_scores and cf.claim_a.trust_scores[0].overall_score is not None else 0.95,
+                    "claim_b_score": float(cf.claim_b.trust_scores[0].overall_score) if cf.claim_b and cf.claim_b.trust_scores and cf.claim_b.trust_scores[0].overall_score is not None else 0.95,
                     "conflict_type": cf.conflict_type.value if hasattr(cf.conflict_type, "value") else str(cf.conflict_type),
                     "resolution_status": cf.resolution_status.value if hasattr(cf.resolution_status, "value") else str(cf.resolution_status),
                     "severity": getattr(cf, "severity", "HIGH"),
@@ -733,10 +733,11 @@ async def get_document_artifacts(
                 })
 
         for c in claims:
-            score = c.trust_scores[0].overall_score if c.trust_scores else 0.95
+            score = float(c.trust_scores[0].overall_score) if c.trust_scores and c.trust_scores[0].overall_score is not None else 0.95
             validity = c.validity_records[0].validity_status if c.validity_records else "valid"
-            section = c.evidence[0].section if c.evidence else "General"
-            quote = c.evidence[0].exact_quote if c.evidence else ""
+            first_ev = c.evidence[0] if c.evidence else None
+            section = getattr(first_ev, "section", "General") or "General"
+            quote = getattr(first_ev, "text_span", None) or getattr(first_ev, "exact_quote", "") or ""
             claims_output.append({
                 "id": str(c.id),
                 "document_version_id": str(c.document_version_id),

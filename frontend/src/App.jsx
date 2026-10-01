@@ -164,6 +164,8 @@ export default function App() {
     assetId: null,
     assetTitle: ''
   });
+  const [selectedLineageAssetId, setSelectedLineageAssetId] = useState(null);
+  const [selectedDocForViewer, setSelectedDocForViewer] = useState(null);
 
   // -------------------------------------------------------------
   const {
@@ -4999,6 +5001,26 @@ export default function App() {
                               <span>Versions: <strong style={{ color: 'var(--primary)' }}>{doc.versions?.length || 1}</strong></span>
                               <button
                                 type="button"
+                                onClick={() => {
+                                  setSelectedLineageAssetId(doc.id);
+                                  setVaultSubTab('documents');
+                                  setActiveTab('visual_lineage');
+                                }}
+                                className="btn btn-primary"
+                                style={{
+                                  padding: '5px 12px',
+                                  fontSize: '0.74rem',
+                                  fontWeight: 700,
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '5px'
+                                }}
+                                title="Open document in Lineage & 360° Facilities Viewer"
+                              >
+                                <span>📄 View in Lineage & 360</span>
+                              </button>
+                              <button
+                                type="button"
                                 onClick={() => setInspectorState({
                                   isOpen: true,
                                   assetType: 'document',
@@ -5468,6 +5490,7 @@ export default function App() {
               showToast={showToast}
               vaultSubTab={vaultSubTab}
               onVaultSubTabChange={setVaultSubTab}
+              initialAssetId={selectedLineageAssetId}
             />
           </div>
         )}
@@ -6137,6 +6160,47 @@ export default function App() {
           window.history.pushState(null, '', '/conflicts');
         }}
       />
+
+      {/* Clean In-App Document Page Viewer Modal (No Google/Browser Toolbar) */}
+      {selectedDocForViewer && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(15, 23, 42, 0.7)',
+          backdropFilter: 'blur(5px)',
+          zIndex: 10000,
+          padding: '24px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center'
+        }}>
+          <div style={{
+            width: '100%',
+            maxWidth: '1440px',
+            height: '92vh',
+            background: '#FFFFFF',
+            borderRadius: '12px',
+            overflow: 'hidden',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.35)',
+            display: 'flex',
+            flexDirection: 'column'
+          }}>
+            <DocumentPageViewer
+              documentData={selectedDocForViewer}
+              onBack={() => setSelectedDocForViewer(null)}
+              onNavigateToLineage={() => {
+                setSelectedDocForViewer(null);
+                setActiveTab('visual_lineage');
+                setVaultSubTab('documents');
+              }}
+              showToast={showToast}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

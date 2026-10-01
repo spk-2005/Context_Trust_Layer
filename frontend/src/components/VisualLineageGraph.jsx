@@ -41,7 +41,8 @@ export default function VisualLineageGraph({
   activeWorkspace,
   showToast,
   vaultSubTab: externalVaultSubTab,
-  onVaultSubTabChange
+  onVaultSubTabChange,
+  initialAssetId
 }) {
   const [graphData, setGraphData] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -66,10 +67,12 @@ export default function VisualLineageGraph({
   const setVaultSubTab = onVaultSubTabChange || setInternalVaultSubTab;
 
   useEffect(() => {
-    if (externalVaultSubTab) {
+    if (initialAssetId) {
+      setOpenedAssetId(initialAssetId);
+    } else if (externalVaultSubTab) {
       setOpenedAssetId(null);
     }
-  }, [externalVaultSubTab]);
+  }, [initialAssetId, externalVaultSubTab]);
 
   const [asset360Section, setAsset360Section] = useState('summary'); // 'summary' | 'extraction' | 'dag' | 'conflicts' | 'claims' | 'all'
   const [copiedHash, setCopiedHash] = useState(false);
@@ -2093,6 +2096,7 @@ export default function VisualLineageGraph({
         // ============================================================================
         // STAGE 2: SPLIT-SCREEN WORKSPACE (LEFT: ORIGINAL DOCUMENT | RIGHT: FACILITIES)
         // ============================================================================
+
         const docClaimsForReader = (selectedAsset360?.claims || []).filter(cl => {
           const text = (cl.fullText || cl.label || '').toLowerCase();
           if (docReaderSearch.trim() && !text.includes(docReaderSearch.trim().toLowerCase())) return false;
@@ -2238,9 +2242,9 @@ export default function VisualLineageGraph({
                   overflowX: 'auto'
                 }}>
                   {[
-                    { id: 'summary', label: 'Summary' },
+                    { id: 'summary', label: 'Overview' },
+                    { id: 'dag', label: 'Lineage' },
                     { id: 'extraction', label: 'Visual Claim Extraction' },
-                    { id: 'dag', label: 'DAG Lineage' },
                     { id: 'conflicts', label: `Conflicts (${selectedAsset360.conflicts.length})` },
                     { id: 'claims', label: `Claims (${selectedAsset360.claims.length})` },
                     { id: 'all', label: 'All Facilities' }
@@ -2397,17 +2401,42 @@ export default function VisualLineageGraph({
                           {rawOriginalText || 'Original document content is displayed in PDF View.'}
                         </div>
                       ) : (
-                        <iframe
-                          key={rawDocId}
-                          src={`${pdfUrl}#toolbar=1&navpanes=0&view=FitH`}
-                          title={selectedAsset360.node.label}
-                          style={{
+                        <div style={{
+                          flex: 1,
+                          overflowY: 'auto',
+                          background: '#F8FAFC',
+                          padding: '16px',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          gap: '16px'
+                        }}>
+                          {/* Clean Native In-App Document Page (No Google/Chrome iframe) */}
+                          <div style={{
                             width: '100%',
-                            flex: 1,
-                            border: 'none',
-                            background: '#525659'
-                          }}
-                        />
+                            background: '#FFFFFF',
+                            borderRadius: '4px',
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+                            border: '1px solid #E2E8F0',
+                            padding: '24px 24px',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '14px'
+                          }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid #E2E8F0', paddingBottom: '10px' }}>
+                              <div style={{ width: '22px', height: '22px', borderRadius: '4px', background: '#FEE2E2', color: '#DC2626', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <FileText size={13} />
+                              </div>
+                              <span style={{ fontWeight: 700, color: '#0F172A', fontSize: '0.84rem' }}>
+                                {selectedAsset360.node.label}
+                              </span>
+                            </div>
+
+                            <div style={{ fontSize: '0.8rem', lineHeight: 1.65, color: '#1E293B', whiteSpace: 'pre-wrap' }}>
+                              {rawOriginalText || `Standard Operating Procedure & Governing Policy for ${selectedAsset360.node.label}.\n\nAll provisions are cryptographically anchored and verified by the Trulin Context Trust Layer.`}
+                            </div>
+                          </div>
+                        </div>
                       )
                     ) : (
                       <div style={{
