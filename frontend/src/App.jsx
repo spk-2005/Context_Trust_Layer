@@ -37,6 +37,8 @@ import {
   ChevronDown,
   ChevronRight,
   ChevronLeft,
+  PanelLeftClose,
+  PanelLeftOpen,
   X
 } from 'lucide-react';
 import UserProfileStudio from './components/UserProfileStudio';
@@ -55,13 +57,15 @@ import WebhookSettingsModal from './components/WebhookSettingsModal';
 import HitlEscalationModal from './components/HitlEscalationModal';
 import RedTeamModal from './components/RedTeamModal';
 import MerkleVerificationModal from './components/MerkleVerificationModal';
+import AssetInspectorDrawer from './components/AssetInspectorDrawer';
+import MillionScaleClaimsGrid from './components/MillionScaleClaimsGrid';
 import { useAuth, DEFAULT_ENTERPRISE_PERSONAS } from './context/AuthContext';
 import { ENTERPRISE_CONNECTORS, CATALOG_CATEGORIES, getConnectorById } from './utils/connectorsCatalog';
 
 // -------------------------------------------------------------
 // Route URL & Navigation Configuration
 // -------------------------------------------------------------
-const TAB_TO_PATH = {
+export const TAB_TO_PATH = {
   home: '/',
   playground: '/chat',
   demo: '/demo',
@@ -76,15 +80,17 @@ const TAB_TO_PATH = {
   profile: '/profile'
 };
 
-const PATH_TO_TAB = {
+export const PATH_TO_TAB = {
   '/': 'home',
   '/home': 'home',
   '/chat': 'playground',
   '/playground': 'playground',
   '/demo': 'demo',
   '/live-ingestion': 'live_ingestion',
+  '/live_ingestion': 'live_ingestion',
   '/lineage': 'visual_lineage',
   '/visual-lineage': 'visual_lineage',
+  '/vault': 'visual_lineage',
   '/curator': 'context_curator',
   '/context-curator': 'context_curator',
   '/conflicts': 'conflicts',
@@ -92,11 +98,13 @@ const PATH_TO_TAB = {
   '/ingestion': 'ingestion',
   '/integrations': 'integrations',
   '/audit': 'audit',
+  '/audit-trail': 'audit',
   '/team': 'team',
+  '/personas': 'team',
   '/profile': 'profile'
 };
 
-const DEFAULT_WORKSPACES = [
+export const DEFAULT_WORKSPACES = [
   { id: 'all', name: 'All Workspaces (Unified)', icon: '🌐', domain: 'global', description: 'Unified enterprise knowledge across all departments and systems' },
   { id: 'finance', name: 'Finance & Billing Operations', icon: '💳', domain: 'finance', description: 'Invoices, customer refunds, ARR tiers, and accounting compliance SLAs' },
   { id: 'secops', name: 'Engineering & Infrastructure SecOps', icon: '🛡️', domain: 'secops', description: 'IAM policies, mTLS authentication, Friday freezes, and session expiration' },
@@ -105,39 +113,295 @@ const DEFAULT_WORKSPACES = [
   { id: 'staging', name: 'Staging / Policy Sandbox', icon: '🧪', domain: 'staging', description: 'Isolated sandbox environment for dry-run conflict and gate simulations' },
 ];
 
-const getInitialTabFromUrl = () => {
-  if (typeof window === 'undefined') return 'home';
-  const pathname = window.location.pathname.toLowerCase().replace(/\/$/, '') || '/';
-  return PATH_TO_TAB[pathname] || 'home';
-};
+export const VAULT_SUBTABS = ['documents', 'connectors', 'conflicts', 'claims', 'dag'];
+export const CURATOR_SUBVIEWS = ['health', 'conflicts'];
+export const DOC_EXPLORER_VIEWS = ['connectors', 'ingest', 'documents', 'claims'];
+export const MCP_SUBVIEWS = ['tester', 'configs', 'sdks', 'schemas'];
+export const TEAM_SUBTABS = ['directory', 'activity', 'domains'];
+export const PROFILE_SUBTABS = ['companies', 'security', 'personas'];
+export const LINEAGE_SECTIONS = ['summary', 'extraction', 'dag', 'conflicts', 'claims', 'all'];
 
-const getInitialWorkspaceFromUrl = () => {
-  if (typeof window === 'undefined') return DEFAULT_WORKSPACES[0];
+export const parseUrlState = (workspacesList) => {
+  if (typeof window === 'undefined') {
+    return {
+      tab: 'home',
+      vaultSubTab: 'documents',
+      docId: null,
+      lineageSection: 'summary',
+      workspace: DEFAULT_WORKSPACES[0],
+      docView: 'connectors',
+      curatorSubView: 'health',
+      mcpSubView: 'tester',
+      teamSubTab: 'directory',
+      profileSubTab: 'companies',
+      chatSession: null,
+      scenario: 'refund_trap'
+    };
+  }
+
+  const rawPath = window.location.pathname.toLowerCase().replace(/\/$/, '') || '/';
   const params = new URLSearchParams(window.location.search);
+
+  let tab = 'home';
+  let vaultSubTab = 'documents';
+  let curatorSubView = 'health';
+  let docView = 'connectors';
+  let mcpSubView = 'tester';
+  let teamSubTab = 'directory';
+  let profileSubTab = 'companies';
+
+  // 1. Vault / Lineage routing
+  if (rawPath === '/lineage' || rawPath === '/vault' || rawPath.startsWith('/lineage/') || rawPath.startsWith('/vault/')) {
+    tab = 'visual_lineage';
+    const parts = rawPath.split('/').filter(Boolean);
+    const subCandidate = parts[1] || params.get('sub') || params.get('tab');
+    if (subCandidate && VAULT_SUBTABS.includes(subCandidate)) {
+      vaultSubTab = subCandidate;
+    } else {
+      vaultSubTab = 'documents';
+    }
+  }
+  // 2. Curator routing
+  else if (rawPath === '/curator' || rawPath === '/context-curator' || rawPath.startsWith('/curator/') || rawPath.startsWith('/context-curator/')) {
+    tab = 'context_curator';
+    const parts = rawPath.split('/').filter(Boolean);
+    const sub = parts[1] || params.get('sub');
+    if (sub === 'conflicts') {
+      curatorSubView = 'conflicts';
+    } else {
+      curatorSubView = 'health';
+    }
+  }
+  // 3. Conflicts standalone routing
+  else if (rawPath === '/conflicts') {
+    tab = 'conflicts';
+    curatorSubView = 'conflicts';
+  }
+  // 4. Ingestion / Document Explorer routing
+  else if (rawPath === '/documents' || rawPath === '/ingestion' || rawPath.startsWith('/documents/') || rawPath.startsWith('/ingestion/')) {
+    tab = 'ingestion';
+    const parts = rawPath.split('/').filter(Boolean);
+    const sub = parts[1] || params.get('view');
+    if (sub && DOC_EXPLORER_VIEWS.includes(sub)) {
+      docView = sub;
+    } else if (sub === 'stored') {
+      docView = 'documents';
+    } else {
+      docView = 'connectors';
+    }
+  }
+  // 5. Chat / Playground routing
+  else if (rawPath === '/chat' || rawPath === '/playground') {
+    tab = 'playground';
+  }
+  // 6. Demo
+  else if (rawPath === '/demo') {
+    tab = 'demo';
+  }
+  // 7. Live Ingestion
+  else if (rawPath === '/live-ingestion' || rawPath === '/live_ingestion' || rawPath === '/ingest') {
+    tab = 'live_ingestion';
+  }
+  // 8. Integrations (MCP) routing
+  else if (rawPath === '/integrations' || rawPath.startsWith('/integrations/')) {
+    tab = 'integrations';
+    const parts = rawPath.split('/').filter(Boolean);
+    const sub = parts[1] || params.get('sub');
+    if (sub && MCP_SUBVIEWS.includes(sub)) {
+      mcpSubView = sub;
+    } else {
+      mcpSubView = 'tester';
+    }
+  }
+  // 9. Audit
+  else if (rawPath === '/audit' || rawPath === '/audit-trail') {
+    tab = 'audit';
+  }
+  // 10. Team routing
+  else if (rawPath === '/team' || rawPath === '/personas' || rawPath.startsWith('/team/') || rawPath.startsWith('/personas/')) {
+    tab = 'team';
+    const parts = rawPath.split('/').filter(Boolean);
+    const sub = parts[1] || params.get('sub');
+    if (sub && TEAM_SUBTABS.includes(sub)) {
+      teamSubTab = sub;
+    } else {
+      teamSubTab = 'directory';
+    }
+  }
+  // 11. Profile routing
+  else if (rawPath === '/profile' || rawPath.startsWith('/profile/')) {
+    tab = 'profile';
+    const parts = rawPath.split('/').filter(Boolean);
+    const sub = parts[1] || params.get('sub');
+    if (sub && PROFILE_SUBTABS.includes(sub)) {
+      profileSubTab = sub;
+    } else {
+      profileSubTab = 'companies';
+    }
+  }
+  // 12. Root / Home
+  else {
+    tab = PATH_TO_TAB[rawPath] || 'home';
+  }
+
+  // Parse query parameters
+  const docId = params.get('doc') || params.get('asset') || null;
+  const sec = params.get('section');
+  let lineageSection = 'summary';
+  if (sec && LINEAGE_SECTIONS.includes(sec)) {
+    lineageSection = sec;
+  }
+
   const wsId = params.get('workspace');
+  let workspace = DEFAULT_WORKSPACES[0];
+  const listToSearch = workspacesList && workspacesList.length ? workspacesList : DEFAULT_WORKSPACES;
   if (wsId) {
-    const found = DEFAULT_WORKSPACES.find(w => w.id === wsId || w.domain === wsId);
-    if (found) return found;
+    const found = listToSearch.find(w => w.id === wsId || w.domain === wsId);
+    if (found) workspace = found;
   }
-  return DEFAULT_WORKSPACES[0];
+
+  const chatSession = params.get('session') || null;
+  const scenario = params.get('scenario') || 'refund_trap';
+
+  return {
+    tab,
+    vaultSubTab,
+    docId,
+    lineageSection,
+    workspace,
+    docView,
+    curatorSubView,
+    mcpSubView,
+    teamSubTab,
+    profileSubTab,
+    chatSession,
+    scenario
+  };
 };
 
-const getInitialDocViewFromUrl = () => {
-  if (typeof window === 'undefined') return 'connectors';
-  const params = new URLSearchParams(window.location.search);
-  const view = params.get('view');
-  if (view && ['connectors', 'ingest', 'documents', 'claims'].includes(view)) {
-    return view;
+export const computeUrlFromState = ({
+  activeTab,
+  vaultSubTab = 'documents',
+  selectedLineageAssetId = null,
+  lineageSection = 'summary',
+  curatorSubView = 'health',
+  docExplorerView = 'connectors',
+  mcpActiveSubView = 'tester',
+  teamSubTab = 'directory',
+  profileSubTab = 'companies',
+  activeChatSessionId = null,
+  demoScenario = 'refund_trap',
+  activeWorkspace = null
+}) => {
+  let pathname = '/';
+
+  switch (activeTab) {
+    case 'home':
+      pathname = '/';
+      break;
+    case 'demo':
+      pathname = '/demo';
+      break;
+    case 'live_ingestion':
+      pathname = '/live-ingestion';
+      break;
+    case 'visual_lineage':
+      if (vaultSubTab && vaultSubTab !== 'documents') {
+        pathname = `/lineage/${vaultSubTab}`;
+      } else {
+        pathname = '/lineage';
+      }
+      break;
+    case 'context_curator':
+      if (curatorSubView === 'conflicts') {
+        pathname = '/curator/conflicts';
+      } else {
+        pathname = '/curator';
+      }
+      break;
+    case 'conflicts':
+      pathname = '/conflicts';
+      break;
+    case 'ingestion':
+      if (docExplorerView && docExplorerView !== 'connectors') {
+        pathname = `/documents/${docExplorerView === 'documents' ? 'stored' : docExplorerView}`;
+      } else {
+        pathname = '/documents';
+      }
+      break;
+    case 'playground':
+      pathname = '/chat';
+      break;
+    case 'integrations':
+      if (mcpActiveSubView && mcpActiveSubView !== 'tester') {
+        pathname = `/integrations/${mcpActiveSubView}`;
+      } else {
+        pathname = '/integrations';
+      }
+      break;
+    case 'audit':
+      pathname = '/audit';
+      break;
+    case 'team':
+      if (teamSubTab && teamSubTab !== 'directory') {
+        pathname = `/team/${teamSubTab}`;
+      } else {
+        pathname = '/team';
+      }
+      break;
+    case 'profile':
+      if (profileSubTab && profileSubTab !== 'companies') {
+        pathname = `/profile/${profileSubTab}`;
+      } else {
+        pathname = '/profile';
+      }
+      break;
+    default:
+      pathname = TAB_TO_PATH[activeTab] || '/';
+      break;
   }
-  return 'connectors';
+
+  const params = new URLSearchParams();
+
+  // Workspace param (preserve only if not default 'all')
+  if (activeWorkspace && activeWorkspace.id && activeWorkspace.id !== 'all') {
+    params.set('workspace', activeWorkspace.id);
+  }
+
+  // Document param & section for Vault / Lineage
+  if (activeTab === 'visual_lineage' && selectedLineageAssetId) {
+    params.set('doc', selectedLineageAssetId);
+    if (lineageSection && lineageSection !== 'summary') {
+      params.set('section', lineageSection);
+    }
+  }
+
+  // Chat session param
+  if (activeTab === 'playground' && activeChatSessionId) {
+    params.set('session', activeChatSessionId);
+  }
+
+  // Demo scenario param
+  if (activeTab === 'demo' && demoScenario && demoScenario !== 'refund_trap') {
+    params.set('scenario', demoScenario);
+  }
+
+  const qs = params.toString();
+  return `${pathname}${qs ? `?${qs}` : ''}`;
 };
+
+const initialUrlState = typeof window !== 'undefined' ? parseUrlState() : null;
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState(getInitialTabFromUrl);
-  const [expandedMenu, setExpandedMenu] = useState(getInitialTabFromUrl);
+  const isPopStateRef = useRef(false);
+  const [activeTab, setActiveTab] = useState(() => initialUrlState?.tab || 'home');
+  const [expandedMenu, setExpandedMenu] = useState(() => initialUrlState?.tab || 'home');
+  const [vaultSubTab, setVaultSubTab] = useState(() => initialUrlState?.vaultSubTab || 'documents');
+  const [isVaultMenuOpen, setIsVaultMenuOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [health, setHealth] = useState({ status: 'checking', database: false, version: '0.1.0' });
   const [conflicts, setConflicts] = useState([]);
-  const [curatorSubView, setCuratorSubView] = useState('health'); // 'health' | 'conflicts'
+  const [curatorSubView, setCuratorSubView] = useState(() => initialUrlState?.curatorSubView || 'health'); // 'health' | 'conflicts'
   const [loading, setLoading] = useState(false);
   const [notification, setNotification] = useState(null);
   const [isOrgSettingsModalOpen, setIsOrgSettingsModalOpen] = useState(false);
@@ -152,6 +416,18 @@ export default function App() {
   const [isGateToolsDrawerOpen, setIsGateToolsDrawerOpen] = useState(false);
   const [hoveredGateTool, setHoveredGateTool] = useState(null);
   const [pinnedGateTool, setPinnedGateTool] = useState(null);
+  const [inspectorState, setInspectorState] = useState({
+    isOpen: false,
+    assetType: 'document', // 'document' | 'connector'
+    assetId: null,
+    assetTitle: ''
+  });
+  const [selectedLineageAssetId, setSelectedLineageAssetId] = useState(() => initialUrlState?.docId || null);
+  const [lineageSection, setLineageSection] = useState(() => initialUrlState?.lineageSection || 'summary');
+  const [teamSubTab, setTeamSubTab] = useState(() => initialUrlState?.teamSubTab || 'directory');
+  const [profileSubTab, setProfileSubTab] = useState(() => initialUrlState?.profileSubTab || 'companies');
+  const [mcpActiveSubView, setMcpActiveSubView] = useState(() => initialUrlState?.mcpSubView || 'tester'); // 'tester' | 'configs' | 'sdks' | 'schemas'
+  const [selectedDocForViewer, setSelectedDocForViewer] = useState(null);
 
   // -------------------------------------------------------------
   const {
@@ -215,7 +491,7 @@ export default function App() {
   // -------------------------------------------------------------
   // Decision Gate & Policy Simulator State
   // -------------------------------------------------------------
-  const [demoScenario, setDemoScenario] = useState('refund_trap');
+  const [demoScenario, setDemoScenario] = useState(() => initialUrlState?.scenario || 'refund_trap');
   const [simulatorMode, setSimulatorMode] = useState('custom'); // 'custom' | 'presets'
   const [customActionText, setCustomActionText] = useState('Authorize 45-day refund for Enterprise customer on Acme Corp plan');
   const [customActorId, setCustomActorId] = useState('autonomous-agent-01');
@@ -641,7 +917,7 @@ export default function App() {
   // Departmental Workspaces under Active Company
   // -------------------------------------------------------------
   const [workspaces, setWorkspaces] = useState(DEFAULT_WORKSPACES);
-  const [activeWorkspace, setActiveWorkspace] = useState(getInitialWorkspaceFromUrl);
+  const [activeWorkspace, setActiveWorkspace] = useState(() => initialUrlState?.workspace || DEFAULT_WORKSPACES[0]);
   const [isWorkspaceDropdownOpen, setIsWorkspaceDropdownOpen] = useState(false);
   const [showNewWorkspaceModal, setShowNewWorkspaceModal] = useState(false);
   const [newWorkspaceName, setNewWorkspaceName] = useState('');
@@ -653,7 +929,7 @@ export default function App() {
 
   // Chat Sessions for Sidebar History and AI Copilot Chat Sync
   const [chatSessions, setChatSessions] = useState([]);
-  const [activeChatSessionId, setActiveChatSessionId] = useState(null);
+  const [activeChatSessionId, setActiveChatSessionId] = useState(() => initialUrlState?.chatSession || null);
 
   const fetchChatSessions = async () => {
     try {
@@ -710,64 +986,87 @@ export default function App() {
   // Browser URL Routing & History Sync Engine
   // -------------------------------------------------------------
   useEffect(() => {
-    const targetPath = TAB_TO_PATH[activeTab] || '/';
-    const params = new URLSearchParams(window.location.search);
-
-    // Sync workspace query param
-    if (activeWorkspace && activeWorkspace.id !== 'all') {
-      params.set('workspace', activeWorkspace.id);
-    } else {
-      params.delete('workspace');
+    // If state change came from browser popstate (back/forward), do not push duplicate history entry
+    if (isPopStateRef.current) {
+      isPopStateRef.current = false;
+      return;
     }
 
-    // Sync document explorer view query param
-    if (activeTab === 'ingestion' && docExplorerView && docExplorerView !== 'connectors') {
-      params.set('view', docExplorerView);
-    } else if (activeTab !== 'ingestion') {
-      params.delete('view');
-    }
+    const targetUrl = computeUrlFromState({
+      activeTab,
+      vaultSubTab,
+      selectedLineageAssetId,
+      lineageSection,
+      curatorSubView,
+      docExplorerView,
+      mcpActiveSubView,
+      teamSubTab,
+      profileSubTab,
+      activeChatSessionId,
+      demoScenario,
+      activeWorkspace
+    });
 
-    // Retain chat session ID in query if on playground
-    if (activeTab === 'playground' && activeChatSessionId) {
-      params.set('session', activeChatSessionId);
-    } else if (activeTab !== 'playground') {
-      params.delete('session');
-    }
-
-    const queryString = params.toString() ? `?${params.toString()}` : '';
-    const targetUrl = `${targetPath}${queryString}`;
     const currentUrl = window.location.pathname + window.location.search;
 
     if (currentUrl !== targetUrl) {
-      window.history.pushState({ tab: activeTab, workspace: activeWorkspace?.id }, '', targetUrl);
+      window.history.pushState(
+        {
+          tab: activeTab,
+          vaultSubTab,
+          selectedLineageAssetId,
+          lineageSection,
+          curatorSubView,
+          docExplorerView,
+          mcpActiveSubView,
+          teamSubTab,
+          profileSubTab,
+          activeChatSessionId,
+          workspace: activeWorkspace?.id
+        },
+        '',
+        targetUrl
+      );
     }
-  }, [activeTab, activeWorkspace?.id, docExplorerView, activeChatSessionId]);
+  }, [
+    activeTab,
+    vaultSubTab,
+    selectedLineageAssetId,
+    lineageSection,
+    curatorSubView,
+    docExplorerView,
+    mcpActiveSubView,
+    teamSubTab,
+    profileSubTab,
+    activeChatSessionId,
+    demoScenario,
+    activeWorkspace?.id
+  ]);
 
   // Listen to browser Back / Forward navigation (popstate)
   useEffect(() => {
     const handlePopState = () => {
-      const cleanPath = window.location.pathname.toLowerCase().replace(/\/$/, '') || '/';
-      const targetTab = PATH_TO_TAB[cleanPath] || 'home';
-      setActiveTab(targetTab);
-      setExpandedMenu(targetTab);
+      isPopStateRef.current = true;
+      const urlState = parseUrlState(workspaces);
 
-      const params = new URLSearchParams(window.location.search);
-      const wsId = params.get('workspace');
-      if (wsId && workspaces) {
-        const found = workspaces.find(w => w.id === wsId || w.domain === wsId);
-        if (found) setActiveWorkspace(found);
-      } else if (!wsId && workspaces) {
-        setActiveWorkspace(DEFAULT_WORKSPACES[0]);
+      setActiveTab(urlState.tab);
+      setExpandedMenu(urlState.tab);
+      setVaultSubTab(urlState.vaultSubTab);
+      setSelectedLineageAssetId(urlState.docId);
+      setLineageSection(urlState.lineageSection);
+      setCuratorSubView(urlState.curatorSubView);
+      setDocExplorerView(urlState.docView);
+      setMcpActiveSubView(urlState.mcpSubView);
+      setTeamSubTab(urlState.teamSubTab);
+      setProfileSubTab(urlState.profileSubTab);
+      if (urlState.chatSession) {
+        setActiveChatSessionId(urlState.chatSession);
       }
-
-      const viewParam = params.get('view');
-      if (viewParam && ['connectors', 'ingest', 'documents', 'claims'].includes(viewParam)) {
-        setDocExplorerView(viewParam);
+      if (urlState.scenario) {
+        setDemoScenario(urlState.scenario);
       }
-
-      const sessionParam = params.get('session');
-      if (sessionParam) {
-        setActiveChatSessionId(sessionParam);
+      if (urlState.workspace) {
+        setActiveWorkspace(urlState.workspace);
       }
     };
 
@@ -810,13 +1109,18 @@ export default function App() {
   };
 
   const displayedDataSources = React.useMemo(() => {
-    if (!activeWorkspace || activeWorkspace.id === 'all' || docExplorerScopeAll) return dataSources;
+    const externalOnly = (dataSources || []).filter(src => {
+      const st = (src.source_type || '').toLowerCase().trim();
+      const nm = (src.name || '').toLowerCase().trim();
+      return st !== 'file' && st !== 'upload' && st !== 'local_file' && !nm.includes('file upload') && !nm.includes('direct document upload');
+    });
+    if (!activeWorkspace || activeWorkspace.id === 'all' || docExplorerScopeAll) return externalOnly;
     const kw = WORKSPACE_DEPT_KEYWORDS[activeWorkspace.id] || [];
-    const filtered = dataSources.filter(src => {
+    const filtered = externalOnly.filter(src => {
       const text = `${src.name || ''} ${src.source_type || ''} ${src.external_id || ''}`.toLowerCase();
       return kw.some(k => text.includes(k));
     });
-    return filtered.length > 0 ? filtered : dataSources;
+    return filtered.length > 0 ? filtered : externalOnly;
   }, [dataSources, activeWorkspace, docExplorerScopeAll]);
 
   const displayedDbDocuments = React.useMemo(() => {
@@ -848,7 +1152,6 @@ export default function App() {
   // -------------------------------------------------------------
   // Model Context Protocol (MCP) & Agent Integration Hub State
   // -------------------------------------------------------------
-  const [mcpActiveSubView, setMcpActiveSubView] = useState('tester'); // 'tester' | 'configs' | 'sdks'
   const [mcpSelectedTool, setMcpSelectedTool] = useState('context_trust_get_trusted_context');
   const [mcpToolQuery, setMcpToolQuery] = useState('What is the customer refund window?');
   const [mcpMinScore, setMcpMinScore] = useState(0.75);
@@ -1785,6 +2088,125 @@ export default function App() {
 
   const currentScenario = scenarios[demoScenario];
 
+  const renderHeaderRightControls = () => (
+    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'nowrap', position: 'relative' }}>
+      {/* 1. ACTIVE DEPARTMENTAL WORKSPACE DROPDOWN */}
+      <div style={{ position: 'relative' }}>
+        <button
+          onClick={() => {
+            setIsWorkspaceDropdownOpen(prev => !prev);
+            setIsPersonaDropdownOpen(false);
+          }}
+          className={`top-header-pill ${isWorkspaceDropdownOpen ? 'top-header-pill-active' : ''}`}
+          title={`Active Workspace: ${activeWorkspace?.name || 'All Workspaces'}`}
+          style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+        >
+          <FolderGit2 size={12} style={{ color: 'var(--text-muted)' }} />
+          <span style={{ maxWidth: '130px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {activeWorkspace?.name ? activeWorkspace.name.replace(' (Universal)', '') : 'All Workspaces'}
+          </span>
+          <ChevronDown size={11} style={{ color: '#94A3B8' }} />
+        </button>
+
+        {isWorkspaceDropdownOpen && (
+          <div style={{
+            position: 'absolute',
+            top: 'calc(100% + 4px)',
+            right: 0,
+            background: 'var(--bg-card)',
+            border: '1px solid var(--border-subtle)',
+            borderRadius: '6px',
+            boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
+            zIndex: 250,
+            width: '260px',
+            padding: '6px'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 6px 4px 6px', borderBottom: '1px solid var(--border-subtle)', marginBottom: '4px' }}>
+              <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                Workspaces
+              </span>
+              {activeWorkspace?.domain && (
+                <span className="badge badge-muted" style={{ fontSize: '0.6rem', padding: '1px 4px' }}>{activeWorkspace.domain.toUpperCase()}</span>
+              )}
+            </div>
+
+            <div style={{ maxHeight: '190px', overflowY: 'auto' }}>
+              {workspaces.map(ws => (
+                <button
+                  key={ws.id}
+                  onClick={() => {
+                    setActiveWorkspace(ws);
+                    setIsWorkspaceDropdownOpen(false);
+                  }}
+                  style={{
+                    width: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '6px 8px',
+                    background: activeWorkspace?.id === ws.id ? 'var(--primary-subtle, rgba(99,102,241,0.1))' : 'transparent',
+                    border: 'none',
+                    borderRadius: '4px',
+                    color: activeWorkspace?.id === ws.id ? 'var(--primary)' : 'var(--text-main)',
+                    fontSize: '0.75rem',
+                    fontWeight: activeWorkspace?.id === ws.id ? 700 : 500,
+                    cursor: 'pointer',
+                    textAlign: 'left'
+                  }}
+                >
+                  <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{ws.name}</span>
+                  {activeWorkspace?.id === ws.id && <span style={{ fontSize: '0.7rem', color: 'var(--primary)' }}>✓</span>}
+                </button>
+              ))}
+            </div>
+
+            <div style={{ borderTop: '1px solid var(--border-subtle)', marginTop: '4px', paddingTop: '4px' }}>
+              <button
+                onClick={() => {
+                  setShowNewWorkspaceModal(true);
+                  setIsWorkspaceDropdownOpen(false);
+                }}
+                style={{
+                  width: '100%',
+                  padding: '5px 8px',
+                  background: 'transparent',
+                  border: 'none',
+                  color: 'var(--primary)',
+                  fontSize: '0.72rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  textAlign: 'left',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px'
+                }}
+              >
+                + Create Workspace
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Real-Time Incident Webhooks Button */}
+      <button
+        onClick={() => setIsWebhookModalOpen(true)}
+        className="top-header-pill"
+        title="Configure Real-Time Incident Webhooks (Slack, PagerDuty, MS Teams)"
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '5px',
+          color: 'var(--text-secondary)',
+          fontWeight: 600,
+          cursor: 'pointer'
+        }}
+      >
+        <Bell size={12} style={{ color: '#EA580C' }} />
+      </button>
+    </div>
+  );
+
   return (
     <div className="app-layout">
 
@@ -1807,44 +2229,114 @@ export default function App() {
       )}
 
       {/* ========================================================= */}
-      {/* LEFT SIDEBAR MENU (STRUCTURE MATCHING USER SAMPLE)        */}
+      {/* LEFT SIDEBAR MENU (COLLAPSIBLE ICON RAIL WHEN CLOSED)     */}
       {/* ========================================================= */}
-      <aside className="sidebar">
-        {/* Brand Header */}
-        <div 
-          onClick={() => { setActiveTab('home'); setExpandedMenu('home'); }}
-          style={{ 
-            padding: '10px 12px', 
-            background: 'linear-gradient(135deg, #181411 0%, #241D17 100%)',
-            border: '1px solid rgba(255, 171, 74, 0.25)',
-            borderRadius: '10px',
-            marginBottom: '12px',
-            cursor: 'pointer',
-            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.12)'
-          }}
-          title="Trulin AI Decision & Context Trust Platform"
-        >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+      <aside className={`sidebar ${!isSidebarOpen ? 'sidebar-collapsed' : ''}`}>
+        {/* Brand Header + Icon-Only Open/Close Toggle Button */}
+        {isSidebarOpen ? (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '14px', padding: '2px 4px' }}>
+            <div 
+              onClick={() => { setActiveTab('home'); setExpandedMenu('home'); }}
+              style={{ 
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                cursor: 'pointer'
+              }}
+              title="Trulin AI Decision & Context Trust Platform"
+            >
+              <img 
+                src="/Trulin-Main-NoBg.png" 
+                alt="Trulin" 
+                style={{ height: '24px', maxWidth: '120px', objectFit: 'contain' }} 
+              />
+              <span style={{ fontSize: '0.62rem', padding: '1px 6px', background: '#F1F5F9', color: '#64748B', border: '1px solid #E2E8F0', borderRadius: '999px', fontWeight: 700 }}>
+                v1.0
+              </span>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setIsSidebarOpen(false)}
+              title="Collapse sidebar"
+              style={{
+                width: '28px',
+                height: '28px',
+                borderRadius: '6px',
+                border: 'none',
+                background: 'transparent',
+                color: '#64748B',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+                transition: 'all 0.15s ease'
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.color = '#0F172A';
+                e.currentTarget.style.background = '#F1F5F9';
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.color = '#64748B';
+                e.currentTarget.style.background = 'transparent';
+              }}
+            >
+              <PanelLeftClose size={18} />
+            </button>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
             <img 
-              src="/Trulin-whiteNoBg.png" 
+              src="/favicon.png" 
               alt="Trulin" 
-              style={{ height: '24px', maxWidth: '140px', objectFit: 'contain' }} 
+              onClick={() => { setActiveTab('home'); setExpandedMenu('home'); }}
+              style={{
+                width: '32px',
+                height: '32px',
+                borderRadius: '8px',
+                objectFit: 'contain',
+                cursor: 'pointer'
+              }} 
+              title="Trulin"
             />
-            <span style={{ fontSize: '0.62rem', padding: '2px 6px', background: 'rgba(255,171,74,0.2)', color: '#FFAB4A', border: '1px solid rgba(255,171,74,0.4)', borderRadius: '999px', fontWeight: 700 }}>
-              v1.0
-            </span>
+            <button
+              type="button"
+              onClick={() => setIsSidebarOpen(true)}
+              title="Expand sidebar"
+              style={{
+                width: '28px',
+                height: '28px',
+                borderRadius: '6px',
+                border: 'none',
+                background: 'transparent',
+                color: '#64748B',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'all 0.15s ease'
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.color = '#0F172A';
+                e.currentTarget.style.background = '#F1F5F9';
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.color = '#64748B';
+                e.currentTarget.style.background = 'transparent';
+              }}
+            >
+              <PanelLeftOpen size={18} />
+            </button>
           </div>
-          <div style={{ fontSize: '0.65rem', color: '#D6D3D1', marginTop: '6px', fontWeight: 500, letterSpacing: '0.02em', display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#FFAB4A', display: 'inline-block', boxShadow: '0 0 6px #FFAB4A' }} />
-            Context Trust Platform
-          </div>
-        </div>
+        )}
 
         {/* Set 1: Upper Workspace Tools (Flat, Compact, Role-Filtered) */}
-        <div className="nav-group" style={{ flexShrink: 0, marginBottom: '6px' }}>
+        <div className="nav-group" style={{ flexShrink: 0, marginBottom: '6px', width: '100%' }}>
           <button
             onClick={() => setActiveTab('home')}
             className={`nav-item ${activeTab === 'home' ? 'nav-item-active' : ''}`}
+            title="Home Overview"
           >
             <Home size={16} strokeWidth={1.75} />
             <span>Home Overview</span>
@@ -1854,6 +2346,7 @@ export default function App() {
             <button
               onClick={() => { setActiveTab('demo'); }}
               className={`nav-item ${activeTab === 'demo' ? 'nav-item-active' : ''}`}
+              title="Decision Gate Demo"
             >
               <Brain size={16} strokeWidth={1.75} />
               <span>Decision Gate Demo</span>
@@ -1864,6 +2357,7 @@ export default function App() {
             <button
               onClick={() => setActiveTab('live_ingestion')}
               className={`nav-item ${activeTab === 'live_ingestion' ? 'nav-item-active' : ''}`}
+              title="Live Ingestion Studio"
             >
               <Zap size={16} strokeWidth={1.75} />
               <span>Live Ingestion Studio</span>
@@ -1871,23 +2365,153 @@ export default function App() {
           )}
 
           {isTabVisible('visual_lineage') && (
-            <button
-              onClick={() => setActiveTab('visual_lineage')}
-              className={`nav-item ${activeTab === 'visual_lineage' ? 'nav-item-active' : ''}`}
-            >
-              <Network size={16} strokeWidth={1.75} />
-              <span>Visual Lineage Graph</span>
-            </button>
+            <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+              <button
+                onClick={() => {
+                  if (activeTab !== 'visual_lineage') {
+                    setActiveTab('visual_lineage');
+                    setIsVaultMenuOpen(true);
+                  } else {
+                    setIsVaultMenuOpen(prev => !prev);
+                  }
+                }}
+                className={`nav-item ${activeTab === 'visual_lineage' ? 'nav-item-active' : ''}`}
+                title="Vault"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: isSidebarOpen ? 'space-between' : 'center',
+                  width: '100%'
+                }}
+              >
+                {isSidebarOpen ? (
+                  <>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <Database size={16} strokeWidth={1.75} />
+                      <span>Vault</span>
+                    </div>
+                    <div
+                      role="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setIsVaultMenuOpen(prev => !prev);
+                      }}
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        padding: '2px 4px',
+                        borderRadius: '4px',
+                        cursor: 'pointer'
+                      }}
+                      title={isVaultMenuOpen ? "Collapse Vault sub-items" : "Expand Vault sub-items"}
+                    >
+                      <ChevronDown
+                        size={13}
+                        style={{
+                          transform: isVaultMenuOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                          transition: 'transform 0.2s ease',
+                          opacity: 0.7
+                        }}
+                      />
+                    </div>
+                  </>
+                ) : (
+                  <Database size={16} strokeWidth={1.75} />
+                )}
+              </button>
+
+              {/* Sub-items of Vault */}
+              {isSidebarOpen && isVaultMenuOpen && (
+                <div style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '2px',
+                  paddingLeft: '10px',
+                  paddingTop: '2px',
+                  paddingBottom: '3px',
+                  borderLeft: '2px solid #E2E8F0',
+                  marginLeft: '14px',
+                  marginTop: '2px',
+                  marginBottom: '4px'
+                }}>
+                  {[
+                    { id: 'documents', label: 'Documents', count: dbDocuments.length },
+                    { id: 'connectors', label: 'Connectors', count: dataSources.length },
+                    { id: 'conflicts', label: 'Conflicts Registry', count: conflicts.length },
+                    { id: 'claims', label: 'Claims and Decisions', count: dbClaims.length },
+                    { id: 'dag', label: 'Full Canvas DAG', count: null }
+                  ].map(sub => {
+                    const isSubActive = activeTab === 'visual_lineage' && vaultSubTab === sub.id;
+                    return (
+                      <button
+                        key={sub.id}
+                        type="button"
+                        onClick={() => {
+                          setActiveTab('visual_lineage');
+                          setVaultSubTab(sub.id);
+                          setSelectedLineageAssetId(null);
+                        }}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          padding: '5px 8px',
+                          borderRadius: '6px',
+                          border: 'none',
+                          background: isSubActive ? '#EFF6FF' : 'transparent',
+                          color: isSubActive ? '#1D4ED8' : '#64748B',
+                          fontSize: '0.74rem',
+                          fontWeight: isSubActive ? 700 : 500,
+                          cursor: 'pointer',
+                          textAlign: 'left',
+                          transition: 'all 0.15s ease'
+                        }}
+                        onMouseEnter={e => {
+                          if (!isSubActive) {
+                            e.currentTarget.style.background = '#F8FAFC';
+                            e.currentTarget.style.color = '#0F172A';
+                          }
+                        }}
+                        onMouseLeave={e => {
+                          if (!isSubActive) {
+                            e.currentTarget.style.background = 'transparent';
+                            e.currentTarget.style.color = '#64748B';
+                          }
+                        }}
+                      >
+                        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {sub.label}
+                        </span>
+                        {sub.count !== null && sub.count !== undefined && (
+                          <span style={{
+                            fontSize: '0.64rem',
+                            fontWeight: 600,
+                            color: isSubActive ? '#2563EB' : '#94A3B8',
+                            background: isSubActive ? '#DBEAFE' : '#F1F5F9',
+                            padding: '1px 5px',
+                            borderRadius: '4px'
+                          }}>
+                            {sub.count}
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           )}
 
           {isTabVisible('context_curator') && (
             <button
               onClick={() => setActiveTab('context_curator')}
               className={`nav-item ${activeTab === 'context_curator' ? 'nav-item-active' : ''}`}
+              title="Context Curator Bot"
             >
               <ShieldAlert size={16} strokeWidth={1.75} />
               <span>Context Curator Bot</span>
-              {conflicts.length > 0 && (
+              {isSidebarOpen && conflicts.length > 0 && (
                 <span style={{
                   marginLeft: 'auto',
                   fontSize: '0.65rem',
@@ -1912,6 +2536,7 @@ export default function App() {
                 }
               }}
               className={`nav-item ${activeTab === 'ingestion' ? 'nav-item-active' : ''}`}
+              title="Document Explorer"
             >
               <FolderTree size={16} strokeWidth={1.75} />
               <span>Document Explorer</span>
@@ -1923,6 +2548,7 @@ export default function App() {
         <div className="sidebar-middle-section" style={{
           flex: 1,
           minHeight: 0,
+          width: '100%',
           display: 'flex',
           flexDirection: 'column',
           borderTop: '1px solid var(--border-subtle)',
@@ -1931,7 +2557,7 @@ export default function App() {
           overflow: 'hidden'
         }}>
           {/* AI Copilot Chat Button with + New Chat Action */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '4px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '4px', width: '100%' }}>
             <button
               onClick={() => {
                 setActiveTab('playground');
@@ -1939,45 +2565,48 @@ export default function App() {
               }}
               className={`nav-item ${activeTab === 'playground' ? 'nav-item-active' : ''}`}
               style={{ flex: 1 }}
+              title="AI Copilot Chat"
             >
               <Bot size={16} strokeWidth={1.75} />
               <span>AI Copilot Chat</span>
             </button>
-            <button
-              type="button"
-              onClick={handleStartNewChatFromSidebar}
-              title="Start New Chat"
-              style={{
-                width: '28px',
-                height: '28px',
-                borderRadius: '6px',
-                border: '1px solid var(--border-subtle)',
-                background: 'transparent',
-                color: '#64748B',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                transition: 'all 0.15s ease',
-                flexShrink: 0
-              }}
-              onMouseEnter={e => {
-                e.currentTarget.style.color = 'var(--primary)';
-                e.currentTarget.style.borderColor = 'var(--primary)';
-                e.currentTarget.style.background = '#F1F5F9';
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.color = '#64748B';
-                e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                e.currentTarget.style.background = 'transparent';
-              }}
-            >
-              <Plus size={14} strokeWidth={2.2} />
-            </button>
+            {isSidebarOpen && (
+              <button
+                type="button"
+                onClick={handleStartNewChatFromSidebar}
+                title="Start New Chat"
+                style={{
+                  width: '28px',
+                  height: '28px',
+                  borderRadius: '6px',
+                  border: '1px solid var(--border-subtle)',
+                  background: 'transparent',
+                  color: '#64748B',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'all 0.15s ease',
+                  flexShrink: 0
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.color = 'var(--primary)';
+                  e.currentTarget.style.borderColor = 'var(--primary)';
+                  e.currentTarget.style.background = '#F1F5F9';
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.color = '#64748B';
+                  e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                  e.currentTarget.style.background = 'transparent';
+                }}
+              >
+                <Plus size={14} strokeWidth={2.2} />
+              </button>
+            )}
           </div>
 
-          {/* Section Header for Recent Chats */}
-          {(() => {
+          {/* Section Header for Recent Chats (Only shown when sidebar is expanded) */}
+          {isSidebarOpen && (() => {
             const displayedChatSessions = chatSessions.filter(s => {
               if (!activeWorkspace || activeWorkspace.id === 'all') return true;
               return s.workspace_id === activeWorkspace.id || s.domain === activeWorkspace.domain;
@@ -2087,11 +2716,12 @@ export default function App() {
   </div>
 
         {/* Set 2: Bottom Pinned Governance & Administration Group */}
-        <div className="sidebar-footer">
+        <div className="sidebar-footer" style={{ width: '100%' }}>
           {isTabVisible('integrations') && (
             <button
               onClick={() => setActiveTab('integrations')}
               className={`nav-item ${activeTab === 'integrations' ? 'nav-item-active' : ''}`}
+              title="Agent Integrations & MCP"
             >
               <Sliders size={16} strokeWidth={1.75} />
               <span>Agent Integrations & MCP</span>
@@ -2101,6 +2731,7 @@ export default function App() {
             <button
               onClick={() => { setActiveTab('audit'); fetchAuditLogs(activeOrg?.id); }}
               className={`nav-item ${activeTab === 'audit' ? 'nav-item-active' : ''}`}
+              title="Audit Trail & Lineage"
             >
               <BarChart3 size={16} strokeWidth={1.75} />
               <span>Audit Trail & Lineage</span>
@@ -2110,6 +2741,7 @@ export default function App() {
             <button
               onClick={() => setActiveTab('team')}
               className={`nav-item ${activeTab === 'team' ? 'nav-item-active' : ''}`}
+              title="Team & Personas"
             >
               <Users size={16} strokeWidth={1.75} />
               <span>Team & Personas</span>
@@ -2118,10 +2750,63 @@ export default function App() {
           <button
             onClick={() => setActiveTab('profile')}
             className={`nav-item ${activeTab === 'profile' ? 'nav-item-active' : ''}`}
+            title="Profile & Companies"
           >
             <User size={16} strokeWidth={1.75} />
             <span>Profile & Companies</span>
           </button>
+
+          {/* Pinned System Status & RBAC Inspector in Sidebar Footer */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '8px 10px 4px 10px',
+            marginTop: '6px',
+            borderTop: '1px solid var(--border-subtle)'
+          }}>
+            <button
+              type="button"
+              onClick={() => setIsRbacModalOpen(true)}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                background: 'transparent',
+                border: 'none',
+                color: 'var(--text-secondary)',
+                fontSize: '0.72rem',
+                fontWeight: 600,
+                cursor: 'pointer',
+                padding: '3px 6px',
+                borderRadius: '5px',
+                transition: 'all 0.15s ease'
+              }}
+              title="Inspect Atlan-Grade RBAC Permissions & Separation of Duties Matrix"
+              onMouseEnter={e => { e.currentTarget.style.background = '#F1F5F9'; e.currentTarget.style.color = '#0F172A'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
+            >
+              <ShieldCheck size={13} style={{ color: 'var(--primary)' }} />
+              {isSidebarOpen && <span>RBAC Matrix</span>}
+            </button>
+
+            {isSidebarOpen && (
+              <div
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  fontSize: '0.68rem',
+                  color: '#64748B',
+                  fontWeight: 600
+                }}
+                title="System Operational Status: All engines healthy"
+              >
+                <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--success-solid, #10B981)', display: 'inline-block' }} />
+                <span>Operational</span>
+              </div>
+            )}
+          </div>
         </div>
       </aside>
 
@@ -2131,296 +2816,11 @@ export default function App() {
       <main className="main-content">
 
         {/* ========================================================= */}
-        {/* TOP BREADCRUMB & HEADER CONTROLS (Client & Workspace)     */}
+        {/* TOP HEADER CONTROLS (Identical position for all tabs/pages) */}
         {/* ========================================================= */}
         <div className="top-breadcrumb-bar" style={{ position: 'relative', zIndex: 50 }}>
-          {/* Left: Clean Breadcrumb Navigator */}
-          <div className="breadcrumb-trail" style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '6px' }}>
-            <button
-              onClick={() => { setActiveTab('home'); setExpandedMenu('home'); }}
-              className="breadcrumb-link"
-            >
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-                <polyline points="9 22 9 12 15 12 15 22"></polyline>
-              </svg>
-              <span>Home</span>
-            </button>
-
-            {activeTab !== 'home' && (
-              <>
-                <span className="breadcrumb-separator">/</span>
-                <button
-                  onClick={() => {
-                    setActiveTab(activeTab);
-                    setExpandedMenu(activeTab);
-                    if (activeTab === 'ingestion') {
-                      setDocExplorerView('connectors');
-                    }
-                  }}
-                  className="breadcrumb-link"
-                >
-                  {activeTab === 'demo' ? 'Decision Gate Demo' :
-                   activeTab === 'playground' ? 'Agent Playground' :
-                   activeTab === 'live_ingestion' ? 'Live Ingestion Studio' :
-                   activeTab === 'visual_lineage' ? 'Visual Lineage Graph' :
-                   activeTab === 'context_curator' ? 'Context Curator Bot' :
-                   activeTab === 'conflicts' ? 'Conflict Resolver' :
-                   activeTab === 'ingestion' ? 'Document Explorer' :
-                   activeTab === 'integrations' ? 'Agent Integrations & MCP' :
-                   activeTab === 'audit' ? 'Decision Audit Trail & Lineage' :
-                   activeTab === 'profile' ? 'Profile & Company Switcher' :
-                   'Team, Personas & Governance'}
-                </button>
-              </>
-            )}
-
-            {activeTab === 'live_ingestion' && (
-              <>
-                <span className="breadcrumb-separator">/</span>
-                <span className="breadcrumb-current">
-                  Live Ingestion & Auto-Claim Extraction Pipeline
-                </span>
-              </>
-            )}
-
-            {activeTab === 'visual_lineage' && (
-              <>
-                <span className="breadcrumb-separator">/</span>
-                <span className="breadcrumb-current">
-                  Deep Visual Lineage DAG & Blast Radius Explorer
-                </span>
-              </>
-            )}
-
-            {activeTab === 'context_curator' && (
-              <>
-                <span className="breadcrumb-separator">/</span>
-                <span className="breadcrumb-current">
-                  {curatorSubView === 'conflicts'
-                    ? `Pending Conflicts (${conflicts.length})`
-                    : 'Autonomous Context Health & Data Steward Bot'}
-                </span>
-              </>
-            )}
-
-            {activeTab === 'demo' && (
-              <>
-                <span className="breadcrumb-separator">/</span>
-                <span className="breadcrumb-current">
-                  {demoScenario === 'refund_trap' ? '1. Refund Window (Trap)' :
-                    demoScenario === 'remote_work' ? '2. Remote Work (Rule)' :
-                      '3. Prod Ingress (Auth)'}
-                </span>
-              </>
-            )}
-
-            {activeTab === 'audit' && (
-              <>
-                <span className="breadcrumb-separator">/</span>
-                <span className="breadcrumb-current">
-                  Live Decision Provenance Stream ({auditLogs.length} Records)
-                </span>
-              </>
-            )}
-
-            {activeTab === 'team' && (
-              <>
-                <span className="breadcrumb-separator">/</span>
-                <span className="breadcrumb-current">
-                  Team Directory, Personas & Governance Activity
-                </span>
-              </>
-            )}
-
-            {activeTab === 'playground' && (
-              <>
-                <span className="breadcrumb-separator">/</span>
-                <span className="breadcrumb-current">
-                  Interactive AI Copilot Chat
-                </span>
-              </>
-            )}
-
-            {activeTab === 'conflicts' && (
-              <>
-                <span className="breadcrumb-separator">/</span>
-                <span className="breadcrumb-current">
-                  Pending Conflicts ({conflicts.length})
-                </span>
-              </>
-            )}
-
-            {activeTab === 'ingestion' && (
-              <>
-                <span className="breadcrumb-separator">/</span>
-                <span className="breadcrumb-current">
-                  {docExplorerView === 'connectors' ? `Live Connectors & Sync (${dataSources.length})` :
-                    docExplorerView === 'ingest' ? 'Ingest New Document' :
-                      docExplorerView === 'documents' ? `Stored Documents (${dbDocuments.length})` :
-                        `Atomic Claims (${dbClaims.length})`}
-                </span>
-              </>
-            )}
-
-            {activeTab === 'integrations' && (
-              <>
-                <span className="breadcrumb-separator">/</span>
-                <span className="breadcrumb-current">
-                  {mcpActiveSubView === 'tester' ? 'Interactive Tool Tester' :
-                    mcpActiveSubView === 'configs' ? 'Claude & Cursor Configs' :
-                    mcpActiveSubView === 'sdks' ? 'Python SDK & Framework Integrations' :
-                      'Registered MCP Tool Schemas'}
-                </span>
-              </>
-            )}
-          </div>
-
-          {/* Right Side: Professional Enterprise Header Controls */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'nowrap', position: 'relative' }}>
-
-            {/* 1. ACTIVE DEPARTMENTAL WORKSPACE DROPDOWN */}
-            <div style={{ position: 'relative' }}>
-              <button
-                onClick={() => {
-                  setIsWorkspaceDropdownOpen(prev => !prev);
-                  setIsPersonaDropdownOpen(false);
-                }}
-                className={`top-header-pill ${isWorkspaceDropdownOpen ? 'top-header-pill-active' : ''}`}
-                title={`Active Workspace: ${activeWorkspace?.name || 'All Workspaces'}`}
-                style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
-              >
-                <FolderGit2 size={12} style={{ color: 'var(--text-muted)' }} />
-                <span style={{ maxWidth: '130px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {activeWorkspace?.name ? activeWorkspace.name.replace(' (Universal)', '') : 'All Workspaces'}
-                </span>
-                <ChevronDown size={11} style={{ color: '#94A3B8' }} />
-              </button>
-
-              {isWorkspaceDropdownOpen && (
-                <div style={{
-                  position: 'absolute',
-                  top: 'calc(100% + 4px)',
-                  right: 0,
-                  background: 'var(--bg-card)',
-                  border: '1px solid var(--border-subtle)',
-                  borderRadius: '6px',
-                  boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
-                  zIndex: 250,
-                  width: '260px',
-                  padding: '6px'
-                }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 6px 4px 6px', borderBottom: '1px solid var(--border-subtle)', marginBottom: '4px' }}>
-                    <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                      Workspaces
-                    </span>
-                    {activeWorkspace?.domain && (
-                      <span className="badge badge-muted" style={{ fontSize: '0.6rem', padding: '1px 4px' }}>{activeWorkspace.domain.toUpperCase()}</span>
-                    )}
-                  </div>
-
-                  <div style={{ maxHeight: '190px', overflowY: 'auto' }}>
-                    {workspaces.map(ws => (
-                      <button
-                        key={ws.id}
-                        onClick={() => {
-                          setActiveWorkspace(ws);
-                          setIsWorkspaceDropdownOpen(false);
-                        }}
-                        style={{
-                          width: '100%',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          padding: '6px 8px',
-                          background: activeWorkspace?.id === ws.id ? 'var(--primary-subtle, rgba(99,102,241,0.1))' : 'transparent',
-                          border: 'none',
-                          borderRadius: '4px',
-                          color: activeWorkspace?.id === ws.id ? 'var(--primary)' : 'var(--text-main)',
-                          fontSize: '0.75rem',
-                          fontWeight: activeWorkspace?.id === ws.id ? 700 : 500,
-                          cursor: 'pointer',
-                          textAlign: 'left'
-                        }}
-                      >
-                        <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{ws.name}</span>
-                        {activeWorkspace?.id === ws.id && <span style={{ fontSize: '0.7rem', color: 'var(--primary)' }}>✓</span>}
-                      </button>
-                    ))}
-                  </div>
-
-                  <div style={{ borderTop: '1px solid var(--border-subtle)', marginTop: '4px', paddingTop: '4px' }}>
-                    <button
-                      onClick={() => {
-                        setShowNewWorkspaceModal(true);
-                        setIsWorkspaceDropdownOpen(false);
-                      }}
-                      style={{
-                        width: '100%',
-                        padding: '5px 8px',
-                        background: 'transparent',
-                        border: 'none',
-                        color: 'var(--primary)',
-                        fontSize: '0.72rem',
-                        fontWeight: 600,
-                        cursor: 'pointer',
-                        textAlign: 'left',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '4px'
-                      }}
-                    >
-                      + Create Workspace
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-
-          
-
-            {/* RBAC Matrix Top Header Pill */}
-            <button
-              onClick={() => setIsRbacModalOpen(true)}
-              className="top-header-pill"
-              title="Inspect Atlan-Grade RBAC Permissions & Separation of Duties Matrix"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '5px',
-                color: 'var(--text-secondary)',
-                fontWeight: 600,
-                cursor: 'pointer'
-              }}
-            >
-              <ShieldCheck size={13} style={{ color: 'var(--primary-dark)' }} />
-              <span>RBAC</span>
-            </button>
-
-            {/* Real-Time Incident Webhooks Button */}
-            <button
-              onClick={() => setIsWebhookModalOpen(true)}
-              className="top-header-pill"
-              title="Configure Real-Time Incident Webhooks (Slack, PagerDuty, MS Teams)"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '5px',
-                color: 'var(--text-secondary)',
-                fontWeight: 600,
-                cursor: 'pointer'
-              }}
-            >
-              <Bell size={12} style={{ color: '#EA580C' }} />
-            
-            </button>
-
-            {/* 4. SYSTEM OPERATIONAL BADGE */}
-            <span className="top-status-badge">
-              <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--success-solid, #10b981)', display: 'inline-block' }} />
-              Operational
-            </span>
-          </div>
+          <div />
+          {renderHeaderRightControls()}
         </div>
 
 
@@ -5669,9 +6069,44 @@ export default function App() {
                               </div>
                             </div>
 
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px', paddingTop: '8px', borderTop: '1px solid var(--border-subtle)', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                              <span>SHA-256 Hash: <code style={{ color: 'var(--text-secondary)' }}>{doc.content_hash?.substring(0, 24)}...</code></span>
-                              <span>Versions Count: <strong style={{ color: 'var(--primary)' }}>{doc.versions?.length || 1}</strong></span>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px', paddingTop: '10px', borderTop: '1px solid var(--border-subtle)', fontSize: '0.74rem', color: 'var(--text-muted)', flexWrap: 'wrap', gap: '8px' }}>
+                            <span>SHA-256 Hash: <code style={{ color: 'var(--text-secondary)' }}>{doc.content_hash?.substring(0, 24)}...</code></span>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                              <span>Versions: <strong style={{ color: 'var(--primary)' }}>{doc.versions?.length || 1}</strong></span>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setSelectedLineageAssetId(doc.id);
+                                  setVaultSubTab('documents');
+                                  setActiveTab('visual_lineage');
+                                }}
+                                className="btn btn-primary"
+                                style={{
+                                  padding: '5px 12px',
+                                  fontSize: '0.74rem',
+                                  fontWeight: 700,
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '5px'
+                                }}
+                                title="Open document in Lineage & 360° Facilities Viewer"
+                              >
+                                <span>📄 View in Lineage & 360</span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setInspectorState({
+                                  isOpen: true,
+                                  assetType: 'document',
+                                  assetId: doc.id,
+                                  assetTitle: doc.title
+                                })}
+                                className="btn btn-secondary"
+                                style={{ padding: '5px 12px', fontSize: '0.74rem', fontWeight: 700, color: 'var(--primary, #2563EB)', borderColor: 'var(--primary, #2563EB)' }}
+                                title="Deep-dive into this document's atomic claims, conflicts, and provenance"
+                              >
+                                🔍 Inspect Claims & Conflicts ➔
+                              </button>
                             </div>
                           </div>
                         );
@@ -5681,102 +6116,31 @@ export default function App() {
               </div>
             )}
 
-            {/* VIEW 3: ATOMIC CLAIMS BROWSER */}
+            {/* VIEW 3: ATOMIC CLAIMS BROWSER (MILLION-SCALE DISCOVERY ENGINE) */}
             {docExplorerView === 'claims' && (
               <div className="clean-panel" style={{ padding: '20px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--text-main)' }}>
-                      Atomic Claims ({displayedDbClaims.length})
-                    </span>
-                    <div className="scenario-bar">
-                      <button
-                        onClick={() => setClaimFilterStatus('all')}
-                        className={`scenario-btn ${claimFilterStatus === 'all' ? 'scenario-btn-active' : ''}`}
-                      >
-                        All ({displayedDbClaims.length})
-                      </button>
-                      <button
-                        onClick={() => setClaimFilterStatus('verified')}
-                        className={`scenario-btn ${claimFilterStatus === 'verified' ? 'scenario-btn-active' : ''}`}
-                      >
-                        Verified
-                      </button>
-                      <button
-                        onClick={() => setClaimFilterStatus('outdated')}
-                        className={`scenario-btn ${claimFilterStatus === 'outdated' ? 'scenario-btn-active' : ''}`}
-                      >
-                        Outdated
-                      </button>
-                      <button
-                        onClick={() => setClaimFilterStatus('conflicted')}
-                        className={`scenario-btn ${claimFilterStatus === 'conflicted' ? 'scenario-btn-active' : ''}`}
-                      >
-                        Conflicted
-                      </button>
-                    </div>
-                  </div>
-
-                  <input
-                    type="text"
-                    placeholder="Search claims by keyword, subject, or predicate..."
-                    value={dbSearchQuery}
-                    onChange={e => setDbSearchQuery(e.target.value)}
-                    style={{ padding: '6px 12px', fontSize: '0.8rem', width: '280px' }}
-                  />
-                </div>
-
-                {displayedDbClaims.length === 0 ? (
-                  <div style={{ padding: '40px 20px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-                    {activeWorkspace && activeWorkspace.id !== 'all' && !docExplorerScopeAll
-                      ? `No claims found matching ${activeWorkspace.name}. Switch to "All Combined Resources" or ingest a new document.`
-                      : 'No claims stored in database yet.'}
-                  </div>
-                ) : (
-                  <div style={{ display: 'grid', gap: '12px' }}>
-                    {displayedDbClaims
-                      .filter(c => claimFilterStatus === 'all' || c.status?.toLowerCase() === claimFilterStatus)
-                      .filter(c =>
-                        !dbSearchQuery ||
-                        c.claim_text?.toLowerCase().includes(dbSearchQuery.toLowerCase()) ||
-                        c.subject?.toLowerCase().includes(dbSearchQuery.toLowerCase()) ||
-                        c.predicate?.toLowerCase().includes(dbSearchQuery.toLowerCase())
-                      )
-                      .map((claim, idx) => {
-                        const score = claim.trust_scores?.[0]?.overall_score || claim.trust_scores?.[0]?.source_score || 0.95;
-                        const validity = claim.validity_records?.[0]?.validity_status || 'valid';
-                        return (
-                          <div key={claim.id || idx} style={{ background: '#FFFFFF', border: '1px solid var(--border-subtle)', padding: '14px', borderRadius: '8px' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                              <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                                <span className="code-pill">Subject: {claim.subject || 'General'}</span>
-                                <span className="code-pill">Predicate: {claim.predicate || 'specifies'}</span>
-                                {claim.object && <span className="code-pill">Object: {claim.object}</span>}
-                              </div>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <span className={`badge ${claim.status === 'verified' ? 'badge-allow' : claim.status === 'outdated' ? 'badge-outdated' : 'badge-review'}`}>
-                                  {claim.status}
-                                </span>
-                                <span className="badge badge-verified">
-                                  Trust: {(Number(score) * 100).toFixed(0)}%
-                                </span>
-                              </div>
-                            </div>
-
-                            <p style={{ fontSize: '0.875rem', fontWeight: 600, color: claim.status === 'outdated' ? 'var(--text-muted)' : 'var(--text-main)', lineHeight: '1.4' }}>
-                              "{claim.claim_text}"
-                            </p>
-
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '8px', paddingTop: '6px', borderTop: '1px solid var(--border-subtle)', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                              <span>Section: {claim.evidence?.[0]?.section || 'General'}</span>
-                              <span>Validity: <strong style={{ color: validity === 'valid' ? 'var(--success-text)' : 'var(--danger-text)' }}>{validity.toUpperCase()}</strong></span>
-                              <span>ID: <code style={{ color: 'var(--text-secondary)' }}>{claim.id?.substring(0, 8)}</code></span>
-                            </div>
-                          </div>
-                        );
-                      })}
-                  </div>
-                )}
+                <MillionScaleClaimsGrid
+                  claims={displayedDbClaims}
+                  documents={displayedDbDocuments}
+                  activeWorkspace={activeWorkspace}
+                  onInspectDocument={(doc) => setInspectorState({
+                    isOpen: true,
+                    assetType: 'document',
+                    assetId: doc.id,
+                    assetTitle: doc.title
+                  })}
+                  onInspectClaim={(claim) => {
+                    const foundDoc = displayedDbDocuments.find(d => d.id === claim.document_id || d.versions?.some(v => v.id === claim.document_version_id));
+                    if (foundDoc) {
+                      setInspectorState({
+                        isOpen: true,
+                        assetType: 'document',
+                        assetId: foundDoc.id,
+                        assetTitle: foundDoc.title
+                      });
+                    }
+                  }}
+                />
               </div>
             )}
           </div>
@@ -6189,23 +6553,24 @@ export default function App() {
         )}
 
         {/* ========================================================= */}
-        {/* ENTERPRISE TAB 2: VISUAL LINEAGE GRAPH (OPTION 2)         */}
+        {/* ENTERPRISE TAB 2: VAULT (DATA EXPLORATION & DAG LINEAGE)  */}
         {/* ========================================================= */}
         {activeTab === 'visual_lineage' && (
           <div>
-            <div className="tab-header-center" style={{ marginBottom: '20px' }}>
-
-              <h1 className="tab-main-heading">
-                Deep Visual Lineage DAG & Blast Radius Explorer
-              </h1>
-              <p className="tab-subtitle">
-                Inspect 5-tier directional dependency graphs tracing raw enterprise data sources, normalized documents, extracted atomic claims, active contradictions, and evaluated agent decisions.
-              </p>
-            </div>
+            
             <VisualLineageGraph
               activeOrg={activeOrg}
               activeWorkspace={activeWorkspace}
               showToast={showToast}
+              vaultSubTab={vaultSubTab}
+              onVaultSubTabChange={(sub) => {
+                setVaultSubTab(sub);
+                setSelectedLineageAssetId(null);
+              }}
+              initialAssetId={selectedLineageAssetId}
+              onAssetChange={setSelectedLineageAssetId}
+              initialSection={lineageSection}
+              onSectionChange={setLineageSection}
             />
           </div>
         )}
@@ -6279,6 +6644,8 @@ export default function App() {
               activePersona={activePersona}
               onSelectPersona={(p) => setActivePersona(p)}
               showToast={showToast}
+              initialSubTab={teamSubTab}
+              onSubTabChange={setTeamSubTab}
             />
           </div>
         )}
@@ -6312,6 +6679,8 @@ export default function App() {
               onOpenRegisterOrg={() => setShowNewOrgModal(true)}
               onOpenOrgSettings={() => setIsOrgSettingsModalOpen(true)}
               showToast={showToast}
+              initialSubSection={profileSubTab}
+              onSubSectionChange={setProfileSubTab}
             />
           </div>
         )}
@@ -6862,6 +7231,60 @@ export default function App() {
         organizationId={activeOrg?.id}
         showToast={showToast}
       />
+
+      {/* Interactive Asset Deep-Dive Inspector Drawer (Documents, Connectors, Claims & Conflicts) */}
+      <AssetInspectorDrawer
+        isOpen={inspectorState.isOpen}
+        onClose={() => setInspectorState(prev => ({ ...prev, isOpen: false }))}
+        assetType={inspectorState.assetType}
+        assetId={inspectorState.assetId}
+        assetTitle={inspectorState.assetTitle}
+        onNavigateToCurator={() => {
+          setActiveTab('conflicts');
+          window.history.pushState(null, '', '/conflicts');
+        }}
+      />
+
+      {/* Clean In-App Document Page Viewer Modal (No Google/Browser Toolbar) */}
+      {selectedDocForViewer && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(15, 23, 42, 0.7)',
+          backdropFilter: 'blur(5px)',
+          zIndex: 10000,
+          padding: '24px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center'
+        }}>
+          <div style={{
+            width: '100%',
+            maxWidth: '1440px',
+            height: '92vh',
+            background: '#FFFFFF',
+            borderRadius: '12px',
+            overflow: 'hidden',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.35)',
+            display: 'flex',
+            flexDirection: 'column'
+          }}>
+            <DocumentPageViewer
+              documentData={selectedDocForViewer}
+              onBack={() => setSelectedDocForViewer(null)}
+              onNavigateToLineage={() => {
+                setSelectedDocForViewer(null);
+                setActiveTab('visual_lineage');
+                setVaultSubTab('documents');
+              }}
+              showToast={showToast}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
