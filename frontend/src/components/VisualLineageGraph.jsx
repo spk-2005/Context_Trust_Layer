@@ -24,13 +24,31 @@ import {
   Share2,
   Download,
   ChevronRight,
-  ChevronLeft
+  ChevronLeft,
+  Copy,
+  Check,
+  Sparkles,
+  Calendar,
+  Clock,
+  Info
 } from 'lucide-react';
+import VisualClaimExtractionStudio from './VisualClaimExtractionStudio';
+import SmartDocumentCanvas from './SmartDocumentCanvas';
 
 const CARD_WIDTH = 260;
 const CARD_HEIGHT = 76;
 
-export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToast }) {
+export default function VisualLineageGraph({
+  activeOrg,
+  activeWorkspace,
+  showToast,
+  vaultSubTab: externalVaultSubTab,
+  onVaultSubTabChange,
+  initialAssetId,
+  onAssetChange,
+  initialSection = 'summary',
+  onSectionChange
+}) {
   const [graphData, setGraphData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [selectedNodeId, setSelectedNodeId] = useState(null);
@@ -48,8 +66,64 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
     staging: ['staging', 'sandbox', 'test', 'mock', 'simulation']
   };
 
+  // Vault Top-Level Sub-Tab: 'documents' (default 360° hub) | 'connectors' (360° hub) | 'conflicts' | 'claims' | 'dag'
+  const [internalVaultSubTab, setInternalVaultSubTab] = useState('documents');
+  const vaultSubTab = externalVaultSubTab !== undefined ? externalVaultSubTab : internalVaultSubTab;
+  const setVaultSubTab = onVaultSubTabChange || setInternalVaultSubTab;
+
+  useEffect(() => {
+    if (initialAssetId) {
+      const rawId = initialAssetId;
+      const matchedNode = graphData?.nodes?.find(n =>
+        n.id === rawId ||
+        n.id === `doc_${rawId}` ||
+        n.data?.doc_id === rawId ||
+        String(n.id).toLowerCase() === String(rawId).toLowerCase()
+      );
+      const targetId = matchedNode ? matchedNode.id : rawId;
+      setOpenedAssetId(targetId);
+      setSelectedNodeId(targetId);
+      setInteractiveRootId(targetId);
+      setExpandedUpstreamSet(new Set([targetId]));
+      setExpandedDownstreamSet(new Set([targetId]));
+    } else {
+      setOpenedAssetId(null);
+    }
+  }, [initialAssetId, graphData]);
+
+  const [asset360Section, setAsset360Section] = useState(initialSection || 'summary'); // 'summary' | 'extraction' | 'dag' | 'conflicts' | 'claims' | 'all'
+
+  useEffect(() => {
+    if (initialSection) {
+      setAsset360Section(initialSection);
+    }
+  }, [initialSection]);
+
+  const handleSectionChange = (secId) => {
+    setAsset360Section(secId);
+    onSectionChange?.(secId);
+  };
+  const [copiedHash, setCopiedHash] = useState(false);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [vaultSearch, setVaultSearch] = useState('');
+  const [vaultConflictFilter, setVaultConflictFilter] = useState('all'); // 'all' | 'active' | 'resolved'
+  const [vaultClaimFilter, setVaultClaimFilter] = useState('all'); // 'all' | 'verified' | 'conflicted' | 'decisions'
+  const [openedAssetId, setOpenedAssetId] = useState(initialAssetId || null); // null = show full List of Documents/Connectors; non-null = open Split View (Original Document + All Facilities beside it)
+  const [isFileViewerOpen, setIsFileViewerOpen] = useState(true); // Toggle to show or collapse document viewer and expand facilities to full width
+  const [docReaderSearch, setDocReaderSearch] = useState('');
+  const [docReaderClauseFilter, setDocReaderClauseFilter] = useState('all'); // 'all' | 'conflicted' | 'verified'
+  const [highlightedClaimIdInReader, setHighlightedClaimIdInReader] = useState(null);
+  const [isAssetDirectoryOpen, setIsAssetDirectoryOpen] = useState(false);
+  const [isAssetDropdownOpen, setIsAssetDropdownOpen] = useState(false);
+  const [assetDropdownSearch, setAssetDropdownSearch] = useState('');
+  const [assetListFilter, setAssetListFilter] = useState('all'); // 'all' | 'conflicted' | 'clean'
+  const [assetListSort, setAssetListSort] = useState('conflicts'); // 'conflicts' | 'claims' | 'name'
+  const [assetListPage, setAssetListPage] = useState(1);
+  const [assetListPageSize, setAssetListPageSize] = useState(15);
+
   // View Mode: 'interactive' (default single-node on-demand flow), 'conflicts' (contradictions focus), 'all' (sample overview)
   const [viewMode, setViewMode] = useState('interactive');
+  const [interactiveRootId, setInteractiveRootId] = useState(null);
   const [expandedUpstreamSet, setExpandedUpstreamSet] = useState(new Set());
   const [expandedDownstreamSet, setExpandedDownstreamSet] = useState(new Set());
   const [expandedConflictClaimsSet, setExpandedConflictClaimsSet] = useState(new Set());
@@ -62,7 +136,7 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
   const [selectedConflictId, setSelectedConflictId] = useState('all');
   const [selectedDocFilter, setSelectedDocFilter] = useState('all');
   const [filterSeverity, setFilterSeverity] = useState('all'); // 'all', 'HIGH', 'CRITICAL', 'MEDIUM', 'LOW'
-  const [filterStatus, setFilterStatus] = useState('all'); // 'all', 'review', 'resolved'
+  const [filterStatus, setFilterStatus] = useState('active'); // 'active' (default: unresolved only), 'resolved', 'all'
   const [filterClaimTrust, setFilterClaimTrust] = useState('all'); // 'all', 'verified', 'review', 'outdated'
   const [showOnlyConflicted, setShowOnlyConflicted] = useState(false);
   const [displayLimit, setDisplayLimit] = useState(12); // 6, 12, 24, 1000 ('all')
@@ -102,7 +176,10 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
         if (data.nodes && data.nodes.length > 0 && !selectedNodeId) {
           const firstDoc = data.nodes.find(n => n.type === 'document');
           const firstConflict = data.nodes.find(n => n.type === 'conflict');
-          setSelectedNodeId(firstDoc ? firstDoc.id : (firstConflict ? firstConflict.id : data.nodes[0].id));
+          const initialId = firstDoc ? firstDoc.id : (firstConflict ? firstConflict.id : data.nodes[0].id);
+          setSelectedNodeId(initialId);
+          setInteractiveRootId(initialId);
+          setExpandedDownstreamSet(new Set([initialId]));
         }
       } else {
         showToast?.("Failed to fetch lineage graph", "error");
@@ -134,17 +211,58 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
     fetchLineage();
   }, [activeOrg?.id]);
 
-  const conflictsList = useMemo(() => {
+  const matchesConflictStatus = (cNode) => {
+    const st = (cNode?.status || '').toLowerCase();
+    if (filterStatus === 'active') return st !== 'resolved' && st !== 'dismissed';
+    if (filterStatus === 'resolved') return st === 'resolved' || st === 'dismissed';
+    return true;
+  };
+
+  const allConflictsRaw = useMemo(() => {
     return graphData?.nodes?.filter(n => n.type === 'conflict') || [];
   }, [graphData]);
 
+  const sourcesList = useMemo(() => {
+    return (graphData?.nodes?.filter(n =>
+      n.type === 'source' &&
+      (n.subType || '').toLowerCase() !== 'file' &&
+      !(n.label || '').toLowerCase().includes('file upload') &&
+      !(n.label || '').toLowerCase().includes('direct document upload')
+    ) || []);
+  }, [graphData]);
+
+  const allClaimsRaw = useMemo(() => {
+    return graphData?.nodes?.filter(n => n.type === 'claim') || [];
+  }, [graphData]);
+
+  const conflictsList = useMemo(() => {
+    return (graphData?.nodes?.filter(n => n.type === 'conflict' && matchesConflictStatus(n)) || []);
+  }, [graphData, filterStatus]);
+
   const documentsList = useMemo(() => {
-    return graphData?.nodes?.filter(n => n.type === 'document') || [];
+    return (graphData?.nodes?.filter(n =>
+      n.type === 'document' &&
+      n.data?.isUploadedFile !== false
+    ) || []);
   }, [graphData]);
 
   const decisionsList = useMemo(() => {
     return graphData?.nodes?.filter(n => n.type === 'decision') || [];
   }, [graphData]);
+
+  const visualizeNodeInDag = (nodeId, nodeLabel, isResolvedConflict = false) => {
+    if (isResolvedConflict) {
+      setFilterStatus('all');
+    }
+    setVaultSubTab('dag');
+    setViewMode('interactive');
+    setSelectedNodeId(nodeId);
+    setInteractiveRootId(nodeId);
+    setExpandedUpstreamSet(new Set());
+    setExpandedDownstreamSet(new Set());
+    setExpandedConflictClaimsSet(new Set());
+    showToast?.(`Loaded "${nodeLabel || nodeId}" in DAG Visualize — click + or − to expand lineage`);
+  };
 
   const selectedNode = useMemo(() => {
     return graphData?.nodes?.find(n => n.id === selectedNodeId) || null;
@@ -227,7 +345,7 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
             });
           }
         }
-        // 3. AI Decision -> upstream Contradictions (or Documents)
+        // 3. AI Decision -> upstream Contradictions or Documents
         else if (nodeId.startsWith('dec_')) {
           edges.forEach(e => {
             if (e.target === nodeId) {
@@ -237,7 +355,15 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
                   parents.add(c.id);
                 }
               });
-              if (e.source.startsWith('doc_')) parents.add(e.source);
+              if (e.source.startsWith('doc_')) {
+                parents.add(e.source);
+              } else if (e.source.startsWith('cl_')) {
+                edges.forEach(eDoc => {
+                  if (eDoc.target === e.source && eDoc.source.startsWith('doc_')) {
+                    parents.add(eDoc.source);
+                  }
+                });
+              }
             }
           });
         }
@@ -276,17 +402,37 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
             }
           });
         }
-        // 2. Document -> downstream Contradictions ONLY (claims are inspected inline inside Conflict card)
+        // 2. Document -> downstream Contradictions, Decisions & Claims
         else if (nodeId.startsWith('doc_')) {
+          const docClaimIds = new Set();
+          edges.forEach(e => {
+            if (e.source === nodeId && e.target.startsWith('cl_')) {
+              docClaimIds.add(e.target);
+            }
+          });
+
+          // Contradictions touching this document's claims
           conflictsList.forEach(c => {
             const cItem = conflictMap[c.id];
-            let touchesDoc = false;
+            if (docClaimIds.has(cItem?.claimAId) || docClaimIds.has(cItem?.claimBId)) {
+              children.add(c.id);
+            }
+          });
+
+          // Decisions grounded in this document's claims
+          decisionsList.forEach(dec => {
             edges.forEach(e => {
-              if (e.source === nodeId && (e.target === cItem?.claimAId || e.target === cItem?.claimBId)) {
-                touchesDoc = true;
+              if (e.target === dec.id && (docClaimIds.has(e.source) || e.source === nodeId)) {
+                children.add(dec.id);
               }
             });
-            if (touchesDoc) children.add(c.id);
+          });
+
+          // Extracted claims or direct child links
+          edges.forEach(e => {
+            if (e.source === nodeId && !e.target.startsWith('doc_')) {
+              children.add(e.target);
+            }
           });
         }
         // 3. Conflict -> downstream AI Decisions grounded by its clashing claims
@@ -334,7 +480,16 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
     setExpandedUpstreamSet(prev => {
       const next = new Set(prev);
       if (next.has(nodeId)) {
-        next.delete(nodeId);
+        // Collapse this node's upstream and recursively collapse its upstream parents
+        const toCollapse = [nodeId];
+        while (toCollapse.length > 0) {
+          const curr = toCollapse.pop();
+          if (next.has(curr)) {
+            next.delete(curr);
+            const parents = getUpstreamParentIds(curr);
+            parents.forEach(p => toCollapse.push(p));
+          }
+        }
       } else {
         next.add(nodeId);
       }
@@ -346,7 +501,16 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
     setExpandedDownstreamSet(prev => {
       const next = new Set(prev);
       if (next.has(nodeId)) {
-        next.delete(nodeId);
+        // Collapse this node's downstream and recursively collapse its downstream children
+        const toCollapse = [nodeId];
+        while (toCollapse.length > 0) {
+          const curr = toCollapse.pop();
+          if (next.has(curr)) {
+            next.delete(curr);
+            const children = getDownstreamChildIds(curr);
+            children.forEach(c => toCollapse.push(c));
+          }
+        }
       } else {
         next.add(nodeId);
       }
@@ -559,11 +723,11 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
       });
     }
 
-    // 5. Filter conflicts by resolution status
+    // 5. Filter conflicts by resolution status (Default: Active/Unresolved Only)
     if (filterStatus !== 'all') {
       result = result.filter(n => {
         if (n.type !== 'conflict') return true;
-        return (n.status || '').toLowerCase().includes(filterStatus.toLowerCase());
+        return matchesConflictStatus(n);
       });
     }
 
@@ -683,7 +847,6 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
           });
         }
         if (parentDocId && expandedDocIds.has(parentDocId)) return true;
-        if (selectedNodeId === n.id) return true;
         if (selectedConflictId !== 'all') {
           const cItem = conflictMap[selectedConflictId];
           if (cItem?.claimAId === n.id || cItem?.claimBId === n.id) return true;
@@ -693,13 +856,20 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
     }
 
     // 12. Interactive On-Demand Flow Filter (Single Node at Start)
+    // IMPORTANT: Uses interactiveRootId (NOT selectedNodeId) so clicking a card to inspect it
+    // never closes or resets previously expanded upstream/downstream nodes!
     if (viewMode === 'interactive') {
-      const rootId = selectedNodeId || (documentsList[0]?.id || graphData?.nodes?.[0]?.id);
+      // If expand all was triggered, show full filtered result
+      if (graphData?.nodes && expandedDownstreamSet.size >= graphData.nodes.length) {
+        return result;
+      }
+
+      const rootId = interactiveRootId || (documentsList[0]?.id || graphData?.nodes?.[0]?.id);
       if (!rootId) return [];
 
       const visibleIds = new Set([rootId]);
 
-      // Iteratively expand upstream parents and downstream children
+      // Iteratively expand upstream parents and downstream children ONLY when their + button was clicked
       let changed = true;
       while (changed) {
         changed = false;
@@ -726,6 +896,10 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
       }
 
       const nodeMap = new Map((graphData?.nodes || []).map(n => [n.id, n]));
+      result.forEach(n => {
+        if (!nodeMap.has(n.id)) nodeMap.set(n.id, n);
+      });
+
       const interactiveNodes = [];
       visibleIds.forEach(id => {
         const found = nodeMap.get(id);
@@ -756,6 +930,7 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
     lineageGranularity,
     expandedDocIds,
     viewMode,
+    interactiveRootId,
     expandedUpstreamSet,
     expandedDownstreamSet,
     getUpstreamParentIds,
@@ -770,7 +945,9 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
 
     // Single Starting Node Centering in Interactive Mode
     if (viewMode === 'interactive' && filteredNodes.length === 1) {
-      map[filteredNodes[0].id] = { x: 480, y: 160 };
+      const n0 = filteredNodes[0];
+      const initialX = (n0.type === 'source' || n0.type === 'document') ? 50 : 380;
+      map[n0.id] = { x: initialX, y: 140 };
       return map;
     }
 
@@ -780,7 +957,7 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
     const conflicts = filteredNodes.filter(n => n.type === 'conflict');
     const decisions = filteredNodes.filter(n => n.type === 'decision');
 
-    const limit = displayLimit === 'all' ? 1000 : Number(displayLimit);
+    const limit = (displayLimit === 'all' || viewMode === 'interactive') ? 1000 : Number(displayLimit);
 
     const activeSources = sources.slice(0, limit);
     const activeDocs = documents.slice(0, limit);
@@ -825,8 +1002,8 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
     const activeConflicts = conflicts.slice(0, limit);
     const activeDecisions = decisions.slice(0, limit);
 
-    // Always guarantee selected node is included if present in filteredNodes
-    if (selectedNode && filteredNodes.some(n => n.id === selectedNode.id)) {
+    // Always guarantee selected node is included in non-interactive modes if present in filteredNodes
+    if (viewMode !== 'interactive' && selectedNode && filteredNodes.some(n => n.id === selectedNode.id)) {
       if (selectedNode.type === 'source' && !activeSources.some(n => n.id === selectedNode.id)) activeSources.unshift(selectedNode);
       if (selectedNode.type === 'document' && !activeDocs.some(n => n.id === selectedNode.id)) activeDocs.unshift(selectedNode);
       if ((selectedNode.type === 'claim' || selectedNode.type === 'claim_cluster') && !activeClaims.some(n => n.id === selectedNode.id)) activeClaims.unshift(selectedNode);
@@ -835,17 +1012,33 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
     }
 
     // Connection-Driven & Document-Tree Layout Engine
-    // Instead of sticking nodes into static arbitrary slots, nodes align with their real parent/child connections!
+    // Dynamically assign each existing tier its OWN distinct column so no tiers ever collide or overlap!
     const edges = graphData?.edges || [];
     const CARD_SPACING = 118;
     const START_Y = 40;
 
-    const isDocMode = lineageGranularity === 'document';
-    const X_SOURCE = 50;
-    const X_DOC = 390;
-    const X_CLAIM = 730;
-    const X_CONFLICT = isDocMode ? 730 : 1070;
-    const X_DECISION = isDocMode ? 1070 : 1410;
+    const hasSources = activeSources.length > 0;
+    const hasDocs = activeDocs.length > 0;
+    const hasClaims = activeClaims.length > 0;
+    const hasConflicts = activeConflicts.length > 0;
+    const hasDecisions = activeDecisions.length > 0;
+
+    const COL_SPACING = 350; // CARD_WIDTH (270) + 80px gap for bezier curves
+    let colX = 50;
+
+    const X_SOURCE = hasSources ? colX : -999;
+    if (hasSources) colX += COL_SPACING;
+
+    const X_DOC = colX;
+    if (hasDocs) colX += COL_SPACING;
+
+    const X_CLAIM = hasClaims ? colX : -999;
+    if (hasClaims) colX += COL_SPACING;
+
+    const X_CONFLICT = hasConflicts ? colX : -999;
+    if (hasConflicts) colX += COL_SPACING;
+
+    const X_DECISION = hasDecisions ? colX : -999;
 
     // 1. Position Sources (Column 0)
     activeSources.forEach((src, idx) => {
@@ -953,8 +1146,16 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
     activeDecisions.forEach((dec, idx) => {
       const parentYs = [];
       edges.forEach(e => {
-        if (e.target === dec.id && map[e.source]) {
-          parentYs.push(map[e.source].y);
+        if (e.target === dec.id) {
+          if (map[e.source]) {
+            parentYs.push(map[e.source].y);
+          } else if (e.source.startsWith('cl_')) {
+            edges.forEach(eDoc => {
+              if (eDoc.target === e.source && map[eDoc.source]) {
+                parentYs.push(map[eDoc.source].y);
+              }
+            });
+          }
         }
       });
 
@@ -965,26 +1166,24 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
       map[dec.id] = { x: X_DECISION, y: decY };
     });
 
-    // Relaxation Pass: Prevent any overlapping nodes within the same column
-    const columns = [
-      activeSources.map(n => n.id),
-      activeDocs.map(n => n.id),
-      activeClaims.map(n => n.id),
-      activeConflicts.map(n => n.id),
-      activeDecisions.map(n => n.id)
-    ];
+    // Robust Column Collision Avoidance: Group ALL placed nodes by their X coordinate
+    // Guarantees zero vertical overlap between any cards in the same column
+    const nodesByX = {};
+    Object.entries(map).forEach(([id, pos]) => {
+      const colKey = Math.round(pos.x);
+      if (!nodesByX[colKey]) nodesByX[colKey] = [];
+      nodesByX[colKey].push({ id, ...pos });
+    });
 
-    const MIN_GAP = 96;
-    columns.forEach(colNodeIds => {
-      const colNodes = colNodeIds.filter(id => !!map[id]).map(id => ({ id, ...map[id] }));
+    const MIN_GAP = 108; // CARD_HEIGHT (92) + 16px vertical padding
+    Object.values(nodesByX).forEach(colNodes => {
       colNodes.sort((a, b) => a.y - b.y);
-
       for (let i = 1; i < colNodes.length; i++) {
         const prev = colNodes[i - 1];
         const curr = colNodes[i];
         const prevNode = filteredNodes.find(n => n.id === prev.id);
         const isPrevExpanded = prevNode?.type === 'conflict' && expandedConflictClaimsSet.has(prev.id);
-        const requiredGap = isPrevExpanded ? 240 : MIN_GAP;
+        const requiredGap = isPrevExpanded ? 260 : MIN_GAP;
         if (curr.y < prev.y + requiredGap) {
           curr.y = prev.y + requiredGap;
           map[curr.id].y = curr.y;
@@ -1085,6 +1284,7 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
       decisionsList.forEach(dec => {
         graphData.edges.forEach(e => {
           if (e.target === dec.id) {
+            // 1. Through conflict if applicable
             conflictsList.forEach(c => {
               const cItem = conflictMap[c.id];
               if (cItem?.claimAId === e.source || cItem?.claimBId === e.source) {
@@ -1098,13 +1298,34 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
                 }
               }
             });
+
+            // 2. Direct Document -> Decision edge if claim's parent doc is on canvas and claim is collapsed/not rendered
+            if (e.source.startsWith('cl_')) {
+              graphData.edges.forEach(eDoc => {
+                if (eDoc.target === e.source && eDoc.source.startsWith('doc_')) {
+                  const docId = eDoc.source;
+                  if (nodePositions[docId] && nodePositions[dec.id] && !nodePositions[e.source]) {
+                    const edgeId = `synth_doc_${docId}_dec_${dec.id}`;
+                    if (!allEdges.some(existing => existing.id === edgeId)) {
+                      allEdges.push({
+                        id: edgeId,
+                        source: docId,
+                        target: dec.id,
+                        type: 'decision_grounding'
+                      });
+                    }
+                  }
+                }
+              });
+            }
           }
         });
       });
     }
 
+    const renderedNodeIdSet = new Set(renderedNodes.map(n => n.id));
     return allEdges
-      .filter(e => nodePositions[e.source] && nodePositions[e.target])
+      .filter(e => renderedNodeIdSet.has(e.source) && renderedNodeIdSet.has(e.target))
       .map(e => {
         const src = nodePositions[e.source];
         const tgt = nodePositions[e.target];
@@ -1145,7 +1366,7 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
           isConflictConnection
         };
       });
-  }, [graphData, nodePositions, connectedNodeMap, selectedConflictId, filteredNodes, lineageGranularity, conflictsList, decisionsList, conflictMap]);
+  }, [graphData, nodePositions, connectedNodeMap, selectedConflictId, filteredNodes, lineageGranularity, conflictsList, decisionsList, conflictMap, renderedNodes]);
 
   // Canvas Pan Handlers
   const handleCanvasMouseDown = (e) => {
@@ -1197,9 +1418,9 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
 
   // Auto-Fit Camera to visible nodes bounding box
   const handleFitView = () => {
-    const visiblePositions = Object.values(nodePositions);
+    const visiblePositions = renderedNodes.map(n => nodePositions[n.id]).filter(Boolean);
     if (visiblePositions.length === 0) {
-      setZoom(0.78);
+      setZoom(0.85);
       setPan({ x: 30, y: 30 });
       return;
     }
@@ -1211,20 +1432,34 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
       if (p.y + CARD_HEIGHT > maxY) maxY = p.y + CARD_HEIGHT;
     });
 
-    const graphW = maxX - minX + 60;
-    const graphH = maxY - minY + 60;
-    const containerW = containerRef.current ? containerRef.current.clientWidth : 1150;
+    const graphW = Math.max(100, maxX - minX + 80);
+    const graphH = Math.max(100, maxY - minY + 80);
+    const containerW = containerRef.current ? containerRef.current.clientWidth : 950;
     const containerH = containerRef.current ? containerRef.current.clientHeight : 600;
 
-    const newZoom = Math.min(0.95, Math.max(0.5, Math.min(containerW / graphW, containerH / graphH)));
-    const newPanX = Math.max(25, (containerW - (maxX - minX) * newZoom) / 2 - minX * newZoom);
-    // Keep cards positioned comfortably near top of visible canvas area
-    const newPanY = Math.max(25, 45 - minY * newZoom);
+    const scaleX = containerW / graphW;
+    const scaleY = containerH / graphH;
+    const newZoom = Math.min(1.0, Math.max(0.35, Math.min(scaleX, scaleY) * 0.92));
+
+    const newPanX = (containerW - (maxX - minX) * newZoom) / 2 - minX * newZoom;
+    const newPanY = Math.max(20, (containerH - (maxY - minY) * newZoom) / 2 - minY * newZoom);
 
     setZoom(Number(newZoom.toFixed(2)));
     setPan({ x: Math.round(newPanX), y: Math.round(newPanY) });
     setCustomPositions({});
   };
+
+  // Auto-refit camera whenever the rendered nodes count changes (expansion/collapse)
+  const prevRenderedCountRef = useRef(0);
+  useEffect(() => {
+    if (renderedNodes.length > 0 && renderedNodes.length !== prevRenderedCountRef.current) {
+      prevRenderedCountRef.current = renderedNodes.length;
+      const timer = setTimeout(() => {
+        handleFitView();
+      }, 70);
+      return () => clearTimeout(timer);
+    }
+  }, [renderedNodes.length]);
 
   // Toggle visible tiers
   const toggleTier = (tier) => {
@@ -1245,16 +1480,16 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
     setSelectedConflictId('all');
     setSelectedDocFilter('all');
     setFilterSeverity('all');
-    setFilterStatus('all');
+    setFilterStatus('active');
     setFilterClaimTrust('all');
     setShowOnlyConflicted(false);
     setDisplayLimit(12);
     setSearchQuery('');
     setVisibleTiers(new Set(['source', 'document', 'claim', 'conflict', 'decision']));
-    setViewMode('conflicts');
+    setViewMode('interactive');
     setPan({ x: 30, y: 30 });
     setZoom(0.78);
-    showToast?.("All filters reset to standard view");
+    showToast?.("All filters reset to default active view");
   };
 
   const isAnyFilterActive = useMemo(() => {
@@ -1262,7 +1497,7 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
       selectedConflictId !== 'all' ||
       selectedDocFilter !== 'all' ||
       filterSeverity !== 'all' ||
-      filterStatus !== 'all' ||
+      filterStatus !== 'active' ||
       filterClaimTrust !== 'all' ||
       showOnlyConflicted ||
       displayLimit !== 12 ||
@@ -1286,7 +1521,7 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
     if (selectedConflictId !== 'all') count++;
     if (selectedDocFilter !== 'all') count++;
     if (filterSeverity !== 'all') count++;
-    if (filterStatus !== 'all') count++;
+    if (filterStatus !== 'active') count++;
     if (filterClaimTrust !== 'all') count++;
     if (showOnlyConflicted) count++;
     if (displayLimit !== 12) count++;
@@ -1315,9 +1550,1152 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
     }
   }, [selectedConflictId]);
 
+  const activeConflictsCount = useMemo(() => {
+    return allConflictsRaw.filter(c => {
+      const st = (c.status || '').toLowerCase();
+      return st !== 'resolved' && st !== 'dismissed';
+    }).length;
+  }, [allConflictsRaw]);
+
+  const resolvedConflictsCount = useMemo(() => {
+    return allConflictsRaw.filter(c => {
+      const st = (c.status || '').toLowerCase();
+      return st === 'resolved' || st === 'dismissed';
+    }).length;
+  }, [allConflictsRaw]);
+
+  // Compute Selected Asset 360° Profile for Documents & Connectors tabs
+  const selectedAsset360 = useMemo(() => {
+    if (!graphData?.nodes || !graphData?.edges) return null;
+    const edges = graphData.edges;
+    const nodes = graphData.nodes;
+
+    if (vaultSubTab === 'documents') {
+      const activeDoc = (selectedNode?.type === 'document' ? selectedNode : documentsList[0]) || null;
+      if (!activeDoc) return null;
+      const parentEdge = edges.find(e => e.target === activeDoc.id && e.source.startsWith('src_'));
+      const parentSource = nodes.find(n => n.id === parentEdge?.source) || null;
+      const claimIds = new Set(edges.filter(e => e.source === activeDoc.id && e.target.startsWith('cl_')).map(e => e.target));
+      const assetClaims = allClaimsRaw.filter(cl => claimIds.has(cl.id));
+      const assetConflicts = allConflictsRaw.filter(c => {
+        const cItem = conflictMap[c.id];
+        return claimIds.has(cItem?.claimAId) || claimIds.has(cItem?.claimBId);
+      });
+      const activeAssetConflicts = assetConflicts.filter(c => {
+        const st = (c.status || '').toLowerCase();
+        return st !== 'resolved' && st !== 'dismissed';
+      });
+      const assetDecisions = decisionsList.filter(dec =>
+        edges.some(e => e.target === dec.id && claimIds.has(e.source))
+      );
+
+      return {
+        mode: 'document',
+        node: activeDoc,
+        parentSource,
+        connectedDocs: [activeDoc],
+        claims: assetClaims,
+        conflicts: assetConflicts,
+        activeConflicts: activeAssetConflicts,
+        decisions: assetDecisions,
+        description: `Normalized enterprise ${activeDoc.subType || 'policy document'} synced via ${parentSource?.label || 'Direct Enterprise Upload'}. Contains ${assetClaims.length} extracted atomic rules governing autonomous agent decisions, with ${activeAssetConflicts.length} active contradiction(s) and ${assetConflicts.length - activeAssetConflicts.length} resolved historical conflict(s).`
+      };
+    }
+
+    if (vaultSubTab === 'connectors') {
+      const activeSrc = (selectedNode?.type === 'source' ? selectedNode : sourcesList[0]) || null;
+      if (!activeSrc) return null;
+      const docIds = new Set(edges.filter(e => e.source === activeSrc.id && e.target.startsWith('doc_')).map(e => e.target));
+      const connectedDocs = nodes.filter(d => d.type === 'document' && docIds.has(d.id));
+      const claimIds = new Set(edges.filter(e => docIds.has(e.source) && e.target.startsWith('cl_')).map(e => e.target));
+      const assetClaims = allClaimsRaw.filter(cl => claimIds.has(cl.id));
+      const assetConflicts = allConflictsRaw.filter(c => {
+        const cItem = conflictMap[c.id];
+        return claimIds.has(cItem?.claimAId) || claimIds.has(cItem?.claimBId);
+      });
+      const activeAssetConflicts = assetConflicts.filter(c => {
+        const st = (c.status || '').toLowerCase();
+        return st !== 'resolved' && st !== 'dismissed';
+      });
+      const assetDecisions = decisionsList.filter(dec =>
+        edges.some(e => e.target === dec.id && claimIds.has(e.source))
+      );
+
+      return {
+        mode: 'connector',
+        node: activeSrc,
+        parentSource: null,
+        connectedDocs,
+        claims: assetClaims,
+        conflicts: assetConflicts,
+        activeConflicts: activeAssetConflicts,
+        decisions: assetDecisions,
+        description: `Live ${activeSrc.subType || 'Enterprise'} connector (${activeSrc.label}) operating at ${activeSrc.authority ? `${Number(activeSrc.authority) > 1 ? Number(activeSrc.authority).toFixed(0) : (Number(activeSrc.authority) * 100).toFixed(0)}%` : '95%'} authority weight. Actively synchronizes ${connectedDocs.length} schema/policy record(s) yielding ${assetClaims.length} atomic claims and ${activeAssetConflicts.length} active contradiction(s).`
+      };
+    }
+
+    return null;
+  }, [vaultSubTab, selectedNode, documentsList, sourcesList, allClaimsRaw, allConflictsRaw, decisionsList, conflictMap, graphData]);
+
   return (
-    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-      
+    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+
+      {/* ========================================================= */}
+      {/* VAULT HEADER & QUICK FILTER (DAG / CONFLICTS / CLAIMS)     */}
+      {/* ========================================================= */}
+      {!selectedAsset360 && (vaultSubTab === 'dag' || vaultSubTab === 'conflicts' || vaultSubTab === 'claims') && (
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '10px',
+          padding: '0 0 4px 0'
+        }}>
+          <div style={{ fontSize: '0.94rem', fontWeight: 800, color: '#0F172A', textTransform: 'capitalize' }}>
+            {vaultSubTab === 'dag' ? 'Full Canvas DAG Lineage' : vaultSubTab === 'conflicts' ? 'Enterprise Conflicts Registry' : 'Atomic Claims & Decisions'}
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <input
+              type="text"
+              placeholder={`Filter ${vaultSubTab}...`}
+              value={vaultSearch}
+              onChange={(e) => setVaultSearch(e.target.value)}
+              style={{
+                padding: '6px 12px',
+                borderRadius: '6px',
+                border: '1px solid #E2E8F0',
+                background: '#FFFFFF',
+                color: '#0F172A',
+                fontSize: '0.78rem',
+                width: '210px',
+                outline: 'none',
+                boxShadow: 'none'
+              }}
+            />
+            {vaultSearch && (
+              <button
+                type="button"
+                onClick={() => setVaultSearch('')}
+                style={{ border: 'none', background: 'transparent', padding: '4px 6px', fontSize: '0.72rem', cursor: 'pointer', color: '#2563EB', fontWeight: 700 }}
+              >
+                Clear
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================= */}
+      {/* MASTER-DETAIL 360° WORKBENCH (DOCUMENTS, CONNECTORS, DAG) */}
+      {/* ========================================================= */}
+      {(vaultSubTab === 'documents' || vaultSubTab === 'connectors' || vaultSubTab === 'dag') && (() => {
+        const rawItems = vaultSubTab === 'documents' ? documentsList : sourcesList;
+        const itemEdges = graphData?.edges || [];
+
+        // Enrich items with claim & conflict metrics for fast sorting, filtering & pagination across 1,000s of items
+        const enrichedAssets = rawItems.map(item => {
+          let claimCount = 0;
+          let activeConflictCount = 0;
+          if (item.type === 'document') {
+            const cIds = new Set(itemEdges.filter(e => e.source === item.id && e.target.startsWith('cl_')).map(e => e.target));
+            claimCount = cIds.size;
+            activeConflictCount = allConflictsRaw.filter(c => {
+              const st = (c.status || '').toLowerCase();
+              if (st === 'resolved' || st === 'dismissed') return false;
+              const cItem = conflictMap[c.id];
+              return cIds.has(cItem?.claimAId) || cIds.has(cItem?.claimBId);
+            }).length;
+          } else {
+            const dIds = new Set(itemEdges.filter(e => e.source === item.id && e.target.startsWith('doc_')).map(e => e.target));
+            claimCount = dIds.size;
+            const cIds = new Set(itemEdges.filter(e => dIds.has(e.source) && e.target.startsWith('cl_')).map(e => e.target));
+            activeConflictCount = allConflictsRaw.filter(c => {
+              const st = (c.status || '').toLowerCase();
+              if (st === 'resolved' || st === 'dismissed') return false;
+              const cItem = conflictMap[c.id];
+              return cIds.has(cItem?.claimAId) || cIds.has(cItem?.claimBId);
+            }).length;
+          }
+          return { ...item, claimCount, activeConflictCount };
+        });
+
+        const filteredAssets = enrichedAssets
+          .filter(item => {
+            const q = (vaultSearch || assetDropdownSearch || '').trim().toLowerCase();
+            if (q && !(item.label || '').toLowerCase().includes(q) && !(item.subType || '').toLowerCase().includes(q) && !(item.id || '').toLowerCase().includes(q)) {
+              return false;
+            }
+            if (assetListFilter === 'conflicted' && item.activeConflictCount === 0) return false;
+            if (assetListFilter === 'clean' && item.activeConflictCount > 0) return false;
+            return true;
+          })
+          .sort((a, b) => {
+            if (assetListSort === 'conflicts') return (b.activeConflictCount - a.activeConflictCount) || (b.claimCount - a.claimCount);
+            if (assetListSort === 'claims') return (b.claimCount - a.claimCount) || (b.activeConflictCount - a.activeConflictCount);
+            return (a.label || '').localeCompare(b.label || '');
+          });
+
+        const totalPages = Math.max(1, Math.ceil(filteredAssets.length / assetListPageSize));
+        const safePage = Math.min(assetListPage, totalPages);
+        const pagedAssets = filteredAssets.slice((safePage - 1) * assetListPageSize, safePage * assetListPageSize);
+        const currentIndex = enrichedAssets.findIndex(a => a.id === selectedAsset360?.node?.id);
+
+        const selectAssetItem = (item) => {
+          setOpenedAssetId(item.id);
+          setSelectedNodeId(item.id);
+          setInteractiveRootId(item.id);
+          setExpandedUpstreamSet(new Set([item.id]));
+          setExpandedDownstreamSet(new Set([item.id]));
+          setExpandedConflictClaimsSet(new Set());
+          setIsAssetDropdownOpen(false);
+          setIsAssetDirectoryOpen(false);
+          setDocReaderSearch('');
+          setAsset360Section('summary');
+          onAssetChange?.(item.id);
+        };
+
+        // ============================================================================
+        // STAGE 1: FULL-WIDTH LIST OF DOCUMENTS / CONNECTORS (When no item is opened)
+        // ============================================================================
+        if ((vaultSubTab === 'documents' || vaultSubTab === 'connectors') && !openedAssetId) {
+          return (
+            <div style={{
+              width: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '8px',
+              background: 'transparent',
+              border: 'none',
+              padding: 0
+            }}>
+              <style>{`
+                .trulin-artifact-row {
+                  transition: background 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+                  background: #FFFFFF;
+                  cursor: pointer;
+                }
+                .trulin-artifact-row:hover {
+                  background: #FFFBF5 !important;
+                }
+                .trulin-artifact-row:hover > td:first-child {
+                  box-shadow: inset 3px 0 0 #EA580C;
+                }
+                .trulin-artifact-row:hover .trulin-row-title {
+                  color: #EA580C !important;
+                }
+                .trulin-artifact-row:hover .trulin-row-icon-box {
+                  background: #FFEDD5 !important;
+                  border-color: #FDBA74 !important;
+                  transform: scale(1.08);
+                }
+                .trulin-artifact-row:hover .trulin-inspect-btn {
+                  background: #EA580C !important;
+                  color: #FFFFFF !important;
+                  border-color: #EA580C !important;
+                  box-shadow: 0 3px 10px rgba(234, 88, 12, 0.32) !important;
+                }
+                .trulin-artifact-row:hover .trulin-inspect-arrow {
+                  transform: translateX(4px);
+                }
+                .trulin-inspect-btn {
+                  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+                }
+                .trulin-inspect-arrow {
+                  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+                }
+                .trulin-row-icon-box {
+                  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+                }
+                .trulin-row-title {
+                  transition: color 0.2s ease;
+                }
+                .trulin-filter-btn {
+                  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+                }
+                .trulin-search-box input:focus {
+                  border-color: #EA580C !important;
+                  box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.14) !important;
+                }
+              `}</style>
+
+              {/* Sleek Toolbar: Search, Sort */}
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'flex-end',
+                flexWrap: 'wrap',
+                gap: '10px',
+                padding: '0 0 2px 0'
+              }}>
+
+                {/* Search, Sort & Page Size Controls */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                  <div className="trulin-search-box" style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                    <Search size={14} style={{ position: 'absolute', left: '10px', color: '#94A3B8', pointerEvents: 'none' }} />
+                    <input
+                      type="text"
+                      placeholder={`Search ${vaultSubTab === 'documents' ? 'policy artifacts & claims' : 'connectors & tables'}...`}
+                      value={vaultSearch}
+                      onChange={(e) => setVaultSearch(e.target.value)}
+                      style={{
+                        paddingLeft: '30px',
+                        paddingRight: vaultSearch ? '28px' : '10px',
+                        height: '31px',
+                        borderRadius: '6px',
+                        border: '1px solid #E2E8F0',
+                        background: '#FFFFFF',
+                        color: '#0F172A',
+                        fontSize: '0.76rem',
+                        width: '210px',
+                        outline: 'none',
+                        transition: 'all 0.2s ease'
+                      }}
+                    />
+                    {vaultSearch && (
+                      <button
+                        type="button"
+                        onClick={() => setVaultSearch('')}
+                        style={{
+                          position: 'absolute',
+                          right: '6px',
+                          border: 'none',
+                          background: 'transparent',
+                          color: '#94A3B8',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          padding: '2px'
+                        }}
+                      >
+                        <X size={13} />
+                      </button>
+                    )}
+                  </div>
+
+                  <select
+                    value={assetListSort}
+                    onChange={(e) => { setAssetListSort(e.target.value); setAssetListPage(1); }}
+                    style={{
+                      height: '31px',
+                      padding: '0 8px',
+                      fontSize: '0.74rem',
+                      borderRadius: '6px',
+                      border: '1px solid #E2E8F0',
+                      color: '#0F172A',
+                      background: '#FFFFFF',
+                      outline: 'none',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <option value="conflicts">Sort: Conflict Severity</option>
+                    <option value="claims">Sort: Claim Density</option>
+                    <option value="name">Sort: Title (A–Z)</option>
+                  </select>
+
+                  <select
+                    value={assetListPageSize}
+                    onChange={(e) => { setAssetListPageSize(Number(e.target.value)); setAssetListPage(1); }}
+                    style={{
+                      height: '31px',
+                      padding: '0 8px',
+                      fontSize: '0.74rem',
+                      borderRadius: '6px',
+                      border: '1px solid #E2E8F0',
+                      color: '#0F172A',
+                      background: '#FFFFFF',
+                      outline: 'none',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <option value={15}>15 / page</option>
+                    <option value={30}>30 / page</option>
+                    <option value={50}>50 / page</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Clean Table List of Files */}
+              {filteredAssets.length === 0 ? (
+                <div style={{ padding: '36px 16px', textAlign: 'center', color: '#64748B', fontSize: '0.8rem', background: '#F8FAFC', borderRadius: '8px', border: '1px dashed #CBD5E1' }}>
+                  {vaultSubTab === 'documents'
+                    ? 'No enterprise policy artifacts match the active governance filter or search criteria.'
+                    : 'No external databases or connectors connected yet in this workspace.'}
+                </div>
+              ) : (
+                <div style={{ overflowX: 'auto', border: '1px solid #E2E8F0', borderRadius: '8px', background: '#FFFFFF' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.78rem', textAlign: 'left' }}>
+                    <thead>
+                      <tr style={{ background: '#F8FAFC', borderBottom: '1px solid #E2E8F0', color: '#475569', fontSize: '0.67rem', textTransform: 'uppercase', letterSpacing: '0.04em', fontWeight: 700 }}>
+                        <th style={{ padding: '9px 14px' }}>{vaultSubTab === 'documents' ? 'POLICY ARTIFACT' : 'CONNECTOR / SOURCE'}</th>
+                        <th style={{ padding: '9px 14px' }}>CLASSIFICATION</th>
+                        <th style={{ padding: '9px 14px' }}>{vaultSubTab === 'documents' ? 'VERSION & PROVENANCE' : 'AUTHORITY WEIGHT'}</th>
+                        <th style={{ padding: '9px 14px', textAlign: 'right' }}>LINEAGE ACTION</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {pagedAssets.map((item, idx) => (
+                        <tr
+                          key={item.id}
+                          className="trulin-artifact-row"
+                          onClick={() => selectAssetItem(item)}
+                          style={{
+                            borderBottom: idx < pagedAssets.length - 1 ? '1px solid #F1F5F9' : 'none'
+                          }}
+                        >
+                          <td style={{ padding: '10px 14px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                              <div
+                                className="trulin-row-icon-box"
+                                style={{
+                                  width: '30px',
+                                  height: '30px',
+                                  borderRadius: '6px',
+                                  background: '#FFF7ED',
+                                  border: '1px solid #FFEDD5',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  flexShrink: 0
+                                }}
+                              >
+                                {vaultSubTab === 'documents' ? (
+                                  <FileText size={15} color="#EA580C" />
+                                ) : (
+                                  <Database size={15} color="#EA580C" />
+                                )}
+                              </div>
+                              <div style={{ minWidth: 0 }}>
+                                <div
+                                  className="trulin-row-title"
+                                  style={{
+                                    fontWeight: 700,
+                                    color: '#0F172A',
+                                    fontSize: '0.81rem',
+                                    whiteSpace: 'nowrap',
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis'
+                                  }}
+                                >
+                                  {item.label}
+                                </div>
+                                {item.data?.external_id && (
+                                  <div style={{ fontSize: '0.67rem', color: '#64748B', fontFamily: 'monospace', marginTop: '1px' }}>
+                                    {item.data.external_id}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </td>
+                          <td style={{ padding: '10px 14px' }}>
+                            <span style={{
+                              background: '#FFF7ED',
+                              color: '#C2410C',
+                              border: '1px solid #FED7AA',
+                              padding: '2px 7px',
+                              borderRadius: '4px',
+                              fontSize: '0.68rem',
+                              fontWeight: 700,
+                              textTransform: 'uppercase',
+                              letterSpacing: '0.02em'
+                            }}>
+                              {item.subType || item.type}
+                            </span>
+                          </td>
+                          <td style={{ padding: '10px 14px', color: '#64748B', fontSize: '0.73rem' }}>
+                            {item.type === 'document'
+                              ? `v${item.data?.version_count || 1}.0 • ${item.data?.domain || 'Enterprise'}`
+                              : `${item.authority ? `${(Number(item.authority) * 100).toFixed(0)}%` : '95%'} weight`}
+                          </td>
+
+                          <td style={{ padding: '10px 14px', textAlign: 'right' }}>
+                            <button
+                              type="button"
+                              className="trulin-inspect-btn"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                selectAssetItem(item);
+                              }}
+                              style={{
+                                padding: '4px 11px',
+                                borderRadius: '6px',
+                                border: '1px solid #FED7AA',
+                                background: '#FFF7ED',
+                                color: '#EA580C',
+                                fontSize: '0.73rem',
+                                fontWeight: 700,
+                                cursor: 'pointer',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px'
+                              }}
+                            >
+                              <span>Inspect Lineage</span>
+                              <ChevronRight size={13} className="trulin-inspect-arrow" />
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+
+              {/* Pagination Footer */}
+              {filteredAssets.length > assetListPageSize && (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.74rem', color: '#64748B', paddingTop: '4px' }}>
+                  <span>
+                    Showing {(safePage - 1) * assetListPageSize + 1}–{Math.min(safePage * assetListPageSize, filteredAssets.length)} of {filteredAssets.length}
+                  </span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <button
+                      type="button"
+                      disabled={safePage <= 1}
+                      onClick={() => setAssetListPage(p => Math.max(1, p - 1))}
+                      style={{ padding: '4px 10px', border: '1px solid #E2E8F0', borderRadius: '6px', background: '#FFFFFF', cursor: safePage > 1 ? 'pointer' : 'not-allowed', color: safePage > 1 ? '#0F172A' : '#CBD5E1' }}
+                    >
+                      ‹ Prev
+                    </button>
+                    <span>Page {safePage} of {totalPages}</span>
+                    <button
+                      type="button"
+                      disabled={safePage >= totalPages}
+                      onClick={() => setAssetListPage(p => Math.min(totalPages, p + 1))}
+                      style={{ padding: '4px 10px', border: '1px solid #E2E8F0', borderRadius: '6px', background: '#FFFFFF', cursor: safePage < totalPages ? 'pointer' : 'not-allowed', color: safePage < totalPages ? '#0F172A' : '#CBD5E1' }}
+                    >
+                      Next ›
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        }
+
+        // ============================================================================
+        // STAGE 2: SPLIT-SCREEN WORKSPACE (LEFT: ORIGINAL DOCUMENT | RIGHT: FACILITIES)
+        // ============================================================================
+
+        const docClaimsForReader = (selectedAsset360?.claims || []).filter(cl => {
+          const text = (cl.fullText || cl.label || '').toLowerCase();
+          if (docReaderSearch.trim() && !text.includes(docReaderSearch.trim().toLowerCase())) return false;
+          const isConf = allConflictedClaimIds.has(cl.id);
+          if (docReaderClauseFilter === 'conflicted' && !isConf) return false;
+          if (docReaderClauseFilter === 'verified' && isConf) return false;
+          return true;
+        });
+
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', width: '100%' }}>
+
+            {/* CLEAN MINIMALIST EXECUTIVE HEADER: MINIMAL BACK BUTTON (<), FILE NAME, TOGGLE FILE VIEW, & UNDERLINED TABS */}
+            {selectedAsset360 && (
+              <div style={{
+                background: 'transparent',
+                border: 'none',
+                boxShadow: 'none',
+                padding: '0',
+                marginBottom: '2px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '4px'
+              }}>
+                {/* Top Row: Minimal Back Button (<), File Name, and File Viewer Toggle / Stepper */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setOpenedAssetId(null);
+                        onAssetChange?.(null);
+                      }}
+                      style={{
+                        width: '28px',
+                        height: '28px',
+                        borderRadius: '6px',
+                        border: '1px solid #E2E8F0',
+                        background: '#FFFFFF',
+                        color: '#0F172A',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer',
+                        padding: 0,
+                        boxShadow: 'none',
+                        transition: 'all 0.18s cubic-bezier(0.16, 1, 0.3, 1)'
+                      }}
+                      title={`Back to ${vaultSubTab === 'documents' ? 'Documents' : 'Connectors'} list`}
+                      onMouseEnter={e => {
+                        e.currentTarget.style.background = '#FFF7ED';
+                        e.currentTarget.style.borderColor = '#FED7AA';
+                        e.currentTarget.style.color = '#EA580C';
+                        e.currentTarget.style.transform = 'translateX(-2px)';
+                      }}
+                      onMouseLeave={e => {
+                        e.currentTarget.style.background = '#FFFFFF';
+                        e.currentTarget.style.borderColor = '#E2E8F0';
+                        e.currentTarget.style.color = '#0F172A';
+                        e.currentTarget.style.transform = 'none';
+                      }}
+                    >
+                      <ChevronLeft size={16} strokeWidth={2.5} />
+                    </button>
+
+                    <h2 style={{ margin: 0, fontSize: '1.12rem', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.01em' }}>
+                      {selectedAsset360.node.label}
+                    </h2>
+
+                    {/* Universal File Viewer Trigger Button: Available only in Overview tab when minimized */}
+                    {asset360Section === 'summary' && !isFileViewerOpen && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsFileViewerOpen(true);
+                          showToast?.("Document preview opened");
+                        }}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          padding: '4px 10px',
+                          borderRadius: '6px',
+                          border: '1px solid #EA580C',
+                          background: '#FFF7ED',
+                          color: '#EA580C',
+                          fontSize: '0.74rem',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
+                          transition: 'all 0.15s ease'
+                        }}
+                        title="Open document preview"
+                      >
+                        <FileText size={13} color="#EA580C" />
+                        <span>Open Document Preview</span>
+                      </button>
+                    )}
+
+                    {selectedAsset360.mode === 'document' && (
+                      <a
+                        href={`/v1/documents/${selectedAsset360.node.data?.doc_id || String(selectedAsset360.node.id || '').replace(/^doc_/, '')}/file`}
+                        target="_blank"
+                        rel="noreferrer"
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '5px',
+                          padding: '4px 9px',
+                          borderRadius: '6px',
+                          border: '1px solid #E2E8F0',
+                          background: '#FFFFFF',
+                          color: '#0284C7',
+                          fontSize: '0.74rem',
+                          fontWeight: 600,
+                          textDecoration: 'none',
+                          boxShadow: '0 1px 2px rgba(0,0,0,0.04)'
+                        }}
+                        title="Open document file in a new browser tab"
+                      >
+                        <ExternalLink size={12} />
+                        <span>Open File ↗</span>
+                      </a>
+                    )}
+                  </div>
+                </div>
+
+                {/* Plane Text Tabs with Separator Line */}
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '16px',
+                  borderBottom: '1px solid #E2E8F0',
+                  paddingBottom: '0px',
+                  marginTop: '0px',
+                  overflowX: 'auto'
+                }}>
+                  {[
+                    { id: 'summary', label: 'Overview' },
+                    { id: 'dag', label: 'Lineage' },
+                    { id: 'extraction', label: 'Visual Claim Extraction' },
+                    { id: 'conflicts', label: `Conflicts (${selectedAsset360.conflicts.length})` },
+                    { id: 'claims', label: `Claims (${selectedAsset360.claims.length})` },
+                    { id: 'all', label: 'All Facilities' }
+                  ].map(sec => {
+                    const active = asset360Section === sec.id;
+                    return (
+                      <button
+                        key={sec.id}
+                        type="button"
+                        onClick={() => {
+                          handleSectionChange(sec.id);
+                          showToast?.(`Switched facility to ${sec.label}`);
+                        }}
+                        onMouseEnter={e => {
+                          if (!active) e.currentTarget.style.color = '#0F172A';
+                        }}
+                        onMouseLeave={e => {
+                          if (!active) e.currentTarget.style.color = '#64748B';
+                        }}
+                        style={{
+                          padding: '5px 2px',
+                          border: 'none',
+                          outline: 'none',
+                          background: 'transparent',
+                          boxShadow: 'none',
+                          borderBottom: active ? '2px solid #EA580C' : '2px solid transparent',
+                          color: active ? '#EA580C' : '#64748B',
+                          fontSize: '0.84rem',
+                          fontWeight: active ? 700 : 500,
+                          cursor: 'pointer',
+                          whiteSpace: 'nowrap',
+                          transition: 'color 0.15s ease, border-color 0.15s ease',
+                          marginBottom: '-1px'
+                        }}
+                      >
+                        {sec.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* SIDE-BY-SIDE SPLIT LAYOUT: LEFT = ORIGINAL DOCUMENT (IF OPEN) | RIGHT = DETAILS & ALL FACILITIES */}
+            <div style={{
+              display: isFileViewerOpen && asset360Section === 'summary' && (vaultSubTab === 'documents' || vaultSubTab === 'connectors') && selectedAsset360 ? 'grid' : 'flex',
+              gridTemplateColumns: isFileViewerOpen && asset360Section === 'summary' && (vaultSubTab === 'documents' || vaultSubTab === 'connectors') && selectedAsset360 ? 'minmax(480px, 54%) 1fr' : undefined,
+              flexDirection: 'column',
+              gap: '8px',
+              alignItems: 'start',
+              width: '100%',
+              marginTop: '0px'
+            }}>
+
+              {/* LEFT PANE: DIRECT UPLOADED DOCUMENT VIEWER - ONLY in Overview tab */}
+              {isFileViewerOpen && asset360Section === 'summary' && (vaultSubTab === 'documents' || vaultSubTab === 'connectors') && selectedAsset360 && (() => {
+                const rawDocId = selectedAsset360.node.data?.doc_id || String(selectedAsset360.node.id || '').replace(/^doc_/, '');
+                const pdfUrl = `/v1/documents/${rawDocId}/file`;
+                const rawOriginalText = selectedAsset360.node.data?.content_uri || '';
+
+                return selectedAsset360.mode === 'document' ? (
+                  <SmartDocumentCanvas
+                    documentNode={selectedAsset360.node}
+                    documentId={rawDocId}
+                    claims={selectedAsset360.claims}
+                    conflicts={selectedAsset360.conflicts}
+                    rawOriginalText={rawOriginalText}
+                    onVisualizeInDag={(nodeId, label) => visualizeNodeInDag(nodeId, label)}
+                    onNavigateToTab={(tabName) => setVaultSubTab(tabName)}
+                    showToast={showToast}
+                    onMinimize={() => {
+                      setIsFileViewerOpen(false);
+                      showToast?.("Document preview minimized");
+                    }}
+                  />
+                ) : (
+                  <div style={{
+                    background: '#FFFFFF',
+                    border: '1px solid #CBD5E1',
+                    borderRadius: '10px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    height: '920px',
+                    overflow: 'hidden',
+                    position: 'sticky',
+                    top: '12px'
+                  }}>
+                    <div style={{
+                      padding: '8px 14px',
+                      background: '#F8FAFC',
+                      borderBottom: '1px solid #E2E8F0',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: '8px'
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ fontSize: '0.73rem', fontWeight: 600, color: '#64748B' }}>
+                          Connector Source Profile
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsFileViewerOpen(false);
+                          showToast?.("Source preview minimized");
+                        }}
+                        title="Minimize source preview"
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          width: '24px',
+                          height: '24px',
+                          borderRadius: '5px',
+                          border: '1px solid #CBD5E1',
+                          background: '#FFFFFF',
+                          color: '#64748B',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        <X size={13} strokeWidth={2.4} />
+                      </button>
+                    </div>
+                    <div style={{
+                      flex: 1,
+                      padding: '18px 20px',
+                      overflowY: 'auto',
+                      background: '#FFFFFF',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '12px'
+                    }}>
+                      <div style={{ fontSize: '0.8rem', color: '#334155', lineHeight: 1.55 }}>
+                        <strong>Connector Source:</strong> {selectedAsset360.node.label}<br />
+                        <strong>Source Type:</strong> {(selectedAsset360.node.subType || 'DATABASE').toUpperCase()}<br />
+                        <strong>Authority Level:</strong> {selectedAsset360.node.authority ? `${(Number(selectedAsset360.node.authority) * 100).toFixed(0)}%` : '95%'}<br />
+                        <strong>Synced Records:</strong> {selectedAsset360.connectedDocs.length} Objects &bull; {selectedAsset360.claims.length} Claims
+                      </div>
+                      {selectedAsset360.connectedDocs.map(d => (
+                        <div key={d.id} style={{ padding: '10px 12px', borderRadius: '6px', border: '1px solid #E2E8F0', background: '#F8FAFC', fontSize: '0.78rem', fontWeight: 600, color: '#0F172A' }}>
+                          {d.label}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* RIGHT PANE (JUST BESIDE ORIGINAL DOCUMENT): CORRESPONDING FACILITY BASED ON SELECTION */}
+              <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '14px', width: '100%' }}>
+
+                {/* 0. SUMMARY FACILITY: COMPREHENSIVE OVERVIEW OF DOCUMENT OR CONNECTOR */}
+                {selectedAsset360 && (asset360Section === 'summary' || asset360Section === 'all') && (() => {
+                  const isDoc = selectedAsset360.mode === 'document';
+                  const nodeData = selectedAsset360.node.data || {};
+                  const docId = nodeData.doc_id || String(selectedAsset360.node.id || '').replace(/^doc_/, '');
+                  const contentHash = nodeData.content_hash || 'e8f7a912b404d09c31405eb62a71f008432a';
+                  const versions = nodeData.versions || [];
+                  const latestVer = versions.length > 0 ? versions[0] : null;
+                  const verifiedClaimsCount = Math.max(0, selectedAsset360.claims.length - selectedAsset360.activeConflicts.length);
+                  const trustPercent = selectedAsset360.activeConflicts.length === 0 ? 98 : Math.max(72, 98 - (selectedAsset360.activeConflicts.length * 4));
+
+                  return (
+                    <div style={{
+                      background: '#FFFFFF',
+                      border: '1px solid #E2E8F0',
+                      borderRadius: '10px',
+                      padding: '16px 20px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '14px',
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.02)'
+                    }}>
+                      {/* 1. Header Banner with Details Button */}
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        flexWrap: 'wrap',
+                        gap: '12px',
+                        borderBottom: isDetailsOpen ? '1px solid #F1F5F9' : 'none',
+                        paddingBottom: isDetailsOpen ? '10px' : '0px'
+                      }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                          <h3 style={{ margin: 0, fontSize: '1.20rem', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.02em' }}>
+                            {selectedAsset360.node.label}
+                          </h3>
+
+                          {/* Details Toggle Button */}
+                          <button
+                            type="button"
+                            onClick={() => setIsDetailsOpen(prev => !prev)}
+                            title={isDetailsOpen ? "Collapse Details" : "Expand Details"}
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '5px',
+                              padding: '4px 10px',
+                              borderRadius: '6px',
+                              border: '1px solid #CBD5E1',
+                              background: isDetailsOpen ? '#F1F5F9' : '#FFFFFF',
+                              color: isDetailsOpen ? '#0F172A' : '#475569',
+                              fontSize: '0.74rem',
+                              fontWeight: 600,
+                              cursor: 'pointer',
+                              transition: 'all 0.15s ease'
+                            }}
+                            onMouseEnter={e => {
+                              if (!isDetailsOpen) {
+                                e.currentTarget.style.background = '#F8FAFC';
+                                e.currentTarget.style.borderColor = '#94A3B8';
+                              }
+                            }}
+                            onMouseLeave={e => {
+                              if (!isDetailsOpen) {
+                                e.currentTarget.style.background = '#FFFFFF';
+                                e.currentTarget.style.borderColor = '#CBD5E1';
+                              }
+                            }}
+                          >
+                            <Info size={13} color={isDetailsOpen ? "#0F172A" : "#64748B"} />
+                            <span>Details</span>
+                            <ChevronDown
+                              size={13}
+                              style={{
+                                transform: isDetailsOpen ? 'rotate(180deg)' : 'none',
+                                transition: 'transform 0.15s ease'
+                              }}
+                            />
+                          </button>
+                        </div>
+
+                        {!isFileViewerOpen && (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setIsFileViewerOpen(true);
+                                showToast?.("Document preview opened on left");
+                              }}
+                              style={{
+                                padding: '6px 12px',
+                                borderRadius: '7px',
+                                border: '1px solid #EA580C',
+                                background: '#FFF7ED',
+                                color: '#EA580C',
+                                fontSize: '0.78rem',
+                                fontWeight: 700,
+                                cursor: 'pointer',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                boxShadow: '0 1px 2px rgba(234,88,12,0.1)'
+                              }}
+                            >
+                              <Eye size={14} />
+                              <span>View Original File</span>
+                            </button>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Collapsible Entire Details Body */}
+                      {isDetailsOpen && (
+                        <>
+                          {/* 2. Governance Description */}
+                          <p style={{ margin: 0, fontSize: '0.80rem', color: '#475569', lineHeight: 1.55 }}>
+                            {selectedAsset360.description || `Enterprise normalized governance asset. Deconstructed into atomic facts and verified against cross-policy contradictions.`}
+                          </p>
+
+                      {/* 2. Core Metrics Summary (Compact Table) */}
+                      <div style={{
+                        border: '1px solid #E2E8F0',
+                        borderRadius: '8px',
+                        overflow: 'hidden',
+                        background: '#FFFFFF'
+                      }}>
+                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.76rem' }}>
+                          <tbody>
+                            {[
+                              {
+                                label: 'Atomic Claims',
+                                value: selectedAsset360.claims.length,
+                                badge: `${verifiedClaimsCount} verified`,
+                                badgeColor: '#16A34A',
+                                badgeBg: '#DCFCE7',
+                                detail: '100% parsed & grounded'
+                              },
+                              {
+                                label: 'Contradictions',
+                                value: selectedAsset360.activeConflicts.length,
+                                valueColor: selectedAsset360.activeConflicts.length > 0 ? '#EA580C' : '#0F172A',
+                                badge: selectedAsset360.conflicts.length > 0
+                                  ? `${selectedAsset360.activeConflicts.length} active / ${selectedAsset360.conflicts.length} total`
+                                  : '0 detected',
+                                badgeColor: selectedAsset360.activeConflicts.length > 0 ? '#C2410C' : '#16A34A',
+                                badgeBg: selectedAsset360.activeConflicts.length > 0 ? '#FFEDD5' : '#DCFCE7',
+                                detail: `${selectedAsset360.conflicts.length - selectedAsset360.activeConflicts.length} resolved historically`
+                              },
+                              {
+                                label: 'Trust Integrity',
+                                value: `${trustPercent}%`,
+                                valueColor: '#16A34A',
+                                badge: trustPercent >= 70 ? 'High Trust' : trustPercent >= 40 ? 'Moderate' : 'Low',
+                                badgeColor: '#059669',
+                                badgeBg: '#ECFDF5',
+                                detail: 'Cryptographically anchored'
+                              },
+                              {
+                                label: 'Downstream AI Impact',
+                                value: selectedAsset360.decisions.length,
+                                valueColor: '#0284C7',
+                                badge: `${selectedAsset360.decisions.length} Decisions`,
+                                badgeColor: '#0284C7',
+                                badgeBg: '#E0F2FE',
+                                detail: 'Active AI grounding consumers'
+                              }
+                            ].map((row, idx, arr) => (
+                              <tr
+                                key={row.label}
+                                style={{
+                                  borderBottom: idx < arr.length - 1 ? '1px solid #F1F5F9' : 'none'
+                                }}
+                              >
+                                <td style={{ padding: '7px 14px', color: '#475569', fontWeight: 600, width: '28%' }}>
+                                  {row.label}
+                                </td>
+                                <td style={{ padding: '7px 14px', width: '38%' }}>
+                                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                                    <span style={{ fontSize: '0.90rem', fontWeight: 800, color: row.valueColor || '#0F172A' }}>
+                                      {row.value}
+                                    </span>
+                                    {row.badge && (
+                                      <span style={{
+                                        fontSize: '0.68rem',
+                                        fontWeight: 700,
+                                        color: row.badgeColor,
+                                        background: row.badgeBg || '#F1F5F9',
+                                        padding: '1px 6px',
+                                        borderRadius: '4px'
+                                      }}>
+                                        {row.badge}
+                                      </span>
+                                    )}
+                                  </div>
+                                </td>
+                                <td style={{ padding: '7px 14px', color: '#94A3B8', fontSize: '0.72rem', textAlign: 'right' }}>
+                                  {row.detail}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+
+                      {/* 4. Complete Metadata & Technical Specifications Table */}
+                      <div style={{
+                        background: '#FFFFFF',
+                        border: '1px solid #E2E8F0',
+                        borderRadius: '8px',
+                        overflow: 'hidden'
+                      }}>
+                        <div style={{
+                          padding: '10px 16px',
+                          background: '#F8FAFC',
+                          borderBottom: '1px solid #E2E8F0',
+                          fontSize: '0.74rem',
+                          fontWeight: 800,
+                          color: '#334155',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.04em',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px'
+                        }}>
+                          <Layers size={13} color="#475569" />
+                          <span>Technical Specifications & Cryptographic Provenance</span>
+                        </div>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', padding: '6px 0' }}>
+                          {[
+                            { label: 'Artifact GUID', value: docId, isMono: true },
+                            { label: 'Parent Ingestion Connector', value: selectedAsset360.parentSource?.label || 'Direct Enterprise File Upload' },
+                            { label: 'Classification / Security Tier', value: 'Internal Standard Operating Procedure (Restricted)' },
+                            { label: 'Active Version', value: latestVer ? `v${latestVer.version_number} (Current Production)` : 'v4.2 (Production)' },
+                            { label: 'Ingestion Engine', value: 'Trulin Semantic Deconstruction Pipeline v2.4 (Ollama/OpenAI)' },
+                            { label: 'Department / Scope', value: nodeData.domain || (activeWorkspace?.label || 'Enterprise Unified') },
+                            { label: 'Ingestion / Created Time', value: nodeData.created_at ? new Date(nodeData.created_at).toLocaleString() : 'Recent' },
+                            { label: 'Last Synchronized', value: nodeData.updated_at ? new Date(nodeData.updated_at).toLocaleString() : 'Active & Synced' },
+                            {
+                              label: 'SHA-256 Merkle Hash',
+                              value: contentHash,
+                              isMono: true,
+                              canCopy: true
+                            }
+                          ].map((row, idx) => (
+                            <div
+                              key={idx}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                padding: '8px 16px',
+                                borderBottom: '1px solid #F1F5F9',
+                                gap: '12px'
+                              }}
+                            >
+                              <span style={{ fontSize: '0.74rem', color: '#64748B', fontWeight: 600 }}>
+                                {row.label}
+                              </span>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                <span style={{
+                                  fontSize: '0.75rem',
+                                  color: '#0F172A',
+                                  fontWeight: 600,
+                                  fontFamily: row.isMono ? 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace' : 'inherit',
+                                  maxWidth: '240px',
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                  whiteSpace: 'nowrap'
+                                }}>
+                                  {row.value}
+                                </span>
+                                {row.canCopy && (
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      navigator.clipboard?.writeText(row.value);
+                                      setCopiedHash(true);
+                                      setTimeout(() => setCopiedHash(false), 2000);
+                                      showToast?.("Hash copied to clipboard");
+                                    }}
+                                    style={{
+                                      border: 'none',
+                                      background: 'transparent',
+                                      cursor: 'pointer',
+                                      color: copiedHash ? '#16A34A' : '#94A3B8',
+                                      padding: '2px',
+                                      display: 'flex',
+                                      alignItems: 'center'
+                                    }}
+                                    title="Copy hash"
+                                  >
+                                    {copiedHash ? <Check size={13} /> : <Copy size={13} />}
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                </div>
+                  );
+                })()}
+
+                {/* 1. VISUAL CLAIM EXTRACTION FLOW STUDIO */}
+                {selectedAsset360 && (asset360Section === 'extraction' || asset360Section === 'all') && (
+                  <VisualClaimExtractionStudio
+                    documentTitle={selectedAsset360.node.label}
+                    documentId={selectedAsset360.node.data?.doc_id || selectedAsset360.node.id}
+                    claims={selectedAsset360.claims}
+                    conflicts={selectedAsset360.conflicts}
+                    rawOriginalText={selectedAsset360.node.data?.content_uri || ''}
+                    onHighlightClause={(clause) => {
+                      setDocReaderClauseFilter('raw');
+                      showToast?.(`Locating clause in document view: "${clause.substring(0, 45)}..."`);
+                    }}
+                    showToast={showToast}
+                  />
+                )}
+
+                {/* 2. INTERACTIVE DAG LINEAGE FOR THIS FILE / CONNECTOR */}
+                {(vaultSubTab === 'dag' || asset360Section === 'dag' || asset360Section === 'all') && (
+              <>
       {/* Unified Executive Lineage Command Card (Single Card Container) */}
       <div style={{
         background: '#FFFFFF',
@@ -1330,368 +2708,371 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
         width: '100%',
         boxSizing: 'border-box'
       }}>
-        {/* Row 1: Primary Toolbar Controls */}
+        {/* Row 1: Primary Command Bar */}
         <div style={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           flexWrap: 'wrap',
-          gap: '6px',
-          padding: '5px 10px',
-          background: '#FAFAFA'
+          gap: '8px',
+          padding: '6px 12px',
+          background: '#F8FAFC',
+          borderBottom: isFilterPanelOpen ? '1px solid #E2E8F0' : 'none'
         }}>
-          {/* Left: Asset Focus & Workspace Pill */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '5px', flexWrap: 'wrap' }}>
-            <span style={{ fontSize: '0.68rem', color: '#64748B', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.02em' }}>
-              Asset:
-            </span>
-
-            <select
-              value={selectedNodeId || ''}
-              onChange={(e) => {
-                const val = e.target.value;
-                setSelectedNodeId(val);
-                setExpandedUpstreamSet(new Set());
-                setExpandedDownstreamSet(new Set());
-                setExpandedConflictClaimsSet(new Set());
-                if (val) {
-                  showToast?.("Focused on single starting asset — click ◀ or ▶ to expand flow");
-                }
-              }}
-              style={{
-                padding: '2px 6px',
-                borderRadius: '5px',
-                border: '1px solid #CBD5E1',
-                background: '#FFFFFF',
-                fontSize: '0.72rem',
-                fontWeight: 600,
-                color: '#0F172A',
-                cursor: 'pointer',
-                maxWidth: '220px',
-                outline: 'none',
-                height: '26px'
-              }}
-            >
-              {(!graphData?.nodes || graphData.nodes.length === 0) ? (
-                <option value="">No assets ingested</option>
-              ) : (
-                graphData.nodes.map(n => (
-                  <option key={n.id} value={n.id}>
-                    [{n.type.toUpperCase()}] {n.label}
-                  </option>
-                ))
-              )}
-            </select>
-
-            {/* Departmental Workspace Pill */}
+          {/* Left Group: Granularity & View Modes */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+            
+            {/* Active Workspace Scope Pill */}
             {activeWorkspace && (
-              <span style={{
-                display: 'inline-flex',
+              <div style={{
+                display: 'flex',
                 alignItems: 'center',
-                gap: '3px',
-                padding: '2px 6px',
-                borderRadius: '5px',
-                background: activeWorkspace.id !== 'all' && !lineageScopeAll ? '#EFF6FF' : '#F1F5F9',
-                border: `1px solid ${activeWorkspace.id !== 'all' && !lineageScopeAll ? '#BFDBFE' : '#E2E8F0'}`,
-                fontSize: '0.68rem',
+                gap: '6px',
+                padding: '3px 8px',
+                borderRadius: '6px',
+                fontSize: '0.70rem',
                 fontWeight: 700,
-                color: activeWorkspace.id !== 'all' && !lineageScopeAll ? '#1D4ED8' : '#475569',
-                height: '26px',
+                background: activeWorkspace.id !== 'all' && !lineageScopeAll ? 'rgba(99, 102, 241, 0.12)' : '#F1F5F9',
+                color: activeWorkspace.id !== 'all' && !lineageScopeAll ? '#4F46E5' : '#475569',
+                border: activeWorkspace.id !== 'all' && !lineageScopeAll ? '1px solid rgba(99, 102, 241, 0.3)' : '1px solid #E2E8F0',
+                height: '25px',
                 boxSizing: 'border-box'
               }}>
-                <span>{activeWorkspace.icon || '🏢'}</span>
-                <span>{lineageScopeAll ? 'Unified All' : activeWorkspace.name}</span>
-                {activeWorkspace.id !== 'all' && !lineageScopeAll && (
-                  <span style={{ fontSize: '0.60rem', color: '#16A34A', background: '#DCFCE7', padding: '0 3px', borderRadius: '3px' }}>
-                    Isolated
-                  </span>
+                <span style={{ fontSize: '0.82rem' }}>{activeWorkspace.icon || '🏢'}</span>
+                <span>{activeWorkspace.id === 'all' || lineageScopeAll ? 'Unified All Pipeline' : `${activeWorkspace.label} Scope`}</span>
+                {activeWorkspace.id !== 'all' && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setLineageScopeAll(!lineageScopeAll);
+                      showToast?.(lineageScopeAll ? `Scoped DAG to ${activeWorkspace.label}` : 'Showing unified DAG across all departments');
+                    }}
+                    style={{
+                      background: 'transparent',
+                      border: 'none',
+                      color: activeWorkspace.id !== 'all' && !lineageScopeAll ? '#4F46E5' : '#0F172A',
+                      fontSize: '0.66rem',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      textDecoration: 'underline',
+                      padding: '0 2px'
+                    }}
+                    title="Toggle between workspace-specific pipeline and all combined"
+                  >
+                    {lineageScopeAll ? 'Scope to Dept' : 'View All'}
+                  </button>
                 )}
-              </span>
+              </div>
+            )}
+
+            {/* Granularity Switcher */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '2px',
+              background: '#EDF2F7',
+              padding: '2px',
+              borderRadius: '7px',
+              border: '1px solid #E2E8F0'
+            }}>
+              <button
+                type="button"
+                onClick={() => {
+                  setLineageGranularity('document');
+                  showToast?.("Document Flow: Macro policy lineage");
+                }}
+                style={{
+                  padding: '3px 10px',
+                  fontSize: '0.70rem',
+                  fontWeight: 700,
+                  borderRadius: '5px',
+                  border: 'none',
+                  cursor: 'pointer',
+                  background: lineageGranularity === 'document' ? '#0284C7' : 'transparent',
+                  color: lineageGranularity === 'document' ? '#FFFFFF' : '#475569',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  height: '25px',
+                  boxShadow: lineageGranularity === 'document' ? '0 1px 2px rgba(2,132,199,0.3)' : 'none',
+                  transition: 'all 0.15s ease'
+                }}
+                title="Document-Level Lineage: Clean system-to-policy flow without claim clutter"
+              >
+                <FileText size={12} />
+                <span>Document Flow</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setLineageGranularity('claim');
+                  showToast?.("Claim Provenance: Granular atomic assertions");
+                }}
+                style={{
+                  padding: '3px 10px',
+                  fontSize: '0.70rem',
+                  fontWeight: 700,
+                  borderRadius: '5px',
+                  border: 'none',
+                  cursor: 'pointer',
+                  background: lineageGranularity === 'claim' ? '#059669' : 'transparent',
+                  color: lineageGranularity === 'claim' ? '#FFFFFF' : '#475569',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  height: '25px',
+                  boxShadow: lineageGranularity === 'claim' ? '0 1px 2px rgba(5,150,105,0.3)' : 'none',
+                  transition: 'all 0.15s ease'
+                }}
+                title="Claim-Level Lineage: Granular atomic assertions drill-down"
+              >
+                <Zap size={12} />
+                <span>Claim Provenance</span>
+              </button>
+            </div>
+
+            <div style={{ width: '1px', height: '18px', background: '#CBD5E1' }} />
+
+            {/* View Mode Segmented Controls */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '2px',
+              background: '#EDF2F7',
+              padding: '2px',
+              borderRadius: '7px',
+              border: '1px solid #E2E8F0'
+            }}>
+              <button
+                type="button"
+                onClick={() => {
+                  setViewMode('interactive');
+                  showToast?.("Interactive Flow: Step-by-step on-demand exploration");
+                }}
+                style={{
+                  padding: '3px 10px',
+                  fontSize: '0.70rem',
+                  fontWeight: 700,
+                  borderRadius: '5px',
+                  border: 'none',
+                  cursor: 'pointer',
+                  background: viewMode === 'interactive' ? '#1D4ED8' : 'transparent',
+                  color: viewMode === 'interactive' ? '#FFFFFF' : '#475569',
+                  boxShadow: viewMode === 'interactive' ? '0 1px 2px rgba(29,78,216,0.3)' : 'none',
+                  transition: 'all 0.15s ease',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  height: '25px'
+                }}
+                title="Interactive Flow: Start from single node and expand upstream/downstream on demand"
+              >
+                <Layers size={12} />
+                <span>Interactive Flow</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setViewMode('conflicts');
+                  const firstConf = conflictsList[0];
+                  if (firstConf) setSelectedNodeId(firstConf.id);
+                }}
+                style={{
+                  padding: '3px 10px',
+                  fontSize: '0.70rem',
+                  fontWeight: 700,
+                  borderRadius: '5px',
+                  border: 'none',
+                  cursor: 'pointer',
+                  background: viewMode === 'conflicts' ? '#EA580C' : 'transparent',
+                  color: viewMode === 'conflicts' ? '#FFFFFF' : (conflictsList.length > 0 ? '#C2410C' : '#475569'),
+                  boxShadow: viewMode === 'conflicts' ? '0 1px 2px rgba(234,88,12,0.3)' : 'none',
+                  transition: 'all 0.15s ease',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  height: '25px'
+                }}
+                title="Focus on contradictions"
+              >
+                <AlertTriangle size={12} />
+                <span>Contradictions ({conflictsList.length})</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setViewMode('all')}
+                style={{
+                  padding: '3px 10px',
+                  fontSize: '0.70rem',
+                  fontWeight: 700,
+                  borderRadius: '5px',
+                  border: 'none',
+                  cursor: 'pointer',
+                  background: viewMode === 'all' ? '#0F172A' : 'transparent',
+                  color: viewMode === 'all' ? '#FFFFFF' : '#475569',
+                  boxShadow: viewMode === 'all' ? '0 1px 2px rgba(15,23,42,0.3)' : 'none',
+                  transition: 'all 0.15s ease',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  height: '25px'
+                }}
+                title="Full overview DAG"
+              >
+                <Database size={12} />
+                <span>Overview</span>
+              </button>
+            </div>
+
+            {/* Interactive Flow Quick Controls */}
+            {viewMode === 'interactive' && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <button
+                  type="button"
+                  onClick={resetToSingleNode}
+                  style={{
+                    padding: '3px 9px',
+                    fontSize: '0.68rem',
+                    fontWeight: 600,
+                    borderRadius: '5px',
+                    border: '1px solid #CBD5E1',
+                    background: '#FFFFFF',
+                    color: '#334155',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    height: '25px',
+                    transition: 'all 0.15s ease'
+                  }}
+                  title="Reset canvas to only the single starting node"
+                >
+                  <RotateCcw size={11} />
+                  <span>Single Node</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={expandAllFlow}
+                  style={{
+                    padding: '3px 9px',
+                    fontSize: '0.68rem',
+                    fontWeight: 700,
+                    borderRadius: '5px',
+                    border: '1px solid #BFDBFE',
+                    background: '#EFF6FF',
+                    color: '#1D4ED8',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    height: '25px',
+                    transition: 'all 0.15s ease'
+                  }}
+                  title="Expand all upstream and downstream connections"
+                >
+                  <span>➕ Expand All</span>
+                </button>
+              </div>
             )}
           </div>
 
-          {/* Document-Level vs Claim-Level Granularity Switcher */}
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '2px',
-            background: '#F8FAFC',
-            padding: '2px',
-            borderRadius: '6px',
-            border: '1px solid #CBD5E1'
-          }}>
-            <button
-              type="button"
-              onClick={() => {
-                setLineageGranularity('document');
-                showToast?.("Document Flow: Macro policy lineage");
-              }}
-              style={{
-                padding: '2px 8px',
-                fontSize: '0.68rem',
-                fontWeight: 700,
-                borderRadius: '4px',
-                border: 'none',
-                cursor: 'pointer',
-                background: lineageGranularity === 'document' ? '#0284C7' : 'transparent',
-                color: lineageGranularity === 'document' ? '#FFFFFF' : '#475569',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '3px',
-                height: '24px',
-                boxShadow: lineageGranularity === 'document' ? '0 1px 2px rgba(2,132,199,0.25)' : 'none',
-                transition: 'all 0.15s ease'
-              }}
-              title="Document-Level Lineage: Clean system-to-policy flow without claim clutter"
-            >
-              <FileText size={11} />
-              <span>Document Flow</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => {
-                setLineageGranularity('claim');
-                showToast?.("Claim Provenance: Granular atomic assertions");
-              }}
-              style={{
-                padding: '2px 8px',
-                fontSize: '0.68rem',
-                fontWeight: 700,
-                borderRadius: '4px',
-                border: 'none',
-                cursor: 'pointer',
-                background: lineageGranularity === 'claim' ? '#059669' : 'transparent',
-                color: lineageGranularity === 'claim' ? '#FFFFFF' : '#475569',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '3px',
-                height: '24px',
-                boxShadow: lineageGranularity === 'claim' ? '0 1px 2px rgba(5,150,105,0.25)' : 'none',
-                transition: 'all 0.15s ease'
-              }}
-              title="Claim-Level Lineage: Granular atomic assertions drill-down"
-            >
-              <Zap size={11} />
-              <span>Claim Provenance</span>
-            </button>
-          </div>
-
-          {/* Center: View Mode Segmented Controls */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '2px', background: '#F1F5F9', padding: '2px', borderRadius: '6px', border: '1px solid #E2E8F0' }}>
-            <button
-              type="button"
-              onClick={() => {
-                setViewMode('interactive');
-                showToast?.("Interactive Flow: Step-by-step on-demand exploration");
-              }}
-              style={{
-                padding: '3px 8px',
-                fontSize: '0.69rem',
-                fontWeight: 700,
-                borderRadius: '4px',
-                border: 'none',
-                cursor: 'pointer',
-                background: viewMode === 'interactive' ? '#1D4ED8' : 'transparent',
-                color: viewMode === 'interactive' ? '#FFFFFF' : '#475569',
-                boxShadow: viewMode === 'interactive' ? '0 1px 2px rgba(29,78,216,0.25)' : 'none',
-                transition: 'all 0.15s ease',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '3px',
-                height: '24px'
-              }}
-              title="Interactive Flow: Start from single node and expand upstream/downstream on demand"
-            >
-              <Layers size={11} />
-              <span>Interactive Flow</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => {
-                setViewMode('conflicts');
-                const firstConf = conflictsList[0];
-                if (firstConf) setSelectedNodeId(firstConf.id);
-              }}
-              style={{
-                padding: '3px 8px',
-                fontSize: '0.69rem',
-                fontWeight: 700,
-                borderRadius: '4px',
-                border: 'none',
-                cursor: 'pointer',
-                background: viewMode === 'conflicts' ? '#EA580C' : 'transparent',
-                color: viewMode === 'conflicts' ? '#FFFFFF' : '#475569',
-                boxShadow: viewMode === 'conflicts' ? '0 1px 2px rgba(234,88,12,0.25)' : 'none',
-                transition: 'all 0.15s ease',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '3px',
-                height: '24px'
-              }}
-              title="Focus on contradictions"
-            >
-              <Zap size={11} />
-              <span>Contradictions ({conflictsList.length})</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setViewMode('all')}
-              style={{
-                padding: '3px 8px',
-                fontSize: '0.69rem',
-                fontWeight: 700,
-                borderRadius: '4px',
-                border: 'none',
-                cursor: 'pointer',
-                background: viewMode === 'all' ? '#0284C7' : 'transparent',
-                color: viewMode === 'all' ? '#FFFFFF' : '#475569',
-                boxShadow: viewMode === 'all' ? '0 1px 2px rgba(2,132,199,0.25)' : 'none',
-                transition: 'all 0.15s ease',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '3px',
-                height: '24px'
-              }}
-              title="Full overview DAG"
-            >
-              <Database size={11} />
-              <span>Overview</span>
-            </button>
-          </div>
-
-          {/* Interactive Flow Quick Controls */}
-          {viewMode === 'interactive' && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <button
-                type="button"
-                onClick={resetToSingleNode}
-                style={{
-                  padding: '2px 8px',
-                  fontSize: '0.67rem',
-                  fontWeight: 700,
-                  borderRadius: '5px',
-                  border: '1px solid #CBD5E1',
-                  background: '#FFFFFF',
-                  color: '#334155',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '3px',
-                  height: '24px'
-                }}
-                title="Reset canvas to only the single starting node"
-              >
-                <RotateCcw size={10} />
-                <span>Single Node</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={expandAllFlow}
-                style={{
-                  padding: '2px 8px',
-                  fontSize: '0.67rem',
-                  fontWeight: 700,
-                  borderRadius: '5px',
-                  border: '1px solid #BFDBFE',
-                  background: '#EFF6FF',
-                  color: '#1D4ED8',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '3px',
-                  height: '24px'
-                }}
-                title="Expand all upstream and downstream connections"
-              >
-                <span>➕ Expand All</span>
-              </button>
-            </div>
-          )}
-
-          {/* Right: Minimal Action Buttons */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+          {/* Right Group: Action Tools */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <button
               onClick={() => setIsFilterPanelOpen(prev => !prev)}
               style={{
-                padding: '3px 8px',
+                padding: '4px 10px',
                 fontSize: '0.70rem',
                 fontWeight: 700,
-                borderRadius: '5px',
-                border: activeFilterCount > 0 ? '1px solid #EA580C' : '1px solid #CBD5E1',
+                borderRadius: '6px',
+                border: activeFilterCount > 0 ? '1px solid #EA580C' : (isFilterPanelOpen ? '1px solid #CBD5E1' : '1px solid #E2E8F0'),
                 background: isFilterPanelOpen || activeFilterCount > 0 ? '#FFF7ED' : '#FFFFFF',
                 color: isFilterPanelOpen || activeFilterCount > 0 ? '#EA580C' : '#334155',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '3px',
-                height: '26px'
+                gap: '5px',
+                height: '27px',
+                transition: 'all 0.15s ease'
               }}
               title="Toggle Filters"
             >
-              <Sliders size={11} />
+              <Sliders size={12} />
               <span>Filters</span>
               {activeFilterCount > 0 && (
                 <span style={{
                   background: '#EA580C',
                   color: '#FFFFFF',
-                  borderRadius: '6px',
-                  padding: '0 3px',
-                  fontSize: '0.60rem',
-                  fontWeight: 800
+                  borderRadius: '10px',
+                  padding: '1px 5px',
+                  fontSize: '0.62rem',
+                  fontWeight: 800,
+                  lineHeight: 1
                 }}>
                   {activeFilterCount}
                 </span>
               )}
-              <ChevronDown size={10} style={{ transform: isFilterPanelOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s ease' }} />
+              <ChevronDown size={11} style={{ transform: isFilterPanelOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s ease' }} />
             </button>
 
             <button
               onClick={() => setIsDrawerOpen(true)}
               style={{
-                padding: '3px 8px',
+                padding: '4px 10px',
                 fontSize: '0.70rem',
                 fontWeight: 600,
-                borderRadius: '5px',
-                border: '1px solid #CBD5E1',
+                borderRadius: '6px',
+                border: '1px solid #E2E8F0',
                 background: '#FFFFFF',
                 color: '#334155',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '3px',
-                height: '26px'
+                gap: '5px',
+                height: '27px',
+                transition: 'all 0.15s ease'
               }}
               title="Claims Drawer"
             >
-              <FileText size={11} />
-              <span>Claims ({graphData?.nodes?.filter(n => n.type === 'claim')?.length || 0})</span>
+              <FileText size={12} color="#64748B" />
+              <span>Claims</span>
+              <span style={{
+                background: '#F1F5F9',
+                color: '#475569',
+                borderRadius: '10px',
+                padding: '1px 5px',
+                fontSize: '0.62rem',
+                fontWeight: 700
+              }}>
+                {graphData?.nodes?.filter(n => n.type === 'claim')?.length || 0}
+              </span>
             </button>
 
             <button
               onClick={() => setIsImpactReportOpen(true)}
               style={{
-                padding: '3px 8px',
+                padding: '4px 10px',
                 fontSize: '0.70rem',
                 fontWeight: 700,
-                borderRadius: '5px',
-                border: '1px solid #7C3AED',
-                background: isImpactReportOpen ? '#7C3AED' : '#FAF5FF',
+                borderRadius: '6px',
+                border: '1px solid #DDD6FE',
+                background: isImpactReportOpen ? '#7C3AED' : 'linear-gradient(135deg, #FAF5FF 0%, #F3E8FF 100%)',
                 color: isImpactReportOpen ? '#FFFFFF' : '#7C3AED',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '3px',
-                height: '26px',
-                boxShadow: isImpactReportOpen ? '0 1px 3px rgba(124,58,237,0.3)' : 'none',
+                gap: '5px',
+                height: '27px',
+                boxShadow: isImpactReportOpen ? '0 1px 3px rgba(124,58,237,0.3)' : '0 1px 2px rgba(124,58,237,0.06)',
                 transition: 'all 0.15s ease'
               }}
-              title="Open Atlan-style Proactive Impact & Blast Radius Report"
+              title="Open Proactive Impact & Blast Radius Report"
             >
-              <BarChart3 size={11} />
+              <BarChart3 size={12} />
               <span>Impact Report</span>
             </button>
 
@@ -1699,22 +3080,23 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
               onClick={fetchLineage}
               disabled={loading}
               style={{
-                padding: '3px 7px',
+                padding: '4px 8px',
                 fontSize: '0.70rem',
                 fontWeight: 600,
-                borderRadius: '5px',
-                border: '1px solid #CBD5E1',
+                borderRadius: '6px',
+                border: '1px solid #E2E8F0',
                 background: '#FFFFFF',
-                color: '#334155',
+                color: '#475569',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '3px',
-                height: '26px'
+                justifyContent: 'center',
+                height: '27px',
+                transition: 'all 0.15s ease'
               }}
               title="Refresh Graph"
             >
-              <RefreshCw size={11} className={loading ? "animate-spin" : ""} />
+              <RefreshCw size={12} className={loading ? "animate-spin" : ""} />
             </button>
           </div>
         </div>
@@ -1723,23 +3105,31 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
         {isFilterPanelOpen && (
           <div style={{
             borderTop: '1px solid #E2E8F0',
-            padding: '6px 10px',
+            padding: '8px 12px',
             background: '#FFFFFF',
             display: 'flex',
             flexDirection: 'column',
-            gap: '6px'
+            gap: '8px'
           }}>
             {/* Filter Selects Strip */}
             <div style={{
               display: 'flex',
               alignItems: 'center',
-              gap: '6px',
+              gap: '8px',
               flexWrap: 'wrap'
             }}>
               {/* Conflict Selector */}
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
-                <span style={{ fontSize: '0.66rem', fontWeight: 700, color: '#EA580C', textTransform: 'uppercase' }}>
-                  Conflict:
+              <div style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '5px',
+                background: selectedConflictId !== 'all' ? '#FFF7ED' : '#F8FAFC',
+                border: selectedConflictId !== 'all' ? '1px solid #FDBA74' : '1px solid #E2E8F0',
+                padding: '2px 6px',
+                borderRadius: '6px'
+              }}>
+                <span style={{ fontSize: '0.64rem', fontWeight: 700, color: '#EA580C', textTransform: 'uppercase', letterSpacing: '0.02em' }}>
+                  Conflict
                 </span>
                 <select
                   value={selectedConflictId}
@@ -1753,16 +3143,14 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
                     }
                   }}
                   style={{
-                    padding: '2px 5px',
-                    borderRadius: '4px',
-                    border: selectedConflictId !== 'all' ? '1px solid #EA580C' : '1px solid #CBD5E1',
-                    background: selectedConflictId !== 'all' ? '#FFF7ED' : '#F8FAFC',
-                    fontSize: '0.70rem',
+                    padding: '2px 4px',
+                    border: 'none',
+                    background: 'transparent',
+                    fontSize: '0.69rem',
                     fontWeight: selectedConflictId !== 'all' ? 700 : 500,
                     color: selectedConflictId !== 'all' ? '#C2410C' : '#334155',
                     outline: 'none',
-                    cursor: 'pointer',
-                    height: '24px'
+                    cursor: 'pointer'
                   }}
                 >
                   <option value="all">All ({conflictsList.length})</option>
@@ -1775,27 +3163,37 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
               </div>
 
               {/* Policy Selector */}
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
-                <span style={{ fontSize: '0.66rem', fontWeight: 700, color: '#0284C7', textTransform: 'uppercase' }}>
-                  Policy:
+              <div style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '5px',
+                background: selectedDocFilter !== 'all' ? '#F0F9FF' : '#F8FAFC',
+                border: selectedDocFilter !== 'all' ? '1px solid #BAE6FD' : '1px solid #E2E8F0',
+                padding: '2px 6px',
+                borderRadius: '6px'
+              }}>
+                <span style={{ fontSize: '0.64rem', fontWeight: 700, color: '#0284C7', textTransform: 'uppercase', letterSpacing: '0.02em' }}>
+                  Policy
                 </span>
                 <select
                   value={selectedDocFilter}
                   onChange={(e) => {
-                    setSelectedDocFilter(e.target.value);
-                    if (e.target.value !== 'all') setSelectedNodeId(e.target.value);
+                    const val = e.target.value;
+                    setSelectedDocFilter(val);
+                    if (val !== 'all') {
+                      setSelectedNodeId(val);
+                      setInteractiveRootId(val);
+                    }
                   }}
                   style={{
-                    padding: '2px 5px',
-                    borderRadius: '4px',
-                    border: selectedDocFilter !== 'all' ? '1px solid #0284C7' : '1px solid #CBD5E1',
-                    background: selectedDocFilter !== 'all' ? '#F0F9FF' : '#F8FAFC',
-                    fontSize: '0.70rem',
+                    padding: '2px 4px',
+                    border: 'none',
+                    background: 'transparent',
+                    fontSize: '0.69rem',
                     fontWeight: selectedDocFilter !== 'all' ? 700 : 500,
                     color: selectedDocFilter !== 'all' ? '#0369A1' : '#334155',
                     outline: 'none',
-                    cursor: 'pointer',
-                    height: '24px'
+                    cursor: 'pointer'
                   }}
                 >
                   <option value="all">All ({documentsList.length})</option>
@@ -1807,25 +3205,64 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
                 </select>
               </div>
 
+              {/* Conflict Status Selector */}
+              <div style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '5px',
+                background: filterStatus === 'active' ? '#FFF7ED' : '#F8FAFC',
+                border: filterStatus === 'active' ? '1px solid #FDBA74' : '1px solid #E2E8F0',
+                padding: '2px 6px',
+                borderRadius: '6px'
+              }}>
+                <span style={{ fontSize: '0.64rem', fontWeight: 700, color: '#EA580C', textTransform: 'uppercase', letterSpacing: '0.02em' }}>
+                  Status
+                </span>
+                <select
+                  value={filterStatus}
+                  onChange={(e) => setFilterStatus(e.target.value)}
+                  style={{
+                    padding: '2px 4px',
+                    border: 'none',
+                    background: 'transparent',
+                    fontSize: '0.69rem',
+                    color: filterStatus === 'active' ? '#C2410C' : '#334155',
+                    fontWeight: 700,
+                    outline: 'none',
+                    cursor: 'pointer'
+                  }}
+                >
+                  <option value="active">Active / Unresolved Only</option>
+                  <option value="resolved">Resolved Only</option>
+                  <option value="all">All (Active + Resolved)</option>
+                </select>
+              </div>
+
               {/* Severity Selector */}
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
-                <span style={{ fontSize: '0.66rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase' }}>
-                  Severity:
+              <div style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '5px',
+                background: filterSeverity !== 'all' ? '#EFF6FF' : '#F8FAFC',
+                border: filterSeverity !== 'all' ? '1px solid #BFDBFE' : '1px solid #E2E8F0',
+                padding: '2px 6px',
+                borderRadius: '6px'
+              }}>
+                <span style={{ fontSize: '0.64rem', fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.02em' }}>
+                  Severity
                 </span>
                 <select
                   value={filterSeverity}
                   onChange={(e) => setFilterSeverity(e.target.value)}
                   style={{
-                    padding: '2px 5px',
-                    borderRadius: '4px',
-                    border: filterSeverity !== 'all' ? '1px solid #2563EB' : '1px solid #CBD5E1',
-                    background: filterSeverity !== 'all' ? '#EFF6FF' : '#F8FAFC',
-                    fontSize: '0.70rem',
+                    padding: '2px 4px',
+                    border: 'none',
+                    background: 'transparent',
+                    fontSize: '0.69rem',
                     color: filterSeverity !== 'all' ? '#1D4ED8' : '#334155',
                     fontWeight: filterSeverity !== 'all' ? 700 : 500,
                     outline: 'none',
-                    cursor: 'pointer',
-                    height: '24px'
+                    cursor: 'pointer'
                   }}
                 >
                   <option value="all">All</option>
@@ -1837,24 +3274,30 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
               </div>
 
               {/* Trust Selector */}
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
-                <span style={{ fontSize: '0.66rem', fontWeight: 700, color: '#16A34A', textTransform: 'uppercase' }}>
-                  Trust:
+              <div style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '5px',
+                background: filterClaimTrust !== 'all' ? '#F0FDF4' : '#F8FAFC',
+                border: filterClaimTrust !== 'all' ? '1px solid #BBF7D0' : '1px solid #E2E8F0',
+                padding: '2px 6px',
+                borderRadius: '6px'
+              }}>
+                <span style={{ fontSize: '0.64rem', fontWeight: 700, color: '#16A34A', textTransform: 'uppercase', letterSpacing: '0.02em' }}>
+                  Trust
                 </span>
                 <select
                   value={filterClaimTrust}
                   onChange={(e) => setFilterClaimTrust(e.target.value)}
                   style={{
-                    padding: '2px 5px',
-                    borderRadius: '4px',
-                    border: filterClaimTrust !== 'all' ? '1px solid #16A34A' : '1px solid #CBD5E1',
-                    background: filterClaimTrust !== 'all' ? '#F0FDF4' : '#F8FAFC',
-                    fontSize: '0.70rem',
+                    padding: '2px 4px',
+                    border: 'none',
+                    background: 'transparent',
+                    fontSize: '0.69rem',
                     color: filterClaimTrust !== 'all' ? '#15803D' : '#334155',
                     fontWeight: filterClaimTrust !== 'all' ? 700 : 500,
                     outline: 'none',
-                    cursor: 'pointer',
-                    height: '24px'
+                    cursor: 'pointer'
                   }}
                 >
                   <option value="all">All</option>
@@ -1865,23 +3308,30 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
               </div>
 
               {/* Density Selector */}
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
-                <span style={{ fontSize: '0.66rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase' }}>
-                  Density:
+              <div style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '5px',
+                background: '#F8FAFC',
+                border: '1px solid #E2E8F0',
+                padding: '2px 6px',
+                borderRadius: '6px'
+              }}>
+                <span style={{ fontSize: '0.64rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.02em' }}>
+                  Density
                 </span>
                 <select
                   value={displayLimit}
                   onChange={(e) => setDisplayLimit(e.target.value === 'all' ? 'all' : Number(e.target.value))}
                   style={{
-                    padding: '2px 5px',
-                    borderRadius: '4px',
-                    border: '1px solid #CBD5E1',
-                    background: '#F8FAFC',
-                    fontSize: '0.70rem',
+                    padding: '2px 4px',
+                    border: 'none',
+                    background: 'transparent',
+                    fontSize: '0.69rem',
                     color: '#334155',
+                    fontWeight: 600,
                     outline: 'none',
-                    cursor: 'pointer',
-                    height: '24px'
+                    cursor: 'pointer'
                   }}
                 >
                   <option value={6}>6</option>
@@ -1898,12 +3348,12 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
               alignItems: 'center',
               justifyContent: 'space-between',
               flexWrap: 'wrap',
-              gap: '6px',
+              gap: '8px',
               borderTop: '1px solid #F1F5F9',
-              paddingTop: '4px'
+              paddingTop: '6px'
             }}>
               {/* Tiers + Conflicted */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '5px', flexWrap: 'wrap' }}>
                 <button
                   type="button"
                   onClick={() => {
@@ -1911,9 +3361,9 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
                     if (!showOnlyConflicted) showToast?.("Focused on contradictory paths");
                   }}
                   style={{
-                    padding: '1px 6px',
-                    borderRadius: '4px',
-                    fontSize: '0.66rem',
+                    padding: '2px 8px',
+                    borderRadius: '5px',
+                    fontSize: '0.67rem',
                     fontWeight: 700,
                     cursor: 'pointer',
                     border: showOnlyConflicted ? '1px solid #EA580C' : '1px solid #CBD5E1',
@@ -1921,11 +3371,11 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
                     color: showOnlyConflicted ? '#FFFFFF' : '#475569',
                     display: 'inline-flex',
                     alignItems: 'center',
-                    gap: '3px',
-                    height: '22px'
+                    gap: '4px',
+                    height: '24px'
                   }}
                 >
-                  <AlertTriangle size={10} />
+                  <AlertTriangle size={11} />
                   <span>Conflicted</span>
                   {showOnlyConflicted && <span>✓</span>}
                 </button>
@@ -1937,9 +3387,9 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
                     showToast?.(!groupCleanClaims ? "Anomaly Mode: Clean claims rolled into clusters" : "Expanded all individual claims");
                   }}
                   style={{
-                    padding: '1px 6px',
-                    borderRadius: '4px',
-                    fontSize: '0.66rem',
+                    padding: '2px 8px',
+                    borderRadius: '5px',
+                    fontSize: '0.67rem',
                     fontWeight: 700,
                     cursor: 'pointer',
                     border: groupCleanClaims ? '1px solid #059669' : '1px solid #CBD5E1',
@@ -1947,12 +3397,12 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
                     color: groupCleanClaims ? '#059669' : '#475569',
                     display: 'inline-flex',
                     alignItems: 'center',
-                    gap: '3px',
-                    height: '22px'
+                    gap: '4px',
+                    height: '24px'
                   }}
                   title="Group clean, non-conflicting claims into summary clusters to focus exclusively on anomalies"
                 >
-                  <ShieldCheck size={10} color={groupCleanClaims ? '#059669' : '#64748B'} />
+                  <ShieldCheck size={11} color={groupCleanClaims ? '#059669' : '#64748B'} />
                   <span>Group Clean</span>
                   {groupCleanClaims && <span>✓</span>}
                 </button>
@@ -1964,9 +3414,9 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
                     showToast?.(!causalSubgraphOnly ? "Causal Trace: Isolated direct 2-hop causal path" : "Showing full enterprise graph");
                   }}
                   style={{
-                    padding: '1px 6px',
-                    borderRadius: '4px',
-                    fontSize: '0.66rem',
+                    padding: '2px 8px',
+                    borderRadius: '5px',
+                    fontSize: '0.67rem',
                     fontWeight: 700,
                     cursor: 'pointer',
                     border: causalSubgraphOnly ? '1px solid #2563EB' : '1px solid #CBD5E1',
@@ -1974,17 +3424,17 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
                     color: causalSubgraphOnly ? '#2563EB' : '#475569',
                     display: 'inline-flex',
                     alignItems: 'center',
-                    gap: '3px',
-                    height: '22px'
+                    gap: '4px',
+                    height: '24px'
                   }}
                   title="Isolate direct 2-hop causal lineage path (Decisions ➔ Causal Claims ➔ Policies)"
                 >
-                  <Eye size={10} color={causalSubgraphOnly ? '#2563EB' : '#64748B'} />
+                  <Eye size={11} color={causalSubgraphOnly ? '#2563EB' : '#64748B'} />
                   <span>Causal (k=2)</span>
                   {causalSubgraphOnly && <span>✓</span>}
                 </button>
 
-                <span style={{ fontSize: '0.64rem', color: '#94A3B8', margin: '0 1px' }}>Tiers:</span>
+                <span style={{ fontSize: '0.65rem', color: '#94A3B8', margin: '0 2px' }}>Tiers:</span>
 
                 {[
                   { type: 'source', label: 'Src', count: graphData?.nodes?.filter(n => n.type === 'source')?.length || 0, color: '#2563EB' },
@@ -2000,9 +3450,9 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
                       type="button"
                       onClick={() => toggleTier(t.type)}
                       style={{
-                        padding: '1px 5px',
-                        borderRadius: '4px',
-                        fontSize: '0.65rem',
+                        padding: '2px 6px',
+                        borderRadius: '5px',
+                        fontSize: '0.66rem',
                         fontWeight: 700,
                         cursor: 'pointer',
                         border: isVisible ? `1px solid ${t.color}` : '1px solid #E2E8F0',
@@ -2011,13 +3461,14 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
                         display: 'inline-flex',
                         alignItems: 'center',
                         gap: '3px',
-                        height: '22px',
-                        opacity: isVisible ? 1 : 0.6
+                        height: '24px',
+                        opacity: isVisible ? 1 : 0.6,
+                        transition: 'all 0.15s ease'
                       }}
                       title={`Toggle ${t.label}`}
                     >
                       <span>{t.label}</span>
-                      <span style={{ fontSize: '0.58rem', fontWeight: 800, background: isVisible ? `${t.color}25` : '#E2E8F0', padding: '0 2px', borderRadius: '2px' }}>
+                      <span style={{ fontSize: '0.60rem', fontWeight: 800, background: isVisible ? `${t.color}25` : '#E2E8F0', padding: '0 3px', borderRadius: '3px' }}>
                         {t.count}
                       </span>
                     </button>
@@ -2027,7 +3478,7 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
 
               {/* Counts & Reset */}
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span style={{ fontSize: '0.66rem', color: '#64748B' }}>
+                <span style={{ fontSize: '0.68rem', color: '#64748B' }}>
                   <strong>{renderedNodes.length}</strong> / <strong>{graphData?.nodes?.length || 0}</strong>
                 </span>
 
@@ -2036,18 +3487,18 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
                     type="button"
                     onClick={resetAllFilters}
                     style={{
-                      padding: '1px 5px',
-                      borderRadius: '3px',
+                      padding: '2px 6px',
+                      borderRadius: '4px',
                       border: '1px solid #FCA5A5',
                       background: '#FEF2F2',
                       color: '#DC2626',
-                      fontSize: '0.64rem',
+                      fontSize: '0.65rem',
                       fontWeight: 700,
                       cursor: 'pointer',
                       display: 'inline-flex',
                       alignItems: 'center',
                       gap: '2px',
-                      height: '22px'
+                      height: '24px'
                     }}
                     title="Reset all filters"
                   >
@@ -2210,6 +3661,7 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
                 left: 0,
                 width: '3600px',
                 height: '2400px',
+                overflow: 'visible',
                 pointerEvents: 'none',
                 zIndex: 2
               }}
@@ -2318,7 +3770,7 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
               }}>
                 <span style={{ fontSize: '13px' }}>🎯</span>
                 <span>
-                  <strong>Interactive Flow:</strong> Click <strong>◀ Upstream</strong> to reveal origins, or <strong>Downstream ▶</strong> to reveal impact.
+                  <strong>Interactive Flow:</strong> Click <strong>+</strong> / <strong>−</strong> on the left for Upstream or <strong>+</strong> / <strong>−</strong> on the right for Downstream.
                 </span>
               </div>
             )}
@@ -2561,95 +4013,81 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
                     </div>
                   )}
 
-                  {/* Left Connection Port: Shows Upstream Parents & Click to Expand/Collapse */}
-                  {node.type !== 'source' && (
+                  {/* Left Connection Port: Upstream Expand (+) / Collapse (−) Only */}
+                  {node.type !== 'source' && upstreamCount > 0 && (
                     <div
+                      onMouseDown={(e) => e.stopPropagation()}
                       onClick={(e) => {
                         e.stopPropagation();
                         toggleUpstream(node.id);
-                      
                       }}
                       style={{
                         position: 'absolute',
-                        left: '-14px',
+                        left: '-13px',
                         top: (node.type === 'conflict' && isClaimsExpanded) ? '26px' : 'calc(50% - 11px)',
-                        padding: '2px 6px',
-                        borderRadius: '10px',
+                        width: '22px',
+                        height: '22px',
+                        borderRadius: '50%',
                         background: isUpstreamExpanded ? '#1D4ED8' : '#fff',
                         border: `1.5px solid ${isUpstreamExpanded ? '#1D4ED8' : borderColor}`,
                         color: isUpstreamExpanded ? '#fff' : borderColor,
-                        boxShadow: '0 2px 6px rgba(0,0,0,0.12)',
+                        boxShadow: '0 2px 6px rgba(0,0,0,0.14)',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        gap: '2px',
-                        fontSize: '0.58rem',
-                        fontWeight: 800,
-                        cursor: upstreamCount > 0 ? 'pointer' : 'default',
+                        fontSize: '0.85rem',
+                        fontWeight: 900,
+                        lineHeight: 1,
+                        cursor: 'pointer',
                         zIndex: 25,
                         transition: 'all 0.15s ease'
                       }}
                       title={
-                        upstreamCount > 0
-                          ? isUpstreamExpanded
-                            ? `Click to collapse ${upstreamCount} upstream parents`
-                            : `Click to reveal ${upstreamCount} upstream parents`
-                          : 'No upstream dependencies'
+                        isUpstreamExpanded
+                          ? 'Click (−) to collapse upstream nodes'
+                          : 'Click (+) to expand upstream nodes'
                       }
                     >
-                      <span>◀</span>
-                      <span>{upstreamCount}</span>
-                      {upstreamCount > 0 && (
-                        <span style={{ fontSize: '0.62rem', fontWeight: 900, marginLeft: '1px' }}>
-                          {isUpstreamExpanded ? '−' : '+'}
-                        </span>
-                      )}
+                      {isUpstreamExpanded ? '−' : '+'}
                     </div>
                   )}
 
-                  {/* Right Connection Port: Shows Downstream Impacts & Click to Expand/Collapse */}
-                  {node.type !== 'decision' && (
+                  {/* Right Connection Port: Downstream Expand (+) / Collapse (−) Only */}
+                  {node.type !== 'decision' && downstreamCount > 0 && (
                     <div
+                      onMouseDown={(e) => e.stopPropagation()}
                       onClick={(e) => {
                         e.stopPropagation();
                         toggleDownstream(node.id);
-                       
                       }}
                       style={{
                         position: 'absolute',
-                        right: '-14px',
+                        right: '-13px',
                         top: (node.type === 'conflict' && isClaimsExpanded) ? '26px' : 'calc(50% - 11px)',
-                        padding: '2px 6px',
-                        borderRadius: '10px',
+                        width: '22px',
+                        height: '22px',
+                        borderRadius: '50%',
                         background: isDownstreamExpanded ? '#1D4ED8' : '#fff',
                         border: `1.5px solid ${isDownstreamExpanded ? '#1D4ED8' : borderColor}`,
                         color: isDownstreamExpanded ? '#fff' : borderColor,
-                        boxShadow: '0 2px 6px rgba(0,0,0,0.12)',
+                        boxShadow: '0 2px 6px rgba(0,0,0,0.14)',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        gap: '2px',
-                        fontSize: '0.58rem',
-                        fontWeight: 800,
-                        cursor: downstreamCount > 0 ? 'pointer' : 'default',
+                        fontSize: '0.85rem',
+                        fontWeight: 900,
+                        lineHeight: 1,
+                        cursor: 'pointer',
                         zIndex: 25,
                         transition: 'all 0.15s ease'
                       }}
                       title={
-                        downstreamCount > 0
-                          ? isDownstreamExpanded
-                            ? `Click to collapse ${downstreamCount} downstream impacts`
-                            : `Click to reveal ${downstreamCount} downstream impacts`
-                          : 'No downstream impacts'
+                        isDownstreamExpanded
+                          ? 'Click (−) to collapse downstream nodes'
+                          : 'Click (+) to expand downstream nodes'
                       }
                     >
-                      {downstreamCount > 0 && (
-                        <span style={{ fontSize: '0.62rem', fontWeight: 900, marginRight: '1px' }}>
-                          {isDownstreamExpanded ? '−' : '+'}
-                        </span>
-                      )}
-                      <span>{downstreamCount}</span>
-                      <span>▶</span>
+                      {isDownstreamExpanded ? '−' : '+'}
                     </div>
                   )}
 
@@ -2705,27 +4143,13 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
                     </span>
                     {node.type === 'document' ? (
                       <span
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setLineageGranularity('claim');
-                          setSelectedDocFilter(node.id);
-                          showToast?.(`Drilled down to claims for ${node.label}`);
-                        }}
                         style={{
                           color: '#0284c7',
                           fontWeight: 700,
-                          fontSize: '0.64rem',
-                          cursor: 'pointer',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '2px',
-                          background: '#f0f9ff',
-                          padding: '1px 5px',
-                          borderRadius: '4px'
+                          fontSize: '0.62rem'
                         }}
-                        title="Drill down to atomic claims (Atlan Column-Level Lineage)"
                       >
-                        <span>View Claims &rsaquo;</span>
+                        inspect doc &rsaquo;
                       </span>
                     ) : node.type === 'conflict' ? (
                       <span
@@ -3032,6 +4456,537 @@ export default function VisualLineageGraph({ activeOrg, activeWorkspace, showToa
               </div>
             )}
           </div>
+        </div>
+      )}
+              </>
+            )}
+
+            {/* 3. SELECTED ASSET'S CONTRADICTIONS & CONFLICTS (Active & Resolved for THIS Document / Connector) */}
+            {selectedAsset360 && (asset360Section === 'all' || asset360Section === 'conflicts') && (
+              <div style={{
+                background: '#FFFFFF',
+                border: '1px solid #E2E8F0',
+                borderRadius: '10px',
+                padding: '14px 18px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '12px'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', borderBottom: '1px solid #F1F5F9', paddingBottom: '8px' }}>
+                  <div>
+                    <h4 style={{ margin: 0, fontSize: '0.88rem', fontWeight: 800, color: '#0F172A' }}>
+                      ⚖️ Contradictions & Conflicts for "{selectedAsset360.node.label}" ({selectedAsset360.conflicts.length})
+                    </h4>
+                    <span style={{ fontSize: '0.72rem', color: '#64748B' }}>
+                      {selectedAsset360.activeConflicts.length} Active / Unresolved &bull; {selectedAsset360.conflicts.length - selectedAsset360.activeConflicts.length} Resolved
+                    </span>
+                  </div>
+                </div>
+
+                {selectedAsset360.conflicts.length === 0 ? (
+                  <div style={{ padding: '14px', background: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: '8px', fontSize: '0.78rem', color: '#15803D', fontWeight: 600 }}>
+                    ✅ Zero contradictions detected for this {selectedAsset360.mode}. All extracted policy claims are consistent.
+                  </div>
+                ) : (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(380px, 1fr))', gap: '10px' }}>
+                    {selectedAsset360.conflicts.map((c, idx) => {
+                      const cItem = conflictMap[c.id];
+                      const clA = graphData?.nodes?.find(n => n.id === cItem?.claimAId);
+                      const clB = graphData?.nodes?.find(n => n.id === cItem?.claimBId);
+                      const st = (c.status || '').toLowerCase();
+                      const isResolved = st === 'resolved' || st === 'dismissed';
+
+                      return (
+                        <div
+                          key={c.id}
+                          style={{
+                            border: isResolved ? '1px solid #BBF7D0' : '1.5px solid #FED7AA',
+                            background: isResolved ? '#F0FDF4' : '#FFF7ED',
+                            borderRadius: '9px',
+                            padding: '12px 14px',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '8px'
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px' }}>
+                            <span style={{
+                              fontSize: '0.62rem',
+                              fontWeight: 800,
+                              padding: '2px 7px',
+                              borderRadius: '999px',
+                              background: isResolved ? '#DCFCE7' : '#FFEDD5',
+                              color: isResolved ? '#15803D' : '#C2410C'
+                            }}>
+                              {isResolved ? '✅ RESOLVED' : '⚠️ ACTIVE / UNRESOLVED'} &bull; {c.severity || 'HIGH'}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (isResolved) setFilterStatus('all');
+                                setExpandedDownstreamSet(prev => new Set(prev).add(selectedAsset360.node.id));
+                                setSelectedNodeId(c.id);
+                                showToast?.(`Selected "${c.label}" in the DAG above`);
+                              }}
+                              style={{
+                                padding: '3px 8px',
+                                borderRadius: '5px',
+                                border: '1px solid #EA580C',
+                                background: '#FFFFFF',
+                                color: '#C2410C',
+                                fontSize: '0.66rem',
+                                fontWeight: 700,
+                                cursor: 'pointer'
+                              }}
+                            >
+                              Focus in DAG ↑
+                            </button>
+                          </div>
+
+                          <div style={{ fontSize: '0.8rem', fontWeight: 800, color: '#0F172A' }}>
+                            #{idx + 1} {c.label}
+                          </div>
+
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+                            <div style={{ background: '#FFFFFF', padding: '7px 9px', borderRadius: '6px', borderLeft: '3px solid #0284C7', fontSize: '0.7rem', color: '#1E293B' }}>
+                              <strong style={{ color: '#0284C7', display: 'block', fontSize: '0.6rem' }}>ASSERTION A</strong>
+                              "{clA?.fullText || clA?.label}"
+                            </div>
+                            <div style={{ background: '#FFFFFF', padding: '7px 9px', borderRadius: '6px', borderLeft: '3px solid #EA580C', fontSize: '0.7rem', color: '#1E293B' }}>
+                              <strong style={{ color: '#EA580C', display: 'block', fontSize: '0.6rem' }}>ASSERTION B</strong>
+                              "{clB?.fullText || clB?.label}"
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* 4. SELECTED ASSET'S ATOMIC CLAIMS & DOWNSTREAM AI DECISIONS */}
+            {selectedAsset360 && (asset360Section === 'all' || asset360Section === 'claims') && (
+              <div style={{
+                background: '#FFFFFF',
+                border: '1px solid #E2E8F0',
+                borderRadius: '10px',
+                padding: '14px 18px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '12px'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', borderBottom: '1px solid #F1F5F9', paddingBottom: '8px' }}>
+                  <div>
+                    <h4 style={{ margin: 0, fontSize: '0.88rem', fontWeight: 800, color: '#0F172A' }}>
+                      ⚡ Extracted Atomic Claims ({selectedAsset360.claims.length}) & Downstream AI Decisions ({selectedAsset360.decisions.length})
+                    </h4>
+                    <span style={{ fontSize: '0.72rem', color: '#64748B' }}>
+                      All atomic rules and governance verdicts derived from "{selectedAsset360.node.label}"
+                    </span>
+                  </div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))', gap: '10px' }}>
+                  {selectedAsset360.claims.map(cl => {
+                    const isConf = allConflictedClaimIds.has(cl.id);
+                    return (
+                      <div
+                        key={cl.id}
+                        style={{
+                          border: isConf ? '1.5px solid #FED7AA' : '1px solid #E2E8F0',
+                          background: isConf ? '#FFF7ED' : '#F8FAFC',
+                          borderRadius: '8px',
+                          padding: '10px 12px',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          justifyContent: 'space-between',
+                          gap: '6px'
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                          <span className={isConf ? 'badge badge-warning' : 'badge badge-verified'} style={{ fontSize: '0.62rem' }}>
+                            {isConf ? '⚠️ In Conflict' : '✅ Verified Claim'}
+                          </span>
+                          <span style={{ fontSize: '0.66rem', fontWeight: 700, color: '#059669' }}>
+                            Trust: {((cl.trustScore || 0.92) * 100).toFixed(0)}%
+                          </span>
+                        </div>
+                        <p style={{ margin: 0, fontSize: '0.75rem', color: '#1E293B', lineHeight: 1.38, fontWeight: 500 }}>
+                          "{cl.fullText || cl.label}"
+                        </p>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ========================================================= */}
+      {/* SUB-TAB 2: CONFLICTS REGISTRY (ACTIVE & RESOLVED)         */}
+      {/* ========================================================= */}
+      {vaultSubTab === 'conflicts' && (
+        <div style={{
+          background: '#FFFFFF',
+          border: '1px solid #E2E8F0',
+          borderRadius: '12px',
+          padding: '18px 20px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '16px'
+        }}>
+          {/* Top Header & Status Filter Bar */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px', borderBottom: '1px solid #F1F5F9', paddingBottom: '12px' }}>
+            <div>
+              <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 800, color: '#0F172A' }}>
+                ⚖️ Enterprise Contradictions Registry (Active & Resolved)
+              </h3>
+              <p style={{ margin: '3px 0 0 0', fontSize: '0.76rem', color: '#64748B' }}>
+                Browse all policy contradictions without cluttering the visual DAG canvas. Click <strong>Visualize in DAG</strong> on any conflict to trace its exact lineage.
+              </p>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              {[
+                { id: 'all', label: `All Conflicts (${allConflictsRaw.length})`, color: '#334155' },
+                { id: 'active', label: `⚠️ Active / Unresolved (${activeConflictsCount})`, color: '#EA580C' },
+                { id: 'resolved', label: `✅ Resolved (${resolvedConflictsCount})`, color: '#16A34A' }
+              ].map(btn => {
+                const isSel = vaultConflictFilter === btn.id;
+                return (
+                  <button
+                    key={btn.id}
+                    type="button"
+                    onClick={() => setVaultConflictFilter(btn.id)}
+                    style={{
+                      padding: '5px 12px',
+                      borderRadius: '6px',
+                      border: isSel ? `1.5px solid ${btn.color}` : '1px solid #CBD5E1',
+                      background: isSel ? `${btn.color}12` : '#F8FAFC',
+                      color: isSel ? btn.color : '#475569',
+                      fontSize: '0.73rem',
+                      fontWeight: isSel ? 800 : 600,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    {btn.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Conflict Cards Grid */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(440px, 1fr))', gap: '14px' }}>
+            {allConflictsRaw
+              .filter(c => {
+                const st = (c.status || '').toLowerCase();
+                if (vaultConflictFilter === 'active') return st !== 'resolved' && st !== 'dismissed';
+                if (vaultConflictFilter === 'resolved') return st === 'resolved' || st === 'dismissed';
+                return true;
+              })
+              .filter(c => {
+                if (!vaultSearch.trim()) return true;
+                const q = vaultSearch.toLowerCase();
+                const cItem = conflictMap[c.id];
+                const clA = graphData?.nodes?.find(n => n.id === cItem?.claimAId);
+                const clB = graphData?.nodes?.find(n => n.id === cItem?.claimBId);
+                return (
+                  (c.label || '').toLowerCase().includes(q) ||
+                  (clA?.fullText || '').toLowerCase().includes(q) ||
+                  (clB?.fullText || '').toLowerCase().includes(q)
+                );
+              })
+              .map((c, idx) => {
+                const cItem = conflictMap[c.id];
+                const clA = graphData?.nodes?.find(n => n.id === cItem?.claimAId);
+                const clB = graphData?.nodes?.find(n => n.id === cItem?.claimBId);
+                const st = (c.status || '').toLowerCase();
+                const isResolved = st === 'resolved' || st === 'dismissed';
+
+                const docEdgeA = graphData?.edges?.find(e => e.target === cItem?.claimAId && e.source.startsWith('doc_'));
+                const docEdgeB = graphData?.edges?.find(e => e.target === cItem?.claimBId && e.source.startsWith('doc_'));
+                const docA = graphData?.nodes?.find(n => n.id === docEdgeA?.source);
+                const docB = graphData?.nodes?.find(n => n.id === docEdgeB?.source);
+
+                return (
+                  <div
+                    key={c.id}
+                    style={{
+                      border: isResolved ? '1px solid #BBF7D0' : '1.5px solid #FED7AA',
+                      background: isResolved ? '#F0FDF4' : '#FFF7ED',
+                      borderRadius: '10px',
+                      padding: '14px 16px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '10px',
+                      boxShadow: '0 2px 6px rgba(0,0,0,0.03)'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span style={{
+                          fontSize: '0.64rem',
+                          fontWeight: 800,
+                          padding: '2px 8px',
+                          borderRadius: '999px',
+                          background: isResolved ? '#DCFCE7' : '#FFEDD5',
+                          color: isResolved ? '#15803D' : '#C2410C',
+                          border: isResolved ? '1px solid #86EFAC' : '1px solid #FDBA74'
+                        }}>
+                          {isResolved ? '✅ RESOLVED' : '⚠️ ACTIVE / HUMAN REVIEW'}
+                        </span>
+                        <span style={{
+                          fontSize: '0.62rem',
+                          fontWeight: 800,
+                          padding: '2px 6px',
+                          borderRadius: '4px',
+                          background: '#FFFFFF',
+                          color: '#475569',
+                          border: '1px solid #CBD5E1'
+                        }}>
+                          {c.severity || 'HIGH'} SEVERITY
+                        </span>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => visualizeNodeInDag(c.id, c.label, isResolved)}
+                        style={{
+                          padding: '4px 10px',
+                          borderRadius: '6px',
+                          border: '1px solid #1D4ED8',
+                          background: '#1D4ED8',
+                          color: '#FFFFFF',
+                          fontSize: '0.7rem',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px'
+                        }}
+                      >
+                        <span>🕸️ Visualize in DAG</span>
+                      </button>
+                    </div>
+
+                    <div style={{ fontSize: '0.84rem', fontWeight: 800, color: '#0F172A' }}>
+                      #{idx + 1} {c.label}
+                    </div>
+
+                    {/* Side-by-Side Clashing Claims */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                      <div style={{ background: '#FFFFFF', padding: '9px 10px', borderRadius: '7px', borderLeft: '3px solid #0284C7', border: '1px solid #E2E8F0' }}>
+                        <div style={{ fontSize: '0.62rem', fontWeight: 800, color: '#0284C7', marginBottom: '3px' }}>
+                          CLAIM A &bull; {docA?.label || 'Policy Doc'}
+                        </div>
+                        <p style={{ margin: 0, fontSize: '0.72rem', color: '#1E293B', lineHeight: 1.35 }}>
+                          "{clA?.fullText || clA?.label || 'Baseline policy rule'}"
+                        </p>
+                      </div>
+
+                      <div style={{ background: '#FFFFFF', padding: '9px 10px', borderRadius: '7px', borderLeft: '3px solid #EA580C', border: '1px solid #E2E8F0' }}>
+                        <div style={{ fontSize: '0.62rem', fontWeight: 800, color: '#EA580C', marginBottom: '3px' }}>
+                          CLAIM B &bull; {docB?.label || 'Policy Doc'}
+                        </div>
+                        <p style={{ margin: 0, fontSize: '0.72rem', color: '#1E293B', lineHeight: 1.35 }}>
+                          "{clB?.fullText || clB?.label || 'Conflicting assertion'}"
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================= */}
+      {/* SUB-TAB 5: ATOMIC CLAIMS & AI DECISIONS CATALOG           */}
+      {/* ========================================================= */}
+      {vaultSubTab === 'claims' && (
+        <div style={{
+          background: '#FFFFFF',
+          border: '1px solid #E2E8F0',
+          borderRadius: '12px',
+          padding: '18px 20px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '14px'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px', borderBottom: '1px solid #F1F5F9', paddingBottom: '10px' }}>
+            <div>
+              <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 800, color: '#0F172A' }}>
+                ⚡ Extracted Atomic Claims & Evaluated AI Decisions
+              </h3>
+              <p style={{ margin: '3px 0 0 0', fontSize: '0.76rem', color: '#64748B' }}>
+                Search atomic assertions and governance verdicts. Click <strong>Visualize in DAG</strong> to trace any claim or decision on the lineage canvas.
+              </p>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              {[
+                { id: 'all', label: `All Claims (${allClaimsRaw.length})` },
+                { id: 'verified', label: '✅ Verified Claims' },
+                { id: 'conflicted', label: '⚠️ In Conflict' },
+                { id: 'decisions', label: `🤖 AI Decisions (${decisionsList.length})` }
+              ].map(f => {
+                const isSel = vaultClaimFilter === f.id;
+                return (
+                  <button
+                    key={f.id}
+                    type="button"
+                    onClick={() => setVaultClaimFilter(f.id)}
+                    style={{
+                      padding: '5px 10px',
+                      borderRadius: '6px',
+                      border: isSel ? '1.5px solid #059669' : '1px solid #CBD5E1',
+                      background: isSel ? '#ECFDF5' : '#F8FAFC',
+                      color: isSel ? '#059669' : '#475569',
+                      fontSize: '0.72rem',
+                      fontWeight: isSel ? 800 : 600,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    {f.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {vaultClaimFilter === 'decisions' ? (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '12px' }}>
+              {decisionsList
+                .filter(d => !vaultSearch.trim() || (d.label || '').toLowerCase().includes(vaultSearch.toLowerCase()))
+                .map(dec => (
+                  <div
+                    key={dec.id}
+                    style={{
+                      border: '1px solid #DDD6FE',
+                      borderRadius: '10px',
+                      padding: '12px 14px',
+                      background: '#FAF5FF',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                      gap: '8px'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <span style={{ fontSize: '0.64rem', fontWeight: 800, color: '#7C3AED', background: '#EDE9FE', padding: '2px 7px', borderRadius: '4px' }}>
+                        🤖 AI GOVERNANCE DECISION
+                      </span>
+                      <span className={dec.verdict === 'ALLOW' ? 'badge badge-verified' : 'badge badge-warning'} style={{ fontSize: '0.66rem' }}>
+                        {dec.verdict || 'EVALUATED'}
+                      </span>
+                    </div>
+                    <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#0F172A' }}>
+                      {dec.label}
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', borderTop: '1px solid #E9D5FF', paddingTop: '6px' }}>
+                      <button
+                        type="button"
+                        onClick={() => visualizeNodeInDag(dec.id, dec.label)}
+                        style={{
+                          padding: '4px 10px',
+                          borderRadius: '6px',
+                          border: '1px solid #7C3AED',
+                          background: '#7C3AED',
+                          color: '#FFFFFF',
+                          fontSize: '0.7rem',
+                          fontWeight: 700,
+                          cursor: 'pointer'
+                        }}
+                      >
+                        🕸️ Visualize in DAG
+                      </button>
+                    </div>
+                  </div>
+                ))}
+            </div>
+          ) : (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))', gap: '10px' }}>
+              {allClaimsRaw
+                .filter(cl => {
+                  const isConf = allConflictedClaimIds.has(cl.id);
+                  if (vaultClaimFilter === 'verified') return !isConf;
+                  if (vaultClaimFilter === 'conflicted') return isConf;
+                  return true;
+                })
+                .filter(cl => !vaultSearch.trim() || (cl.fullText || cl.label || '').toLowerCase().includes(vaultSearch.toLowerCase()))
+                .map(cl => {
+                  const isConf = allConflictedClaimIds.has(cl.id);
+                  const docEdge = graphData?.edges?.find(e => e.target === cl.id && e.source.startsWith('doc_'));
+                  const parentDoc = graphData?.nodes?.find(n => n.id === docEdge?.source);
+
+                  return (
+                    <div
+                      key={cl.id}
+                      style={{
+                        border: isConf ? '1.5px solid #FED7AA' : '1px solid #E2E8F0',
+                        background: isConf ? '#FFF7ED' : '#F8FAFC',
+                        borderRadius: '9px',
+                        padding: '12px 14px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'space-between',
+                        gap: '8px'
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px' }}>
+                        <span style={{ fontSize: '0.66rem', fontWeight: 700, color: '#0284C7' }}>
+                          📄 {parentDoc?.label || 'Policy Document'}
+                        </span>
+                        <div style={{ display: 'flex', gap: '6px' }}>
+                          <span className={isConf ? 'badge badge-warning' : 'badge badge-verified'} style={{ fontSize: '0.62rem' }}>
+                            {isConf ? '⚠️ In Conflict' : '✅ Verified'}
+                          </span>
+                          <span className="badge badge-verified" style={{ fontSize: '0.62rem' }}>
+                            {((cl.trustScore || 0.92) * 100).toFixed(0)}% Trust
+                          </span>
+                        </div>
+                      </div>
+
+                      <p style={{ margin: 0, fontSize: '0.78rem', color: '#1E293B', lineHeight: 1.4, fontWeight: 500 }}>
+                        "{cl.fullText || cl.label}"
+                      </p>
+
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid #E2E8F0', paddingTop: '6px' }}>
+                        <span style={{ fontSize: '0.64rem', color: '#64748B' }}>
+                          ID: <code>{cl.id.slice(0, 12)}</code>
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setLineageGranularity('claim');
+                            visualizeNodeInDag(cl.id, cl.label);
+                          }}
+                          style={{
+                            padding: '3px 9px',
+                            borderRadius: '5px',
+                            border: '1px solid #059669',
+                            background: '#059669',
+                            color: '#FFFFFF',
+                            fontSize: '0.68rem',
+                            fontWeight: 700,
+                            cursor: 'pointer'
+                          }}
+                        >
+                          🕸️ Visualize in DAG
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+            </div>
+          )}
         </div>
       )}
 

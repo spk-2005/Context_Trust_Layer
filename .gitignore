@@ -32,3 +32,6 @@ frontend/.next/
 
 # Docker
 postgres_data/
+
+# Local Storage
+backend/storage/
