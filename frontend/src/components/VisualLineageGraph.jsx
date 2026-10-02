@@ -147,7 +147,7 @@ export default function VisualLineageGraph({
   // Enterprise Scalability & Grouping Controls
   const [groupCleanClaims, setGroupCleanClaims] = useState(true);
   const [causalSubgraphOnly, setCausalSubgraphOnly] = useState(false);
-  const [lineageGranularity, setLineageGranularity] = useState('document'); // 'document' (default clean flow) or 'claim' (granular provenance)
+  const [lineageGranularity, setLineageGranularity] = useState('claim'); // granular provenance by default
   const [expandedDocIds, setExpandedDocIds] = useState(new Set());
 
   // Free-form Canvas Pan & Zoom State
@@ -3171,119 +3171,6 @@ export default function VisualLineageGraph({
         }}>
           {/* Left Group: Granularity & View Modes */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-            
-            {/* Active Workspace Scope Pill */}
-            {activeWorkspace && (
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '3px 8px',
-                borderRadius: '6px',
-                fontSize: '0.70rem',
-                fontWeight: 700,
-                background: activeWorkspace.id !== 'all' && !lineageScopeAll ? 'rgba(99, 102, 241, 0.12)' : '#F1F5F9',
-                color: activeWorkspace.id !== 'all' && !lineageScopeAll ? '#4F46E5' : '#475569',
-                border: activeWorkspace.id !== 'all' && !lineageScopeAll ? '1px solid rgba(99, 102, 241, 0.3)' : '1px solid #E2E8F0',
-                height: '25px',
-                boxSizing: 'border-box'
-              }}>
-                <span style={{ fontSize: '0.82rem' }}>{activeWorkspace.icon || '🏢'}</span>
-                <span>{activeWorkspace.id === 'all' || lineageScopeAll ? 'Unified All Pipeline' : `${activeWorkspace.label} Scope`}</span>
-                {activeWorkspace.id !== 'all' && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setLineageScopeAll(!lineageScopeAll);
-                      showToast?.(lineageScopeAll ? `Scoped DAG to ${activeWorkspace.label}` : 'Showing unified DAG across all departments');
-                    }}
-                    style={{
-                      background: 'transparent',
-                      border: 'none',
-                      color: activeWorkspace.id !== 'all' && !lineageScopeAll ? '#4F46E5' : '#0F172A',
-                      fontSize: '0.66rem',
-                      fontWeight: 700,
-                      cursor: 'pointer',
-                      textDecoration: 'underline',
-                      padding: '0 2px'
-                    }}
-                    title="Toggle between workspace-specific pipeline and all combined"
-                  >
-                    {lineageScopeAll ? 'Scope to Dept' : 'View All'}
-                  </button>
-                )}
-              </div>
-            )}
-
-            {/* Granularity Switcher */}
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '2px',
-              background: '#EDF2F7',
-              padding: '2px',
-              borderRadius: '7px',
-              border: '1px solid #E2E8F0'
-            }}>
-              <button
-                type="button"
-                onClick={() => {
-                  setLineageGranularity('document');
-                  showToast?.("Document Flow: Macro policy lineage");
-                }}
-                style={{
-                  padding: '3px 10px',
-                  fontSize: '0.70rem',
-                  fontWeight: 700,
-                  borderRadius: '5px',
-                  border: 'none',
-                  cursor: 'pointer',
-                  background: lineageGranularity === 'document' ? '#0284C7' : 'transparent',
-                  color: lineageGranularity === 'document' ? '#FFFFFF' : '#475569',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '5px',
-                  height: '25px',
-                  boxShadow: lineageGranularity === 'document' ? '0 1px 2px rgba(2,132,199,0.3)' : 'none',
-                  transition: 'all 0.15s ease'
-                }}
-                title="Document-Level Lineage: Clean system-to-policy flow without claim clutter"
-              >
-                <FileText size={12} />
-                <span>Document Flow</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setLineageGranularity('claim');
-                  showToast?.("Claim Provenance: Granular atomic assertions");
-                }}
-                style={{
-                  padding: '3px 10px',
-                  fontSize: '0.70rem',
-                  fontWeight: 700,
-                  borderRadius: '5px',
-                  border: 'none',
-                  cursor: 'pointer',
-                  background: lineageGranularity === 'claim' ? '#059669' : 'transparent',
-                  color: lineageGranularity === 'claim' ? '#FFFFFF' : '#475569',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '5px',
-                  height: '25px',
-                  boxShadow: lineageGranularity === 'claim' ? '0 1px 2px rgba(5,150,105,0.3)' : 'none',
-                  transition: 'all 0.15s ease'
-                }}
-                title="Claim-Level Lineage: Granular atomic assertions drill-down"
-              >
-                <Zap size={12} />
-                <span>Claim Provenance</span>
-              </button>
-            </div>
-
-            <div style={{ width: '1px', height: '18px', background: '#CBD5E1' }} />
-
             {/* View Mode Segmented Controls */}
             <div style={{
               display: 'flex',
@@ -3558,7 +3445,9 @@ export default function VisualLineageGraph({
             padding: '8px 12px',
             background: '#FFFFFF',
             display: 'flex',
-            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
             gap: '8px'
           }}>
             {/* Filter Selects Strip */}
@@ -3607,49 +3496,6 @@ export default function VisualLineageGraph({
                   {conflictsList.map((c, i) => (
                     <option key={c.id} value={c.id}>
                       #{i + 1} [{c.severity || 'HIGH'}] {c.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Policy Selector */}
-              <div style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '5px',
-                background: selectedDocFilter !== 'all' ? '#F0F9FF' : '#F8FAFC',
-                border: selectedDocFilter !== 'all' ? '1px solid #BAE6FD' : '1px solid #E2E8F0',
-                padding: '2px 6px',
-                borderRadius: '6px'
-              }}>
-                <span style={{ fontSize: '0.64rem', fontWeight: 700, color: '#0284C7', textTransform: 'uppercase', letterSpacing: '0.02em' }}>
-                  Policy
-                </span>
-                <select
-                  value={selectedDocFilter}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    setSelectedDocFilter(val);
-                    if (val !== 'all') {
-                      setSelectedNodeId(val);
-                      setInteractiveRootId(val);
-                    }
-                  }}
-                  style={{
-                    padding: '2px 4px',
-                    border: 'none',
-                    background: 'transparent',
-                    fontSize: '0.69rem',
-                    fontWeight: selectedDocFilter !== 'all' ? 700 : 500,
-                    color: selectedDocFilter !== 'all' ? '#0369A1' : '#334155',
-                    outline: 'none',
-                    cursor: 'pointer'
-                  }}
-                >
-                  <option value="all">All ({documentsList.length})</option>
-                  {documentsList.map(d => (
-                    <option key={d.id} value={d.id}>
-                      {d.label}
                     </option>
                   ))}
                 </select>
@@ -3757,207 +3603,59 @@ export default function VisualLineageGraph({
                 </select>
               </div>
 
-              {/* Density Selector */}
-              <div style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '5px',
-                background: '#F8FAFC',
-                border: '1px solid #E2E8F0',
-                padding: '2px 6px',
-                borderRadius: '6px'
-              }}>
-                <span style={{ fontSize: '0.64rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.02em' }}>
-                  Density
-                </span>
-                <select
-                  value={displayLimit}
-                  onChange={(e) => setDisplayLimit(e.target.value === 'all' ? 'all' : Number(e.target.value))}
-                  style={{
-                    padding: '2px 4px',
-                    border: 'none',
-                    background: 'transparent',
-                    fontSize: '0.69rem',
-                    color: '#334155',
-                    fontWeight: 600,
-                    outline: 'none',
-                    cursor: 'pointer'
-                  }}
-                >
-                  <option value={6}>6</option>
-                  <option value={12}>12</option>
-                  <option value={24}>24</option>
-                  <option value="all">All</option>
-                </select>
-              </div>
+              {/* Conflicted Only Quick Toggle */}
+              <button
+                type="button"
+                onClick={() => {
+                  setShowOnlyConflicted(prev => !prev);
+                  if (!showOnlyConflicted) showToast?.("Focused on contradictory paths");
+                }}
+                style={{
+                  padding: '2px 8px',
+                  borderRadius: '5px',
+                  fontSize: '0.67rem',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  border: showOnlyConflicted ? '1px solid #EA580C' : '1px solid #CBD5E1',
+                  background: showOnlyConflicted ? '#EA580C' : '#FFFFFF',
+                  color: showOnlyConflicted ? '#FFFFFF' : '#475569',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  height: '24px'
+                }}
+              >
+                <AlertTriangle size={11} />
+                <span>Conflicted Only</span>
+                {showOnlyConflicted && <span>✓</span>}
+              </button>
             </div>
 
-            {/* Tiers & Status Summary */}
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              flexWrap: 'wrap',
-              gap: '8px',
-              borderTop: '1px solid #F1F5F9',
-              paddingTop: '6px'
-            }}>
-              {/* Tiers + Conflicted */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '5px', flexWrap: 'wrap' }}>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowOnlyConflicted(prev => !prev);
-                    if (!showOnlyConflicted) showToast?.("Focused on contradictory paths");
-                  }}
-                  style={{
-                    padding: '2px 8px',
-                    borderRadius: '5px',
-                    fontSize: '0.67rem',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    border: showOnlyConflicted ? '1px solid #EA580C' : '1px solid #CBD5E1',
-                    background: showOnlyConflicted ? '#EA580C' : '#FFFFFF',
-                    color: showOnlyConflicted ? '#FFFFFF' : '#475569',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '4px',
-                    height: '24px'
-                  }}
-                >
-                  <AlertTriangle size={11} />
-                  <span>Conflicted</span>
-                  {showOnlyConflicted && <span>✓</span>}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setGroupCleanClaims(prev => !prev);
-                    showToast?.(!groupCleanClaims ? "Anomaly Mode: Clean claims rolled into clusters" : "Expanded all individual claims");
-                  }}
-                  style={{
-                    padding: '2px 8px',
-                    borderRadius: '5px',
-                    fontSize: '0.67rem',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    border: groupCleanClaims ? '1px solid #059669' : '1px solid #CBD5E1',
-                    background: groupCleanClaims ? '#ECFDF5' : '#FFFFFF',
-                    color: groupCleanClaims ? '#059669' : '#475569',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '4px',
-                    height: '24px'
-                  }}
-                  title="Group clean, non-conflicting claims into summary clusters to focus exclusively on anomalies"
-                >
-                  <ShieldCheck size={11} color={groupCleanClaims ? '#059669' : '#64748B'} />
-                  <span>Group Clean</span>
-                  {groupCleanClaims && <span>✓</span>}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setCausalSubgraphOnly(prev => !prev);
-                    showToast?.(!causalSubgraphOnly ? "Causal Trace: Isolated direct 2-hop causal path" : "Showing full enterprise graph");
-                  }}
-                  style={{
-                    padding: '2px 8px',
-                    borderRadius: '5px',
-                    fontSize: '0.67rem',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    border: causalSubgraphOnly ? '1px solid #2563EB' : '1px solid #CBD5E1',
-                    background: causalSubgraphOnly ? '#EFF6FF' : '#FFFFFF',
-                    color: causalSubgraphOnly ? '#2563EB' : '#475569',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '4px',
-                    height: '24px'
-                  }}
-                  title="Isolate direct 2-hop causal lineage path (Decisions ➔ Causal Claims ➔ Policies)"
-                >
-                  <Eye size={11} color={causalSubgraphOnly ? '#2563EB' : '#64748B'} />
-                  <span>Causal (k=2)</span>
-                  {causalSubgraphOnly && <span>✓</span>}
-                </button>
-
-                <span style={{ fontSize: '0.65rem', color: '#94A3B8', margin: '0 2px' }}>Tiers:</span>
-
-                {[
-                  { type: 'source', label: 'Src', count: graphData?.nodes?.filter(n => n.type === 'source')?.length || 0, color: '#2563EB' },
-                  { type: 'document', label: 'Doc', count: documentsList.length, color: '#0284C7' },
-                  { type: 'claim', label: 'Clm', count: graphData?.nodes?.filter(n => n.type === 'claim')?.length || 0, color: '#059669' },
-                  { type: 'conflict', label: 'Cfl', count: conflictsList.length, color: '#EA580C' },
-                  { type: 'decision', label: 'Dec', count: graphData?.nodes?.filter(n => n.type === 'decision')?.length || 0, color: '#7C3AED' }
-                ].map(t => {
-                  const isVisible = visibleTiers.has(t.type);
-                  return (
-                    <button
-                      key={t.type}
-                      type="button"
-                      onClick={() => toggleTier(t.type)}
-                      style={{
-                        padding: '2px 6px',
-                        borderRadius: '5px',
-                        fontSize: '0.66rem',
-                        fontWeight: 700,
-                        cursor: 'pointer',
-                        border: isVisible ? `1px solid ${t.color}` : '1px solid #E2E8F0',
-                        background: isVisible ? `${t.color}15` : '#F8FAFC',
-                        color: isVisible ? t.color : '#94A3B8',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '3px',
-                        height: '24px',
-                        opacity: isVisible ? 1 : 0.6,
-                        transition: 'all 0.15s ease'
-                      }}
-                      title={`Toggle ${t.label}`}
-                    >
-                      <span>{t.label}</span>
-                      <span style={{ fontSize: '0.60rem', fontWeight: 800, background: isVisible ? `${t.color}25` : '#E2E8F0', padding: '0 3px', borderRadius: '3px' }}>
-                        {t.count}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Counts & Reset */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span style={{ fontSize: '0.68rem', color: '#64748B' }}>
-                  <strong>{renderedNodes.length}</strong> / <strong>{graphData?.nodes?.length || 0}</strong>
-                </span>
-
-                {activeFilterCount > 0 && (
-                  <button
-                    type="button"
-                    onClick={resetAllFilters}
-                    style={{
-                      padding: '2px 6px',
-                      borderRadius: '4px',
-                      border: '1px solid #FCA5A5',
-                      background: '#FEF2F2',
-                      color: '#DC2626',
-                      fontSize: '0.65rem',
-                      fontWeight: 700,
-                      cursor: 'pointer',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '2px',
-                      height: '24px'
-                    }}
-                    title="Reset all filters"
-                  >
-                    <RotateCcw size={9} />
-                    <span>Reset</span>
-                  </button>
-                )}
-              </div>
-            </div>
+            {/* Reset Filters (Only when a filter is active) */}
+            {activeFilterCount > 0 && (
+              <button
+                type="button"
+                onClick={resetAllFilters}
+                style={{
+                  padding: '3px 8px',
+                  borderRadius: '5px',
+                  border: '1px solid #FCA5A5',
+                  background: '#FEF2F2',
+                  color: '#DC2626',
+                  fontSize: '0.68rem',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '3px',
+                  height: '24px'
+                }}
+                title="Reset all filters"
+              >
+                <RotateCcw size={10} />
+                <span>Reset Filters</span>
+              </button>
+            )}
           </div>
         )}
       </div>
