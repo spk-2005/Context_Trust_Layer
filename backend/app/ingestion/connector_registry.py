@@ -16,6 +16,27 @@ class ConnectorMetadata(BaseModel):
     doc_type: str = "data_contract"  # data_contract, stream_contract, crm_contract, pipeline_contract, metric_contract, quality_contract, ml_contract
     monitored_scope: str
 
+    @property
+    def required_fields(self) -> List[Dict[str, Any]]:
+        if self.id in ("github", "git"):
+            return [
+                {"id": "repository", "label": "Repository (owner/repo)", "type": "text", "required": True},
+                {"id": "branch", "label": "Branch", "type": "text", "required": False, "default": "main"},
+                {"id": "access_token", "label": "Personal Access Token", "type": "password", "required": False},
+            ]
+        elif self.id in ("postgresql", "postgres", "mysql", "sql_server", "oracle", "snowflake"):
+            return [
+                {"id": "host", "label": "Host", "type": "text", "required": True},
+                {"id": "port", "label": "Port", "type": "number", "default": self.default_port},
+                {"id": "database", "label": "Database", "type": "text", "required": True},
+                {"id": "username", "label": "Username", "type": "text", "required": True},
+                {"id": "password", "label": "Password", "type": "password", "required": True},
+            ]
+        return [
+            {"id": "host", "label": "Host / Endpoint", "type": "text", "required": True},
+            {"id": "token", "label": "API Key / Token", "type": "password", "required": False},
+        ]
+
 
 # 104 Enterprise Connectors Taxonomy
 CONNECTOR_CATALOG: List[ConnectorMetadata] = [
@@ -1309,8 +1330,13 @@ class ConnectorRegistry:
         
         # Alias matching
         aliases = {
+            "git": "github",
+            "github_repo": "github",
+            "repo": "github",
             "postgres": "postgresql",
             "psql": "postgresql",
+            "mongodb": "mongodb_atlas",
+            "mongo": "mongodb_atlas",
             "kafka": "apache_kafka",
             "confluent": "confluent_kafka",
             "mongo": "mongodb_atlas",
@@ -1331,6 +1357,20 @@ class ConnectorRegistry:
         return None
 
     @classmethod
+    def find_connector(cls, query: str) -> Optional[ConnectorMetadata]:
+        """Find a connector by ID, alias, or fuzzy name match."""
+        direct = cls.get_by_id(query)
+        if direct:
+            return direct
+        q = (query or "").strip().lower()
+        if not q:
+            return None
+        for c in CONNECTOR_CATALOG:
+            if q in c.id.lower() or q in c.name.lower():
+                return c
+        return None
+
+    @classmethod
     def get_categories(cls) -> List[Dict[str, Any]]:
         categories = [
             {"id": "all", "label": "All Connectors", "count": len(CONNECTOR_CATALOG)},
@@ -1341,7 +1381,7 @@ class ConnectorRegistry:
             {"id": "messaging", "label": "Streaming & Messaging", "count": sum(1 for c in CONNECTOR_CATALOG if c.category == "messaging")},
             {"id": "bi", "label": "BI & Analytics", "count": sum(1 for c in CONNECTOR_CATALOG if c.category == "bi")},
             {"id": "governance", "label": "Governance & Quality", "count": sum(1 for c in CONNECTOR_CATALOG if c.category == "governance")},
-            {"id": "crm_erp", "label": "CRM & ERP", "count": sum(1 for c in CONNECTOR_CATALOG if c.category == "crm_erp")},
+            {"id": "crm_erp", "label": "Knowledge, CRM & Repos", "count": sum(1 for c in CONNECTOR_CATALOG if c.category == "crm_erp")},
             {"id": "ml_ai", "label": "ML & AI", "count": sum(1 for c in CONNECTOR_CATALOG if c.category == "ml_ai")},
         ]
         return categories

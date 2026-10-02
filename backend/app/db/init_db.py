@@ -40,29 +40,6 @@ async def init_db_schema():
         "ALTER TABLE data_sources ADD COLUMN IF NOT EXISTS connection_config JSONB DEFAULT '{}'::jsonb;",
         "ALTER TABLE documents ADD COLUMN IF NOT EXISTS domain VARCHAR(100) DEFAULT 'General';",
         "ALTER TABLE documents ADD COLUMN IF NOT EXISTS owner_id UUID REFERENCES users(id) ON DELETE SET NULL;",
-        "ALTER TABLE chat_sessions ADD COLUMN IF NOT EXISTS workspace_id VARCHAR(100) DEFAULT 'all';",
-        "ALTER TABLE chat_sessions ADD COLUMN IF NOT EXISTS domain VARCHAR(100) DEFAULT 'global';",
-        """
-        CREATE TABLE IF NOT EXISTS decision_evaluations (
-            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-            audit_id VARCHAR(100) NOT NULL UNIQUE,
-            organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
-            actor_id VARCHAR(100) NOT NULL,
-            actor_role VARCHAR(100) NOT NULL,
-            decision_prompt TEXT NOT NULL,
-            verdict VARCHAR(50) NOT NULL,
-            risk_level VARCHAR(50) NOT NULL,
-            reasons JSONB DEFAULT '[]'::jsonb,
-            preferred_source VARCHAR(255),
-            suggested_action TEXT,
-            context_items JSONB DEFAULT '[]'::jsonb,
-            audit_token VARCHAR(64) NOT NULL,
-            execution_ms NUMERIC(8,2) NOT NULL DEFAULT 0.0,
-            created_at TIMESTAMPTZ NOT NULL DEFAULT now()
-        );
-        """,
-        "CREATE INDEX IF NOT EXISTS idx_decision_evaluations_org ON decision_evaluations(organization_id);",
-        "CREATE INDEX IF NOT EXISTS idx_decision_evaluations_created_at ON decision_evaluations(created_at);",
         """
         CREATE TABLE IF NOT EXISTS chat_sessions (
             id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -77,6 +54,8 @@ async def init_db_schema():
         """,
         "CREATE INDEX IF NOT EXISTS idx_chat_sessions_org_user ON chat_sessions(organization_id, user_id);",
         "CREATE INDEX IF NOT EXISTS idx_chat_sessions_created_at ON chat_sessions(created_at);",
+        "ALTER TABLE chat_sessions ADD COLUMN IF NOT EXISTS workspace_id VARCHAR(100) DEFAULT 'all';",
+        "ALTER TABLE chat_sessions ADD COLUMN IF NOT EXISTS domain VARCHAR(100) DEFAULT 'global';",
         """
         CREATE TABLE IF NOT EXISTS chat_messages (
             id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -151,6 +130,30 @@ async def init_db_schema():
         "CREATE INDEX IF NOT EXISTS idx_hitl_org ON hitl_escalations(organization_id);",
         "CREATE INDEX IF NOT EXISTS idx_hitl_status ON hitl_escalations(organization_id, status);",
         "CREATE INDEX IF NOT EXISTS idx_hitl_created_at ON hitl_escalations(created_at);",
+        """
+        CREATE TABLE IF NOT EXISTS decision_evaluations (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            audit_id VARCHAR(50) NOT NULL UNIQUE,
+            organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+            actor_id VARCHAR(100) NOT NULL,
+            actor_role VARCHAR(50) NOT NULL DEFAULT 'support',
+            decision_prompt TEXT NOT NULL,
+            verdict VARCHAR(20) NOT NULL DEFAULT 'ALLOW',
+            risk_level VARCHAR(20) NOT NULL DEFAULT 'LOW',
+            reasons JSONB,
+            preferred_source VARCHAR(255),
+            suggested_action TEXT,
+            context_items JSONB,
+            audit_token VARCHAR(64) NOT NULL,
+            execution_ms INTEGER NOT NULL DEFAULT 10,
+            created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        );
+        """,
+        "CREATE INDEX IF NOT EXISTS idx_decision_evaluations_org ON decision_evaluations(organization_id);",
+        "CREATE INDEX IF NOT EXISTS idx_decision_evaluations_audit_id ON decision_evaluations(audit_id);",
+        "CREATE INDEX IF NOT EXISTS idx_decision_evaluations_verdict ON decision_evaluations(verdict);",
+        "CREATE INDEX IF NOT EXISTS idx_decision_evaluations_created_at ON decision_evaluations(created_at);",
+        "CREATE INDEX IF NOT EXISTS idx_decision_evaluations_actor ON decision_evaluations(actor_id);",
     ]
 
     async with engine.begin() as conn:

@@ -11,10 +11,11 @@ from app.db.models.document_version import DocumentVersion
 class BaseConnector(ABC):
     """Abstract Base Class for Data Source Connectors."""
 
-    def __init__(self, session: AsyncSession, organization_id: uuid.UUID, source_id: uuid.UUID):
+    def __init__(self, session: AsyncSession, organization_id: uuid.UUID, source_id: uuid.UUID, owner_id: uuid.UUID | None = None):
         self.session = session
         self.organization_id = organization_id
         self.source_id = source_id
+        self.owner_id = owner_id
 
     @abstractmethod
     async def sync(self) -> Sequence[tuple[Document, DocumentVersion]]:

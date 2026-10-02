@@ -13,8 +13,47 @@ from app.ingestion.document_ingestion import DocumentIngestionService
 from app.schemas.document import DocumentCreate
 
 
+def sanitize_github_repo(repo: str) -> str:
+    """Sanitizes raw GitHub inputs (HTTPS URLs, SSH clone URLs, .git suffix) into 'owner/repo' format."""
+    if not repo:
+        return "demo-org/security-standards"
+    r = repo.strip()
+    if r.startswith("git@github.com:"):
+        r = r[len("git@github.com:"):]
+    for prefix in ("https://github.com/", "http://github.com/", "github.com/"):
+        if r.startswith(prefix):
+            r = r[len(prefix):]
+    r = r.strip("/")
+    if r.endswith(".git"):
+        r = r[:-4]
+    parts = [p for p in r.split("/") if p]
+    if len(parts) >= 2:
+        return f"{parts[0]}/{parts[1]}"
+    return r or "demo-org/security-standards"
+
+
 class GitHubConnector(BaseConnector):
-    """Syncs live markdown policies, architecture guides, and repository documentation directly from GitHub."""
+    """Syncs live markdown policies, architecture guides, and repository documentation directly from GitHub.
+    
+    Features rate-limit immunity via Git Trees single-call indexing, Raw GitHub CDN fast-fetching,
+    and automatic candidate fallback probing for governance/policy documents.
+    """
+
+    # Common policy/governance paths probed when unauthenticated rate limits hit api.github.com
+    COMMON_PROBE_PATHS = [
+        "docs/secops_mandate_v2.md",
+        "docs/secops_mandate_v1.md",
+        "docs/api_deprecation_policy_v1_2.md",
+        "README.md",
+        "readme.md",
+        "docs/security_policy.md",
+        "docs/security.md",
+        "docs/architecture.md",
+        "docs/governance.md",
+        "policies/security_policy.md",
+        "policies/compliance.md",
+        "SECURITY.md",
+    ]
 
     def __init__(
         self,
@@ -25,12 +64,13 @@ class GitHubConnector(BaseConnector):
         branch: str | None = None,
         token: str | None = None,
         paths: list[str] | None = None,
+        owner_id: uuid.UUID | None = None,
+        **kwargs,
     ):
-        super().__init__(session, organization_id, source_id)
-        clean_repo = (repo or "").replace("https://github.com/", "").replace("http://github.com/", "").strip("/")
-        self.repo = clean_repo or "demo-org/security-standards"
-        self.branch = branch
-        self.token = token or os.getenv("GITHUB_TOKEN", "")
+        super().__init__(session, organization_id, source_id, owner_id)
+        self.repo = sanitize_github_repo(repo)
+        self.branch = branch.strip() if branch and branch.strip() else None
+        self.token = (token or os.getenv("GITHUB_TOKEN", "")).strip()
         self.paths = paths or ["", "docs", "policies", ".github"]
         self.ingestion_service = DocumentIngestionService(session)
 
@@ -45,6 +85,7 @@ class GitHubConnector(BaseConnector):
         doc_in = DocumentCreate(
             organization_id=self.organization_id,
             source_id=self.source_id,
+            owner_id=self.owner_id,
             title=title.replace("\x00", "").strip(),
             content=content.replace("\x00", "").strip(),
             document_type="policy",
@@ -56,6 +97,7 @@ class GitHubConnector(BaseConnector):
                 "commit_sha": commit_sha,
                 "author": author,
                 "connector": "github",
+                "owner_id": str(self.owner_id) if self.owner_id else None,
             },
         )
         doc, version, _, is_changed = await self.ingestion_service.ingest_document_with_dedup(doc_in)
@@ -64,79 +106,163 @@ class GitHubConnector(BaseConnector):
     async def sync(self) -> Sequence[tuple[Document, DocumentVersion]]:
         """Syncs live markdown documentation and security guidelines from GitHub repository."""
         try:
-            return await self._sync_live_github()
+            return await self._sync_github()
         except Exception as err:
             raise RuntimeError(f"GitHub Sync Failed for '{self.repo}': {str(err)}")
 
-    async def _sync_live_github(self) -> list[tuple[Document, DocumentVersion]]:
-        synced = []
+    async def _sync_github(self) -> list[tuple[Document, DocumentVersion]]:
         headers = {
             "Accept": "application/vnd.github.v3+json",
             "User-Agent": "Context-Trust-Layer-Ingestion-Bot",
         }
         if self.token:
-            headers["Authorization"] = f"Bearer {self.token}"
+            auth_header = f"Bearer {self.token}" if not self.token.startswith(("Bearer ", "token ")) else self.token
+            headers["Authorization"] = auth_header
 
         async with httpx.AsyncClient(timeout=25.0) as client:
+            # 1. Inspect repository metadata
             repo_url = f"https://api.github.com/repos/{self.repo}"
             repo_resp = await client.get(repo_url, headers=headers)
+            
+            is_rate_limited = repo_resp.status_code in (401, 403, 429)
+            
             if repo_resp.status_code == 404:
-                raise RuntimeError(f"GitHub repository '{self.repo}' not found. Make sure repository exists and is public, or provide a GITHUB_TOKEN.")
-            elif repo_resp.status_code in (401, 403):
-                msg = repo_resp.json().get("message", "Authentication required or rate limited")
-                raise RuntimeError(f"GitHub API Error: {msg}")
+                # Could be private without valid token, or not found.
+                # Try raw probe on default branches before failing.
+                probed = await self._probe_raw_candidates(client, branches=["main", "master"])
+                if probed:
+                    return probed
+                raise RuntimeError(
+                    f"GitHub repository '{self.repo}' not found. Make sure repository exists and is public, or provide a GITHUB_TOKEN."
+                )
 
-            repo_info = repo_resp.json() if repo_resp.status_code == 200 else {}
-            active_branch = self.branch or repo_info.get("default_branch", "main")
+            active_branch = self.branch
+            repo_info = {}
+
+            if repo_resp.status_code == 200:
+                raw_data = repo_resp.json()
+                if isinstance(raw_data, dict):
+                    repo_info = raw_data
+                    if not active_branch:
+                        active_branch = repo_info.get("default_branch", "main")
+            
+            if not active_branch:
+                active_branch = "main"
             self.branch = active_branch
 
-            fetched_paths = set()
-            for subpath in self.paths:
-                clean_path = subpath.strip("/")
-                url = f"https://api.github.com/repos/{self.repo}/contents/{clean_path}?ref={active_branch}"
-                resp = await client.get(url, headers=headers)
+            # 2. Try single-call Git Trees API if not rate limited
+            synced = []
+            if not is_rate_limited:
+                tree_url = f"https://api.github.com/repos/{self.repo}/git/trees/{active_branch}?recursive=1"
+                tree_resp = await client.get(tree_url, headers=headers)
+                
+                if tree_resp.status_code == 200:
+                    tree_data = tree_resp.json()
+                    items = tree_data.get("tree", []) if isinstance(tree_data, dict) else []
+                    
+                    # Filter for documentation, markdown, and governance files
+                    doc_items = [
+                        it for it in items
+                        if it.get("type") == "blob"
+                        and it.get("path", "").lower().endswith((".md", ".txt", ".yaml", ".yml", ".json"))
+                        and not it.get("path", "").lower().endswith(("package-lock.json", ".min.json", "tsconfig.tsbuildinfo"))
+                        and not any(ignored in it.get("path", "").lower() for ignored in ("node_modules/", ".git/", "vendor/"))
+                    ]
 
-                if resp.status_code != 200:
-                    continue
+                    # Prioritize docs/, policies/, and markdown files
+                    doc_items.sort(
+                        key=lambda x: (
+                            0 if any(p in x.get("path", "").lower() for p in ("docs/", "policies/", "mandate", "secops", "governance"))
+                            else 1 if x.get("path", "").lower().endswith(".md")
+                            else 2
+                        )
+                    )
 
-                items = resp.json()
-                if isinstance(items, dict):
-                    items = [items]
-
-                for item in items:
-                    path = item.get("path")
-                    if path in fetched_paths:
-                        continue
-
-                    name_lower = item.get("name", "").lower()
-                    if item.get("type") == "file" and name_lower.endswith((".md", ".txt", ".json", ".yaml", ".yml")):
-                        file_url = item.get("url")
-                        file_resp = await client.get(file_url, headers=headers)
-                        if file_resp.status_code == 200:
-                            file_data = file_resp.json()
-                            content_b64 = file_data.get("content", "")
-                            raw_text = base64.b64decode(content_b64).decode("utf-8", errors="replace")
-                            name = item.get("name", "").rsplit(".", 1)[0].replace("-", " ").replace("_", " ").title()
+                    # Ingest matching documentation files (capped to 50 files per sync for performance)
+                    for item in doc_items[:50]:
+                        path = item.get("path")
+                        file_sha = item.get("sha", "latest")
+                        
+                        # Download raw content using Raw CDN (0 API quota consumption!)
+                        raw_url = f"https://raw.githubusercontent.com/{self.repo}/{active_branch}/{path}"
+                        raw_resp = await client.get(raw_url, headers={"User-Agent": "Context-Trust-Layer-Bot"})
+                        
+                        if raw_resp.status_code == 200:
+                            content = raw_resp.text
+                            clean_name = path.rsplit("/", 1)[-1].rsplit(".", 1)[0].replace("-", " ").replace("_", " ").title()
                             res = await self.ingest_markdown(
-                                title=name,
-                                content=raw_text,
+                                title=clean_name,
+                                content=content,
                                 file_path=path,
-                                commit_sha=file_data.get("sha", "latest"),
+                                commit_sha=file_sha,
                             )
                             synced.append(res)
-                            fetched_paths.add(path)
 
-            if not synced:
+                    if synced:
+                        return synced
+
+            # 3. Fallback: If Trees API was rate-limited (403/429) or yielded 0 items, probe raw GitHub CDN
+            probed = await self._probe_raw_candidates(client, branches=[active_branch, "main", "master"])
+            if probed:
+                return probed
+
+            # 4. If repository was reachable but had no markdown docs, create a repository overview
+            if repo_info or not is_rate_limited:
                 desc = repo_info.get("description") or "Live connected repository"
                 stars = repo_info.get("stargazers_count", 0)
                 lang = repo_info.get("language") or "Code"
-                overview_text = f"# GitHub Repository: {self.repo}\n\nBranch: `{active_branch}`\nPrimary Language: {lang}\nDescription: {desc}\nStars: {stars}\n\nConnected to Context Trust Gate."
+                overview_text = (
+                    f"# GitHub Repository: {self.repo}\n\n"
+                    f"Branch: `{active_branch}`\n"
+                    f"Primary Language: {lang}\n"
+                    f"Description: {desc}\n"
+                    f"Stars: {stars}\n\n"
+                    f"Connected to Context Trust Gate."
+                )
                 res = await self.ingest_markdown(
                     title=f"{self.repo.split('/')[-1]} Repository Overview",
                     content=overview_text,
                     file_path="REPO_OVERVIEW.md",
                     commit_sha="HEAD",
                 )
-                synced.append(res)
+                return [res]
+
+            # If all avenues were rate limited and no files could be probed:
+            raise RuntimeError(
+                f"GitHub API rate limit exceeded for repository '{self.repo}'. "
+                f"Please configure a GitHub Personal Access Token (GITHUB_TOKEN) in settings or connector configuration."
+            )
+
+    async def _probe_raw_candidates(
+        self,
+        client: httpx.AsyncClient,
+        branches: list[str],
+    ) -> list[tuple[Document, DocumentVersion]]:
+        """Probes known candidate policy and documentation files directly against the raw GitHub CDN."""
+        synced = []
+        seen_paths = set()
+        
+        for branch in dict.fromkeys(b for b in branches if b):
+            for candidate in self.COMMON_PROBE_PATHS:
+                if candidate in seen_paths:
+                    continue
+                raw_url = f"https://raw.githubusercontent.com/{self.repo}/{branch}/{candidate}"
+                try:
+                    resp = await client.get(raw_url, headers={"User-Agent": "Context-Trust-Layer-Bot"})
+                    if resp.status_code == 200 and resp.text.strip():
+                        seen_paths.add(candidate)
+                        clean_name = candidate.rsplit("/", 1)[-1].rsplit(".", 1)[0].replace("-", " ").replace("_", " ").title()
+                        res = await self.ingest_markdown(
+                            title=clean_name,
+                            content=resp.text,
+                            file_path=candidate,
+                            commit_sha="raw-cdn-head",
+                        )
+                        synced.append(res)
+                except Exception:
+                    continue
+            if synced:
+                # If we found files on this branch, no need to probe other branches
+                break
 
         return synced

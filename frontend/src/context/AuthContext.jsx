@@ -184,10 +184,11 @@ export function AuthProvider({ children }) {
             setOrganization(orgData);
             localStorage.setItem('ctl_org', JSON.stringify(orgData));
           }
-        } else if (res.status === 401) {
-          // Token expired
+        } else if (res.status === 401 || res.status === 403 || res.status === 404) {
+          // Token is expired, invalid, or references a deleted user — clear it
           logout();
         }
+        // Other errors (5xx network) are ignored silently — don't log out
       } catch (err) {
         console.warn('Error verifying session:', err);
       }

@@ -13,6 +13,8 @@ class UserRole(str, Enum):
     REVIEWER = "reviewer"
     DEVELOPER = "developer"
     VIEWER = "viewer"
+    COMPLIANCE_OFFICER = "compliance_officer"
+    AUDITOR = "auditor"
 
 
 class RecordStatus(str, Enum):

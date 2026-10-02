@@ -76,6 +76,26 @@ ROLE_PERMISSIONS: Dict[str, Set[str]] = {
         Permission.CLAIMS_READ.value,
         Permission.CONFLICTS_READ.value,
     },
+
+    # 6. Compliance Officer: Full audit & conflict resolution authority, restricted from raw source management
+    "compliance_officer": {
+        Permission.SOURCES_READ.value,
+        Permission.CLAIMS_READ.value,
+        Permission.CLAIMS_EDIT.value,
+        Permission.CONFLICTS_READ.value,
+        Permission.CONFLICTS_RESOLVE.value,
+        Permission.CONFLICTS_OVERRIDE.value,
+        Permission.DECISIONS_EVALUATE.value,
+        Permission.DECISIONS_AUDIT.value,
+    },
+
+    # 7. Auditor: Read-only audit observation across all surfaces
+    "auditor": {
+        Permission.SOURCES_READ.value,
+        Permission.CLAIMS_READ.value,
+        Permission.CONFLICTS_READ.value,
+        Permission.DECISIONS_AUDIT.value,
+    },
 }
 
 
@@ -132,6 +152,18 @@ def get_permission_matrix() -> Dict[str, Any]:
             "description": "Read-only access to trust score dashboards and lineage graphs.",
             "separation_of_duties": "Zero mutation privileges.",
             "badge_color": "#64748B",
+        },
+        "compliance_officer": {
+            "title": "Compliance Officer",
+            "description": "Dedicated compliance authority: conflict resolution, policy override, and audit sign-off across governance workflows.",
+            "separation_of_duties": "Restricted from direct source ingestion and pipeline management.",
+            "badge_color": "#6D28D9",
+        },
+        "auditor": {
+            "title": "External Auditor",
+            "description": "Read-only audit observation across all surfaces including decisions, conflicts, and provenance graphs.",
+            "separation_of_duties": "Zero mutation privileges; observation-only access.",
+            "badge_color": "#78716C",
         },
     }
 

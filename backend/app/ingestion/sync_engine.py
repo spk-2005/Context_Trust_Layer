@@ -10,7 +10,7 @@ from app.db.models.data_source import DataSource
 from app.db.repositories.data_source_repository import DataSourceRepository
 from app.ingestion.connector_registry import ConnectorRegistry
 from app.ingestion.connectors.confluence_connector import ConfluenceConnector
-from app.ingestion.connectors.github_connector import GitHubConnector
+from app.ingestion.connectors.github_connector import GitHubConnector, sanitize_github_repo
 from app.ingestion.connectors.jira_connector import JiraConnector
 from app.ingestion.connectors.kafka_connector import KafkaConnector
 from app.ingestion.connectors.mongodb_connector import MongoDbConnector
@@ -48,9 +48,10 @@ class SyncEngine:
         self.conflict_service = ConflictService(session)
         self.trust_service = TrustService(session)
 
-    def get_connector_for_source(self, source: DataSource):
+    def get_connector_for_source(self, source: DataSource, owner_id: uuid.UUID | None = None):
         source_type = (source.source_type or "").lower().strip()
         config = source.connection_config or {}
+        effective_owner = owner_id or source.owner_id
 
         if source_type in ("postgresql", "postgres"):
             return PostgresConnector(
@@ -58,6 +59,7 @@ class SyncEngine:
                 organization_id=source.organization_id,
                 source_id=source.id,
                 connection_config=config,
+                owner_id=effective_owner,
             )
         elif source_type in ("kafka", "apache_kafka", "confluent"):
             return KafkaConnector(
@@ -65,6 +67,7 @@ class SyncEngine:
                 organization_id=source.organization_id,
                 source_id=source.id,
                 connection_config=config,
+                owner_id=effective_owner,
             )
         elif source_type in ("salesforce", "sfdc", "salesforce_crm"):
             return SalesforceConnector(
@@ -72,6 +75,7 @@ class SyncEngine:
                 organization_id=source.organization_id,
                 source_id=source.id,
                 connection_config=config,
+                owner_id=effective_owner,
             )
         elif source_type in ("mongodb", "mongo", "mongo_atlas"):
             return MongoDbConnector(
@@ -79,42 +83,59 @@ class SyncEngine:
                 organization_id=source.organization_id,
                 source_id=source.id,
                 connection_config=config,
+                owner_id=effective_owner,
             )
         elif source_type in ("confluence", "wiki"):
             return ConfluenceConnector(
                 session=self.session,
                 organization_id=source.organization_id,
                 source_id=source.id,
-                space_key=source.external_id or "POLICIES",
+                space_key=config.get("space_key") or source.external_id or "POLICIES",
+                base_url=config.get("base_url") or config.get("url") or config.get("confluenceBaseUrl"),
+                api_token=config.get("api_token") or config.get("token") or config.get("confluenceToken"),
+                user_email=config.get("user_email") or config.get("email"),
+                owner_id=effective_owner,
             )
         elif source_type in ("jira", "jira_issues"):
             return JiraConnector(
                 session=self.session,
                 organization_id=source.organization_id,
                 source_id=source.id,
-                project_key=source.external_id or "OPS",
+                project_key=config.get("project_key") or source.external_id or "OPS",
+                base_url=config.get("base_url") or config.get("url") or config.get("jiraBaseUrl"),
+                api_token=config.get("api_token") or config.get("token") or config.get("jiraToken"),
+                user_email=config.get("user_email") or config.get("email"),
+                owner_id=effective_owner,
             )
-        elif source_type in ("github", "repo"):
+        elif source_type in ("github", "repo", "git"):
+            raw_repo = config.get("repository") or config.get("repo") or source.external_id or "demo-org/security-standards"
+            repo_target = sanitize_github_repo(raw_repo)
+            token_val = config.get("access_token") or config.get("token")
             return GitHubConnector(
                 session=self.session,
                 organization_id=source.organization_id,
                 source_id=source.id,
-                repo=source.external_id or "demo-org/security-standards",
+                repo=repo_target,
+                branch=config.get("branch"),
+                token=token_val,
+                owner_id=effective_owner,
             )
         else:
-            # Universal Protocol Driver covering all 104 catalog sources
+            # Universal Protocol Driver covering all 105 catalog sources
             return UniversalConnectorDriver(
                 session=self.session,
                 organization_id=source.organization_id,
                 source_id=source.id,
                 source_type=source_type,
                 connection_config=config,
+                owner_id=effective_owner,
             )
 
     async def sync_data_source(
         self,
         source_id: uuid.UUID,
         use_mock_llm: bool = True,
+        user_id: uuid.UUID | None = None,
     ) -> SyncResult:
         """Executes a complete delta sync cycle with SHA-256 deduplication for a specific DataSource."""
         start_time = time.perf_counter()
@@ -122,9 +143,16 @@ class SyncEngine:
         if not source:
             raise ValueError(f"Data source {source_id} not found.")
 
-        connector = self.get_connector_for_source(source)
+        source_id_val = source.id
+        source_name_val = source.name
+        source_type_val = source.source_type
+
+        effective_owner = user_id or source.owner_id
+        if user_id and not source.owner_id:
+            source.owner_id = user_id
 
         try:
+            connector = self.get_connector_for_source(source, owner_id=effective_owner)
             # 1. Sync raw documents into document & version tables with deduplication
             synced_docs = await connector.sync()
             documents_synced_count = len(synced_docs)
@@ -176,7 +204,8 @@ class SyncEngine:
                 await self.trust_service.calculate_for_version(version.id)
 
             # 3. Update last_synced_at timestamp on data source
-            source.last_synced_at = datetime.now(timezone.utc)
+            synced_at_ts = datetime.now(timezone.utc)
+            source.last_synced_at = synced_at_ts
             await self.session.flush()
             await self.session.commit()
 
@@ -184,20 +213,20 @@ class SyncEngine:
 
             if documents_skipped_count > 0 and documents_created_count == 0 and documents_updated_count == 0:
                 msg = (
-                    f"⚡ Instant deduplication sync for {source.name}: "
+                    f"⚡ Instant deduplication sync for {source_name_val}: "
                     f"{documents_skipped_count} documents verified unchanged (0 new claims extracted) in {exec_ms}ms."
                 )
             else:
                 msg = (
                     f"Successfully synced {documents_synced_count} documents ({documents_created_count} new, "
-                    f"{documents_updated_count} updated, {documents_skipped_count} unchanged) from {source.name}. "
+                    f"{documents_updated_count} updated, {documents_skipped_count} unchanged) from {source_name_val}. "
                     f"Extracted {total_claims_extracted} atomic claims and surfaced {total_conflicts_detected} potential conflicts in {exec_ms}ms."
                 )
 
             return SyncResult(
-                source_id=source.id,
-                source_name=source.name,
-                source_type=source.source_type,
+                source_id=source_id_val,
+                source_name=source_name_val,
+                source_type=source_type_val,
                 documents_synced=documents_synced_count,
                 documents_created=documents_created_count,
                 documents_updated=documents_updated_count,
@@ -206,16 +235,16 @@ class SyncEngine:
                 conflicts_detected=total_conflicts_detected,
                 execution_time_ms=exec_ms,
                 status="success",
-                synced_at=source.last_synced_at,
+                synced_at=synced_at_ts,
                 message=msg,
             )
         except Exception as err:
             await self.session.rollback()
             exec_ms = max(1, int((time.perf_counter() - start_time) * 1000))
             return SyncResult(
-                source_id=source.id,
-                source_name=source.name,
-                source_type=source.source_type,
+                source_id=source_id_val,
+                source_name=source_name_val,
+                source_type=source_type_val,
                 documents_synced=0,
                 documents_created=0,
                 documents_updated=0,
@@ -225,7 +254,7 @@ class SyncEngine:
                 execution_time_ms=exec_ms,
                 status="error",
                 synced_at=datetime.now(timezone.utc),
-                message=f"Sync failed for {source.name}: {str(err)}",
+                message=f"Sync failed for {source_name_val}: {str(err)}",
             )
 
     async def sync_all_organization_sources(
@@ -235,8 +264,28 @@ class SyncEngine:
     ) -> list[SyncResult]:
         """Syncs all registered data sources for an organization in sequence."""
         sources = await self.source_repo.list_by_organization(organization_id)
+        source_metadata = [(s.id, s.name, s.source_type) for s in sources]
         results = []
-        for source in sources:
-            res = await self.sync_data_source(source.id, use_mock_llm=use_mock_llm)
-            results.append(res)
+        for sid, sname, stype in source_metadata:
+            try:
+                res = await self.sync_data_source(sid, use_mock_llm=use_mock_llm)
+                results.append(res)
+            except Exception as e:
+                results.append(
+                    SyncResult(
+                        source_id=sid,
+                        source_name=sname,
+                        source_type=stype,
+                        documents_synced=0,
+                        documents_created=0,
+                        documents_updated=0,
+                        documents_skipped=0,
+                        claims_extracted=0,
+                        conflicts_detected=0,
+                        execution_time_ms=0,
+                        status="error",
+                        synced_at=datetime.now(timezone.utc),
+                        message=f"Sync failed for {sname}: {str(e)}",
+                    )
+                )
         return results

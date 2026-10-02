@@ -43,13 +43,15 @@ class DocumentRepository(BaseRepository[Document]):
     async def list_by_organization(
         self,
         organization_id: uuid.UUID,
+        source_id: uuid.UUID | None = None,
         limit: int = 50,
         offset: int = 0,
     ) -> Sequence[Document]:
+        stmt = select(Document).where(Document.organization_id == organization_id)
+        if source_id:
+            stmt = stmt.where(Document.source_id == source_id)
         stmt = (
-            select(Document)
-            .where(Document.organization_id == organization_id)
-            .offset(offset)
+            stmt.offset(offset)
             .limit(limit)
             .options(selectinload(Document.versions))
         )
@@ -65,6 +67,7 @@ class DocumentRepository(BaseRepository[Document]):
         content_hash: str | None,
         document_type: str | None = "policy",
         external_id: str | None = None,
+        owner_id: uuid.UUID | None = None,
     ) -> tuple[Document, DocumentVersion, bool]:
         """
         Idempotent document ingestion with SHA-256 deduplication.
@@ -86,6 +89,7 @@ class DocumentRepository(BaseRepository[Document]):
             document = Document(
                 organization_id=organization_id,
                 source_id=source_id,
+                owner_id=owner_id,
                 title=title,
                 document_type=document_type,
                 external_id=external_id,
@@ -107,6 +111,11 @@ class DocumentRepository(BaseRepository[Document]):
             await self.session.flush()
             await self.session.refresh(version)
             return document, version, True
+
+        # Existing document: Update owner_id if not present or passed
+        if owner_id and not document.owner_id:
+            document.owner_id = owner_id
+            await self.session.flush()
 
         # Existing document: Check current active version
         current_version = await self.get_current_version(document.id)
