@@ -105,6 +105,7 @@ export default function VisualLineageGraph({
   };
   const [copiedHash, setCopiedHash] = useState(false);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [activeClaimInspector, setActiveClaimInspector] = useState(null);
   const [vaultSearch, setVaultSearch] = useState('');
   const [vaultConflictFilter, setVaultConflictFilter] = useState('all'); // 'all' | 'active' | 'resolved'
   const [vaultClaimFilter, setVaultClaimFilter] = useState('all'); // 'all' | 'verified' | 'conflicted' | 'decisions'
@@ -2201,6 +2202,37 @@ export default function VisualLineageGraph({
                         <span>Open File ↗</span>
                       </a>
                     )}
+
+                    {/* Details Symbol Toggle Button (Placed at top of filename, right after Open File) */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (activeClaimInspector) {
+                          setActiveClaimInspector(null);
+                        }
+                        setIsDetailsOpen(prev => !prev);
+                        showToast?.(isDetailsOpen ? "Details closed" : "Details opened");
+                      }}
+                      title={isDetailsOpen ? "Hide Asset Details" : "Show Asset Details"}
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '5px',
+                        padding: '4px 9px',
+                        borderRadius: '6px',
+                        border: isDetailsOpen ? '1px solid #EA580C' : '1px solid #E2E8F0',
+                        background: isDetailsOpen ? '#FFF7ED' : '#FFFFFF',
+                        color: isDetailsOpen ? '#EA580C' : '#475569',
+                        fontSize: '0.74rem',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
+                        transition: 'all 0.15s ease'
+                      }}
+                    >
+                      <Info size={13} color={isDetailsOpen ? '#EA580C' : '#64748B'} />
+                      <span>Details</span>
+                    </button>
                   </div>
                 </div>
 
@@ -2263,8 +2295,8 @@ export default function VisualLineageGraph({
 
             {/* SIDE-BY-SIDE SPLIT LAYOUT: LEFT = ORIGINAL DOCUMENT (IF OPEN) | RIGHT = DETAILS & ALL FACILITIES */}
             <div style={{
-              display: isFileViewerOpen && asset360Section === 'summary' && (vaultSubTab === 'documents' || vaultSubTab === 'connectors') && selectedAsset360 ? 'grid' : 'flex',
-              gridTemplateColumns: isFileViewerOpen && asset360Section === 'summary' && (vaultSubTab === 'documents' || vaultSubTab === 'connectors') && selectedAsset360 ? 'minmax(480px, 54%) 1fr' : undefined,
+              display: isFileViewerOpen && (isDetailsOpen || activeClaimInspector) && asset360Section === 'summary' && (vaultSubTab === 'documents' || vaultSubTab === 'connectors') && selectedAsset360 ? 'grid' : 'flex',
+              gridTemplateColumns: isFileViewerOpen && (isDetailsOpen || activeClaimInspector) && asset360Section === 'summary' && (vaultSubTab === 'documents' || vaultSubTab === 'connectors') && selectedAsset360 ? 'minmax(480px, 54%) 1fr' : undefined,
               flexDirection: 'column',
               gap: '8px',
               alignItems: 'start',
@@ -2292,6 +2324,26 @@ export default function VisualLineageGraph({
                       setIsFileViewerOpen(false);
                       showToast?.("Document preview minimized");
                     }}
+                    onSelectClaim={(claim) => {
+                      const cid = claim.cleanId || String(claim.id || '').replace(/^cl_/, '');
+                      const targetId = claim.id.startsWith('cl_') ? claim.id : `cl_${cid}`;
+                      const matchedNode = graphData?.nodes?.find(n => n.id === targetId || n.id === claim.id || n.id === `cl_${claim.id}`);
+                      const actualNodeId = matchedNode ? matchedNode.id : targetId;
+
+                      setActiveClaimInspector(claim);
+                      setIsDetailsOpen(false);
+                      setSelectedNodeId(actualNodeId);
+                      setInteractiveRootId(actualNodeId);
+                      setViewMode('interactive');
+                      setLineageGranularity('claim');
+                      setExpandedUpstreamSet(new Set([actualNodeId]));
+                      setExpandedDownstreamSet(new Set([actualNodeId]));
+                      setExpandedConflictClaimsSet(new Set());
+                      fetchBlastRadius(cid);
+                      showToast?.(`Loaded Lineage DAG for: "${claim.subject || 'Rule'}"`);
+                      setTimeout(() => handleFitView(), 120);
+                    }}
+                    selectedClaimId={activeClaimInspector?.cleanId || activeClaimInspector?.id}
                   />
                 ) : (
                   <div style={{
@@ -2371,7 +2423,351 @@ export default function VisualLineageGraph({
               <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '14px', width: '100%' }}>
 
                 {/* 0. SUMMARY FACILITY: COMPREHENSIVE OVERVIEW OF DOCUMENT OR CONNECTOR */}
-                {selectedAsset360 && (asset360Section === 'summary' || asset360Section === 'all') && (() => {
+                {selectedAsset360 && (asset360Section === 'summary' || asset360Section === 'all') && (!isFileViewerOpen || isDetailsOpen) && !activeClaimInspector && (() => {
+                  if (activeClaimInspector) {
+                    const claim = activeClaimInspector;
+                    const cleanId = String(claim.cleanId || claim.id || '').replace(/^cl_/, '');
+                    const fullClaimId = `cl_${cleanId}`;
+                    const docTitle = selectedAsset360.node.label || 'Standard Operating Procedure';
+
+                    // Find connected conflict(s)
+                    const connectedConflicts = (graphData?.nodes || []).filter(n => {
+                      if (n.type !== 'conflict') return false;
+                      const c1 = String(n.data?.first_claim_id || '').replace(/^cl_/, '');
+                      const c2 = String(n.data?.second_claim_id || '').replace(/^cl_/, '');
+                      if (c1 === cleanId || c2 === cleanId) return true;
+                      return (graphData?.edges || []).some(e => e.target === n.id && (e.source === fullClaimId || e.source === cleanId));
+                    });
+
+                    const primaryConflict = connectedConflicts[0] || (claim.conflicts && claim.conflicts[0]) || null;
+                    const isConflicted = claim.hasConflict || connectedConflicts.length > 0;
+
+                    // Find opposing counter-claim & opposing document
+                    let opposingClaim = null;
+                    let opposingDocTitle = null;
+                    if (primaryConflict) {
+                      const c1 = String(primaryConflict.data?.first_claim_id || primaryConflict.claimAId || '').replace(/^cl_/, '');
+                      const c2 = String(primaryConflict.data?.second_claim_id || primaryConflict.claimBId || '').replace(/^cl_/, '');
+                      const oppId = (c1 === cleanId) ? c2 : c1;
+                      if (oppId) {
+                        opposingClaim = (graphData?.nodes || []).find(n => n.type === 'claim' && String(n.id).replace(/^cl_/, '') === oppId);
+                        if (opposingClaim) {
+                          const edgeToDoc = (graphData?.edges || []).find(e => (e.target === opposingClaim.id || e.target === `cl_${oppId}`) && e.source.startsWith('doc_'));
+                          if (edgeToDoc) {
+                            const docNode = (graphData?.nodes || []).find(n => n.id === edgeToDoc.source);
+                            opposingDocTitle = docNode?.label;
+                          }
+                        }
+                      }
+                    }
+
+                    // Find downstream AI decisions
+                    const connectedDecisions = (graphData?.nodes || []).filter(n => {
+                      if (n.type !== 'decision') return false;
+                      const hasDirect = (graphData?.edges || []).some(e => e.target === n.id && (e.source === fullClaimId || e.source === cleanId));
+                      if (hasDirect) return true;
+                      if (primaryConflict) {
+                        return (graphData?.edges || []).some(e => e.target === n.id && e.source === primaryConflict.id);
+                      }
+                      return false;
+                    });
+
+                    return (
+                      <div style={{
+                        background: '#FFFFFF',
+                        border: isConflicted ? '1.5px solid #FDBA74' : '1.5px solid #BBF7D0',
+                        borderRadius: '10px',
+                        padding: '16px 20px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '14px',
+                        boxShadow: '0 4px 16px rgba(0,0,0,0.04)',
+                        position: 'relative'
+                      }}>
+                        {/* 1. Header with Badges & Close Button */}
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #F1F5F9', paddingBottom: '10px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                            <span style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                              padding: '3px 8px',
+                              borderRadius: '5px',
+                              fontSize: '0.70rem',
+                              fontWeight: 800,
+                              textTransform: 'uppercase',
+                              letterSpacing: '0.03em',
+                              background: isConflicted ? '#FFF7ED' : '#F0FDF4',
+                              color: isConflicted ? '#EA580C' : '#16A34A',
+                              border: isConflicted ? '1px solid #FED7AA' : '1px solid #BBF7D0'
+                            }}>
+                              {isConflicted ? <AlertTriangle size={12} strokeWidth={2.4} /> : <Zap size={12} strokeWidth={2.4} />}
+                              {isConflicted ? 'Contradicted Rule Lineage' : 'Verified Claim Lineage'}
+                            </span>
+                            <span style={{ fontSize: '0.72rem', color: '#64748B', fontFamily: 'monospace', fontWeight: 600 }}>
+                              #{cleanId.slice(0, 8)}
+                            </span>
+                            <span style={{
+                              fontSize: '0.68rem',
+                              fontWeight: 700,
+                              padding: '2px 6px',
+                              borderRadius: '4px',
+                              background: '#F1F5F9',
+                              color: '#334155'
+                            }}>
+                              {claim.trustPct || 92}% Integrity
+                            </span>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() => setActiveClaimInspector(null)}
+                            title="Close Inspector (Return to full width document)"
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              width: '24px',
+                              height: '24px',
+                              borderRadius: '5px',
+                              border: '1px solid #CBD5E1',
+                              background: '#FFFFFF',
+                              color: '#64748B',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            <X size={13} strokeWidth={2.4} />
+                          </button>
+                        </div>
+
+                        {/* 2. Highlighted Assertion Quote */}
+                        <div style={{
+                          background: isConflicted ? 'linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%)' : 'linear-gradient(135deg, #F0FDF4 0%, #DCFCE7 100%)',
+                          borderLeft: `4px solid ${isConflicted ? '#EA580C' : '#10B981'}`,
+                          borderRadius: '6px',
+                          padding: '10px 14px'
+                        }}>
+                          <div style={{ fontSize: '0.68rem', fontWeight: 700, color: isConflicted ? '#9A3412' : '#166534', textTransform: 'uppercase', marginBottom: '3px' }}>
+                            Exact Extracted Assertion:
+                          </div>
+                          <div style={{ fontSize: '0.82rem', fontWeight: 600, color: '#0F172A', lineHeight: 1.45 }}>
+                            "{claim.fullText}"
+                          </div>
+                          <div style={{ display: 'flex', gap: '6px', marginTop: '6px', flexWrap: 'wrap' }}>
+                            {claim.subject && (
+                              <span style={{ fontSize: '0.65rem', background: 'rgba(255,255,255,0.7)', padding: '2px 6px', borderRadius: '4px', color: '#475569' }}>
+                                <strong>Subj:</strong> {claim.subject}
+                              </span>
+                            )}
+                            {claim.predicate && (
+                              <span style={{ fontSize: '0.65rem', background: 'rgba(255,255,255,0.7)', padding: '2px 6px', borderRadius: '4px', color: '#475569' }}>
+                                <strong>Pred:</strong> {claim.predicate}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* 3. Focused In-Context Mini-DAG Chain */}
+                        <div style={{
+                          border: '1px solid #E2E8F0',
+                          borderRadius: '8px',
+                          padding: '12px 14px',
+                          background: '#F8FAFC'
+                        }}>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+                            <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#334155', textTransform: 'uppercase', letterSpacing: '0.02em', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                              <Layers size={13} color="#EA580C" />
+                              Causal Provenance Chain (Mini-DAG)
+                            </span>
+                            <span style={{ fontSize: '0.66rem', color: '#64748B' }}>
+                              In-Context Live Lineage
+                            </span>
+                          </div>
+
+                          {/* Mini DAG Flow Nodes */}
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', overflowX: 'auto', paddingBottom: '4px' }}>
+                            {/* Node 1: Source Document */}
+                            <div style={{
+                              background: '#FFFFFF',
+                              border: '1px solid #0284C7',
+                              borderRadius: '6px',
+                              padding: '6px 8px',
+                              minWidth: '105px',
+                              boxShadow: '0 1px 2px rgba(2,132,199,0.08)'
+                            }}>
+                              <div style={{ fontSize: '0.58rem', fontWeight: 800, color: '#0284C7', textTransform: 'uppercase' }}>1. Document</div>
+                              <div style={{ fontSize: '0.70rem', fontWeight: 700, color: '#0F172A', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100px' }} title={docTitle}>
+                                {docTitle}
+                              </div>
+                            </div>
+
+                            <ChevronRight size={14} color="#94A3B8" />
+
+                            {/* Node 2: Atomic Claim */}
+                            <div style={{
+                              background: '#FFFFFF',
+                              border: `1.5px solid ${isConflicted ? '#EA580C' : '#16A34A'}`,
+                              borderRadius: '6px',
+                              padding: '6px 8px',
+                              minWidth: '105px',
+                              boxShadow: '0 1px 2px rgba(0,0,0,0.06)'
+                            }}>
+                              <div style={{ fontSize: '0.58rem', fontWeight: 800, color: isConflicted ? '#EA580C' : '#16A34A', textTransform: 'uppercase' }}>2. Atomic Claim</div>
+                              <div style={{ fontSize: '0.70rem', fontWeight: 700, color: '#0F172A', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100px' }}>
+                                #{cleanId.slice(0, 8)}
+                              </div>
+                            </div>
+
+                            {isConflicted && (
+                              <>
+                                <ChevronRight size={14} color="#EA580C" />
+
+                                {/* Node 3: Contradiction */}
+                                <div style={{
+                                  background: '#FFF7ED',
+                                  border: '1.5px solid #EA580C',
+                                  borderRadius: '6px',
+                                  padding: '6px 8px',
+                                  minWidth: '105px',
+                                  boxShadow: '0 1px 2px rgba(234,88,12,0.15)'
+                                }}>
+                                  <div style={{ fontSize: '0.58rem', fontWeight: 800, color: '#C2410C', textTransform: 'uppercase' }}>3. Conflict</div>
+                                  <div style={{ fontSize: '0.70rem', fontWeight: 700, color: '#C2410C', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100px' }}>
+                                    {primaryConflict?.severity || 'HIGH'} SEVERITY
+                                  </div>
+                                </div>
+                              </>
+                            )}
+
+                            <ChevronRight size={14} color="#94A3B8" />
+
+                            {/* Node 4: AI Grounding Consumers */}
+                            <div style={{
+                              background: '#FFFFFF',
+                              border: '1px solid #7C3AED',
+                              borderRadius: '6px',
+                              padding: '6px 8px',
+                              minWidth: '105px',
+                              boxShadow: '0 1px 2px rgba(124,58,237,0.08)'
+                            }}>
+                              <div style={{ fontSize: '0.58rem', fontWeight: 800, color: '#7C3AED', textTransform: 'uppercase' }}>4. AI Impact</div>
+                              <div style={{ fontSize: '0.70rem', fontWeight: 700, color: '#0F172A', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100px' }}>
+                                {connectedDecisions.length > 0 ? `${connectedDecisions.length} Decisions` : 'Direct AI Pipeline'}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* 4. Opposing Contradiction View (If Conflicted) */}
+                        {isConflicted && (
+                          <div style={{
+                            border: '1px solid #FED7AA',
+                            borderRadius: '8px',
+                            padding: '12px 14px',
+                            background: '#FFFDFB'
+                          }}>
+                            <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#C2410C', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
+                              <Scale size={13} color="#EA580C" />
+                              Cross-Policy Semantic Contradiction
+                            </div>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                              <div style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', borderLeft: '3px solid #0284C7', padding: '8px 10px', borderRadius: '6px' }}>
+                                <div style={{ fontSize: '0.60rem', fontWeight: 800, color: '#0284C7', textTransform: 'uppercase' }}>
+                                  This Policy ({docTitle.slice(0, 18)})
+                                </div>
+                                <div style={{ fontSize: '0.72rem', color: '#1E293B', marginTop: '2px', lineHeight: 1.35 }}>
+                                  "{claim.fullText.slice(0, 90)}..."
+                                </div>
+                              </div>
+
+                              <div style={{ background: '#FFFFFF', border: '1px solid #FED7AA', borderLeft: '3px solid #EA580C', padding: '8px 10px', borderRadius: '6px' }}>
+                                <div style={{ fontSize: '0.60rem', fontWeight: 800, color: '#EA580C', textTransform: 'uppercase' }}>
+                                  Opposing Assertion ({opposingDocTitle ? opposingDocTitle.slice(0, 18) : 'Cross-Policy Standard'})
+                                </div>
+                                <div style={{ fontSize: '0.72rem', color: '#1E293B', marginTop: '2px', lineHeight: 1.35 }}>
+                                  "{opposingClaim?.label || opposingClaim?.data?.claim_text || 'Requires alternative operational protocol with conflicting SLA threshold.'}"
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* 5. Downstream AI Impact & Blast Radius */}
+                        <div style={{
+                          background: blastRadius?.risk_tier === 'CRITICAL' || blastRadius?.risk_tier === 'HIGH' ? '#FFF7ED' : '#F8FAFC',
+                          border: `1px solid ${blastRadius?.risk_tier === 'CRITICAL' || blastRadius?.risk_tier === 'HIGH' ? '#FED7AA' : '#E2E8F0'}`,
+                          borderRadius: '8px',
+                          padding: '10px 14px'
+                        }}>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+                            <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                              <Bot size={13} color="#7C3AED" />
+                              Downstream AI Impact Radius
+                            </span>
+                            <span style={{
+                              fontSize: '0.66rem',
+                              fontWeight: 800,
+                              padding: '1px 6px',
+                              borderRadius: '4px',
+                              background: blastRadius?.risk_tier === 'CRITICAL' || blastRadius?.risk_tier === 'HIGH' ? '#FFEDD5' : '#DCFCE7',
+                              color: blastRadius?.risk_tier === 'CRITICAL' || blastRadius?.risk_tier === 'HIGH' ? '#C2410C' : '#166534'
+                            }}>
+                              {blastRadius?.risk_tier || (isConflicted ? 'HIGH RISK' : 'LOW RISK')} ({blastRadius?.risk_score || (isConflicted ? 75 : 15)}/100)
+                            </span>
+                          </div>
+                          <div style={{ fontSize: '0.72rem', color: '#475569', lineHeight: 1.4 }}>
+                            {blastRadius?.recommendation || (isConflicted ? 'Modifying or reconciling this rule impacts active downstream autonomous decision workflows.' : 'Claim verified against all operational policies. No immediate drift detected.')}
+                          </div>
+                        </div>
+
+                        {/* 6. Footer Actions */}
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid #F1F5F9', paddingTop: '10px' }}>
+                          <button
+                            type="button"
+                            onClick={() => setActiveClaimInspector(null)}
+                            style={{
+                              padding: '5px 12px',
+                              borderRadius: '6px',
+                              border: '1px solid #CBD5E1',
+                              background: '#FFFFFF',
+                              color: '#475569',
+                              fontSize: '0.74rem',
+                              fontWeight: 600,
+                              cursor: 'pointer'
+                            }}
+                          >
+                            ✕ Close Inspector
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const targetId = claim.id.startsWith('cl_') ? claim.id : `cl_${cleanId}`;
+                              visualizeNodeInDag(targetId, claim.fullText);
+                            }}
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '5px',
+                              padding: '5px 12px',
+                              borderRadius: '6px',
+                              border: '1px solid #EA580C',
+                              background: '#FFF7ED',
+                              color: '#EA580C',
+                              fontSize: '0.74rem',
+                              fontWeight: 700,
+                              cursor: 'pointer'
+                            }}
+                            title="Open this node in the full canvas DAG"
+                          >
+                            <span>Open in Full DAG Canvas</span>
+                            <ExternalLink size={12} />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  }
+
                   const isDoc = selectedAsset360.mode === 'document';
                   const nodeData = selectedAsset360.node.data || {};
                   const docId = nodeData.doc_id || String(selectedAsset360.node.id || '').replace(/^doc_/, '');
@@ -2392,67 +2788,25 @@ export default function VisualLineageGraph({
                       gap: '14px',
                       boxShadow: '0 1px 3px rgba(0,0,0,0.02)'
                     }}>
-                      {/* 1. Header Banner with Details Button */}
+                      {/* 1. Header Banner inside Details Card */}
                       <div style={{
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'space-between',
                         flexWrap: 'wrap',
                         gap: '12px',
-                        borderBottom: isDetailsOpen ? '1px solid #F1F5F9' : 'none',
-                        paddingBottom: isDetailsOpen ? '10px' : '0px'
+                        borderBottom: '1px solid #F1F5F9',
+                        paddingBottom: '10px'
                       }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-                          <h3 style={{ margin: 0, fontSize: '1.20rem', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.02em' }}>
-                            {selectedAsset360.node.label}
-                          </h3>
-
-                          {/* Details Toggle Button */}
-                          <button
-                            type="button"
-                            onClick={() => setIsDetailsOpen(prev => !prev)}
-                            title={isDetailsOpen ? "Collapse Details" : "Expand Details"}
-                            style={{
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '5px',
-                              padding: '4px 10px',
-                              borderRadius: '6px',
-                              border: '1px solid #CBD5E1',
-                              background: isDetailsOpen ? '#F1F5F9' : '#FFFFFF',
-                              color: isDetailsOpen ? '#0F172A' : '#475569',
-                              fontSize: '0.74rem',
-                              fontWeight: 600,
-                              cursor: 'pointer',
-                              transition: 'all 0.15s ease'
-                            }}
-                            onMouseEnter={e => {
-                              if (!isDetailsOpen) {
-                                e.currentTarget.style.background = '#F8FAFC';
-                                e.currentTarget.style.borderColor = '#94A3B8';
-                              }
-                            }}
-                            onMouseLeave={e => {
-                              if (!isDetailsOpen) {
-                                e.currentTarget.style.background = '#FFFFFF';
-                                e.currentTarget.style.borderColor = '#CBD5E1';
-                              }
-                            }}
-                          >
-                            <Info size={13} color={isDetailsOpen ? "#0F172A" : "#64748B"} />
-                            <span>Details</span>
-                            <ChevronDown
-                              size={13}
-                              style={{
-                                transform: isDetailsOpen ? 'rotate(180deg)' : 'none',
-                                transition: 'transform 0.15s ease'
-                              }}
-                            />
-                          </button>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <Info size={15} color="#EA580C" />
+                          <span style={{ fontSize: '0.90rem', fontWeight: 700, color: '#0F172A' }}>
+                            Asset Details & Specifications
+                          </span>
                         </div>
 
-                        {!isFileViewerOpen && (
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          {!isFileViewerOpen && (
                             <button
                               type="button"
                               onClick={() => {
@@ -2460,31 +2814,48 @@ export default function VisualLineageGraph({
                                 showToast?.("Document preview opened on left");
                               }}
                               style={{
-                                padding: '6px 12px',
-                                borderRadius: '7px',
+                                padding: '5px 10px',
+                                borderRadius: '6px',
                                 border: '1px solid #EA580C',
                                 background: '#FFF7ED',
                                 color: '#EA580C',
-                                fontSize: '0.78rem',
+                                fontSize: '0.74rem',
                                 fontWeight: 700,
                                 cursor: 'pointer',
                                 display: 'inline-flex',
                                 alignItems: 'center',
-                                gap: '6px',
-                                boxShadow: '0 1px 2px rgba(234,88,12,0.1)'
+                                gap: '5px'
                               }}
                             >
-                              <Eye size={14} />
+                              <Eye size={13} />
                               <span>View Original File</span>
                             </button>
-                          </div>
-                        )}
+                          )}
+                          {isFileViewerOpen && (
+                            <button
+                              type="button"
+                              onClick={() => setIsDetailsOpen(false)}
+                              title="Close details panel"
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                width: '24px',
+                                height: '24px',
+                                borderRadius: '5px',
+                                border: '1px solid #CBD5E1',
+                                background: '#FFFFFF',
+                                color: '#64748B',
+                                cursor: 'pointer'
+                              }}
+                            >
+                              <X size={13} strokeWidth={2.4} />
+                            </button>
+                          )}
+                        </div>
                       </div>
 
-                      {/* Collapsible Entire Details Body */}
-                      {isDetailsOpen && (
-                        <>
-                          {/* 2. Governance Description */}
+                      {/* 2. Governance Description */}
                           <p style={{ margin: 0, fontSize: '0.80rem', color: '#475569', lineHeight: 1.55 }}>
                             {selectedAsset360.description || `Enterprise normalized governance asset. Deconstructed into atomic facts and verified against cross-policy contradictions.`}
                           </p>
@@ -2670,10 +3041,8 @@ export default function VisualLineageGraph({
                           ))}
                         </div>
                       </div>
-                    </>
-                  )}
 
-                </div>
+                    </div>
                   );
                 })()}
 
@@ -2694,8 +3063,89 @@ export default function VisualLineageGraph({
                 )}
 
                 {/* 2. INTERACTIVE DAG LINEAGE FOR THIS FILE / CONNECTOR */}
-                {(vaultSubTab === 'dag' || asset360Section === 'dag' || asset360Section === 'all') && (
+                {(vaultSubTab === 'dag' || asset360Section === 'dag' || asset360Section === 'all' || (asset360Section === 'summary' && activeClaimInspector)) && (
               <>
+      {/* Active Claim Lineage Banner (In Split Overview Mode) */}
+      {activeClaimInspector && asset360Section === 'summary' && (
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '8px 14px',
+          background: '#FFF7ED',
+          border: '1px solid #FDBA74',
+          borderRadius: '10px',
+          boxShadow: '0 1px 3px rgba(234, 88, 12, 0.08)',
+          marginBottom: '8px'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '9px', minWidth: 0 }}>
+            <span style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '24px',
+              height: '24px',
+              borderRadius: '6px',
+              background: '#EA580C',
+              color: '#FFFFFF',
+              fontSize: '0.78rem',
+              fontWeight: 800,
+              flexShrink: 0
+            }}>
+              ⚡
+            </span>
+            <div style={{ minWidth: 0, overflow: 'hidden' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span style={{ fontSize: '0.70rem', fontWeight: 800, color: '#C2410C', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                  Live Lineage DAG
+                </span>
+                <span style={{ fontSize: '0.68rem', color: '#9A3412', background: '#FED7AA', padding: '1px 6px', borderRadius: '4px', fontWeight: 700 }}>
+                  {activeClaimInspector.hasConflict ? 'Contradicted Rule' : 'Verified Rule'}
+                </span>
+              </div>
+              <div style={{ fontSize: '0.78rem', fontWeight: 600, color: '#431407', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginTop: '1px' }}>
+                "{activeClaimInspector.subject || activeClaimInspector.fullText || 'Selected Assertion'}"
+              </div>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              setActiveClaimInspector(null);
+              setSelectedNodeId(null);
+            }}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '5px',
+              padding: '5px 12px',
+              borderRadius: '6px',
+              border: '1px solid #FDBA74',
+              background: '#FFFFFF',
+              color: '#C2410C',
+              fontSize: '0.74rem',
+              fontWeight: 700,
+              cursor: 'pointer',
+              boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+              flexShrink: 0,
+              transition: 'all 0.15s ease'
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.background = '#EA580C';
+              e.currentTarget.style.color = '#FFFFFF';
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.background = '#FFFFFF';
+              e.currentTarget.style.color = '#C2410C';
+            }}
+            title="Close lineage and return document reader to full width"
+          >
+            <X size={13} strokeWidth={2.5} />
+            <span>Close Lineage</span>
+          </button>
+        </div>
+      )}
+
       {/* Unified Executive Lineage Command Card (Single Card Container) */}
       <div style={{
         background: '#FFFFFF',
@@ -3631,7 +4081,7 @@ export default function VisualLineageGraph({
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
           style={{
-            height: '640px',
+            height: (activeClaimInspector && asset360Section === 'summary') ? '780px' : '640px',
             width: '100%',
             cursor: isPanning ? 'grabbing' : 'grab',
             overflow: 'hidden',
