@@ -183,7 +183,9 @@ export default function SmartDocumentCanvas({
   onVisualizeInDag,
   onNavigateToTab,
   showToast,
-  onMinimize
+  onMinimize,
+  onSelectClaim,
+  selectedClaimId
 }) {
   // Highlight state: 'conflicts' (default) | 'claims' | 'none'
   const [highlightFilter, setHighlightFilter] = useState('conflicts');
@@ -374,7 +376,14 @@ export default function SmartDocumentCanvas({
     if (highlightFilter === 'claims' && isClaim) shouldHighlight = true;
 
     if (shouldHighlight) {
-      const bg = isConflicted ? '#FEF3C7' : '#DCFCE7';
+      const isSelected = selectedClaimId && (
+        claim.id === selectedClaimId ||
+        claim.cleanId === selectedClaimId ||
+        `cl_${claim.cleanId}` === selectedClaimId
+      );
+      const bg = isConflicted
+        ? (isSelected ? '#FEF08A' : '#FEF3C7')
+        : (isSelected ? '#BBF7D0' : '#DCFCE7');
       const border = isConflicted ? '#F59E0B' : '#10B981';
       const textColor = isConflicted ? '#7C2D12' : '#064E3B';
 
@@ -383,24 +392,32 @@ export default function SmartDocumentCanvas({
           key={keyPrefix}
           onMouseEnter={(e) => handleSentenceMouseEnter(e, claim)}
           onMouseLeave={() => setHoveredClaimInfo(null)}
-          onClick={() => {
+          onClick={(e) => {
+            e.stopPropagation();
             if (claim) {
-              const targetId = claim.id.startsWith('cl_') ? claim.id : `cl_${claim.id}`;
-              onVisualizeInDag?.(targetId, claim.fullText);
+              if (onSelectClaim) {
+                onSelectClaim(claim);
+              } else if (onVisualizeInDag) {
+                const targetId = claim.id.startsWith('cl_') ? claim.id : `cl_${claim.id}`;
+                onVisualizeInDag(targetId, claim.fullText);
+              }
             }
           }}
           style={{
             background: bg,
             borderBottom: `2px solid ${border}`,
             color: textColor,
-            padding: '1px 3px',
-            borderRadius: '2px',
+            padding: '2px 4px',
+            borderRadius: isSelected ? '4px' : '2px',
             cursor: 'pointer',
-            fontWeight: isConflicted ? 600 : 500,
-            transition: 'background 0.15s ease',
-            display: 'inline'
+            fontWeight: isConflicted ? 700 : 600,
+            transition: 'all 0.15s ease',
+            display: 'inline',
+            boxShadow: isSelected ? '0 0 0 2px #EA580C, 0 2px 8px rgba(234,88,12,0.25)' : 'none',
+            position: isSelected ? 'relative' : 'static',
+            zIndex: isSelected ? 2 : 1
           }}
-          title={isConflicted ? '⚠️ Contradicted Rule: Click to view in DAG Lineage' : '⚡ Verified Rule: Click to view in DAG Lineage'}
+          title={isConflicted ? '⚠️ Contradicted Rule: Click to inspect Lineage & Blast Radius' : '⚡ Verified Rule: Click to inspect Lineage & Blast Radius'}
         >
           {sentenceText}
         </span>
@@ -1020,8 +1037,13 @@ export default function SmartDocumentCanvas({
             <button
               type="button"
               onClick={() => {
-                const targetId = hoveredClaimInfo.id.startsWith('cl_') ? hoveredClaimInfo.id : `cl_${hoveredClaimInfo.id}`;
-                onVisualizeInDag?.(targetId, hoveredClaimInfo.fullText);
+                if (onSelectClaim) {
+                  onSelectClaim(hoveredClaimInfo);
+                  setHoveredClaimInfo(null);
+                } else if (onVisualizeInDag) {
+                  const targetId = hoveredClaimInfo.id.startsWith('cl_') ? hoveredClaimInfo.id : `cl_${hoveredClaimInfo.id}`;
+                  onVisualizeInDag?.(targetId, hoveredClaimInfo.fullText);
+                }
               }}
               style={{
                 display: 'inline-flex',
@@ -1029,8 +1051,8 @@ export default function SmartDocumentCanvas({
                 gap: '3px',
                 padding: '3px 8px',
                 borderRadius: '4px',
-                border: '1px solid #1D4ED8',
-                background: '#1D4ED8',
+                border: '1px solid #EA580C',
+                background: '#EA580C',
                 color: '#FFFFFF',
                 fontSize: '0.66rem',
                 fontWeight: 700,
@@ -1038,7 +1060,7 @@ export default function SmartDocumentCanvas({
               }}
             >
               <Zap size={11} />
-              <span>Trace in DAG</span>
+              <span>Inspect Lineage</span>
             </button>
           </div>
         </div>
