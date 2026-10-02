@@ -32,10 +32,23 @@ export default function UserProfileStudio({
   roleMetadata,
   onOpenRegisterOrg,
   onOpenOrgSettings,
-  showToast
+  showToast,
+  initialSubSection = 'companies',
+  onSubSectionChange
 }) {
   const [switchingOrgId, setSwitchingOrgId] = useState(null);
-  const [activeSubSection, setActiveSubSection] = useState('companies'); // 'companies' | 'security' | 'personas'
+  const [activeSubSection, setActiveSubSection] = useState(initialSubSection || 'companies'); // 'companies' | 'security' | 'personas'
+
+  useEffect(() => {
+    if (initialSubSection) {
+      setActiveSubSection(initialSubSection);
+    }
+  }, [initialSubSection]);
+
+  const handleSubSectionClick = (sub) => {
+    setActiveSubSection(sub);
+    onSubSectionChange?.(sub);
+  };
 
   const handleSelectCompany = async (org) => {
     if (org.id === activeOrg?.id) return;
@@ -202,7 +215,7 @@ export default function UserProfileStudio({
       {/* 2. Sub-Tabs */}
       <div style={{ display: 'flex', gap: '8px', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '2px' }}>
         <button
-          onClick={() => setActiveSubSection('companies')}
+          onClick={() => handleSubSectionClick('companies')}
           style={{
             padding: '8px 16px',
             borderRadius: '6px 6px 0 0',
@@ -229,7 +242,7 @@ export default function UserProfileStudio({
         </button>
 
         <button
-          onClick={() => setActiveSubSection('personas')}
+          onClick={() => handleSubSectionClick('personas')}
           style={{
             padding: '8px 16px',
             borderRadius: '6px 6px 0 0',
@@ -256,7 +269,7 @@ export default function UserProfileStudio({
         </button>
 
         <button
-          onClick={() => setActiveSubSection('security')}
+          onClick={() => handleSubSectionClick('security')}
           style={{
             padding: '8px 16px',
             borderRadius: '6px 6px 0 0',

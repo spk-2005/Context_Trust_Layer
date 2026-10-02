@@ -6,9 +6,22 @@ export default function TeamAndActivityHub({
   activePersona,
   onSelectPersona,
   showToast,
+  initialSubTab = 'directory',
+  onSubTabChange
 }) {
   const { user: currentAuthUser, refreshPersonas } = useAuth();
-  const [activeSubTab, setActiveSubTab] = useState('directory'); // 'directory', 'activity', 'domains'
+  const [activeSubTab, setActiveSubTab] = useState(initialSubTab || 'directory'); // 'directory', 'activity', 'domains'
+
+  useEffect(() => {
+    if (initialSubTab) {
+      setActiveSubTab(initialSubTab);
+    }
+  }, [initialSubTab]);
+
+  const handleSubTabClick = (tab) => {
+    setActiveSubTab(tab);
+    onSubTabChange?.(tab);
+  };
   const [users, setUsers] = useState([]);
   const [activities, setActivities] = useState([]);
   const [activityTotal, setActivityTotal] = useState(0);
@@ -303,7 +316,7 @@ export default function TeamAndActivityHub({
       {/* 3. Sub Navigation Tabs */}
       <div style={{ display: 'flex', gap: '10px', borderBottom: '1px solid var(--border-subtle)', marginBottom: '24px' }}>
         <button
-          onClick={() => setActiveSubTab('directory')}
+          onClick={() => handleSubTabClick('directory')}
           className="btn"
           style={{
             padding: '10px 18px',
@@ -325,7 +338,7 @@ export default function TeamAndActivityHub({
         </button>
 
         <button
-          onClick={() => setActiveSubTab('activity')}
+          onClick={() => handleSubTabClick('activity')}
           className="btn"
           style={{
             padding: '10px 18px',
@@ -347,7 +360,7 @@ export default function TeamAndActivityHub({
         </button>
 
         <button
-          onClick={() => setActiveSubTab('domains')}
+          onClick={() => handleSubTabClick('domains')}
           className="btn"
           style={{
             padding: '10px 18px',

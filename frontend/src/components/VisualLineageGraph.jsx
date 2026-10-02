@@ -29,9 +29,11 @@ import {
   Check,
   Sparkles,
   Calendar,
-  Clock
+  Clock,
+  Info
 } from 'lucide-react';
 import VisualClaimExtractionStudio from './VisualClaimExtractionStudio';
+import SmartDocumentCanvas from './SmartDocumentCanvas';
 
 const CARD_WIDTH = 260;
 const CARD_HEIGHT = 76;
@@ -42,7 +44,10 @@ export default function VisualLineageGraph({
   showToast,
   vaultSubTab: externalVaultSubTab,
   onVaultSubTabChange,
-  initialAssetId
+  initialAssetId,
+  onAssetChange,
+  initialSection = 'summary',
+  onSectionChange
 }) {
   const [graphData, setGraphData] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -68,18 +73,42 @@ export default function VisualLineageGraph({
 
   useEffect(() => {
     if (initialAssetId) {
-      setOpenedAssetId(initialAssetId);
-    } else if (externalVaultSubTab) {
+      const rawId = initialAssetId;
+      const matchedNode = graphData?.nodes?.find(n =>
+        n.id === rawId ||
+        n.id === `doc_${rawId}` ||
+        n.data?.doc_id === rawId ||
+        String(n.id).toLowerCase() === String(rawId).toLowerCase()
+      );
+      const targetId = matchedNode ? matchedNode.id : rawId;
+      setOpenedAssetId(targetId);
+      setSelectedNodeId(targetId);
+      setInteractiveRootId(targetId);
+      setExpandedUpstreamSet(new Set([targetId]));
+      setExpandedDownstreamSet(new Set([targetId]));
+    } else {
       setOpenedAssetId(null);
     }
-  }, [initialAssetId, externalVaultSubTab]);
+  }, [initialAssetId, graphData]);
 
-  const [asset360Section, setAsset360Section] = useState('summary'); // 'summary' | 'extraction' | 'dag' | 'conflicts' | 'claims' | 'all'
+  const [asset360Section, setAsset360Section] = useState(initialSection || 'summary'); // 'summary' | 'extraction' | 'dag' | 'conflicts' | 'claims' | 'all'
+
+  useEffect(() => {
+    if (initialSection) {
+      setAsset360Section(initialSection);
+    }
+  }, [initialSection]);
+
+  const handleSectionChange = (secId) => {
+    setAsset360Section(secId);
+    onSectionChange?.(secId);
+  };
   const [copiedHash, setCopiedHash] = useState(false);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [vaultSearch, setVaultSearch] = useState('');
   const [vaultConflictFilter, setVaultConflictFilter] = useState('all'); // 'all' | 'active' | 'resolved'
   const [vaultClaimFilter, setVaultClaimFilter] = useState('all'); // 'all' | 'verified' | 'conflicted' | 'decisions'
-  const [openedAssetId, setOpenedAssetId] = useState(null); // null = show full List of Documents/Connectors; non-null = open Split View (Original Document + All Facilities beside it)
+  const [openedAssetId, setOpenedAssetId] = useState(initialAssetId || null); // null = show full List of Documents/Connectors; non-null = open Split View (Original Document + All Facilities beside it)
   const [isFileViewerOpen, setIsFileViewerOpen] = useState(true); // Toggle to show or collapse document viewer and expand facilities to full width
   const [docReaderSearch, setDocReaderSearch] = useState('');
   const [docReaderClauseFilter, setDocReaderClauseFilter] = useState('all'); // 'all' | 'conflicted' | 'verified'
@@ -1724,6 +1753,7 @@ export default function VisualLineageGraph({
           setIsAssetDirectoryOpen(false);
           setDocReaderSearch('');
           setAsset360Section('summary');
+          onAssetChange?.(item.id);
         };
 
         // ============================================================================
@@ -1790,65 +1820,15 @@ export default function VisualLineageGraph({
                 }
               `}</style>
 
-              {/* Sleek Toolbar: Title, Filter Pills, Search, Sort */}
+              {/* Sleek Toolbar: Search, Sort */}
               <div style={{
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'space-between',
+                justifyContent: 'flex-end',
                 flexWrap: 'wrap',
                 gap: '10px',
                 padding: '0 0 2px 0'
               }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <h3 style={{ margin: 0, fontSize: '0.94rem', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.01em' }}>
-                      {vaultSubTab === 'documents' ? 'Enterprise Policy Artifacts' : 'Enterprise Connectors & Sources'}
-                    </h3>
-                    <span style={{
-                      fontSize: '0.72rem',
-                      fontWeight: 700,
-                      color: '#EA580C',
-                      background: '#FFF7ED',
-                      border: '1px solid #FFEDD5',
-                      padding: '2px 8px',
-                      borderRadius: '12px'
-                    }}>
-                      {enrichedAssets.length} Indexed
-                    </span>
-                  </div>
-
-                  {/* Compact Professional Filter Pills */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: '#F8FAFC', padding: '3px', borderRadius: '7px', border: '1px solid #E2E8F0' }}>
-                    {[
-                      { id: 'all', label: `All Artifacts (${enrichedAssets.length})` },
-                      { id: 'conflicted', label: `Conflicted (${enrichedAssets.filter(a => a.activeConflictCount > 0).length})` },
-                      { id: 'clean', label: `Integrity Verified (${enrichedAssets.filter(a => a.activeConflictCount === 0).length})` }
-                    ].map(f => {
-                      const active = assetListFilter === f.id;
-                      return (
-                        <button
-                          key={f.id}
-                          type="button"
-                          className="trulin-filter-btn"
-                          onClick={() => { setAssetListFilter(f.id); setAssetListPage(1); }}
-                          style={{
-                            padding: '3px 10px',
-                            border: 'none',
-                            borderRadius: '5px',
-                            background: active ? '#EA580C' : 'transparent',
-                            color: active ? '#FFFFFF' : '#64748B',
-                            boxShadow: active ? '0 2px 6px rgba(234, 88, 12, 0.28)' : 'none',
-                            fontSize: '0.73rem',
-                            fontWeight: active ? 700 : 500,
-                            cursor: 'pointer'
-                          }}
-                        >
-                          {f.label}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
 
                 {/* Search, Sort & Page Size Controls */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
@@ -2107,7 +2087,7 @@ export default function VisualLineageGraph({
         });
 
         return (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', width: '100%' }}>
 
             {/* CLEAN MINIMALIST EXECUTIVE HEADER: MINIMAL BACK BUTTON (<), FILE NAME, TOGGLE FILE VIEW, & UNDERLINED TABS */}
             {selectedAsset360 && (
@@ -2115,18 +2095,21 @@ export default function VisualLineageGraph({
                 background: 'transparent',
                 border: 'none',
                 boxShadow: 'none',
-                padding: '0 0 2px 0',
-                marginBottom: '10px',
+                padding: '0',
+                marginBottom: '2px',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '10px'
+                gap: '4px'
               }}>
                 {/* Top Row: Minimal Back Button (<), File Name, and File Viewer Toggle / Stepper */}
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
                     <button
                       type="button"
-                      onClick={() => setOpenedAssetId(null)}
+                      onClick={() => {
+                        setOpenedAssetId(null);
+                        onAssetChange?.(null);
+                      }}
                       style={{
                         width: '28px',
                         height: '28px',
@@ -2159,49 +2142,39 @@ export default function VisualLineageGraph({
                       <ChevronLeft size={16} strokeWidth={2.5} />
                     </button>
 
-                    <h2 style={{ margin: 0, fontSize: '1.16rem', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.01em' }}>
+                    <h2 style={{ margin: 0, fontSize: '1.12rem', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.01em' }}>
                       {selectedAsset360.node.label}
                     </h2>
-                  </div>
 
-                  {/* Universal File Viewer Trigger Button: Available anywhere in page */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setIsFileViewerOpen(prev => !prev);
-                        showToast?.(!isFileViewerOpen ? "Document file preview opened" : "Document file preview collapsed");
-                      }}
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                        padding: '6px 13px',
-                        borderRadius: '6px',
-                        border: isFileViewerOpen ? '1px solid #EA580C' : '1px solid #CBD5E1',
-                        background: isFileViewerOpen ? '#FFF7ED' : '#FFFFFF',
-                        color: isFileViewerOpen ? '#EA580C' : '#334155',
-                        fontSize: '0.78rem',
-                        fontWeight: 700,
-                        cursor: 'pointer',
-                        boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
-                        transition: 'all 0.15s ease'
-                      }}
-                      title="Toggle side-by-side file viewer"
-                    >
-                      <FileText size={14} color={isFileViewerOpen ? '#EA580C' : '#64748B'} />
-                      <span>{isFileViewerOpen ? 'Hide File Preview' : 'View Document File'}</span>
-                      <span style={{
-                        fontSize: '0.64rem',
-                        padding: '1px 5px',
-                        borderRadius: '4px',
-                        background: isFileViewerOpen ? '#EA580C' : '#F1F5F9',
-                        color: isFileViewerOpen ? '#FFFFFF' : '#64748B',
-                        fontWeight: 700
-                      }}>
-                        {selectedAsset360.mode === 'document' ? 'PDF/Text' : 'Source'}
-                      </span>
-                    </button>
+                    {/* Universal File Viewer Trigger Button: Available only in Overview tab when minimized */}
+                    {asset360Section === 'summary' && !isFileViewerOpen && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsFileViewerOpen(true);
+                          showToast?.("Document preview opened");
+                        }}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          padding: '4px 10px',
+                          borderRadius: '6px',
+                          border: '1px solid #EA580C',
+                          background: '#FFF7ED',
+                          color: '#EA580C',
+                          fontSize: '0.74rem',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
+                          transition: 'all 0.15s ease'
+                        }}
+                        title="Open document preview"
+                      >
+                        <FileText size={13} color="#EA580C" />
+                        <span>Open Document Preview</span>
+                      </button>
+                    )}
 
                     {selectedAsset360.mode === 'document' && (
                       <a
@@ -2212,33 +2185,33 @@ export default function VisualLineageGraph({
                           display: 'inline-flex',
                           alignItems: 'center',
                           gap: '5px',
-                          padding: '6px 10px',
+                          padding: '4px 9px',
                           borderRadius: '6px',
                           border: '1px solid #E2E8F0',
                           background: '#FFFFFF',
                           color: '#0284C7',
-                          fontSize: '0.76rem',
+                          fontSize: '0.74rem',
                           fontWeight: 600,
                           textDecoration: 'none',
                           boxShadow: '0 1px 2px rgba(0,0,0,0.04)'
                         }}
                         title="Open document file in a new browser tab"
                       >
-                        <ExternalLink size={13} />
+                        <ExternalLink size={12} />
                         <span>Open File ↗</span>
                       </a>
                     )}
                   </div>
                 </div>
 
-                {/* Plane Text Tabs with Separator Line (No Background, No Shadow, Hover/Active Orange Effects) */}
+                {/* Plane Text Tabs with Separator Line */}
                 <div style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '24px',
+                  gap: '16px',
                   borderBottom: '1px solid #E2E8F0',
                   paddingBottom: '0px',
-                  marginTop: '4px',
+                  marginTop: '0px',
                   overflowX: 'auto'
                 }}>
                   {[
@@ -2255,7 +2228,7 @@ export default function VisualLineageGraph({
                         key={sec.id}
                         type="button"
                         onClick={() => {
-                          setAsset360Section(sec.id);
+                          handleSectionChange(sec.id);
                           showToast?.(`Switched facility to ${sec.label}`);
                         }}
                         onMouseEnter={e => {
@@ -2265,7 +2238,7 @@ export default function VisualLineageGraph({
                           if (!active) e.currentTarget.style.color = '#64748B';
                         }}
                         style={{
-                          padding: '8px 2px',
+                          padding: '5px 2px',
                           border: 'none',
                           outline: 'none',
                           background: 'transparent',
@@ -2290,21 +2263,37 @@ export default function VisualLineageGraph({
 
             {/* SIDE-BY-SIDE SPLIT LAYOUT: LEFT = ORIGINAL DOCUMENT (IF OPEN) | RIGHT = DETAILS & ALL FACILITIES */}
             <div style={{
-              display: isFileViewerOpen && (vaultSubTab === 'documents' || vaultSubTab === 'connectors') && selectedAsset360 ? 'grid' : 'flex',
-              gridTemplateColumns: isFileViewerOpen && (vaultSubTab === 'documents' || vaultSubTab === 'connectors') && selectedAsset360 ? 'minmax(380px, 44%) 1fr' : undefined,
+              display: isFileViewerOpen && asset360Section === 'summary' && (vaultSubTab === 'documents' || vaultSubTab === 'connectors') && selectedAsset360 ? 'grid' : 'flex',
+              gridTemplateColumns: isFileViewerOpen && asset360Section === 'summary' && (vaultSubTab === 'documents' || vaultSubTab === 'connectors') && selectedAsset360 ? 'minmax(480px, 54%) 1fr' : undefined,
               flexDirection: 'column',
-              gap: '16px',
+              gap: '8px',
               alignItems: 'start',
-              width: '100%'
+              width: '100%',
+              marginTop: '0px'
             }}>
 
-              {/* LEFT PANE: DIRECT UPLOADED DOCUMENT VIEWER (PDF / Original File - COLLAPSIBLE) */}
-              {isFileViewerOpen && (vaultSubTab === 'documents' || vaultSubTab === 'connectors') && selectedAsset360 && (() => {
+              {/* LEFT PANE: DIRECT UPLOADED DOCUMENT VIEWER - ONLY in Overview tab */}
+              {isFileViewerOpen && asset360Section === 'summary' && (vaultSubTab === 'documents' || vaultSubTab === 'connectors') && selectedAsset360 && (() => {
                 const rawDocId = selectedAsset360.node.data?.doc_id || String(selectedAsset360.node.id || '').replace(/^doc_/, '');
                 const pdfUrl = `/v1/documents/${rawDocId}/file`;
                 const rawOriginalText = selectedAsset360.node.data?.content_uri || '';
 
-                return (
+                return selectedAsset360.mode === 'document' ? (
+                  <SmartDocumentCanvas
+                    documentNode={selectedAsset360.node}
+                    documentId={rawDocId}
+                    claims={selectedAsset360.claims}
+                    conflicts={selectedAsset360.conflicts}
+                    rawOriginalText={rawOriginalText}
+                    onVisualizeInDag={(nodeId, label) => visualizeNodeInDag(nodeId, label)}
+                    onNavigateToTab={(tabName) => setVaultSubTab(tabName)}
+                    showToast={showToast}
+                    onMinimize={() => {
+                      setIsFileViewerOpen(false);
+                      showToast?.("Document preview minimized");
+                    }}
+                  />
+                ) : (
                   <div style={{
                     background: '#FFFFFF',
                     border: '1px solid #CBD5E1',
@@ -2316,7 +2305,6 @@ export default function VisualLineageGraph({
                     position: 'sticky',
                     top: '12px'
                   }}>
-                    {/* Original Document Top Bar */}
                     <div style={{
                       padding: '8px 14px',
                       background: '#F8FAFC',
@@ -2328,139 +2316,53 @@ export default function VisualLineageGraph({
                     }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <span style={{ fontSize: '0.73rem', fontWeight: 600, color: '#64748B' }}>
-                          Document Preview
+                          Connector Source Profile
                         </span>
                       </div>
-
-                      {selectedAsset360.mode === 'document' && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <button
-                            type="button"
-                            onClick={() => setDocReaderClauseFilter('all')}
-                            style={{
-                              padding: '3px 8px',
-                              borderRadius: '4px',
-                              border: docReaderClauseFilter === 'all' ? '1px solid #FED7AA' : '1px solid transparent',
-                              background: docReaderClauseFilter === 'all' ? '#FFF7ED' : 'transparent',
-                              color: docReaderClauseFilter === 'all' ? '#EA580C' : '#64748B',
-                              fontSize: '0.73rem',
-                              fontWeight: 600,
-                              cursor: 'pointer'
-                            }}
-                          >
-                            PDF View
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setDocReaderClauseFilter('raw')}
-                            style={{
-                              padding: '3px 8px',
-                              borderRadius: '4px',
-                              border: docReaderClauseFilter === 'raw' ? '1px solid #FED7AA' : '1px solid transparent',
-                              background: docReaderClauseFilter === 'raw' ? '#FFF7ED' : 'transparent',
-                              color: docReaderClauseFilter === 'raw' ? '#EA580C' : '#64748B',
-                              fontSize: '0.73rem',
-                              fontWeight: 600,
-                              cursor: 'pointer'
-                            }}
-                          >
-                            Raw Text
-                          </button>
-                          <a
-                            href={pdfUrl}
-                            target="_blank"
-                            rel="noreferrer"
-                            style={{
-                              fontSize: '0.72rem',
-                              fontWeight: 600,
-                              color: '#0284C7',
-                              textDecoration: 'none',
-                              padding: '3px 6px'
-                            }}
-                          >
-                            Open ↗
-                          </a>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Direct Embedded PDF Viewer (Default) or Original Raw File View */}
-                    {selectedAsset360.mode === 'document' ? (
-                      docReaderClauseFilter === 'raw' ? (
-                        <div style={{
-                          flex: 1,
-                          padding: '18px 20px',
-                          overflowY: 'auto',
-                          background: '#FFFFFF',
-                          fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
-                          fontSize: '0.78rem',
-                          lineHeight: 1.65,
-                          color: '#0F172A',
-                          whiteSpace: 'pre-wrap'
-                        }}>
-                          {rawOriginalText || 'Original document content is displayed in PDF View.'}
-                        </div>
-                      ) : (
-                        <div style={{
-                          flex: 1,
-                          overflowY: 'auto',
-                          background: '#F8FAFC',
-                          padding: '16px',
-                          display: 'flex',
-                          flexDirection: 'column',
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsFileViewerOpen(false);
+                          showToast?.("Source preview minimized");
+                        }}
+                        title="Minimize source preview"
+                        style={{
+                          display: 'inline-flex',
                           alignItems: 'center',
-                          gap: '16px'
-                        }}>
-                          {/* Clean Native In-App Document Page (No Google/Chrome iframe) */}
-                          <div style={{
-                            width: '100%',
-                            background: '#FFFFFF',
-                            borderRadius: '4px',
-                            boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-                            border: '1px solid #E2E8F0',
-                            padding: '24px 24px',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            gap: '14px'
-                          }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid #E2E8F0', paddingBottom: '10px' }}>
-                              <div style={{ width: '22px', height: '22px', borderRadius: '4px', background: '#FEE2E2', color: '#DC2626', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                <FileText size={13} />
-                              </div>
-                              <span style={{ fontWeight: 700, color: '#0F172A', fontSize: '0.84rem' }}>
-                                {selectedAsset360.node.label}
-                              </span>
-                            </div>
-
-                            <div style={{ fontSize: '0.8rem', lineHeight: 1.65, color: '#1E293B', whiteSpace: 'pre-wrap' }}>
-                              {rawOriginalText || `Standard Operating Procedure & Governing Policy for ${selectedAsset360.node.label}.\n\nAll provisions are cryptographically anchored and verified by the Trulin Context Trust Layer.`}
-                            </div>
-                          </div>
-                        </div>
-                      )
-                    ) : (
-                      <div style={{
-                        flex: 1,
-                        padding: '18px 20px',
-                        overflowY: 'auto',
-                        background: '#FFFFFF',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '12px'
-                      }}>
-                        <div style={{ fontSize: '0.8rem', color: '#334155', lineHeight: 1.55 }}>
-                          <strong>Connector Source:</strong> {selectedAsset360.node.label}<br />
-                          <strong>Source Type:</strong> {(selectedAsset360.node.subType || 'DATABASE').toUpperCase()}<br />
-                          <strong>Authority Level:</strong> {selectedAsset360.node.authority ? `${(Number(selectedAsset360.node.authority) * 100).toFixed(0)}%` : '95%'}<br />
-                          <strong>Synced Records:</strong> {selectedAsset360.connectedDocs.length} Objects &bull; {selectedAsset360.claims.length} Claims
-                        </div>
-                        {selectedAsset360.connectedDocs.map(d => (
-                          <div key={d.id} style={{ padding: '10px 12px', borderRadius: '6px', border: '1px solid #E2E8F0', background: '#F8FAFC', fontSize: '0.78rem', fontWeight: 600, color: '#0F172A' }}>
-                            {d.label}
-                          </div>
-                        ))}
+                          justifyContent: 'center',
+                          width: '24px',
+                          height: '24px',
+                          borderRadius: '5px',
+                          border: '1px solid #CBD5E1',
+                          background: '#FFFFFF',
+                          color: '#64748B',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        <X size={13} strokeWidth={2.4} />
+                      </button>
+                    </div>
+                    <div style={{
+                      flex: 1,
+                      padding: '18px 20px',
+                      overflowY: 'auto',
+                      background: '#FFFFFF',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '12px'
+                    }}>
+                      <div style={{ fontSize: '0.8rem', color: '#334155', lineHeight: 1.55 }}>
+                        <strong>Connector Source:</strong> {selectedAsset360.node.label}<br />
+                        <strong>Source Type:</strong> {(selectedAsset360.node.subType || 'DATABASE').toUpperCase()}<br />
+                        <strong>Authority Level:</strong> {selectedAsset360.node.authority ? `${(Number(selectedAsset360.node.authority) * 100).toFixed(0)}%` : '95%'}<br />
+                        <strong>Synced Records:</strong> {selectedAsset360.connectedDocs.length} Objects &bull; {selectedAsset360.claims.length} Claims
                       </div>
-                    )}
+                      {selectedAsset360.connectedDocs.map(d => (
+                        <div key={d.id} style={{ padding: '10px 12px', borderRadius: '6px', border: '1px solid #E2E8F0', background: '#F8FAFC', fontSize: '0.78rem', fontWeight: 600, color: '#0F172A' }}>
+                          {d.label}
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 );
               })()}
@@ -2484,249 +2386,192 @@ export default function VisualLineageGraph({
                       background: '#FFFFFF',
                       border: '1px solid #E2E8F0',
                       borderRadius: '10px',
-                      padding: '20px 24px',
+                      padding: '16px 20px',
                       display: 'flex',
                       flexDirection: 'column',
-                      gap: '18px',
+                      gap: '14px',
                       boxShadow: '0 1px 3px rgba(0,0,0,0.02)'
                     }}>
-                      {/* 1. Header Banner & Document Identity */}
-                      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '14px', borderBottom: '1px solid #F1F5F9', paddingBottom: '16px' }}>
-                        <div style={{ display: 'flex', gap: '14px', alignItems: 'flex-start' }}>
-                          <div style={{
-                            width: '46px',
-                            height: '46px',
-                            borderRadius: '10px',
-                            background: isDoc ? '#FFF7ED' : '#F0FDF4',
-                            border: isDoc ? '1px solid #FED7AA' : '1px solid #BBF7D0',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            color: isDoc ? '#EA580C' : '#16A34A',
-                            flexShrink: 0
-                          }}>
-                            {isDoc ? <FileText size={24} /> : <Database size={24} />}
-                          </div>
-                          <div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                              <span style={{
-                                fontSize: '0.68rem',
-                                fontWeight: 800,
-                                textTransform: 'uppercase',
-                                letterSpacing: '0.04em',
-                                background: isDoc ? '#F1F5F9' : '#ECFDF5',
-                                color: isDoc ? '#475569' : '#059669',
-                                padding: '2px 8px',
-                                borderRadius: '4px'
-                              }}>
-                                {isDoc ? (selectedAsset360.node.subType || 'Policy Document').toUpperCase() : (selectedAsset360.node.subType || 'Enterprise Connector').toUpperCase()}
-                              </span>
-                              <span style={{
-                                fontSize: '0.68rem',
-                                fontWeight: 700,
-                                background: selectedAsset360.activeConflicts.length > 0 ? '#FFF7ED' : '#F0FDF4',
-                                color: selectedAsset360.activeConflicts.length > 0 ? '#EA580C' : '#15803D',
-                                border: selectedAsset360.activeConflicts.length > 0 ? '1px solid #FFEDD5' : '1px solid #DCFCE7',
-                                padding: '2px 8px',
-                                borderRadius: '12px'
-                              }}>
-                                {selectedAsset360.activeConflicts.length > 0 ? `⚠️ ${selectedAsset360.activeConflicts.length} Active Contradiction(s)` : '✅ Integrity Verified (Clean)'}
-                              </span>
-                              <span style={{
-                                fontSize: '0.68rem',
-                                fontWeight: 700,
-                                background: '#EFF6FF',
-                                color: '#2563EB',
-                                border: '1px solid #DBEAFE',
-                                padding: '2px 8px',
-                                borderRadius: '12px'
-                              }}>
-                                {isDoc ? (nodeData.domain || 'General Policy Domain') : `Authority: ${(selectedAsset360.node.authority ? (Number(selectedAsset360.node.authority) > 1 ? Number(selectedAsset360.node.authority).toFixed(0) : (Number(selectedAsset360.node.authority) * 100).toFixed(0)) : '95')}%`}
-                              </span>
-                            </div>
-                            <h3 style={{ margin: '6px 0 2px 0', fontSize: '1.24rem', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.02em' }}>
-                              {selectedAsset360.node.label}
-                            </h3>
-                            <p style={{ margin: 0, fontSize: '0.76rem', color: '#64748B' }}>
-                              {isDoc 
-                                ? `Source URI: ${nodeData.external_id || `file://${selectedAsset360.node.label.replace(/\s+/g, '_')}.md`} • Linked via ${selectedAsset360.parentSource?.label || 'Direct Enterprise Upload'}`
-                                : `External System ID: ${nodeData.external_id || selectedAsset360.node.id} • Live Synchronization Pipeline`}
-                            </p>
-                          </div>
-                        </div>
+                      {/* 1. Header Banner with Details Button */}
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        flexWrap: 'wrap',
+                        gap: '12px',
+                        borderBottom: isDetailsOpen ? '1px solid #F1F5F9' : 'none',
+                        paddingBottom: isDetailsOpen ? '10px' : '0px'
+                      }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                          <h3 style={{ margin: 0, fontSize: '1.20rem', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.02em' }}>
+                            {selectedAsset360.node.label}
+                          </h3>
 
-                        {/* View File / Action buttons */}
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          {/* Details Toggle Button */}
                           <button
                             type="button"
-                            onClick={() => {
-                              setIsFileViewerOpen(true);
-                              showToast?.("Document preview opened on left");
-                            }}
+                            onClick={() => setIsDetailsOpen(prev => !prev)}
+                            title={isDetailsOpen ? "Collapse Details" : "Expand Details"}
                             style={{
-                              padding: '7px 14px',
-                              borderRadius: '7px',
-                              border: '1px solid #EA580C',
-                              background: '#FFF7ED',
-                              color: '#EA580C',
-                              fontSize: '0.78rem',
-                              fontWeight: 700,
-                              cursor: 'pointer',
                               display: 'inline-flex',
                               alignItems: 'center',
-                              gap: '6px',
-                              boxShadow: '0 1px 2px rgba(234,88,12,0.1)'
+                              gap: '5px',
+                              padding: '4px 10px',
+                              borderRadius: '6px',
+                              border: '1px solid #CBD5E1',
+                              background: isDetailsOpen ? '#F1F5F9' : '#FFFFFF',
+                              color: isDetailsOpen ? '#0F172A' : '#475569',
+                              fontSize: '0.74rem',
+                              fontWeight: 600,
+                              cursor: 'pointer',
+                              transition: 'all 0.15s ease'
+                            }}
+                            onMouseEnter={e => {
+                              if (!isDetailsOpen) {
+                                e.currentTarget.style.background = '#F8FAFC';
+                                e.currentTarget.style.borderColor = '#94A3B8';
+                              }
+                            }}
+                            onMouseLeave={e => {
+                              if (!isDetailsOpen) {
+                                e.currentTarget.style.background = '#FFFFFF';
+                                e.currentTarget.style.borderColor = '#CBD5E1';
+                              }
                             }}
                           >
-                            <Eye size={14} />
-                            <span>View Original File</span>
-                          </button>
-                          {isDoc && (
-                            <a
-                              href={`/v1/documents/${docId}/file`}
-                              target="_blank"
-                              rel="noreferrer"
+                            <Info size={13} color={isDetailsOpen ? "#0F172A" : "#64748B"} />
+                            <span>Details</span>
+                            <ChevronDown
+                              size={13}
                               style={{
-                                padding: '7px 12px',
+                                transform: isDetailsOpen ? 'rotate(180deg)' : 'none',
+                                transition: 'transform 0.15s ease'
+                              }}
+                            />
+                          </button>
+                        </div>
+
+                        {!isFileViewerOpen && (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setIsFileViewerOpen(true);
+                                showToast?.("Document preview opened on left");
+                              }}
+                              style={{
+                                padding: '6px 12px',
                                 borderRadius: '7px',
-                                border: '1px solid #E2E8F0',
-                                background: '#FFFFFF',
-                                color: '#0284C7',
+                                border: '1px solid #EA580C',
+                                background: '#FFF7ED',
+                                color: '#EA580C',
                                 fontSize: '0.78rem',
-                                fontWeight: 600,
-                                textDecoration: 'none',
+                                fontWeight: 700,
+                                cursor: 'pointer',
                                 display: 'inline-flex',
                                 alignItems: 'center',
-                                gap: '5px'
+                                gap: '6px',
+                                boxShadow: '0 1px 2px rgba(234,88,12,0.1)'
                               }}
                             >
-                              <ExternalLink size={14} />
-                              <span>Open in New Tab</span>
-                            </a>
-                          )}
-                        </div>
+                              <Eye size={14} />
+                              <span>View Original File</span>
+                            </button>
+                          </div>
+                        )}
                       </div>
 
-                      {/* 2. Executive Abstract & Scope */}
+                      {/* Collapsible Entire Details Body */}
+                      {isDetailsOpen && (
+                        <>
+                          {/* 2. Governance Description */}
+                          <p style={{ margin: 0, fontSize: '0.80rem', color: '#475569', lineHeight: 1.55 }}>
+                            {selectedAsset360.description || `Enterprise normalized governance asset. Deconstructed into atomic facts and verified against cross-policy contradictions.`}
+                          </p>
+
+                      {/* 2. Core Metrics Summary (Compact Table) */}
                       <div style={{
-                        background: '#F8FAFC',
                         border: '1px solid #E2E8F0',
                         borderRadius: '8px',
-                        padding: '12px 16px',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '6px'
+                        overflow: 'hidden',
+                        background: '#FFFFFF'
                       }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#475569', fontSize: '0.74rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.03em' }}>
-                          <Sparkles size={13} color="#EA580C" />
-                          <span>Executive Governance Summary & Purpose</span>
-                        </div>
-                        <p style={{ margin: 0, fontSize: '0.80rem', color: '#334155', lineHeight: 1.55 }}>
-                          {selectedAsset360.description || `Enterprise normalized governance asset. Deconstructed into atomic facts and verified against cross-policy contradictions.`}
-                        </p>
-                      </div>
-
-                      {/* 3. Four Core Metric Cards */}
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px' }}>
-                        <div style={{
-                          padding: '14px',
-                          borderRadius: '8px',
-                          border: '1px solid #E2E8F0',
-                          background: '#FFFFFF',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          gap: '4px'
-                        }}>
-                          <span style={{ fontSize: '0.70rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase' }}>
-                            Atomic Claims
-                          </span>
-                          <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
-                            <span style={{ fontSize: '1.45rem', fontWeight: 900, color: '#0F172A' }}>
-                              {selectedAsset360.claims.length}
-                            </span>
-                            <span style={{ fontSize: '0.72rem', color: '#16A34A', fontWeight: 700 }}>
-                              {verifiedClaimsCount} verified
-                            </span>
-                          </div>
-                          <span style={{ fontSize: '0.68rem', color: '#94A3B8' }}>
-                            100% parsed & grounded
-                          </span>
-                        </div>
-
-                        <div style={{
-                          padding: '14px',
-                          borderRadius: '8px',
-                          border: selectedAsset360.activeConflicts.length > 0 ? '1px solid #FED7AA' : '1px solid #E2E8F0',
-                          background: selectedAsset360.activeConflicts.length > 0 ? '#FFF7ED' : '#FFFFFF',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          gap: '4px'
-                        }}>
-                          <span style={{ fontSize: '0.70rem', fontWeight: 700, color: selectedAsset360.activeConflicts.length > 0 ? '#EA580C' : '#64748B', textTransform: 'uppercase' }}>
-                            Contradictions
-                          </span>
-                          <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
-                            <span style={{ fontSize: '1.45rem', fontWeight: 900, color: selectedAsset360.activeConflicts.length > 0 ? '#EA580C' : '#0F172A' }}>
-                              {selectedAsset360.activeConflicts.length}
-                            </span>
-                            <span style={{ fontSize: '0.72rem', color: '#64748B' }}>
-                              / {selectedAsset360.conflicts.length} total
-                            </span>
-                          </div>
-                          <span style={{ fontSize: '0.68rem', color: '#94A3B8' }}>
-                            {selectedAsset360.conflicts.length - selectedAsset360.activeConflicts.length} resolved historically
-                          </span>
-                        </div>
-
-                        <div style={{
-                          padding: '14px',
-                          borderRadius: '8px',
-                          border: '1px solid #E2E8F0',
-                          background: '#FFFFFF',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          gap: '4px'
-                        }}>
-                          <span style={{ fontSize: '0.70rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase' }}>
-                            Trust Integrity
-                          </span>
-                          <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
-                            <span style={{ fontSize: '1.45rem', fontWeight: 900, color: '#16A34A' }}>
-                              {trustPercent}%
-                            </span>
-                            <span style={{ fontSize: '0.72rem', color: '#059669', fontWeight: 700 }}>
-                              High Trust
-                            </span>
-                          </div>
-                          <span style={{ fontSize: '0.68rem', color: '#94A3B8' }}>
-                            Cryptographically anchored
-                          </span>
-                        </div>
-
-                        <div style={{
-                          padding: '14px',
-                          borderRadius: '8px',
-                          border: '1px solid #E2E8F0',
-                          background: '#FFFFFF',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          gap: '4px'
-                        }}>
-                          <span style={{ fontSize: '0.70rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase' }}>
-                            Downstream AI Impact
-                          </span>
-                          <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
-                            <span style={{ fontSize: '1.45rem', fontWeight: 900, color: '#0284C7' }}>
-                              {selectedAsset360.decisions.length}
-                            </span>
-                            <span style={{ fontSize: '0.72rem', color: '#0284C7', fontWeight: 600 }}>
-                              Decisions
-                            </span>
-                          </div>
-                          <span style={{ fontSize: '0.68rem', color: '#94A3B8' }}>
-                            Active AI grounding consumers
-                          </span>
-                        </div>
+                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.76rem' }}>
+                          <tbody>
+                            {[
+                              {
+                                label: 'Atomic Claims',
+                                value: selectedAsset360.claims.length,
+                                badge: `${verifiedClaimsCount} verified`,
+                                badgeColor: '#16A34A',
+                                badgeBg: '#DCFCE7',
+                                detail: '100% parsed & grounded'
+                              },
+                              {
+                                label: 'Contradictions',
+                                value: selectedAsset360.activeConflicts.length,
+                                valueColor: selectedAsset360.activeConflicts.length > 0 ? '#EA580C' : '#0F172A',
+                                badge: selectedAsset360.conflicts.length > 0
+                                  ? `${selectedAsset360.activeConflicts.length} active / ${selectedAsset360.conflicts.length} total`
+                                  : '0 detected',
+                                badgeColor: selectedAsset360.activeConflicts.length > 0 ? '#C2410C' : '#16A34A',
+                                badgeBg: selectedAsset360.activeConflicts.length > 0 ? '#FFEDD5' : '#DCFCE7',
+                                detail: `${selectedAsset360.conflicts.length - selectedAsset360.activeConflicts.length} resolved historically`
+                              },
+                              {
+                                label: 'Trust Integrity',
+                                value: `${trustPercent}%`,
+                                valueColor: '#16A34A',
+                                badge: trustPercent >= 70 ? 'High Trust' : trustPercent >= 40 ? 'Moderate' : 'Low',
+                                badgeColor: '#059669',
+                                badgeBg: '#ECFDF5',
+                                detail: 'Cryptographically anchored'
+                              },
+                              {
+                                label: 'Downstream AI Impact',
+                                value: selectedAsset360.decisions.length,
+                                valueColor: '#0284C7',
+                                badge: `${selectedAsset360.decisions.length} Decisions`,
+                                badgeColor: '#0284C7',
+                                badgeBg: '#E0F2FE',
+                                detail: 'Active AI grounding consumers'
+                              }
+                            ].map((row, idx, arr) => (
+                              <tr
+                                key={row.label}
+                                style={{
+                                  borderBottom: idx < arr.length - 1 ? '1px solid #F1F5F9' : 'none'
+                                }}
+                              >
+                                <td style={{ padding: '7px 14px', color: '#475569', fontWeight: 600, width: '28%' }}>
+                                  {row.label}
+                                </td>
+                                <td style={{ padding: '7px 14px', width: '38%' }}>
+                                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                                    <span style={{ fontSize: '0.90rem', fontWeight: 800, color: row.valueColor || '#0F172A' }}>
+                                      {row.value}
+                                    </span>
+                                    {row.badge && (
+                                      <span style={{
+                                        fontSize: '0.68rem',
+                                        fontWeight: 700,
+                                        color: row.badgeColor,
+                                        background: row.badgeBg || '#F1F5F9',
+                                        padding: '1px 6px',
+                                        borderRadius: '4px'
+                                      }}>
+                                        {row.badge}
+                                      </span>
+                                    )}
+                                  </div>
+                                </td>
+                                <td style={{ padding: '7px 14px', color: '#94A3B8', fontSize: '0.72rem', textAlign: 'right' }}>
+                                  {row.detail}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
                       </div>
 
                       {/* 4. Complete Metadata & Technical Specifications Table */}
@@ -2825,127 +2670,10 @@ export default function VisualLineageGraph({
                           ))}
                         </div>
                       </div>
+                    </>
+                  )}
 
-                      {/* 5. Facility Quick Navigation Jump Cards */}
-                      <div>
-                        <div style={{ fontSize: '0.74rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.03em', marginBottom: '10px' }}>
-                          Explore Facilities For This Artifact
-                        </div>
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '10px' }}>
-                          <div
-                            onClick={() => setAsset360Section('extraction')}
-                            style={{
-                              padding: '12px 14px',
-                              border: '1px solid #E2E8F0',
-                              borderRadius: '8px',
-                              background: '#FFFFFF',
-                              cursor: 'pointer',
-                              display: 'flex',
-                              flexDirection: 'column',
-                              gap: '6px',
-                              transition: 'border-color 0.15s ease, transform 0.15s ease'
-                            }}
-                            onMouseEnter={e => { e.currentTarget.style.borderColor = '#EA580C'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
-                            onMouseLeave={e => { e.currentTarget.style.borderColor = '#E2E8F0'; e.currentTarget.style.transform = 'none'; }}
-                          >
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                              <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                <Zap size={14} color="#EA580C" />
-                                Visual Claim Extraction
-                              </span>
-                              <ChevronRight size={14} color="#94A3B8" />
-                            </div>
-                            <p style={{ margin: 0, fontSize: '0.70rem', color: '#64748B' }}>
-                              Live AI deconstruction studio & clause boundary segmentation.
-                            </p>
-                          </div>
-
-                          <div
-                            onClick={() => setAsset360Section('dag')}
-                            style={{
-                              padding: '12px 14px',
-                              border: '1px solid #E2E8F0',
-                              borderRadius: '8px',
-                              background: '#FFFFFF',
-                              cursor: 'pointer',
-                              display: 'flex',
-                              flexDirection: 'column',
-                              gap: '6px',
-                              transition: 'border-color 0.15s ease, transform 0.15s ease'
-                            }}
-                            onMouseEnter={e => { e.currentTarget.style.borderColor = '#0284C7'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
-                            onMouseLeave={e => { e.currentTarget.style.borderColor = '#E2E8F0'; e.currentTarget.style.transform = 'none'; }}
-                          >
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                              <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                <Layers size={14} color="#0284C7" />
-                                DAG Lineage
-                              </span>
-                              <ChevronRight size={14} color="#94A3B8" />
-                            </div>
-                            <p style={{ margin: 0, fontSize: '0.70rem', color: '#64748B' }}>
-                              Inspect causal graph nodes from source connector to AI decisions.
-                            </p>
-                          </div>
-
-                          <div
-                            onClick={() => setAsset360Section('conflicts')}
-                            style={{
-                              padding: '12px 14px',
-                              border: selectedAsset360.conflicts.length > 0 ? '1px solid #FED7AA' : '1px solid #E2E8F0',
-                              borderRadius: '8px',
-                              background: selectedAsset360.conflicts.length > 0 ? '#FFF7ED' : '#FFFFFF',
-                              cursor: 'pointer',
-                              display: 'flex',
-                              flexDirection: 'column',
-                              gap: '6px',
-                              transition: 'border-color 0.15s ease, transform 0.15s ease'
-                            }}
-                            onMouseEnter={e => { e.currentTarget.style.borderColor = '#EA580C'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
-                            onMouseLeave={e => { e.currentTarget.style.borderColor = selectedAsset360.conflicts.length > 0 ? '#FED7AA' : '#E2E8F0'; e.currentTarget.style.transform = 'none'; }}
-                          >
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                              <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                <Scale size={14} color="#EA580C" />
-                                Conflicts ({selectedAsset360.conflicts.length})
-                              </span>
-                              <ChevronRight size={14} color="#94A3B8" />
-                            </div>
-                            <p style={{ margin: 0, fontSize: '0.70rem', color: '#64748B' }}>
-                              Review {selectedAsset360.activeConflicts.length} active contradiction(s) and historical resolutions.
-                            </p>
-                          </div>
-
-                          <div
-                            onClick={() => setAsset360Section('claims')}
-                            style={{
-                              padding: '12px 14px',
-                              border: '1px solid #E2E8F0',
-                              borderRadius: '8px',
-                              background: '#FFFFFF',
-                              cursor: 'pointer',
-                              display: 'flex',
-                              flexDirection: 'column',
-                              gap: '6px',
-                              transition: 'border-color 0.15s ease, transform 0.15s ease'
-                            }}
-                            onMouseEnter={e => { e.currentTarget.style.borderColor = '#16A34A'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
-                            onMouseLeave={e => { e.currentTarget.style.borderColor = '#E2E8F0'; e.currentTarget.style.transform = 'none'; }}
-                          >
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                              <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                <ShieldCheck size={14} color="#16A34A" />
-                                Claims ({selectedAsset360.claims.length})
-                              </span>
-                              <ChevronRight size={14} color="#94A3B8" />
-                            </div>
-                            <p style={{ margin: 0, fontSize: '0.70rem', color: '#64748B' }}>
-                              Browse all individual atomic rules and trust scoring breakdowns.
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+                </div>
                   );
                 })()}
 
@@ -2994,6 +2722,49 @@ export default function VisualLineageGraph({
           {/* Left Group: Granularity & View Modes */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
             
+            {/* Active Workspace Scope Pill */}
+            {activeWorkspace && (
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '3px 8px',
+                borderRadius: '6px',
+                fontSize: '0.70rem',
+                fontWeight: 700,
+                background: activeWorkspace.id !== 'all' && !lineageScopeAll ? 'rgba(99, 102, 241, 0.12)' : '#F1F5F9',
+                color: activeWorkspace.id !== 'all' && !lineageScopeAll ? '#4F46E5' : '#475569',
+                border: activeWorkspace.id !== 'all' && !lineageScopeAll ? '1px solid rgba(99, 102, 241, 0.3)' : '1px solid #E2E8F0',
+                height: '25px',
+                boxSizing: 'border-box'
+              }}>
+                <span style={{ fontSize: '0.82rem' }}>{activeWorkspace.icon || '🏢'}</span>
+                <span>{activeWorkspace.id === 'all' || lineageScopeAll ? 'Unified All Pipeline' : `${activeWorkspace.label} Scope`}</span>
+                {activeWorkspace.id !== 'all' && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setLineageScopeAll(!lineageScopeAll);
+                      showToast?.(lineageScopeAll ? `Scoped DAG to ${activeWorkspace.label}` : 'Showing unified DAG across all departments');
+                    }}
+                    style={{
+                      background: 'transparent',
+                      border: 'none',
+                      color: activeWorkspace.id !== 'all' && !lineageScopeAll ? '#4F46E5' : '#0F172A',
+                      fontSize: '0.66rem',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      textDecoration: 'underline',
+                      padding: '0 2px'
+                    }}
+                    title="Toggle between workspace-specific pipeline and all combined"
+                  >
+                    {lineageScopeAll ? 'Scope to Dept' : 'View All'}
+                  </button>
+                )}
+              </div>
+            )}
+
             {/* Granularity Switcher */}
             <div style={{
               display: 'flex',
