@@ -51,6 +51,57 @@ class ConflictService:
 
         return conflicts
 
+    async def _ensure_valid_reviewer(
+        self,
+        reviewer_id: uuid.UUID | str | None = None,
+        organization_id: uuid.UUID | None = None,
+    ) -> uuid.UUID:
+        """Guarantee that reviewer_id points to an existing user in PostgreSQL to satisfy foreign key constraints."""
+        from app.db.enums import UserRole
+        from app.db.models.user import User
+
+        target_org = organization_id or uuid.UUID("11111111-1111-1111-1111-111111111111")
+
+        if reviewer_id:
+            try:
+                r_uuid = uuid.UUID(str(reviewer_id))
+                u = await self.session.get(User, r_uuid)
+                if u:
+                    return u.id
+            except Exception:
+                pass
+
+        # Check canonical default user (Sarah Chen)
+        canonical_id = uuid.UUID("22222222-2222-2222-2222-222222222222")
+        seed_u = await self.session.get(User, canonical_id)
+        if seed_u:
+            return seed_u.id
+
+        # Fallback to any active user in the organization
+        u_stmt = select(User.id).where(User.organization_id == target_org)
+        u_res = await self.session.execute(u_stmt)
+        first_user_id = u_res.scalars().first()
+        if first_user_id:
+            return first_user_id
+
+        # Fallback to any user in the database
+        any_u = await self.session.execute(select(User.id).limit(1))
+        any_user_id = any_u.scalars().first()
+        if any_user_id:
+            return any_user_id
+
+        # Provision Sarah Chen with canonical UUID
+        sys_user = User(
+            id=canonical_id,
+            organization_id=target_org,
+            name="Sarah Chen",
+            email="sarah.chen@ssfa.com",
+            role=UserRole.ADMIN,
+        )
+        self.session.add(sys_user)
+        await self.session.flush()
+        return sys_user.id
+
     async def resolve_conflict(
         self,
         conflict_id: uuid.UUID,
@@ -70,7 +121,8 @@ class ConflictService:
         from app.services.trust_service import TrustService
 
         chosen_uuid = uuid.UUID(str(chosen_claim_id)) if chosen_claim_id else None
-        reviewer_uuid = uuid.UUID(str(reviewer_id))
+        target_org = claim_a.organization_id if claim_a else None
+        reviewer_uuid = await self._ensure_valid_reviewer(reviewer_id, target_org)
 
         # Update conflict status
         conflict.resolution_status = ConflictStatus.RESOLVED
@@ -359,7 +411,7 @@ class ConflictService:
         claims_b = target_issue["cluster_b"]["claim_ids"]
 
         now = datetime.now(timezone.utc)
-        reviewer_uuid = uuid.UUID(str(reviewer_id))
+        reviewer_uuid = await self._ensure_valid_reviewer(reviewer_id, organization_id)
 
         # 1. Update all underlying pairwise conflicts to RESOLVED
         for conf_id in conflict_ids:
@@ -404,6 +456,7 @@ class ConflictService:
         return {
             "status": "success",
             "issue_id": issue_id,
+            "reviewer_id": reviewer_uuid,
             "resolved_conflicts_count": len(conflict_ids),
             "updated_claims_count": len(winner_ids) + len(loser_ids),
             "message": f"Successfully resolved Governance Issue {issue_id} ({len(conflict_ids)} underlying conflict pairs resolved).",
@@ -450,33 +503,8 @@ class ConflictService:
         now = datetime.now(timezone.utc)
 
         # Resolve valid reviewer UUID for audit ledger
-        from app.db.enums import UserRole
-        from app.db.models.user import User
         from app.services.trust_service import TrustService
-
-        active_reviewer_id = reviewer_id
-        if not active_reviewer_id:
-            u_stmt = select(User.id)
-            if organization_id:
-                u_stmt = u_stmt.where(User.organization_id == organization_id)
-            u_res = await self.session.execute(u_stmt)
-            active_reviewer_id = u_res.scalars().first()
-
-        if not active_reviewer_id:
-            seed_u = await self.session.get(User, uuid.UUID("22222222-2222-2222-2222-222222222222"))
-            if seed_u:
-                active_reviewer_id = seed_u.id
-            else:
-                target_org = organization_id or (conflicts[0].claim_a.organization_id if conflicts and conflicts[0].claim_a else uuid.UUID("11111111-1111-1111-1111-111111111111"))
-                sys_user = User(
-                    organization_id=target_org,
-                    name="Autonomous Precedence Engine",
-                    email=f"precedence-agent-{uuid.uuid4().hex[:6]}@context-trust.internal",
-                    role=UserRole.ADMIN,
-                )
-                self.session.add(sys_user)
-                await self.session.flush()
-                active_reviewer_id = sys_user.id
+        active_reviewer_id = await self._ensure_valid_reviewer(reviewer_id, organization_id)
 
         for c in conflicts:
             claim_a = c.claim_a

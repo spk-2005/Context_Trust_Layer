@@ -73,9 +73,10 @@ async def resolve_conflict_issue(
         organization_id=organization_id,
     )
     org_id = organization_id or uuid.UUID("11111111-1111-1111-1111-111111111111")
+    resolved_by_id = result.get("reviewer_id") or req.reviewer_id
     await activity_service.log_activity(
         organization_id=org_id,
-        user_id=req.reviewer_id,
+        user_id=resolved_by_id,
         user_name=user_name,
         user_role=user_role,
         action_type="CONFLICT_RESOLVED",
@@ -172,7 +173,7 @@ async def resolve_conflict(
             org_id = conflict.claim_a.organization_id
         await activity_service.log_activity(
             organization_id=org_id,
-            user_id=req.reviewer_id,
+            user_id=conflict.resolved_by or req.reviewer_id,
             user_name=user_name,
             user_role=user_role,
             action_type="CONFLICT_RESOLVED",

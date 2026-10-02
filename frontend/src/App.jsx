@@ -392,6 +392,18 @@ export const computeUrlFromState = ({
 
 const initialUrlState = typeof window !== 'undefined' ? parseUrlState() : null;
 
+export const getInitialDocViewFromUrl = () => {
+  if (initialUrlState?.docView) return initialUrlState.docView;
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const v = params.get('view') || params.get('docView');
+    if (v && DOC_EXPLORER_VIEWS.includes(v)) return v;
+  } catch {
+    // ignore
+  }
+  return 'connectors';
+};
+
 export default function App() {
   const isPopStateRef = useRef(false);
   const [activeTab, setActiveTab] = useState(() => initialUrlState?.tab || 'home');
@@ -6109,8 +6121,9 @@ export default function App() {
                               </button>
                             </div>
                           </div>
-                        );
-                      })}
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </div>
