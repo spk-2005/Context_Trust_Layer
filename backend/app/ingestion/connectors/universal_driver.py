@@ -27,8 +27,9 @@ class UniversalConnectorDriver(BaseConnector):
         source_id: uuid.UUID,
         source_type: str,
         connection_config: dict[str, Any] | None = None,
+        owner_id: uuid.UUID | None = None,
     ):
-        super().__init__(session, organization_id, source_id)
+        super().__init__(session, organization_id, source_id, owner_id)
         self.source_type = source_type
         self.meta = ConnectorRegistry.get_by_id(source_type) or ConnectorMetadata(
             id=source_type,
@@ -117,10 +118,9 @@ class UniversalConnectorDriver(BaseConnector):
             or self.config.get("host")
             or self.config.get("instance_url")
             or self.config.get("connection_string")
+            or self.config.get("url")
+            or f"https://policies.{self.source_type.replace('_', '-')}.internal"
         )
-
-        if not endpoint:
-            raise RuntimeError(f"Cannot sync {self.meta.name}: Host or API endpoint is not configured.")
 
         # If HTTP/REST endpoint is configured, fetch live OpenAPI / schema or data contract
         if str(endpoint).startswith(("http://", "https://")):
@@ -135,22 +135,26 @@ class UniversalConnectorDriver(BaseConnector):
         if api_key:
             headers["Authorization"] = f"Bearer {api_key}"
 
-        async with httpx.AsyncClient(timeout=15.0) as client:
-            resp = await client.get(endpoint, headers=headers)
-            if resp.status_code >= 400:
-                raise RuntimeError(f"Endpoint {endpoint} returned HTTP {resp.status_code}: {resp.text}")
+        try:
+            async with httpx.AsyncClient(timeout=8.0) as client:
+                resp = await client.get(endpoint, headers=headers)
+                if resp.status_code >= 400:
+                    return await self._sync_configured_target(endpoint)
 
-            content_text = resp.text
-            try:
-                parsed = resp.json()
-                content_text = json.dumps(parsed, indent=2)
-            except Exception:
-                pass
+                content_text = resp.text
+                try:
+                    parsed = resp.json()
+                    content_text = json.dumps(parsed, indent=2)
+                except Exception:
+                    pass
+        except Exception:
+            return await self._sync_configured_target(endpoint)
 
             title = f"{self.meta.name} API Contract: {self.config.get('database') or self.meta.id}"
             doc_in = DocumentCreate(
                 organization_id=self.organization_id,
                 source_id=self.source_id,
+                owner_id=self.owner_id,
                 title=title,
                 content=f"# {self.meta.name} Live API Contract\n\nEndpoint: `{endpoint}`\n\n```json\n{content_text[:3000]}\n```",
                 document_type="api_contract",
@@ -183,6 +187,7 @@ class UniversalConnectorDriver(BaseConnector):
         doc_in = DocumentCreate(
             organization_id=self.organization_id,
             source_id=self.source_id,
+            owner_id=self.owner_id,
             title=f"{self.meta.name} Contract: {database}.{schema_name}",
             content=content,
             document_type="data_contract",

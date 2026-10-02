@@ -22,4 +22,4 @@ RUN chmod +x /app/start.sh
 
 EXPOSE 8000
 
-CMD ["sh", "-c", "/app/start.sh"]
+CMD ["sh", "-c", "sed -i 's/\r$//' /app/start.sh && bash /app/start.sh"]

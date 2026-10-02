@@ -34,26 +34,30 @@ class DataSourceRepository(BaseRepository[DataSource]):
         external_id: str | None = None,
         authority_level: int = 50,
         connection_config: dict | None = None,
+        owner_id: uuid.UUID | None = None,
     ) -> DataSource:
-        if external_id:
-            existing = await self.get_by_external_id(
-                organization_id=organization_id,
-                source_type=source_type,
-                external_id=external_id,
-            )
-            if existing:
-                if connection_config:
-                    existing.connection_config = connection_config
-                    await self.session.flush()
-                return existing
+        ext_id = external_id or f"{source_type}-{uuid.uuid4().hex[:8]}"
+        existing = await self.get_by_external_id(
+            organization_id=organization_id,
+            source_type=source_type,
+            external_id=ext_id,
+        )
+        if existing:
+            if connection_config:
+                existing.connection_config = connection_config
+            if owner_id:
+                existing.owner_id = owner_id
+            await self.session.flush()
+            return existing
 
         source = DataSource(
             organization_id=organization_id,
             name=name,
             source_type=source_type,
-            external_id=external_id,
+            external_id=ext_id,
             authority_level=authority_level,
             connection_config=connection_config or {},
+            owner_id=owner_id,
         )
         return await self.create(source)
 

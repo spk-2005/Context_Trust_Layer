@@ -31,8 +31,10 @@ class KafkaConnector(BaseConnector):
         sasl_password: str = "",
         topic_patterns: list[str] | None = None,
         connection_config: dict[str, Any] | None = None,
+        owner_id: uuid.UUID | None = None,
+        **kwargs,
     ):
-        super().__init__(session, organization_id, source_id)
+        super().__init__(session, organization_id, source_id, owner_id=owner_id)
         config = connection_config or {}
         self.bootstrap_servers = config.get("bootstrap_servers", bootstrap_servers)
         self.schema_registry_url = config.get("schema_registry_url", schema_registry_url or "")

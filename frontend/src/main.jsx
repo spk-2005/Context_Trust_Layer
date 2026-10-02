@@ -4,23 +4,30 @@ import App from './App.jsx'
 import './index.css'
 import { AuthProvider } from './context/AuthContext'
 
-// Direct API calls to backend base URL and automatically inject Bearer auth token
-const apiBase = (import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_BACKEND_URL || '').replace(/\/+$/, '');
-
+// Inject Bearer auth token into all /v1/* API requests.
+// NOTE: Never prepend a base URL here — the browser cannot resolve the Docker-internal
+// hostname 'backend'. Vite's dev-server proxy (vite.config.js) transparently forwards
+// relative /v1/* requests to http://backend:8000 inside the Docker network.
 const originalFetch = window.fetch;
 window.fetch = (input, init = {}) => {
-  let url = input;
-  if (apiBase && typeof input === 'string' && input.startsWith('/v1')) {
-    url = `${apiBase}${input}`;
-  }
   const token = localStorage.getItem('ctl_token');
   if (token) {
-    init.headers = {
-      ...(init.headers || {}),
-      'Authorization': `Bearer ${token}`
-    };
+    if (!init.headers) {
+      init.headers = {};
+    }
+    if (init.headers instanceof Headers) {
+      if (!init.headers.has('Authorization')) {
+        init.headers.set('Authorization', `Bearer ${token}`);
+      }
+    } else if (Array.isArray(init.headers)) {
+      init.headers.push(['Authorization', `Bearer ${token}`]);
+    } else {
+      if (!init.headers['Authorization']) {
+        init.headers['Authorization'] = `Bearer ${token}`;
+      }
+    }
   }
-  return originalFetch(url, init);
+  return originalFetch(input, init);
 };
 
 class ErrorBoundary extends React.Component {

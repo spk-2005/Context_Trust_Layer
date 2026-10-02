@@ -42,7 +42,14 @@ async def seed_demo_knowledge():
             session.add(agent)
             await session.flush()
 
-        # 3. Create Data Source: Enterprise Policy Service
+        # 3. Create Data Source: Enterprise Policy Service (idempotent)
+        res_ds = await session.execute(select(DataSource).where(DataSource.external_id == "enterprise-policy-v2"))
+        existing_source = res_ds.scalar_one_or_none()
+        if existing_source:
+            # Already seeded — skip data source + documents to avoid unique constraint errors
+            print("Notice: Demo knowledge already seeded.")
+            return
+
         ds_id = uuid.uuid4()
         source = DataSource(
             id=ds_id,

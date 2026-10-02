@@ -36,6 +36,8 @@ async def create_document(
     if doc_in.document_type:
         doc_in.document_type = doc_in.document_type.replace("\x00", "")
 
+    doc_in.source_id = await _ensure_source_exists(db, doc_in.organization_id, doc_in.source_id)
+
     ingestion_service = DocumentIngestionService(db)
 
     try:
@@ -440,6 +442,7 @@ async def get_document(
 @router.get("", response_model=list[DocumentResponse])
 async def list_documents(
     organization_id: uuid.UUID = Query(..., description="Organization ID"),
+    source_id: uuid.UUID | None = Query(None, description="Optional Source ID filter"),
     limit: int = Query(50, ge=1, le=100),
     offset: int = Query(0, ge=0),
     db: AsyncSession = Depends(get_db),
@@ -447,6 +450,7 @@ async def list_documents(
     repo = DocumentRepository(db)
     documents = await repo.list_by_organization(
         organization_id=organization_id,
+        source_id=source_id,
         limit=limit,
         offset=offset,
     )

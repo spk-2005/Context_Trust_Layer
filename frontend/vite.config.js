@@ -10,6 +10,9 @@ export default defineConfig(({ mode }) => {
     server: {
       host: '0.0.0.0',
       port: 4000,
+      watch: {
+        usePolling: true,
+      },
       proxy: {
         '/v1': {
           target: backendTarget,

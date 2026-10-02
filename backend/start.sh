@@ -4,6 +4,9 @@ set -e
 echo "==> Running database migrations with Alembic..."
 alembic upgrade head || echo "Notice: Alembic migrations skipped or already up to date."
 
+echo "==> Ensuring DB schema is initialized..."
+python -c "import asyncio; from app.db.init_db import init_db_schema; asyncio.run(init_db_schema())" || echo "Notice: Schema init handled by application."
+
 echo "==> Ensuring demo knowledge is seeded..."
 python seed_demo_knowledge.py || echo "Notice: Demo knowledge already seeded."
 

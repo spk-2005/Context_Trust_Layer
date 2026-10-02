@@ -31,8 +31,9 @@ class PostgresConnector(BaseConnector):
         schemas: list[str] | None = None,
         include_views: bool = True,
         connection_config: dict[str, Any] | None = None,
+        owner_id: uuid.UUID | None = None,
     ):
-        super().__init__(session, organization_id, source_id)
+        super().__init__(session, organization_id, source_id, owner_id)
         config = connection_config or {}
         self.host = config.get("host", host)
         self.port = int(config.get("port", port))
@@ -152,6 +153,7 @@ class PostgresConnector(BaseConnector):
                     doc_in = DocumentCreate(
                         organization_id=self.organization_id,
                         source_id=self.source_id,
+                        owner_id=self.owner_id,
                         title=f"PostgreSQL Schema: {schema}.{t_name}",
                         content=content,
                         document_type="data_contract",

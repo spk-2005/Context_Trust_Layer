@@ -35,8 +35,10 @@ class MongoDbConnector(BaseConnector):
         tls_enabled: bool = False,
         sample_size: int = 50,
         connection_config: dict[str, Any] | None = None,
+        owner_id: uuid.UUID | None = None,
+        **kwargs,
     ):
-        super().__init__(session, organization_id, source_id)
+        super().__init__(session, organization_id, source_id, owner_id=owner_id)
         config = connection_config or {}
         self.connection_string = config.get("connection_string", connection_string)
         self.database = config.get("database", database)

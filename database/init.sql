@@ -12,6 +12,8 @@ CREATE TABLE IF NOT EXISTS organizations (
     name VARCHAR(255) NOT NULL,
     slug VARCHAR(100) NOT NULL UNIQUE,
     status VARCHAR(50) NOT NULL DEFAULT 'active',
+    domain_whitelist JSONB DEFAULT '[]'::jsonb,
+    allowed_auth_methods JSONB DEFAULT '[]'::jsonb,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
@@ -24,6 +26,11 @@ CREATE TABLE IF NOT EXISTS users (
     email VARCHAR(205) NOT NULL UNIQUE,
     role VARCHAR(50) NOT NULL DEFAULT 'auditor',
     status VARCHAR(50) NOT NULL DEFAULT 'active',
+    avatar_url VARCHAR(500),
+    title VARCHAR(100),
+    department VARCHAR(100),
+    hashed_password VARCHAR(255),
+    is_verified BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
@@ -37,6 +44,9 @@ CREATE TABLE IF NOT EXISTS data_sources (
     external_id VARCHAR(255) NOT NULL UNIQUE,
     authority_level INTEGER NOT NULL DEFAULT 50,
     status VARCHAR(50) NOT NULL DEFAULT 'active',
+    domain VARCHAR(100) DEFAULT 'General',
+    owner_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    connection_config JSONB DEFAULT '{}'::jsonb,
     last_synced_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
@@ -53,6 +63,8 @@ CREATE TABLE IF NOT EXISTS documents (
     content_uri TEXT,
     content_hash VARCHAR(64) NOT NULL,
     status VARCHAR(50) NOT NULL DEFAULT 'active',
+    domain VARCHAR(100) DEFAULT 'General',
+    owner_id UUID REFERENCES users(id) ON DELETE SET NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
@@ -76,8 +88,8 @@ CREATE TABLE IF NOT EXISTS claims (
     organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
     document_version_id UUID NOT NULL REFERENCES document_versions(id) ON DELETE CASCADE,
     claim_text TEXT NOT NULL,
-    subject VARCHAR(100),
-    predicate VARCHAR(100),
+    subject VARCHAR(500),
+    predicate VARCHAR(500),
     object TEXT,
     claim_type VARCHAR(50) NOT NULL DEFAULT 'policy',
     extraction_method VARCHAR(50),

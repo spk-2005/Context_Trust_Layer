@@ -9,10 +9,12 @@ from app.db.enums import RecordStatus
 class DataSourceCreate(BaseModel):
     organization_id: uuid.UUID = Field(default=uuid.UUID("11111111-1111-1111-1111-111111111111"))
     name: str
-    source_type: str = Field(..., description="confluence, jira, github, postgresql, kafka, salesforce, mongodb, portal, file")
+    source_type: str = Field(..., description="confluence, jira, github, postgresql, kafka, salesforce, mongodb, portal, file, snowflake, s3, etc.")
     external_id: str | None = None
     authority_level: int = Field(default=80, ge=0, le=100)
     connection_config: dict[str, Any] | None = Field(default_factory=dict)
+    owner_id: uuid.UUID | None = None
+    user_id: uuid.UUID | None = None
 
 
 class DataSourceResponse(BaseModel):
@@ -23,6 +25,7 @@ class DataSourceResponse(BaseModel):
     external_id: str | None = None
     authority_level: int
     connection_config: dict[str, Any] | None = None
+    owner_id: uuid.UUID | None = None
     status: RecordStatus
     last_synced_at: datetime | None = None
     created_at: datetime
