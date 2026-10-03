@@ -12,6 +12,7 @@ from app.db.models.data_source import DataSource
 from app.db.repositories.document_repository import DocumentRepository
 from app.ingestion.document_ingestion import DocumentIngestionService
 from app.normalization.validators import DocumentValidationError
+from app.schemas.claim import ClaimResponse
 from app.schemas.document import (
     DocumentCreate,
     DocumentIngestionResult,
@@ -1055,7 +1056,7 @@ async def get_document_artifacts(
 async def list_documents(
     organization_id: uuid.UUID = Query(..., description="Organization ID"),
     source_id: uuid.UUID | None = Query(None, description="Optional Source ID filter"),
-    limit: int = Query(50, ge=1, le=100),
+    limit: int = Query(100, ge=1, le=500),
     offset: int = Query(0, ge=0),
     db: AsyncSession = Depends(get_db),
 ):
@@ -1066,12 +1067,4 @@ async def list_documents(
         limit=limit,
         offset=offset,
     )
-    # Filter to uploaded documents (PDFs, DOCX, Markdown, TXT, policy files) so DB connector objects stay in Connectors
-    res_srcs = await db.execute(select(DataSource))
-    src_type_map = {s.id: (s.source_type or "").lower() for s in res_srcs.scalars().all()}
-    uploaded_docs = [
-        d for d in documents
-        if src_type_map.get(d.source_id, "file") in ("file", "upload", "local_file")
-        or (d.external_id or "").startswith("file://")
-    ]
-    return [DocumentResponse.model_validate(d) for d in uploaded_docs]
+    return [DocumentResponse.model_validate(d) for d in documents]

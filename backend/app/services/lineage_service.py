@@ -138,6 +138,8 @@ class LineageService:
                     "updated_at": doc.updated_at.isoformat() if getattr(doc, "updated_at", None) else None,
                     "isUploadedFile": is_uploaded_file,
                     "parentSourceType": parent_src.source_type if parent_src else "file",
+                    "source_id": str(doc.source_id) if doc.source_id else (str(parent_src.id) if parent_src else None),
+                    "source_name": parent_src.name if parent_src else ("Direct File Upload" if is_uploaded_file else "Connected Source"),
                 }
             })
             if doc.source_id and not _is_file_upload_source(parent_src):

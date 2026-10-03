@@ -150,25 +150,25 @@ class UniversalConnectorDriver(BaseConnector):
         except Exception:
             return await self._sync_configured_target(endpoint)
 
-            title = f"{self.meta.name} API Contract: {self.config.get('database') or self.meta.id}"
-            doc_in = DocumentCreate(
-                organization_id=self.organization_id,
-                source_id=self.source_id,
-                owner_id=self.owner_id,
-                title=title,
-                content=f"# {self.meta.name} Live API Contract\n\nEndpoint: `{endpoint}`\n\n```json\n{content_text[:3000]}\n```",
-                document_type="api_contract",
-                external_id=f"{self.meta.id}://{endpoint}",
-                metadata={
-                    "connector_id": self.meta.id,
-                    "connector_name": self.meta.name,
-                    "family": self.meta.family,
-                    "category": self.meta.category,
-                    **self.config,
-                },
-            )
-            doc, ver, _, _ = await self.ingestion_service.ingest_document_with_dedup(doc_in)
-            return [(doc, ver)]
+        title = f"{self.meta.name} API Contract: {self.config.get('database') or self.meta.id}"
+        doc_in = DocumentCreate(
+            organization_id=self.organization_id,
+            source_id=self.source_id,
+            owner_id=self.owner_id,
+            title=title,
+            content=f"# {self.meta.name} Live API Contract\n\nEndpoint: `{endpoint}`\n\n```json\n{content_text[:3000]}\n```",
+            document_type="api_contract",
+            external_id=f"{self.meta.id}://{endpoint}",
+            metadata={
+                "connector_id": self.meta.id,
+                "connector_name": self.meta.name,
+                "family": self.meta.family,
+                "category": self.meta.category,
+                **self.config,
+            },
+        )
+        doc, ver, _, _ = await self.ingestion_service.ingest_document_with_dedup(doc_in)
+        return [(doc, ver)]
 
     async def _sync_configured_target(self, endpoint: str) -> list[tuple[Document, DocumentVersion]]:
         database = self.config.get("database") or self.config.get("project") or self.config.get("workspace") or "main"

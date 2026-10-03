@@ -115,7 +115,7 @@ export const DEFAULT_WORKSPACES = [
 
 export const VAULT_SUBTABS = ['documents', 'connectors', 'conflicts', 'claims', 'dag'];
 export const CURATOR_SUBVIEWS = ['health', 'conflicts'];
-export const DOC_EXPLORER_VIEWS = ['connectors', 'ingest', 'documents', 'claims'];
+export const DOC_EXPLORER_VIEWS = ['connectors', 'documents', 'claims'];
 export const MCP_SUBVIEWS = ['tester', 'configs', 'sdks', 'schemas'];
 export const TEAM_SUBTABS = ['directory', 'activity', 'domains'];
 export const PROFILE_SUBTABS = ['companies', 'security', 'personas'];
@@ -924,7 +924,7 @@ export default function App() {
   const [newWorkspaceDomain, setNewWorkspaceDomain] = useState('finance');
   const [newWorkspaceDescription, setNewWorkspaceDescription] = useState('');
   const [docExplorerScopeAll, setDocExplorerScopeAll] = useState(false);
-  const [docExplorerView, setDocExplorerView] = useState(getInitialDocViewFromUrl); // 'connectors' | 'ingest' | 'documents' | 'claims'
+  const [docExplorerView, setDocExplorerView] = useState(() => initialUrlState?.docView || 'connectors'); // 'connectors' | 'documents' | 'claims'
   const [docSourceFilter, setDocSourceFilter] = useState('all'); // 'all' | source_id
 
   // Chat Sessions for Sidebar History and AI Copilot Chat Sync
@@ -4209,7 +4209,7 @@ export default function App() {
                       background: docExplorerView === 'documents' ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.06)',
                       color: docExplorerView === 'documents' ? '#FFFFFF' : 'inherit'
                     }}>
-                      {displayedDbDocuments.length}
+                      {dbDocuments.length}
                     </span>
                   </button>
 
@@ -4242,27 +4242,6 @@ export default function App() {
                       {displayedDbClaims.length}
                     </span>
                   </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setDocExplorerView('ingest')}
-                    style={{
-                      padding: '7px 16px',
-                      borderRadius: '7px',
-                      fontSize: '0.82rem',
-                      fontWeight: docExplorerView === 'ingest' ? 700 : 500,
-                      border: 'none',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      background: docExplorerView === 'ingest' ? 'var(--primary, #2563EB)' : 'transparent',
-                      color: docExplorerView === 'ingest' ? '#FFFFFF' : 'var(--text-secondary, #64748B)',
-                      transition: 'all 0.15s ease'
-                    }}
-                  >
-                    <span>📥 Manual Ingestion</span>
-                  </button>
                 </div>
 
                 {/* Direct Action to Connect Real Data Source */}
@@ -4293,65 +4272,6 @@ export default function App() {
                 >
                   {dbLoading ? "Loading..." : "Refresh"}
                 </button>
-              </div>
-            </div>
-
-            {/* Departmental Scope Banner & All Combined Toggle */}
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              flexWrap: 'wrap',
-              gap: '12px',
-              padding: '12px 18px',
-              borderRadius: '8px',
-              marginBottom: '20px',
-              background: activeWorkspace && activeWorkspace.id !== 'all' && !docExplorerScopeAll
-                ? 'linear-gradient(135deg, rgba(37,99,235,0.06), rgba(99,102,241,0.06))'
-                : 'linear-gradient(135deg, rgba(100,116,139,0.06), rgba(148,163,184,0.06))',
-              border: `1px solid ${activeWorkspace && activeWorkspace.id !== 'all' && !docExplorerScopeAll ? 'rgba(37,99,235,0.2)' : 'rgba(148,163,184,0.2)'}`
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <span style={{ fontSize: '1.25rem' }}>{activeWorkspace?.icon || '🏢'}</span>
-                <div>
-                  <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <span>{docExplorerScopeAll ? 'All Workspaces (Unified Enterprise View)' : (activeWorkspace?.name || 'All Workspaces')}</span>
-                    {activeWorkspace && activeWorkspace.id !== 'all' && !docExplorerScopeAll ? (
-                      <span className="badge badge-verified" style={{ fontSize: '0.68rem', padding: '1px 6px' }}>
-                        Isolated Departmental Filter
-                      </span>
-                    ) : (
-                      <span className="badge badge-allow" style={{ fontSize: '0.68rem', padding: '1px 6px' }}>
-                        All Combined Resources
-                      </span>
-                    )}
-                  </div>
-                  <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', marginTop: '2px' }}>
-                    {activeWorkspace && activeWorkspace.id !== 'all' && !docExplorerScopeAll
-                      ? `Viewing data sources, documents, and atomic claims scoped to ${activeWorkspace.domain} operations.`
-                      : 'Viewing unified data sources, stored documents, and atomic claims across all corporate departments.'}
-                  </div>
-                </div>
-              </div>
-
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                {activeWorkspace && activeWorkspace.id !== 'all' && (
-                  <button
-                    type="button"
-                    onClick={() => setDocExplorerScopeAll(prev => !prev)}
-                    className="btn btn-secondary"
-                    style={{
-                      padding: '6px 12px',
-                      fontSize: '0.75rem',
-                      fontWeight: 600,
-                      background: docExplorerScopeAll ? 'var(--primary, #2563EB)' : '#FFFFFF',
-                      color: docExplorerScopeAll ? '#FFFFFF' : 'var(--text-main)',
-                      borderColor: docExplorerScopeAll ? 'var(--primary, #2563EB)' : 'var(--border-subtle)'
-                    }}
-                  >
-                    {docExplorerScopeAll ? "↩ Return to Scoped View" : "🌐 View All Combined Resources"}
-                  </button>
-                )}
               </div>
             </div>
 
@@ -4457,7 +4377,7 @@ export default function App() {
                         <div>
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
                             <span>Status: <strong style={{ color: 'var(--success-text)' }}>Connected</strong></span>
-                            <span>Stored Docs: <strong style={{ color: 'var(--primary)' }}>{displayedDbDocuments.filter(d => d.source_id === source.id).length}</strong></span>
+                            <span>Stored Docs: <strong style={{ color: 'var(--primary)' }}>{dbDocuments.filter(d => d.source_id === source.id).length}</strong></span>
                           </div>
 
                           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
@@ -4479,7 +4399,7 @@ export default function App() {
                               className="btn btn-primary"
                               style={{ padding: '8px', fontSize: '0.78rem', justifyContent: 'center' }}
                             >
-                              View Docs ({displayedDbDocuments.filter(d => d.source_id === source.id).length})
+                              View Docs ({dbDocuments.filter(d => d.source_id === source.id).length})
                             </button>
                           </div>
                         </div>
@@ -5622,182 +5542,6 @@ export default function App() {
                   </div>
                 )}
 
-            {/* VIEW 1: INGEST NEW DOCUMENT */}
-            {docExplorerView === 'ingest' && (
-              <div style={{ display: 'grid', gridTemplateColumns: '400px 1fr', gap: '20px' }}>
-
-                {/* Ingest Form */}
-                <div className="clean-panel" style={{ padding: '20px' }}>
-                  <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '14px' }}>
-                    Ingest & Normalize Document
-                  </h3>
-
-                  <div style={{ display: 'grid', gap: '14px' }}>
-
-                    {/* Drag and Drop File Upload Zone */}
-                    <div
-                      onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-                      onDragLeave={() => setIsDragging(false)}
-                      onDrop={(e) => {
-                        e.preventDefault();
-                        setIsDragging(false);
-                        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-                          handleProcessFile(e.dataTransfer.files[0]);
-                        }
-                      }}
-                      onClick={() => fileInputRef.current?.click()}
-                      style={{
-                        border: isDragging ? '2px dashed var(--primary)' : '1px dashed var(--border-medium)',
-                        background: isDragging ? 'var(--primary-50)' : 'var(--bg-card-subtle)',
-                        borderRadius: '8px',
-                        padding: '16px 14px',
-                        textAlign: 'center',
-                        cursor: 'pointer',
-                        transition: 'all 0.15s ease'
-                      }}
-                    >
-                      <input
-                        type="file"
-                        ref={fileInputRef}
-                        accept=".txt,.md,.json,.csv,.pdf,.docx,.doc"
-                        style={{ display: 'none' }}
-                        onChange={(e) => {
-                          if (e.target.files && e.target.files[0]) {
-                            handleProcessFile(e.target.files[0]);
-                          }
-                        }}
-                      />
-                      {uploadedFile ? (
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                          <div style={{ textAlign: 'left' }}>
-                            <div style={{ fontSize: '0.825rem', fontWeight: 700, color: 'var(--primary)' }}>
-                              {uploadedFile.name}
-                            </div>
-                            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                              {(uploadedFile.size / 1024).toFixed(1)} KB • Click to choose a different file
-                            </div>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setUploadedFile(null);
-                              if (fileInputRef.current) fileInputRef.current.value = '';
-                            }}
-                            className="badge badge-outdated"
-                            style={{ cursor: 'pointer', border: '1px solid var(--border-subtle)', textDecoration: 'none' }}
-                          >
-                            Clear
-                          </button>
-                        </div>
-                      ) : (
-                        <div>
-                          <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-main)' }}>
-                            Drag & drop a file here, or click to browse
-                          </div>
-                          <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '3px' }}>
-                            Supports .pdf, .docx, .txt, .md, .json, .csv
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    <div>
-                      <label style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 700, display: 'block', marginBottom: '4px' }}>
-                        Document Title:
-                      </label>
-                      <input
-                        type="text"
-                        value={docInput.title}
-                        onChange={e => setDocInput({ ...docInput, title: e.target.value })}
-                        style={{ width: '100%', padding: '8px 10px', fontSize: '0.85rem' }}
-                      />
-                    </div>
-
-                    <div>
-                      <label style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 700, display: 'block', marginBottom: '4px' }}>
-                        Document Type:
-                      </label>
-                      <select
-                        value={docInput.docType}
-                        onChange={e => setDocInput({ ...docInput, docType: e.target.value })}
-                        style={{ width: '100%', padding: '8px 10px', fontSize: '0.85rem' }}
-                      >
-                        <option value="policy">Enterprise Policy</option>
-                        <option value="confluence_page">Confluence Article</option>
-                        <option value="handbook">Employee Handbook</option>
-                        <option value="runbook">DevOps Runbook</option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 700, display: 'block', marginBottom: '4px' }}>
-                        Raw Markdown Content:
-                      </label>
-                      <textarea
-                        rows={6}
-                        value={docInput.content}
-                        onChange={e => setDocInput({ ...docInput, content: e.target.value })}
-                        style={{ width: '100%', padding: '8px 10px', fontFamily: 'var(--font-mono)', fontSize: '0.78rem' }}
-                      />
-                    </div>
-
-                    <button
-                      onClick={handleIngestDocument}
-                      disabled={ingesting}
-                      className="btn btn-primary"
-                      style={{ width: '100%', padding: '10px' }}
-                    >
-                      {ingesting ? "Extracting Claims..." : "Ingest Document"}
-                    </button>
-                  </div>
-                </div>
-
-                {/* Extracted Claims */}
-                <div className="clean-panel" style={{ padding: '20px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-                    <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-main)' }}>
-                      Extracted Atomic Claims ({extractedClaims.length})
-                    </h3>
-                    {ingestedDoc && (
-                      <span className="code-pill">SHA-256: {ingestedDoc.document?.content_hash?.substring(0, 16)}...</span>
-                    )}
-                  </div>
-
-                  {extractedClaims.length === 0 ? (
-                    <div style={{ padding: '48px 20px', textAlign: 'center', color: 'var(--text-muted)' }}>
-                      <p style={{ fontSize: '0.825rem' }}>Ingest a document on the left to extract Subject-Predicate-Object claims with multi-factor trust ratings.</p>
-                    </div>
-                  ) : (
-                    <div style={{ display: 'grid', gap: '10px' }}>
-                      {extractedClaims.map((claim, idx) => (
-                        <div key={claim.id || idx} style={{ background: '#FFFFFF', border: '1px solid var(--border-subtle)', padding: '12px', borderRadius: '8px' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                            <div style={{ display: 'flex', gap: '6px' }}>
-                              <span className="code-pill">Subject: {claim.subject || 'N/A'}</span>
-                              <span className="code-pill">Predicate: {claim.predicate || 'N/A'}</span>
-                            </div>
-                            <span className={`badge ${claim.status === 'verified' ? 'badge-allow' : 'badge-review'}`}>
-                              {claim.status}
-                            </span>
-                          </div>
-
-                          <p style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-main)', lineHeight: '1.4' }}>
-                            "{claim.claim_text}"
-                          </p>
-
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '8px', paddingTop: '6px', borderTop: '1px solid var(--border-subtle)', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                            <span>Section: {claim.evidence?.[0]?.section || 'General'}</span>
-                            <span>Trust Score: <strong style={{ color: 'var(--success-text)' }}>{claim.trust_scores?.[0]?.overall_score || '0.95'}</strong></span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-
             {/* VIEW 2: STORED DOCUMENTS BROWSER */}
             {docExplorerView === 'documents' && (
               <div className="clean-panel" style={{ padding: '22px' }}>
@@ -6109,8 +5853,9 @@ export default function App() {
                               </button>
                             </div>
                           </div>
-                        );
-                      })}
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </div>

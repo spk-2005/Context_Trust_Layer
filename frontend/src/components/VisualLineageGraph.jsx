@@ -241,10 +241,7 @@ export default function VisualLineageGraph({
   }, [graphData, filterStatus]);
 
   const documentsList = useMemo(() => {
-    return (graphData?.nodes?.filter(n =>
-      n.type === 'document' &&
-      n.data?.isUploadedFile !== false
-    ) || []);
+    return (graphData?.nodes?.filter(n => n.type === 'document') || []);
   }, [graphData]);
 
   const decisionsList = useMemo(() => {
@@ -1599,7 +1596,7 @@ export default function VisualLineageGraph({
         conflicts: assetConflicts,
         activeConflicts: activeAssetConflicts,
         decisions: assetDecisions,
-        description: `Normalized enterprise ${activeDoc.subType || 'policy document'} synced via ${parentSource?.label || 'Direct Enterprise Upload'}. Contains ${assetClaims.length} extracted atomic rules governing autonomous agent decisions, with ${activeAssetConflicts.length} active contradiction(s) and ${assetConflicts.length - activeAssetConflicts.length} resolved historical conflict(s).`
+        description: `Normalized enterprise ${activeDoc.subType || 'policy document'} synced via ${parentSource?.label || activeDoc.data?.source_name || 'Direct Enterprise Upload'}. Contains ${assetClaims.length} extracted atomic rules governing autonomous agent decisions, with ${activeAssetConflicts.length} active contradiction(s) and ${assetConflicts.length - activeAssetConflicts.length} resolved historical conflict(s).`
       };
     }
 
@@ -2005,9 +2002,28 @@ export default function VisualLineageGraph({
                             </span>
                           </td>
                           <td style={{ padding: '10px 14px', color: '#64748B', fontSize: '0.73rem' }}>
-                            {item.type === 'document'
-                              ? `v${item.data?.version_count || 1}.0 • ${item.data?.domain || 'Enterprise'}`
-                              : `${item.authority ? `${(Number(item.authority) * 100).toFixed(0)}%` : '95%'} weight`}
+                            {item.type === 'document' ? (
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                <span>v{item.data?.version_count || 1}.0</span>
+                                <span>•</span>
+                                <span style={{
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '4px',
+                                  color: item.data?.isUploadedFile ? '#64748B' : '#0369A1',
+                                  fontWeight: item.data?.isUploadedFile ? 400 : 600
+                                }}>
+                                  {!item.data?.isUploadedFile && <span style={{ fontSize: '0.7rem' }}>🔌</span>}
+                                  <span>
+                                    {item.data?.isUploadedFile
+                                      ? (item.data?.domain || 'Direct Upload')
+                                      : (item.data?.source_name || (item.data?.parentSourceType ? `${item.data.parentSourceType.charAt(0).toUpperCase() + item.data.parentSourceType.slice(1)} Connector` : 'Connected Source'))}
+                                  </span>
+                                </span>
+                              </div>
+                            ) : (
+                              `${item.authority ? `${(Number(item.authority) * 100).toFixed(0)}%` : '95%'} weight`
+                            )}
                           </td>
 
                           <td style={{ padding: '10px 14px', textAlign: 'right' }}>
