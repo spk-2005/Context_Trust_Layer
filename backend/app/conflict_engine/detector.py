@@ -8,6 +8,8 @@ from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from app.conflict_engine.facet_sharder import FacetSharder
+from app.conflict_engine.multi_agent_arbiter import MultiAgentArbiter
 from app.conflict_engine.precedence_engine import PrecedenceEngine
 from app.db.enums import ClaimStatus, ConflictStatus
 from app.db.models.claim import Claim
@@ -107,15 +109,8 @@ class ConflictDetector:
         if is_illustrative_claim(target_claim):
             return detected_conflicts
 
-        # Find potential candidate claims (same org, different claim, active)
-        stmt = (
-            select(Claim)
-            .where(
-                Claim.organization_id == target_claim.organization_id,
-                Claim.id != target_claim.id,
-            )
-            .options(selectinload(Claim.document_version))
-        )
+        # Tier 1: Candidate Ingestion Pruning via FacetSharder (O(N^2) -> O(K))
+        stmt, target_facet = FacetSharder.build_candidate_query(target_claim, limit=100)
         res = await self.session.execute(stmt)
         candidates = res.scalars().all()
 
@@ -123,6 +118,11 @@ class ConflictDetector:
         for cand in candidates:
             # Pillar 2: Skip illustrative candidates
             if is_illustrative_claim(cand):
+                continue
+
+            # Facet compatibility pruning
+            cand_facet = FacetSharder.detect_facet(cand.claim_text)
+            if not FacetSharder.are_facets_compatible(target_facet, cand_facet):
                 continue
 
             # Pre-filter out claims that have no topical connection
@@ -189,7 +189,48 @@ class ConflictDetector:
                     detected_conflicts.append(conflict)
                     continue
 
-                # 2. Genuinely Ambiguous Contradiction -> Queued for Human Stewardship
+                # 2. Tier 4: Multi-Agent Consensus Arbiter (Prosecutor, Defender, Supreme Judge)
+                sev_weights = {"CRITICAL": 80, "HIGH": 50, "MEDIUM": 25, "LOW": 10}
+                base_w = sev_weights.get(str(eval_res.severity).upper(), 25)
+                impact_est = base_w * float(eval_res.confidence)
+
+                dummy_conf = ClaimConflict(
+                    claim_a_id=target_claim.id,
+                    claim_b_id=cand.id,
+                    conflict_type=eval_res.conflict_type,
+                    severity=eval_res.severity,
+                    confidence=decimal.Decimal(f"{eval_res.confidence:.4f}"),
+                )
+                arb_verdict = MultiAgentArbiter.evaluate_arbitration(
+                    conflict=dummy_conf,
+                    claim_a=target_claim,
+                    claim_b=cand,
+                    impact_score=impact_est,
+                )
+
+                if arb_verdict.is_auto_arbitrated:
+                    winner_id = arb_verdict.winner_claim_id
+                    if winner_id == target_claim.id:
+                        target_claim.status = ClaimStatus.VERIFIED
+                        cand.status = ClaimStatus.OUTDATED
+                    else:
+                        cand.status = ClaimStatus.VERIFIED
+                        target_claim.status = ClaimStatus.OUTDATED
+
+                    conflict = ClaimConflict(
+                        claim_a_id=target_claim.id,
+                        claim_b_id=cand.id,
+                        conflict_type=eval_res.conflict_type,
+                        severity=eval_res.severity,
+                        confidence=decimal.Decimal(f"{arb_verdict.confidence:.4f}"),
+                        resolution_status=ConflictStatus.RESOLVED,
+                        resolved_claim_id=winner_id,
+                    )
+                    self.session.add(conflict)
+                    detected_conflicts.append(conflict)
+                    continue
+
+                # 3. Only Truly Ambiguous or Critical Blast Contradictions -> Queued for Human Review
                 conflict = ClaimConflict(
                     claim_a_id=target_claim.id,
                     claim_b_id=cand.id,

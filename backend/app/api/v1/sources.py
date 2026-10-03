@@ -226,6 +226,7 @@ async def list_data_sources(
     organization_id: uuid.UUID = Query(uuid.UUID("11111111-1111-1111-1111-111111111111")),
     limit: int = Query(50, ge=1, le=100),
     offset: int = Query(0, ge=0),
+    include_archived: bool = Query(False, description="Whether to include decommissioned/archived sources"),
     db: AsyncSession = Depends(get_db),
 ):
     """List all configured external data sources and DB connectors (excluding internal file upload buckets)."""
@@ -240,6 +241,7 @@ async def list_data_sources(
         if (s.source_type or "").lower().strip() not in ("file", "upload", "local_file")
         and "file upload" not in (s.name or "").lower()
         and "direct document upload" not in (s.name or "").lower()
+        and (include_archived or (s.status.value if hasattr(s.status, "value") else str(s.status)).lower() not in ("deleted", "inactive", "archived"))
     ]
     return [DataSourceResponse.model_validate(s) for s in external_connectors]
 
@@ -486,4 +488,204 @@ async def get_source_artifacts(
         "total_claims": len(claims_output),
         "total_conflicts": len(conflicts_list)
     }
+
+
+@router.get("/{source_id}/blast-radius")
+async def get_source_blast_radius(
+    source_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Calculate the blast radius of deleting or decommissioning a connector:
+    - Number of synced documents affected
+    - Number of extracted claims that will be deprecated/purged
+    - Number of active policy contradictions that will be resolved/purged
+    """
+    from sqlalchemy import or_, select
+    from sqlalchemy.orm import selectinload
+    from app.db.models.data_source import DataSource
+    from app.db.models.document import Document
+    from app.db.models.claim import Claim
+    from app.db.models.claim_conflict import ClaimConflict
+
+    src = await db.get(DataSource, source_id)
+    if not src:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Connector source not found.")
+
+    res_docs = await db.execute(select(Document).where(Document.source_id == source_id).options(selectinload(Document.versions)))
+    docs = res_docs.scalars().all()
+
+    version_ids = []
+    for d in docs:
+        for v in (d.versions or []):
+            version_ids.append(v.id)
+
+    claims_count = 0
+    sample_claims = []
+    conflicts_count = 0
+
+    if version_ids:
+        res_claims = await db.execute(select(Claim).where(Claim.document_version_id.in_(version_ids)))
+        claims = res_claims.scalars().all()
+        claims_count = len(claims)
+        sample_claims = [c.claim_text for c in claims[:3]]
+        claim_ids = [c.id for c in claims]
+
+        if claim_ids:
+            res_conflicts = await db.execute(
+                select(ClaimConflict).where(
+                    or_(
+                        ClaimConflict.claim_a_id.in_(claim_ids),
+                        ClaimConflict.claim_b_id.in_(claim_ids),
+                    )
+                )
+            )
+            conflicts = res_conflicts.scalars().all()
+            conflicts_count = len(conflicts)
+
+    return {
+        "id": str(src.id),
+        "name": src.name,
+        "source_type": src.source_type,
+        "authority_level": src.authority_level,
+        "documents_count": len(docs),
+        "claims_count": claims_count,
+        "conflicts_count": conflicts_count,
+        "sample_documents": [d.title for d in docs[:4]],
+        "sample_claims": sample_claims,
+    }
+
+
+@router.delete("/{source_id}")
+async def delete_or_decommission_source(
+    source_id: uuid.UUID,
+    mode: str = Query("archive", description="'archive' (soft decommission) or 'permanent' (hard purge)"),
+    user_name: str = Query("Sarah Chen", description="Name of acting CEO / Administrator"),
+    user_role: str = Query("admin", description="Role of acting user"),
+    user_id: uuid.UUID | None = Query(None),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    CEO / Executive action to delete or decommission a data source connector:
+    - mode='archive': Soft decommission. Marks source and documents as inactive, deprecates claims, auto-resolves contradictions, preserves audit ledger.
+    - mode='permanent': Hard purge. Permanently erases the connector, documents, claims, and conflicts from database (requires admin role).
+    """
+    from sqlalchemy import or_, select
+    from sqlalchemy.orm import selectinload
+    from app.db.models.data_source import DataSource
+    from app.db.models.document import Document
+    from app.db.models.claim import Claim
+    from app.db.models.claim_conflict import ClaimConflict
+    from app.db.enums import RecordStatus, ClaimStatus, ConflictStatus
+
+    mode_clean = (mode or "archive").lower().strip()
+    if mode_clean not in ("archive", "permanent"):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid mode. Must be 'archive' or 'permanent'."
+        )
+
+    if mode_clean == "permanent" and (user_role or "").lower() != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Permanent purge is restricted exclusively to Organization Administrators / CEO personas."
+        )
+
+    src = await db.get(DataSource, source_id)
+    if not src:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Connector source not found.")
+
+    activity_service = ActivityService(db)
+    source_name = src.name
+    org_id = src.organization_id
+
+    # Gather affected entities
+    res_docs = await db.execute(select(Document).where(Document.source_id == source_id).options(selectinload(Document.versions)))
+    docs = res_docs.scalars().all()
+    version_ids = [v.id for d in docs for v in (d.versions or [])]
+
+    claims = []
+    if version_ids:
+        res_claims = await db.execute(select(Claim).where(Claim.document_version_id.in_(version_ids)))
+        claims = res_claims.scalars().all()
+
+    claim_ids = [c.id for c in claims]
+    conflicts = []
+    if claim_ids:
+        res_cfl = await db.execute(
+            select(ClaimConflict).where(
+                or_(ClaimConflict.claim_a_id.in_(claim_ids), ClaimConflict.claim_b_id.in_(claim_ids))
+            )
+        )
+        conflicts = res_cfl.scalars().all()
+
+    if mode_clean == "archive":
+        # 1. Soft Decommission
+        src.status = RecordStatus.INACTIVE
+        for d in docs:
+            d.status = RecordStatus.INACTIVE
+        for c in claims:
+            c.status = ClaimStatus.SUPERSEDED
+        for cfl in conflicts:
+            cfl.resolution_status = ConflictStatus.DISMISSED
+
+        await activity_service.log_activity(
+            organization_id=org_id,
+            user_id=user_id,
+            user_name=user_name,
+            user_role=user_role,
+            action_type="CONNECTOR_DECOMMISSIONED",
+            target_type="data_source",
+            target_id=str(source_id),
+            target_title=source_name,
+            domain="Engineering & Platform",
+            details={
+                "mode": "archive",
+                "documents_affected": len(docs),
+                "claims_deprecated": len(claims),
+                "conflicts_resolved": len(conflicts),
+            },
+        )
+        await db.commit()
+        return {
+            "status": "archived",
+            "message": f"Connector '{source_name}' successfully decommissioned. {len(claims)} claims deprecated.",
+            "source_id": str(source_id),
+            "mode": "archive",
+            "documents_affected": len(docs),
+            "claims_affected": len(claims),
+            "conflicts_resolved": len(conflicts),
+        }
+
+    else:
+        # 2. Hard Purge
+        await activity_service.log_activity(
+            organization_id=org_id,
+            user_id=user_id,
+            user_name=user_name,
+            user_role=user_role,
+            action_type="CONNECTOR_PURGED",
+            target_type="data_source",
+            target_id=str(source_id),
+            target_title=source_name,
+            domain="Engineering & Platform",
+            details={
+                "mode": "permanent",
+                "documents_purged": len(docs),
+                "claims_purged": len(claims),
+                "conflicts_purged": len(conflicts),
+            },
+        )
+        await db.delete(src)
+        await db.commit()
+        return {
+            "status": "deleted",
+            "message": f"Connector '{source_name}' permanently purged from database.",
+            "source_id": str(source_id),
+            "mode": "permanent",
+            "documents_affected": len(docs),
+            "claims_affected": len(claims),
+            "conflicts_resolved": len(conflicts),
+        }
+
 

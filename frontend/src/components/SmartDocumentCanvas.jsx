@@ -6,9 +6,13 @@ import {
   Copy,
   X,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   Sliders,
   ZoomIn,
-  ZoomOut
+  ZoomOut,
+  Layers,
+  BookOpen
 } from 'lucide-react';
 
 /**
@@ -165,13 +169,185 @@ function parseMarkdownContent(rawText) {
 }
 
 /**
+ * Helper to dynamically parse raw markdown/text into structured blocks and group them into pages.
+ */
+function parseMarkdownContentIntoPages(rawText) {
+  const allBlocks = parseMarkdownContent(rawText);
+  const pages = [];
+  let currentBlocks = [];
+  let currentPageNum = 1;
+
+  for (let i = 0; i < allBlocks.length; i++) {
+    const b = allBlocks[i];
+    // Check if this block indicates a page break (e.g. Page 1, ## Page 2, etc.)
+    const isPageHeader = (
+      (b.type === 'h1' || b.type === 'h2' || b.type === 'h3' || b.type === 'paragraph') &&
+      /^(?:#{1,3}\s*)?Page\s+(\d+)\b/i.test((b.text || '').trim())
+    );
+
+    if (isPageHeader && currentBlocks.length > 0) {
+      pages.push({
+        pageNumber: currentPageNum,
+        blocks: currentBlocks
+      });
+      currentPageNum++;
+      currentBlocks = [];
+    }
+    currentBlocks.push(b);
+  }
+
+  if (currentBlocks.length > 0) {
+    pages.push({
+      pageNumber: currentPageNum,
+      blocks: currentBlocks
+    });
+  }
+
+  // If no explicit page markers were found but document is large (> 40 blocks), chunk every 25 blocks
+  if (pages.length === 1 && pages[0].blocks.length > 40) {
+    const chunked = [];
+    const chunkSize = 25;
+    for (let c = 0; c < pages[0].blocks.length; c += chunkSize) {
+      chunked.push({
+        pageNumber: Math.floor(c / chunkSize) + 1,
+        blocks: pages[0].blocks.slice(c, c + chunkSize)
+      });
+    }
+    return chunked;
+  }
+
+  return pages.length > 0 ? pages : [{ pageNumber: 1, blocks: allBlocks }];
+}
+
+/**
+ * LazyDocumentPage
+ *
+ * Renders an individual page in the continuous document stream.
+ * Automatically activates and renders its blocks when scrolled near the viewport (600px lookahead).
+ * Keeps offscreen pages unmounted or lightweight so scrolling 50+ pages remains at buttery smooth 60 FPS.
+ */
+function LazyDocumentPage({
+  page,
+  pageIndex,
+  totalPages,
+  renderBlock,
+  onVisible,
+  zoomLevel,
+  scrollContainerRef
+}) {
+  const pageRef = useRef(null);
+  // Initial top 2 pages are rendered immediately so top of document is instantly interactive
+  const [isRendered, setIsRendered] = useState(pageIndex < 2);
+
+  // Lazy render observer: activates rendering when user scrolls within 600px of this page
+  useEffect(() => {
+    if (isRendered) return;
+    const el = pageRef.current;
+    if (!el) return;
+
+    const rootEl = scrollContainerRef?.current || null;
+    const observer = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting) {
+        setIsRendered(true);
+        observer.disconnect();
+      }
+    }, {
+      root: rootEl,
+      rootMargin: '600px 0px 600px 0px',
+      threshold: 0
+    });
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [isRendered, scrollContainerRef]);
+
+  // Active page tracker observer for scroll header
+  useEffect(() => {
+    const el = pageRef.current;
+    if (!el || !onVisible) return;
+
+    const rootEl = scrollContainerRef?.current || null;
+    const trackObserver = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting) {
+        onVisible(page.pageNumber);
+      }
+    }, {
+      root: rootEl,
+      rootMargin: '-15% 0px -60% 0px',
+      threshold: 0
+    });
+
+    trackObserver.observe(el);
+    return () => trackObserver.disconnect();
+  }, [onVisible, page.pageNumber, scrollContainerRef]);
+
+  return (
+    <div
+      ref={pageRef}
+      id={`doc-page-${page.pageNumber}`}
+      className="doc-dynamic-page lazy-doc-page"
+      style={{
+        fontSize: `${(zoomLevel / 100) * 0.85}rem`,
+        transition: 'font-size 0.15s ease-out',
+        minHeight: isRendered ? 'auto' : '550px',
+        width: '100%',
+        maxWidth: '850px'
+      }}
+    >
+      {/* Page Header Indicator */}
+      {totalPages > 1 && (
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          paddingBottom: '8px',
+          marginBottom: '14px',
+          borderBottom: '1px solid #F1F5F9',
+          fontSize: '0.70rem',
+          fontWeight: 700,
+          color: '#94A3B8',
+          letterSpacing: '0.04em'
+        }}>
+          <span>PAGE {page.pageNumber} OF {totalPages}</span>
+        </div>
+      )}
+
+      {isRendered ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          {page.blocks.map((block, bIdx) => renderBlock(block, bIdx))}
+        </div>
+      ) : (
+        <div style={{
+          height: '420px',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: '#FAFAFA',
+          borderRadius: '6px',
+          border: '1px dashed #E2E8F0',
+          color: '#94A3B8',
+          fontSize: '0.78rem',
+          gap: '10px'
+        }}>
+          <div className="doc-page-shimmer" style={{ width: '60%', height: '14px', background: '#F1F5F9', borderRadius: '4px' }} />
+          <div className="doc-page-shimmer" style={{ width: '85%', height: '14px', background: '#F1F5F9', borderRadius: '4px' }} />
+          <div className="doc-page-shimmer" style={{ width: '70%', height: '14px', background: '#F1F5F9', borderRadius: '4px' }} />
+          <span style={{ fontSize: '0.74rem', marginTop: '6px' }}>
+            Page {page.pageNumber} — Rendering on scroll...
+          </span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/**
  * SmartDocumentCanvas
  *
  * Fully dynamic multi-page document viewer.
- * - Handles ANY number of pages dynamically (Page 1 of N, Page 2 of N, ...).
- * - NO page numbers or badges in the header bar.
- * - ONLY three clean buttons: "Conflicts", "Claims", "Remove Highlights".
- * - Clean white document pages with NO black background.
+ * - Handles continuous scrolling through ANY number of pages (Page 1 to Page 50+).
+ * - On-scroll lazy rendering with IntersectionObserver so offscreen pages never lag the UI.
  * - In-line sentence highlighting with hoverable atomic claim inspector cards.
  */
 export default function SmartDocumentCanvas({
@@ -191,6 +367,9 @@ export default function SmartDocumentCanvas({
   const [highlightFilter, setHighlightFilter] = useState('conflicts');
   const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
   const filterDropdownRef = useRef(null);
+
+  // Active page tracked as user scrolls
+  const [currentPage, setCurrentPage] = useState(1);
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -269,7 +448,7 @@ export default function SmartDocumentCanvas({
     return map;
   }, [conflicts]);
 
-  // Normalized Enriched Claims
+  // Normalized Enriched Claims with Pre-indexed Word Sets for O(1) matching
   const enrichedClaimsList = useMemo(() => {
     return (claims || []).map((cl, idx) => {
       const cid = String(cl.data?.claim_id || cl.id || '').replace(/^cl_/, '');
@@ -282,11 +461,19 @@ export default function SmartDocumentCanvas({
       const object = cl.object || cl.data?.object || fullText.replace(subject, '').trim() || 'Compliance Standard';
       const trustScore = cl.trustScore || (cl.trust_scores?.[0]?.overall_score ? Number(cl.trust_scores[0].overall_score) : 0.96);
 
+      // Pre-calculate clean word set and snippet once
+      const cleanClaim = fullText.toLowerCase().replace(/[^a-z0-9\s]/g, ' ');
+      const words = new Set(cleanClaim.split(/\s+/).filter(w => w.length > 3));
+      const snippet = (cl.raw?.data?.evidence_snippet || cl.raw?.evidence?.[0]?.exact_quote || cl.data?.evidence_snippet || '').toLowerCase().trim();
+
       return {
         id: cl.id || `claim-${idx}`,
         cleanId: cid,
         raw: cl,
         fullText,
+        cleanClaim,
+        words,
+        snippet,
         subject,
         predicate,
         object,
@@ -299,44 +486,97 @@ export default function SmartDocumentCanvas({
     });
   }, [claims, conflictClaimIdMap]);
 
-  // Unified Document Engine: Parses raw markdown into structured blocks seamlessly
-  const docBlocks = useMemo(() => {
-    return parseMarkdownContent(effectiveContent);
+  // Parse document into structured pages
+  const pages = useMemo(() => {
+    return parseMarkdownContentIntoPages(effectiveContent);
   }, [effectiveContent]);
 
-  // Map sentences to claims
+  const scrollToPage = (pageNum) => {
+    setCurrentPage(pageNum);
+    const targetEl = document.getElementById(`doc-page-${pageNum}`);
+    if (targetEl) {
+      targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
+  // Auto-scroll to page containing selectedClaimId if selected
+  useEffect(() => {
+    if (!selectedClaimId || pages.length <= 1) return;
+    const targetClaim = enrichedClaimsList.find(c =>
+      c.id === selectedClaimId || c.cleanId === selectedClaimId || `cl_${c.cleanId}` === selectedClaimId
+    );
+    if (!targetClaim) return;
+
+    for (let pIdx = 0; pIdx < pages.length; pIdx++) {
+      const p = pages[pIdx];
+      const found = p.blocks.some(b => {
+        const bText = (b.text || '').toLowerCase();
+        if (targetClaim.snippet && bText.includes(targetClaim.snippet.slice(0, 30))) return true;
+        if (bText.includes(targetClaim.cleanClaim.slice(0, 30))) return true;
+        return false;
+      });
+      if (found) {
+        scrollToPage(pIdx + 1);
+        break;
+      }
+    }
+  }, [selectedClaimId, pages, enrichedClaimsList]);
+
+  // High-performance sentence match cache
+  const sentenceCache = useRef(new Map());
+
+  // Invalidate cache when claims, conflicts, or highlightFilter changes
+  useEffect(() => {
+    sentenceCache.current.clear();
+  }, [claims, conflicts, highlightFilter]);
+
+  // Ultra-fast sentence matching
   const matchSentenceToClaim = (sentenceText) => {
-    if (!sentenceText || sentenceText.length < 12 || enrichedClaimsList.length === 0) {
+    if (!sentenceText || sentenceText.length < 12 || enrichedClaimsList.length === 0 || highlightFilter === 'none') {
       return null;
     }
+
+    if (sentenceCache.current.has(sentenceText)) {
+      return sentenceCache.current.get(sentenceText);
+    }
+
     const cleanSent = sentenceText.toLowerCase().replace(/[^a-z0-9\s]/g, ' ');
-    const sentWords = new Set(cleanSent.split(/\s+/).filter(w => w.length > 3));
+    const sentWords = cleanSent.split(/\s+/).filter(w => w.length > 3);
+    if (sentWords.length === 0) {
+      sentenceCache.current.set(sentenceText, null);
+      return null;
+    }
 
     let bestClaim = null;
     let highestScore = 0;
 
-    for (const cl of enrichedClaimsList) {
-      const snippet = (cl.raw.data?.evidence_snippet || cl.raw.evidence?.[0]?.exact_quote || '').toLowerCase();
-      if (snippet && (cleanSent.includes(snippet) || snippet.includes(cleanSent.slice(0, 40)))) {
-        return cl;
+    for (let i = 0; i < enrichedClaimsList.length; i++) {
+      const cl = enrichedClaimsList[i];
+      if (highlightFilter === 'conflicts' && !cl.hasConflict) {
+        continue;
       }
 
-      const claimTextClean = cl.fullText.toLowerCase().replace(/[^a-z0-9\s]/g, ' ');
-      const claimWords = claimTextClean.split(/\s+/).filter(w => w.length > 3);
-      if (claimWords.length === 0) continue;
+      if (cl.snippet && (cleanSent.includes(cl.snippet) || cl.snippet.includes(cleanSent.slice(0, 40)))) {
+        bestClaim = cl;
+        break;
+      }
+
+      if (cl.words.size === 0) continue;
 
       let overlapCount = 0;
-      claimWords.forEach(w => {
-        if (sentWords.has(w)) overlapCount++;
-      });
+      for (let j = 0; j < sentWords.length; j++) {
+        if (cl.words.has(sentWords[j])) overlapCount++;
+      }
 
-      const ratio = overlapCount / claimWords.length;
+      const ratio = overlapCount / cl.words.size;
       if (ratio > highestScore && ratio >= 0.33) {
         highestScore = ratio;
         bestClaim = cl;
+        if (ratio >= 0.75) break;
       }
     }
 
+    sentenceCache.current.set(sentenceText, bestClaim);
     return bestClaim;
   };
 
@@ -576,6 +816,8 @@ export default function SmartDocumentCanvas({
           width: 100%;
           max-width: 100%;
           min-height: auto;
+          content-visibility: auto;
+          contain-intrinsic-size: 550px;
           padding: 16px 28px 24px 28px;
           box-sizing: border-box;
           border: 1px solid #CBD5E1;
@@ -603,7 +845,394 @@ export default function SmartDocumentCanvas({
       `}</style>
 
       {/* ========================================================= */}
-      {/* CONTINUOUS DYNAMIC PAGES (REALISTIC DOCUMENT PAGES)       */}
+      {/* 1. STICKY TOP ACTION BAR                                  */}
+      {/* ========================================================= */}
+      <div style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        gap: '8px',
+        padding: '8px 14px',
+        background: '#FFFFFF',
+        borderBottom: '1px solid #E2E8F0',
+        zIndex: 15,
+        boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+        borderRadius: '8px 8px 0 0',
+        flexWrap: 'wrap'
+      }}>
+        {/* Left: Active Scroll Page indicator & smooth page jumper */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          {pages.length > 1 && (
+            <div style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              background: '#F8FAFC',
+              border: '1px solid #CBD5E1',
+              borderRadius: '6px',
+              padding: '2px 6px',
+              gap: '4px',
+              boxShadow: '0 1px 2px rgba(0,0,0,0.03)'
+            }}>
+              <button
+                type="button"
+                onClick={() => scrollToPage(Math.max(1, currentPage - 1))}
+                disabled={currentPage <= 1}
+                title="Scroll to Previous Page"
+                style={{
+                  border: 'none',
+                  background: 'transparent',
+                  cursor: currentPage <= 1 ? 'not-allowed' : 'pointer',
+                  color: currentPage <= 1 ? '#CBD5E1' : '#475569',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  padding: '2px'
+                }}
+              >
+                <ChevronLeft size={13} strokeWidth={2.4} />
+              </button>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '0.72rem', fontWeight: 600, color: '#334155' }}>
+                <span>Page</span>
+                <input
+                  type="number"
+                  min={1}
+                  max={pages.length}
+                  value={currentPage}
+                  onChange={e => {
+                    const val = parseInt(e.target.value, 10);
+                    if (!isNaN(val) && val >= 1 && val <= pages.length) {
+                      scrollToPage(val);
+                    }
+                  }}
+                  style={{
+                    width: '34px',
+                    textAlign: 'center',
+                    border: '1px solid #CBD5E1',
+                    borderRadius: '4px',
+                    padding: '1px 0',
+                    fontSize: '0.72rem',
+                    fontWeight: 700,
+                    color: '#EA580C',
+                    background: '#FFFFFF'
+                  }}
+                />
+                <span>of {pages.length}</span>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => scrollToPage(Math.min(pages.length, currentPage + 1))}
+                disabled={currentPage >= pages.length}
+                title="Scroll to Next Page"
+                style={{
+                  border: 'none',
+                  background: 'transparent',
+                  cursor: currentPage >= pages.length ? 'not-allowed' : 'pointer',
+                  color: currentPage >= pages.length ? '#CBD5E1' : '#475569',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  padding: '2px'
+                }}
+              >
+                <ChevronRight size={13} strokeWidth={2.4} />
+              </button>
+            </div>
+          )}
+          <span style={{ fontSize: '0.72rem', color: '#64748B', fontWeight: 500 }}>
+            {pages.length > 1 ? `${pages.length} pages (continuous scroll)` : 'Continuous Document'}
+          </span>
+        </div>
+
+        {/* Right: Zoom controls, Highlights Filter, Minimize */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          {/* Zoom Controls Pill */}
+          <div style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            background: '#FFFFFF',
+            border: '1px solid #CBD5E1',
+            borderRadius: '6px',
+            padding: '2px 4px',
+            gap: '2px',
+            boxShadow: '0 1px 2px rgba(0,0,0,0.03)'
+          }}>
+            <button
+              type="button"
+              onClick={handleZoomOut}
+              disabled={zoomLevel <= 60}
+              title="Zoom Out (Ctrl + Scroll Down)"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: '20px',
+                height: '20px',
+                border: 'none',
+                background: 'transparent',
+                color: zoomLevel <= 60 ? '#CBD5E1' : '#475569',
+                cursor: zoomLevel <= 60 ? 'not-allowed' : 'pointer',
+                borderRadius: '4px',
+                padding: 0
+              }}
+              onMouseEnter={e => { if (zoomLevel > 60) e.currentTarget.style.background = '#F1F5F9'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+            >
+              <ZoomOut size={13} strokeWidth={2.2} />
+            </button>
+
+            <button
+              type="button"
+              onClick={handleZoomReset}
+              title="Click to reset zoom to 100%"
+              style={{
+                border: 'none',
+                background: 'transparent',
+                fontSize: '0.70rem',
+                fontWeight: 700,
+                color: zoomLevel === 100 ? '#64748B' : '#EA580C',
+                cursor: 'pointer',
+                padding: '0 3px',
+                minWidth: '36px',
+                textAlign: 'center'
+              }}
+              onMouseEnter={e => { e.currentTarget.style.textDecoration = 'underline'; }}
+              onMouseLeave={e => { e.currentTarget.style.textDecoration = 'none'; }}
+            >
+              {zoomLevel}%
+            </button>
+
+            <button
+              type="button"
+              onClick={handleZoomIn}
+              disabled={zoomLevel >= 160}
+              title="Zoom In (Ctrl + Scroll Up)"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: '20px',
+                height: '20px',
+                border: 'none',
+                background: 'transparent',
+                color: zoomLevel >= 160 ? '#CBD5E1' : '#475569',
+                cursor: zoomLevel >= 160 ? 'not-allowed' : 'pointer',
+                borderRadius: '4px',
+                padding: 0
+              }}
+              onMouseEnter={e => { if (zoomLevel < 160) e.currentTarget.style.background = '#F1F5F9'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+            >
+              <ZoomIn size={13} strokeWidth={2.2} />
+            </button>
+          </div>
+
+          {/* Highlights Filter Dropdown */}
+          <div ref={filterDropdownRef} style={{ position: 'relative' }}>
+            <button
+              type="button"
+              onClick={() => setIsFilterDropdownOpen(prev => !prev)}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '5px',
+                padding: '4px 9px',
+                borderRadius: '6px',
+                border: highlightFilter === 'conflicts'
+                  ? '1px solid #FDBA74'
+                  : highlightFilter === 'claims'
+                  ? '1px solid #A7F3D0'
+                  : '1px solid #CBD5E1',
+                background: highlightFilter === 'conflicts'
+                  ? '#FFF7ED'
+                  : highlightFilter === 'claims'
+                  ? '#ECFDF5'
+                  : '#FFFFFF',
+                color: highlightFilter === 'conflicts'
+                  ? '#EA580C'
+                  : highlightFilter === 'claims'
+                  ? '#059669'
+                  : '#475569',
+                fontSize: '0.72rem',
+                fontWeight: 700,
+                cursor: 'pointer',
+                boxShadow: '0 1px 2px rgba(0,0,0,0.03)',
+                transition: 'all 0.15s ease'
+              }}
+              title="Toggle Highlight Mode"
+            >
+              {highlightFilter === 'conflicts' ? (
+                <>
+                  <AlertTriangle size={12} strokeWidth={2.4} style={{ color: '#EA580C' }} />
+                  <span>Conflicts ({conflictsCount})</span>
+                </>
+              ) : highlightFilter === 'claims' ? (
+                <>
+                  <Zap size={12} strokeWidth={2.4} style={{ color: '#10B981' }} />
+                  <span>Claims ({claimsCount})</span>
+                </>
+              ) : (
+                <>
+                  <Sliders size={12} style={{ color: '#64748B' }} />
+                  <span>Remove Highlights</span>
+                </>
+              )}
+              <ChevronDown
+                size={11}
+                style={{
+                  color: '#94A3B8',
+                  marginLeft: '2px',
+                  transform: isFilterDropdownOpen ? 'rotate(180deg)' : 'none',
+                  transition: 'transform 0.15s ease'
+                }}
+              />
+            </button>
+
+            {isFilterDropdownOpen && (
+              <div style={{
+                position: 'absolute',
+                top: 'calc(100% + 4px)',
+                right: 0,
+                background: '#FFFFFF',
+                border: '1px solid #E2E8F0',
+                borderRadius: '7px',
+                boxShadow: '0 6px 20px rgba(0,0,0,0.1)',
+                zIndex: 100,
+                width: '185px',
+                padding: '4px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '2px'
+              }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setHighlightFilter('conflicts');
+                    setIsFilterDropdownOpen(false);
+                  }}
+                  style={{
+                    width: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '6px 9px',
+                    background: highlightFilter === 'conflicts' ? '#FFF7ED' : 'transparent',
+                    color: highlightFilter === 'conflicts' ? '#EA580C' : '#334155',
+                    border: 'none',
+                    borderRadius: '5px',
+                    fontSize: '0.73rem',
+                    fontWeight: highlightFilter === 'conflicts' ? 700 : 500,
+                    cursor: 'pointer',
+                    textAlign: 'left'
+                  }}
+                >
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <AlertTriangle size={12} strokeWidth={2.2} color="#EA580C" />
+                    Conflicts ({conflictsCount})
+                  </span>
+                  {highlightFilter === 'conflicts' && <Check size={12} color="#EA580C" />}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setHighlightFilter('claims');
+                    setIsFilterDropdownOpen(false);
+                  }}
+                  style={{
+                    width: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '6px 9px',
+                    background: highlightFilter === 'claims' ? '#ECFDF5' : 'transparent',
+                    color: highlightFilter === 'claims' ? '#059669' : '#334155',
+                    border: 'none',
+                    borderRadius: '5px',
+                    fontSize: '0.73rem',
+                    fontWeight: highlightFilter === 'claims' ? 700 : 500,
+                    cursor: 'pointer',
+                    textAlign: 'left'
+                  }}
+                >
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Zap size={12} strokeWidth={2.2} color="#10B981" />
+                    Claims ({claimsCount})
+                  </span>
+                  {highlightFilter === 'claims' && <Check size={12} color="#10B981" />}
+                </button>
+
+                <div style={{ height: '1px', background: '#F1F5F9', margin: '2px 0' }} />
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setHighlightFilter('none');
+                    setIsFilterDropdownOpen(false);
+                  }}
+                  style={{
+                    width: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '6px 9px',
+                    background: highlightFilter === 'none' ? '#F8FAFC' : 'transparent',
+                    color: highlightFilter === 'none' ? '#0F172A' : '#64748B',
+                    border: 'none',
+                    borderRadius: '5px',
+                    fontSize: '0.73rem',
+                    fontWeight: highlightFilter === 'none' ? 700 : 500,
+                    cursor: 'pointer',
+                    textAlign: 'left'
+                  }}
+                >
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <X size={12} color="#64748B" />
+                    Remove Highlights
+                  </span>
+                  {highlightFilter === 'none' && <Check size={12} color="#0F172A" />}
+                </button>
+              </div>
+            )}
+          </div>
+
+          {onMinimize && (
+            <button
+              type="button"
+              onClick={onMinimize}
+              title="Minimize document preview"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: '26px',
+                height: '26px',
+                borderRadius: '6px',
+                border: '1px solid #CBD5E1',
+                background: '#FFFFFF',
+                color: '#64748B',
+                cursor: 'pointer',
+                boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
+                transition: 'all 0.15s ease'
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.color = '#EF4444';
+                e.currentTarget.style.borderColor = '#FCA5A5';
+                e.currentTarget.style.background = '#FEF2F2';
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.color = '#64748B';
+                e.currentTarget.style.borderColor = '#CBD5E1';
+                e.currentTarget.style.background = '#FFFFFF';
+              }}
+            >
+              <X size={14} strokeWidth={2.4} />
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* ========================================================= */}
+      {/* 2. CONTINUOUS SCROLL CONTAINER (LAZY-RENDERED ON SCROLL)  */}
       {/* ========================================================= */}
       <div 
         ref={scrollContainerRef}
@@ -612,334 +1241,39 @@ export default function SmartDocumentCanvas({
           overflowY: 'auto',
           overflowX: 'auto',
           background: 'transparent',
-          padding: '0 0 20px 0',
+          padding: '16px 8px 30px 8px',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
+          gap: '18px',
           position: 'relative'
         }}
       >
-        <div 
-          className="doc-dynamic-page"
-          style={{
-            fontSize: `${(zoomLevel / 100) * 0.85}rem`,
-            transition: 'font-size 0.15s ease-out'
-          }}
-        >
-          {/* Document Actions (Placed directly ON the file, sticky top) */}
-          <div style={{
-            display: 'flex',
-            justifyContent: 'flex-end',
-            alignItems: 'center',
-            gap: '6px',
-            marginBottom: '12px',
-            paddingBottom: '8px',
-            borderBottom: '1px solid #F1F5F9',
-            position: 'sticky',
-            top: 0,
-            background: '#FFFFFF',
-            zIndex: 10
-          }}>
-                    {/* Zoom Controls Pill */}
-                    <div style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      background: '#FFFFFF',
-                      border: '1px solid #CBD5E1',
-                      borderRadius: '6px',
-                      padding: '2px 4px',
-                      gap: '2px',
-                      boxShadow: '0 1px 2px rgba(0,0,0,0.03)'
-                    }}>
-                      <button
-                        type="button"
-                        onClick={handleZoomOut}
-                        disabled={zoomLevel <= 60}
-                        title="Zoom Out (Ctrl + Scroll Down)"
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          width: '20px',
-                          height: '20px',
-                          border: 'none',
-                          background: 'transparent',
-                          color: zoomLevel <= 60 ? '#CBD5E1' : '#475569',
-                          cursor: zoomLevel <= 60 ? 'not-allowed' : 'pointer',
-                          borderRadius: '4px',
-                          padding: 0
-                        }}
-                        onMouseEnter={e => { if (zoomLevel > 60) e.currentTarget.style.background = '#F1F5F9'; }}
-                        onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
-                      >
-                        <ZoomOut size={13} strokeWidth={2.2} />
-                      </button>
+        {pages.map((page, pIdx) => (
+          <LazyDocumentPage
+            key={page.pageNumber || pIdx}
+            page={page}
+            pageIndex={pIdx}
+            totalPages={pages.length}
+            renderBlock={renderBlock}
+            onVisible={pageNum => setCurrentPage(pageNum)}
+            zoomLevel={zoomLevel}
+            scrollContainerRef={scrollContainerRef}
+          />
+        ))}
 
-                      <button
-                        type="button"
-                        onClick={handleZoomReset}
-                        title="Click to reset zoom to 100%"
-                        style={{
-                          border: 'none',
-                          background: 'transparent',
-                          fontSize: '0.70rem',
-                          fontWeight: 700,
-                          color: zoomLevel === 100 ? '#64748B' : '#EA580C',
-                          cursor: 'pointer',
-                          padding: '0 3px',
-                          minWidth: '36px',
-                          textAlign: 'center'
-                        }}
-                        onMouseEnter={e => { e.currentTarget.style.textDecoration = 'underline'; }}
-                        onMouseLeave={e => { e.currentTarget.style.textDecoration = 'none'; }}
-                      >
-                        {zoomLevel}%
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={handleZoomIn}
-                        disabled={zoomLevel >= 160}
-                        title="Zoom In (Ctrl + Scroll Up)"
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          width: '20px',
-                          height: '20px',
-                          border: 'none',
-                          background: 'transparent',
-                          color: zoomLevel >= 160 ? '#CBD5E1' : '#475569',
-                          cursor: zoomLevel >= 160 ? 'not-allowed' : 'pointer',
-                          borderRadius: '4px',
-                          padding: 0
-                        }}
-                        onMouseEnter={e => { if (zoomLevel < 160) e.currentTarget.style.background = '#F1F5F9'; }}
-                        onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
-                      >
-                        <ZoomIn size={13} strokeWidth={2.2} />
-                      </button>
-                    </div>
-
-                    <div ref={filterDropdownRef} style={{ position: 'relative' }}>
-                      <button
-                        type="button"
-                        onClick={() => setIsFilterDropdownOpen(prev => !prev)}
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '5px',
-                        padding: '4px 9px',
-                        borderRadius: '6px',
-                        border: highlightFilter === 'conflicts'
-                          ? '1px solid #FDBA74'
-                          : highlightFilter === 'claims'
-                          ? '1px solid #A7F3D0'
-                          : '1px solid #CBD5E1',
-                        background: highlightFilter === 'conflicts'
-                          ? '#FFF7ED'
-                          : highlightFilter === 'claims'
-                          ? '#ECFDF5'
-                          : '#FFFFFF',
-                        color: highlightFilter === 'conflicts'
-                          ? '#EA580C'
-                          : highlightFilter === 'claims'
-                          ? '#059669'
-                          : '#475569',
-                        fontSize: '0.72rem',
-                        fontWeight: 700,
-                        cursor: 'pointer',
-                        boxShadow: '0 1px 2px rgba(0,0,0,0.03)',
-                        transition: 'all 0.15s ease'
-                      }}
-                      title="Toggle Highlight Mode"
-                    >
-                      {highlightFilter === 'conflicts' ? (
-                        <>
-                          <AlertTriangle size={12} strokeWidth={2.4} style={{ color: '#EA580C' }} />
-                          <span>Conflicts ({conflictsCount})</span>
-                        </>
-                      ) : highlightFilter === 'claims' ? (
-                        <>
-                          <Zap size={12} strokeWidth={2.4} style={{ color: '#10B981' }} />
-                          <span>Claims ({claimsCount})</span>
-                        </>
-                      ) : (
-                        <>
-                          <Sliders size={12} style={{ color: '#64748B' }} />
-                          <span>Remove Highlights</span>
-                        </>
-                      )}
-                      <ChevronDown
-                        size={11}
-                        style={{
-                          color: '#94A3B8',
-                          marginLeft: '2px',
-                          transform: isFilterDropdownOpen ? 'rotate(180deg)' : 'none',
-                          transition: 'transform 0.15s ease'
-                        }}
-                      />
-                    </button>
-
-                    {isFilterDropdownOpen && (
-                      <div style={{
-                        position: 'absolute',
-                        top: 'calc(100% + 4px)',
-                        right: 0,
-                        background: '#FFFFFF',
-                        border: '1px solid #E2E8F0',
-                        borderRadius: '7px',
-                        boxShadow: '0 6px 20px rgba(0,0,0,0.1)',
-                        zIndex: 100,
-                        width: '185px',
-                        padding: '4px',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '2px'
-                      }}>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setHighlightFilter('conflicts');
-                            setIsFilterDropdownOpen(false);
-                          }}
-                          style={{
-                            width: '100%',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            padding: '6px 9px',
-                            background: highlightFilter === 'conflicts' ? '#FFF7ED' : 'transparent',
-                            color: highlightFilter === 'conflicts' ? '#EA580C' : '#334155',
-                            border: 'none',
-                            borderRadius: '5px',
-                            fontSize: '0.73rem',
-                            fontWeight: highlightFilter === 'conflicts' ? 700 : 500,
-                            cursor: 'pointer',
-                            textAlign: 'left'
-                          }}
-                        >
-                          <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                            <AlertTriangle size={12} strokeWidth={2.2} color="#EA580C" />
-                            Conflicts ({conflictsCount})
-                          </span>
-                          {highlightFilter === 'conflicts' && <Check size={12} color="#EA580C" />}
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setHighlightFilter('claims');
-                            setIsFilterDropdownOpen(false);
-                          }}
-                          style={{
-                            width: '100%',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            padding: '6px 9px',
-                            background: highlightFilter === 'claims' ? '#ECFDF5' : 'transparent',
-                            color: highlightFilter === 'claims' ? '#059669' : '#334155',
-                            border: 'none',
-                            borderRadius: '5px',
-                            fontSize: '0.73rem',
-                            fontWeight: highlightFilter === 'claims' ? 700 : 500,
-                            cursor: 'pointer',
-                            textAlign: 'left'
-                          }}
-                        >
-                          <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                            <Zap size={12} strokeWidth={2.2} color="#10B981" />
-                            Claims ({claimsCount})
-                          </span>
-                          {highlightFilter === 'claims' && <Check size={12} color="#10B981" />}
-                        </button>
-
-                        <div style={{ height: '1px', background: '#F1F5F9', margin: '2px 0' }} />
-
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setHighlightFilter('none');
-                            setIsFilterDropdownOpen(false);
-                          }}
-                          style={{
-                            width: '100%',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            padding: '6px 9px',
-                            background: highlightFilter === 'none' ? '#F8FAFC' : 'transparent',
-                            color: highlightFilter === 'none' ? '#0F172A' : '#64748B',
-                            border: 'none',
-                            borderRadius: '5px',
-                            fontSize: '0.73rem',
-                            fontWeight: highlightFilter === 'none' ? 700 : 500,
-                            cursor: 'pointer',
-                            textAlign: 'left'
-                          }}
-                        >
-                          <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                            <X size={12} color="#64748B" />
-                            Remove Highlights
-                          </span>
-                          {highlightFilter === 'none' && <Check size={12} color="#0F172A" />}
-                        </button>
-                      </div>
-                    )}
-                  </div>
-
-                  {onMinimize && (
-                    <button
-                      type="button"
-                      onClick={onMinimize}
-                      title="Minimize document preview"
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        width: '26px',
-                        height: '26px',
-                        borderRadius: '6px',
-                        border: '1px solid #CBD5E1',
-                        background: '#FFFFFF',
-                        color: '#64748B',
-                        cursor: 'pointer',
-                        boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
-                        transition: 'all 0.15s ease'
-                      }}
-                      onMouseEnter={e => {
-                        e.currentTarget.style.color = '#EF4444';
-                        e.currentTarget.style.borderColor = '#FCA5A5';
-                        e.currentTarget.style.background = '#FEF2F2';
-                      }}
-                      onMouseLeave={e => {
-                        e.currentTarget.style.color = '#64748B';
-                        e.currentTarget.style.borderColor = '#CBD5E1';
-                        e.currentTarget.style.background = '#FFFFFF';
-                      }}
-                    >
-                      <X size={14} strokeWidth={2.4} />
-                    </button>
-                  )}
-          </div>
-
-          {/* Document Content Blocks */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            {docBlocks.map((block, bIdx) => renderBlock(block, bIdx))}
-          </div>
-
-          {/* Document Verification Footer */}
-          <div style={{
-            textAlign: 'center',
-            fontSize: '0.74em',
-            color: '#94A3B8',
-            borderTop: '1px solid #F1F5F9',
-            paddingTop: '14px',
-            marginTop: '20px'
-          }}>
-            AeroVelo Logistics Global • Standard Operating Procedure OP-204 • Controlled Document
-          </div>
+        {/* Document Verification Footer */}
+        <div style={{
+          textAlign: 'center',
+          fontSize: '0.74em',
+          color: '#94A3B8',
+          borderTop: '1px solid #E2E8F0',
+          paddingTop: '14px',
+          marginTop: '10px',
+          width: '100%',
+          maxWidth: '850px'
+        }}>
+          <span>{documentNode?.label || 'Enterprise Policy'} • Controlled Document • End of Document ({pages.length} pages)</span>
         </div>
       </div>
 

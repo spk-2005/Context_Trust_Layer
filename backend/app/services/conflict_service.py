@@ -15,6 +15,7 @@ from app.conflict_engine.detector import (
     are_claims_topically_related,
     is_illustrative_claim,
 )
+from app.conflict_engine.multi_agent_arbiter import MultiAgentArbiter
 from app.conflict_engine.precedence_engine import PrecedenceDecision, PrecedenceEngine
 from app.db.enums import ClaimStatus, ConflictStatus, ReviewDecision
 from app.db.models.claim import Claim
@@ -217,17 +218,33 @@ class ConflictService:
             text_b = (c.claim_b.claim_text if c.claim_b else "").lower()
             has_temporal_contrast = ("legacy" in text_a and "current" in text_b) or ("legacy" in text_b and "current" in text_a)
 
-            if not eval_res or not eval_res.is_contradiction or is_temporal or has_temporal_contrast:
+            # Evaluate deterministic enterprise precedence
+            precedence = PrecedenceEngine.evaluate_precedence(c.claim_a, c.claim_b, eval_res) if c.claim_a and c.claim_b else None
+
+            if not eval_res or not eval_res.is_contradiction or is_temporal or has_temporal_contrast or (precedence and precedence.is_auto_resolved):
                 # Purge false-positive / auto-superseded conflict
                 affected_claim_ids.add(c.claim_a_id)
                 affected_claim_ids.add(c.claim_b_id)
-                if is_temporal or has_temporal_contrast:
+                if precedence and precedence.is_auto_resolved and not precedence.is_compatible_exception:
+                    if precedence.loser_claim_id == c.claim_a_id:
+                        c.claim_a.status = ClaimStatus.OUTDATED
+                        c.claim_b.status = ClaimStatus.VERIFIED
+                    elif precedence.loser_claim_id == c.claim_b_id:
+                        c.claim_b.status = ClaimStatus.OUTDATED
+                        c.claim_a.status = ClaimStatus.VERIFIED
+                elif is_temporal or has_temporal_contrast:
                     if "legacy" in text_a:
                         c.claim_a.status = ClaimStatus.OUTDATED
                         c.claim_b.status = ClaimStatus.VERIFIED
                     else:
                         c.claim_b.status = ClaimStatus.OUTDATED
                         c.claim_a.status = ClaimStatus.VERIFIED
+                else:
+                    # Compatible or non-contradiction: ensure claims return to VERIFIED
+                    if c.claim_a and c.claim_a.status == ClaimStatus.CONFLICTED:
+                        c.claim_a.status = ClaimStatus.VERIFIED
+                    if c.claim_b and c.claim_b.status == ClaimStatus.CONFLICTED:
+                        c.claim_b.status = ClaimStatus.VERIFIED
                 await self.session.delete(c)
                 purged_count += 1
             else:
@@ -532,6 +549,28 @@ class ConflictService:
                         loser_claim_id=claim_b.id,
                         precedence_rule="ILLUSTRATIVE_EXCLUSION_CONSENSUS",
                         reasoning="Claim B is illustrative/example material; Claim A is active corporate policy.",
+                    )
+
+            # 3. Multi-Agent Consensus Arbiter (Prosecutor, Defender, Supreme Judge)
+            if not precedence.is_auto_resolved:
+                sev_weights = {"CRITICAL": 80, "HIGH": 50, "MEDIUM": 25, "LOW": 10}
+                base_w = sev_weights.get(str(c.severity).upper(), 25)
+                conf_val = float(c.confidence) if c.confidence else 0.85
+                impact_est = base_w * conf_val
+
+                arb_verdict = MultiAgentArbiter.evaluate_arbitration(
+                    conflict=c,
+                    claim_a=claim_a,
+                    claim_b=claim_b,
+                    impact_score=impact_est,
+                )
+                if arb_verdict.is_auto_arbitrated:
+                    precedence = PrecedenceDecision(
+                        is_auto_resolved=True,
+                        winner_claim_id=arb_verdict.winner_claim_id,
+                        loser_claim_id=arb_verdict.loser_claim_id,
+                        precedence_rule="MULTI_AGENT_ARBITRATION_CONSENSUS",
+                        reasoning=arb_verdict.judge_verdict or arb_verdict.rationale,
                     )
 
             if precedence.is_auto_resolved:

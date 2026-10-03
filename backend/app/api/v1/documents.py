@@ -9,6 +9,7 @@ from app.db.database import get_db
 from app.db.models.claim import Claim
 from app.db.models.claim_conflict import ClaimConflict
 from app.db.models.data_source import DataSource
+from app.db.enums import RecordStatus, ClaimStatus, ConflictStatus
 from app.db.repositories.document_repository import DocumentRepository
 from app.ingestion.document_ingestion import DocumentIngestionService
 from app.normalization.validators import DocumentValidationError
@@ -18,6 +19,7 @@ from app.schemas.document import (
     DocumentResponse,
     DocumentVersionResponse,
 )
+from app.services.activity_service import ActivityService
 
 router = APIRouter(prefix="/documents", tags=["documents"])
 
@@ -1057,6 +1059,7 @@ async def list_documents(
     source_id: uuid.UUID | None = Query(None, description="Optional Source ID filter"),
     limit: int = Query(50, ge=1, le=100),
     offset: int = Query(0, ge=0),
+    include_archived: bool = Query(False, description="Whether to include decommissioned/archived documents"),
     db: AsyncSession = Depends(get_db),
 ):
     repo = DocumentRepository(db)
@@ -1071,7 +1074,174 @@ async def list_documents(
     src_type_map = {s.id: (s.source_type or "").lower() for s in res_srcs.scalars().all()}
     uploaded_docs = [
         d for d in documents
-        if src_type_map.get(d.source_id, "file") in ("file", "upload", "local_file")
-        or (d.external_id or "").startswith("file://")
+        if (src_type_map.get(d.source_id, "file") in ("file", "upload", "local_file")
+        or (d.external_id or "").startswith("file://"))
+        and (include_archived or (d.status.value if hasattr(d.status, "value") else str(d.status)).lower() not in ("deleted", "inactive", "archived"))
     ]
     return [DocumentResponse.model_validate(d) for d in uploaded_docs]
+
+
+@router.get("/{document_id}/blast-radius")
+async def get_document_blast_radius(
+    document_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Calculate the blast radius of deleting or decommissioning a policy document:
+    - Number of extracted claims that will be deprecated/purged
+    - Number of active policy contradictions that will be resolved/purged
+    """
+    from app.db.models.document import Document
+
+    doc_stmt = select(Document).where(Document.id == document_id).options(selectinload(Document.versions))
+    res_doc = await db.execute(doc_stmt)
+    document = res_doc.scalar_one_or_none()
+
+    if not document:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Policy document not found.")
+
+    version_ids = [v.id for v in (document.versions or [])]
+    claims = []
+    if version_ids:
+        res_claims = await db.execute(select(Claim).where(Claim.document_version_id.in_(version_ids)))
+        claims = res_claims.scalars().all()
+
+    claim_ids = [c.id for c in claims]
+    conflicts = []
+    if claim_ids:
+        res_cfl = await db.execute(
+            select(ClaimConflict).where(
+                or_(ClaimConflict.claim_a_id.in_(claim_ids), ClaimConflict.claim_b_id.in_(claim_ids))
+            )
+        )
+        conflicts = res_cfl.scalars().all()
+
+    return {
+        "id": str(document.id),
+        "title": document.title,
+        "document_type": document.document_type,
+        "claims_count": len(claims),
+        "conflicts_count": len(conflicts),
+        "sample_claims": [c.claim_text for c in claims[:3]],
+    }
+
+
+@router.delete("/{document_id}")
+async def delete_or_decommission_document(
+    document_id: uuid.UUID,
+    mode: str = Query("archive", description="'archive' (soft decommission) or 'permanent' (hard purge)"),
+    user_name: str = Query("Sarah Chen", description="Name of acting CEO / Administrator"),
+    user_role: str = Query("admin", description="Role of acting user"),
+    user_id: uuid.UUID | None = Query(None),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    CEO / Executive action to delete or decommission a policy document:
+    - mode='archive': Soft decommission. Marks document as inactive, deprecates claims, auto-resolves contradictions, preserves audit ledger.
+    - mode='permanent': Hard purge. Permanently erases the document, claims, evidence, and conflicts from database (requires admin role).
+    """
+    from app.db.models.document import Document
+
+    mode_clean = (mode or "archive").lower().strip()
+    if mode_clean not in ("archive", "permanent"):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid mode. Must be 'archive' or 'permanent'."
+        )
+
+    if mode_clean == "permanent" and (user_role or "").lower() != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Permanent purge is restricted exclusively to Organization Administrators / CEO personas."
+        )
+
+    doc_stmt = select(Document).where(Document.id == document_id).options(selectinload(Document.versions))
+    res_doc = await db.execute(doc_stmt)
+    document = res_doc.scalar_one_or_none()
+
+    if not document:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Policy document not found.")
+
+    activity_service = ActivityService(db)
+    doc_title = document.title
+    org_id = document.organization_id
+
+    version_ids = [v.id for v in (document.versions or [])]
+    claims = []
+    if version_ids:
+        res_claims = await db.execute(select(Claim).where(Claim.document_version_id.in_(version_ids)))
+        claims = res_claims.scalars().all()
+
+    claim_ids = [c.id for c in claims]
+    conflicts = []
+    if claim_ids:
+        res_cfl = await db.execute(
+            select(ClaimConflict).where(
+                or_(ClaimConflict.claim_a_id.in_(claim_ids), ClaimConflict.claim_b_id.in_(claim_ids))
+            )
+        )
+        conflicts = res_cfl.scalars().all()
+
+    if mode_clean == "archive":
+        # 1. Soft Decommission
+        document.status = RecordStatus.INACTIVE
+        for c in claims:
+            c.status = ClaimStatus.SUPERSEDED
+        for cfl in conflicts:
+            cfl.resolution_status = ConflictStatus.DISMISSED
+
+        await activity_service.log_activity(
+            organization_id=org_id,
+            user_id=user_id,
+            user_name=user_name,
+            user_role=user_role,
+            action_type="DOCUMENT_DECOMMISSIONED",
+            target_type="document",
+            target_id=str(document_id),
+            target_title=doc_title,
+            domain="Policy & Compliance",
+            details={
+                "mode": "archive",
+                "claims_deprecated": len(claims),
+                "conflicts_resolved": len(conflicts),
+            },
+        )
+        await db.commit()
+        return {
+            "status": "archived",
+            "message": f"Document '{doc_title}' successfully decommissioned. {len(claims)} claims deprecated.",
+            "document_id": str(document_id),
+            "mode": "archive",
+            "claims_affected": len(claims),
+            "conflicts_resolved": len(conflicts),
+        }
+
+    else:
+        # 2. Hard Purge
+        await activity_service.log_activity(
+            organization_id=org_id,
+            user_id=user_id,
+            user_name=user_name,
+            user_role=user_role,
+            action_type="DOCUMENT_PURGED",
+            target_type="document",
+            target_id=str(document_id),
+            target_title=doc_title,
+            domain="Policy & Compliance",
+            details={
+                "mode": "permanent",
+                "claims_purged": len(claims),
+                "conflicts_purged": len(conflicts),
+            },
+        )
+        await db.delete(document)
+        await db.commit()
+        return {
+            "status": "deleted",
+            "message": f"Document '{doc_title}' permanently purged from database.",
+            "document_id": str(document_id),
+            "mode": "permanent",
+            "claims_affected": len(claims),
+            "conflicts_resolved": len(conflicts),
+        }
+

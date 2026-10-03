@@ -30,10 +30,13 @@ import {
   Sparkles,
   Calendar,
   Clock,
-  Info
+  Info,
+  Trash2
 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 import VisualClaimExtractionStudio from './VisualClaimExtractionStudio';
 import SmartDocumentCanvas from './SmartDocumentCanvas';
+import ExecutiveDeleteModal from './ExecutiveDeleteModal';
 
 const CARD_WIDTH = 260;
 const CARD_HEIGHT = 76;
@@ -49,6 +52,8 @@ export default function VisualLineageGraph({
   initialSection = 'summary',
   onSectionChange
 }) {
+  const { user } = useAuth();
+  const [deleteTargetAsset, setDeleteTargetAsset] = useState(null);
   const [graphData, setGraphData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [selectedNodeId, setSelectedNodeId] = useState(null);
@@ -2011,30 +2016,62 @@ export default function VisualLineageGraph({
                           </td>
 
                           <td style={{ padding: '10px 14px', textAlign: 'right' }}>
-                            <button
-                              type="button"
-                              className="trulin-inspect-btn"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                selectAssetItem(item);
-                              }}
-                              style={{
-                                padding: '4px 11px',
-                                borderRadius: '6px',
-                                border: '1px solid #FED7AA',
-                                background: '#FFF7ED',
-                                color: '#EA580C',
-                                fontSize: '0.73rem',
-                                fontWeight: 700,
-                                cursor: 'pointer',
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '4px'
-                              }}
-                            >
-                              <span>Inspect Lineage</span>
-                              <ChevronRight size={13} className="trulin-inspect-arrow" />
-                            </button>
+                            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                              <button
+                                type="button"
+                                className="trulin-inspect-btn"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  selectAssetItem(item);
+                                }}
+                                style={{
+                                  padding: '4px 11px',
+                                  borderRadius: '6px',
+                                  border: '1px solid #FED7AA',
+                                  background: '#FFF7ED',
+                                  color: '#EA580C',
+                                  fontSize: '0.73rem',
+                                  fontWeight: 700,
+                                  cursor: 'pointer',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '4px'
+                                }}
+                              >
+                                <span>Inspect Lineage</span>
+                                <ChevronRight size={13} className="trulin-inspect-arrow" />
+                              </button>
+
+                              {user?.role === 'admin' && (
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setDeleteTargetAsset(item);
+                                  }}
+                                  title={`Decommission or Purge ${item.label}`}
+                                  style={{
+                                    padding: '4px 8px',
+                                    borderRadius: '6px',
+                                    border: '1px solid #FCA5A5',
+                                    background: '#FEF2F2',
+                                    color: '#DC2626',
+                                    fontSize: '0.71rem',
+                                    fontWeight: 700,
+                                    cursor: 'pointer',
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '3px',
+                                    transition: 'all 0.15s ease'
+                                  }}
+                                  onMouseEnter={e => { e.currentTarget.style.background = '#FEE2E2'; }}
+                                  onMouseLeave={e => { e.currentTarget.style.background = '#FEF2F2'; }}
+                                >
+                                  <Trash2 size={12} strokeWidth={2.2} />
+                                  <span>Delete</span>
+                                </button>
+                              )}
+                            </div>
                           </td>
                         </tr>
                       ))}
@@ -2233,6 +2270,34 @@ export default function VisualLineageGraph({
                       <Info size={13} color={isDetailsOpen ? '#EA580C' : '#64748B'} />
                       <span>Details</span>
                     </button>
+
+                    {user?.role === 'admin' && (
+                      <button
+                        type="button"
+                        onClick={() => setDeleteTargetAsset(selectedAsset360.node)}
+                        title={`Decommission or Purge ${selectedAsset360.node.label}`}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '5px',
+                          padding: '4px 10px',
+                          borderRadius: '6px',
+                          border: '1px solid #FCA5A5',
+                          background: '#FEF2F2',
+                          color: '#DC2626',
+                          fontSize: '0.74rem',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          boxShadow: '0 1px 2px rgba(220,38,38,0.06)',
+                          transition: 'all 0.15s ease'
+                        }}
+                        onMouseEnter={e => { e.currentTarget.style.background = '#FEE2E2'; }}
+                        onMouseLeave={e => { e.currentTarget.style.background = '#FEF2F2'; }}
+                      >
+                        <Trash2 size={13} strokeWidth={2.2} />
+                        <span>Delete Asset</span>
+                      </button>
+                    )}
                   </div>
                 </div>
 
@@ -5736,6 +5801,26 @@ export default function VisualLineageGraph({
           </div>
         </div>
       )}
+
+      {/* Executive Decommission / Permanent Purge Modal */}
+      <ExecutiveDeleteModal
+        isOpen={!!deleteTargetAsset}
+        onClose={() => setDeleteTargetAsset(null)}
+        asset={deleteTargetAsset}
+        onSuccess={({ assetId }) => {
+          if (openedAssetId && (
+            openedAssetId === assetId ||
+            openedAssetId === `doc_${assetId}` ||
+            openedAssetId === `src_${assetId}` ||
+            String(openedAssetId).includes(String(assetId))
+          )) {
+            setOpenedAssetId(null);
+          }
+          fetchLineage();
+        }}
+        showToast={showToast}
+      />
     </div>
   );
 }
+

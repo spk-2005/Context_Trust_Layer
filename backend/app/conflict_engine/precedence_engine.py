@@ -182,35 +182,29 @@ class PrecedenceEngine:
 
         # --- Rule 5: Specificity & Exception Mapping (Lex Specialis) ---
         # Enterprise contracts / exceptions co-exist with general baseline policies
-        is_exception_a = bool(
-            (claim_a.subject and "enterprise" in claim_a.subject.lower())
-            or "exception" in text_a_clean
-            or "upon vp approval" in text_a_clean
-            or "enterprise tier" in text_a_clean
-        )
-        is_standard_b = bool(
-            (claim_b.subject and "standard" in claim_b.subject.lower())
-            or "standard automated" in text_b_clean
-            or "general tier" in text_b_clean
-        )
-        is_exception_b = bool(
-            (claim_b.subject and "enterprise" in claim_b.subject.lower())
-            or "exception" in text_b_clean
-            or "upon vp approval" in text_b_clean
-            or "enterprise tier" in text_b_clean
-        )
-        is_standard_a = bool(
-            (claim_a.subject and "standard" in claim_a.subject.lower())
-            or "standard automated" in text_a_clean
-            or "general tier" in text_a_clean
-        )
+        tier_exception_keywords = [
+            "enterprise", "exception", "upon vp approval", "enterprise tier",
+            "gold", "rewards gold", "footwear", "holiday", "tents", "camping",
+            "sleeping bags", "cooling-off", "statutory", "receipt-less", "keep it",
+            "vip", "platinum", "custom contract", "case studies", "revision history",
+            "summary at a glance", "policy summary"
+        ]
+        baseline_keywords = [
+            "standard", "standard automated", "general tier", "baseline",
+            "standard merchandise", "most items", "standard return policy"
+        ]
+
+        is_exception_a = any(k in text_a_clean for k in tier_exception_keywords) or (claim_a.subject and any(k in claim_a.subject.lower() for k in tier_exception_keywords))
+        is_exception_b = any(k in text_b_clean for k in tier_exception_keywords) or (claim_b.subject and any(k in claim_b.subject.lower() for k in tier_exception_keywords))
+        is_standard_a = any(k in text_a_clean for k in baseline_keywords) or (claim_a.subject and any(k in claim_a.subject.lower() for k in baseline_keywords))
+        is_standard_b = any(k in text_b_clean for k in baseline_keywords) or (claim_b.subject and any(k in claim_b.subject.lower() for k in baseline_keywords))
 
         if (is_exception_a and is_standard_b) or (is_exception_b and is_standard_a):
             return PrecedenceDecision(
                 is_auto_resolved=True,
                 is_compatible_exception=True,
                 precedence_rule="LEX_SPECIALIS_EXCEPTION",
-                reasoning="Rules govern distinct tiers: Enterprise tier exception is compatible with standard baseline.",
+                reasoning="Rules govern distinct tiers: specific exception or loyalty tier is compatible with baseline policy.",
             )
 
         # Default: Genuinely ambiguous contradiction requiring human/consensus arbitration

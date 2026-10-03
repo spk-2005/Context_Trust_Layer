@@ -14,8 +14,11 @@ import {
   Check,
   Sparkles,
   ArrowRight,
-  Filter
+  Filter,
+  Trash2
 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import ExecutiveDeleteModal from './ExecutiveDeleteModal';
 
 export default function AssetInspectorDrawer({
   isOpen,
@@ -23,8 +26,11 @@ export default function AssetInspectorDrawer({
   assetType = 'document', // 'document' | 'connector'
   assetId,
   assetTitle,
-  onNavigateToCurator
+  onNavigateToCurator,
+  showToast
 }) {
+  const { user } = useAuth();
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('claims'); // 'claims' | 'conflicts' | 'overview' | 'content'
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState(null);
@@ -187,24 +193,53 @@ export default function AssetInspectorDrawer({
             </div>
           </div>
 
-          <button
-            type="button"
-            onClick={onClose}
-            style={{
-              background: 'transparent',
-              border: 'none',
-              color: '#64748B',
-              cursor: 'pointer',
-              padding: '6px',
-              borderRadius: '6px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}
-            title="Close Drawer"
-          >
-            <X size={20} />
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            {user?.role === 'admin' && (
+              <button
+                type="button"
+                onClick={() => setIsDeleteModalOpen(true)}
+                title={`Decommission or Purge ${assetTitle || (assetType === 'connector' ? 'Connector' : 'Document')}`}
+                style={{
+                  padding: '5px 10px',
+                  borderRadius: '6px',
+                  border: '1px solid #FCA5A5',
+                  background: '#FEF2F2',
+                  color: '#DC2626',
+                  fontSize: '0.72rem',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  transition: 'all 0.15s ease'
+                }}
+                onMouseEnter={e => { e.currentTarget.style.background = '#FEE2E2'; }}
+                onMouseLeave={e => { e.currentTarget.style.background = '#FEF2F2'; }}
+              >
+                <Trash2 size={13} strokeWidth={2.2} />
+                <span>Delete Asset</span>
+              </button>
+            )}
+
+            <button
+              type="button"
+              onClick={onClose}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: '#64748B',
+                cursor: 'pointer',
+                padding: '6px',
+                borderRadius: '6px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+              title="Close Drawer"
+            >
+              <X size={20} />
+            </button>
+          </div>
         </div>
 
         {/* Tab Switcher */}
@@ -846,6 +881,23 @@ export default function AssetInspectorDrawer({
           )}
         </div>
       </div>
+
+      {/* Executive Decommission / Purge Modal */}
+      <ExecutiveDeleteModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        asset={{
+          id: assetId,
+          label: assetTitle || doc?.title || src?.name || (assetType === 'connector' ? 'Data Connector' : 'Policy Document'),
+          type: assetType,
+          data: { doc_id: assetId, source_id: assetId }
+        }}
+        onSuccess={() => {
+          onClose();
+        }}
+        showToast={showToast}
+      />
     </div>
   );
 }
+

@@ -322,6 +322,14 @@ class MockLLMProvider(BaseLLMProvider):
             r"\bsample\s+transaction\b",
             r"\billustrative\s+only\b",
             r"\brf-\d+-\d+\b",
+            r"\bcase\s+[a-f]\b",
+            r"\bsample\s+case\b",
+            r"\bcase\s+[a-f]\s*-\b",
+            r"\bmaria\b",
+            r"\bdaniel\b",
+            r"\bpriya\b",
+            r"\blena\b",
+            r"\bhans\s+in\s+germany\b",
         ]
         if any(re.search(p, a_lower) for p in illustrative_patterns) or any(re.search(p, b_lower) for p in illustrative_patterns):
             return ContradictionResult(
@@ -330,6 +338,25 @@ class MockLLMProvider(BaseLLMProvider):
                 severity="low",
                 confidence=0.92,
                 reasoning="One or both claims are concrete transaction scenarios or illustrative examples rather than conflicting policy rules.",
+            )
+
+        # Pillar 2b: Executive Summary, Table of Contents, or Revision History vs. Detail Clauses
+        summary_patterns = [
+            r"\bpolicy\s+summary\b",
+            r"\bsummary\s+at\s+a\s+glance\b",
+            r"\btable\s+of\s+contents\b",
+            r"\brevision\s+history\b",
+            r"\bcase\s+studies\b",
+            r"\bpage\s+22\b",
+            r"\bversion\s+4\.[0-2]\b",
+        ]
+        if any(re.search(p, a_lower) for p in summary_patterns) or any(re.search(p, b_lower) for p in summary_patterns):
+            return ContradictionResult(
+                is_contradiction=False,
+                conflict_type="compatible_summary",
+                severity="low",
+                confidence=0.92,
+                reasoning="One claim is an executive summary table, index, or revision history that outlines detailed canonical clauses.",
             )
 
         # Pillar 3: Detect temporal versioning (legacy vs current)
@@ -342,19 +369,111 @@ class MockLLMProvider(BaseLLMProvider):
                 reasoning="One claim represents legacy policy evidence superseded by current active policy evidence.",
             )
 
-        # Semantic unit mismatch check
+        # Pillar 4: Semantic Facet Alignment (Prevent Apples-to-Oranges Matching)
+        def _detect_facet(text: str) -> str:
+            if any(k in text for k in ["phone", "call", "live chat", "email support", "response within", "hours (pacific", "gmt", "status line", "contact information"]):
+                return "support_channels"
+            if any(k in text for k in ["store credit", "valid for 5 years", "redeemable online"]):
+                return "store_credit"
+            if any(k in text for k in ["privacy policy", "retained for 7 years", "audit purposes", "stored per our privacy"]):
+                return "privacy_retention"
+            if any(k in text for k in ["email your rma", "label within 1 hour", "instantly online", "rma issued"]):
+                return "rma_issuance"
+            if any(k in text for k in ["abuse", "fraud", "counterfeit", "suspended for", "account closed", "wardrobing", "appeals in writing"]):
+                return "fraud_penalties"
+            if any(k in text for k in ["cooling-off", "statutory rights", "distance purchases"]):
+                return "statutory_rights"
+            if any(k in text for k in ["price adjustment", "drops in price"]):
+                return "price_adjustments"
+            if any(k in text for k in ["pause for up to", "pausing instead of cancelling"]):
+                return "subscription_pause"
+            if any(k in text for k in ["own carrier", "reimbursement for carrier"]):
+                return "carrier_reimbursement"
+            if any(k in text for k in ["digital goods", "trail guides", "video courses", "corrupt or inaccessible"]):
+                return "digital_products"
+            if any(k in text for k in ["warranty period", "manufacturing defects", "repair, replace", "tents and shelters 2 years"]):
+                return "product_warranty"
+            if any(k in text for k in ["subscription", "trailhead box", "free trial", "monthly gear box", "accidental renewal"]):
+                return "subscriptions"
+            if any(k in text for k in ["return freight", "carrier costs", "return shipping", "label cost", "deducted from refund"]):
+                return "shipping_costs"
+            if any(k in text for k in ["warehouse receipt", "inspection 1-2", "bank transfer 5-10", "posted by bank"]):
+                return "refund_processing_sla"
+            if any(k in text for k in ["chargeback", "dispute", "card issuer", "payment processor", "notifies us within", "duplicate recoveries", "4853", "4837", "4855", "4834", "4841"]):
+                return "chargebacks_and_disputes"
+            if any(k in text for k in ["cancel", "cancellation", "order status", "pre-order", "backordered"]):
+                return "order_cancellations"
+            if any(k in text for k in ["approval threshold", "agent may approve", "team lead approval", "director approval"]):
+                return "approval_thresholds"
+            if any(k in text for k in ["stolen", "police report", "courtesy replacement"]):
+                return "stolen_packages"
+            if any(k in text for k in ["gift card", "e-gift card", "balances under", "california, balances"]):
+                return "gift_cards"
+            if any(k in text for k in ["cash (in-store)", "cash refund", "cash purchases under", "cash up to"]):
+                return "cash_refund_limits"
+            if any(k in text for k in ["return window", "return policy", "days of the delivery", "returned within 30", "calendar days"]):
+                return "return_window"
+            return "general"
+
+        facet_a = _detect_facet(a_lower)
+        facet_b = _detect_facet(b_lower)
+
+        # If two claims govern distinct operational facets, they do not contradict
+        if facet_a != "general" and facet_b != "general" and facet_a != facet_b:
+            return ContradictionResult(
+                is_contradiction=False,
+                conflict_type="orthogonal_domains",
+                severity="low",
+                confidence=0.92,
+                reasoning=f"Claims govern orthogonal operational facets ({facet_a} vs {facet_b}) and do not compete.",
+            )
+
+        # Pillar 5: Hierarchical Exceptions within the same domain (Lex Specialis)
+        # E.g. Standard merchandise (30d) vs Gold loyalty tier (60d) or Footwear (45d)
+        is_tier_exception_a = any(k in a_lower for k in ["gold", "footwear", "holiday", "tents", "camping", "sleeping bags", "rest of world", "statutory", "receipt-less", "keep it"])
+        is_tier_exception_b = any(k in b_lower for k in ["gold", "footwear", "holiday", "tents", "camping", "sleeping bags", "rest of world", "statutory", "receipt-less", "keep it"])
+        is_baseline_a = any(k in a_lower for k in ["standard merchandise", "most items", "standard return policy"])
+        is_baseline_b = any(k in b_lower for k in ["standard merchandise", "most items", "standard return policy"])
+
+        if (is_tier_exception_a and is_baseline_b) or (is_tier_exception_b and is_baseline_a) or (is_tier_exception_a and is_tier_exception_b and facet_a == facet_b):
+            return ContradictionResult(
+                is_contradiction=False,
+                conflict_type="compatible_exception",
+                severity="low",
+                confidence=0.92,
+                reasoning="Claims define a standard baseline and a conditional loyalty/category exception (Lex Specialis).",
+            )
+
+        # If claims affirm identical primary numerical values, they agree
+        shared_nums = nums_a.intersection(nums_b)
+        if bool(shared_nums) and len(meaningful_common_words) >= 1:
+            return ContradictionResult(
+                is_contradiction=False,
+                conflict_type="compatible",
+                severity="low",
+                confidence=0.95,
+                reasoning=f"Claims affirm matching thresholds ({list(shared_nums)[:2]}).",
+            )
+
+        # Semantic unit mismatch check:
+        # Avoid generic domain words (like 'customer', 'order', 'refund', 'policy') creating false-positive matches
+        domain_generic_words = {"customer", "order", "item", "refund", "return", "policy", "store", "northwind", "within", "plus", "days", "day"}
+        specific_common_words = meaningful_common_words - domain_generic_words
+
+        is_same_specific_facet = (facet_a == facet_b and facet_a != "general")
+        has_strong_semantic_alignment = (len(specific_common_words) >= 1) or is_same_specific_facet
+
         has_unit_conflict = (
-            (bool(curr_a) and bool(curr_b) and curr_a != curr_b) or
-            (bool(dur_a) and bool(dur_b) and dur_a != dur_b) or
-            (bool(pct_a) and bool(pct_b) and pct_a != pct_b)
+            (bool(curr_a) and bool(curr_b) and curr_a != curr_b and (is_same_specific_facet or has_constraint_context or (facet_a == "general" and facet_b == "general" and len(specific_common_words) >= 1))) or
+            (bool(dur_a) and bool(dur_b) and dur_a != dur_b and (is_same_specific_facet or has_constraint_context or (facet_a == "general" and facet_b == "general" and len(specific_common_words) >= 1))) or
+            (bool(pct_a) and bool(pct_b) and pct_a != pct_b and (is_same_specific_facet or has_constraint_context or (facet_a == "general" and facet_b == "general" and len(specific_common_words) >= 1)))
         )
 
         is_numerical_conflict = (
-            (has_unit_conflict and len(meaningful_common_words) >= 1) or
+            (has_unit_conflict and (has_strong_semantic_alignment or has_constraint_context)) or
             (
-                bool(nums_a) and bool(nums_b) and nums_a != nums_b and (
-                    (len(meaningful_common_words) >= 2 and (shared_metrics or has_constraint_context)) or
-                    (len(meaningful_common_words) >= 1 and shared_metrics and has_constraint_context)
+                bool(nums_a) and bool(nums_b) and nums_a != nums_b and (is_same_specific_facet or has_constraint_context) and (
+                    (len(meaningful_common_words) >= 2 and (shared_metrics or has_constraint_context))
                 )
             )
         )
@@ -366,7 +485,7 @@ class MockLLMProvider(BaseLLMProvider):
                 conflict_type="numerical_discrepancy",
                 severity="high",
                 confidence=0.92,
-                reasoning=f"Claims share subject context ({context_snippet}) but specify conflicting numerical thresholds: {list(nums_a)[:2]} vs {list(nums_b)[:2]}.",
+                reasoning=f"Claims share subject context ({context_snippet}) and facet ({facet_a}) but specify conflicting numerical thresholds: {list(nums_a)[:2]} vs {list(nums_b)[:2]}.",
             )
 
         return ContradictionResult(
