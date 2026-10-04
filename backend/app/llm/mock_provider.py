@@ -31,10 +31,15 @@ class MockLLMProvider(BaseLLMProvider):
                 extraction_method="mock_rule_extractor",
             )
 
-        # 1. Base sentence & bullet splitting
-        raw_sentences = re.split(r"(?<=[.!?])\s+|\n[-*•]\s*", section_content.strip())
+        from app.normalization.normalizer import DocumentNormalizer
+
+        # 1. Linearize tables in section content so table rules survive grammar gates
+        cleaned_content = DocumentNormalizer.linearize_table_content(section_content.strip())
+
+        # 2. Structure-aware sentence & bullet segmentation (protects decimal clauses 3.3., versions, etc.)
+        raw_sentences = DocumentNormalizer.structure_aware_segmentation(cleaned_content)
         
-        # 2. Candidate clause decomposition (split compound clauses: ';', ' and must ', ' and can ')
+        # 3. Candidate clause decomposition (split compound clauses: ';', ' and must ', ' and can ')
         candidate_clauses = []
         for sentence in raw_sentences:
             s = sentence.strip().lstrip("-*• ")
@@ -61,8 +66,52 @@ class MockLLMProvider(BaseLLMProvider):
         sec_clean = section_title.strip() if section_title and section_title != "General" else ""
         anchor = f"{doc_clean}: {sec_clean}" if (sec_clean and sec_clean.lower() not in doc_clean.lower()) else (sec_clean or doc_clean)
 
+        # Propositional Gatekeeper definitions
+        TOC_LINE_RE = re.compile(r"^[0-9.]*\s*[A-Za-z\s&,/-]{3,}\s+\d+(?:\s+[0-9.]+)?$")
+        DOT_LEADER_RE = re.compile(r"\.{2,}\s*\d+")
+        PREDICATE_TOKENS = {
+            "is", "are", "was", "were", "be", "been", "being",
+            "must", "shall", "can", "may", "will", "would", "should", "cannot", "could",
+            "requires", "required", "require", "requiring",
+            "applies", "applied", "apply", "applying",
+            "deducted", "deduct", "deducts", "deducting",
+            "adjusted", "adjust", "adjusts", "adjusting",
+            "recovered", "recover", "recovers", "recovering",
+            "eligible", "entitled", "prohibited", "allowed", "permitted",
+            "serves", "serve", "serving", "served",
+            "submits", "submit", "submitting", "submitted",
+            "provides", "provide", "providing", "provided",
+            "represents", "represent", "representing", "represented",
+            "governs", "govern", "governing", "governed",
+            "includes", "include", "including", "included",
+            "excludes", "exclude", "excluding", "excluded",
+            "terminates", "terminate", "terminating", "terminated",
+            "resigns", "resign", "resigning", "resigned",
+            "approves", "approve", "approving", "approved",
+            "reimburses", "reimburse", "reimbursing", "reimbursed",
+            "receives", "receive", "receiving", "received",
+            "grants", "grant", "granting", "granted",
+            "waives", "waive", "waiving", "waived",
+            "contains", "contain", "containing", "contained",
+            "has", "have", "had", "having",
+            "payable", "specifies", "stipulates",
+        }
+
         for s in candidate_clauses:
             if not s or len(s) < 8:
+                continue
+
+            # Stage 2 TOC/Fragment Gatekeeper: Reject dangling page numbers and dot leaders
+            if DOT_LEADER_RE.search(s) or TOC_LINE_RE.match(s):
+                continue
+
+            # Stage 3 Propositional Gatekeeper: Require finite predicate, copula, modal, or linearized table rule
+            is_table_rule = s.lower().startswith("policy rule:")
+            words = set(re.findall(r"\b[a-z]+\b", s.lower()))
+            has_predicate = bool(words & PREDICATE_TOKENS)
+
+            if not is_table_rule and not has_predicate:
+                # Reject non-assertive headers, fragments, or index entries
                 continue
 
             # Skip code, raw json, or synthetic dataset boilerplate

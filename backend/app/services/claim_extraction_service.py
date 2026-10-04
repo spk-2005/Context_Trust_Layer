@@ -89,6 +89,15 @@ class ClaimExtractionService:
         # 3. Persist results with Canonical Deduplication & Multi-Citation Lineage
         for section, result in section_results:
             for item in result.claims:
+                # 3-pre: Number Grounding & Containment Verification
+                if item.numeric_value is not None:
+                    int_str = str(int(item.numeric_value)) if item.numeric_value.is_integer() else str(item.numeric_value)
+                    float_str = str(item.numeric_value)
+                    context_span = f"{item.evidence_text_span or ''} {item.claim_text}"
+                    if int_str not in context_span and float_str not in context_span:
+                        item.numeric_value = None
+                        item.numeric_unit = None
+
                 # 3a. Generate canonical multi-factor matching keys
                 norm_text_key = " ".join(item.claim_text.strip().lower().split())
                 

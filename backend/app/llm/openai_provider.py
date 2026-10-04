@@ -65,8 +65,10 @@ class OpenAIProvider(BaseLLMProvider):
             "2. ENTITY ANCHORING: Resolve all dangling pronouns ('they', 'it', 'the user', 'employees') using the Document Title and Section Header to ensure the Subject is fully qualified.\n"
             "3. STRUCTURED TRIPLET: Output Subject (entity/policy scope), Predicate (action/relation), Object (bound/value/target).\n"
             "4. MODALITY & TYPE: Set modality to 'MUST' (obligation), 'CAN' (permission), 'CANNOT' (prohibition), or 'IS' (definition). Set claim_type to 'policy', 'technical', 'financial', 'metric', or 'compliance'.\n"
-            "5. NUMERIC EXTRACTION: If the claim contains a numerical threshold, duration, or percentage, set numeric_value (e.g. 14.0, 99.9) and numeric_unit ('days', 'percent', 'USD', etc.).\n"
-            "6. EXACT CITATION: 'evidence_text_span' MUST be an exact verbatim substring from the Content."
+            "5. NUMERIC EXTRACTION: If the claim contains a numerical threshold, duration, or percentage, set numeric_value (e.g. 14.0, 99.9) and numeric_unit ('days', 'percent', 'USD', etc.). Every number must exist verbatim in the text.\n"
+            "6. EXACT CITATION: 'evidence_text_span' MUST be an exact verbatim substring from the Content.\n"
+            "7. PROPOSITIONAL RIGOR & NOISE FILTER: Extract ONLY substantive, operative claims (rules, requirements, conditions, entitlements, liabilities). NEVER extract Table of Contents entries, page references, section headers, or metadata boilerplate (e.g. 'Points to Remember 5 3.3.', 'Purpose 4 2.', 'Internal Wingify 1').\n"
+            "8. TABLE EXTRACTION: If tabular matrix data is present (such as Grade levels vs notice durations), linearize each row into a distinct, complete declarative policy rule."
         )
 
         user_prompt = (

@@ -80,10 +80,176 @@ class DocumentNormalizer:
         return hashlib.sha256(sanitized.encode("utf-8")).hexdigest()
 
     @staticmethod
+    def strip_statistical_headers_footers(raw_text: str) -> str:
+        """
+        Stage 2 Generic De-noising: Statistical positional header and footer discovery.
+        
+        Replaces digits with '#' and calculates recurrence across page boundaries.
+        Any pattern appearing in the top 3 or bottom 3 lines on >= 35% of pages is 
+        identified as a recurring running banner/footer and stripped without hardcoded client regex.
+        """
+        if not raw_text:
+            return ""
+
+        # Identify page boundaries (e.g. '## Page X' or form-feed '\f')
+        page_splits = re.split(r"(?:^|\n)(?=## Page \d+|\f)", raw_text)
+        if len(page_splits) < 2:
+            return raw_text
+
+        page_headers: dict[str, set[int]] = {}
+        page_footers: dict[str, set[int]] = {}
+
+        def _norm_banner_line(line: str) -> str:
+            # Replace all number sequences with '#' to match e.g. "Internal, Wingify 1" and "Internal, Wingify 2"
+            cleaned = re.sub(r"\d+", "#", line.strip().lower())
+            # Collapse multiple spaces and strip punctuation
+            return re.sub(r"\s+", " ", cleaned).strip()
+
+        for idx, page in enumerate(page_splits):
+            lines = [l.strip() for l in page.split("\n") if l.strip() and not l.strip().startswith("## Page")]
+            if len(lines) < 4:
+                continue
+
+            limit = min(2, max(1, len(lines) // 3))
+
+            # Top candidate lines (Header Candidates, capped at 80 chars)
+            for top_line in lines[:limit]:
+                if len(top_line) > 80:
+                    continue
+                norm_top = _norm_banner_line(top_line)
+                if len(norm_top) >= 4:
+                    page_headers.setdefault(norm_top, set()).add(idx)
+
+            # Bottom candidate lines (Footer Candidates, capped at 80 chars)
+            for bot_line in lines[-limit:]:
+                if len(bot_line) > 80:
+                    continue
+                norm_bot = _norm_banner_line(bot_line)
+                if len(norm_bot) >= 4:
+                    page_footers.setdefault(norm_bot, set()).add(idx)
+
+        total_pages = len(page_splits)
+        threshold = max(2, int(total_pages * 0.35))
+
+        banner_patterns: set[str] = set()
+        for norm_text, page_set in {**page_headers, **page_footers}.items():
+            if len(page_set) >= threshold:
+                banner_patterns.add(norm_text)
+
+        if not banner_patterns:
+            return raw_text
+
+        # Strip identified running banner patterns from all pages
+        cleaned_pages = []
+        for page in page_splits:
+            page_lines = page.split("\n")
+            filtered_lines = []
+            for line in page_lines:
+                norm_current = _norm_banner_line(line)
+                if norm_current in banner_patterns:
+                    continue
+                filtered_lines.append(line)
+            cleaned_pages.append("\n".join(filtered_lines))
+
+        return "\n".join(cleaned_pages)
+
+    @staticmethod
+    def is_table_of_contents_block(text: str, title: str = "") -> bool:
+        """
+        Stage 2 TOC Detection: Identify Table of Contents blocks or pages.
+        
+        Flags blocks if title indicates TOC, dot leaders exist, or > 40% of lines 
+        end in trailing section/page numbers without complete predicates.
+        """
+        combined = f"{title}\n{text}".lower()
+        if re.search(r"\b(table of contents|contents|outline)\b", combined[:200]):
+            return True
+
+        lines = [l.strip() for l in text.split("\n") if l.strip()]
+        if len(lines) < 3:
+            return False
+
+        toc_indicators = 0
+        for line in lines:
+            # Dot leaders: e.g. "Policy Summary ............. 3"
+            if re.search(r"\.{2,}\s*\d+", line):
+                toc_indicators += 1
+            # Trailing page numbers or section indices: e.g. "3.2. Points to Remember 5" or "Purpose 4 2."
+            elif re.search(r"^[0-9.]*\s*[A-Za-z\s&,/-]+\s+\d+(?:\s+[0-9.]+)?$", line):
+                toc_indicators += 1
+
+        return (toc_indicators / len(lines)) >= 0.40
+
+    @staticmethod
+    def linearize_table_content(text: str) -> str:
+        """
+        Stage 3 Table Linearization: Transforms tabular data into canonical declarative sentences.
+        
+        Ensures dense policy tables (e.g. Level & Grade vs Duration) survive downstream
+        linguistic grammar gates with full source grounding.
+        """
+        lines = text.split("\n")
+        table_lines = [l.strip() for l in lines if "|" in l or "\t" in l]
+        if len(table_lines) < 2:
+            return text
+
+        # Parse markdown pipe table
+        pipe_rows = [[c.strip() for c in l.split("|") if c.strip()] for l in lines if "|" in l]
+        if len(pipe_rows) >= 2:
+            headers = pipe_rows[0]
+            # Ignore separator line |---|---|
+            data_rows = [r for r in pipe_rows[1:] if not all(re.match(r"^[-:]+$", c) for c in r)]
+            linearized = []
+            for row in data_rows:
+                parts = []
+                for h, val in zip(headers, row):
+                    if h and val:
+                        parts.append(f"{h}: {val}")
+                if parts:
+                    linearized.append("Policy rule: " + ", ".join(parts) + ".")
+            if linearized:
+                return "\n".join(linearized)
+
+        return text
+
+    @staticmethod
+    def structure_aware_segmentation(text: str) -> list[str]:
+        """
+        Stage 3 Sentence Segmentation: Protects decimal clause numbering, software versions,
+        and abbreviations before sentence tokenization.
+        """
+        if not text:
+            return []
+
+        # Mask decimal numbers, clause hierarchies, versions, and abbreviations to prevent false splits
+        # e.g. "99.9%", "3.3.", "v1.5", "e.g.", "i.e."
+        def _mask_dots(m):
+            return m.group(0).replace(".", "_DOT_")
+
+        protected = text
+        protected = re.sub(r"\b\d+\.\d+(?:\.\d+)?\.?", _mask_dots, protected)
+        protected = re.sub(r"\bv\d+\.\d+(?:\.\d+)?", _mask_dots, protected)
+        protected = re.sub(r"\b[A-Za-z]{1,4}\.\s*(?=[a-z])", _mask_dots, protected)
+
+        # Split on sentence boundaries and bullet points
+        raw_splits = re.split(r"(?<=[.!?])\s+(?=[A-Z0-9●❖•-])|\n\s*[-*•●❖]\s*", protected)
+        sentences = []
+        for s in raw_splits:
+            unmasked = s.replace("_DOT_", ".").strip().lstrip("-*•●❖ ")
+            if unmasked:
+                sentences.append(unmasked)
+
+        return sentences
+
+    @staticmethod
     def scrub_noise(text: str) -> str:
         """Scrub document boilerplate, greetings, table of contents, and structural artifacts before extraction."""
         if not text:
             return ""
+
+        # Apply Stage 2 statistical header/footer stripping
+        text = DocumentNormalizer.strip_statistical_headers_footers(text)
+
         lines = text.split("\n")
         cleaned_lines = []
         boilerplate_patterns = [
@@ -94,6 +260,10 @@ class DocumentNormalizer:
             re.compile(r"^(hi|hello|dear)\s+(team|all|everyone|colleagues)[\s,!:]*$", re.IGNORECASE),
             re.compile(r"^please (note|find|refer to) (the following|below|attached)[\s,!:]*$", re.IGNORECASE),
             re.compile(r"^[-=_]{3,}$"),
+            # Trailing dot leaders e.g. "Notice Period .......... 4"
+            re.compile(r"\.{2,}\s*\d+\s*$"),
+            # Trailing page numbers on section headers e.g. "Points to Remember 5 3.3." or "Purpose 4 2."
+            re.compile(r"^[0-9.]*\s*[A-Za-z\s&,/-]{3,}\s+\d+(?:\s+[0-9.]+)?$"),
         ]
         for line in lines:
             stripped = line.strip()
@@ -164,7 +334,10 @@ class DocumentNormalizer:
                 chunk_idx = 1
                 offset = 0
                 for p in paragraphs:
-                    if current_len + len(p) > 2000 and current_chunk:
+                    if DocumentNormalizer.is_table_of_contents_block(p):
+                        continue
+                    p_linear = DocumentNormalizer.linearize_table_content(p)
+                    if current_len + len(p_linear) > 2000 and current_chunk:
                         chunk_text = "\n\n".join(current_chunk)
                         chunk_sections.append(
                             DocumentSection(
@@ -179,27 +352,34 @@ class DocumentNormalizer:
                         chunk_idx += 1
                         current_chunk = []
                         current_len = 0
-                    current_chunk.append(p)
-                    current_len += len(p)
+                    current_chunk.append(p_linear)
+                    current_len += len(p_linear)
                 if current_chunk:
                     chunk_text = "\n\n".join(current_chunk)
-                    chunk_sections.append(
-                        DocumentSection(
-                            title=f"Section {chunk_idx}",
-                            content=chunk_text,
-                            level=2,
-                            start_char_offset=offset,
-                            end_char_offset=offset + len(chunk_text),
+                    if not DocumentNormalizer.is_table_of_contents_block(chunk_text):
+                        chunk_sections.append(
+                            DocumentSection(
+                                title=f"Section {chunk_idx}",
+                                content=chunk_text,
+                                level=2,
+                                start_char_offset=offset,
+                                end_char_offset=offset + len(chunk_text),
+                            )
                         )
-                    )
                 return chunk_sections
+
+            # Check if general fallback is TOC
+            if DocumentNormalizer.is_table_of_contents_block(raw_text):
+                return []
+
+            linearized_general = DocumentNormalizer.linearize_table_content(raw_text)
             return [
                 DocumentSection(
                     title="General",
-                    content=raw_text,
+                    content=linearized_general,
                     level=1,
                     start_char_offset=0,
-                    end_char_offset=len(raw_text),
+                    end_char_offset=len(linearized_general),
                 )
             ]
 
@@ -210,15 +390,17 @@ class DocumentNormalizer:
             if match:
                 if current_title is not None:
                     sec_content = "\n".join(current_content_lines).strip()
-                    sections.append(
-                        DocumentSection(
-                            title=current_title,
-                            content=sec_content,
-                            level=current_level,
-                            start_char_offset=current_start,
-                            end_char_offset=max(0, offset - 1),
+                    if not DocumentNormalizer.is_table_of_contents_block(sec_content, title=current_title):
+                        sec_content = DocumentNormalizer.linearize_table_content(sec_content)
+                        sections.append(
+                            DocumentSection(
+                                title=current_title,
+                                content=sec_content,
+                                level=current_level,
+                                start_char_offset=current_start,
+                                end_char_offset=max(0, offset - 1),
+                            )
                         )
-                    )
                 current_title = match.group(2).strip()
                 current_level = len(match.group(1))
                 current_content_lines = []
@@ -230,15 +412,17 @@ class DocumentNormalizer:
 
         if current_title is not None:
             sec_content = "\n".join(current_content_lines).strip()
-            sections.append(
-                DocumentSection(
-                    title=current_title,
-                    content=sec_content,
-                    level=current_level,
-                    start_char_offset=current_start,
-                    end_char_offset=len(raw_text),
+            if not DocumentNormalizer.is_table_of_contents_block(sec_content, title=current_title):
+                sec_content = DocumentNormalizer.linearize_table_content(sec_content)
+                sections.append(
+                    DocumentSection(
+                        title=current_title,
+                        content=sec_content,
+                        level=current_level,
+                        start_char_offset=current_start,
+                        end_char_offset=len(raw_text),
+                    )
                 )
-            )
 
         return sections
 
