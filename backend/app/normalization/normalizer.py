@@ -71,7 +71,68 @@ class DocumentNormalizer:
         # 4. Collapse multiple blank lines into max 2 newlines
         cleaned = "\n".join(lines)
         cleaned = re.sub(r"\n{3,}", "\n\n", cleaned)
+        cleaned = DocumentNormalizer.reflow_fragmented_lines(cleaned)
+
+        from app.normalization.document_restructurer import DocumentSemanticRestructurer
+        cleaned = DocumentSemanticRestructurer.restructure(cleaned)
         return cleaned.strip()
+
+    @staticmethod
+    def reflow_fragmented_lines(raw_text: str) -> str:
+        """
+        Intelligently reflows single-word and fragmented lines extracted from PDFs.
+        
+        PDF text extractors (such as pypdf) often place linebreaks between individual words
+        or tiny word fragments. This function reassembles them into coherent, continuous
+        sentences and paragraphs while strictly preserving markdown headers, tables,
+        blockquotes, and bullet items.
+        """
+        if not raw_text:
+            return ""
+
+        raw_lines = [l.strip() for l in raw_text.split("\n")]
+        reflowed = []
+        buffer = []
+
+        for line in raw_lines:
+            if not line:
+                if buffer and not re.search(r"[.!?:]$", buffer[-1]) and not buffer[-1].startswith("#"):
+                    continue
+                elif buffer:
+                    reflowed.append(" ".join(buffer))
+                    buffer = []
+                continue
+
+            # Markdown structural elements should never be merged
+            if (
+                line.startswith("#")
+                or line.startswith("|")
+                or line.startswith(">")
+                or line.startswith("---")
+                or line.startswith("- ")
+                or line.startswith("* ")
+                or re.match(r"^\d+\.\s", line)
+            ):
+                if buffer:
+                    reflowed.append(" ".join(buffer))
+                    buffer = []
+                reflowed.append(line)
+                continue
+
+            words = line.split()
+            # If line is short and does not terminate a sentence
+            if len(words) <= 4 and not re.search(r"[.!?:]$", line):
+                buffer.append(line)
+            else:
+                buffer.append(line)
+                if re.search(r"[.!?]$", line) or len(" ".join(buffer)) > 140:
+                    reflowed.append(" ".join(buffer))
+                    buffer = []
+
+        if buffer:
+            reflowed.append(" ".join(buffer))
+
+        return "\n\n".join(reflowed)
 
     @staticmethod
     def compute_content_hash(content: str) -> str:

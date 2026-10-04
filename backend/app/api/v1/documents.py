@@ -156,9 +156,12 @@ async def upload_document_file(
             for page_num, page in enumerate(reader.pages, start=1):
                 page_text = page.extract_text()
                 if page_text and page_text.strip():
-                    pages_text.append(f"## Page {page_num}\n{page_text.strip()}")
+                    reflowed_page = DocumentNormalizer.reflow_fragmented_lines(page_text.strip())
+                    pages_text.append(f"## Page {page_num}\n{reflowed_page}")
             if pages_text:
                 content_text = f"# {doc_title}\n\n" + "\n\n".join(pages_text)
+                from app.normalization.document_restructurer import DocumentSemanticRestructurer
+                content_text = DocumentSemanticRestructurer.restructure(content_text)
             else:
                 content_text = f"# {doc_title}\n\nIngested PDF document {filename} ({len(reader.pages)} pages)."
         except Exception:
@@ -316,7 +319,8 @@ async def upload_and_extract_document(
             for page_num, page in enumerate(reader.pages, start=1):
                 page_text = page.extract_text()
                 if page_text and page_text.strip():
-                    pages_text.append(f"## Page {page_num}\n{page_text.strip()}")
+                    reflowed_page = DocumentNormalizer.reflow_fragmented_lines(page_text.strip())
+                    pages_text.append(f"## Page {page_num}\n{reflowed_page}")
             if pages_text:
                 content_text = f"# {doc_title}\n\n" + "\n\n".join(pages_text)
             else:

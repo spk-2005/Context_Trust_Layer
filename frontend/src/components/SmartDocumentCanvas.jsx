@@ -12,14 +12,91 @@ import {
   ZoomIn,
   ZoomOut,
   Layers,
-  BookOpen
+  BookOpen,
+  FileText,
+  GripVertical
 } from 'lucide-react';
+
+/**
+ * Intelligently reflows single-word and fragmented lines extracted from PDFs.
+ * Eliminates awkward vertical 1-word-per-line flows while preserving markdown structure.
+ */
+function reflowFragmentedText(rawText) {
+  if (!rawText) return '';
+  // Clean up unicode encoding artifacts and normalize quotation marks
+  let sanitized = rawText
+    .replace(/\uFFFD/g, '"')
+    .replace(/[“”]/g, '"')
+    .replace(/[‘’]/g, "'");
+
+  const lines = sanitized.split(/\r?\n/).map(l => l.trim());
+  const reflowed = [];
+  let buffer = [];
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+
+    // Blank line check
+    if (!line) {
+      if (buffer.length > 0 && !/[.!?:]$/.test(buffer[buffer.length - 1]) && !buffer[buffer.length - 1].startsWith('#')) {
+        continue;
+      } else if (buffer.length > 0) {
+        reflowed.push(buffer.join(' '));
+        buffer = [];
+      }
+      continue;
+    }
+
+    // Skip isolated single or double digits (page number artifacts like standalone "5" or "1")
+    if (/^\d{1,2}$/.test(line)) {
+      continue;
+    }
+
+    // Markdown structural elements: headers, tables, callouts, lists, horizontal rules
+    if (
+      line.startsWith('#') ||
+      line.startsWith('|') ||
+      line.startsWith('>') ||
+      line.startsWith('---') ||
+      line.startsWith('- ') ||
+      line.startsWith('* ') ||
+      /^\d+\.\s/.test(line)
+    ) {
+      if (buffer.length > 0) {
+        reflowed.push(buffer.join(' '));
+        buffer = [];
+      }
+      reflowed.push(line);
+      continue;
+    }
+
+    const words = line.split(/\s+/);
+    // If line has 1-4 words and does not end with terminal punctuation (.!?), it's a word fragment
+    if (words.length <= 4 && !/[.!?:]$/.test(line)) {
+      buffer.push(line);
+    } else {
+      buffer.push(line);
+      // Flush buffer if sentence terminated or if paragraph exceeds comfortable reading line length
+      if (/[.!?]$/.test(line) || buffer.join(' ').length > 140) {
+        reflowed.push(buffer.join(' '));
+        buffer = [];
+      }
+    }
+  }
+
+  if (buffer.length > 0) {
+    reflowed.push(buffer.join(' '));
+  }
+
+  return reflowed.join('\n\n');
+}
 
 /**
  * Helper to dynamically parse raw markdown/text into structured blocks.
  */
 function parseMarkdownContent(rawText) {
-  const lines = (rawText || '').split(/\r?\n/);
+  const cleanReflowed = reflowFragmentedText(rawText);
+  const lines = (cleanReflowed || '').split(/\r?\n/);
   const blocks = [];
   let i = 0;
 
@@ -180,18 +257,23 @@ function parseMarkdownContentIntoPages(rawText) {
   for (let i = 0; i < allBlocks.length; i++) {
     const b = allBlocks[i];
     // Check if this block indicates a page break (e.g. Page 1, ## Page 2, etc.)
-    const isPageHeader = (
-      (b.type === 'h1' || b.type === 'h2' || b.type === 'h3' || b.type === 'paragraph') &&
-      /^(?:#{1,3}\s*)?Page\s+(\d+)\b/i.test((b.text || '').trim())
-    );
+    const pageMatch = (b.text || '').trim().match(/^(?:#{1,3}\s*)?Page\s+(\d+)\b/i);
 
-    if (isPageHeader && currentBlocks.length > 0) {
-      pages.push({
-        pageNumber: currentPageNum,
-        blocks: currentBlocks
-      });
-      currentPageNum++;
-      currentBlocks = [];
+    if (pageMatch) {
+      const explicitPageNum = parseInt(pageMatch[1], 10);
+      const isOnlyInitialDocTitle = currentBlocks.length === 1 && currentBlocks[0].type === 'h1' && explicitPageNum === 1;
+
+      // Only push to pages if there is prior page content (and not just the initial title before Page 1)
+      if (currentBlocks.length > 0 && !isOnlyInitialDocTitle) {
+        pages.push({
+          pageNumber: currentPageNum,
+          blocks: currentBlocks
+        });
+        currentBlocks = [];
+      }
+
+      currentPageNum = explicitPageNum;
+      continue;
     }
     currentBlocks.push(b);
   }
@@ -229,7 +311,6 @@ function parseMarkdownContentIntoPages(rawText) {
 function LazyDocumentPage({
   page,
   pageIndex,
-  totalPages,
   renderBlock,
   onVisible,
   zoomLevel,
@@ -287,33 +368,19 @@ function LazyDocumentPage({
       id={`doc-page-${page.pageNumber}`}
       className="doc-dynamic-page lazy-doc-page"
       style={{
-        fontSize: `${(zoomLevel / 100) * 0.85}rem`,
+        fontSize: `${(zoomLevel / 100) * 0.90}rem`,
         transition: 'font-size 0.15s ease-out',
         minHeight: isRendered ? 'auto' : '550px',
         width: '100%',
-        maxWidth: '850px'
+        maxWidth: '820px'
       }}
     >
-      {/* Page Header Indicator */}
-      {totalPages > 1 && (
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          paddingBottom: '8px',
-          marginBottom: '14px',
-          borderBottom: '1px solid #F1F5F9',
-          fontSize: '0.70rem',
-          fontWeight: 700,
-          color: '#94A3B8',
-          letterSpacing: '0.04em'
-        }}>
-          <span>PAGE {page.pageNumber} OF {totalPages}</span>
-        </div>
+      {pageIndex > 0 && (
+        <div style={{ borderTop: '1px dashed #E2E8F0', marginBottom: '24px' }} />
       )}
 
       {isRendered ? (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           {page.blocks.map((block, bIdx) => renderBlock(block, bIdx))}
         </div>
       ) : (
@@ -361,10 +428,12 @@ export default function SmartDocumentCanvas({
   showToast,
   onMinimize,
   onSelectClaim,
-  selectedClaimId
+  selectedClaimId,
+  onDragStartHandle,
+  onDragEndHandle
 }) {
-  // Highlight state: 'conflicts' (default) | 'claims' | 'none'
-  const [highlightFilter, setHighlightFilter] = useState('conflicts');
+  // Highlight state: 'conflicts' | 'claims' | 'none'
+  const [highlightFilter, setHighlightFilter] = useState(() => (conflicts && conflicts.length > 0) ? 'conflicts' : 'claims');
   const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
   const filterDropdownRef = useRef(null);
 
@@ -386,10 +455,30 @@ export default function SmartDocumentCanvas({
     };
   }, [isFilterDropdownOpen]);
 
-  // Hover popover for atomic claims
+  // Hover and Pinned Popover state for atomic claims
   const [hoveredClaimInfo, setHoveredClaimInfo] = useState(null);
-  const [popoverPos, setPopoverPos] = useState({ x: 0, y: 0 });
+  const [pinnedClaimInfo, setPinnedClaimInfo] = useState(null);
+  const [popoverPos, setPopoverPos] = useState({ x: 0, y: 0, placeBelow: false });
   const [copiedRuleId, setCopiedRuleId] = useState(null);
+  const popoverRef = useRef(null);
+  const hoverTimeoutRef = useRef(null);
+
+  // Close pinned claim card when clicking outside
+  useEffect(() => {
+    function handleDocClick(event) {
+      if (popoverRef.current && !popoverRef.current.contains(event.target)) {
+        if (!event.target.closest('[data-claim-highlight="true"]')) {
+          setPinnedClaimInfo(null);
+          setHoveredClaimInfo(null);
+        }
+      }
+    }
+    document.addEventListener('mousedown', handleDocClick);
+    return () => {
+      document.removeEventListener('mousedown', handleDocClick);
+      if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
+    };
+  }, []);
 
   // Document Zoom State: 60% to 160% (Default: 100%)
   const [zoomLevel, setZoomLevel] = useState(100);
@@ -399,6 +488,25 @@ export default function SmartDocumentCanvas({
 
   const containerRef = useRef(null);
   const scrollContainerRef = useRef(null);
+
+  // Responsive width tracking to adjust button and text sizes in split-screen mode
+  const [containerWidth, setContainerWidth] = useState(800);
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+    const ro = new ResizeObserver(entries => {
+      for (const entry of entries) {
+        if (entry.contentRect?.width) {
+          setContainerWidth(Math.round(entry.contentRect.width));
+        }
+      }
+    });
+    ro.observe(containerRef.current);
+    return () => ro.disconnect();
+  }, []);
+
+  const isCompact = containerWidth < 620;
+  const isUltraCompact = containerWidth < 460;
 
   // Wheel listener for Ctrl + Scroll zoom
   useEffect(() => {
@@ -580,17 +688,63 @@ export default function SmartDocumentCanvas({
     return bestClaim;
   };
 
-  // Hover card trigger
+  // Calculate best position for popover card relative to scroll container
+  const calculatePopoverPos = (targetEl) => {
+    if (!targetEl || !containerRef.current) return { x: 20, y: 50, placeBelow: false };
+    const rect = targetEl.getBoundingClientRect();
+    const containerRect = containerRef.current.getBoundingClientRect();
+
+    let x = rect.left - containerRect.left;
+    const cardWidth = 370;
+    const maxLeft = Math.max(16, (containerRect.width || 800) - cardWidth - 24);
+    x = Math.max(16, Math.min(x, maxLeft));
+
+    let y = rect.top - containerRect.top;
+    const placeBelow = y < 190;
+    if (placeBelow) {
+      y = y + rect.height + 6;
+    } else {
+      y = y - 8;
+    }
+
+    return { x, y, placeBelow };
+  };
+
+  // Click on sentence to pin the card so user can take actions
+  const handleSentenceClick = (e, claim) => {
+    e.stopPropagation();
+    if (!claim) return;
+    if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
+    const pos = calculatePopoverPos(e.currentTarget);
+    setPopoverPos(pos);
+    setPinnedClaimInfo(claim);
+    setHoveredClaimInfo(null);
+
+    if (onSelectClaim) {
+      onSelectClaim(claim);
+    } else if (onVisualizeInDag) {
+      const targetId = claim.id.startsWith('cl_') ? claim.id : `cl_${claim.id}`;
+      onVisualizeInDag(targetId, claim.fullText);
+    }
+  };
+
+  // Hover card trigger (preview when no card is pinned)
   const handleSentenceMouseEnter = (e, claim) => {
     if (!claim || highlightFilter === 'none') return;
-    const rect = e.currentTarget.getBoundingClientRect();
-    const containerRect = containerRef.current?.getBoundingClientRect() || { top: 0, left: 0 };
+    if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
+    if (pinnedClaimInfo) return; // Do not override pinned card on hover
 
-    setPopoverPos({
-      x: Math.max(16, Math.min(rect.left - containerRect.left, 240)),
-      y: Math.max(10, rect.top - containerRect.top - 8)
-    });
+    const pos = calculatePopoverPos(e.currentTarget);
+    setPopoverPos(pos);
     setHoveredClaimInfo(claim);
+  };
+
+  const handleSentenceMouseLeave = () => {
+    if (pinnedClaimInfo) return; // Pinned card stays visible!
+    if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
+    hoverTimeoutRef.current = setTimeout(() => {
+      setHoveredClaimInfo(null);
+    }, 280);
   };
 
   const handleCopyClaimRule = (claim) => {
@@ -621,43 +775,38 @@ export default function SmartDocumentCanvas({
         claim.cleanId === selectedClaimId ||
         `cl_${claim.cleanId}` === selectedClaimId
       );
+      const isCardPinned = pinnedClaimInfo && (
+        claim.id === pinnedClaimInfo.id ||
+        claim.cleanId === pinnedClaimInfo.cleanId
+      );
       const bg = isConflicted
-        ? (isSelected ? '#FEF08A' : '#FEF3C7')
-        : (isSelected ? '#BBF7D0' : '#DCFCE7');
+        ? (isSelected || isCardPinned ? '#FEF08A' : '#FEF3C7')
+        : (isSelected || isCardPinned ? '#BBF7D0' : '#DCFCE7');
       const border = isConflicted ? '#F59E0B' : '#10B981';
       const textColor = isConflicted ? '#7C2D12' : '#064E3B';
 
       return (
         <span
           key={keyPrefix}
+          data-claim-highlight="true"
           onMouseEnter={(e) => handleSentenceMouseEnter(e, claim)}
-          onMouseLeave={() => setHoveredClaimInfo(null)}
-          onClick={(e) => {
-            e.stopPropagation();
-            if (claim) {
-              if (onSelectClaim) {
-                onSelectClaim(claim);
-              } else if (onVisualizeInDag) {
-                const targetId = claim.id.startsWith('cl_') ? claim.id : `cl_${claim.id}`;
-                onVisualizeInDag(targetId, claim.fullText);
-              }
-            }
-          }}
+          onMouseLeave={handleSentenceMouseLeave}
+          onClick={(e) => handleSentenceClick(e, claim)}
           style={{
             background: bg,
             borderBottom: `2px solid ${border}`,
             color: textColor,
             padding: '2px 4px',
-            borderRadius: isSelected ? '4px' : '2px',
+            borderRadius: (isSelected || isCardPinned) ? '4px' : '2px',
             cursor: 'pointer',
             fontWeight: isConflicted ? 700 : 600,
             transition: 'all 0.15s ease',
             display: 'inline',
-            boxShadow: isSelected ? '0 0 0 2px #EA580C, 0 2px 8px rgba(234,88,12,0.25)' : 'none',
-            position: isSelected ? 'relative' : 'static',
-            zIndex: isSelected ? 2 : 1
+            boxShadow: (isSelected || isCardPinned) ? '0 0 0 2px #EA580C, 0 2px 8px rgba(234,88,12,0.25)' : 'none',
+            position: (isSelected || isCardPinned) ? 'relative' : 'static',
+            zIndex: (isSelected || isCardPinned) ? 2 : 1
           }}
-          title={isConflicted ? '⚠️ Contradicted Rule: Click to inspect Lineage & Blast Radius' : '⚡ Verified Rule: Click to inspect Lineage & Blast Radius'}
+          title={isConflicted ? '⚠️ Contradicted Rule: Click to pin action card & inspect Lineage' : '⚡ Verified Rule: Click to pin action card & inspect Lineage'}
         >
           {sentenceText}
         </span>
@@ -687,32 +836,75 @@ export default function SmartDocumentCanvas({
     switch (block.type) {
       case 'h1':
         return (
-          <div key={bIdx} style={{ fontSize: '1.24em', fontWeight: 800, color: '#0F172A', marginTop: '0.3em', marginBottom: '0.25em', letterSpacing: '-0.02em', lineHeight: 1.3 }}>
-            {block.text}
+          <div key={bIdx} style={{
+            fontSize: isUltraCompact ? '1.05rem' : (isCompact ? '1.18rem' : '1.35rem'),
+            fontWeight: 800,
+            color: '#0F172A',
+            marginTop: '1.1em',
+            marginBottom: '0.45em',
+            letterSpacing: '-0.025em',
+            lineHeight: 1.3,
+            display: 'flex',
+            alignItems: 'center',
+            gap: isCompact ? '6px' : '8px'
+          }}>
+            <span style={{ width: isCompact ? '3px' : '4px', height: '1.1em', background: '#3B82F6', borderRadius: '2px', display: 'inline-block', flexShrink: 0 }} />
+            <span>{block.text}</span>
           </div>
         );
 
       case 'h2':
         return (
-          <div key={bIdx} style={{ fontSize: '1.05em', fontWeight: 800, color: '#0F172A', marginTop: '0.7em', marginBottom: '0.25em', letterSpacing: '-0.01em' }}>
+          <div key={bIdx} style={{
+            fontSize: isUltraCompact ? '0.90rem' : (isCompact ? '0.98rem' : '1.1rem'),
+            fontWeight: 800,
+            color: '#1E293B',
+            marginTop: '1.1em',
+            marginBottom: '0.5em',
+            letterSpacing: '-0.015em',
+            borderLeft: '4px solid #6366F1',
+            background: 'linear-gradient(90deg, rgba(99, 102, 241, 0.08) 0%, transparent 100%)',
+            padding: isCompact ? '4px 8px' : '6px 12px',
+            borderRadius: '0 6px 6px 0',
+            lineHeight: 1.35
+          }}>
             {block.text}
           </div>
         );
 
       case 'h3':
         return (
-          <div key={bIdx} style={{ fontSize: '0.96em', fontWeight: 700, color: '#1E293B', marginTop: '0.5em', marginBottom: '0.2em' }}>
+          <div key={bIdx} style={{
+            fontSize: isUltraCompact ? '0.80rem' : (isCompact ? '0.88rem' : '0.98rem'),
+            fontWeight: 700,
+            color: '#334155',
+            marginTop: '0.9em',
+            marginBottom: '0.35em',
+            lineHeight: 1.35
+          }}>
             {block.text}
           </div>
         );
 
       case 'metadata':
         return (
-          <div key={bIdx} style={{ fontSize: '0.88em', color: '#334155', lineHeight: 1.55, margin: '0.3em 0' }}>
+          <div key={bIdx} style={{
+            fontSize: '0.86rem',
+            color: '#475569',
+            lineHeight: 1.6,
+            margin: '0.8em 0',
+            padding: '10px 14px',
+            background: '#F8FAFC',
+            borderRadius: '8px',
+            border: '1px solid #E2E8F0',
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+            gap: '8px'
+          }}>
             {block.items.map((m, mIdx) => (
-              <div key={mIdx}>
-                {m.label ? <strong style={{ color: '#0F172A' }}>{m.label} </strong> : null}
-                <span>{m.val}</span>
+              <div key={mIdx} style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
+                {m.label ? <strong style={{ color: '#0F172A', fontSize: '0.82rem' }}>{m.label}</strong> : null}
+                <span style={{ color: '#334155' }}>{m.val}</span>
               </div>
             ))}
           </div>
@@ -720,35 +912,44 @@ export default function SmartDocumentCanvas({
 
       case 'divider':
         return (
-          <div key={bIdx} style={{ borderBottom: '1px solid #E2E8F0', margin: '0.6em 0' }} />
+          <div key={bIdx} style={{ borderBottom: '1px solid #E2E8F0', margin: '0.8em 0' }} />
         );
 
       case 'table':
         return (
-          <table key={bIdx} style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.88em', margin: '0.6em 0' }}>
-            {block.headers.length > 0 && (
-              <thead>
-                <tr>
-                  {block.headers.map((h, hIdx) => (
-                    <th key={hIdx} style={{ border: '1px solid #CBD5E1', padding: '6px 10px', background: '#F8FAFC', fontWeight: 700, textAlign: 'left' }}>
-                      {h}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-            )}
-            <tbody>
-              {block.rows.map((row, rIdx) => (
-                <tr key={rIdx}>
-                  {row.map((cell, cIdx) => (
-                    <td key={cIdx} style={{ border: '1px solid #CBD5E1', padding: '6px 10px' }}>
-                      {renderSentenceWithHighlight(cell, `tbl-${bIdx}-${rIdx}-${cIdx}`)}
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div key={bIdx} style={{
+            overflowX: 'auto',
+            margin: '16px 0',
+            borderRadius: '8px',
+            border: '1px solid #E2E8F0',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+            background: '#FFFFFF'
+          }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.86rem', textAlign: 'left' }}>
+              {block.headers.length > 0 && (
+                <thead>
+                  <tr style={{ background: '#F8FAFC', borderBottom: '2px solid #E2E8F0' }}>
+                    {block.headers.map((h, hIdx) => (
+                      <th key={hIdx} style={{ padding: '10px 14px', fontWeight: 700, color: '#475569', fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                        {h}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+              )}
+              <tbody>
+                {block.rows.map((row, rIdx) => (
+                  <tr key={rIdx} style={{ background: rIdx % 2 === 0 ? '#FFFFFF' : '#FBFDFE', borderBottom: '1px solid #F1F5F9' }}>
+                    {row.map((cell, cIdx) => (
+                      <td key={cIdx} style={{ padding: '9px 14px', color: '#1E293B', fontSize: '0.86rem', borderRight: cIdx < row.length - 1 ? '1px solid #F1F5F9' : 'none' }}>
+                        {renderSentenceWithHighlight(cell, `tbl-${bIdx}-${rIdx}-${cIdx}`)}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         );
 
       case 'callout':
@@ -756,25 +957,36 @@ export default function SmartDocumentCanvas({
           <div
             key={bIdx}
             style={{
-              fontSize: '0.88em',
-              lineHeight: 1.55,
-              color: '#334155',
-              borderLeft: '3px solid #F59E0B',
-              background: '#FFFBEB',
-              padding: '8px 12px',
-              borderRadius: '0 4px 4px 0',
-              margin: '0.6em 0'
+              fontSize: '0.88rem',
+              lineHeight: 1.65,
+              color: '#92400E',
+              borderLeft: '4px solid #F59E0B',
+              background: 'linear-gradient(90deg, #FFFBEB 0%, #FEF3C7 100%)',
+              padding: '12px 16px',
+              borderRadius: '0 8px 8px 0',
+              margin: '14px 0',
+              boxShadow: '0 1px 3px rgba(245, 158, 11, 0.08)'
             }}
           >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 800, fontSize: '0.74rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#B45309', marginBottom: '6px' }}>
+              <AlertTriangle size={13} strokeWidth={2.6} />
+              <span>Operational Directive / Policy Exception</span>
+            </div>
             {renderParagraph(block.text, `callout-${bIdx}`)}
           </div>
         );
 
       case 'bullets':
         return (
-          <ul key={bIdx} style={{ margin: '0.4em 0 0.4em 1.4em', padding: 0, fontSize: '0.88em', color: '#334155', lineHeight: 1.55 }}>
+          <ul key={bIdx} style={{
+            margin: isCompact ? '6px 0 6px 1.2em' : '10px 0 10px 1.4em',
+            padding: 0,
+            fontSize: isUltraCompact ? '0.78rem' : (isCompact ? '0.83rem' : '0.90rem'),
+            color: '#1E293B',
+            lineHeight: isCompact ? 1.55 : 1.72
+          }}>
             {block.items.map((item, itIdx) => (
-              <li key={itIdx}>
+              <li key={itIdx} style={{ marginBottom: isCompact ? '4px' : '6px' }}>
                 {renderSentenceWithHighlight(item, `bullet-${bIdx}-${itIdx}`)}
               </li>
             ))}
@@ -784,15 +996,20 @@ export default function SmartDocumentCanvas({
       case 'paragraph':
       default:
         return (
-          <div key={bIdx} style={{ fontSize: '0.88em', lineHeight: 1.6, color: '#1E293B', margin: '0.3em 0' }}>
+          <div key={bIdx} style={{
+            fontSize: isUltraCompact ? '0.78rem' : (isCompact ? '0.83rem' : '0.91rem'),
+            lineHeight: isCompact ? 1.55 : 1.74,
+            color: '#1E293B',
+            margin: isCompact ? '0.45em 0' : '0.65em 0'
+          }}>
             {renderParagraph(block.text, `p-${bIdx}`)}
           </div>
         );
     }
   };
 
-  const conflictsCount = conflicts.length || 54;
-  const claimsCount = claims.length || 108;
+  const conflictsCount = Array.isArray(conflicts) ? conflicts.length : (typeof conflicts === 'number' ? conflicts : 0);
+  const claimsCount = Array.isArray(claims) ? claims.length : (typeof claims === 'number' ? claims : 0);
 
   return (
     <div
@@ -801,9 +1018,9 @@ export default function SmartDocumentCanvas({
         display: 'flex',
         flexDirection: 'column',
         height: '920px',
-        background: 'transparent',
-        border: 'none',
-        borderRadius: 0,
+        background: '#FFFFFF',
+        border: '1px solid #E2E8F0',
+        borderRadius: '10px',
         overflow: 'hidden',
         position: 'sticky',
         top: '12px',
@@ -814,33 +1031,33 @@ export default function SmartDocumentCanvas({
         .doc-dynamic-page {
           background: #FFFFFF;
           width: 100%;
-          max-width: 100%;
+          max-width: 820px;
           min-height: auto;
           content-visibility: auto;
-          contain-intrinsic-size: 550px;
-          padding: 16px 28px 24px 28px;
+          contain-intrinsic-size: 650px;
+          padding: ${isUltraCompact ? '12px 10px 18px 10px' : (isCompact ? '16px 14px 22px 14px' : '24px 32px 30px 32px')};
           box-sizing: border-box;
-          border: 1px solid #CBD5E1;
+          border: 1px solid #F1F5F9;
           border-radius: 8px;
-          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
-          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-          color: #000000;
+          box-shadow: none;
+          font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
+          color: #0F172A;
           position: relative;
         }
         .doc-dynamic-page table {
           width: 100%;
           border-collapse: collapse;
-          font-size: 0.88em;
-          margin: 8px 0;
+          font-size: ${isCompact ? '0.78rem' : '0.86rem'};
         }
         .doc-dynamic-page th, .doc-dynamic-page td {
-          border: 1px solid #CBD5E1;
-          padding: 6px 10px;
+          border: 1px solid #E2E8F0;
+          padding: ${isCompact ? '6px 8px' : '8px 12px'};
           text-align: left;
         }
         .doc-dynamic-page th {
           background: #F8FAFC;
           font-weight: 700;
+          color: #475569;
         }
       `}</style>
 
@@ -851,109 +1068,58 @@ export default function SmartDocumentCanvas({
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
-        gap: '8px',
-        padding: '8px 14px',
+        gap: isCompact ? '4px' : '8px',
+        padding: isUltraCompact ? '5px 8px' : (isCompact ? '6px 10px' : '8px 14px'),
         background: '#FFFFFF',
         borderBottom: '1px solid #E2E8F0',
         zIndex: 15,
         boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
         borderRadius: '8px 8px 0 0',
-        flexWrap: 'wrap'
+        flexWrap: 'nowrap',
+        overflow: 'hidden'
       }}>
-        {/* Left: Active Scroll Page indicator & smooth page jumper */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          {pages.length > 1 && (
-            <div style={{
+        {/* Zoom controls, Highlights Filter, Minimize */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', gap: isCompact ? '4px' : '6px' }}>
+          {/* Draggable Document Grip Handle */}
+          <div
+            draggable={true}
+            onDragStart={(e) => {
+              e.dataTransfer.setData('text/plain', 'doc');
+              onDragStartHandle?.('doc');
+            }}
+            onDragEnd={() => onDragEndHandle?.()}
+            title="Hold and drag to shuffle Document pane position"
+            style={{
               display: 'inline-flex',
               alignItems: 'center',
-              background: '#F8FAFC',
-              border: '1px solid #CBD5E1',
-              borderRadius: '6px',
-              padding: '2px 6px',
               gap: '4px',
-              boxShadow: '0 1px 2px rgba(0,0,0,0.03)'
-            }}>
-              <button
-                type="button"
-                onClick={() => scrollToPage(Math.max(1, currentPage - 1))}
-                disabled={currentPage <= 1}
-                title="Scroll to Previous Page"
-                style={{
-                  border: 'none',
-                  background: 'transparent',
-                  cursor: currentPage <= 1 ? 'not-allowed' : 'pointer',
-                  color: currentPage <= 1 ? '#CBD5E1' : '#475569',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  padding: '2px'
-                }}
-              >
-                <ChevronLeft size={13} strokeWidth={2.4} />
-              </button>
+              padding: isCompact ? '2px 5px' : '2px 7px',
+              borderRadius: '5px',
+              border: '1px solid #CBD5E1',
+              background: '#F8FAFC',
+              cursor: 'grab',
+              userSelect: 'none',
+              fontSize: isCompact ? '0.64rem' : '0.70rem',
+              fontWeight: 700,
+              color: '#334155',
+              flexShrink: 0
+            }}
+          >
+            <GripVertical size={isCompact ? 11 : 13} color="#EA580C" />
+            <span>Document</span>
+          </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '0.72rem', fontWeight: 600, color: '#334155' }}>
-                <span>Page</span>
-                <input
-                  type="number"
-                  min={1}
-                  max={pages.length}
-                  value={currentPage}
-                  onChange={e => {
-                    const val = parseInt(e.target.value, 10);
-                    if (!isNaN(val) && val >= 1 && val <= pages.length) {
-                      scrollToPage(val);
-                    }
-                  }}
-                  style={{
-                    width: '34px',
-                    textAlign: 'center',
-                    border: '1px solid #CBD5E1',
-                    borderRadius: '4px',
-                    padding: '1px 0',
-                    fontSize: '0.72rem',
-                    fontWeight: 700,
-                    color: '#EA580C',
-                    background: '#FFFFFF'
-                  }}
-                />
-                <span>of {pages.length}</span>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => scrollToPage(Math.min(pages.length, currentPage + 1))}
-                disabled={currentPage >= pages.length}
-                title="Scroll to Next Page"
-                style={{
-                  border: 'none',
-                  background: 'transparent',
-                  cursor: currentPage >= pages.length ? 'not-allowed' : 'pointer',
-                  color: currentPage >= pages.length ? '#CBD5E1' : '#475569',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  padding: '2px'
-                }}
-              >
-                <ChevronRight size={13} strokeWidth={2.4} />
-              </button>
-            </div>
-          )}
-          <span style={{ fontSize: '0.72rem', color: '#64748B', fontWeight: 500 }}>
-            {pages.length > 1 ? `${pages.length} pages (continuous scroll)` : 'Continuous Document'}
-          </span>
-        </div>
-
-        {/* Right: Zoom controls, Highlights Filter, Minimize */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          {/* Zoom Controls Pill */}
+          {/* Right Group: Zoom Controls, Filters, Close */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: isCompact ? '3px' : '6px', flexShrink: 0 }}>
+            {/* Zoom Controls Pill */}
           <div style={{
             display: 'inline-flex',
             alignItems: 'center',
             background: '#FFFFFF',
             border: '1px solid #CBD5E1',
             borderRadius: '6px',
-            padding: '2px 4px',
-            gap: '2px',
+            padding: isCompact ? '1px 3px' : '2px 4px',
+            gap: isCompact ? '1px' : '2px',
             boxShadow: '0 1px 2px rgba(0,0,0,0.03)'
           }}>
             <button
@@ -965,8 +1131,8 @@ export default function SmartDocumentCanvas({
                 display: 'inline-flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                width: '20px',
-                height: '20px',
+                width: isCompact ? '17px' : '20px',
+                height: isCompact ? '17px' : '20px',
                 border: 'none',
                 background: 'transparent',
                 color: zoomLevel <= 60 ? '#CBD5E1' : '#475569',
@@ -974,10 +1140,8 @@ export default function SmartDocumentCanvas({
                 borderRadius: '4px',
                 padding: 0
               }}
-              onMouseEnter={e => { if (zoomLevel > 60) e.currentTarget.style.background = '#F1F5F9'; }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
             >
-              <ZoomOut size={13} strokeWidth={2.2} />
+              <ZoomOut size={isCompact ? 11 : 13} strokeWidth={2.2} />
             </button>
 
             <button
@@ -987,16 +1151,14 @@ export default function SmartDocumentCanvas({
               style={{
                 border: 'none',
                 background: 'transparent',
-                fontSize: '0.70rem',
+                fontSize: isCompact ? '0.64rem' : '0.70rem',
                 fontWeight: 700,
                 color: zoomLevel === 100 ? '#64748B' : '#EA580C',
                 cursor: 'pointer',
-                padding: '0 3px',
-                minWidth: '36px',
+                padding: '0 2px',
+                minWidth: isCompact ? '28px' : '36px',
                 textAlign: 'center'
               }}
-              onMouseEnter={e => { e.currentTarget.style.textDecoration = 'underline'; }}
-              onMouseLeave={e => { e.currentTarget.style.textDecoration = 'none'; }}
             >
               {zoomLevel}%
             </button>
@@ -1010,8 +1172,8 @@ export default function SmartDocumentCanvas({
                 display: 'inline-flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                width: '20px',
-                height: '20px',
+                width: isCompact ? '17px' : '20px',
+                height: isCompact ? '17px' : '20px',
                 border: 'none',
                 background: 'transparent',
                 color: zoomLevel >= 160 ? '#CBD5E1' : '#475569',
@@ -1019,180 +1181,92 @@ export default function SmartDocumentCanvas({
                 borderRadius: '4px',
                 padding: 0
               }}
-              onMouseEnter={e => { if (zoomLevel < 160) e.currentTarget.style.background = '#F1F5F9'; }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
             >
-              <ZoomIn size={13} strokeWidth={2.2} />
+              <ZoomIn size={isCompact ? 11 : 13} strokeWidth={2.2} />
             </button>
           </div>
 
-          {/* Highlights Filter Dropdown */}
-          <div ref={filterDropdownRef} style={{ position: 'relative' }}>
+          {/* Quick Highlight Filter Segmented Control */}
+          <div style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            background: '#F1F5F9',
+            padding: isCompact ? '2px' : '3px',
+            borderRadius: '7px',
+            border: '1px solid #E2E8F0',
+            gap: isCompact ? '2px' : '3px'
+          }}>
             <button
               type="button"
-              onClick={() => setIsFilterDropdownOpen(prev => !prev)}
+              onClick={() => setHighlightFilter('conflicts')}
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: '5px',
-                padding: '4px 9px',
-                borderRadius: '6px',
-                border: highlightFilter === 'conflicts'
-                  ? '1px solid #FDBA74'
-                  : highlightFilter === 'claims'
-                  ? '1px solid #A7F3D0'
-                  : '1px solid #CBD5E1',
-                background: highlightFilter === 'conflicts'
-                  ? '#FFF7ED'
-                  : highlightFilter === 'claims'
-                  ? '#ECFDF5'
-                  : '#FFFFFF',
-                color: highlightFilter === 'conflicts'
-                  ? '#EA580C'
-                  : highlightFilter === 'claims'
-                  ? '#059669'
-                  : '#475569',
-                fontSize: '0.72rem',
-                fontWeight: 700,
+                gap: isCompact ? '3px' : '5px',
+                padding: isUltraCompact ? '3px 5px' : (isCompact ? '3px 7px' : '4px 10px'),
+                borderRadius: '5px',
+                border: 'none',
                 cursor: 'pointer',
-                boxShadow: '0 1px 2px rgba(0,0,0,0.03)',
+                fontSize: isCompact ? '0.66rem' : '0.73rem',
+                fontWeight: 700,
+                background: highlightFilter === 'conflicts' ? '#FFFFFF' : 'transparent',
+                color: highlightFilter === 'conflicts' ? '#EA580C' : '#64748B',
+                boxShadow: highlightFilter === 'conflicts' ? '0 1px 2px rgba(0,0,0,0.06)' : 'none',
                 transition: 'all 0.15s ease'
               }}
-              title="Toggle Highlight Mode"
+              title="Show contradicted rules with active policy conflicts"
             >
-              {highlightFilter === 'conflicts' ? (
-                <>
-                  <AlertTriangle size={12} strokeWidth={2.4} style={{ color: '#EA580C' }} />
-                  <span>Conflicts ({conflictsCount})</span>
-                </>
-              ) : highlightFilter === 'claims' ? (
-                <>
-                  <Zap size={12} strokeWidth={2.4} style={{ color: '#10B981' }} />
-                  <span>Claims ({claimsCount})</span>
-                </>
-              ) : (
-                <>
-                  <Sliders size={12} style={{ color: '#64748B' }} />
-                  <span>Remove Highlights</span>
-                </>
-              )}
-              <ChevronDown
-                size={11}
-                style={{
-                  color: '#94A3B8',
-                  marginLeft: '2px',
-                  transform: isFilterDropdownOpen ? 'rotate(180deg)' : 'none',
-                  transition: 'transform 0.15s ease'
-                }}
-              />
+              <AlertTriangle size={isCompact ? 11 : 12} strokeWidth={2.4} color={highlightFilter === 'conflicts' ? '#EA580C' : '#94A3B8'} />
+              <span>{isUltraCompact ? `(${conflictsCount})` : `Conflicts (${conflictsCount})`}</span>
             </button>
 
-            {isFilterDropdownOpen && (
-              <div style={{
-                position: 'absolute',
-                top: 'calc(100% + 4px)',
-                right: 0,
-                background: '#FFFFFF',
-                border: '1px solid #E2E8F0',
-                borderRadius: '7px',
-                boxShadow: '0 6px 20px rgba(0,0,0,0.1)',
-                zIndex: 100,
-                width: '185px',
-                padding: '4px',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '2px'
-              }}>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setHighlightFilter('conflicts');
-                    setIsFilterDropdownOpen(false);
-                  }}
-                  style={{
-                    width: '100%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '6px 9px',
-                    background: highlightFilter === 'conflicts' ? '#FFF7ED' : 'transparent',
-                    color: highlightFilter === 'conflicts' ? '#EA580C' : '#334155',
-                    border: 'none',
-                    borderRadius: '5px',
-                    fontSize: '0.73rem',
-                    fontWeight: highlightFilter === 'conflicts' ? 700 : 500,
-                    cursor: 'pointer',
-                    textAlign: 'left'
-                  }}
-                >
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <AlertTriangle size={12} strokeWidth={2.2} color="#EA580C" />
-                    Conflicts ({conflictsCount})
-                  </span>
-                  {highlightFilter === 'conflicts' && <Check size={12} color="#EA580C" />}
-                </button>
+            <button
+              type="button"
+              onClick={() => setHighlightFilter('claims')}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: isCompact ? '3px' : '5px',
+                padding: isUltraCompact ? '3px 5px' : (isCompact ? '3px 7px' : '4px 10px'),
+                borderRadius: '5px',
+                border: 'none',
+                cursor: 'pointer',
+                fontSize: isCompact ? '0.66rem' : '0.73rem',
+                fontWeight: 700,
+                background: highlightFilter === 'claims' ? '#FFFFFF' : 'transparent',
+                color: highlightFilter === 'claims' ? '#059669' : '#64748B',
+                boxShadow: highlightFilter === 'claims' ? '0 1px 2px rgba(0,0,0,0.06)' : 'none',
+                transition: 'all 0.15s ease'
+              }}
+              title="Show all verified atomic policy rules"
+            >
+              <Zap size={isCompact ? 11 : 12} strokeWidth={2.4} color={highlightFilter === 'claims' ? '#059669' : '#94A3B8'} />
+              <span>{isUltraCompact ? `(${claimsCount})` : `Claims (${claimsCount})`}</span>
+            </button>
 
-                <button
-                  type="button"
-                  onClick={() => {
-                    setHighlightFilter('claims');
-                    setIsFilterDropdownOpen(false);
-                  }}
-                  style={{
-                    width: '100%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '6px 9px',
-                    background: highlightFilter === 'claims' ? '#ECFDF5' : 'transparent',
-                    color: highlightFilter === 'claims' ? '#059669' : '#334155',
-                    border: 'none',
-                    borderRadius: '5px',
-                    fontSize: '0.73rem',
-                    fontWeight: highlightFilter === 'claims' ? 700 : 500,
-                    cursor: 'pointer',
-                    textAlign: 'left'
-                  }}
-                >
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <Zap size={12} strokeWidth={2.2} color="#10B981" />
-                    Claims ({claimsCount})
-                  </span>
-                  {highlightFilter === 'claims' && <Check size={12} color="#10B981" />}
-                </button>
-
-                <div style={{ height: '1px', background: '#F1F5F9', margin: '2px 0' }} />
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setHighlightFilter('none');
-                    setIsFilterDropdownOpen(false);
-                  }}
-                  style={{
-                    width: '100%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '6px 9px',
-                    background: highlightFilter === 'none' ? '#F8FAFC' : 'transparent',
-                    color: highlightFilter === 'none' ? '#0F172A' : '#64748B',
-                    border: 'none',
-                    borderRadius: '5px',
-                    fontSize: '0.73rem',
-                    fontWeight: highlightFilter === 'none' ? 700 : 500,
-                    cursor: 'pointer',
-                    textAlign: 'left'
-                  }}
-                >
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <X size={12} color="#64748B" />
-                    Remove Highlights
-                  </span>
-                  {highlightFilter === 'none' && <Check size={12} color="#0F172A" />}
-                </button>
-              </div>
-            )}
+            <button
+              type="button"
+              onClick={() => setHighlightFilter('none')}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: isCompact ? '3px' : '5px',
+                padding: isUltraCompact ? '3px 5px' : (isCompact ? '3px 7px' : '4px 10px'),
+                borderRadius: '5px',
+                border: 'none',
+                cursor: 'pointer',
+                fontSize: isCompact ? '0.66rem' : '0.73rem',
+                fontWeight: 600,
+                background: highlightFilter === 'none' ? '#FFFFFF' : 'transparent',
+                color: highlightFilter === 'none' ? '#0F172A' : '#64748B',
+                boxShadow: highlightFilter === 'none' ? '0 1px 2px rgba(0,0,0,0.06)' : 'none',
+                transition: 'all 0.15s ease'
+              }}
+              title="Clean document reading view without highlights"
+            >
+              <BookOpen size={isCompact ? 11 : 12} strokeWidth={2.2} color={highlightFilter === 'none' ? '#0F172A' : '#94A3B8'} />
+              {!isUltraCompact && <span>Clean</span>}
+            </button>
           </div>
 
           {onMinimize && (
@@ -1228,6 +1302,7 @@ export default function SmartDocumentCanvas({
               <X size={14} strokeWidth={2.4} />
             </button>
           )}
+          </div>
         </div>
       </div>
 
@@ -1254,7 +1329,6 @@ export default function SmartDocumentCanvas({
             key={page.pageNumber || pIdx}
             page={page}
             pageIndex={pIdx}
-            totalPages={pages.length}
             renderBlock={renderBlock}
             onVisible={pageNum => setCurrentPage(pageNum)}
             zoomLevel={zoomLevel}
@@ -1262,143 +1336,232 @@ export default function SmartDocumentCanvas({
           />
         ))}
 
-        {/* Document Verification Footer */}
+        {/* Document Footer */}
         <div style={{
           textAlign: 'center',
-          fontSize: '0.74em',
+          fontSize: '0.74rem',
           color: '#94A3B8',
           borderTop: '1px solid #E2E8F0',
           paddingTop: '14px',
           marginTop: '10px',
           width: '100%',
-          maxWidth: '850px'
+          maxWidth: '820px'
         }}>
-          <span>{documentNode?.label || 'Enterprise Policy'} • Controlled Document • End of Document ({pages.length} pages)</span>
+          <span>{documentNode?.label || 'Document'} • End of Document</span>
         </div>
       </div>
 
       {/* ========================================================= */}
-      {/* 3. INTERACTIVE FLOATING HOVER CARD FOR ATOMIC CLAIMS      */}
+      {/* 3. INTERACTIVE FLOATING HOVER / PINNED CARD FOR CLAIMS    */}
       {/* ========================================================= */}
-      {hoveredClaimInfo && highlightFilter !== 'none' && (
-        <div
-          onMouseEnter={() => {}}
-          onMouseLeave={() => setHoveredClaimInfo(null)}
-          style={{
-            position: 'absolute',
-            top: `${popoverPos.y}px`,
-            left: `${popoverPos.x}px`,
-            transform: 'translateY(-100%)',
-            maxWidth: '360px',
-            background: '#FFFFFF',
-            borderRadius: '8px',
-            border: hoveredClaimInfo.hasConflict ? '1.5px solid #EA580C' : '1.5px solid #10B981',
-            boxShadow: '0 8px 24px rgba(0, 0, 0, 0.16)',
-            padding: '10px 12px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '8px',
-            zIndex: 999,
-            pointerEvents: 'auto',
-            animation: 'fadeIn 0.15s ease'
-          }}
-        >
-          {/* Header of Popover */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px' }}>
-            <span style={{
-              fontSize: '0.62rem',
-              fontWeight: 800,
-              padding: '2px 6px',
-              borderRadius: '4px',
-              background: hoveredClaimInfo.hasConflict ? '#FFF7ED' : '#ECFDF5',
-              color: hoveredClaimInfo.hasConflict ? '#EA580C' : '#059669',
-              border: hoveredClaimInfo.hasConflict ? '1px solid #FED7AA' : '1px solid #A7F3D0'
-            }}>
-              {hoveredClaimInfo.hasConflict ? '⚠️ ACTIVE CONTRADICTION' : '⚡ VERIFIED ATOMIC RULE'}
-            </span>
-            <span style={{ fontSize: '0.64rem', color: '#64748B', fontWeight: 600 }}>
-              {hoveredClaimInfo.trustPct}% Confidence
-            </span>
-          </div>
+      {(() => {
+        const activeCardClaim = pinnedClaimInfo || hoveredClaimInfo;
+        if (!activeCardClaim || highlightFilter === 'none') return null;
+        const isPinned = !!pinnedClaimInfo;
 
-          {/* Rule Statement */}
-          <div style={{
-            fontSize: '0.76rem',
-            fontWeight: 700,
-            color: '#0F172A',
-            lineHeight: 1.35
-          }}>
-            "{hoveredClaimInfo.fullText}"
-          </div>
-
-          {/* Knowledge Triple */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexWrap: 'wrap', fontSize: '0.66rem' }}>
-            <span style={{ background: '#EFF6FF', color: '#1D4ED8', padding: '1px 5px', borderRadius: '3px', fontWeight: 600 }}>
-              {hoveredClaimInfo.subject}
-            </span>
-            <span style={{ color: '#94A3B8' }}>➔</span>
-            <span style={{ background: '#FAF5FF', color: '#7E22CE', padding: '1px 5px', borderRadius: '3px', fontWeight: 600 }}>
-              {hoveredClaimInfo.predicate}
-            </span>
-            <span style={{ color: '#94A3B8' }}>➔</span>
-            <span style={{ background: '#F8FAFC', color: '#0F172A', padding: '1px 5px', borderRadius: '3px', fontWeight: 600 }}>
-              {hoveredClaimInfo.object}
-            </span>
-          </div>
-
-          {/* Action Row */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px', borderTop: '1px solid #F1F5F9', paddingTop: '6px' }}>
-            <button
-              type="button"
-              onClick={() => handleCopyClaimRule(hoveredClaimInfo)}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '4px',
-                padding: '3px 6px',
-                borderRadius: '4px',
-                border: '1px solid #CBD5E1',
-                background: '#FFFFFF',
-                color: '#334155',
-                fontSize: '0.66rem',
-                cursor: 'pointer'
-              }}
-            >
-              {copiedRuleId === hoveredClaimInfo.id ? <Check size={11} color="#10B981" /> : <Copy size={11} />}
-              <span>{copiedRuleId === hoveredClaimInfo.id ? 'Copied' : 'Copy Rule'}</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => {
-                if (onSelectClaim) {
-                  onSelectClaim(hoveredClaimInfo);
+        return (
+          <div
+            ref={popoverRef}
+            data-claim-popover="true"
+            onMouseEnter={() => {
+              if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
+            }}
+            onMouseLeave={() => {
+              if (!pinnedClaimInfo) {
+                if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
+                hoverTimeoutRef.current = setTimeout(() => {
                   setHoveredClaimInfo(null);
-                } else if (onVisualizeInDag) {
-                  const targetId = hoveredClaimInfo.id.startsWith('cl_') ? hoveredClaimInfo.id : `cl_${hoveredClaimInfo.id}`;
-                  onVisualizeInDag?.(targetId, hoveredClaimInfo.fullText);
-                }
-              }}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '3px',
-                padding: '3px 8px',
-                borderRadius: '4px',
-                border: '1px solid #EA580C',
-                background: '#EA580C',
-                color: '#FFFFFF',
-                fontSize: '0.66rem',
-                fontWeight: 700,
-                cursor: 'pointer'
-              }}
-            >
-              <Zap size={11} />
-              <span>Inspect Lineage</span>
-            </button>
+                }, 250);
+              }
+            }}
+            style={{
+              position: 'absolute',
+              top: `${popoverPos.y}px`,
+              left: `${popoverPos.x}px`,
+              transform: popoverPos.placeBelow ? 'none' : 'translateY(-100%)',
+              maxWidth: '380px',
+              width: 'calc(100% - 32px)',
+              background: '#FFFFFF',
+              borderRadius: '8px',
+              border: activeCardClaim.hasConflict ? '1.5px solid #EA580C' : '1.5px solid #10B981',
+              boxShadow: '0 10px 30px rgba(0, 0, 0, 0.18), 0 2px 8px rgba(0,0,0,0.06)',
+              padding: '12px 14px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '9px',
+              zIndex: 999,
+              pointerEvents: 'auto',
+              animation: 'fadeIn 0.15s ease'
+            }}
+          >
+            {/* Header of Popover */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span style={{
+                  fontSize: '0.62rem',
+                  fontWeight: 800,
+                  padding: '2px 6px',
+                  borderRadius: '4px',
+                  background: activeCardClaim.hasConflict ? '#FFF7ED' : '#ECFDF5',
+                  color: activeCardClaim.hasConflict ? '#EA580C' : '#059669',
+                  border: activeCardClaim.hasConflict ? '1px solid #FED7AA' : '1px solid #A7F3D0'
+                }}>
+                  {activeCardClaim.hasConflict ? '⚠️ ACTIVE CONTRADICTION' : '⚡ VERIFIED ATOMIC RULE'}
+                </span>
+                {isPinned && (
+                  <span style={{
+                    fontSize: '0.58rem',
+                    fontWeight: 700,
+                    padding: '2px 5px',
+                    borderRadius: '3px',
+                    background: '#EFF6FF',
+                    color: '#2563EB',
+                    border: '1px solid #BFDBFE'
+                  }}>
+                    PINNED
+                  </span>
+                )}
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '0.64rem', color: '#64748B', fontWeight: 600 }}>
+                  {activeCardClaim.trustPct}% Confidence
+                </span>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setPinnedClaimInfo(null);
+                    setHoveredClaimInfo(null);
+                  }}
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    color: '#94A3B8',
+                    cursor: 'pointer',
+                    padding: '2px',
+                    borderRadius: '4px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    transition: 'color 0.15s ease'
+                  }}
+                  title="Close Card"
+                  onMouseEnter={(e) => e.currentTarget.style.color = '#0F172A'}
+                  onMouseLeave={(e) => e.currentTarget.style.color = '#94A3B8'}
+                >
+                  <X size={14} />
+                </button>
+              </div>
+            </div>
+
+            {/* Rule Statement */}
+            <div style={{
+              fontSize: '0.78rem',
+              fontWeight: 700,
+              color: '#0F172A',
+              lineHeight: 1.4
+            }}>
+              "{activeCardClaim.fullText}"
+            </div>
+
+            {/* Knowledge Triple */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexWrap: 'wrap', fontSize: '0.66rem' }}>
+              <span style={{ background: '#EFF6FF', color: '#1D4ED8', padding: '1px 5px', borderRadius: '3px', fontWeight: 600 }}>
+                {activeCardClaim.subject}
+              </span>
+              <span style={{ color: '#94A3B8' }}>➔</span>
+              <span style={{ background: '#FAF5FF', color: '#7E22CE', padding: '1px 5px', borderRadius: '3px', fontWeight: 600 }}>
+                {activeCardClaim.predicate}
+              </span>
+              <span style={{ color: '#94A3B8' }}>➔</span>
+              <span style={{ background: '#F8FAFC', color: '#0F172A', padding: '1px 5px', borderRadius: '3px', fontWeight: 600 }}>
+                {activeCardClaim.object}
+              </span>
+            </div>
+
+            {/* Action Row */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px', borderTop: '1px solid #F1F5F9', paddingTop: '8px' }}>
+              <button
+                type="button"
+                onClick={() => handleCopyClaimRule(activeCardClaim)}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  padding: '4px 8px',
+                  borderRadius: '4px',
+                  border: '1px solid #CBD5E1',
+                  background: '#FFFFFF',
+                  color: '#334155',
+                  fontSize: '0.68rem',
+                  fontWeight: 600,
+                  cursor: 'pointer'
+                }}
+              >
+                {copiedRuleId === activeCardClaim.id ? <Check size={12} color="#10B981" /> : <Copy size={12} />}
+                <span>{copiedRuleId === activeCardClaim.id ? 'Copied' : 'Copy Rule'}</span>
+              </button>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                {activeCardClaim.hasConflict && onNavigateToTab && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onNavigateToTab('governance');
+                      showToast?.("Navigating to Governance to resolve conflict");
+                    }}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      padding: '4px 8px',
+                      borderRadius: '4px',
+                      border: '1px solid #FDBA74',
+                      background: '#FFF7ED',
+                      color: '#C2410C',
+                      fontSize: '0.68rem',
+                      fontWeight: 600,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <AlertTriangle size={11} />
+                    <span>Resolve Conflict</span>
+                  </button>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (onSelectClaim) {
+                      onSelectClaim(activeCardClaim);
+                    } else if (onVisualizeInDag) {
+                      const targetId = activeCardClaim.id.startsWith('cl_') ? activeCardClaim.id : `cl_${activeCardClaim.id}`;
+                      onVisualizeInDag?.(targetId, activeCardClaim.fullText);
+                    }
+                    showToast?.(`Focused Lineage DAG for: "${activeCardClaim.subject || 'Rule'}"`);
+                  }}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    padding: '4px 10px',
+                    borderRadius: '4px',
+                    border: '1px solid #EA580C',
+                    background: '#EA580C',
+                    color: '#FFFFFF',
+                    fontSize: '0.68rem',
+                    fontWeight: 700,
+                    cursor: 'pointer'
+                  }}
+                >
+                  <Zap size={12} />
+                  <span>Inspect Lineage</span>
+                </button>
+              </div>
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
     </div>
   );
 }

@@ -31,7 +31,8 @@ import {
   Calendar,
   Clock,
   Info,
-  Trash2
+  Trash2,
+  GripVertical
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import VisualClaimExtractionStudio from './VisualClaimExtractionStudio';
@@ -126,6 +127,86 @@ export default function VisualLineageGraph({
   const [assetListSort, setAssetListSort] = useState('conflicts'); // 'conflicts' | 'claims' | 'name'
   const [assetListPage, setAssetListPage] = useState(1);
   const [assetListPageSize, setAssetListPageSize] = useState(15);
+
+  // Split-Screen Width Adjuster (VS Code Style for 2-screen and 3-screen layouts)
+  const [splitRatio, setSplitRatio] = useState(50); // 2-pane left width percentage
+  const [splitRatio3Doc, setSplitRatio3Doc] = useState(36); // 3-pane doc width percentage
+  const [splitRatio3Details, setSplitRatio3Details] = useState(32); // 3-pane details width percentage
+  const [resizingDivider, setResizingDivider] = useState(null); // null | 'twoPane' | 'threePane1' | 'threePane2'
+  const isResizingSplit = Boolean(resizingDivider);
+  const splitContainerRef = useRef(null);
+
+  // Flexible Pane Order and Drag-Shuffle State (Doc, Details/Desc, DAG)
+  const [paneOrder, setPaneOrder] = useState(['doc', 'details', 'dag']);
+  const [draggedPane, setDraggedPane] = useState(null);
+  const [dragOverPane, setDragOverPane] = useState(null);
+
+  const handleDropPane = (sourcePaneId, targetPaneId) => {
+    const src = sourcePaneId || draggedPane;
+    if (!src || !targetPaneId || src === targetPaneId) {
+      setDraggedPane(null);
+      setDragOverPane(null);
+      return;
+    }
+    setPaneOrder(prev => {
+      const fromIdx = prev.indexOf(src);
+      const toIdx = prev.indexOf(targetPaneId);
+      if (fromIdx === -1 || toIdx === -1) return prev;
+      const next = [...prev];
+      const [moved] = next.splice(fromIdx, 1);
+      next.splice(toIdx, 0, moved);
+      return next;
+    });
+    setDraggedPane(null);
+    setDragOverPane(null);
+    const labelMap = { doc: 'Document', details: 'Asset Details', dag: 'Lineage DAG' };
+    showToast?.(`Moved ${labelMap[src] || src} to new position`);
+    setTimeout(() => handleFitView(), 150);
+  };
+
+  const handleSplitMouseDown = (e, dividerType = 'twoPane') => {
+    e.preventDefault();
+    setResizingDivider(dividerType);
+  };
+
+  useEffect(() => {
+    if (!resizingDivider) return;
+
+    const handleMouseMove = (e) => {
+      if (!splitContainerRef.current) return;
+      const rect = splitContainerRef.current.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+
+      if (resizingDivider === 'twoPane') {
+        const rawPct = (mouseX / rect.width) * 100;
+        setSplitRatio(Math.min(Math.max(rawPct, 20), 80));
+      } else if (resizingDivider === 'threePane1') {
+        const rawPct = (mouseX / rect.width) * 100;
+        setSplitRatio3Doc(Math.min(Math.max(rawPct, 18), 55));
+      } else if (resizingDivider === 'threePane2') {
+        const docPx = (rect.width * splitRatio3Doc) / 100;
+        const detailsPx = mouseX - docPx;
+        const rawPctDetails = (detailsPx / rect.width) * 100;
+        setSplitRatio3Details(Math.min(Math.max(rawPctDetails, 16), 50));
+      }
+    };
+
+    const handleMouseUp = () => {
+      setResizingDivider(null);
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+  }, [resizingDivider, splitRatio3Doc]);
 
   // View Mode: 'interactive' (default single-node on-demand flow), 'conflicts' (contradictions focus), 'all' (sample overview)
   const [viewMode, setViewMode] = useState('interactive');
@@ -1422,7 +1503,7 @@ export default function VisualLineageGraph({
     });
   };
 
-  // Auto-Fit Camera to visible nodes bounding box
+  // Auto-Fit Camera to visible nodes bounding box (centered vertically & horizontally)
   const handleFitView = () => {
     const visiblePositions = renderedNodes.map(n => nodePositions[n.id]).filter(Boolean);
     if (visiblePositions.length === 0) {
@@ -1438,34 +1519,43 @@ export default function VisualLineageGraph({
       if (p.y + CARD_HEIGHT > maxY) maxY = p.y + CARD_HEIGHT;
     });
 
-    const graphW = Math.max(100, maxX - minX + 80);
-    const graphH = Math.max(100, maxY - minY + 80);
-    const containerW = containerRef.current ? containerRef.current.clientWidth : 950;
+    const graphW = Math.max(100, maxX - minX + 60);
+    const graphH = Math.max(100, maxY - minY + 60);
+    const containerW = containerRef.current ? containerRef.current.clientWidth : 850;
     const containerH = containerRef.current ? containerRef.current.clientHeight : 600;
 
     const scaleX = containerW / graphW;
     const scaleY = containerH / graphH;
-    const newZoom = Math.min(1.0, Math.max(0.35, Math.min(scaleX, scaleY) * 0.92));
+    
+    // For small flows (1-3 nodes), avoid zooming out too far
+    const isSmallFlow = renderedNodes.length <= 3;
+    const minZoomLimit = isSmallFlow ? 0.48 : 0.35;
+    const newZoom = Math.min(0.95, Math.max(minZoomLimit, Math.min(scaleX, scaleY) * 0.90));
 
+    // Calculate center Y targeting visible screen area rather than bottom of tall canvas
+    const targetH = (asset360Section === 'summary' && activeClaimInspector) ? Math.min(containerH, 460) : containerH;
     const newPanX = (containerW - (maxX - minX) * newZoom) / 2 - minX * newZoom;
-    const newPanY = Math.max(20, (containerH - (maxY - minY) * newZoom) / 2 - minY * newZoom);
+    const newPanY = Math.max(25, (targetH - (maxY - minY) * newZoom) / 2 - minY * newZoom);
 
     setZoom(Number(newZoom.toFixed(2)));
     setPan({ x: Math.round(newPanX), y: Math.round(newPanY) });
     setCustomPositions({});
   };
 
-  // Auto-refit camera whenever the rendered nodes count changes (expansion/collapse)
+  // Auto-refit camera whenever the rendered nodes count changes or active claim changes
   const prevRenderedCountRef = useRef(0);
+  const prevClaimIdRef = useRef(null);
   useEffect(() => {
-    if (renderedNodes.length > 0 && renderedNodes.length !== prevRenderedCountRef.current) {
+    const claimChanged = activeClaimInspector?.id !== prevClaimIdRef.current;
+    if (renderedNodes.length > 0 && (renderedNodes.length !== prevRenderedCountRef.current || claimChanged)) {
       prevRenderedCountRef.current = renderedNodes.length;
+      prevClaimIdRef.current = activeClaimInspector?.id || null;
       const timer = setTimeout(() => {
         handleFitView();
-      }, 70);
+      }, 80);
       return () => clearTimeout(timer);
     }
-  }, [renderedNodes.length]);
+  }, [renderedNodes.length, activeClaimInspector?.id]);
 
   // Toggle visible tiers
   const toggleTier = (tier) => {
@@ -1824,6 +1914,12 @@ export default function VisualLineageGraph({
                   border-color: #EA580C !important;
                   box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.14) !important;
                 }
+                .trulin-vscode-splitter:hover > div:first-child {
+                  background: #EA580C !important;
+                }
+                .trulin-vscode-splitter:hover > div:last-child {
+                  background: #EA580C !important;
+                }
               `}</style>
 
               {/* Sleek Toolbar: Search, Sort */}
@@ -2124,6 +2220,271 @@ export default function VisualLineageGraph({
           return true;
         });
 
+        // Helper to render Asset 360 Details Card content (reused in 2-screen and 3-screen split modes)
+        const renderAssetDetailsCard = () => {
+          if (!selectedAsset360) return null;
+          const isDoc = selectedAsset360.mode === 'document';
+          const nodeData = selectedAsset360.node.data || {};
+          const docId = nodeData.doc_id || String(selectedAsset360.node.id || '').replace(/^doc_/, '');
+          const contentHash = nodeData.content_hash || 'e8f7a912b404d09c31405eb62a71f008432a';
+          const versions = nodeData.versions || [];
+          const latestVer = versions.length > 0 ? versions[0] : null;
+          const verifiedClaimsCount = Math.max(0, selectedAsset360.claims.length - selectedAsset360.activeConflicts.length);
+          const trustPercent = selectedAsset360.activeConflicts.length === 0 ? 98 : Math.max(72, 98 - (selectedAsset360.activeConflicts.length * 4));
+
+          return (
+            <div style={{
+              background: '#FFFFFF',
+              border: '1px solid #E2E8F0',
+              borderRadius: '10px',
+              padding: '16px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '14px',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.02)'
+            }}>
+              {/* Header inside Details Card */}
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: '8px',
+                borderBottom: '1px solid #F1F5F9',
+                paddingBottom: '8px'
+              }}>
+                <div
+                  draggable={true}
+                  onDragStart={(e) => {
+                    e.dataTransfer.setData('text/plain', 'details');
+                    setDraggedPane('details');
+                  }}
+                  onDragEnd={() => {
+                    setDraggedPane(null);
+                    setDragOverPane(null);
+                  }}
+                  title="Hold and drag to shuffle position"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '5px',
+                    padding: '2px 7px',
+                    borderRadius: '6px',
+                    background: '#F1F5F9',
+                    border: '1px solid #CBD5E1',
+                    cursor: 'grab',
+                    userSelect: 'none'
+                  }}
+                >
+                  <GripVertical size={13} color="#EA580C" />
+                  <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#334155' }}>
+                    Asset Details
+                  </span>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <button
+                    type="button"
+                    onClick={() => setIsDetailsOpen(false)}
+                    title="Close details panel"
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      width: '22px',
+                      height: '22px',
+                      borderRadius: '5px',
+                      border: '1px solid #CBD5E1',
+                      background: '#FFFFFF',
+                      color: '#64748B',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <X size={12} strokeWidth={2.4} />
+                  </button>
+                </div>
+              </div>
+
+              {/* Governance Description */}
+              <p style={{ margin: 0, fontSize: '0.78rem', color: '#475569', lineHeight: 1.5 }}>
+                {selectedAsset360.description || `Enterprise normalized governance asset. Deconstructed into atomic facts and verified against cross-policy contradictions.`}
+              </p>
+
+              {/* Core Metrics Summary */}
+              <div style={{
+                border: '1px solid #E2E8F0',
+                borderRadius: '8px',
+                overflow: 'hidden',
+                background: '#FFFFFF'
+              }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.74rem' }}>
+                  <tbody>
+                    {[
+                      {
+                        label: 'Atomic Claims',
+                        value: selectedAsset360.claims.length,
+                        badge: `${verifiedClaimsCount} verified`,
+                        badgeColor: '#16A34A',
+                        badgeBg: '#DCFCE7'
+                      },
+                      {
+                        label: 'Contradictions',
+                        value: selectedAsset360.activeConflicts.length,
+                        valueColor: selectedAsset360.activeConflicts.length > 0 ? '#EA580C' : '#0F172A',
+                        badge: selectedAsset360.conflicts.length > 0
+                          ? `${selectedAsset360.activeConflicts.length} active / ${selectedAsset360.conflicts.length} total`
+                          : '0 detected',
+                        badgeColor: selectedAsset360.activeConflicts.length > 0 ? '#C2410C' : '#16A34A',
+                        badgeBg: selectedAsset360.activeConflicts.length > 0 ? '#FFEDD5' : '#DCFCE7'
+                      },
+                      {
+                        label: 'Trust Integrity',
+                        value: `${trustPercent}%`,
+                        valueColor: '#16A34A',
+                        badge: trustPercent >= 70 ? 'High Trust' : trustPercent >= 40 ? 'Moderate' : 'Low',
+                        badgeColor: '#059669',
+                        badgeBg: '#ECFDF5'
+                      },
+                      {
+                        label: 'Downstream AI Impact',
+                        value: selectedAsset360.decisions.length,
+                        valueColor: '#0284C7',
+                        badge: `${selectedAsset360.decisions.length} Decisions`,
+                        badgeColor: '#0284C7',
+                        badgeBg: '#E0F2FE'
+                      }
+                    ].map((row, idx, arr) => (
+                      <tr
+                        key={row.label}
+                        style={{
+                          borderBottom: idx < arr.length - 1 ? '1px solid #F1F5F9' : 'none'
+                        }}
+                      >
+                        <td style={{ padding: '6px 10px', color: '#475569', fontWeight: 600, width: '40%' }}>
+                          {row.label}
+                        </td>
+                        <td style={{ padding: '6px 10px' }}>
+                          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                            <span style={{ fontSize: '0.84rem', fontWeight: 800, color: row.valueColor || '#0F172A' }}>
+                              {row.value}
+                            </span>
+                            {row.badge && (
+                              <span style={{
+                                fontSize: '0.64rem',
+                                fontWeight: 700,
+                                color: row.badgeColor,
+                                background: row.badgeBg || '#F1F5F9',
+                                padding: '1px 5px',
+                                borderRadius: '4px'
+                              }}>
+                                {row.badge}
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Complete Metadata & Technical Specifications Table */}
+              <div style={{
+                background: '#FFFFFF',
+                border: '1px solid #E2E8F0',
+                borderRadius: '8px',
+                overflow: 'hidden'
+              }}>
+                <div style={{
+                  padding: '8px 12px',
+                  background: '#F8FAFC',
+                  borderBottom: '1px solid #E2E8F0',
+                  fontSize: '0.72rem',
+                  fontWeight: 800,
+                  color: '#334155',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.04em',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}>
+                  <Layers size={12} color="#475569" />
+                  <span>Technical Specifications</span>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  {[
+                    { label: 'Artifact GUID', value: docId, isMono: true },
+                    { label: 'Parent Source', value: selectedAsset360.parentSource?.label || 'Direct File Upload' },
+                    { label: 'Classification', value: 'Restricted Policy Standard' },
+                    { label: 'Active Version', value: latestVer ? `v${latestVer.version_number}` : 'v1.0' },
+                    { label: 'Pipeline Engine', value: 'Trulin Semantic Deconstruction' },
+                    { label: 'Department / Scope', value: nodeData.domain || (activeWorkspace?.label || 'Enterprise Unified') },
+                    {
+                      label: 'SHA-256 Merkle Hash',
+                      value: contentHash,
+                      isMono: true,
+                      canCopy: true
+                    }
+                  ].map((row, idx, arr) => (
+                    <div
+                      key={idx}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '6px 12px',
+                        borderBottom: idx < arr.length - 1 ? '1px solid #F1F5F9' : 'none',
+                        gap: '8px',
+                        fontSize: '0.72rem'
+                      }}
+                    >
+                      <span style={{ color: '#64748B', fontWeight: 600 }}>
+                        {row.label}
+                      </span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px', maxWidth: '60%' }}>
+                        <span style={{
+                          color: '#0F172A',
+                          fontWeight: 600,
+                          fontFamily: row.isMono ? 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace' : 'inherit',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap'
+                        }}>
+                          {row.value}
+                        </span>
+                        {row.canCopy && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              navigator.clipboard?.writeText(row.value);
+                              setCopiedHash(true);
+                              setTimeout(() => setCopiedHash(false), 2000);
+                              showToast?.("Hash copied to clipboard");
+                            }}
+                            style={{
+                              border: 'none',
+                              background: 'transparent',
+                              cursor: 'pointer',
+                              color: copiedHash ? '#16A34A' : '#94A3B8',
+                              padding: '1px',
+                              display: 'flex',
+                              alignItems: 'center'
+                            }}
+                            title="Copy hash"
+                          >
+                            {copiedHash ? <Check size={12} /> : <Copy size={12} />}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          );
+        };
+
         return (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', width: '100%' }}>
 
@@ -2244,11 +2605,8 @@ export default function VisualLineageGraph({
                     <button
                       type="button"
                       onClick={() => {
-                        if (activeClaimInspector) {
-                          setActiveClaimInspector(null);
-                        }
                         setIsDetailsOpen(prev => !prev);
-                        showToast?.(isDetailsOpen ? "Details closed" : "Details opened");
+                        showToast?.(!isDetailsOpen ? "Details pane opened in split view" : "Details pane closed");
                       }}
                       title={isDetailsOpen ? "Hide Asset Details" : "Show Asset Details"}
                       style={{
@@ -2358,21 +2716,42 @@ export default function VisualLineageGraph({
               </div>
             )}
 
-            {/* SIDE-BY-SIDE SPLIT LAYOUT: LEFT = ORIGINAL DOCUMENT (IF OPEN) | RIGHT = DETAILS & ALL FACILITIES */}
-            <div style={{
-              display: isFileViewerOpen && (isDetailsOpen || activeClaimInspector) && asset360Section === 'summary' && (vaultSubTab === 'documents' || vaultSubTab === 'connectors') && selectedAsset360 ? 'grid' : 'flex',
-              gridTemplateColumns: isFileViewerOpen && (isDetailsOpen || activeClaimInspector) && asset360Section === 'summary' && (vaultSubTab === 'documents' || vaultSubTab === 'connectors') && selectedAsset360 ? 'minmax(480px, 54%) 1fr' : undefined,
-              flexDirection: 'column',
-              gap: '8px',
-              alignItems: 'start',
-              width: '100%',
-              marginTop: '0px'
-            }}>
+            {/* SIDE-BY-SIDE SPLIT LAYOUT (VS CODE STYLE RESIZABLE): DYNAMIC SHUFFLEABLE PANES (DOC | DETAILS | DAG) */}
+            {(() => {
+              const showDoc = Boolean(isFileViewerOpen && asset360Section === 'summary' && (vaultSubTab === 'documents' || vaultSubTab === 'connectors') && selectedAsset360);
+              const showDetails = Boolean(isDetailsOpen && asset360Section === 'summary' && selectedAsset360);
+              const showDag = Boolean((activeClaimInspector && asset360Section === 'summary' && selectedAsset360) || asset360Section === 'dag' || asset360Section === 'all' || vaultSubTab === 'dag');
 
-              {/* LEFT PANE: DIRECT UPLOADED DOCUMENT VIEWER - ONLY in Overview tab */}
-              {isFileViewerOpen && asset360Section === 'summary' && (vaultSubTab === 'documents' || vaultSubTab === 'connectors') && selectedAsset360 && (() => {
+              if (selectedAsset360 && (asset360Section === 'extraction')) {
+                return (
+                  <VisualClaimExtractionStudio
+                    documentTitle={selectedAsset360.node.label}
+                    documentId={selectedAsset360.node.data?.doc_id || selectedAsset360.node.id}
+                    claims={selectedAsset360.claims}
+                    conflicts={selectedAsset360.conflicts}
+                    rawOriginalText={selectedAsset360.node.data?.content_uri || ''}
+                    onHighlightClause={(clause) => {
+                      setDocReaderClauseFilter('raw');
+                      showToast?.(`Locating clause in document view: "${clause.substring(0, 45)}..."`);
+                    }}
+                    showToast={showToast}
+                  />
+                );
+              }
+
+              const activePanes = paneOrder.filter(id => {
+                if (id === 'doc') return showDoc;
+                if (id === 'details') return showDetails;
+                if (id === 'dag') return showDag;
+                return false;
+              });
+
+              const isThreePane = activePanes.length === 3;
+              const isTwoPane = activePanes.length === 2;
+              const isSplitActive = activePanes.length > 1;
+
+              const renderDocPane = () => {
                 const rawDocId = selectedAsset360.node.data?.doc_id || String(selectedAsset360.node.id || '').replace(/^doc_/, '');
-                const pdfUrl = `/v1/documents/${rawDocId}/file`;
                 const rawOriginalText = selectedAsset360.node.data?.content_uri || '';
 
                 return selectedAsset360.mode === 'document' ? (
@@ -2385,6 +2764,11 @@ export default function VisualLineageGraph({
                     onVisualizeInDag={(nodeId, label) => visualizeNodeInDag(nodeId, label)}
                     onNavigateToTab={(tabName) => setVaultSubTab(tabName)}
                     showToast={showToast}
+                    onDragStartHandle={() => setDraggedPane('doc')}
+                    onDragEndHandle={() => {
+                      setDraggedPane(null);
+                      setDragOverPane(null);
+                    }}
                     onMinimize={() => {
                       setIsFileViewerOpen(false);
                       showToast?.("Document preview minimized");
@@ -2396,7 +2780,6 @@ export default function VisualLineageGraph({
                       const actualNodeId = matchedNode ? matchedNode.id : targetId;
 
                       setActiveClaimInspector(claim);
-                      setIsDetailsOpen(false);
                       setSelectedNodeId(actualNodeId);
                       setInteractiveRootId(actualNodeId);
                       setViewMode('interactive');
@@ -2405,8 +2788,8 @@ export default function VisualLineageGraph({
                       setExpandedDownstreamSet(new Set([actualNodeId]));
                       setExpandedConflictClaimsSet(new Set());
                       fetchBlastRadius(cid);
-                      showToast?.(`Loaded Lineage DAG for: "${claim.subject || 'Rule'}"`);
                       setTimeout(() => handleFitView(), 120);
+                      setTimeout(() => handleFitView(), 320);
                     }}
                     selectedClaimId={activeClaimInspector?.cleanId || activeClaimInspector?.id}
                   />
@@ -2431,7 +2814,20 @@ export default function VisualLineageGraph({
                       justifyContent: 'space-between',
                       gap: '8px'
                     }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <div 
+                        draggable={true}
+                        onDragStart={(e) => {
+                          e.dataTransfer.setData('text/plain', 'doc');
+                          setDraggedPane('doc');
+                        }}
+                        onDragEnd={() => {
+                          setDraggedPane(null);
+                          setDragOverPane(null);
+                        }}
+                        title="Hold and drag to shuffle position"
+                        style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'grab', userSelect: 'none' }}
+                      >
+                        <GripVertical size={13} color="#EA580C" />
                         <span style={{ fontSize: '0.73rem', fontWeight: 600, color: '#64748B' }}>
                           Connector Source Profile
                         </span>
@@ -2482,736 +2878,27 @@ export default function VisualLineageGraph({
                     </div>
                   </div>
                 );
-              })()}
+              };
 
-              {/* RIGHT PANE (JUST BESIDE ORIGINAL DOCUMENT): CORRESPONDING FACILITY BASED ON SELECTION */}
-              <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '14px', width: '100%' }}>
+              const renderDetailsPane = () => (
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    overflowY: 'auto',
+                    maxHeight: '920px',
+                    width: '100%',
+                    height: '100%'
+                  }}
+                >
+                  {renderAssetDetailsCard()}
+                </div>
+              );
 
-                {/* 0. SUMMARY FACILITY: COMPREHENSIVE OVERVIEW OF DOCUMENT OR CONNECTOR */}
-                {selectedAsset360 && (asset360Section === 'summary' || asset360Section === 'all') && (!isFileViewerOpen || isDetailsOpen) && !activeClaimInspector && (() => {
-                  if (activeClaimInspector) {
-                    const claim = activeClaimInspector;
-                    const cleanId = String(claim.cleanId || claim.id || '').replace(/^cl_/, '');
-                    const fullClaimId = `cl_${cleanId}`;
-                    const docTitle = selectedAsset360.node.label || 'Standard Operating Procedure';
-
-                    // Find connected conflict(s)
-                    const connectedConflicts = (graphData?.nodes || []).filter(n => {
-                      if (n.type !== 'conflict') return false;
-                      const c1 = String(n.data?.first_claim_id || '').replace(/^cl_/, '');
-                      const c2 = String(n.data?.second_claim_id || '').replace(/^cl_/, '');
-                      if (c1 === cleanId || c2 === cleanId) return true;
-                      return (graphData?.edges || []).some(e => e.target === n.id && (e.source === fullClaimId || e.source === cleanId));
-                    });
-
-                    const primaryConflict = connectedConflicts[0] || (claim.conflicts && claim.conflicts[0]) || null;
-                    const isConflicted = claim.hasConflict || connectedConflicts.length > 0;
-
-                    // Find opposing counter-claim & opposing document
-                    let opposingClaim = null;
-                    let opposingDocTitle = null;
-                    if (primaryConflict) {
-                      const c1 = String(primaryConflict.data?.first_claim_id || primaryConflict.claimAId || '').replace(/^cl_/, '');
-                      const c2 = String(primaryConflict.data?.second_claim_id || primaryConflict.claimBId || '').replace(/^cl_/, '');
-                      const oppId = (c1 === cleanId) ? c2 : c1;
-                      if (oppId) {
-                        opposingClaim = (graphData?.nodes || []).find(n => n.type === 'claim' && String(n.id).replace(/^cl_/, '') === oppId);
-                        if (opposingClaim) {
-                          const edgeToDoc = (graphData?.edges || []).find(e => (e.target === opposingClaim.id || e.target === `cl_${oppId}`) && e.source.startsWith('doc_'));
-                          if (edgeToDoc) {
-                            const docNode = (graphData?.nodes || []).find(n => n.id === edgeToDoc.source);
-                            opposingDocTitle = docNode?.label;
-                          }
-                        }
-                      }
-                    }
-
-                    // Find downstream AI decisions
-                    const connectedDecisions = (graphData?.nodes || []).filter(n => {
-                      if (n.type !== 'decision') return false;
-                      const hasDirect = (graphData?.edges || []).some(e => e.target === n.id && (e.source === fullClaimId || e.source === cleanId));
-                      if (hasDirect) return true;
-                      if (primaryConflict) {
-                        return (graphData?.edges || []).some(e => e.target === n.id && e.source === primaryConflict.id);
-                      }
-                      return false;
-                    });
-
-                    return (
-                      <div style={{
-                        background: '#FFFFFF',
-                        border: isConflicted ? '1.5px solid #FDBA74' : '1.5px solid #BBF7D0',
-                        borderRadius: '10px',
-                        padding: '16px 20px',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '14px',
-                        boxShadow: '0 4px 16px rgba(0,0,0,0.04)',
-                        position: 'relative'
-                      }}>
-                        {/* 1. Header with Badges & Close Button */}
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #F1F5F9', paddingBottom: '10px' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                            <span style={{
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '4px',
-                              padding: '3px 8px',
-                              borderRadius: '5px',
-                              fontSize: '0.70rem',
-                              fontWeight: 800,
-                              textTransform: 'uppercase',
-                              letterSpacing: '0.03em',
-                              background: isConflicted ? '#FFF7ED' : '#F0FDF4',
-                              color: isConflicted ? '#EA580C' : '#16A34A',
-                              border: isConflicted ? '1px solid #FED7AA' : '1px solid #BBF7D0'
-                            }}>
-                              {isConflicted ? <AlertTriangle size={12} strokeWidth={2.4} /> : <Zap size={12} strokeWidth={2.4} />}
-                              {isConflicted ? 'Contradicted Rule Lineage' : 'Verified Claim Lineage'}
-                            </span>
-                            <span style={{ fontSize: '0.72rem', color: '#64748B', fontFamily: 'monospace', fontWeight: 600 }}>
-                              #{cleanId.slice(0, 8)}
-                            </span>
-                            <span style={{
-                              fontSize: '0.68rem',
-                              fontWeight: 700,
-                              padding: '2px 6px',
-                              borderRadius: '4px',
-                              background: '#F1F5F9',
-                              color: '#334155'
-                            }}>
-                              {claim.trustPct || 92}% Integrity
-                            </span>
-                          </div>
-
-                          <button
-                            type="button"
-                            onClick={() => setActiveClaimInspector(null)}
-                            title="Close Inspector (Return to full width document)"
-                            style={{
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              width: '24px',
-                              height: '24px',
-                              borderRadius: '5px',
-                              border: '1px solid #CBD5E1',
-                              background: '#FFFFFF',
-                              color: '#64748B',
-                              cursor: 'pointer'
-                            }}
-                          >
-                            <X size={13} strokeWidth={2.4} />
-                          </button>
-                        </div>
-
-                        {/* 2. Highlighted Assertion Quote */}
-                        <div style={{
-                          background: isConflicted ? 'linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%)' : 'linear-gradient(135deg, #F0FDF4 0%, #DCFCE7 100%)',
-                          borderLeft: `4px solid ${isConflicted ? '#EA580C' : '#10B981'}`,
-                          borderRadius: '6px',
-                          padding: '10px 14px'
-                        }}>
-                          <div style={{ fontSize: '0.68rem', fontWeight: 700, color: isConflicted ? '#9A3412' : '#166534', textTransform: 'uppercase', marginBottom: '3px' }}>
-                            Exact Extracted Assertion:
-                          </div>
-                          <div style={{ fontSize: '0.82rem', fontWeight: 600, color: '#0F172A', lineHeight: 1.45 }}>
-                            "{claim.fullText}"
-                          </div>
-                          <div style={{ display: 'flex', gap: '6px', marginTop: '6px', flexWrap: 'wrap' }}>
-                            {claim.subject && (
-                              <span style={{ fontSize: '0.65rem', background: 'rgba(255,255,255,0.7)', padding: '2px 6px', borderRadius: '4px', color: '#475569' }}>
-                                <strong>Subj:</strong> {claim.subject}
-                              </span>
-                            )}
-                            {claim.predicate && (
-                              <span style={{ fontSize: '0.65rem', background: 'rgba(255,255,255,0.7)', padding: '2px 6px', borderRadius: '4px', color: '#475569' }}>
-                                <strong>Pred:</strong> {claim.predicate}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* 3. Focused In-Context Mini-DAG Chain */}
-                        <div style={{
-                          border: '1px solid #E2E8F0',
-                          borderRadius: '8px',
-                          padding: '12px 14px',
-                          background: '#F8FAFC'
-                        }}>
-                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
-                            <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#334155', textTransform: 'uppercase', letterSpacing: '0.02em', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                              <Layers size={13} color="#EA580C" />
-                              Causal Provenance Chain (Mini-DAG)
-                            </span>
-                            <span style={{ fontSize: '0.66rem', color: '#64748B' }}>
-                              In-Context Live Lineage
-                            </span>
-                          </div>
-
-                          {/* Mini DAG Flow Nodes */}
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', overflowX: 'auto', paddingBottom: '4px' }}>
-                            {/* Node 1: Source Document */}
-                            <div style={{
-                              background: '#FFFFFF',
-                              border: '1px solid #0284C7',
-                              borderRadius: '6px',
-                              padding: '6px 8px',
-                              minWidth: '105px',
-                              boxShadow: '0 1px 2px rgba(2,132,199,0.08)'
-                            }}>
-                              <div style={{ fontSize: '0.58rem', fontWeight: 800, color: '#0284C7', textTransform: 'uppercase' }}>1. Document</div>
-                              <div style={{ fontSize: '0.70rem', fontWeight: 700, color: '#0F172A', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100px' }} title={docTitle}>
-                                {docTitle}
-                              </div>
-                            </div>
-
-                            <ChevronRight size={14} color="#94A3B8" />
-
-                            {/* Node 2: Atomic Claim */}
-                            <div style={{
-                              background: '#FFFFFF',
-                              border: `1.5px solid ${isConflicted ? '#EA580C' : '#16A34A'}`,
-                              borderRadius: '6px',
-                              padding: '6px 8px',
-                              minWidth: '105px',
-                              boxShadow: '0 1px 2px rgba(0,0,0,0.06)'
-                            }}>
-                              <div style={{ fontSize: '0.58rem', fontWeight: 800, color: isConflicted ? '#EA580C' : '#16A34A', textTransform: 'uppercase' }}>2. Atomic Claim</div>
-                              <div style={{ fontSize: '0.70rem', fontWeight: 700, color: '#0F172A', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100px' }}>
-                                #{cleanId.slice(0, 8)}
-                              </div>
-                            </div>
-
-                            {isConflicted && (
-                              <>
-                                <ChevronRight size={14} color="#EA580C" />
-
-                                {/* Node 3: Contradiction */}
-                                <div style={{
-                                  background: '#FFF7ED',
-                                  border: '1.5px solid #EA580C',
-                                  borderRadius: '6px',
-                                  padding: '6px 8px',
-                                  minWidth: '105px',
-                                  boxShadow: '0 1px 2px rgba(234,88,12,0.15)'
-                                }}>
-                                  <div style={{ fontSize: '0.58rem', fontWeight: 800, color: '#C2410C', textTransform: 'uppercase' }}>3. Conflict</div>
-                                  <div style={{ fontSize: '0.70rem', fontWeight: 700, color: '#C2410C', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100px' }}>
-                                    {primaryConflict?.severity || 'HIGH'} SEVERITY
-                                  </div>
-                                </div>
-                              </>
-                            )}
-
-                            <ChevronRight size={14} color="#94A3B8" />
-
-                            {/* Node 4: AI Grounding Consumers */}
-                            <div style={{
-                              background: '#FFFFFF',
-                              border: '1px solid #7C3AED',
-                              borderRadius: '6px',
-                              padding: '6px 8px',
-                              minWidth: '105px',
-                              boxShadow: '0 1px 2px rgba(124,58,237,0.08)'
-                            }}>
-                              <div style={{ fontSize: '0.58rem', fontWeight: 800, color: '#7C3AED', textTransform: 'uppercase' }}>4. AI Impact</div>
-                              <div style={{ fontSize: '0.70rem', fontWeight: 700, color: '#0F172A', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100px' }}>
-                                {connectedDecisions.length > 0 ? `${connectedDecisions.length} Decisions` : 'Direct AI Pipeline'}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* 4. Opposing Contradiction View (If Conflicted) */}
-                        {isConflicted && (
-                          <div style={{
-                            border: '1px solid #FED7AA',
-                            borderRadius: '8px',
-                            padding: '12px 14px',
-                            background: '#FFFDFB'
-                          }}>
-                            <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#C2410C', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
-                              <Scale size={13} color="#EA580C" />
-                              Cross-Policy Semantic Contradiction
-                            </div>
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                              <div style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', borderLeft: '3px solid #0284C7', padding: '8px 10px', borderRadius: '6px' }}>
-                                <div style={{ fontSize: '0.60rem', fontWeight: 800, color: '#0284C7', textTransform: 'uppercase' }}>
-                                  This Policy ({docTitle.slice(0, 18)})
-                                </div>
-                                <div style={{ fontSize: '0.72rem', color: '#1E293B', marginTop: '2px', lineHeight: 1.35 }}>
-                                  "{claim.fullText.slice(0, 90)}..."
-                                </div>
-                              </div>
-
-                              <div style={{ background: '#FFFFFF', border: '1px solid #FED7AA', borderLeft: '3px solid #EA580C', padding: '8px 10px', borderRadius: '6px' }}>
-                                <div style={{ fontSize: '0.60rem', fontWeight: 800, color: '#EA580C', textTransform: 'uppercase' }}>
-                                  Opposing Assertion ({opposingDocTitle ? opposingDocTitle.slice(0, 18) : 'Cross-Policy Standard'})
-                                </div>
-                                <div style={{ fontSize: '0.72rem', color: '#1E293B', marginTop: '2px', lineHeight: 1.35 }}>
-                                  "{opposingClaim?.label || opposingClaim?.data?.claim_text || 'Requires alternative operational protocol with conflicting SLA threshold.'}"
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-
-                        {/* 5. Downstream AI Impact & Blast Radius */}
-                        <div style={{
-                          background: blastRadius?.risk_tier === 'CRITICAL' || blastRadius?.risk_tier === 'HIGH' ? '#FFF7ED' : '#F8FAFC',
-                          border: `1px solid ${blastRadius?.risk_tier === 'CRITICAL' || blastRadius?.risk_tier === 'HIGH' ? '#FED7AA' : '#E2E8F0'}`,
-                          borderRadius: '8px',
-                          padding: '10px 14px'
-                        }}>
-                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
-                            <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                              <Bot size={13} color="#7C3AED" />
-                              Downstream AI Impact Radius
-                            </span>
-                            <span style={{
-                              fontSize: '0.66rem',
-                              fontWeight: 800,
-                              padding: '1px 6px',
-                              borderRadius: '4px',
-                              background: blastRadius?.risk_tier === 'CRITICAL' || blastRadius?.risk_tier === 'HIGH' ? '#FFEDD5' : '#DCFCE7',
-                              color: blastRadius?.risk_tier === 'CRITICAL' || blastRadius?.risk_tier === 'HIGH' ? '#C2410C' : '#166534'
-                            }}>
-                              {blastRadius?.risk_tier || (isConflicted ? 'HIGH RISK' : 'LOW RISK')} ({blastRadius?.risk_score || (isConflicted ? 75 : 15)}/100)
-                            </span>
-                          </div>
-                          <div style={{ fontSize: '0.72rem', color: '#475569', lineHeight: 1.4 }}>
-                            {blastRadius?.recommendation || (isConflicted ? 'Modifying or reconciling this rule impacts active downstream autonomous decision workflows.' : 'Claim verified against all operational policies. No immediate drift detected.')}
-                          </div>
-                        </div>
-
-                        {/* 6. Footer Actions */}
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid #F1F5F9', paddingTop: '10px' }}>
-                          <button
-                            type="button"
-                            onClick={() => setActiveClaimInspector(null)}
-                            style={{
-                              padding: '5px 12px',
-                              borderRadius: '6px',
-                              border: '1px solid #CBD5E1',
-                              background: '#FFFFFF',
-                              color: '#475569',
-                              fontSize: '0.74rem',
-                              fontWeight: 600,
-                              cursor: 'pointer'
-                            }}
-                          >
-                            ✕ Close Inspector
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const targetId = claim.id.startsWith('cl_') ? claim.id : `cl_${cleanId}`;
-                              visualizeNodeInDag(targetId, claim.fullText);
-                            }}
-                            style={{
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '5px',
-                              padding: '5px 12px',
-                              borderRadius: '6px',
-                              border: '1px solid #EA580C',
-                              background: '#FFF7ED',
-                              color: '#EA580C',
-                              fontSize: '0.74rem',
-                              fontWeight: 700,
-                              cursor: 'pointer'
-                            }}
-                            title="Open this node in the full canvas DAG"
-                          >
-                            <span>Open in Full DAG Canvas</span>
-                            <ExternalLink size={12} />
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  }
-
-                  const isDoc = selectedAsset360.mode === 'document';
-                  const nodeData = selectedAsset360.node.data || {};
-                  const docId = nodeData.doc_id || String(selectedAsset360.node.id || '').replace(/^doc_/, '');
-                  const contentHash = nodeData.content_hash || 'e8f7a912b404d09c31405eb62a71f008432a';
-                  const versions = nodeData.versions || [];
-                  const latestVer = versions.length > 0 ? versions[0] : null;
-                  const verifiedClaimsCount = Math.max(0, selectedAsset360.claims.length - selectedAsset360.activeConflicts.length);
-                  const trustPercent = selectedAsset360.activeConflicts.length === 0 ? 98 : Math.max(72, 98 - (selectedAsset360.activeConflicts.length * 4));
-
-                  return (
-                    <div style={{
-                      background: '#FFFFFF',
-                      border: '1px solid #E2E8F0',
-                      borderRadius: '10px',
-                      padding: '16px 20px',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: '14px',
-                      boxShadow: '0 1px 3px rgba(0,0,0,0.02)'
-                    }}>
-                      {/* 1. Header Banner inside Details Card */}
-                      <div style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        flexWrap: 'wrap',
-                        gap: '12px',
-                        borderBottom: '1px solid #F1F5F9',
-                        paddingBottom: '10px'
-                      }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <Info size={15} color="#EA580C" />
-                          <span style={{ fontSize: '0.90rem', fontWeight: 700, color: '#0F172A' }}>
-                            Asset Details & Specifications
-                          </span>
-                        </div>
-
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          {!isFileViewerOpen && (
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setIsFileViewerOpen(true);
-                                showToast?.("Document preview opened on left");
-                              }}
-                              style={{
-                                padding: '5px 10px',
-                                borderRadius: '6px',
-                                border: '1px solid #EA580C',
-                                background: '#FFF7ED',
-                                color: '#EA580C',
-                                fontSize: '0.74rem',
-                                fontWeight: 700,
-                                cursor: 'pointer',
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '5px'
-                              }}
-                            >
-                              <Eye size={13} />
-                              <span>View Original File</span>
-                            </button>
-                          )}
-                          {isFileViewerOpen && (
-                            <button
-                              type="button"
-                              onClick={() => setIsDetailsOpen(false)}
-                              title="Close details panel"
-                              style={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                width: '24px',
-                                height: '24px',
-                                borderRadius: '5px',
-                                border: '1px solid #CBD5E1',
-                                background: '#FFFFFF',
-                                color: '#64748B',
-                                cursor: 'pointer'
-                              }}
-                            >
-                              <X size={13} strokeWidth={2.4} />
-                            </button>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* 2. Governance Description */}
-                          <p style={{ margin: 0, fontSize: '0.80rem', color: '#475569', lineHeight: 1.55 }}>
-                            {selectedAsset360.description || `Enterprise normalized governance asset. Deconstructed into atomic facts and verified against cross-policy contradictions.`}
-                          </p>
-
-                      {/* 2. Core Metrics Summary (Compact Table) */}
-                      <div style={{
-                        border: '1px solid #E2E8F0',
-                        borderRadius: '8px',
-                        overflow: 'hidden',
-                        background: '#FFFFFF'
-                      }}>
-                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.76rem' }}>
-                          <tbody>
-                            {[
-                              {
-                                label: 'Atomic Claims',
-                                value: selectedAsset360.claims.length,
-                                badge: `${verifiedClaimsCount} verified`,
-                                badgeColor: '#16A34A',
-                                badgeBg: '#DCFCE7',
-                                detail: '100% parsed & grounded'
-                              },
-                              {
-                                label: 'Contradictions',
-                                value: selectedAsset360.activeConflicts.length,
-                                valueColor: selectedAsset360.activeConflicts.length > 0 ? '#EA580C' : '#0F172A',
-                                badge: selectedAsset360.conflicts.length > 0
-                                  ? `${selectedAsset360.activeConflicts.length} active / ${selectedAsset360.conflicts.length} total`
-                                  : '0 detected',
-                                badgeColor: selectedAsset360.activeConflicts.length > 0 ? '#C2410C' : '#16A34A',
-                                badgeBg: selectedAsset360.activeConflicts.length > 0 ? '#FFEDD5' : '#DCFCE7',
-                                detail: `${selectedAsset360.conflicts.length - selectedAsset360.activeConflicts.length} resolved historically`
-                              },
-                              {
-                                label: 'Trust Integrity',
-                                value: `${trustPercent}%`,
-                                valueColor: '#16A34A',
-                                badge: trustPercent >= 70 ? 'High Trust' : trustPercent >= 40 ? 'Moderate' : 'Low',
-                                badgeColor: '#059669',
-                                badgeBg: '#ECFDF5',
-                                detail: 'Cryptographically anchored'
-                              },
-                              {
-                                label: 'Downstream AI Impact',
-                                value: selectedAsset360.decisions.length,
-                                valueColor: '#0284C7',
-                                badge: `${selectedAsset360.decisions.length} Decisions`,
-                                badgeColor: '#0284C7',
-                                badgeBg: '#E0F2FE',
-                                detail: 'Active AI grounding consumers'
-                              }
-                            ].map((row, idx, arr) => (
-                              <tr
-                                key={row.label}
-                                style={{
-                                  borderBottom: idx < arr.length - 1 ? '1px solid #F1F5F9' : 'none'
-                                }}
-                              >
-                                <td style={{ padding: '7px 14px', color: '#475569', fontWeight: 600, width: '28%' }}>
-                                  {row.label}
-                                </td>
-                                <td style={{ padding: '7px 14px', width: '38%' }}>
-                                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
-                                    <span style={{ fontSize: '0.90rem', fontWeight: 800, color: row.valueColor || '#0F172A' }}>
-                                      {row.value}
-                                    </span>
-                                    {row.badge && (
-                                      <span style={{
-                                        fontSize: '0.68rem',
-                                        fontWeight: 700,
-                                        color: row.badgeColor,
-                                        background: row.badgeBg || '#F1F5F9',
-                                        padding: '1px 6px',
-                                        borderRadius: '4px'
-                                      }}>
-                                        {row.badge}
-                                      </span>
-                                    )}
-                                  </div>
-                                </td>
-                                <td style={{ padding: '7px 14px', color: '#94A3B8', fontSize: '0.72rem', textAlign: 'right' }}>
-                                  {row.detail}
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-
-                      {/* 4. Complete Metadata & Technical Specifications Table */}
-                      <div style={{
-                        background: '#FFFFFF',
-                        border: '1px solid #E2E8F0',
-                        borderRadius: '8px',
-                        overflow: 'hidden'
-                      }}>
-                        <div style={{
-                          padding: '10px 16px',
-                          background: '#F8FAFC',
-                          borderBottom: '1px solid #E2E8F0',
-                          fontSize: '0.74rem',
-                          fontWeight: 800,
-                          color: '#334155',
-                          textTransform: 'uppercase',
-                          letterSpacing: '0.04em',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '6px'
-                        }}>
-                          <Layers size={13} color="#475569" />
-                          <span>Technical Specifications & Cryptographic Provenance</span>
-                        </div>
-
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', padding: '6px 0' }}>
-                          {[
-                            { label: 'Artifact GUID', value: docId, isMono: true },
-                            { label: 'Parent Ingestion Connector', value: selectedAsset360.parentSource?.label || 'Direct Enterprise File Upload' },
-                            { label: 'Classification / Security Tier', value: 'Internal Standard Operating Procedure (Restricted)' },
-                            { label: 'Active Version', value: latestVer ? `v${latestVer.version_number} (Current Production)` : 'v4.2 (Production)' },
-                            { label: 'Ingestion Engine', value: 'Trulin Semantic Deconstruction Pipeline v2.4 (Ollama/OpenAI)' },
-                            { label: 'Department / Scope', value: nodeData.domain || (activeWorkspace?.label || 'Enterprise Unified') },
-                            { label: 'Ingestion / Created Time', value: nodeData.created_at ? new Date(nodeData.created_at).toLocaleString() : 'Recent' },
-                            { label: 'Last Synchronized', value: nodeData.updated_at ? new Date(nodeData.updated_at).toLocaleString() : 'Active & Synced' },
-                            {
-                              label: 'SHA-256 Merkle Hash',
-                              value: contentHash,
-                              isMono: true,
-                              canCopy: true
-                            }
-                          ].map((row, idx) => (
-                            <div
-                              key={idx}
-                              style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'space-between',
-                                padding: '8px 16px',
-                                borderBottom: '1px solid #F1F5F9',
-                                gap: '12px'
-                              }}
-                            >
-                              <span style={{ fontSize: '0.74rem', color: '#64748B', fontWeight: 600 }}>
-                                {row.label}
-                              </span>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                <span style={{
-                                  fontSize: '0.75rem',
-                                  color: '#0F172A',
-                                  fontWeight: 600,
-                                  fontFamily: row.isMono ? 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace' : 'inherit',
-                                  maxWidth: '240px',
-                                  overflow: 'hidden',
-                                  textOverflow: 'ellipsis',
-                                  whiteSpace: 'nowrap'
-                                }}>
-                                  {row.value}
-                                </span>
-                                {row.canCopy && (
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      navigator.clipboard?.writeText(row.value);
-                                      setCopiedHash(true);
-                                      setTimeout(() => setCopiedHash(false), 2000);
-                                      showToast?.("Hash copied to clipboard");
-                                    }}
-                                    style={{
-                                      border: 'none',
-                                      background: 'transparent',
-                                      cursor: 'pointer',
-                                      color: copiedHash ? '#16A34A' : '#94A3B8',
-                                      padding: '2px',
-                                      display: 'flex',
-                                      alignItems: 'center'
-                                    }}
-                                    title="Copy hash"
-                                  >
-                                    {copiedHash ? <Check size={13} /> : <Copy size={13} />}
-                                  </button>
-                                )}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-
-                    </div>
-                  );
-                })()}
-
-                {/* 1. VISUAL CLAIM EXTRACTION FLOW STUDIO */}
-                {selectedAsset360 && (asset360Section === 'extraction' || asset360Section === 'all') && (
-                  <VisualClaimExtractionStudio
-                    documentTitle={selectedAsset360.node.label}
-                    documentId={selectedAsset360.node.data?.doc_id || selectedAsset360.node.id}
-                    claims={selectedAsset360.claims}
-                    conflicts={selectedAsset360.conflicts}
-                    rawOriginalText={selectedAsset360.node.data?.content_uri || ''}
-                    onHighlightClause={(clause) => {
-                      setDocReaderClauseFilter('raw');
-                      showToast?.(`Locating clause in document view: "${clause.substring(0, 45)}..."`);
-                    }}
-                    showToast={showToast}
-                  />
-                )}
-
-                {/* 2. INTERACTIVE DAG LINEAGE FOR THIS FILE / CONNECTOR */}
-                {(vaultSubTab === 'dag' || asset360Section === 'dag' || asset360Section === 'all' || (asset360Section === 'summary' && activeClaimInspector)) && (
-              <>
-      {/* Active Claim Lineage Banner (In Split Overview Mode) */}
-      {activeClaimInspector && asset360Section === 'summary' && (
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '8px 14px',
-          background: '#FFF7ED',
-          border: '1px solid #FDBA74',
-          borderRadius: '10px',
-          boxShadow: '0 1px 3px rgba(234, 88, 12, 0.08)',
-          marginBottom: '8px'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '9px', minWidth: 0 }}>
-            <span style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: '24px',
-              height: '24px',
-              borderRadius: '6px',
-              background: '#EA580C',
-              color: '#FFFFFF',
-              fontSize: '0.78rem',
-              fontWeight: 800,
-              flexShrink: 0
-            }}>
-              ⚡
-            </span>
-            <div style={{ minWidth: 0, overflow: 'hidden' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span style={{ fontSize: '0.70rem', fontWeight: 800, color: '#C2410C', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                  Live Lineage DAG
-                </span>
-                <span style={{ fontSize: '0.68rem', color: '#9A3412', background: '#FED7AA', padding: '1px 6px', borderRadius: '4px', fontWeight: 700 }}>
-                  {activeClaimInspector.hasConflict ? 'Contradicted Rule' : 'Verified Rule'}
-                </span>
-              </div>
-              <div style={{ fontSize: '0.78rem', fontWeight: 600, color: '#431407', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginTop: '1px' }}>
-                "{activeClaimInspector.subject || activeClaimInspector.fullText || 'Selected Assertion'}"
-              </div>
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={() => {
-              setActiveClaimInspector(null);
-              setSelectedNodeId(null);
-            }}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '5px',
-              padding: '5px 12px',
-              borderRadius: '6px',
-              border: '1px solid #FDBA74',
-              background: '#FFFFFF',
-              color: '#C2410C',
-              fontSize: '0.74rem',
-              fontWeight: 700,
-              cursor: 'pointer',
-              boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
-              flexShrink: 0,
-              transition: 'all 0.15s ease'
-            }}
-            onMouseEnter={e => {
-              e.currentTarget.style.background = '#EA580C';
-              e.currentTarget.style.color = '#FFFFFF';
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.background = '#FFFFFF';
-              e.currentTarget.style.color = '#C2410C';
-            }}
-            title="Close lineage and return document reader to full width"
-          >
-            <X size={13} strokeWidth={2.5} />
-            <span>Close Lineage</span>
-          </button>
-        </div>
-      )}
-
-      {/* Unified Executive Lineage Command Card (Single Card Container) */}
+              const renderDagFacility = () => (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', width: '100%' }}>
+{/* Unified Executive Lineage Command Card (Single Card Container) - Hidden in Overview mode as it concentrates on a single claim */}
+      {asset360Section !== 'summary' && (
       <div style={{
         background: '#FFFFFF',
         border: '1px solid #E2E8F0',
@@ -3724,47 +3411,87 @@ export default function VisualLineageGraph({
           </div>
         )}
       </div>
+      )}
 
       {/* 3. Interactive DAG Canvas */}
       <div style={{ position: 'relative', width: '100%', borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--border-color)', background: '#fff' }}>
         
+        {/* Draggable Header Tab for DAG */}
+        <div
+          draggable={true}
+          onDragStart={(e) => {
+            e.dataTransfer.setData('text/plain', 'dag');
+            setDraggedPane('dag');
+          }}
+          onDragEnd={() => {
+            setDraggedPane(null);
+            setDragOverPane(null);
+          }}
+          title="Hold and drag to shuffle position"
+          style={{
+            position: 'absolute',
+            top: '8px',
+            left: '8px',
+            zIndex: 30,
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '4px',
+            background: 'rgba(255, 255, 255, 0.96)',
+            backdropFilter: 'blur(8px)',
+            border: '1px solid #CBD5E1',
+            borderRadius: '6px',
+            padding: '3px 7px',
+            cursor: 'grab',
+            userSelect: 'none',
+            fontSize: '0.68rem',
+            fontWeight: 700,
+            color: '#334155',
+            boxShadow: '0 1px 2px rgba(0,0,0,0.04)'
+          }}
+        >
+          <GripVertical size={12} color="#EA580C" />
+          <span>Lineage DAG</span>
+        </div>
+
         {/* Floating Toolbar (Top-Right) */}
         <div style={{
           position: 'absolute',
-          top: '12px',
-          right: '12px',
+          top: '8px',
+          right: '8px',
           zIndex: 30,
           display: 'flex',
           alignItems: 'center',
-          gap: '6px',
-          background: 'rgba(255, 255, 255, 0.95)',
+          gap: '4px',
+          background: 'rgba(255, 255, 255, 0.96)',
           backdropFilter: 'blur(8px)',
-          padding: '5px 8px',
-          borderRadius: '8px',
-          boxShadow: '0 4px 14px rgba(0,0,0,0.08)',
-          border: '1px solid #e2e8f0'
+          padding: '3px 6px',
+          borderRadius: '7px',
+          boxShadow: '0 2px 10px rgba(0,0,0,0.06)',
+          border: '1px solid #e2e8f0',
+          maxWidth: 'calc(100% - 16px)'
         }}>
           {/* Find in canvas (Global across all nodes) */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '5px', paddingRight: '6px', borderRight: '1px solid #e2e8f0' }}>
-            <span style={{ fontSize: '0.72rem', color: '#64748b' }}>🔍</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '3px', paddingRight: '4px', borderRight: '1px solid #e2e8f0' }}>
+            <span style={{ fontSize: '0.66rem', color: '#64748b' }}>🔍</span>
             <input
               type="text"
-              placeholder="Find in canvas..."
+              placeholder="Find..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               style={{
                 border: 'none',
                 background: 'transparent',
-                fontSize: '0.76rem',
+                fontSize: '0.68rem',
                 outline: 'none',
-                width: '120px',
-                color: 'var(--text-main)'
+                width: isThreePane ? '62px' : '90px',
+                color: 'var(--text-main)',
+                transition: 'width 0.15s ease'
               }}
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery('')}
-                style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: '#94a3b8', fontSize: '0.72rem' }}
+                style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: '#94a3b8', fontSize: '0.66rem', padding: '0 2px' }}
               >
                 ✕
               </button>
@@ -3775,18 +3502,18 @@ export default function VisualLineageGraph({
           <button
             onClick={() => setZoom(z => Math.max(0.4, Number((z - 0.1).toFixed(2))))}
             className="canvas-btn"
-            style={{ width: '24px', height: '24px', borderRadius: '5px', border: '1px solid #e2e8f0', background: '#fff', cursor: 'pointer', fontWeight: 700, fontSize: '0.8rem' }}
+            style={{ width: '20px', height: '20px', borderRadius: '4px', border: '1px solid #e2e8f0', background: '#fff', cursor: 'pointer', fontWeight: 700, fontSize: '0.74rem', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}
             title="Zoom Out"
           >
             -
           </button>
-          <span style={{ fontSize: '0.7rem', fontWeight: 600, minWidth: '30px', textAlign: 'center', color: '#475569' }}>
+          <span style={{ fontSize: '0.65rem', fontWeight: 600, minWidth: '25px', textAlign: 'center', color: '#475569' }}>
             {(zoom * 100).toFixed(0)}%
           </span>
           <button
             onClick={() => setZoom(z => Math.min(1.4, Number((z + 0.1).toFixed(2))))}
             className="canvas-btn"
-            style={{ width: '24px', height: '24px', borderRadius: '5px', border: '1px solid #e2e8f0', background: '#fff', cursor: 'pointer', fontWeight: 700, fontSize: '0.8rem' }}
+            style={{ width: '20px', height: '20px', borderRadius: '4px', border: '1px solid #e2e8f0', background: '#fff', cursor: 'pointer', fontWeight: 700, fontSize: '0.74rem', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}
             title="Zoom In"
           >
             +
@@ -3794,11 +3521,40 @@ export default function VisualLineageGraph({
           <button
             onClick={handleFitView}
             className="canvas-btn"
-            style={{ padding: '0 8px', height: '24px', borderRadius: '5px', border: '1px solid #2563eb', background: '#eff6ff', cursor: 'pointer', fontSize: '0.7rem', color: '#2563eb', fontWeight: 700 }}
+            style={{ padding: '0 6px', height: '21px', borderRadius: '4px', border: '1px solid #2563eb', background: '#eff6ff', cursor: 'pointer', fontSize: '0.65rem', color: '#2563eb', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '3px' }}
             title="Auto-Fit all visible nodes to screen"
           >
-            ⛶ Fit View
+            <span>⛶</span>
+            <span>Fit</span>
           </button>
+          {activeClaimInspector && asset360Section === 'summary' && (
+            <button
+              type="button"
+              onClick={() => {
+                setActiveClaimInspector(null);
+                setSelectedNodeId(null);
+              }}
+              className="canvas-btn"
+              style={{
+                padding: '0 6px',
+                height: '21px',
+                borderRadius: '4px',
+                border: '1px solid #FDBA74',
+                background: '#FFF7ED',
+                cursor: 'pointer',
+                fontSize: '0.65rem',
+                color: '#C2410C',
+                fontWeight: 700,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '3px'
+              }}
+              title="Close Lineage view and return document reader to full width"
+            >
+              <X size={10} strokeWidth={2.4} />
+              <span>Close</span>
+            </button>
+          )}
         </div>
 
         {/* Floating Legend / Quick Status at bottom left */}
@@ -3844,7 +3600,7 @@ export default function VisualLineageGraph({
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
           style={{
-            height: (activeClaimInspector && asset360Section === 'summary') ? '780px' : '640px',
+            height: (activeClaimInspector && asset360Section === 'summary') ? '660px' : '640px',
             width: '100%',
             cursor: isPanning ? 'grabbing' : 'grab',
             overflow: 'hidden',
@@ -4671,8 +4427,6 @@ export default function VisualLineageGraph({
           </div>
         </div>
       )}
-              </>
-            )}
 
             {/* 3. SELECTED ASSET'S CONTRADICTIONS & CONFLICTS (Active & Resolved for THIS Document / Connector) */}
             {selectedAsset360 && (asset360Section === 'all' || asset360Section === 'conflicts') && (
@@ -4834,9 +4588,230 @@ export default function VisualLineageGraph({
                 </div>
               </div>
             )}
+                </div>
+              );
 
-              </div>
-            </div>
+              return (
+                <div
+                  ref={splitContainerRef}
+                  style={{
+                    display: 'flex',
+                    flexDirection: isSplitActive ? 'row' : 'column',
+                    alignItems: 'stretch',
+                    width: '100%',
+                    position: 'relative',
+                    background: 'transparent',
+                    userSelect: isResizingSplit ? 'none' : 'auto',
+                    gap: isSplitActive ? '0px' : '8px',
+                    marginTop: '0px'
+                  }}
+                >
+                  {activePanes.map((paneId, idx) => {
+                    const isFirst = idx === 0;
+                    const isSecond = idx === 1;
+
+                    let paneStyle = {};
+                    if (isThreePane) {
+                      if (isFirst) {
+                        paneStyle = {
+                          width: `calc(${splitRatio3Doc}% - 6px)`,
+                          minWidth: '240px',
+                          maxWidth: 'calc(100% - 480px)',
+                          flexShrink: 0
+                        };
+                      } else if (isSecond) {
+                        paneStyle = {
+                          width: `calc(${splitRatio3Details}% - 6px)`,
+                          minWidth: '240px',
+                          maxWidth: 'calc(100% - 480px)',
+                          flexShrink: 0
+                        };
+                      } else {
+                        paneStyle = {
+                          width: `calc(${100 - splitRatio3Doc - splitRatio3Details}% - 6px)`,
+                          minWidth: '260px',
+                          flex: 1
+                        };
+                      }
+                    } else if (isTwoPane) {
+                      if (isFirst) {
+                        paneStyle = {
+                          width: `calc(${splitRatio}% - 5px)`,
+                          minWidth: '260px',
+                          maxWidth: 'calc(100% - 260px)',
+                          flexShrink: 0
+                        };
+                      } else {
+                        paneStyle = {
+                          width: `calc(${100 - splitRatio}% - 5px)`,
+                          minWidth: '260px',
+                          flex: 1
+                        };
+                      }
+                    } else {
+                      paneStyle = {
+                        width: '100%',
+                        flex: 1
+                      };
+                    }
+
+                    return (
+                      <React.Fragment key={paneId}>
+                        <div
+                          onDragOver={(e) => {
+                            e.preventDefault();
+                            if (draggedPane && draggedPane !== paneId) {
+                              setDragOverPane(paneId);
+                            }
+                          }}
+                          onDragLeave={(e) => {
+                            if (e.currentTarget.contains(e.relatedTarget)) return;
+                            if (dragOverPane === paneId) setDragOverPane(null);
+                          }}
+                          onDrop={(e) => {
+                            e.preventDefault();
+                            const sourcePane = e.dataTransfer.getData('text/plain') || draggedPane;
+                            handleDropPane(sourcePane, paneId);
+                          }}
+                          style={{
+                            ...paneStyle,
+                            display: 'flex',
+                            flexDirection: 'column',
+                            position: 'relative',
+                            borderRadius: '10px',
+                            outline: dragOverPane === paneId ? '2px dashed #EA580C' : 'none',
+                            outlineOffset: '-2px',
+                            opacity: draggedPane === paneId ? 0.6 : 1,
+                            transition: 'outline 0.15s ease, opacity 0.15s ease'
+                          }}
+                        >
+                          {paneId === 'doc' && renderDocPane()}
+                          {paneId === 'details' && renderDetailsPane()}
+                          {paneId === 'dag' && renderDagFacility()}
+                        </div>
+
+                        {isThreePane && isFirst && (
+                          <div
+                            className="trulin-vscode-splitter"
+                            onMouseDown={(e) => handleSplitMouseDown(e, 'threePane1')}
+                            title="Drag to resize columns (Double-click to reset)"
+                            onDoubleClick={() => { setSplitRatio3Doc(35); setSplitRatio3Details(33); }}
+                            onMouseEnter={e => {
+                              const line = e.currentTarget.firstElementChild;
+                              if (line) line.style.background = '#EA580C';
+                            }}
+                            onMouseLeave={e => {
+                              const line = e.currentTarget.firstElementChild;
+                              if (line && resizingDivider !== 'threePane1') line.style.background = '#E2E8F0';
+                            }}
+                            style={{
+                              width: '10px',
+                              margin: '0 -1px',
+                              cursor: 'col-resize',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              zIndex: 30,
+                              flexShrink: 0,
+                              userSelect: 'none',
+                              position: 'relative'
+                            }}
+                          >
+                            <div
+                              style={{
+                                width: '2px',
+                                height: '100%',
+                                background: resizingDivider === 'threePane1' ? '#EA580C' : '#E2E8F0',
+                                borderRadius: '1px',
+                                transition: resizingDivider === 'threePane1' ? 'none' : 'background 0.15s ease'
+                              }}
+                            />
+                          </div>
+                        )}
+
+                        {isThreePane && isSecond && (
+                          <div
+                            className="trulin-vscode-splitter"
+                            onMouseDown={(e) => handleSplitMouseDown(e, 'threePane2')}
+                            title="Drag to resize columns (Double-click to reset)"
+                            onDoubleClick={() => { setSplitRatio3Doc(35); setSplitRatio3Details(33); }}
+                            onMouseEnter={e => {
+                              const line = e.currentTarget.firstElementChild;
+                              if (line) line.style.background = '#EA580C';
+                            }}
+                            onMouseLeave={e => {
+                              const line = e.currentTarget.firstElementChild;
+                              if (line && resizingDivider !== 'threePane2') line.style.background = '#E2E8F0';
+                            }}
+                            style={{
+                              width: '10px',
+                              margin: '0 -1px',
+                              cursor: 'col-resize',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              zIndex: 30,
+                              flexShrink: 0,
+                              userSelect: 'none',
+                              position: 'relative'
+                            }}
+                          >
+                            <div
+                              style={{
+                                width: '2px',
+                                height: '100%',
+                                background: resizingDivider === 'threePane2' ? '#EA580C' : '#E2E8F0',
+                                borderRadius: '1px',
+                                transition: resizingDivider === 'threePane2' ? 'none' : 'background 0.15s ease'
+                              }}
+                            />
+                          </div>
+                        )}
+
+                        {isTwoPane && isFirst && (
+                          <div
+                            className="trulin-vscode-splitter"
+                            onMouseDown={(e) => handleSplitMouseDown(e, 'twoPane')}
+                            title="Drag to resize split view (Double-click to reset 50/50)"
+                            onDoubleClick={() => setSplitRatio(50)}
+                            onMouseEnter={e => {
+                              const line = e.currentTarget.firstElementChild;
+                              if (line) line.style.background = '#EA580C';
+                            }}
+                            onMouseLeave={e => {
+                              const line = e.currentTarget.firstElementChild;
+                              if (line && resizingDivider !== 'twoPane') line.style.background = '#E2E8F0';
+                            }}
+                            style={{
+                              width: '10px',
+                              margin: '0 -1px',
+                              cursor: 'col-resize',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              zIndex: 30,
+                              flexShrink: 0,
+                              userSelect: 'none',
+                              position: 'relative'
+                            }}
+                          >
+                            <div
+                              style={{
+                                width: '2px',
+                                height: '100%',
+                                background: resizingDivider === 'twoPane' ? '#EA580C' : '#E2E8F0',
+                                borderRadius: '1px',
+                                transition: resizingDivider === 'twoPane' ? 'none' : 'background 0.15s ease'
+                              }}
+                            />
+                          </div>
+                        )}
+                      </React.Fragment>
+                    );
+                  })}
+                </div>
+              );
+            })()}
           </div>
         );
       })()}
