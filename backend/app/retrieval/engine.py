@@ -43,12 +43,42 @@ class ContextRetrievalEngine:
         self,
         request_in: ContextQueryRequest,
     ) -> ContextQueryResponse:
-        now = datetime.now(timezone.utc)
+        # 1. Ensure a valid Agent record exists for the organization
+        from app.db.models.agent import Agent
+        from app.db.enums import RecordStatus
 
-        # 1. Log the AgentRequest record
+        effective_agent_id = request_in.agent_id
+        if effective_agent_id:
+            agent_check = await self.session.execute(
+                select(Agent.id).where(Agent.id == effective_agent_id).limit(1)
+            )
+            if not agent_check.scalar_one_or_none():
+                effective_agent_id = None
+
+        if not effective_agent_id:
+            org_agent = await self.session.execute(
+                select(Agent.id).where(Agent.organization_id == request_in.organization_id).limit(1)
+            )
+            found_id = org_agent.scalar_one_or_none()
+            if found_id:
+                effective_agent_id = found_id
+            else:
+                default_agent = Agent(
+                    organization_id=request_in.organization_id,
+                    name="Context Trust Copilot",
+                    description="Autonomous context verification agent",
+                    agent_type="copilot",
+                    status=RecordStatus.ACTIVE,
+                )
+                self.session.add(default_agent)
+                await self.session.flush()
+                await self.session.refresh(default_agent)
+                effective_agent_id = default_agent.id
+
+        # 1b. Log the AgentRequest record
         agent_req = AgentRequest(
             organization_id=request_in.organization_id,
-            agent_id=request_in.agent_id,
+            agent_id=effective_agent_id,
             query=request_in.query,
             trust_threshold=request_in.min_trust_score,
             max_results=request_in.max_results,
