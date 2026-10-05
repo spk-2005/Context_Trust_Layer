@@ -1017,28 +1017,28 @@ export default function SmartDocumentCanvas({
       style={{
         display: 'flex',
         flexDirection: 'column',
-        height: '920px',
+        height: 'calc(100vh - 108px)',
+        maxHeight: 'calc(100vh - 108px)',
+        minHeight: '380px',
         background: '#FFFFFF',
         border: '1px solid #E2E8F0',
         borderRadius: '10px',
         overflow: 'hidden',
-        position: 'sticky',
-        top: '12px',
         boxShadow: 'none'
       }}
     >
       <style>{`
         .doc-dynamic-page {
-          background: #FFFFFF;
+          background: transparent;
           width: 100%;
           max-width: 820px;
           min-height: auto;
           content-visibility: auto;
           contain-intrinsic-size: 650px;
-          padding: ${isUltraCompact ? '12px 10px 18px 10px' : (isCompact ? '16px 14px 22px 14px' : '24px 32px 30px 32px')};
+          padding: ${isUltraCompact ? '8px 8px 16px 8px' : (isCompact ? '12px 12px 20px 12px' : '18px 20px 24px 20px')};
           box-sizing: border-box;
-          border: 1px solid #F1F5F9;
-          border-radius: 8px;
+          border: none;
+          border-radius: 0;
           box-shadow: none;
           font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
           color: #0F172A;
@@ -1062,65 +1062,48 @@ export default function SmartDocumentCanvas({
       `}</style>
 
       {/* ========================================================= */}
-      {/* 1. STICKY TOP ACTION BAR                                  */}
+      {/* 1. STICKY TOP ACTION BAR (DRAGGABLE DARK HEADER BAR)       */}
       {/* ========================================================= */}
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        gap: isCompact ? '4px' : '8px',
-        padding: isUltraCompact ? '5px 8px' : (isCompact ? '6px 10px' : '8px 14px'),
-        background: '#FFFFFF',
-        borderBottom: '1px solid #E2E8F0',
-        zIndex: 15,
-        boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
-        borderRadius: '8px 8px 0 0',
-        flexWrap: 'nowrap',
-        overflow: 'hidden'
-      }}>
-        {/* Zoom controls, Highlights Filter, Minimize */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', gap: isCompact ? '4px' : '6px' }}>
-          {/* Draggable Document Grip Handle */}
-          <div
-            draggable={true}
-            onDragStart={(e) => {
-              e.dataTransfer.setData('text/plain', 'doc');
-              onDragStartHandle?.('doc');
-            }}
-            onDragEnd={() => onDragEndHandle?.()}
-            title="Hold and drag to shuffle Document pane position"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '4px',
-              padding: isCompact ? '2px 5px' : '2px 7px',
-              borderRadius: '5px',
-              border: '1px solid #CBD5E1',
-              background: '#F8FAFC',
-              cursor: 'grab',
-              userSelect: 'none',
-              fontSize: isCompact ? '0.64rem' : '0.70rem',
-              fontWeight: 700,
-              color: '#334155',
-              flexShrink: 0
-            }}
-          >
-            <GripVertical size={isCompact ? 11 : 13} color="#EA580C" />
-            <span>Document</span>
-          </div>
-
-          {/* Right Group: Zoom Controls, Filters, Close */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: isCompact ? '3px' : '6px', flexShrink: 0 }}>
-            {/* Zoom Controls Pill */}
+      <div
+        draggable={true}
+        onDragStart={(e) => {
+          e.dataTransfer.setData('text/plain', 'doc');
+          onDragStartHandle?.('doc');
+        }}
+        onDragEnd={() => onDragEndHandle?.()}
+        title="Hold and drag header to move/shuffle tab position"
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          gap: isCompact ? '4px' : '8px',
+          padding: isUltraCompact ? '5px 8px' : (isCompact ? '6px 10px' : '7px 12px'),
+          background: 'linear-gradient(180deg, #1E293B 0%, #0F172A 100%)',
+          borderBottom: '1px solid #334155',
+          zIndex: 15,
+          boxShadow: '0 1px 3px rgba(0,0,0,0.12)',
+          borderRadius: '9px 9px 0 0',
+          flexWrap: 'nowrap',
+          overflow: 'hidden',
+          cursor: 'grab',
+          userSelect: 'none'
+        }}
+      >
+        {/* Right Group: Zoom Controls, Filters, Close */}
+        <div
+          onClick={(e) => e.stopPropagation()}
+          onMouseDown={(e) => e.stopPropagation()}
+          style={{ display: 'flex', alignItems: 'center', gap: isCompact ? '3px' : '6px', flexShrink: 0, cursor: 'default' }}
+        >
+          {/* Zoom Controls Pill */}
           <div style={{
             display: 'inline-flex',
             alignItems: 'center',
-            background: '#FFFFFF',
-            border: '1px solid #CBD5E1',
+            background: 'rgba(255, 255, 255, 0.10)',
+            border: '1px solid rgba(255, 255, 255, 0.15)',
             borderRadius: '6px',
             padding: isCompact ? '1px 3px' : '2px 4px',
-            gap: isCompact ? '1px' : '2px',
-            boxShadow: '0 1px 2px rgba(0,0,0,0.03)'
+            gap: isCompact ? '1px' : '2px'
           }}>
             <button
               type="button"
@@ -1135,7 +1118,7 @@ export default function SmartDocumentCanvas({
                 height: isCompact ? '17px' : '20px',
                 border: 'none',
                 background: 'transparent',
-                color: zoomLevel <= 60 ? '#CBD5E1' : '#475569',
+                color: zoomLevel <= 60 ? 'rgba(255,255,255,0.3)' : '#E2E8F0',
                 cursor: zoomLevel <= 60 ? 'not-allowed' : 'pointer',
                 borderRadius: '4px',
                 padding: 0
@@ -1153,7 +1136,7 @@ export default function SmartDocumentCanvas({
                 background: 'transparent',
                 fontSize: isCompact ? '0.64rem' : '0.70rem',
                 fontWeight: 700,
-                color: zoomLevel === 100 ? '#64748B' : '#EA580C',
+                color: zoomLevel === 100 ? '#94A3B8' : '#FB923C',
                 cursor: 'pointer',
                 padding: '0 2px',
                 minWidth: isCompact ? '28px' : '36px',
@@ -1176,7 +1159,7 @@ export default function SmartDocumentCanvas({
                 height: isCompact ? '17px' : '20px',
                 border: 'none',
                 background: 'transparent',
-                color: zoomLevel >= 160 ? '#CBD5E1' : '#475569',
+                color: zoomLevel >= 160 ? 'rgba(255,255,255,0.3)' : '#E2E8F0',
                 cursor: zoomLevel >= 160 ? 'not-allowed' : 'pointer',
                 borderRadius: '4px',
                 padding: 0
@@ -1190,10 +1173,10 @@ export default function SmartDocumentCanvas({
           <div style={{
             display: 'inline-flex',
             alignItems: 'center',
-            background: '#F1F5F9',
+            background: 'rgba(255, 255, 255, 0.08)',
             padding: isCompact ? '2px' : '3px',
-            borderRadius: '7px',
-            border: '1px solid #E2E8F0',
+            borderRadius: '6px',
+            border: '1px solid rgba(255, 255, 255, 0.12)',
             gap: isCompact ? '2px' : '3px'
           }}>
             <button
@@ -1209,14 +1192,13 @@ export default function SmartDocumentCanvas({
                 cursor: 'pointer',
                 fontSize: isCompact ? '0.66rem' : '0.73rem',
                 fontWeight: 700,
-                background: highlightFilter === 'conflicts' ? '#FFFFFF' : 'transparent',
-                color: highlightFilter === 'conflicts' ? '#EA580C' : '#64748B',
-                boxShadow: highlightFilter === 'conflicts' ? '0 1px 2px rgba(0,0,0,0.06)' : 'none',
+                background: highlightFilter === 'conflicts' ? '#EA580C' : 'transparent',
+                color: highlightFilter === 'conflicts' ? '#FFFFFF' : '#CBD5E1',
                 transition: 'all 0.15s ease'
               }}
               title="Show contradicted rules with active policy conflicts"
             >
-              <AlertTriangle size={isCompact ? 11 : 12} strokeWidth={2.4} color={highlightFilter === 'conflicts' ? '#EA580C' : '#94A3B8'} />
+              <AlertTriangle size={isCompact ? 11 : 12} strokeWidth={2.4} color={highlightFilter === 'conflicts' ? '#FFFFFF' : '#FB923C'} />
               <span>{isUltraCompact ? `(${conflictsCount})` : `Conflicts (${conflictsCount})`}</span>
             </button>
 
@@ -1233,14 +1215,13 @@ export default function SmartDocumentCanvas({
                 cursor: 'pointer',
                 fontSize: isCompact ? '0.66rem' : '0.73rem',
                 fontWeight: 700,
-                background: highlightFilter === 'claims' ? '#FFFFFF' : 'transparent',
-                color: highlightFilter === 'claims' ? '#059669' : '#64748B',
-                boxShadow: highlightFilter === 'claims' ? '0 1px 2px rgba(0,0,0,0.06)' : 'none',
+                background: highlightFilter === 'claims' ? '#059669' : 'transparent',
+                color: highlightFilter === 'claims' ? '#FFFFFF' : '#CBD5E1',
                 transition: 'all 0.15s ease'
               }}
               title="Show all verified atomic policy rules"
             >
-              <Zap size={isCompact ? 11 : 12} strokeWidth={2.4} color={highlightFilter === 'claims' ? '#059669' : '#94A3B8'} />
+              <Zap size={isCompact ? 11 : 12} strokeWidth={2.4} color={highlightFilter === 'claims' ? '#FFFFFF' : '#34D399'} />
               <span>{isUltraCompact ? `(${claimsCount})` : `Claims (${claimsCount})`}</span>
             </button>
 
@@ -1257,14 +1238,13 @@ export default function SmartDocumentCanvas({
                 cursor: 'pointer',
                 fontSize: isCompact ? '0.66rem' : '0.73rem',
                 fontWeight: 600,
-                background: highlightFilter === 'none' ? '#FFFFFF' : 'transparent',
-                color: highlightFilter === 'none' ? '#0F172A' : '#64748B',
-                boxShadow: highlightFilter === 'none' ? '0 1px 2px rgba(0,0,0,0.06)' : 'none',
+                background: highlightFilter === 'none' ? '#334155' : 'transparent',
+                color: highlightFilter === 'none' ? '#FFFFFF' : '#94A3B8',
                 transition: 'all 0.15s ease'
               }}
               title="Clean document reading view without highlights"
             >
-              <BookOpen size={isCompact ? 11 : 12} strokeWidth={2.2} color={highlightFilter === 'none' ? '#0F172A' : '#94A3B8'} />
+              <BookOpen size={isCompact ? 11 : 12} strokeWidth={2.2} color={highlightFilter === 'none' ? '#FFFFFF' : '#94A3B8'} />
               {!isUltraCompact && <span>Clean</span>}
             </button>
           </div>
@@ -1278,31 +1258,29 @@ export default function SmartDocumentCanvas({
                 display: 'inline-flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                width: '26px',
-                height: '26px',
-                borderRadius: '6px',
-                border: '1px solid #CBD5E1',
-                background: '#FFFFFF',
-                color: '#64748B',
+                width: '24px',
+                height: '24px',
+                borderRadius: '5px',
+                border: '1px solid rgba(255,255,255,0.15)',
+                background: 'rgba(255, 255, 255, 0.08)',
+                color: '#CBD5E1',
                 cursor: 'pointer',
-                boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
                 transition: 'all 0.15s ease'
               }}
               onMouseEnter={e => {
-                e.currentTarget.style.color = '#EF4444';
-                e.currentTarget.style.borderColor = '#FCA5A5';
-                e.currentTarget.style.background = '#FEF2F2';
+                e.currentTarget.style.color = '#FFFFFF';
+                e.currentTarget.style.borderColor = '#EF4444';
+                e.currentTarget.style.background = '#EF4444';
               }}
               onMouseLeave={e => {
-                e.currentTarget.style.color = '#64748B';
-                e.currentTarget.style.borderColor = '#CBD5E1';
-                e.currentTarget.style.background = '#FFFFFF';
+                e.currentTarget.style.color = '#CBD5E1';
+                e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)';
+                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)';
               }}
             >
-              <X size={14} strokeWidth={2.4} />
+              <X size={13} strokeWidth={2.4} />
             </button>
           )}
-          </div>
         </div>
       </div>
 

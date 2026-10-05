@@ -110,7 +110,7 @@ export default function VisualLineageGraph({
     onSectionChange?.(secId);
   };
   const [copiedHash, setCopiedHash] = useState(false);
-  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(true);
   const [activeClaimInspector, setActiveClaimInspector] = useState(null);
   const [vaultSearch, setVaultSearch] = useState('');
   const [vaultConflictFilter, setVaultConflictFilter] = useState('all'); // 'all' | 'active' | 'resolved'
@@ -2229,60 +2229,54 @@ export default function VisualLineageGraph({
           const contentHash = nodeData.content_hash || 'e8f7a912b404d09c31405eb62a71f008432a';
           const versions = nodeData.versions || [];
           const latestVer = versions.length > 0 ? versions[0] : null;
-          const verifiedClaimsCount = Math.max(0, selectedAsset360.claims.length - selectedAsset360.activeConflicts.length);
           const trustPercent = selectedAsset360.activeConflicts.length === 0 ? 98 : Math.max(72, 98 - (selectedAsset360.activeConflicts.length * 4));
+          const verifiedClaimsCount = (selectedAsset360.claims || []).filter(c =>
+            c.status === 'verified' || c.status === 'ACTIVE' || !selectedAsset360.activeConflicts.some(conf => conf.claim_a_id === c.id || conf.claim_b_id === c.id)
+          ).length;
 
           return (
             <div style={{
               background: '#FFFFFF',
               border: '1px solid #E2E8F0',
               borderRadius: '10px',
-              padding: '16px',
+              overflow: 'hidden',
               display: 'flex',
               flexDirection: 'column',
-              gap: '14px',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.02)'
+              height: 'calc(100vh - 108px)',
+              maxHeight: 'calc(100vh - 108px)',
+              minHeight: '380px',
+              boxShadow: 'none'
             }}>
-              {/* Header inside Details Card */}
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                flexWrap: 'wrap',
-                gap: '8px',
-                borderBottom: '1px solid #F1F5F9',
-                paddingBottom: '8px'
-              }}>
+              {/* Header inside Details Card (Draggable Dark Titlebar) */}
+              <div
+                draggable={true}
+                onDragStart={(e) => {
+                  e.dataTransfer.setData('text/plain', 'details');
+                  setDraggedPane('details');
+                }}
+                onDragEnd={() => {
+                  setDraggedPane(null);
+                  setDragOverPane(null);
+                }}
+                title="Hold and drag header to move/shuffle tab position"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'flex-end',
+                  padding: '7px 12px',
+                  background: 'linear-gradient(180deg, #1E293B 0%, #0F172A 100%)',
+                  borderBottom: '1px solid #334155',
+                  zIndex: 15,
+                  cursor: 'grab',
+                  userSelect: 'none',
+                  flexShrink: 0
+                }}
+              >
                 <div
-                  draggable={true}
-                  onDragStart={(e) => {
-                    e.dataTransfer.setData('text/plain', 'details');
-                    setDraggedPane('details');
-                  }}
-                  onDragEnd={() => {
-                    setDraggedPane(null);
-                    setDragOverPane(null);
-                  }}
-                  title="Hold and drag to shuffle position"
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '5px',
-                    padding: '2px 7px',
-                    borderRadius: '6px',
-                    background: '#F1F5F9',
-                    border: '1px solid #CBD5E1',
-                    cursor: 'grab',
-                    userSelect: 'none'
-                  }}
+                  onClick={(e) => e.stopPropagation()}
+                  onMouseDown={(e) => e.stopPropagation()}
+                  style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'default' }}
                 >
-                  <GripVertical size={13} color="#EA580C" />
-                  <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#334155' }}>
-                    Asset Details
-                  </span>
-                </div>
-
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <button
                     type="button"
                     onClick={() => setIsDetailsOpen(false)}
@@ -2294,21 +2288,42 @@ export default function VisualLineageGraph({
                       width: '22px',
                       height: '22px',
                       borderRadius: '5px',
-                      border: '1px solid #CBD5E1',
-                      background: '#FFFFFF',
-                      color: '#64748B',
-                      cursor: 'pointer'
+                      border: '1px solid rgba(255,255,255,0.15)',
+                      background: 'rgba(255, 255, 255, 0.08)',
+                      color: '#CBD5E1',
+                      cursor: 'pointer',
+                      transition: 'all 0.15s ease'
+                    }}
+                    onMouseEnter={e => {
+                      e.currentTarget.style.color = '#FFFFFF';
+                      e.currentTarget.style.borderColor = '#EF4444';
+                      e.currentTarget.style.background = '#EF4444';
+                    }}
+                    onMouseLeave={e => {
+                      e.currentTarget.style.color = '#CBD5E1';
+                      e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)';
+                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)';
                     }}
                   >
-                    <X size={12} strokeWidth={2.4} />
+                    <X size={13} strokeWidth={2.4} />
                   </button>
                 </div>
               </div>
 
-              {/* Governance Description */}
-              <p style={{ margin: 0, fontSize: '0.78rem', color: '#475569', lineHeight: 1.5 }}>
-                {selectedAsset360.description || `Enterprise normalized governance asset. Deconstructed into atomic facts and verified against cross-policy contradictions.`}
-              </p>
+              {/* Scrollable Content Body for Asset Details */}
+              <div style={{
+                flex: 1,
+                overflowY: 'auto',
+                padding: '16px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '14px',
+                background: '#FFFFFF'
+              }}>
+                {/* Governance Description */}
+                <p style={{ margin: 0, fontSize: '0.78rem', color: '#475569', lineHeight: 1.5 }}>
+                  {selectedAsset360.description || `Enterprise normalized governance asset. Deconstructed into atomic facts and verified against cross-policy contradictions.`}
+                </p>
 
               {/* Core Metrics Summary */}
               <div style={{
@@ -2481,6 +2496,7 @@ export default function VisualLineageGraph({
                   ))}
                 </div>
               </div>
+            </div>
             </div>
           );
         };
@@ -2780,6 +2796,7 @@ export default function VisualLineageGraph({
                       const actualNodeId = matchedNode ? matchedNode.id : targetId;
 
                       setActiveClaimInspector(claim);
+                      setIsDetailsOpen(true);
                       setSelectedNodeId(actualNodeId);
                       setInteractiveRootId(actualNodeId);
                       setViewMode('interactive');
@@ -2800,41 +2817,38 @@ export default function VisualLineageGraph({
                     borderRadius: '10px',
                     display: 'flex',
                     flexDirection: 'column',
-                    height: '920px',
-                    overflow: 'hidden',
-                    position: 'sticky',
-                    top: '12px'
+                    height: 'calc(100vh - 108px)',
+                    maxHeight: 'calc(100vh - 108px)',
+                    minHeight: '380px',
+                    overflow: 'hidden'
                   }}>
-                    <div style={{
-                      padding: '8px 14px',
-                      background: '#F8FAFC',
-                      borderBottom: '1px solid #E2E8F0',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      gap: '8px'
-                    }}>
-                      <div 
-                        draggable={true}
-                        onDragStart={(e) => {
-                          e.dataTransfer.setData('text/plain', 'doc');
-                          setDraggedPane('doc');
-                        }}
-                        onDragEnd={() => {
-                          setDraggedPane(null);
-                          setDragOverPane(null);
-                        }}
-                        title="Hold and drag to shuffle position"
-                        style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'grab', userSelect: 'none' }}
-                      >
-                        <GripVertical size={13} color="#EA580C" />
-                        <span style={{ fontSize: '0.73rem', fontWeight: 600, color: '#64748B' }}>
-                          Connector Source Profile
-                        </span>
-                      </div>
+                    <div
+                      draggable={true}
+                      onDragStart={(e) => {
+                        e.dataTransfer.setData('text/plain', 'doc');
+                        setDraggedPane('doc');
+                      }}
+                      onDragEnd={() => {
+                        setDraggedPane(null);
+                        setDragOverPane(null);
+                      }}
+                      title="Hold and drag header to move/shuffle tab position"
+                      style={{
+                        padding: '7px 12px',
+                        background: 'linear-gradient(180deg, #1E293B 0%, #0F172A 100%)',
+                        borderBottom: '1px solid #334155',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'flex-end',
+                        gap: '8px',
+                        cursor: 'grab',
+                        userSelect: 'none'
+                      }}
+                    >
                       <button
                         type="button"
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.stopPropagation();
                           setIsFileViewerOpen(false);
                           showToast?.("Source preview minimized");
                         }}
@@ -2843,12 +2857,12 @@ export default function VisualLineageGraph({
                           display: 'inline-flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          width: '24px',
-                          height: '24px',
+                          width: '22px',
+                          height: '22px',
                           borderRadius: '5px',
-                          border: '1px solid #CBD5E1',
-                          background: '#FFFFFF',
-                          color: '#64748B',
+                          border: '1px solid rgba(255,255,255,0.15)',
+                          background: 'rgba(255, 255, 255, 0.08)',
+                          color: '#CBD5E1',
                           cursor: 'pointer'
                         }}
                       >
@@ -2885,10 +2899,11 @@ export default function VisualLineageGraph({
                   style={{
                     display: 'flex',
                     flexDirection: 'column',
-                    overflowY: 'auto',
-                    maxHeight: '920px',
-                    width: '100%',
-                    height: '100%'
+                    overflow: 'hidden',
+                    height: 'calc(100vh - 108px)',
+                    maxHeight: 'calc(100vh - 108px)',
+                    minHeight: '380px',
+                    width: '100%'
                   }}
                 >
                   {renderAssetDetailsCard()}
@@ -3414,9 +3429,21 @@ export default function VisualLineageGraph({
       )}
 
       {/* 3. Interactive DAG Canvas */}
-      <div style={{ position: 'relative', width: '100%', borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--border-color)', background: '#fff' }}>
+      <div style={{
+        position: 'relative',
+        width: '100%',
+        borderRadius: '10px',
+        overflow: 'hidden',
+        border: '1px solid #CBD5E1',
+        background: '#fff',
+        display: 'flex',
+        flexDirection: 'column',
+        height: isSplitActive ? 'calc(100vh - 108px)' : 'auto',
+        maxHeight: isSplitActive ? 'calc(100vh - 108px)' : 'none',
+        minHeight: isSplitActive ? '380px' : 'auto'
+      }}>
         
-        {/* Draggable Header Tab for DAG */}
+        {/* Sticky Top Header Bar for DAG (Draggable Dark Titlebar) */}
         <div
           draggable={true}
           onDragStart={(e) => {
@@ -3427,153 +3454,142 @@ export default function VisualLineageGraph({
             setDraggedPane(null);
             setDragOverPane(null);
           }}
-          title="Hold and drag to shuffle position"
+          title="Hold and drag header to move/shuffle tab position"
           style={{
-            position: 'absolute',
-            top: '8px',
-            left: '8px',
-            zIndex: 30,
-            display: 'inline-flex',
+            display: 'flex',
             alignItems: 'center',
-            gap: '4px',
-            background: 'rgba(255, 255, 255, 0.96)',
-            backdropFilter: 'blur(8px)',
-            border: '1px solid #CBD5E1',
-            borderRadius: '6px',
-            padding: '3px 7px',
+            justifyContent: 'flex-end',
+            padding: '7px 12px',
+            background: 'linear-gradient(180deg, #1E293B 0%, #0F172A 100%)',
+            borderBottom: '1px solid #334155',
+            zIndex: 30,
             cursor: 'grab',
             userSelect: 'none',
-            fontSize: '0.68rem',
-            fontWeight: 700,
-            color: '#334155',
-            boxShadow: '0 1px 2px rgba(0,0,0,0.04)'
+            flexShrink: 0
           }}
         >
-          <GripVertical size={12} color="#EA580C" />
-          <span>Lineage DAG</span>
-        </div>
+          {/* Right: Floating Controls (Search, Zoom, Fit, Close) */}
+          <div
+            onClick={(e) => e.stopPropagation()}
+            onMouseDown={(e) => e.stopPropagation()}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+              background: 'rgba(255, 255, 255, 0.10)',
+              padding: '2px 5px',
+              borderRadius: '6px',
+              border: '1px solid rgba(255,255,255,0.15)',
+              cursor: 'default'
+            }}
+          >
+            {/* Find in canvas (Global across all nodes) */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '3px', paddingRight: '4px', borderRight: '1px solid rgba(255,255,255,0.15)' }}>
+              <span style={{ fontSize: '0.66rem', color: '#94A3B8' }}>🔍</span>
+              <input
+                type="text"
+                placeholder="Find..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                style={{
+                  border: 'none',
+                  background: 'transparent',
+                  fontSize: '0.68rem',
+                  outline: 'none',
+                  width: isThreePane ? '56px' : '82px',
+                  color: '#F8FAFC',
+                  transition: 'width 0.15s ease'
+                }}
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: '#CBD5E1', fontSize: '0.66rem', padding: '0 2px' }}
+                >
+                  ✕
+                </button>
+              )}
+            </div>
 
-        {/* Floating Toolbar (Top-Right) */}
-        <div style={{
-          position: 'absolute',
-          top: '8px',
-          right: '8px',
-          zIndex: 30,
-          display: 'flex',
-          alignItems: 'center',
-          gap: '4px',
-          background: 'rgba(255, 255, 255, 0.96)',
-          backdropFilter: 'blur(8px)',
-          padding: '3px 6px',
-          borderRadius: '7px',
-          boxShadow: '0 2px 10px rgba(0,0,0,0.06)',
-          border: '1px solid #e2e8f0',
-          maxWidth: 'calc(100% - 16px)'
-        }}>
-          {/* Find in canvas (Global across all nodes) */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '3px', paddingRight: '4px', borderRight: '1px solid #e2e8f0' }}>
-            <span style={{ fontSize: '0.66rem', color: '#64748b' }}>🔍</span>
-            <input
-              type="text"
-              placeholder="Find..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              style={{
-                border: 'none',
-                background: 'transparent',
-                fontSize: '0.68rem',
-                outline: 'none',
-                width: isThreePane ? '62px' : '90px',
-                color: 'var(--text-main)',
-                transition: 'width 0.15s ease'
-              }}
-            />
-            {searchQuery && (
+            {/* Zoom Controls */}
+            <button
+              onClick={() => setZoom(z => Math.max(0.4, Number((z - 0.1).toFixed(2))))}
+              className="canvas-btn"
+              style={{ width: '19px', height: '19px', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.1)', cursor: 'pointer', fontWeight: 700, fontSize: '0.74rem', color: '#F8FAFC', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}
+              title="Zoom Out"
+            >
+              -
+            </button>
+            <span style={{ fontSize: '0.65rem', fontWeight: 700, minWidth: '25px', textAlign: 'center', color: '#CBD5E1' }}>
+              {(zoom * 100).toFixed(0)}%
+            </span>
+            <button
+              onClick={() => setZoom(z => Math.min(1.4, Number((z + 0.1).toFixed(2))))}
+              className="canvas-btn"
+              style={{ width: '19px', height: '19px', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.1)', cursor: 'pointer', fontWeight: 700, fontSize: '0.74rem', color: '#F8FAFC', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}
+              title="Zoom In"
+            >
+              +
+            </button>
+            <button
+              onClick={handleFitView}
+              className="canvas-btn"
+              style={{ padding: '0 6px', height: '20px', borderRadius: '4px', border: '1px solid #3B82F6', background: '#1D4ED8', cursor: 'pointer', fontSize: '0.65rem', color: '#FFFFFF', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '3px' }}
+              title="Auto-Fit all visible nodes to screen"
+            >
+              <span>⛶</span>
+              <span>Fit</span>
+            </button>
+            {activeClaimInspector && asset360Section === 'summary' && (
               <button
-                onClick={() => setSearchQuery('')}
-                style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: '#94a3b8', fontSize: '0.66rem', padding: '0 2px' }}
+                type="button"
+                onClick={() => {
+                  setActiveClaimInspector(null);
+                  setSelectedNodeId(null);
+                }}
+                className="canvas-btn"
+                style={{
+                  padding: '0 6px',
+                  height: '20px',
+                  borderRadius: '4px',
+                  border: '1px solid #EA580C',
+                  background: '#C2410C',
+                  cursor: 'pointer',
+                  fontSize: '0.65rem',
+                  color: '#FFFFFF',
+                  fontWeight: 700,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '3px'
+                }}
+                title="Close Lineage view and return document reader to full width"
               >
-                ✕
+                <X size={10} strokeWidth={2.4} />
+                <span>Close</span>
               </button>
             )}
           </div>
-
-          {/* Zoom Controls */}
-          <button
-            onClick={() => setZoom(z => Math.max(0.4, Number((z - 0.1).toFixed(2))))}
-            className="canvas-btn"
-            style={{ width: '20px', height: '20px', borderRadius: '4px', border: '1px solid #e2e8f0', background: '#fff', cursor: 'pointer', fontWeight: 700, fontSize: '0.74rem', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}
-            title="Zoom Out"
-          >
-            -
-          </button>
-          <span style={{ fontSize: '0.65rem', fontWeight: 600, minWidth: '25px', textAlign: 'center', color: '#475569' }}>
-            {(zoom * 100).toFixed(0)}%
-          </span>
-          <button
-            onClick={() => setZoom(z => Math.min(1.4, Number((z + 0.1).toFixed(2))))}
-            className="canvas-btn"
-            style={{ width: '20px', height: '20px', borderRadius: '4px', border: '1px solid #e2e8f0', background: '#fff', cursor: 'pointer', fontWeight: 700, fontSize: '0.74rem', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}
-            title="Zoom In"
-          >
-            +
-          </button>
-          <button
-            onClick={handleFitView}
-            className="canvas-btn"
-            style={{ padding: '0 6px', height: '21px', borderRadius: '4px', border: '1px solid #2563eb', background: '#eff6ff', cursor: 'pointer', fontSize: '0.65rem', color: '#2563eb', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '3px' }}
-            title="Auto-Fit all visible nodes to screen"
-          >
-            <span>⛶</span>
-            <span>Fit</span>
-          </button>
-          {activeClaimInspector && asset360Section === 'summary' && (
-            <button
-              type="button"
-              onClick={() => {
-                setActiveClaimInspector(null);
-                setSelectedNodeId(null);
-              }}
-              className="canvas-btn"
-              style={{
-                padding: '0 6px',
-                height: '21px',
-                borderRadius: '4px',
-                border: '1px solid #FDBA74',
-                background: '#FFF7ED',
-                cursor: 'pointer',
-                fontSize: '0.65rem',
-                color: '#C2410C',
-                fontWeight: 700,
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '3px'
-              }}
-              title="Close Lineage view and return document reader to full width"
-            >
-              <X size={10} strokeWidth={2.4} />
-              <span>Close</span>
-            </button>
-          )}
         </div>
 
         {/* Floating Legend / Quick Status at bottom left */}
         <div style={{
           position: 'absolute',
-          bottom: '12px',
-          left: '12px',
+          bottom: '10px',
+          left: '10px',
           zIndex: 30,
-          background: 'rgba(255,255,255,0.95)',
+          background: 'rgba(255,255,255,0.92)',
           backdropFilter: 'blur(8px)',
-          padding: '6px 12px',
-          borderRadius: '7px',
-          boxShadow: '0 3px 10px rgba(0,0,0,0.06)',
+          padding: '4px 8px',
+          borderRadius: '6px',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
           border: '1px solid #e2e8f0',
           display: 'flex',
           alignItems: 'center',
-          gap: '10px',
-          fontSize: '0.68rem',
-          color: '#475569'
+          flexWrap: 'wrap',
+          gap: '6px 8px',
+          fontSize: '0.64rem',
+          color: '#475569',
+          maxWidth: 'calc(100% - 20px)'
         }}>
           <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
             <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#2026d2' }} /> Data Source
@@ -3600,7 +3616,8 @@ export default function VisualLineageGraph({
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
           style={{
-            height: (activeClaimInspector && asset360Section === 'summary') ? '660px' : '640px',
+            height: isSplitActive ? '100%' : ((activeClaimInspector && asset360Section === 'summary') ? '660px' : '640px'),
+            flex: isSplitActive ? 1 : 'none',
             width: '100%',
             cursor: isPanning ? 'grabbing' : 'grab',
             overflow: 'hidden',
@@ -4260,8 +4277,8 @@ export default function VisualLineageGraph({
         </div>
       </div>
 
-      {/* 4. Selected Entity Inspector & Conflict Resolution Console */}
-      {selectedNode && (
+      {/* 4. Selected Entity Inspector & Conflict Resolution Console (Hidden in Split-Screen view to keep DAG clean and spacious) */}
+      {!isSplitActive && selectedNode && (
         <div style={{
           background: 'var(--bg-surface)',
           border: '1px solid var(--border-color)',
@@ -4599,11 +4616,16 @@ export default function VisualLineageGraph({
                     flexDirection: isSplitActive ? 'row' : 'column',
                     alignItems: 'stretch',
                     width: '100%',
+                    height: isSplitActive ? 'calc(100vh - 108px)' : 'auto',
+                    maxHeight: isSplitActive ? 'calc(100vh - 108px)' : 'none',
+                    minHeight: isSplitActive ? '380px' : 'auto',
                     position: 'relative',
                     background: 'transparent',
                     userSelect: isResizingSplit ? 'none' : 'auto',
                     gap: isSplitActive ? '0px' : '8px',
-                    marginTop: '0px'
+                    marginTop: '0px',
+                    marginBottom: isSplitActive ? '8px' : '0px',
+                    overflow: 'hidden'
                   }}
                 >
                   {activePanes.map((paneId, idx) => {
