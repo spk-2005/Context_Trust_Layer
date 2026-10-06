@@ -325,243 +325,240 @@ export default function ContextCuratorStudio({
     : issues.filter(i => i.category === activeCategory);
 
   return (
-    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-      
-      {/* Header Banner & Sub-View Switcher */}
-      <div style={{
-        background: 'linear-gradient(135deg, rgba(32,38,210,0.06) 0%, rgba(98,225,252,0.06) 100%)',
-        border: '1px solid rgba(32,38,210,0.15)',
-        borderRadius: '12px',
-        padding: '18px 22px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        flexWrap: 'wrap',
-        gap: '14px'
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <div style={{
-            width: '46px',
-            height: '46px',
-            borderRadius: '12px',
-            background: 'linear-gradient(135deg, #FFAB4A 0%, #EA580C 100%)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '22px',
-            color: '#fff',
-            boxShadow: '0 4px 12px rgba(255,171,74,0.3)',
-            flexShrink: 0
-          }}>
-            🤖
-          </div>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-              <h2 style={{ fontSize: '1.2rem', fontWeight: 700, margin: 0, color: 'var(--text-main)' }}>
-                Autonomous Context Curator & Conflict Resolution Hub
-              </h2>
-              <span className="badge badge-verified" style={{ fontSize: '0.65rem' }}>
-                Heuristic AI Data Steward
-              </span>
-            </div>
-            <p style={{ margin: '3px 0 0 0', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-              Continuous knowledge base health auditing, automated contradiction arbitration, and proactive policy curation.
-            </p>
-          </div>
-        </div>
-
-        {/* Top Environment Sub-Tabs */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-          <div style={{ display: 'flex', background: 'var(--bg-card)', padding: '3px', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
-            <button
-              onClick={() => handleSelectSubView('health')}
-              style={{
-                padding: '7px 14px',
-                borderRadius: '6px',
-                border: 'none',
-                background: curatorSubView === 'health' ? '#FFAB4A' : 'transparent',
-                color: curatorSubView === 'health' ? '#1A1207' : 'var(--text-main)',
-                fontSize: '0.78rem',
-                fontWeight: 700,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px'
-              }}
-            >
-              <span>🤖 Context Health & Heuristics</span>
-              <span className="badge" style={{ fontSize: '0.62rem', background: curatorSubView === 'health' ? 'rgba(0,0,0,0.12)' : 'var(--bg-surface)', color: curatorSubView === 'health' ? '#1A1207' : 'var(--text-muted)' }}>
-                {scorecard.overall_score}%
-              </span>
-            </button>
-            <button
-              onClick={() => handleSelectSubView('conflicts')}
-              style={{
-                padding: '7px 14px',
-                borderRadius: '6px',
-                border: 'none',
-                background: curatorSubView === 'conflicts' ? '#FFAB4A' : 'transparent',
-                color: curatorSubView === 'conflicts' ? '#1A1207' : 'var(--text-main)',
-                fontSize: '0.78rem',
-                fontWeight: 700,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px'
-              }}
-            >
-              <span>⚖️ Pairwise Conflict Resolver</span>
-              <span className="badge badge-review" style={{ fontSize: '0.62rem' }}>
-                {conflicts.length} Pending
-              </span>
-            </button>
-            <button
-              onClick={() => handleSelectSubView('drift')}
-              style={{
-                padding: '7px 14px',
-                borderRadius: '6px',
-                border: 'none',
-                background: curatorSubView === 'drift' ? '#FFAB4A' : 'transparent',
-                color: curatorSubView === 'drift' ? '#1A1207' : 'var(--text-main)',
-                fontSize: '0.78rem',
-                fontWeight: 700,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px'
-              }}
-            >
-              <span>⏳ Drift & Claim Decay</span>
-              <span className="badge badge-warning" style={{ fontSize: '0.62rem', background: curatorSubView === 'drift' ? 'rgba(0,0,0,0.12)' : 'rgba(245,158,11,0.15)', color: curatorSubView === 'drift' ? '#1A1207' : '#f59e0b' }}>
-                {driftData?.decay_items ? driftData.decay_items.filter(d => d.decay_status === 'CRITICAL' || d.decay_status === 'DECAYED').length : 0} At Risk
-              </span>
-            </button>
-          </div>
-
-          <button
-            onClick={() => {
-              fetchAudit();
-              if (onRefreshConflicts) onRefreshConflicts();
-            }}
-            disabled={loading}
-            className="btn btn-secondary"
-            style={{ padding: '7px 12px', fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: '4px' }}
-          >
-            <span>🔄</span>
-            <span>Refresh Scan</span>
-          </button>
-        </div>
-      </div>
+    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '22px', paddingTop: '16px' }}>
 
       {/* ========================================================= */}
       {/* SUB-VIEW 1: AUTONOMOUS CONTEXT HEALTH & STEWARD BOT       */}
       {/* ========================================================= */}
       {curatorSubView === 'health' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}>
           
-          {/* Health Scorecard Strip */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px' }}>
+          {/* Clean Professional 4-Card Governance KPI Strip (Pure White Background) */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+            gap: '16px'
+          }}>
+            
+            {/* CARD 1: Overall Context Health */}
             <div style={{
-              background: 'var(--bg-surface)',
-              border: '1px solid var(--border-color)',
+              background: '#FFFFFF',
+              border: '1px solid #E2E8F0',
               borderRadius: '12px',
-              padding: '16px 20px',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'space-between'
-            }}>
-              <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>
-                Overall Context Health
-              </span>
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginTop: '6px' }}>
-                <span style={{ fontSize: '1.75rem', fontWeight: 800, color: '#16a34a' }}>
-                  {scorecard.overall_score}%
-                </span>
-                <span className="badge badge-verified" style={{ fontSize: '0.7rem' }}>
-                  Grade {scorecard.grade}
-                </span>
-              </div>
-            </div>
-
-            <div style={{
-              background: 'var(--bg-surface)',
-              border: '1px solid var(--border-color)',
-              borderRadius: '12px',
-              padding: '16px 20px',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'space-between'
-            }}>
-              <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>
-                Contradiction Free Index
-              </span>
-              <div style={{ fontSize: '1.75rem', fontWeight: 800, color: '#2026d2', marginTop: '6px' }}>
-                {scorecard.contradiction_index}%
-              </div>
-            </div>
-
-            <div style={{
-              background: 'var(--bg-surface)',
-              border: '1px solid var(--border-color)',
-              borderRadius: '12px',
-              padding: '16px 20px',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'space-between'
-            }}>
-              <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>
-                Freshness & Time-Validity
-              </span>
-              <div style={{ fontSize: '1.75rem', fontWeight: 800, color: '#0284c7', marginTop: '6px' }}>
-                {scorecard.freshness_index}%
-              </div>
-            </div>
-
-            <div style={{
-              background: 'var(--bg-surface)',
-              border: '1px solid var(--border-color)',
-              borderRadius: '12px',
-              padding: '16px 20px',
+              padding: '18px 20px',
               display: 'flex',
               flexDirection: 'column',
               justifyContent: 'space-between',
-              cursor: 'pointer'
-            }}
-            onClick={() => setCuratorSubView('conflicts')}
-            title="Click to view and arbitrate pending conflicts"
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>
-                  Pending Conflicts
+              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03)',
+              position: 'relative',
+              overflow: 'hidden',
+              transition: 'all 0.2s ease'
+            }}>
+              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '3px', background: '#EA580C' }} />
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span style={{ fontSize: '0.70rem', color: '#64748B', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                  Overall Context Health
                 </span>
-                <span style={{ fontSize: '0.7rem', color: '#2026d2', fontWeight: 600 }}>Arbitrate ➔</span>
+                <span style={{
+                  fontSize: '0.65rem',
+                  fontWeight: 700,
+                  color: '#EA580C',
+                  background: '#FFF7ED',
+                  border: '1px solid #FFEDD5',
+                  padding: '2px 7px',
+                  borderRadius: '6px'
+                }}>
+                  Grade {scorecard.grade}
+                </span>
               </div>
-              <div style={{ fontSize: '1.75rem', fontWeight: 800, color: conflicts.length > 0 ? '#ea580c' : '#16a34a', marginTop: '6px' }}>
-                {conflicts.length}
+              <div style={{ marginTop: '12px', marginBottom: '8px' }}>
+                <div style={{ fontSize: '1.85rem', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.03em', lineHeight: 1.1 }}>
+                  {scorecard.overall_score}%
+                </div>
+              </div>
+              <div>
+                <div style={{ width: '100%', height: '4px', background: '#F1F5F9', borderRadius: '2px', overflow: 'hidden' }}>
+                  <div style={{ width: `${scorecard.overall_score}%`, height: '100%', background: '#EA580C', borderRadius: '2px' }} />
+                </div>
+                <div style={{ fontSize: '0.70rem', color: '#94A3B8', marginTop: '6px' }}>
+                  Continuous Heuristic Auditing
+                </div>
               </div>
             </div>
+
+            {/* CARD 2: Contradiction Free Index */}
+            <div style={{
+              background: '#FFFFFF',
+              border: '1px solid #E2E8F0',
+              borderRadius: '12px',
+              padding: '18px 20px',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03)',
+              position: 'relative',
+              overflow: 'hidden',
+              transition: 'all 0.2s ease'
+            }}>
+              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '3px', background: '#EA580C' }} />
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span style={{ fontSize: '0.70rem', color: '#64748B', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                  Contradiction Free
+                </span>
+                <span style={{
+                  fontSize: '0.65rem',
+                  fontWeight: 700,
+                  color: '#C2410C',
+                  background: '#FFF7ED',
+                  border: '1px solid #FFEDD5',
+                  padding: '2px 7px',
+                  borderRadius: '6px'
+                }}>
+                  Active
+                </span>
+              </div>
+              <div style={{ marginTop: '12px', marginBottom: '8px' }}>
+                <div style={{ fontSize: '1.85rem', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.03em', lineHeight: 1.1 }}>
+                  {scorecard.contradiction_index}%
+                </div>
+              </div>
+              <div>
+                <div style={{ width: '100%', height: '4px', background: '#F1F5F9', borderRadius: '2px', overflow: 'hidden' }}>
+                  <div style={{ width: `${scorecard.contradiction_index}%`, height: '100%', background: '#EA580C', borderRadius: '2px' }} />
+                </div>
+                <div style={{ fontSize: '0.70rem', color: '#94A3B8', marginTop: '6px' }}>
+                  0 Conflicting Policy Rules
+                </div>
+              </div>
+            </div>
+
+            {/* CARD 3: Freshness & Time Validity */}
+            <div style={{
+              background: '#FFFFFF',
+              border: '1px solid #E2E8F0',
+              borderRadius: '12px',
+              padding: '18px 20px',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03)',
+              position: 'relative',
+              overflow: 'hidden',
+              transition: 'all 0.2s ease'
+            }}>
+              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '3px', background: '#EA580C' }} />
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span style={{ fontSize: '0.70rem', color: '#64748B', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                  Freshness Index
+                </span>
+                <span style={{
+                  fontSize: '0.65rem',
+                  fontWeight: 700,
+                  color: '#C2410C',
+                  background: '#FFF7ED',
+                  border: '1px solid #FFEDD5',
+                  padding: '2px 7px',
+                  borderRadius: '6px'
+                }}>
+                  Verified
+                </span>
+              </div>
+              <div style={{ marginTop: '12px', marginBottom: '8px' }}>
+                <div style={{ fontSize: '1.85rem', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.03em', lineHeight: 1.1 }}>
+                  {scorecard.freshness_index}%
+                </div>
+              </div>
+              <div>
+                <div style={{ width: '100%', height: '4px', background: '#F1F5F9', borderRadius: '2px', overflow: 'hidden' }}>
+                  <div style={{ width: `${scorecard.freshness_index}%`, height: '100%', background: '#EA580C', borderRadius: '2px' }} />
+                </div>
+                <div style={{ fontSize: '0.70rem', color: '#94A3B8', marginTop: '6px' }}>
+                  100% Time-Valid Claims
+                </div>
+              </div>
+            </div>
+
+            {/* CARD 4: Pending Conflicts */}
+            <div
+              style={{
+                background: '#FFFFFF',
+                border: '1px solid #E2E8F0',
+                borderRadius: '12px',
+                padding: '18px 20px',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03)',
+                position: 'relative',
+                overflow: 'hidden',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease'
+              }}
+              onClick={() => setCuratorSubView('conflicts')}
+              title="Click to open Pairwise Conflict Resolver"
+              onMouseEnter={e => {
+                e.currentTarget.style.borderColor = '#EA580C';
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(234, 88, 12, 0.12)';
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.borderColor = '#E2E8F0';
+                e.currentTarget.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03)';
+              }}
+            >
+              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '3px', background: '#EA580C' }} />
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span style={{ fontSize: '0.70rem', color: '#64748B', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                  Pending Conflicts
+                </span>
+                <span style={{
+                  fontSize: '0.65rem',
+                  fontWeight: 700,
+                  color: '#EA580C',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '3px'
+                }}>
+                  Arbitrate ➔
+                </span>
+              </div>
+              <div style={{ marginTop: '12px', marginBottom: '8px' }}>
+                <div style={{ fontSize: '1.85rem', fontWeight: 800, color: conflicts.length > 0 ? '#DC2626' : '#0F172A', letterSpacing: '-0.03em', lineHeight: 1.1 }}>
+                  {conflicts.length}
+                </div>
+              </div>
+              <div>
+                <div style={{ width: '100%', height: '4px', background: '#F1F5F9', borderRadius: '2px', overflow: 'hidden' }}>
+                  <div style={{ width: `${conflicts.length === 0 ? 100 : Math.max(15, 100 - conflicts.length * 20)}%`, height: '100%', background: '#EA580C', borderRadius: '2px' }} />
+                </div>
+                <div style={{ fontSize: '0.70rem', color: '#94A3B8', marginTop: '6px' }}>
+                  {conflicts.length === 0 ? 'All Rules Synchronized' : 'Requires Review'}
+                </div>
+              </div>
+            </div>
+
           </div>
 
-          {/* Action Recommendations from Steward */}
+          {/* Autonomous Remediation Recommendations (Command Deck) */}
           <div style={{
             background: 'var(--bg-surface)',
             border: '1px solid var(--border-color)',
-            borderRadius: '12px',
-            padding: '20px',
+            borderRadius: '14px',
+            padding: '22px 24px',
             display: 'flex',
             flexDirection: 'column',
-            gap: '16px'
+            gap: '16px',
+            boxShadow: '0 4px 16px rgba(15, 23, 42, 0.04)'
           }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
               <div>
-                <h3 style={{ fontSize: '1rem', fontWeight: 700, margin: 0, color: 'var(--text-main)' }}>
-                  🤖 Autonomous Remediation Recommendations
+                <h3 style={{ fontSize: '1.05rem', fontWeight: 700, margin: 0, color: 'var(--text-main)', letterSpacing: '-0.01em' }}>
+                  Autonomous Remediation Recommendations
                 </h3>
                 <p style={{ margin: '3px 0 0 0', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
                   Data Steward Agent calculates optimal resolution actions based on source authority tiers and freshness.
                 </p>
               </div>
-              <span className="badge badge-verified" style={{ fontSize: '0.7rem' }}>
+              <span className="badge badge-verified" style={{ fontSize: '0.70rem', fontWeight: 700 }}>
                 {recommendations.length} Actions Available
               </span>
             </div>
@@ -791,7 +788,7 @@ export default function ContextCuratorStudio({
                     transition: 'all 0.15s ease'
                   }}
                 >
-                  ⚡ Clustered Issues ({conflictIssues.length})
+                  Clustered Issues ({conflictIssues.length})
                 </button>
                 <button
                   onClick={() => setViewGrouping('pairs')}
@@ -807,7 +804,7 @@ export default function ContextCuratorStudio({
                     transition: 'all 0.15s ease'
                   }}
                 >
-                  ⚖️ Raw Pairs ({conflicts.length})
+                  Raw Pairs ({conflicts.length})
                 </button>
               </div>
 
@@ -819,19 +816,19 @@ export default function ContextCuratorStudio({
                 style={{
                   padding: '6px 14px',
                   fontSize: '0.78rem',
-                  fontWeight: 800,
+                  fontWeight: 700,
                   display: 'flex',
                   alignItems: 'center',
                   gap: '6px',
                   background: 'linear-gradient(135deg, #4f46e5 0%, #2563eb 100%)',
                   color: '#fff',
                   border: 'none',
-                  boxShadow: '0 2px 8px rgba(79, 70, 229, 0.35)',
+                  boxShadow: '0 2px 8px rgba(79, 70, 229, 0.25)',
                   cursor: autoResolving ? 'not-allowed' : 'pointer'
                 }}
                 title="Autonomously resolve deterministic version, temporal, and authority conflicts in O(1) time"
               >
-                {autoResolving ? '⚡ Resolving...' : '⚡ Auto-Resolve Deterministic'}
+                {autoResolving ? 'Resolving...' : 'Auto-Resolve Deterministic'}
               </button>
 
               <button
@@ -841,7 +838,7 @@ export default function ContextCuratorStudio({
                 style={{ padding: '6px 12px', fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: '5px' }}
                 title="Re-run context-aware contradiction rules to purge non-conflicting samples"
               >
-                {reEvaluating ? '🧹 Purging...' : '🧹 Purge False Positives'}
+                {reEvaluating ? 'Purging...' : 'Purge False Positives'}
               </button>
 
               <button
@@ -852,7 +849,7 @@ export default function ContextCuratorStudio({
                 className="btn btn-secondary"
                 style={{ padding: '6px 12px', fontSize: '0.78rem' }}
               >
-                🔄 Refresh
+                Refresh
               </button>
             </div>
           </div>

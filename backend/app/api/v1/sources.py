@@ -120,7 +120,7 @@ async def test_source_connection(
                 tested_at=datetime.now(timezone.utc),
             )
 
-        elif stype in ("mongodb", "mongo", "mongo_atlas", "mongodb_self"):
+        elif stype in ("mongodb", "mongo", "mongo_atlas", "mongodb_self", "mongodb_atlas", "documentdb", "cosmos_mongo"):
             connector = MongoDbConnector(
                 session=db,
                 organization_id=dummy_org,

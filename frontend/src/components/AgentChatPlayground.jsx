@@ -1,5 +1,249 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { MessageSquare, Plus, MoreHorizontal, Search, Trash2 } from 'lucide-react';
+import { 
+  MessageSquare, Plus, MoreHorizontal, Search, Trash2, 
+  CheckCircle2, Clock, ShieldCheck, Sparkles, AlertTriangle, 
+  Copy, Check, ChevronDown, ChevronRight, BookOpen, Layers, Shield
+} from 'lucide-react';
+
+const PROCESS_STEPS = [
+  {
+    action: "Searching indexed policy claims & vector embeddings",
+    tag: "Retrieval",
+    icon: "🔍"
+  },
+  {
+    action: "Evaluating freshness decay & temporal validity",
+    tag: "Decay Engine",
+    icon: "⏳"
+  },
+  {
+    action: "Auditing cross-source contradictions & policy disputes",
+    tag: "Zero-Trust Gate",
+    icon: "🛡️"
+  },
+  {
+    action: "Evaluating governance thresholds & synthesizing answer",
+    tag: "Context Gate",
+    icon: "✨"
+  }
+];
+
+// Modern Transparent Single-Spot Text Morphing Process Indicator
+function ChatProcessingPipeline({ activeWorkspace }) {
+  const [currentStep, setCurrentStep] = useState(0);
+  const [elapsedMs, setElapsedMs] = useState(0);
+
+  useEffect(() => {
+    const startTime = Date.now();
+    const interval = setInterval(() => {
+      const elapsed = Date.now() - startTime;
+      setElapsedMs(elapsed);
+      const stepIdx = Math.min(Math.floor(elapsed / 750), PROCESS_STEPS.length - 1);
+      setCurrentStep(stepIdx);
+    }, 100);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const step = PROCESS_STEPS[currentStep] || PROCESS_STEPS[0];
+
+  return (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '10px',
+        padding: '8px 4px',
+        margin: '4px 0',
+        background: 'transparent',
+        border: 'none',
+        boxShadow: 'none',
+        width: '100%',
+        minHeight: '36px'
+      }}
+    >
+      {/* Sleek Gradient Rotating Spinner */}
+      <div className="chat-process-spinner" />
+
+      {/* Single-Spot Morphing Text with Smooth Keyframe Transition */}
+      <div
+        key={currentStep}
+        className="chat-process-text-active"
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          flexWrap: 'wrap',
+          color: '#1E293B',
+          fontSize: '0.84rem'
+        }}
+      >
+        <span style={{ fontSize: '0.9rem' }}>{step.icon}</span>
+        <span style={{ fontWeight: 600, color: '#334155' }}>
+          {step.action}
+        </span>
+        <span className="chat-bouncing-dots">
+          <span />
+          <span />
+          <span />
+        </span>
+        {activeWorkspace && activeWorkspace.id !== 'all' && (
+          <span style={{
+            fontSize: '0.68rem',
+            padding: '1px 6px',
+            borderRadius: '10px',
+            background: 'rgba(255, 171, 74, 0.15)',
+            color: '#C2410C',
+            fontWeight: 700
+          }}>
+            {activeWorkspace.name.split(' ')[0]}
+          </span>
+        )}
+      </div>
+
+      {/* Elapsed Counter */}
+      <div style={{
+        marginLeft: 'auto',
+        fontSize: '0.72rem',
+        color: '#94A3B8',
+        fontWeight: 600,
+        fontFamily: 'monospace'
+      }}>
+        {(elapsedMs / 1000).toFixed(1)}s
+      </div>
+    </div>
+  );
+}
+
+// Rich Formatted Content Renderer for Catchy & Scannable Answers
+function RichAnswerContent({ content }) {
+  if (!content) return null;
+
+  // Split into paragraphs / lines
+  const rawLines = content.split('\n');
+  const elements = [];
+  let currentBulletList = [];
+
+  const flushBulletList = () => {
+    if (currentBulletList.length > 0) {
+      elements.push(
+        <div key={`bullets-${elements.length}`} style={{ margin: '8px 0', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          {currentBulletList.map((item, bIdx) => (
+            <div key={bIdx} className="chat-bullet-row">
+              <div className="chat-bullet-dot" />
+              <div style={{ flex: 1, color: '#1E293B', fontSize: '0.84rem' }}>
+                {renderInlineFormatted(item)}
+              </div>
+            </div>
+          ))}
+        </div>
+      );
+      currentBulletList = [];
+    }
+  };
+
+  const renderInlineFormatted = (text) => {
+    // Parse bold text **text** and inline backticks
+    const parts = text.split(/(\*\*.*?\*\*|`.*?`)/g);
+    return parts.map((part, pIdx) => {
+      if (part.startsWith('**') && part.endsWith('**')) {
+        const inner = part.slice(2, -2);
+        return (
+          <strong key={pIdx} style={{ fontWeight: 700, color: 'var(--text-main, #0F172A)' }}>
+            {inner}
+          </strong>
+        );
+      }
+      if (part.startsWith('`') && part.endsWith('`')) {
+        const inner = part.slice(1, -1);
+        return (
+          <code key={pIdx} style={{
+            background: '#F1F5F9',
+            padding: '2px 6px',
+            borderRadius: '4px',
+            fontSize: '0.82em',
+            color: '#0F172A',
+            fontFamily: 'monospace'
+          }}>
+            {inner}
+          </code>
+        );
+      }
+      return part;
+    });
+  };
+
+  for (let i = 0; i < rawLines.length; i++) {
+    const line = rawLines[i].trim();
+    if (!line) {
+      flushBulletList();
+      continue;
+    }
+
+    // Check for bullet items: `- `, `* `, `• `, `1. `
+    const bulletMatch = line.match(/^([-*•]|\d+\.)\s+(.+)$/);
+    if (bulletMatch) {
+      currentBulletList.push(bulletMatch[2]);
+      continue;
+    }
+
+    flushBulletList();
+
+    // Check for Callout / Highlight cards (e.g. `💡`, `✨`, `⚠️`, `📌`, `**Direct Answer`, `**Bottom Line`)
+    if (
+      line.startsWith('💡') ||
+      line.startsWith('✨') ||
+      line.startsWith('📌') ||
+      line.toLowerCase().includes('bottom line') ||
+      line.toLowerCase().includes('direct answer') ||
+      line.toLowerCase().includes('policy summary')
+    ) {
+      elements.push(
+        <div key={`highlight-${i}`} className="chat-highlight-card">
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+            <span style={{ fontSize: '1.1rem', lineHeight: 1 }}>
+              {line.startsWith('⚠️') ? '⚠️' : line.startsWith('✨') ? '✨' : line.startsWith('📌') ? '📌' : '💡'}
+            </span>
+            <div style={{ flex: 1 }}>
+              {renderInlineFormatted(line.replace(/^[💡✨⚠️📌]\s*/, ''))}
+            </div>
+          </div>
+        </div>
+      );
+      continue;
+    }
+
+    // Header elements `### `, `## `
+    if (line.startsWith('### ') || line.startsWith('## ')) {
+      const headerText = line.replace(/^#+\s*/, '');
+      elements.push(
+        <h4 key={`header-${i}`} style={{
+          fontSize: '0.9rem',
+          fontWeight: 700,
+          color: '#0F172A',
+          margin: '12px 0 6px 0',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '6px'
+        }}>
+          <span style={{ width: '4px', height: '14px', background: '#FFAB4A', borderRadius: '2px', display: 'inline-block' }} />
+          {renderInlineFormatted(headerText)}
+        </h4>
+      );
+      continue;
+    }
+
+    // Regular paragraph
+    elements.push(
+      <p key={`p-${i}`} style={{ margin: '6px 0', lineHeight: 1.6, fontSize: '0.85rem', color: '#1E293B' }}>
+        {renderInlineFormatted(line)}
+      </p>
+    );
+  }
+
+  flushBulletList();
+  return <div>{elements}</div>;
+}
 
 const STARTER_PROMPTS_BY_WORKSPACE = {
   all: [
@@ -58,6 +302,7 @@ export default function AgentChatPlayground({
   const [attachedFile, setAttachedFile] = useState(null);
   const [isLoadingSessions, setIsLoadingSessions] = useState(false);
   const [expandedCitations, setExpandedCitations] = useState({});
+  const [copiedMsgId, setCopiedMsgId] = useState(null);
 
   useEffect(() => {
     if (selectedSessionId && selectedSessionId !== activeSessionId) {
@@ -484,6 +729,7 @@ export default function AgentChatPlayground({
               const citations = meta.citations || [];
               const warnings = meta.warnings || [];
               const isExpanded = expandedCitations[msg.id];
+              const isCopied = copiedMsgId === msg.id;
 
               return (
                 <div
@@ -492,113 +738,207 @@ export default function AgentChatPlayground({
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: isUser ? 'flex-end' : 'flex-start',
-                    gap: '4px'
+                    gap: '4px',
+                    width: '100%'
                   }}
                 >
                   {/* Author & Timestamp */}
-                  <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 600, padding: '0 4px' }}>
-                    {isUser ? (meta.author || activePersona?.name || 'You') : 'Context Trust Copilot'} • {new Date(msg.created_at || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  <div style={{
+                    fontSize: '0.68rem',
+                    color: 'var(--text-muted)',
+                    fontWeight: 600,
+                    padding: '0 4px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }}>
+                    {!isUser && <img src="/Trulin-Main-NoBg.png" alt="Trulin" style={{ height: '14px', objectFit: 'contain' }} />}
+                    <span>{isUser ? (meta.author || activePersona?.name || 'You') : 'Context Trust Copilot'}</span>
+                    <span>•</span>
+                    <span>{new Date(msg.created_at || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                   </div>
 
-                  {/* Bubble Content - Normal Background with Animated Blue Gradient Border for Sent Question */}
-                  <div
-                    className={isUser ? "user-question-card" : ""}
-                    style={{
-                      maxWidth: isUser ? '75%' : '88%',
-                      padding: '12px 16px',
-                      borderRadius: isUser ? '14px 14px 2px 14px' : '12px 12px 12px 2px',
-                      background: isUser ? undefined : 'var(--bg-card-subtle)',
-                      color: 'var(--text-main, #0F172A)',
-                      border: isUser ? undefined : '1px solid var(--border-subtle)',
-                      fontSize: '0.85rem',
-                      lineHeight: 1.55,
-                      boxShadow: isUser ? undefined : '0 2px 8px rgba(0,0,0,0.08)'
-                    }}
-                  >
-                    {/* Synthesized Text */}
-                    <div style={{ whiteSpace: 'pre-wrap', marginBottom: !isUser && (decision || citations.length > 0) ? '12px' : 0 }}>
-                      {msg.content}
+                  {/* Message Bubble */}
+                  {isUser ? (
+                    <div
+                      className="user-question-card"
+                      style={{
+                        maxWidth: '78%',
+                        padding: '12px 16px',
+                        borderRadius: '14px 14px 2px 14px',
+                        color: 'var(--text-main, #0F172A)',
+                        fontSize: '0.86rem',
+                        lineHeight: 1.55,
+                      }}
+                    >
+                      <div style={{ whiteSpace: 'pre-wrap' }}>
+                        {msg.content}
+                      </div>
                     </div>
-
-                    {/* Assistant Trust Details & Citations Card */}
-                    {!isUser && (
-                      <div>
-                        {/* Trust Badges & Metrics Row */}
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', paddingTop: '8px', borderTop: '1px solid var(--border-subtle)' }}>
+                  ) : (
+                    <div
+                      className="chat-answer-bubble"
+                      style={{
+                        maxWidth: '92%',
+                        width: '100%',
+                        background: '#FFFFFF',
+                        border: '1px solid #E2E8F0',
+                        borderRadius: '14px 14px 14px 2px',
+                        boxShadow: '0 4px 16px rgba(0,0,0,0.04)',
+                        overflow: 'hidden'
+                      }}
+                    >
+                      {/* Top Header Verdict Bar */}
+                      <div className="chat-verdict-bar">
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                           {decision && (
-                            <span className={`badge ${decision === 'ALLOW' ? 'badge-allow' : decision === 'BLOCK' ? 'badge-block' : 'badge-review'}`} style={{ fontSize: '0.7rem', padding: '2px 8px' }}>
-                              Gate: {decision}
+                            <span
+                              className={`badge ${decision === 'ALLOW' ? 'badge-allow' : decision === 'BLOCK' ? 'badge-block' : 'badge-review'}`}
+                              style={{ fontSize: '0.7rem', padding: '2px 9px', fontWeight: 700, borderRadius: '6px' }}
+                            >
+                              GATE: {decision}
                             </span>
                           )}
                           {meta.trust_score !== undefined && (
-                            <span style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', fontWeight: 600 }}>
-                              Trust Score: <strong style={{ color: 'var(--primary)' }}>{Math.round(meta.trust_score * 100)}/100</strong>
+                            <span style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '5px',
+                              fontSize: '0.74rem',
+                              fontWeight: 700,
+                              color: '#334155',
+                              background: '#F1F5F9',
+                              padding: '2px 8px',
+                              borderRadius: '6px'
+                            }}>
+                              <span>🛡️ Trust Score:</span>
+                              <strong style={{ color: '#EA580C' }}>{Math.round(meta.trust_score * 100)}/100</strong>
                             </span>
                           )}
                           {meta.confidence !== undefined && (
-                            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                            <span style={{ fontSize: '0.72rem', color: '#64748B', fontWeight: 600 }}>
                               Confidence: {Math.round(meta.confidence * 100)}%
                             </span>
                           )}
                         </div>
 
-                        {/* Conflict Warnings Box */}
+                        {/* Quick Copy Button */}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            navigator.clipboard.writeText(msg.content);
+                            setCopiedMsgId(msg.id);
+                            if (showToast) showToast("Answer copied to clipboard!");
+                            setTimeout(() => setCopiedMsgId(null), 2000);
+                          }}
+                          style={{
+                            background: isCopied ? '#F0FDF4' : 'transparent',
+                            border: `1px solid ${isCopied ? '#86EFAC' : '#E2E8F0'}`,
+                            borderRadius: '6px',
+                            padding: '3px 8px',
+                            fontSize: '0.7rem',
+                            fontWeight: 600,
+                            color: isCopied ? '#16A34A' : '#64748B',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            transition: 'all 0.15s ease'
+                          }}
+                          title="Copy Answer"
+                        >
+                          {isCopied ? <Check size={12} color="#16A34A" /> : <Copy size={12} color="#64748B" />}
+                          <span>{isCopied ? "Copied" : "Copy"}</span>
+                        </button>
+                      </div>
+
+                      {/* Main Structured Body */}
+                      <div style={{ padding: '14px 18px' }}>
+                        <RichAnswerContent content={msg.content} />
+
+                        {/* Conflict Warnings Alert */}
                         {warnings.length > 0 && (
-                          <div style={{ marginTop: '10px', background: 'var(--danger-bg, rgba(239,68,68,0.1))', border: '1px solid var(--danger-border, rgba(239,68,68,0.25))', borderRadius: '6px', padding: '8px 10px', fontSize: '0.75rem', color: 'var(--danger-text)' }}>
-                            <div style={{ fontWeight: 800, marginBottom: '2px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                              <span>⚠️</span> Contradiction Alert
+                          <div style={{
+                            marginTop: '12px',
+                            background: 'rgba(239, 68, 68, 0.08)',
+                            border: '1px solid rgba(239, 68, 68, 0.3)',
+                            borderLeft: '4px solid #DC2626',
+                            borderRadius: '8px',
+                            padding: '10px 14px',
+                            fontSize: '0.78rem',
+                            color: '#991B1B'
+                          }}>
+                            <div style={{ fontWeight: 800, marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                              <AlertTriangle size={15} color="#DC2626" />
+                              <span>Contradiction & Policy Dispute Alert</span>
                             </div>
                             {warnings.map((w, wi) => (
-                              <div key={wi}>{w}</div>
+                              <div key={wi} style={{ lineHeight: 1.4, marginTop: '2px' }}>{w}</div>
                             ))}
                           </div>
                         )}
 
-                        {/* Expandable Citations Accordion */}
+                        {/* Expandable Evidence & Citations */}
                         {citations.length > 0 && (
-                          <div style={{ marginTop: '10px' }}>
+                          <div style={{ marginTop: '12px', paddingTop: '10px', borderTop: '1px solid #F1F5F9' }}>
                             <button
+                              type="button"
                               onClick={() => setExpandedCitations(prev => ({ ...prev, [msg.id]: !prev[msg.id] }))}
                               style={{
-                                background: 'transparent',
-                                border: 'none',
-                                color: 'var(--primary)',
+                                background: '#F8FAFC',
+                                border: '1px solid #E2E8F0',
+                                borderRadius: '8px',
+                                color: '#1E293B',
                                 fontSize: '0.74rem',
                                 fontWeight: 700,
                                 cursor: 'pointer',
-                                padding: '0',
-                                display: 'flex',
+                                padding: '6px 12px',
+                                display: 'inline-flex',
                                 alignItems: 'center',
-                                gap: '4px'
+                                gap: '6px',
+                                transition: 'all 0.15s ease'
                               }}
                             >
-                              <span>{isExpanded ? '▾' : '▸'}</span> Grounded Evidence & Citations ({citations.length})
+                              {isExpanded ? <ChevronDown size={14} color="#EA580C" /> : <ChevronRight size={14} color="#EA580C" />}
+                              <BookOpen size={13} color="#EA580C" />
+                              <span>Grounded Evidence & Verified Citations ({citations.length})</span>
                             </button>
 
                             {isExpanded && (
-                              <div style={{ marginTop: '8px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                              <div style={{
+                                marginTop: '10px',
+                                display: 'grid',
+                                gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+                                gap: '8px'
+                              }}>
                                 {citations.map((c, ci) => (
                                   <div
                                     key={ci}
                                     style={{
-                                      background: 'var(--bg-card)',
-                                      border: '1px solid var(--border-subtle)',
-                                      borderRadius: '6px',
-                                      padding: '8px 10px',
-                                      fontSize: '0.75rem'
+                                      background: '#FAFAFA',
+                                      border: '1px solid #E2E8F0',
+                                      borderRadius: '8px',
+                                      padding: '10px 12px',
+                                      fontSize: '0.76rem',
+                                      display: 'flex',
+                                      flexDirection: 'column',
+                                      gap: '4px'
                                     }}
                                   >
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3px' }}>
-                                      <strong style={{ color: 'var(--primary)' }}>{c.source_title}</strong>
-                                      <span className="badge badge-verified" style={{ fontSize: '0.62rem', padding: '1px 4px' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                      <strong style={{ color: '#0F172A', fontSize: '0.78rem' }}>
+                                        {c.source_title}
+                                      </strong>
+                                      <span className="badge badge-verified" style={{ fontSize: '0.64rem', padding: '1px 6px', borderRadius: '4px' }}>
                                         Trust: {Math.round(c.trust_score * 100)}/100
                                       </span>
                                     </div>
-                                    <div style={{ color: 'var(--text-secondary)', fontStyle: 'italic', marginBottom: '4px' }}>
+                                    <div style={{ color: '#475569', fontStyle: 'italic', lineHeight: 1.4, margin: '2px 0' }}>
                                       "{c.claim_text}"
                                     </div>
-                                    <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
-                                      Validity: {c.validity} {c.section ? `• Section: ${c.section}` : ''}
+                                    <div style={{ fontSize: '0.68rem', color: '#94A3B8', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                      <span>Status: <strong style={{ color: '#16A34A' }}>{c.validity || 'Active'}</strong></span>
+                                      {c.section && <span>• {c.section}</span>}
                                     </div>
                                   </div>
                                 ))}
@@ -607,20 +947,15 @@ export default function AgentChatPlayground({
                           </div>
                         )}
                       </div>
-                    )}
-                  </div>
+                    </div>
+                  )}
                 </div>
               );
             })}
 
-            {/* Generating / Streaming Indicator */}
+            {/* Dynamic Multi-Step Process Pipeline Animation */}
             {isSending && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 14px', background: 'var(--bg-card-subtle)', borderRadius: '8px', border: '1px solid var(--border-subtle)', maxWidth: '400px' }}>
-                <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--primary)', animation: 'pulse 1s infinite' }} />
-                <span style={{ fontSize: '0.8rem', color: 'var(--primary)', fontWeight: 600 }}>
-                  Evaluating trust decay & contradiction gate...
-                </span>
-              </div>
+              <ChatProcessingPipeline activeWorkspace={activeWorkspace} />
             )}
 
             <div ref={messagesEndRef} />

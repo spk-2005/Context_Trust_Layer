@@ -77,7 +77,7 @@ class SyncEngine:
                 connection_config=config,
                 owner_id=effective_owner,
             )
-        elif source_type in ("mongodb", "mongo", "mongo_atlas"):
+        elif source_type in ("mongodb", "mongo", "mongo_atlas", "mongodb_atlas", "mongodb_self", "documentdb", "cosmos_mongo"):
             return MongoDbConnector(
                 session=self.session,
                 organization_id=source.organization_id,

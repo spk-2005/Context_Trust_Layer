@@ -576,21 +576,23 @@ class MockLLMProvider(BaseLLMProvider):
         if has_conflicts:
             lead_claim = clean_claims[0] if clean_claims else "Policy in dispute"
             return (
-                f'Based on current enterprise knowledge, the authoritative record indicates: "{lead_claim}".\n\n'
-                f"⚠️ Note: There are active contradictory claims in the knowledge base regarding this topic. "
-                f"A Data Steward review has been flagged to verify compliance."
+                f"**Dispute Notice:** Conflicting governance records were identified for this query.\n\n"
+                f"• **Primary Active Claim:** {lead_claim}\n"
+                f"• **Governance Status:** Multiple sources contain contradictory rules regarding this policy.\n\n"
+                f"⚠️ **Action Required:** A Data Steward review has been triggered to reconcile conflicting source documents."
             )
         elif avg_trust >= 0.70:
-            lead_claims = "\n".join(f"• {claim}" for claim in clean_claims[:3])
+            lead_bullets = "\n".join(f"• **Verified Policy Rule:** {claim}" for claim in clean_claims[:3])
             return (
-                f"According to verified enterprise policies (Trust Score: {int(avg_trust * 100)}/100):\n\n"
-                f"{lead_claims}\n\n"
-                f"All cited sources have verified authority and active validity status."
+                f"**Direct Answer & Policy Summary:**\n\n"
+                f"{lead_bullets}\n\n"
+                f"✨ **Context Verification:** All cited claims have verified authority status and passed the freshness decay threshold (Trust Score: **{int(avg_trust * 100)}/100**)."
             )
         else:
-            lead_claims = "\n".join(f"• {claim}" for claim in clean_claims[:2])
+            lead_bullets = "\n".join(f"• **Candidate Record:** {claim}" for claim in clean_claims[:2])
             return (
-                f"Candidate records found with moderate confidence:\n\n{lead_claims}\n\n"
-                f"Authority score is {int(avg_trust * 100)}/100. Manual verification recommended."
+                f"**Moderate Confidence Findings:**\n\n"
+                f"{lead_bullets}\n\n"
+                f"📌 **Note:** Claim authority is scored at **{int(avg_trust * 100)}/100**. Manual steward verification is recommended before automated execution."
             )
 

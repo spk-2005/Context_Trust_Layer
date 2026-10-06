@@ -114,7 +114,7 @@ export const DEFAULT_WORKSPACES = [
 ];
 
 export const VAULT_SUBTABS = ['documents', 'connectors', 'conflicts', 'claims', 'dag'];
-export const CURATOR_SUBVIEWS = ['health', 'conflicts'];
+export const CURATOR_SUBVIEWS = ['health', 'conflicts', 'drift'];
 export const DOC_EXPLORER_VIEWS = ['connectors', 'ingest', 'documents', 'claims'];
 export const MCP_SUBVIEWS = ['tester', 'configs', 'sdks', 'schemas'];
 export const TEAM_SUBTABS = ['directory', 'activity', 'domains'];
@@ -166,8 +166,8 @@ export const parseUrlState = (workspacesList) => {
     tab = 'context_curator';
     const parts = rawPath.split('/').filter(Boolean);
     const sub = parts[1] || params.get('sub');
-    if (sub === 'conflicts') {
-      curatorSubView = 'conflicts';
+    if (sub && CURATOR_SUBVIEWS.includes(sub)) {
+      curatorSubView = sub;
     } else {
       curatorSubView = 'health';
     }
@@ -410,10 +410,12 @@ export default function App() {
   const [expandedMenu, setExpandedMenu] = useState(() => initialUrlState?.tab || 'home');
   const [vaultSubTab, setVaultSubTab] = useState(() => initialUrlState?.vaultSubTab || 'documents');
   const [isVaultMenuOpen, setIsVaultMenuOpen] = useState(true);
+  const [isCuratorMenuOpen, setIsCuratorMenuOpen] = useState(true);
+  const [isDocExplorerMenuOpen, setIsDocExplorerMenuOpen] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [health, setHealth] = useState({ status: 'checking', database: false, version: '0.1.0' });
   const [conflicts, setConflicts] = useState([]);
-  const [curatorSubView, setCuratorSubView] = useState(() => initialUrlState?.curatorSubView || 'health'); // 'health' | 'conflicts'
+  const [curatorSubView, setCuratorSubView] = useState(() => initialUrlState?.curatorSubView || 'health'); // 'health' | 'conflicts' | 'drift'
   const [loading, setLoading] = useState(false);
   const [notification, setNotification] = useState(null);
   const [isOrgSettingsModalOpen, setIsOrgSettingsModalOpen] = useState(false);
@@ -2365,17 +2367,6 @@ export default function App() {
             </button>
           )}
 
-          {isTabVisible('live_ingestion') && (
-            <button
-              onClick={() => setActiveTab('live_ingestion')}
-              className={`nav-item ${activeTab === 'live_ingestion' ? 'nav-item-active' : ''}`}
-              title="Live Ingestion Studio"
-            >
-              <Zap size={16} strokeWidth={1.75} />
-              <span>Live Ingestion Studio</span>
-            </button>
-          )}
-
           {isTabVisible('visual_lineage') && (
             <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
               <button
@@ -2516,43 +2507,273 @@ export default function App() {
           )}
 
           {isTabVisible('context_curator') && (
-            <button
-              onClick={() => setActiveTab('context_curator')}
-              className={`nav-item ${activeTab === 'context_curator' ? 'nav-item-active' : ''}`}
-              title="Context Curator Bot"
-            >
-              <ShieldAlert size={16} strokeWidth={1.75} />
-              <span>Context Curator Bot</span>
-              {isSidebarOpen && conflicts.length > 0 && (
-                <span style={{
-                  marginLeft: 'auto',
-                  fontSize: '0.65rem',
-                  padding: '1px 6px',
-                  borderRadius: '10px',
-                  background: '#FEE2E2',
-                  color: '#991B1B',
-                  fontWeight: 600
+            <div style={{ width: '100%' }}>
+              <button
+                onClick={() => {
+                  setActiveTab('context_curator');
+                  if (!isCuratorMenuOpen) setIsCuratorMenuOpen(true);
+                }}
+                className={`nav-item ${(activeTab === 'context_curator' || activeTab === 'conflicts') ? 'nav-item-active' : ''}`}
+                title="Context Curator & Conflict Hub"
+                style={{
+                  width: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: isSidebarOpen ? 'space-between' : 'center',
+                  position: 'relative'
+                }}
+              >
+                {isSidebarOpen ? (
+                  <>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <ShieldAlert size={16} strokeWidth={1.75} />
+                      <span>Curator</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      {conflicts.length > 0 && (
+                        <span style={{
+                          fontSize: '0.65rem',
+                          padding: '1px 6px',
+                          borderRadius: '10px',
+                          background: '#FEE2E2',
+                          color: '#991B1B',
+                          fontWeight: 600
+                        }}>
+                          {conflicts.length}
+                        </span>
+                      )}
+                      <div
+                        role="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setIsCuratorMenuOpen(prev => !prev);
+                        }}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          padding: '2px 4px',
+                          borderRadius: '4px',
+                          cursor: 'pointer'
+                        }}
+                        title={isCuratorMenuOpen ? "Collapse Curator sub-items" : "Expand Curator sub-items"}
+                      >
+                        <ChevronDown
+                          size={13}
+                          style={{
+                            transform: isCuratorMenuOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                            transition: 'transform 0.2s ease',
+                            opacity: 0.7
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <ShieldAlert size={16} strokeWidth={1.75} />
+                )}
+              </button>
+
+              {/* Sub-items of Context Curator & Conflicts */}
+              {isSidebarOpen && isCuratorMenuOpen && (
+                <div style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '2px',
+                  paddingLeft: '10px',
+                  paddingTop: '2px',
+                  paddingBottom: '3px',
+                  borderLeft: '2px solid #E2E8F0',
+                  marginLeft: '14px',
+                  marginTop: '2px',
+                  marginBottom: '4px'
                 }}>
-                  {conflicts.length}
-                </span>
+                  {[
+                    { id: 'health', label: 'Context Health & Heuristics', count: null },
+                    { id: 'conflicts', label: 'Pairwise Conflict Resolver', count: conflicts.length > 0 ? `${conflicts.length} Pending` : null, isAlert: conflicts.length > 0 },
+                    { id: 'drift', label: 'Drift & Claim Decay', count: null }
+                  ].map(sub => {
+                    const isSubActive = (activeTab === 'context_curator' || activeTab === 'conflicts') && (curatorSubView === sub.id || (activeTab === 'conflicts' && sub.id === 'conflicts'));
+                    return (
+                      <button
+                        key={sub.id}
+                        type="button"
+                        onClick={() => {
+                          setActiveTab('context_curator');
+                          setCuratorSubView(sub.id);
+                        }}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          padding: '5px 8px',
+                          borderRadius: '6px',
+                          border: 'none',
+                          background: isSubActive ? '#EFF6FF' : 'transparent',
+                          color: isSubActive ? '#1D4ED8' : '#64748B',
+                          fontSize: '0.74rem',
+                          fontWeight: isSubActive ? 700 : 500,
+                          cursor: 'pointer',
+                          textAlign: 'left',
+                          transition: 'all 0.15s ease'
+                        }}
+                        onMouseEnter={e => {
+                          if (!isSubActive) {
+                            e.currentTarget.style.background = '#F8FAFC';
+                            e.currentTarget.style.color = '#0F172A';
+                          }
+                        }}
+                        onMouseLeave={e => {
+                          if (!isSubActive) {
+                            e.currentTarget.style.background = 'transparent';
+                            e.currentTarget.style.color = '#64748B';
+                          }
+                        }}
+                      >
+                        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {sub.label}
+                        </span>
+                        {sub.count && (
+                          <span style={{
+                            fontSize: '0.62rem',
+                            fontWeight: 600,
+                            color: sub.isAlert ? '#991B1B' : (isSubActive ? '#2563EB' : '#94A3B8'),
+                            background: sub.isAlert ? '#FEE2E2' : (isSubActive ? '#DBEAFE' : '#F1F5F9'),
+                            padding: '1px 5px',
+                            borderRadius: '4px',
+                            whiteSpace: 'nowrap'
+                          }}>
+                            {sub.count}
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
               )}
-            </button>
+            </div>
           )}
 
           {isTabVisible('ingestion') && (
-            <button
-              onClick={() => {
-                setActiveTab('ingestion');
-                if (activeTab === 'ingestion' && docExplorerView !== 'connectors') {
-                  setDocExplorerView('connectors');
-                }
-              }}
-              className={`nav-item ${activeTab === 'ingestion' ? 'nav-item-active' : ''}`}
-              title="Document Explorer"
-            >
-              <FolderTree size={16} strokeWidth={1.75} />
-              <span>Document Explorer</span>
-            </button>
+            <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+              <button
+                onClick={() => {
+                  if (activeTab !== 'ingestion') {
+                    setActiveTab('ingestion');
+                    setIsDocExplorerMenuOpen(true);
+                  } else {
+                    setIsDocExplorerMenuOpen(prev => !prev);
+                  }
+                }}
+                className={`nav-item ${activeTab === 'ingestion' ? 'nav-item-active' : ''}`}
+                title="Document Explorer"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: isSidebarOpen ? 'space-between' : 'center',
+                  width: '100%'
+                }}
+              >
+                {isSidebarOpen ? (
+                  <>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <FolderTree size={16} strokeWidth={1.75} />
+                      <span>Document Explorer</span>
+                    </div>
+                    <div
+                      role="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setIsDocExplorerMenuOpen(prev => !prev);
+                      }}
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        padding: '2px 4px',
+                        borderRadius: '4px',
+                        cursor: 'pointer'
+                      }}
+                      title={isDocExplorerMenuOpen ? "Collapse sub-items" : "Expand sub-items"}
+                    >
+                      <ChevronDown
+                        size={13}
+                        style={{
+                          transform: isDocExplorerMenuOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                          transition: 'transform 0.2s ease',
+                          opacity: 0.7
+                        }}
+                      />
+                    </div>
+                  </>
+                ) : (
+                  <FolderTree size={16} strokeWidth={1.75} />
+                )}
+              </button>
+
+              {/* Sub-items of Document Explorer */}
+              {isSidebarOpen && isDocExplorerMenuOpen && (
+                <div style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '2px',
+                  paddingLeft: '10px',
+                  paddingTop: '2px',
+                  paddingBottom: '3px',
+                  borderLeft: '2px solid #E2E8F0',
+                  marginLeft: '14px',
+                  marginTop: '2px',
+                  marginBottom: '4px'
+                }}>
+                  {[
+                    { id: 'ingest', label: 'Upload & Ingest', count: null },
+                    { id: 'documents', label: 'Stored Documents', count: displayedDbDocuments.length },
+                    { id: 'connectors', label: 'Live Connectors', count: displayedDataSources.length }
+                  ].map(sub => {
+                    const isSubActive = activeTab === 'ingestion' && docExplorerView === sub.id;
+                    return (
+                      <button
+                        key={sub.id}
+                        type="button"
+                        onClick={() => {
+                          setActiveTab('ingestion');
+                          setDocExplorerView(sub.id);
+                        }}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          padding: '5px 8px',
+                          borderRadius: '6px',
+                          border: 'none',
+                          background: isSubActive ? '#FFF7ED' : 'transparent',
+                          color: isSubActive ? '#EA580C' : '#64748B',
+                          fontSize: '0.74rem',
+                          fontWeight: isSubActive ? 700 : 500,
+                          cursor: 'pointer',
+                          textAlign: 'left',
+                          transition: 'all 0.15s ease'
+                        }}
+                      >
+                        <span>{sub.label}</span>
+                        {sub.count !== null && (
+                          <span style={{
+                            fontSize: '0.68rem',
+                            fontWeight: 700,
+                            padding: '1px 5px',
+                            borderRadius: '10px',
+                            background: isSubActive ? '#FFEDD5' : '#F1F5F9',
+                            color: isSubActive ? '#EA580C' : '#64748B'
+                          }}>
+                            {sub.count}
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           )}
         </div>
 
@@ -4141,580 +4362,352 @@ export default function App() {
         {/* ========================================================= */}
         {activeTab === 'ingestion' && (
           <div>
-            {/* Centered Header Area with Sub-View Switcher */}
-            <div className="tab-header-center" style={{ marginBottom: '24px' }}>
-
-              <h1 className="tab-main-heading">
-                Document & Atomic Claim Repository
-              </h1>
-              <p className="tab-subtitle">
-                Ingest raw organizational policies, normalize markdown structure, and inspect live atomic facts stored in PostgreSQL.
-              </p>
-
-              {/* Interactive View Switcher Tabs & Connect Real Source Quick Action */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', marginTop: '16px', flexWrap: 'wrap' }}>
-                <div style={{
-                  display: 'inline-flex',
-                  background: 'var(--panel-bg, #FFFFFF)',
-                  border: '1px solid var(--border-subtle, #E2E8F0)',
-                  borderRadius: '10px',
-                  padding: '4px',
-                  boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-                  gap: '4px'
-                }}>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setDocExplorerView('connectors');
-                      setDocSourceFilter('all');
-                    }}
-                    style={{
-                      padding: '7px 16px',
-                      borderRadius: '7px',
-                      fontSize: '0.82rem',
-                      fontWeight: docExplorerView === 'connectors' ? 700 : 500,
-                      border: 'none',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      background: docExplorerView === 'connectors' ? 'var(--primary, #2563EB)' : 'transparent',
-                      color: docExplorerView === 'connectors' ? '#FFFFFF' : 'var(--text-secondary, #64748B)',
-                      transition: 'all 0.15s ease'
-                    }}
-                  >
-                    <span>🔌 Live Connectors & Sync</span>
-                    <span style={{
-                      fontSize: '0.72rem',
-                      padding: '1px 6px',
-                      borderRadius: '12px',
-                      background: docExplorerView === 'connectors' ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.06)',
-                      color: docExplorerView === 'connectors' ? '#FFFFFF' : 'inherit'
-                    }}>
-                      {displayedDataSources.length}
-                    </span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setDocExplorerView('documents')}
-                    style={{
-                      padding: '7px 16px',
-                      borderRadius: '7px',
-                      fontSize: '0.82rem',
-                      fontWeight: docExplorerView === 'documents' ? 700 : 500,
-                      border: 'none',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      background: docExplorerView === 'documents' ? 'var(--primary, #2563EB)' : 'transparent',
-                      color: docExplorerView === 'documents' ? '#FFFFFF' : 'var(--text-secondary, #64748B)',
-                      transition: 'all 0.15s ease'
-                    }}
-                  >
-                    <span>📄 Stored Documents</span>
-                    <span style={{
-                      fontSize: '0.72rem',
-                      padding: '1px 6px',
-                      borderRadius: '12px',
-                      background: docExplorerView === 'documents' ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.06)',
-                      color: docExplorerView === 'documents' ? '#FFFFFF' : 'inherit'
-                    }}>
-                      {displayedDbDocuments.length}
-                    </span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setDocExplorerView('claims')}
-                    style={{
-                      padding: '7px 16px',
-                      borderRadius: '7px',
-                      fontSize: '0.82rem',
-                      fontWeight: docExplorerView === 'claims' ? 700 : 500,
-                      border: 'none',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      background: docExplorerView === 'claims' ? 'var(--primary, #2563EB)' : 'transparent',
-                      color: docExplorerView === 'claims' ? '#FFFFFF' : 'var(--text-secondary, #64748B)',
-                      transition: 'all 0.15s ease'
-                    }}
-                  >
-                    <span>🧩 Atomic Claims</span>
-                    <span style={{
-                      fontSize: '0.72rem',
-                      padding: '1px 6px',
-                      borderRadius: '12px',
-                      background: docExplorerView === 'claims' ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.06)',
-                      color: docExplorerView === 'claims' ? '#FFFFFF' : 'inherit'
-                    }}>
-                      {displayedDbClaims.length}
-                    </span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setDocExplorerView('ingest')}
-                    style={{
-                      padding: '7px 16px',
-                      borderRadius: '7px',
-                      fontSize: '0.82rem',
-                      fontWeight: docExplorerView === 'ingest' ? 700 : 500,
-                      border: 'none',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      background: docExplorerView === 'ingest' ? 'var(--primary, #2563EB)' : 'transparent',
-                      color: docExplorerView === 'ingest' ? '#FFFFFF' : 'var(--text-secondary, #64748B)',
-                      transition: 'all 0.15s ease'
-                    }}
-                  >
-                    <span>📥 Manual Ingestion</span>
-                  </button>
-                </div>
-
-                {/* Direct Action to Connect Real Data Source */}
-                <button
-                  type="button"
-                  onClick={() => setShowAddSourceModal(true)}
-                  className="btn btn-primary"
-                  style={{
-                    padding: '8px 16px',
-                    fontSize: '0.82rem',
-                    fontWeight: 700,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px'
-                  }}
-                  title="Connect a real enterprise data source"
-                >
-                  <span style={{ fontSize: '1.1rem', lineHeight: '1' }}>+</span>
-                  <span>Connect Real Source</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={fetchLiveDatabaseRecords}
-                  className="btn btn-secondary"
-                  style={{ padding: '8px 14px', fontSize: '0.82rem' }}
-                  title="Refresh database records"
-                >
-                  {dbLoading ? "Loading..." : "Refresh"}
-                </button>
-              </div>
-            </div>
-
-            {/* Departmental Scope Banner & All Combined Toggle */}
+            {/* Clean Document Explorer Header */}
             <div style={{
               display: 'flex',
-              alignItems: 'center',
               justifyContent: 'space-between',
-              flexWrap: 'wrap',
-              gap: '12px',
-              padding: '12px 18px',
-              borderRadius: '8px',
+              alignItems: 'center',
               marginBottom: '20px',
-              background: activeWorkspace && activeWorkspace.id !== 'all' && !docExplorerScopeAll
-                ? 'linear-gradient(135deg, rgba(37,99,235,0.06), rgba(99,102,241,0.06))'
-                : 'linear-gradient(135deg, rgba(100,116,139,0.06), rgba(148,163,184,0.06))',
-              border: `1px solid ${activeWorkspace && activeWorkspace.id !== 'all' && !docExplorerScopeAll ? 'rgba(37,99,235,0.2)' : 'rgba(148,163,184,0.2)'}`
+              flexWrap: 'wrap',
+              gap: '12px'
             }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <span style={{ fontSize: '1.25rem' }}>{activeWorkspace?.icon || '🏢'}</span>
-                <div>
-                  <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <span>{docExplorerScopeAll ? 'All Workspaces (Unified Enterprise View)' : (activeWorkspace?.name || 'All Workspaces')}</span>
-                    {activeWorkspace && activeWorkspace.id !== 'all' && !docExplorerScopeAll ? (
-                      <span className="badge badge-verified" style={{ fontSize: '0.68rem', padding: '1px 6px' }}>
-                        Isolated Departmental Filter
-                      </span>
-                    ) : (
-                      <span className="badge badge-allow" style={{ fontSize: '0.68rem', padding: '1px 6px' }}>
-                        All Combined Resources
-                      </span>
-                    )}
-                  </div>
-                  <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', marginTop: '2px' }}>
-                    {activeWorkspace && activeWorkspace.id !== 'all' && !docExplorerScopeAll
-                      ? `Viewing data sources, documents, and atomic claims scoped to ${activeWorkspace.domain} operations.`
-                      : 'Viewing unified data sources, stored documents, and atomic claims across all corporate departments.'}
-                  </div>
-                </div>
-              </div>
-
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                {activeWorkspace && activeWorkspace.id !== 'all' && (
-                  <button
-                    type="button"
-                    onClick={() => setDocExplorerScopeAll(prev => !prev)}
-                    className="btn btn-secondary"
-                    style={{
-                      padding: '6px 12px',
-                      fontSize: '0.75rem',
-                      fontWeight: 600,
-                      background: docExplorerScopeAll ? 'var(--primary, #2563EB)' : '#FFFFFF',
-                      color: docExplorerScopeAll ? '#FFFFFF' : 'var(--text-main)',
-                      borderColor: docExplorerScopeAll ? 'var(--primary, #2563EB)' : 'var(--border-subtle)'
-                    }}
-                  >
-                    {docExplorerScopeAll ? "↩ Return to Scoped View" : "🌐 View All Combined Resources"}
-                  </button>
+              <div>
+                <h1 className="tab-main-heading" style={{ margin: 0, textAlign: 'left', fontSize: '1.45rem' }}>
+                  {docExplorerView === 'ingest' && 'Upload & Ingestion Studio'}
+                  {docExplorerView === 'documents' && 'Stored Documents & Policies'}
+                  {docExplorerView === 'connectors' && 'Live Connectors'}
+                  {docExplorerView === 'connect' && 'Connect Enterprise Data Source'}
+                </h1>
+                {docExplorerView !== 'connectors' && (
+                  <p className="tab-subtitle" style={{ margin: '4px 0 0 0', textAlign: 'left' }}>
+                    {docExplorerView === 'ingest' && 'Upload policy files or markdown to parse atomic claims into PostgreSQL.'}
+                    {docExplorerView === 'documents' && 'Search and inspect verified documents and policy versions stored in PostgreSQL.'}
+                    {docExplorerView === 'connect' && 'Configure automated schema extraction, governance rules, and continuous synchronization.'}
+                  </p>
                 )}
               </div>
+
+              {docExplorerView === 'connect' && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <button
+                    type="button"
+                    onClick={() => { setDocExplorerView('connectors'); setTestConnectionResult(null); }}
+                    style={{
+                      padding: '8px 16px',
+                      fontSize: '0.82rem',
+                      fontWeight: 700,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      background: '#F1F5F9',
+                      color: '#334155',
+                      border: '1px solid #CBD5E1',
+                      borderRadius: '8px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <span>← Back to Live Connectors</span>
+                  </button>
+                </div>
+              )}
             </div>
 
-            {/* VIEW 0: LIVE CONNECTORS & CONTINUOUS SYNC */}
+            {/* VIEW 0: LIVE CONNECTORS DIRECTORY (SQUARE TILES GRID) */}
             {docExplorerView === 'connectors' && (
               <div>
-                {/* Connectors Control Toolbar */}
-                <div className="clean-panel" style={{ padding: '16px 20px', marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-                  <div>
-                    <div style={{ fontSize: '0.925rem', fontWeight: 800, color: 'var(--text-main)' }}>
-                      Continuous Auto-Sync Pipeline
-                    </div>
-                    <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '2px' }}>
-                      Automatically poll, extract, and cross-check organizational policies from external systems.
-                    </div>
+                {/* Clean Search & Category Filter Toolbar */}
+                <div style={{
+                  background: '#FFFFFF',
+                  border: '1px solid #E2E8F0',
+                  borderRadius: '12px',
+                  padding: '14px 18px',
+                  marginBottom: '20px',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  flexWrap: 'wrap',
+                  gap: '12px'
+                }}>
+                  {/* Category Filter Pills */}
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', flex: 1 }}>
+                    {catalogCategories.map(cat => {
+                      const isSelected = catalogFilterCategory === cat.id;
+                      return (
+                        <button
+                          key={cat.id}
+                          type="button"
+                          onClick={() => setCatalogFilterCategory(cat.id)}
+                          style={{
+                            padding: '5px 12px',
+                            fontSize: '0.74rem',
+                            fontWeight: isSelected ? 700 : 500,
+                            borderRadius: '16px',
+                            border: isSelected ? '1px solid #EA580C' : '1px solid #E2E8F0',
+                            background: isSelected ? '#FFF7ED' : '#F8FAFC',
+                            color: isSelected ? '#EA580C' : '#475569',
+                            cursor: 'pointer',
+                            transition: 'all 0.15s ease'
+                          }}
+                        >
+                          {cat.label} ({cat.count})
+                        </button>
+                      );
+                    })}
                   </div>
 
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Auto-Poll:</span>
-                      <select
-                        value={autoSyncInterval}
-                        onChange={e => {
-                          setAutoSyncInterval(e.target.value);
-                          if (e.target.value !== 'off') {
-                            showToast(`Auto-sync enabled (${e.target.value})`, "info");
-                          } else {
-                            showToast("Auto-sync disabled", "info");
-                          }
-                        }}
-                        style={{ padding: '5px 8px', fontSize: '0.78rem' }}
-                      >
-                        <option value="off">Off (Manual)</option>
-                        <option value="1m">Every 1 Min</option>
-                        <option value="5m">Every 5 Min</option>
-                        <option value="15m">Every 15 Min</option>
-                      </select>
-                    </div>
-
-                    <button
-                      onClick={() => setShowAddSourceModal(true)}
-                      className="btn btn-secondary"
-                      style={{ padding: '7px 14px', fontSize: '0.8rem' }}
-                    >
-                      + Connect Real Source
-                    </button>
-
-                    <button
-                      onClick={handleSyncAllSources}
-                      disabled={syncingSourceId !== null}
-                      className="btn btn-primary"
-                      style={{ padding: '7px 14px', fontSize: '0.8rem' }}
-                    >
-                      {syncingSourceId === 'all' ? "Syncing All Sources..." : "Sync All Connectors"}
-                    </button>
-                  </div>
-                </div>
-
-                {/* Connectors Grid */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))', gap: '16px', marginBottom: '24px' }}>
-                  {displayedDataSources.map((source, idx) => {
-                    const isSyncing = syncingSourceId === source.id || syncingSourceId === 'all';
-                    const stype = (source.source_type || '').toLowerCase();
-                    const typeLabel = stype.toUpperCase();
-                    const lastSyncText = source.last_synced_at
-                      ? new Date(source.last_synced_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
-                      : 'Not synced yet';
-
-                    return (
-                      <div key={source.id || idx} className="clean-panel" style={{ padding: '18px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', borderTop: '3px solid var(--border-medium)' }}>
-                        <div>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                            <span className="badge badge-verified" style={{ fontSize: '0.7rem' }}>
-                              {typeLabel}
-                            </span>
-                            <span className="badge badge-allow" style={{ fontSize: '0.7rem' }}>
-                              Authority: {source.authority_level}%
-                            </span>
-                          </div>
-
-                          <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '4px' }}>
-                            {source.name}
-                          </h3>
-
-                          <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: '12px' }}>
-                            Target: <code style={{ color: 'var(--text-secondary)' }}>{source.external_id || source.source_type}</code>
-                          </div>
-
-                          <div style={{ background: '#FFFFFF', border: '1px solid var(--border-subtle)', padding: '10px', borderRadius: '6px', fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '16px' }}>
-                            <div style={{ fontWeight: 700, marginBottom: '2px' }}>Monitored Contract Scope:</div>
-                            {stype === 'postgresql' && "Relational Schema, Table Constraints (PK/FK/CHECK), Column Nullability & SLA Policies."}
-                            {stype === 'kafka' && "Stream Topic Topology, Message Schema Registry, Retention SLAs & Dead-Letter Queues."}
-                            {stype === 'salesforce' && "Standard & Custom SObjects, Field Types, Validation Rules & Approval Thresholds."}
-                            {stype === 'mongodb' && "Collection Schemas, JSON Schema Validators ($jsonSchema), Shard Keys & TTL Indexes."}
-                            {stype === 'confluence' && "Live Confluence Wiki Space, Policy Articles, and Security Standards."}
-                            {stype === 'jira' && "Live Jira Project, Incident Runbooks, SLAs, and Release Guidelines."}
-                            {stype === 'github' && "Live GitHub Repository, /docs Markdown files, and Architecture Specs."}
-                            {stype === 'portal' && "Corporate Security Directives, Authentication & Compliance Mandates."}
-                            {!['postgresql', 'kafka', 'salesforce', 'mongodb', 'confluence', 'jira', 'github', 'portal'].includes(stype) && "Enterprise Data & Policy Contract Synchronization."}
-                          </div>
-                        </div>
-
-                        <div>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                            <span>Status: <strong style={{ color: 'var(--success-text)' }}>Connected</strong></span>
-                            <span>Stored Docs: <strong style={{ color: 'var(--primary)' }}>{displayedDbDocuments.filter(d => d.source_id === source.id).length}</strong></span>
-                          </div>
-
-                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                            <button
-                              type="button"
-                              onClick={() => handleSyncSource(source.id, source.name)}
-                              disabled={isSyncing}
-                              className="btn btn-secondary"
-                              style={{ padding: '8px', fontSize: '0.78rem', justifyContent: 'center' }}
-                            >
-                              {isSyncing ? "Syncing..." : `Sync Now`}
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setDocSourceFilter(source.id);
-                                setDocExplorerView('documents');
-                              }}
-                              className="btn btn-primary"
-                              style={{ padding: '8px', fontSize: '0.78rem', justifyContent: 'center' }}
-                            >
-                              View Docs ({displayedDbDocuments.filter(d => d.source_id === source.id).length})
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-
-                {/* Pipeline Flow Explainer */}
-                <div className="clean-panel" style={{ padding: '16px 20px', background: '#FFFFFF' }}>
-                  <div style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '8px' }}>
-                    Continuous Trust Ingestion Pipeline Flow
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                    <span className="code-pill">1. Polling Connectors</span>
-                    <span>→</span>
-                    <span className="code-pill">2. Normalizing Contracts & Markdown</span>
-                    <span>→</span>
-                    <span className="code-pill">3. Extracting Atomic Claims</span>
-                    <span>→</span>
-                    <span className="code-pill">4. Detecting Contradictions</span>
-                    <span>→</span>
-                    <span className="code-pill">5. Updating Auditor Queue</span>
-                  </div>
-                </div>
-
-                {/* Embedded Stored Documents Section directly below Connectors */}
-                <div className="clean-panel" style={{ padding: '22px', marginTop: '24px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
-                    <div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <span style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-main)' }}>
-                          Stored Documents from Connected Sources
-                        </span>
-                        <span className="badge badge-verified" style={{ fontSize: '0.75rem', padding: '3px 10px' }}>
-                          {displayedDbDocuments.length} Documents in PostgreSQL
-                        </span>
-                      </div>
-                      <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '3px' }}>
-                        Normalized policy markdown and schemas synced from live connectors. Filterable and ready for atomic claim extraction.
-                      </div>
-                    </div>
-
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-                      <input
-                        type="text"
-                        placeholder="Search stored documents..."
-                        value={dbSearchQuery}
-                        onChange={e => setDbSearchQuery(e.target.value)}
-                        style={{ padding: '6px 12px', fontSize: '0.8rem', width: '220px' }}
-                      />
+                  {/* Search Input */}
+                  <div style={{ position: 'relative', width: '260px' }}>
+                    <input
+                      type="text"
+                      value={catalogSearchQuery}
+                      onChange={(e) => setCatalogSearchQuery(e.target.value)}
+                      placeholder="Search 105+ connectors..."
+                      style={{
+                        width: '100%',
+                        padding: '7px 12px 7px 32px',
+                        fontSize: '0.80rem',
+                        borderRadius: '8px',
+                        border: '1px solid #CBD5E1',
+                        background: '#F8FAFC'
+                      }}
+                    />
+                    <span style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', opacity: 0.5, fontSize: '0.85rem' }}>🔍</span>
+                    {catalogSearchQuery && (
                       <button
                         type="button"
-                        onClick={() => {
-                          setDocSourceFilter('all');
-                          setDocExplorerView('documents');
-                        }}
-                        className="btn btn-primary"
-                        style={{ padding: '7px 14px', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '6px' }}
+                        onClick={() => setCatalogSearchQuery('')}
+                        style={{ position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)', border: 'none', background: 'transparent', cursor: 'pointer', color: '#94A3B8', fontSize: '0.75rem' }}
                       >
-                        <span>Open Full Document Explorer</span>
-                        <span>→</span>
+                        ✕
                       </button>
-                    </div>
+                    )}
                   </div>
+                </div>
 
-                  {displayedDbDocuments.length === 0 ? (
-                    <div style={{ padding: '32px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.85rem', background: '#FAFAFA', borderRadius: '8px', border: '1px dashed var(--border-subtle)' }}>
-                      <div>No documents stored yet. Click "Sync All Connectors" or connect a new source.</div>
-                      <div style={{ marginTop: '10px', display: 'flex', justifyContent: 'center', gap: '8px' }}>
-                        <button
-                          type="button"
-                          onClick={handleSyncAllSources}
-                          className="btn btn-secondary"
-                          style={{ padding: '6px 14px', fontSize: '0.8rem' }}
+                {/* Square Box Cards Grid */}
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
+                  gap: '16px',
+                  marginBottom: '28px'
+                }}>
+                  {catalogConnectors
+                    .filter(c => {
+                      const matchCat = catalogFilterCategory === 'all' || c.category === catalogFilterCategory;
+                      const q = catalogSearchQuery.trim().toLowerCase();
+                      const matchQuery = !q || c.name.toLowerCase().includes(q) || c.description.toLowerCase().includes(q) || c.id.toLowerCase().includes(q);
+                      return matchCat && matchQuery;
+                    })
+                    .map(connector => {
+                      // Check if already connected in dataSources
+                      const activeInstance = displayedDataSources.find(s =>
+                        (s.source_type || '').toLowerCase() === connector.id.toLowerCase() ||
+                        (s.name || '').toLowerCase().includes(connector.name.toLowerCase())
+                      );
+
+                      return (
+                        <div
+                          key={connector.id}
+                          onClick={() => {
+                            setSelectedConnectorMeta(connector);
+                            setNewSourceForm(prev => ({
+                              ...prev,
+                              name: `${connector.name} Production`,
+                              sourceType: connector.id,
+                              authorityLevel: 85,
+                              pgPort: connector.default_port || 5432,
+                              externalId: `${connector.id}://production`
+                            }));
+                            setTestConnectionResult(null);
+                            setDocExplorerView('connect');
+                          }}
+                          style={{
+                            aspectRatio: '1 / 1',
+                            background: '#FFFFFF',
+                            border: activeInstance ? '1.5px solid #22C55E' : '1px solid #E2E8F0',
+                            borderRadius: '14px',
+                            padding: '16px',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            textAlign: 'center',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                            boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+                            position: 'relative',
+                            overflow: 'hidden'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.transform = 'translateY(-3px)';
+                            e.currentTarget.style.boxShadow = '0 8px 16px rgba(0,0,0,0.08)';
+                            e.currentTarget.style.borderColor = activeInstance ? '#22C55E' : '#EA580C';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.transform = 'translateY(0)';
+                            e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.04)';
+                            e.currentTarget.style.borderColor = activeInstance ? '#22C55E' : '#E2E8F0';
+                          }}
                         >
-                          Sync All Connectors Now
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setShowAddSourceModal(true)}
-                          className="btn btn-primary"
-                          style={{ padding: '6px 14px', fontSize: '0.8rem' }}
-                        >
-                          + Connect Real Source
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div style={{ display: 'grid', gap: '10px' }}>
-                      {displayedDbDocuments
-                        .filter(d =>
-                          !dbSearchQuery ||
-                          d.title?.toLowerCase().includes(dbSearchQuery.toLowerCase()) ||
-                          d.external_id?.toLowerCase().includes(dbSearchQuery.toLowerCase())
-                        )
-                        .slice(0, 6)
-                        .map((doc, idx) => {
-                          const matchedSrc = dataSources.find(s => s.id === doc.source_id);
-                          const srcName = matchedSrc?.name || (doc.external_id?.includes('github') ? 'GitHub' : doc.external_id?.includes('confluence') ? 'Confluence' : 'Connected Source');
-                          return (
-                            <div
-                              key={doc.id || idx}
-                              style={{
-                                background: '#FFFFFF',
-                                border: '1px solid var(--border-subtle)',
-                                padding: '14px 18px',
-                                borderRadius: '8px',
-                                display: 'flex',
-                                justifyContent: 'space-between',
-                                alignItems: 'center',
-                                flexWrap: 'wrap',
-                                gap: '12px'
-                              }}
-                            >
-                              <div style={{ flex: '1 1 300px' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                                  <span style={{ fontWeight: 700, fontSize: '0.92rem', color: 'var(--text-main)' }}>
-                                    {doc.title}
-                                  </span>
-                                  <span className="badge badge-verified" style={{ fontSize: '0.68rem', padding: '2px 8px' }}>
-                                    {doc.document_type || 'policy'}
-                                  </span>
-                                  <span className="badge badge-allow" style={{ fontSize: '0.68rem', padding: '2px 8px' }}>
-                                    {doc.status || 'active'}
-                                  </span>
-                                  <span style={{
-                                    fontSize: '0.7rem',
-                                    fontWeight: 600,
-                                    padding: '2px 8px',
-                                    borderRadius: '12px',
-                                    background: 'rgba(37,99,235,0.08)',
-                                    color: 'var(--primary, #2563EB)'
-                                  }}>
-                                    🔌 {srcName}
-                                  </span>
-                                </div>
-                                <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-                                  External ID: <code style={{ color: 'var(--text-secondary)' }}>{doc.external_id || 'N/A'}</code> • Created: {new Date(doc.created_at).toLocaleDateString()}
-                                </div>
+                          {/* Top Tag */}
+                          <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span style={{
+                              fontSize: '0.65rem',
+                              fontWeight: 700,
+                              textTransform: 'uppercase',
+                              padding: '2px 6px',
+                              borderRadius: '4px',
+                              background: '#F1F5F9',
+                              color: '#64748B'
+                            }}>
+                              {connector.family || connector.category}
+                            </span>
+                            {activeInstance && (
+                              <span style={{
+                                width: '8px',
+                                height: '8px',
+                                borderRadius: '50%',
+                                background: '#22C55E',
+                                display: 'inline-block',
+                                boxShadow: '0 0 0 2px rgba(34, 197, 94, 0.25)'
+                              }} title="Connected & Synced" />
+                            )}
+                          </div>
+
+                          {/* Center Brand Icon & Name */}
+                          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', margin: 'auto 0' }}>
+                            <span style={{ fontSize: '2.4rem', lineHeight: 1 }}>{connector.icon || '🔌'}</span>
+                            <div>
+                              <div style={{ fontSize: '0.85rem', fontWeight: 800, color: '#0F172A', lineHeight: 1.2 }}>
+                                {connector.name}
                               </div>
-
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                                <div style={{ textAlign: 'right', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                                  <div>Hash: <code style={{ color: 'var(--text-secondary)' }}>{doc.content_hash?.substring(0, 16)}...</code></div>
-                                  <div>Versions: <strong style={{ color: 'var(--primary)' }}>{doc.versions?.length || 1}</strong></div>
-                                </div>
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setDocSourceFilter(doc.source_id || 'all');
-                                    setDocExplorerView('documents');
-                                  }}
-                                  className="btn btn-secondary"
-                                  style={{ padding: '6px 12px', fontSize: '0.75rem' }}
-                                >
-                                  Inspect Details →
-                                </button>
+                              <div style={{ fontSize: '0.68rem', color: '#94A3B8', marginTop: '3px', lineClamp: 1, WebkitLineClamp: 1, overflow: 'hidden', display: '-webkit-box', WebkitBoxOrient: 'vertical' }}>
+                                {connector.default_port ? `Port ${connector.default_port}` : connector.category_label}
                               </div>
                             </div>
-                          );
-                        })}
-                      {displayedDbDocuments.length > 6 && (
-                        <div style={{ textAlign: 'center', marginTop: '6px' }}>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setDocSourceFilter('all');
-                              setDocExplorerView('documents');
-                            }}
-                            className="btn btn-secondary"
-                            style={{ padding: '6px 16px', fontSize: '0.78rem' }}
-                          >
-                            View All {displayedDbDocuments.length} Documents in Full Browser →
-                          </button>
+                          </div>
+
+                          {/* Bottom Action CTA */}
+                          <div style={{ width: '100%' }}>
+                            {activeInstance ? (
+                              <div style={{
+                                width: '100%',
+                                padding: '4px 0',
+                                borderRadius: '6px',
+                                background: '#F0FDF4',
+                                color: '#15803D',
+                                fontSize: '0.70rem',
+                                fontWeight: 700
+                              }}>
+                                🟢 Active • {activeInstance.authority_level}%
+                              </div>
+                            ) : (
+                              <div style={{
+                                width: '100%',
+                                padding: '4px 0',
+                                borderRadius: '6px',
+                                background: '#F8FAFC',
+                                border: '1px solid #E2E8F0',
+                                color: '#EA580C',
+                                fontSize: '0.70rem',
+                                fontWeight: 700,
+                                transition: 'all 0.15s ease'
+                              }}>
+                                + Connect
+                              </div>
+                            )}
+                          </div>
                         </div>
-                      )}
-                    </div>
-                  )}
+                      );
+                    })}
                 </div>
               </div>
             )}
 
-            {/* Modal: Connect Real Enterprise Data Source (Atlan Architecture) */}
-                {showAddSourceModal && (
-                  <div style={{
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    background: 'rgba(15, 23, 42, 0.45)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    zIndex: 1000,
-                    padding: '20px'
-                  }}>
-                    <div className="clean-panel" style={{ width: '100%', maxWidth: '750px', maxHeight: '92vh', overflowY: 'auto', padding: '24px', background: '#FFFFFF', borderRadius: '12px', boxShadow: '0 20px 40px rgba(0,0,0,0.15)' }}>
-                      {/* Modal Header */}
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px', borderBottom: '1px solid var(--border-subtle, #E2E8F0)', paddingBottom: '14px' }}>
-                        <div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-main, #0F172A)', margin: 0 }}>
-                              Enterprise Connector Hub
-                            </h3>
-                            <span className="badge badge-verified" style={{ fontSize: '0.72rem', padding: '2px 8px' }}>
-                              105 Supported Sources
-                            </span>
-                          </div>
-                          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted, #64748B)', marginTop: '4px' }}>
-                            Modelled after Atlan's connector architecture with pre-flight diagnostics, automated crawler & contract extraction.
-                          </div>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => { setShowAddSourceModal(false); setTestConnectionResult(null); setIsConnectorDropdownOpen(false); }}
-                          style={{ background: '#F1F5F9', border: 'none', borderRadius: '50%', width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.85rem', cursor: 'pointer', color: 'var(--text-muted, #64748B)' }}
-                          aria-label="Close modal"
-                        >
-                          ✕
-                        </button>
-                      </div>
+            {/* VIEW: FULL PAGE CONNECT REAL ENTERPRISE DATA SOURCE (ATLAN ARCHITECTURE) */}
+            {docExplorerView === 'connect' && (
+              <div style={{
+                background: '#FFFFFF',
+                border: '1px solid #E2E8F0',
+                borderRadius: '14px',
+                padding: '28px',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+                marginBottom: '24px'
+              }}>
+                {/* Header & 4-Step Process Guide */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px', borderBottom: '1px solid #F1F5F9', paddingBottom: '16px', flexWrap: 'wrap', gap: '14px' }}>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0F172A', margin: 0 }}>
+                        Enterprise Connector Setup Wizard
+                      </h3>
+                      <span className="badge badge-verified" style={{ fontSize: '0.72rem', padding: '2px 8px' }}>
+                        105 Supported Integrations
+                      </span>
+                    </div>
+                    <div style={{ fontSize: '0.78rem', color: '#64748B', marginTop: '4px' }}>
+                      Follow the 4-step wizard below to configure automated crawlers, test real-time connectivity, and extract schema policies into PostgreSQL.
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => { setDocExplorerView('connectors'); setTestConnectionResult(null); setIsConnectorDropdownOpen(false); }}
+                    style={{
+                      background: '#F1F5F9',
+                      border: '1px solid #CBD5E1',
+                      borderRadius: '8px',
+                      padding: '6px 14px',
+                      fontSize: '0.80rem',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      color: '#475569'
+                    }}
+                  >
+                    ← Cancel & Return
+                  </button>
+                </div>
+
+                {/* 4-Step Interactive Stepper Banner */}
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(4, 1fr)',
+                  gap: '12px',
+                  marginBottom: '24px',
+                  background: '#F8FAFC',
+                  padding: '12px',
+                  borderRadius: '10px',
+                  border: '1px solid #E2E8F0'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ width: '22px', height: '22px', borderRadius: '50%', background: '#EA580C', color: '#FFF', fontSize: '0.72rem', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>1</span>
+                    <div>
+                      <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#0F172A' }}>Select Source</div>
+                      <div style={{ fontSize: '0.68rem', color: '#64748B' }}>Choose system type</div>
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ width: '22px', height: '22px', borderRadius: '50%', background: '#EA580C', color: '#FFF', fontSize: '0.72rem', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>2</span>
+                    <div>
+                      <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#0F172A' }}>Auth & Config</div>
+                      <div style={{ fontSize: '0.68rem', color: '#64748B' }}>Host & credentials</div>
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ width: '22px', height: '22px', borderRadius: '50%', background: '#EA580C', color: '#FFF', fontSize: '0.72rem', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>3</span>
+                    <div>
+                      <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#0F172A' }}>Policy & Scope</div>
+                      <div style={{ fontSize: '0.68rem', color: '#64748B' }}>Authority & crawler</div>
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ width: '22px', height: '22px', borderRadius: '50%', background: '#EA580C', color: '#FFF', fontSize: '0.72rem', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>4</span>
+                    <div>
+                      <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#0F172A' }}>Test & Connect</div>
+                      <div style={{ fontSize: '0.68rem', color: '#64748B' }}>Live handshake sync</div>
+                    </div>
+                  </div>
+                </div>
 
                       {/* Category Filter Chips */}
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '14px' }}>
@@ -5613,9 +5606,9 @@ export default function App() {
                           <div style={{ display: 'flex', gap: '8px' }}>
                             <button
                               type="button"
-                              onClick={() => { setShowAddSourceModal(false); setTestConnectionResult(null); setIsConnectorDropdownOpen(false); }}
+                              onClick={() => { setDocExplorerView('connectors'); setTestConnectionResult(null); setIsConnectorDropdownOpen(false); }}
                               className="btn btn-secondary"
-                              style={{ padding: '8px 14px', fontSize: '0.8rem' }}
+                              style={{ padding: '8px 16px', fontSize: '0.82rem', fontWeight: 600 }}
                             >
                               Cancel
                             </button>
@@ -5623,7 +5616,7 @@ export default function App() {
                               type="submit"
                               disabled={isConnectingSource}
                               className="btn btn-primary"
-                              style={{ padding: '8px 18px', fontSize: '0.8rem', fontWeight: 700 }}
+                              style={{ padding: '8px 20px', fontSize: '0.82rem', fontWeight: 700, background: '#EA580C', borderColor: '#EA580C', boxShadow: '0 2px 6px rgba(234, 88, 12, 0.25)' }}
                             >
                               {isConnectingSource ? "Connecting & Syncing..." : "Save & Sync Connection"}
                             </button>
@@ -5631,183 +5624,20 @@ export default function App() {
                         </div>
                       </form>
                     </div>
-                  </div>
-                )}
-
-            {/* VIEW 1: INGEST NEW DOCUMENT */}
-            {docExplorerView === 'ingest' && (
-              <div style={{ display: 'grid', gridTemplateColumns: '400px 1fr', gap: '20px' }}>
-
-                {/* Ingest Form */}
-                <div className="clean-panel" style={{ padding: '20px' }}>
-                  <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '14px' }}>
-                    Ingest & Normalize Document
-                  </h3>
-
-                  <div style={{ display: 'grid', gap: '14px' }}>
-
-                    {/* Drag and Drop File Upload Zone */}
-                    <div
-                      onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-                      onDragLeave={() => setIsDragging(false)}
-                      onDrop={(e) => {
-                        e.preventDefault();
-                        setIsDragging(false);
-                        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-                          handleProcessFile(e.dataTransfer.files[0]);
-                        }
-                      }}
-                      onClick={() => fileInputRef.current?.click()}
-                      style={{
-                        border: isDragging ? '2px dashed var(--primary)' : '1px dashed var(--border-medium)',
-                        background: isDragging ? 'var(--primary-50)' : 'var(--bg-card-subtle)',
-                        borderRadius: '8px',
-                        padding: '16px 14px',
-                        textAlign: 'center',
-                        cursor: 'pointer',
-                        transition: 'all 0.15s ease'
-                      }}
-                    >
-                      <input
-                        type="file"
-                        ref={fileInputRef}
-                        accept=".txt,.md,.json,.csv,.pdf,.docx,.doc"
-                        style={{ display: 'none' }}
-                        onChange={(e) => {
-                          if (e.target.files && e.target.files[0]) {
-                            handleProcessFile(e.target.files[0]);
-                          }
-                        }}
-                      />
-                      {uploadedFile ? (
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                          <div style={{ textAlign: 'left' }}>
-                            <div style={{ fontSize: '0.825rem', fontWeight: 700, color: 'var(--primary)' }}>
-                              {uploadedFile.name}
-                            </div>
-                            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                              {(uploadedFile.size / 1024).toFixed(1)} KB • Click to choose a different file
-                            </div>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setUploadedFile(null);
-                              if (fileInputRef.current) fileInputRef.current.value = '';
-                            }}
-                            className="badge badge-outdated"
-                            style={{ cursor: 'pointer', border: '1px solid var(--border-subtle)', textDecoration: 'none' }}
-                          >
-                            Clear
-                          </button>
-                        </div>
-                      ) : (
-                        <div>
-                          <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-main)' }}>
-                            Drag & drop a file here, or click to browse
-                          </div>
-                          <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '3px' }}>
-                            Supports .pdf, .docx, .txt, .md, .json, .csv
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    <div>
-                      <label style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 700, display: 'block', marginBottom: '4px' }}>
-                        Document Title:
-                      </label>
-                      <input
-                        type="text"
-                        value={docInput.title}
-                        onChange={e => setDocInput({ ...docInput, title: e.target.value })}
-                        style={{ width: '100%', padding: '8px 10px', fontSize: '0.85rem' }}
-                      />
-                    </div>
-
-                    <div>
-                      <label style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 700, display: 'block', marginBottom: '4px' }}>
-                        Document Type:
-                      </label>
-                      <select
-                        value={docInput.docType}
-                        onChange={e => setDocInput({ ...docInput, docType: e.target.value })}
-                        style={{ width: '100%', padding: '8px 10px', fontSize: '0.85rem' }}
-                      >
-                        <option value="policy">Enterprise Policy</option>
-                        <option value="confluence_page">Confluence Article</option>
-                        <option value="handbook">Employee Handbook</option>
-                        <option value="runbook">DevOps Runbook</option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 700, display: 'block', marginBottom: '4px' }}>
-                        Raw Markdown Content:
-                      </label>
-                      <textarea
-                        rows={6}
-                        value={docInput.content}
-                        onChange={e => setDocInput({ ...docInput, content: e.target.value })}
-                        style={{ width: '100%', padding: '8px 10px', fontFamily: 'var(--font-mono)', fontSize: '0.78rem' }}
-                      />
-                    </div>
-
-                    <button
-                      onClick={handleIngestDocument}
-                      disabled={ingesting}
-                      className="btn btn-primary"
-                      style={{ width: '100%', padding: '10px' }}
-                    >
-                      {ingesting ? "Extracting Claims..." : "Ingest Document"}
-                    </button>
-                  </div>
-                </div>
-
-                {/* Extracted Claims */}
-                <div className="clean-panel" style={{ padding: '20px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-                    <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-main)' }}>
-                      Extracted Atomic Claims ({extractedClaims.length})
-                    </h3>
-                    {ingestedDoc && (
-                      <span className="code-pill">SHA-256: {ingestedDoc.document?.content_hash?.substring(0, 16)}...</span>
-                    )}
-                  </div>
-
-                  {extractedClaims.length === 0 ? (
-                    <div style={{ padding: '48px 20px', textAlign: 'center', color: 'var(--text-muted)' }}>
-                      <p style={{ fontSize: '0.825rem' }}>Ingest a document on the left to extract Subject-Predicate-Object claims with multi-factor trust ratings.</p>
-                    </div>
-                  ) : (
-                    <div style={{ display: 'grid', gap: '10px' }}>
-                      {extractedClaims.map((claim, idx) => (
-                        <div key={claim.id || idx} style={{ background: '#FFFFFF', border: '1px solid var(--border-subtle)', padding: '12px', borderRadius: '8px' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                            <div style={{ display: 'flex', gap: '6px' }}>
-                              <span className="code-pill">Subject: {claim.subject || 'N/A'}</span>
-                              <span className="code-pill">Predicate: {claim.predicate || 'N/A'}</span>
-                            </div>
-                            <span className={`badge ${claim.status === 'verified' ? 'badge-allow' : 'badge-review'}`}>
-                              {claim.status}
-                            </span>
-                          </div>
-
-                          <p style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-main)', lineHeight: '1.4' }}>
-                            "{claim.claim_text}"
-                          </p>
-
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '8px', paddingTop: '6px', borderTop: '1px solid var(--border-subtle)', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                            <span>Section: {claim.evidence?.[0]?.section || 'General'}</span>
-                            <span>Trust Score: <strong style={{ color: 'var(--success-text)' }}>{claim.trust_scores?.[0]?.overall_score || '0.95'}</strong></span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
                   )}
-                </div>
-              </div>
+
+            {/* VIEW 1: LIVE INGESTION STUDIO & CLAIM EXTRACTOR */}
+            {docExplorerView === 'ingest' && (
+              <LiveIngestionStudio
+                activeOrg={activeOrg}
+                activePersona={activePersona}
+                activeWorkspace={activeWorkspace}
+                onClaimExtracted={() => {
+                  fetchLiveDatabaseRecords();
+                  fetchHealthAndConflicts(activeOrg?.id);
+                }}
+                showToast={showToast}
+              />
             )}
 
             {/* VIEW 2: STORED DOCUMENTS BROWSER */}
@@ -6539,33 +6369,6 @@ export default function App() {
         )}
 
         {/* ========================================================= */}
-        {/* ENTERPRISE TAB 1: LIVE INGESTION STUDIO (OPTION 1)        */}
-        {/* ========================================================= */}
-        {activeTab === 'live_ingestion' && (
-          <div>
-            <div className="tab-header-center" style={{ marginBottom: '24px' }}>
-
-              <h1 className="tab-main-heading">
-                Live Ingestion & Autonomous Claim Extractor
-              </h1>
-              <p className="tab-subtitle">
-                Upload PDFs, Word Docs, Markdown, or JSON. The engine auto-parses sections, extracts atomic claims, computes trust scores, and links lineage in real time.
-              </p>
-            </div>
-            <LiveIngestionStudio
-              activeOrg={activeOrg}
-              activePersona={activePersona}
-              activeWorkspace={activeWorkspace}
-              onClaimExtracted={() => {
-                fetchLiveDatabaseRecords();
-                fetchHealthAndConflicts(activeOrg?.id);
-              }}
-              showToast={showToast}
-            />
-          </div>
-        )}
-
-        {/* ========================================================= */}
         {/* ENTERPRISE TAB 2: VAULT (DATA EXPLORATION & DAG LINEAGE)  */}
         {/* ========================================================= */}
         {activeTab === 'visual_lineage' && (
@@ -6593,15 +6396,6 @@ export default function App() {
         {/* ========================================================= */}
         {(activeTab === 'context_curator' || activeTab === 'conflicts') && (
           <div>
-            <div className="tab-header-center" style={{ marginBottom: '24px' }}>
-
-              <h1 className="tab-main-heading">
-                Autonomous Context Curator & Conflict Resolver
-              </h1>
-              <p className="tab-subtitle">
-                Continuous knowledge health auditing and pairwise policy arbitration. Approved claims become authoritative while stale rules are superseded.
-              </p>
-            </div>
             <ContextCuratorStudio
               activeOrg={activeOrg}
               activeWorkspace={activeWorkspace}
