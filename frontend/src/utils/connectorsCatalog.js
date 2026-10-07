@@ -1,5 +1,5 @@
 // -------------------------------------------------------------
-// Enterprise Connectors Catalog (105 Supported Enterprise Data Sources)
+// Enterprise Connectors Catalog (108 Supported Enterprise Data Sources)
 // -------------------------------------------------------------
 
 export const ENTERPRISE_CONNECTORS = [
@@ -1153,6 +1153,56 @@ export const ENTERPRISE_CONNECTORS = [
     default_port: 443,
     icon: "🐙",
   },
+  {
+    id: "slack",
+    name: "Slack",
+    category: "crm_erp",
+    category_label: "Knowledge & Repositories",
+    family: "enterprise_app",
+    description: "Enterprise workspace messaging for incident channels, security broadcasts, and support discussions.",
+    monitored_scope: "Slack channels, incident alerts, policy updates, and dispute arbitration conversations.",
+    default_port: 443,
+    icon: "💬",
+    fields: [
+      { id: "workspace_name", label: "Workspace Name", type: "text", required: true, default: "Enterprise-HQ", placeholder: "e.g. Acme-Corp" },
+      { id: "bot_token", label: "Bot User OAuth Token", type: "password", required: false, placeholder: "xoxb-your-slack-bot-token" },
+      { id: "channels", label: "Target Channels", type: "text", required: false, default: "secops-incidents,billing-compliance", placeholder: "e.g. secops-incidents, customer-support" }
+    ]
+  },
+  {
+    id: "jira",
+    name: "Atlassian Jira",
+    category: "crm_erp",
+    category_label: "Knowledge & Repositories",
+    family: "enterprise_app",
+    description: "Enterprise issue and project tracking software for agile release policies, incident runbooks, and SLA workflows.",
+    monitored_scope: "Jira projects, issue types, resolution workflows, priority matrices & release guidelines.",
+    default_port: 443,
+    icon: "🎯",
+    fields: [
+      { id: "project_key", label: "Project Key", type: "text", required: true, default: "OPS", placeholder: "e.g. OPS, SEC, REL" },
+      { id: "base_url", label: "Jira Base URL", type: "text", required: false, default: "https://your-org.atlassian.net", placeholder: "https://company.atlassian.net" },
+      { id: "user_email", label: "User Email", type: "text", required: false, placeholder: "admin@company.com" },
+      { id: "api_token", label: "API Token", type: "password", required: false, placeholder: "Atlassian API Token" }
+    ]
+  },
+  {
+    id: "confluence",
+    name: "Atlassian Confluence",
+    category: "crm_erp",
+    category_label: "Knowledge & Repositories",
+    family: "enterprise_app",
+    description: "Enterprise workspace and wiki documentation for company policies, architectural SOPs, and compliance standards.",
+    monitored_scope: "Live Confluence Wiki Space, Policy Articles, SOPs, and Security Standards.",
+    default_port: 443,
+    icon: "📘",
+    fields: [
+      { id: "space_key", label: "Space Key", type: "text", required: true, default: "POLICIES", placeholder: "e.g. POLICIES, SEC, ARCH" },
+      { id: "base_url", label: "Confluence Base URL", type: "text", required: false, default: "https://your-org.atlassian.net", placeholder: "https://company.atlassian.net" },
+      { id: "user_email", label: "User Email", type: "text", required: false, placeholder: "admin@company.com" },
+      { id: "api_token", label: "API Token", type: "password", required: false, placeholder: "Atlassian API Token" }
+    ]
+  },
 
   // 10. ML / AI (2)
   {
@@ -1198,3 +1248,951 @@ export function getConnectorById(id) {
   const clean = id.toLowerCase().trim();
   return ENTERPRISE_CONNECTORS.find(c => c.id === clean) || null;
 }
+
+/**
+ * Context Trust Layer
+ * Frontend Connector Catalog
+ *
+ * Backend catalog is the source of truth:
+ *
+ *   GET /api/v1/sources/catalog
+ *
+ * This module provides:
+ *   - connector catalog access
+ *   - category grouping
+ *   - connector lookup
+ *   - lifecycle helpers
+ *   - frontend-safe defaults
+ *
+ * Do not put authentication secrets or connection credentials here.
+ */
+
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "/api/v1";
+
+
+// ============================================================================
+// CONNECTOR LIFECYCLE
+// ============================================================================
+
+export const CONNECTOR_LIFECYCLE = [
+  "configure",
+  "authenticate",
+  "test",
+  "discover",
+  "select",
+  "initial_sync",
+  "continuous_sync",
+  "normalize",
+  "provenance",
+  "conflict_detection",
+  "lineage",
+  "monitoring",
+];
+
+
+// ============================================================================
+// CATEGORY DEFINITIONS
+// ============================================================================
+
+export const CONNECTOR_CATEGORIES = [
+  {
+    id: "databases",
+    label: "Databases & Warehouses",
+  },
+  {
+    id: "storage_lakehouse",
+    label: "Storage & Lakehouse",
+  },
+  {
+    id: "etl_pipelines",
+    label: "ETL & Pipelines",
+  },
+  {
+    id: "orchestration_lineage",
+    label: "Orchestration & Lineage",
+  },
+  {
+    id: "messaging_streaming",
+    label: "Messaging & Streaming",
+  },
+  {
+    id: "schema_registry",
+    label: "Schema Registry",
+  },
+  {
+    id: "bi_analytics",
+    label: "BI & Analytics",
+  },
+  {
+    id: "governance_quality",
+    label: "Governance & Data Quality",
+  },
+  {
+    id: "crm_erp_knowledge",
+    label: "CRM, ERP & Knowledge",
+  },
+  {
+    id: "ml_ai",
+    label: "ML & AI",
+  },
+];
+
+
+// ============================================================================
+// FALLBACK CONNECTOR CATALOG
+// ============================================================================
+//
+// This is intentionally small.
+//
+// The complete connector catalog lives in the backend.
+// These entries allow the UI to render basic information while the
+// backend catalog request is loading or temporarily unavailable.
+//
+
+export const FALLBACK_CONNECTORS = [
+  {
+    id: "postgresql",
+    name: "PostgreSQL",
+    category: "databases",
+    category_label: "Databases & Warehouses",
+    family: "sql",
+    description:
+      "PostgreSQL relational database connector.",
+    driver: "native",
+    status: "production",
+  },
+
+  {
+    id: "mongodb",
+    name: "MongoDB",
+    category: "databases",
+    category_label: "Databases & Warehouses",
+    family: "document",
+    description:
+      "MongoDB document database connector.",
+    driver: "native",
+    status: "production",
+  },
+
+  {
+    id: "salesforce",
+    name: "Salesforce",
+    category: "crm_erp_knowledge",
+    category_label: "CRM, ERP & Knowledge",
+    family: "crm",
+    description:
+      "Salesforce CRM connector.",
+    driver: "native",
+    status: "production",
+  },
+
+  {
+    id: "github",
+    name: "GitHub",
+    category: "crm_erp_knowledge",
+    category_label: "CRM, ERP & Knowledge",
+    family: "repository",
+    description:
+      "GitHub repository and documentation connector.",
+    driver: "native",
+    status: "production",
+  },
+
+  {
+    id: "jira",
+    name: "Jira",
+    category: "crm_erp_knowledge",
+    category_label: "CRM, ERP & Knowledge",
+    family: "issue_tracking",
+    description:
+      "Jira issue and project connector.",
+    driver: "native",
+    status: "production",
+  },
+
+  {
+    id: "slack",
+    name: "Slack",
+    category: "crm_erp_knowledge",
+    category_label: "CRM, ERP & Knowledge",
+    family: "messaging",
+    description: "Slack channels, incident discussions, and workspace communications.",
+    driver: "native",
+    status: "production",
+  },
+
+  {
+    id: "confluence",
+    name: "Confluence",
+    category: "crm_erp_knowledge",
+    category_label: "CRM, ERP & Knowledge",
+    family: "knowledge",
+    description:
+      "Confluence knowledge-base connector.",
+    driver: "native",
+    status: "production",
+  },
+
+  {
+    id: "kafka",
+    name: "Apache Kafka",
+    category: "messaging_streaming",
+    category_label: "Messaging & Streaming",
+    family: "streaming",
+    description:
+      "Apache Kafka event-stream connector.",
+    driver: "native",
+    status: "production",
+  },
+];
+
+
+// ============================================================================
+// INTERNAL STATE
+// ============================================================================
+
+let catalogCache = null;
+
+let catalogPromise = null;
+
+
+// ============================================================================
+// NORMALIZATION
+// ============================================================================
+
+function normalizeConnector(connector) {
+  if (!connector) {
+    return null;
+  }
+
+  const lifecycle =
+    Array.isArray(connector.lifecycle)
+      ? connector.lifecycle
+      : CONNECTOR_LIFECYCLE;
+
+  const capabilities =
+    connector.capabilities || {};
+
+  return {
+    ...connector,
+
+    id: connector.id,
+
+    name:
+      connector.name ||
+      connector.id,
+
+    category:
+      connector.category ||
+      "other",
+
+    category_label:
+      connector.category_label ||
+      "Other",
+
+    family:
+      connector.family ||
+      "generic",
+
+    description:
+      connector.description ||
+      "",
+
+    driver:
+      connector.driver ||
+      "universal",
+
+    status:
+      connector.status ||
+      "production",
+
+    lifecycle,
+
+    capabilities: {
+      configure:
+        capabilities.configure !== false,
+
+      authenticate:
+        capabilities.authenticate !== false,
+
+      test:
+        capabilities.test !== false,
+
+      discover:
+        capabilities.discover !== false,
+
+      select:
+        capabilities.select !== false,
+
+      initial_sync:
+        capabilities.initial_sync !== false,
+
+      continuous_sync:
+        capabilities.continuous_sync !== false,
+
+      normalize:
+        capabilities.normalize !== false,
+
+      provenance:
+        capabilities.provenance !== false,
+
+      conflict_detection:
+        capabilities.conflict_detection !== false,
+
+      lineage:
+        capabilities.lineage !== false,
+
+      monitoring:
+        capabilities.monitoring !== false,
+    },
+
+    fields:
+      Array.isArray(connector.fields)
+        ? connector.fields
+        : [],
+
+    incremental_sync:
+      connector.incremental_sync !== false,
+  };
+}
+
+
+// ============================================================================
+// API REQUEST
+// ============================================================================
+
+export async function fetchConnectorCatalog({
+  forceRefresh = false,
+} = {}) {
+  if (
+    catalogCache &&
+    !forceRefresh
+  ) {
+    return catalogCache;
+  }
+
+  if (
+    catalogPromise &&
+    !forceRefresh
+  ) {
+    return catalogPromise;
+  }
+
+  catalogPromise = fetch(
+    `${API_BASE_URL}/sources/catalog`,
+    {
+      method: "GET",
+      headers: {
+        Accept:
+          "application/json",
+      },
+    }
+  )
+    .then(async (response) => {
+      if (!response.ok) {
+        throw new Error(
+          `Failed to load connector catalog: ${response.status}`
+        );
+      }
+
+      const data =
+        await response.json();
+
+      const connectors =
+        Array.isArray(data)
+          ? data
+          : Array.isArray(
+            data.connectors
+          )
+            ? data.connectors
+            : [];
+
+      const normalized =
+        connectors
+          .map(normalizeConnector)
+          .filter(Boolean);
+
+      catalogCache = normalized;
+
+      return normalized;
+    })
+    .catch((error) => {
+      console.error(
+        "Connector catalog request failed:",
+        error
+      );
+
+      const fallback =
+        FALLBACK_CONNECTORS
+          .map(normalizeConnector)
+          .filter(Boolean);
+
+      catalogCache = fallback;
+
+      return fallback;
+    })
+    .finally(() => {
+      catalogPromise = null;
+    });
+
+  return catalogPromise;
+}
+
+
+// ============================================================================
+// SINGLE CONNECTOR
+// ============================================================================
+
+export async function fetchConnector(
+  connectorId
+) {
+  if (!connectorId) {
+    return null;
+  }
+
+  const normalizedId =
+    String(
+      connectorId
+    )
+      .trim()
+      .toLowerCase();
+
+  const catalog =
+    await fetchConnectorCatalog();
+
+  const existing =
+    catalog.find(
+      (connector) =>
+        String(
+          connector.id
+        ).toLowerCase() ===
+        normalizedId
+    );
+
+  if (existing) {
+    return existing;
+  }
+
+  try {
+    const response =
+      await fetch(
+        `${API_BASE_URL}/sources/catalog/${encodeURIComponent(
+          normalizedId
+        )}`,
+        {
+          method: "GET",
+          headers: {
+            Accept:
+              "application/json",
+          },
+        }
+      );
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const connector =
+      await response.json();
+
+    return normalizeConnector(
+      connector
+    );
+  } catch (error) {
+    console.error(
+      `Failed to load connector '${normalizedId}':`,
+      error
+    );
+
+    return null;
+  }
+}
+
+
+// ============================================================================
+// CACHE CONTROL
+// ============================================================================
+
+export function clearConnectorCatalogCache() {
+  catalogCache = null;
+}
+
+
+// ============================================================================
+// LOOKUP HELPERS
+// ============================================================================
+
+export function findConnector(
+  connectors,
+  connectorId
+) {
+  if (
+    !Array.isArray(
+      connectors
+    ) ||
+    !connectorId
+  ) {
+    return null;
+  }
+
+  const normalizedId =
+    String(
+      connectorId
+    )
+      .trim()
+      .toLowerCase();
+
+  return (
+    connectors.find(
+      (connector) =>
+        String(
+          connector.id
+        ).toLowerCase() ===
+        normalizedId
+    ) || null
+  );
+}
+
+
+export function getConnectorsByCategory(
+  connectors,
+  category
+) {
+  if (
+    !Array.isArray(
+      connectors
+    )
+  ) {
+    return [];
+  }
+
+  return connectors.filter(
+    (connector) =>
+      connector.category ===
+      category
+  );
+}
+
+
+export function searchConnectors(
+  connectors,
+  query
+) {
+  if (
+    !Array.isArray(
+      connectors
+    )
+  ) {
+    return [];
+  }
+
+  if (
+    !query ||
+    !String(query).trim()
+  ) {
+    return connectors;
+  }
+
+  const search =
+    String(query)
+      .trim()
+      .toLowerCase();
+
+  return connectors.filter(
+    (connector) => {
+      const searchable = [
+        connector.id,
+        connector.name,
+        connector.category,
+        connector.category_label,
+        connector.family,
+        connector.description,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+
+      return searchable.includes(
+        search
+      );
+    }
+  );
+}
+
+
+// ============================================================================
+// GROUPING
+// ============================================================================
+
+export function groupConnectorsByCategory(
+  connectors
+) {
+  if (
+    !Array.isArray(
+      connectors
+    )
+  ) {
+    return {};
+  }
+
+  return connectors.reduce(
+    (groups, connector) => {
+      const category =
+        connector.category ||
+        "other";
+
+      if (!groups[category]) {
+        groups[category] = [];
+      }
+
+      groups[category].push(
+        connector
+      );
+
+      return groups;
+    },
+    {}
+  );
+}
+
+
+export function getGroupedConnectorCatalog(
+  connectors
+) {
+  const groups =
+    groupConnectorsByCategory(
+      connectors
+    );
+
+  return CONNECTOR_CATEGORIES.map(
+    (category) => ({
+      ...category,
+      connectors:
+        groups[
+        category.id
+        ] || [],
+    })
+  ).filter(
+    (category) =>
+      category.connectors
+        .length > 0
+  );
+}
+
+
+// ============================================================================
+// LIFECYCLE HELPERS
+// ============================================================================
+
+export function supportsLifecycleStage(
+  connector,
+  stage
+) {
+  if (
+    !connector ||
+    !stage
+  ) {
+    return false;
+  }
+
+  if (
+    Array.isArray(
+      connector.lifecycle
+    )
+  ) {
+    return connector.lifecycle.includes(
+      stage
+    );
+  }
+
+  if (
+    connector.capabilities &&
+    typeof connector.capabilities[
+    stage
+    ] === "boolean"
+  ) {
+    return connector.capabilities[
+      stage
+    ];
+  }
+
+  return true;
+}
+
+
+export function getLifecycleStages(
+  connector
+) {
+  if (!connector) {
+    return [];
+  }
+
+  if (
+    Array.isArray(
+      connector.lifecycle
+    )
+  ) {
+    return connector.lifecycle;
+  }
+
+  return CONNECTOR_LIFECYCLE.filter(
+    (stage) =>
+      supportsLifecycleStage(
+        connector,
+        stage
+      )
+  );
+}
+
+
+export function getCompletedLifecycleStages(
+  connector,
+  currentStage
+) {
+  const stages =
+    getLifecycleStages(
+      connector
+    );
+
+  if (!currentStage) {
+    return [];
+  }
+
+  const index =
+    stages.indexOf(
+      currentStage
+    );
+
+  if (index < 0) {
+    return [];
+  }
+
+  return stages.slice(
+    0,
+    index
+  );
+}
+
+
+// ============================================================================
+// DRIVER HELPERS
+// ============================================================================
+
+export function isNativeConnector(
+  connector
+) {
+  return (
+    connector?.driver ===
+    "native" ||
+    connector?.is_native === true
+  );
+}
+
+
+export function isUniversalConnector(
+  connector
+) {
+  return !isNativeConnector(
+    connector
+  );
+}
+
+
+// ============================================================================
+// CONNECTOR STATUS HELPERS
+// ============================================================================
+
+export function isProductionConnector(
+  connector
+) {
+  return (
+    connector?.status ===
+    "production" ||
+    connector?.status ===
+    "active"
+  );
+}
+
+
+export function isBetaConnector(
+  connector
+) {
+  return (
+    connector?.status ===
+    "beta"
+  );
+}
+
+
+// ============================================================================
+// FORM HELPERS
+// ============================================================================
+
+export function getConnectorFields(
+  connector
+) {
+  if (
+    !connector ||
+    !Array.isArray(
+      connector.fields
+    )
+  ) {
+    return [];
+  }
+
+  return connector.fields;
+}
+
+
+export function getDefaultConnectorConfig(
+  connector
+) {
+  if (!connector) {
+    return {};
+  }
+
+  const config = {};
+
+  if (
+    connector.default_port !==
+    undefined
+  ) {
+    config.port =
+      connector.default_port;
+  }
+
+  if (
+    connector.default_auth
+  ) {
+    config.auth_type =
+      connector.default_auth;
+  }
+
+  if (
+    connector.default_host
+  ) {
+    config.host =
+      connector.default_host;
+  }
+
+  return config;
+}
+
+
+// ============================================================================
+// DISPLAY HELPERS
+// ============================================================================
+
+export function getConnectorDisplayName(
+  connector
+) {
+  if (!connector) {
+    return "";
+  }
+
+  return (
+    connector.name ||
+    connector.id
+      ?.replaceAll(
+        "_",
+        " "
+      )
+      .replace(/\b\w/g, (char) =>
+        char.toUpperCase()
+      ) ||
+    ""
+  );
+}
+
+
+export function getConnectorDescription(
+  connector
+) {
+  return (
+    connector?.description ||
+    "Connect this source to the Context Trust Layer."
+  );
+}
+
+
+// ============================================================================
+// SORTING
+// ============================================================================
+
+export function sortConnectors(
+  connectors
+) {
+  if (
+    !Array.isArray(
+      connectors
+    )
+  ) {
+    return [];
+  }
+
+  return [
+    ...connectors,
+  ].sort((a, b) =>
+    getConnectorDisplayName(
+      a
+    ).localeCompare(
+      getConnectorDisplayName(
+        b
+      )
+    )
+  );
+}
+
+
+// ============================================================================
+// EXPORT DEFAULT
+// ============================================================================
+
+export default {
+  CONNECTOR_LIFECYCLE,
+
+  CONNECTOR_CATEGORIES,
+
+  FALLBACK_CONNECTORS,
+
+  fetchConnectorCatalog,
+
+  fetchConnector,
+
+  clearConnectorCatalogCache,
+
+  findConnector,
+
+  getConnectorsByCategory,
+
+  searchConnectors,
+
+  groupConnectorsByCategory,
+
+  getGroupedConnectorCatalog,
+
+  supportsLifecycleStage,
+
+  getLifecycleStages,
+
+  getCompletedLifecycleStages,
+
+  isNativeConnector,
+
+  isUniversalConnector,
+
+  isProductionConnector,
+
+  isBetaConnector,
+
+  getConnectorFields,
+
+  getDefaultConnectorConfig,
+
+  getConnectorDisplayName,
+
+  getConnectorDescription,
+
+  sortConnectors,
+};

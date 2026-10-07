@@ -1,12 +1,6 @@
-from app.ingestion.base import BaseConnector, RawDocumentPayload
+"""
+Compatibility re-export of SlackConnector.
+"""
+from app.ingestion.connectors.slack_connector import SlackConnector
 
-
-class SlackConnector(BaseConnector):
-    async def fetch_document(self, external_id: str) -> RawDocumentPayload:
-        return RawDocumentPayload(
-            title=f"Slack Message {external_id}",
-            content="",
-            source_type="slack",
-            external_id=external_id,
-            document_type="message",
-        )
+__all__ = ["SlackConnector"]

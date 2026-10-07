@@ -1,1387 +1,1531 @@
-import uuid
-from typing import Any, Dict, List, Optional
-from pydantic import BaseModel
-from sqlalchemy.ext.asyncio import AsyncSession
+"""
+Connector Registry
+==================
+
+Central registry for all Context Trust Layer connectors.
+
+The connector catalog is stored in:
+
+    backend/app/ingestion/connector_catalog.json
+
+The registry is responsible for:
+
+    1. Loading connector metadata.
+    2. Validating catalog entries.
+    3. Looking up connectors by id.
+    4. Supporting connector aliases.
+    5. Returning lifecycle capabilities.
+    6. Returning configuration fields for the frontend/API.
+    7. Identifying native versus universal-driver connectors.
+    8. Providing backward-compatible ConnectorMetadata objects.
+
+Lifecycle:
+
+    Configure
+        ↓
+    Authenticate
+        ↓
+    Test
+        ↓
+    Discover
+        ↓
+    Select
+        ↓
+    Initial Sync
+        ↓
+    Continuous Sync
+        ↓
+    Normalize
+        ↓
+    Provenance
+        ↓
+    Conflict Detection
+        ↓
+    Lineage
+        ↓
+    Monitoring
+"""
+
+from __future__ import annotations
+
+import json
+import logging
+from pathlib import Path
+from typing import Any, Dict, Iterable, List, Optional
+
+from pydantic import BaseModel, ConfigDict, Field
+
+
+logger = logging.getLogger(__name__)
+
+
+# ---------------------------------------------------------------------
+# Paths
+# ---------------------------------------------------------------------
+
+REGISTRY_FILE = Path(__file__).resolve().parent / "connector_catalog.json"
+
+
+# ---------------------------------------------------------------------
+# Lifecycle
+# ---------------------------------------------------------------------
+
+CONNECTOR_LIFECYCLE: tuple[str, ...] = (
+    "configure",
+    "authenticate",
+    "test",
+    "discover",
+    "select",
+    "initial_sync",
+    "continuous_sync",
+    "normalize",
+    "provenance",
+    "conflict_detection",
+    "lineage",
+    "monitoring",
+)
+
+
+# ---------------------------------------------------------------------
+# Native connectors currently implemented in the application
+# ---------------------------------------------------------------------
+
+NATIVE_CONNECTORS: frozenset[str] = frozenset(
+    {
+        "postgresql",
+        "postgres",
+        "kafka",
+        "apache_kafka",
+        "confluent",
+        "salesforce",
+        "sfdc",
+        "salesforce_crm",
+        "mongodb",
+        "mongo",
+        "mongo_atlas",
+        "confluence",
+        "wiki",
+        "jira",
+        "jira_issues",
+        "github",
+        "git",
+        "repo",
+        "slack",
+        "slack_channels",
+    }
+)
+
+
+# ---------------------------------------------------------------------
+# Connector metadata model
+# ---------------------------------------------------------------------
 
 
 class ConnectorMetadata(BaseModel):
+    """
+    Normalized metadata representation for a connector.
+
+    The JSON catalog can contain additional fields. Pydantic is
+    configured to preserve those fields rather than throwing them away.
+    """
+
+    model_config = ConfigDict(extra="allow")
+
     id: str
+
     name: str
-    category: str
-    category_label: str
-    family: str  # relational, storage, nosql, streaming, etl, orchestration, bi, observability, enterprise_app, ml_ai
-    description: str
+
+    category: str = "custom"
+
+    category_label: str = "Custom Source"
+
+    family: str = "enterprise_app"
+
+    description: str = ""
+
     default_port: Optional[int] = None
-    default_auth: str = "password"  # password, oauth, token, iam, service_account
-    doc_type: str = "data_contract"  # data_contract, stream_contract, crm_contract, pipeline_contract, metric_contract, quality_contract, ml_contract
-    monitored_scope: str
+
+    default_auth: str = "password"
+
+    doc_type: str = "data_contract"
+
+    monitored_scope: str = (
+        "Enterprise data and policy synchronization."
+    )
+
+    # Optional catalog fields.
+    aliases: List[str] = Field(default_factory=list)
+
+    fields: List[Dict[str, Any]] = Field(
+        default_factory=list
+    )
+
+    capabilities: Dict[str, Any] = Field(
+        default_factory=dict
+    )
+
+    driver: str = "universal"
+
+    status: str = "active"
+
+    enabled: bool = True
+
+    # -----------------------------------------------------------------
+    # Compatibility properties
+    # -----------------------------------------------------------------
+
+    @property
+    def connector_id(self) -> str:
+        """Backward-compatible connector id."""
+        return self.id
+
+    @property
+    def display_name(self) -> str:
+        """Human-readable connector name."""
+        return self.name
+
+    @property
+    def is_native(self) -> bool:
+        """Whether a native connector implementation exists."""
+        return (
+            self.driver == "native"
+            or self.id in NATIVE_CONNECTORS
+        )
+
+    @property
+    def is_universal(self) -> bool:
+        """Whether the connector uses the universal driver."""
+        return not self.is_native
+
+    @property
+    def lifecycle(self) -> List[str]:
+        """
+        Return lifecycle stages supported by the connector.
+
+        A connector can override the catalog capabilities, but all
+        connectors inherit the complete Context Trust Layer lifecycle.
+        """
+
+        configured = self.capabilities.get("lifecycle")
+
+        if isinstance(configured, list) and configured:
+            return list(configured)
+
+        return list(CONNECTOR_LIFECYCLE)
 
     @property
     def required_fields(self) -> List[Dict[str, Any]]:
-        if self.id in ("github", "git"):
+        """
+        Return configuration fields required by this connector.
+
+        Catalog-defined fields take precedence.
+
+        Legacy defaults are retained for compatibility with the old
+        registry implementation.
+        """
+
+        if self.fields:
+            return self.fields
+
+        return self._legacy_required_fields()
+
+    def _legacy_required_fields(self) -> List[Dict[str, Any]]:
+        """
+        Compatibility field definitions for catalog entries that don't
+        explicitly define fields.
+        """
+
+        connector_id = self.id.lower()
+
+        if connector_id in (
+            "github",
+            "git",
+            "repo",
+        ):
             return [
-                {"id": "repository", "label": "Repository (owner/repo)", "type": "text", "required": True},
-                {"id": "branch", "label": "Branch", "type": "text", "required": False, "default": "main"},
-                {"id": "access_token", "label": "Personal Access Token", "type": "password", "required": False},
+                {
+                    "id": "repository",
+                    "label": "Repository (owner/repo)",
+                    "type": "text",
+                    "required": True,
+                },
+                {
+                    "id": "branch",
+                    "label": "Branch",
+                    "type": "text",
+                    "required": False,
+                    "default": "main",
+                },
+                {
+                    "id": "access_token",
+                    "label": "Personal Access Token",
+                    "type": "password",
+                    "required": False,
+                    "secret": True,
+                },
             ]
-        elif self.id in ("postgresql", "postgres", "mysql", "sql_server", "oracle", "snowflake"):
+
+        if connector_id in (
+            "postgresql",
+            "postgres",
+            "mysql",
+            "sql_server",
+            "mssql",
+            "oracle",
+            "snowflake",
+        ):
             return [
-                {"id": "host", "label": "Host", "type": "text", "required": True},
-                {"id": "port", "label": "Port", "type": "number", "default": self.default_port},
-                {"id": "database", "label": "Database", "type": "text", "required": True},
-                {"id": "username", "label": "Username", "type": "text", "required": True},
-                {"id": "password", "label": "Password", "type": "password", "required": True},
+                {
+                    "id": "host",
+                    "label": "Host",
+                    "type": "text",
+                    "required": True,
+                },
+                {
+                    "id": "port",
+                    "label": "Port",
+                    "type": "number",
+                    "required": False,
+                    "default": self.default_port,
+                },
+                {
+                    "id": "database",
+                    "label": "Database",
+                    "type": "text",
+                    "required": True,
+                },
+                {
+                    "id": "username",
+                    "label": "Username",
+                    "type": "text",
+                    "required": True,
+                },
+                {
+                    "id": "password",
+                    "label": "Password",
+                    "type": "password",
+                    "required": True,
+                    "secret": True,
+                },
             ]
+
+        if connector_id in (
+            "kafka",
+            "apache_kafka",
+            "confluent",
+        ):
+            return [
+                {
+                    "id": "bootstrap_servers",
+                    "label": "Bootstrap Servers",
+                    "type": "text",
+                    "required": True,
+                },
+                {
+                    "id": "topic",
+                    "label": "Topic",
+                    "type": "text",
+                    "required": False,
+                },
+                {
+                    "id": "security_protocol",
+                    "label": "Security Protocol",
+                    "type": "select",
+                    "required": False,
+                    "default": "PLAINTEXT",
+                    "options": [
+                        "PLAINTEXT",
+                        "SSL",
+                        "SASL_PLAINTEXT",
+                        "SASL_SSL",
+                    ],
+                },
+            ]
+
+        if connector_id in (
+            "jira",
+            "jira_issues",
+            "confluence",
+            "wiki",
+        ):
+            return [
+                {
+                    "id": "base_url",
+                    "label": "Base URL",
+                    "type": "url",
+                    "required": True,
+                },
+                {
+                    "id": "user_email",
+                    "label": "User Email",
+                    "type": "email",
+                    "required": True,
+                },
+                {
+                    "id": "api_token",
+                    "label": "API Token",
+                    "type": "password",
+                    "required": True,
+                    "secret": True,
+                },
+            ]
+
+        if connector_id in (
+            "salesforce",
+            "sfdc",
+            "salesforce_crm",
+        ):
+            return [
+                {
+                    "id": "instance_url",
+                    "label": "Salesforce Instance URL",
+                    "type": "url",
+                    "required": True,
+                },
+                {
+                    "id": "access_token",
+                    "label": "Access Token",
+                    "type": "password",
+                    "required": True,
+                    "secret": True,
+                },
+            ]
+
+        if connector_id in (
+            "mongodb",
+            "mongo",
+            "mongo_atlas",
+        ):
+            return [
+                {
+                    "id": "connection_string",
+                    "label": "MongoDB Connection String",
+                    "type": "password",
+                    "required": True,
+                    "secret": True,
+                },
+                {
+                    "id": "database",
+                    "label": "Database",
+                    "type": "text",
+                    "required": True,
+                },
+            ]
+
+        # Generic connector configuration.
         return [
-            {"id": "host", "label": "Host / Endpoint", "type": "text", "required": True},
-            {"id": "token", "label": "API Key / Token", "type": "password", "required": False},
+            {
+                "id": "endpoint",
+                "label": "Host / Endpoint",
+                "type": "text",
+                "required": True,
+            },
+            {
+                "id": "token",
+                "label": "API Key / Token",
+                "type": "password",
+                "required": False,
+                "secret": True,
+            },
         ]
 
+    # -----------------------------------------------------------------
+    # Serialization
+    # -----------------------------------------------------------------
 
-# 104 Enterprise Connectors Taxonomy
-CONNECTOR_CATALOG: List[ConnectorMetadata] = [
-    # -------------------------------------------------------------
-    # 1. Database / Data Warehouse (26)
-    # -------------------------------------------------------------
-    ConnectorMetadata(
-        id="alloydb",
-        name="AlloyDB for PostgreSQL",
-        category="database",
-        category_label="Databases & Warehouses",
-        family="relational",
-        description="Google Cloud managed PostgreSQL-compatible database service for demanding enterprise workloads.",
-        default_port=5432,
-        doc_type="data_contract",
-        monitored_scope="AlloyDB tables, columnar indexes, foreign keys, partition constraints & ACID guarantees."
-    ),
-    ConnectorMetadata(
-        id="athena",
-        name="Amazon Athena",
-        category="database",
-        category_label="Databases & Warehouses",
-        family="relational",
-        description="Serverless interactive query service that makes it easy to analyze data in Amazon S3 using standard SQL.",
-        default_port=443,
-        default_auth="iam",
-        doc_type="data_contract",
-        monitored_scope="Athena Glue data catalogs, partitioned S3 tables, Iceberg datasets & SQL view contracts."
-    ),
-    ConnectorMetadata(
-        id="documentdb",
-        name="Amazon DocumentDB",
-        category="database",
-        category_label="Databases & Warehouses",
-        family="nosql",
-        description="Fast, scalable, highly available MongoDB-compatible document database service.",
-        default_port=27017,
-        doc_type="data_contract",
-        monitored_scope="DocumentDB collections, JSON schema validators, replica set topologies & read preferences."
-    ),
-    ConnectorMetadata(
-        id="dynamodb",
-        name="Amazon DynamoDB",
-        category="database",
-        category_label="Databases & Warehouses",
-        family="nosql",
-        description="Fully managed serverless key-value and document database delivering single-digit millisecond performance.",
-        default_port=443,
-        default_auth="iam",
-        doc_type="data_contract",
-        monitored_scope="DynamoDB tables, partition keys, global secondary indexes (GSI) & TTL expiration rules."
-    ),
-    ConnectorMetadata(
-        id="clickhouse",
-        name="ClickHouse",
-        category="database",
-        category_label="Databases & Warehouses",
-        family="relational",
-        description="High-performance column-oriented SQL database management system for real-time analytical reporting.",
-        default_port=8123,
-        doc_type="data_contract",
-        monitored_scope="ClickHouse MergeTree engines, partition keys, TTL constraints & compression policies."
-    ),
-    ConnectorMetadata(
-        id="cloud_sql_postgres",
-        name="Cloud SQL for PostgreSQL",
-        category="database",
-        category_label="Databases & Warehouses",
-        family="relational",
-        description="Fully-managed PostgreSQL database service on Google Cloud Platform.",
-        default_port=5432,
-        doc_type="data_contract",
-        monitored_scope="Cloud SQL schemas, table constraints, user roles, replica topologies & backup SLAs."
-    ),
-    ConnectorMetadata(
-        id="cloudera_impala",
-        name="Cloudera Impala",
-        category="database",
-        category_label="Databases & Warehouses",
-        family="relational",
-        description="Massively parallel processing (MPP) SQL query engine running on Apache Hadoop.",
-        default_port=21050,
-        doc_type="data_contract",
-        monitored_scope="Impala metastore tables, Kudu/HDFS storage partitions & column stats."
-    ),
-    ConnectorMetadata(
-        id="cratedb",
-        name="CrateDB",
-        category="database",
-        category_label="Databases & Warehouses",
-        family="relational",
-        description="Distributed SQL database that makes it simple to store and analyze massive amounts of machine data.",
-        default_port=4200,
-        doc_type="data_contract",
-        monitored_scope="CrateDB dynamic schemas, full-text indexes, shard allocations & time-series partitions."
-    ),
-    ConnectorMetadata(
-        id="datastax",
-        name="DataStax Enterprise",
-        category="database",
-        category_label="Databases & Warehouses",
-        family="nosql",
-        description="Always-on, scalable Apache Cassandra platform for enterprise real-time data.",
-        default_port=9042,
-        doc_type="data_contract",
-        monitored_scope="DataStax keyspaces, CQL tables, partition tokens & clustering column constraints."
-    ),
-    ConnectorMetadata(
-        id="databricks",
-        name="Databricks",
-        category="database",
-        category_label="Databases & Warehouses",
-        family="relational",
-        description="Unified Analytics Platform powered by Apache Spark, Delta Lake and Unity Catalog.",
-        default_port=443,
-        default_auth="token",
-        doc_type="data_contract",
-        monitored_scope="Unity Catalog metastores, Delta Lake schemas, table constraints & time-travel retention."
-    ),
-    ConnectorMetadata(
-        id="hive",
-        name="Apache Hive",
-        category="database",
-        category_label="Databases & Warehouses",
-        family="relational",
-        description="Distributed data warehouse software for querying and managing large datasets residing in distributed storage.",
-        default_port=10000,
-        doc_type="data_contract",
-        monitored_scope="Hive metastore schemas, external table locations, SerDe formats & partition specs."
-    ),
-    ConnectorMetadata(
-        id="azure_cosmos_db",
-        name="Microsoft Azure Cosmos DB",
-        category="database",
-        category_label="Databases & Warehouses",
-        family="nosql",
-        description="Globally distributed, multi-model database service for mission-critical applications.",
-        default_port=443,
-        default_auth="token",
-        doc_type="data_contract",
-        monitored_scope="Cosmos DB containers, partition keys, indexing policies & consistency level SLAs."
-    ),
-    ConnectorMetadata(
-        id="azure_cosmos_nosql",
-        name="Microsoft Azure Cosmos DB for NoSQL",
-        category="database",
-        category_label="Databases & Warehouses",
-        family="nosql",
-        description="Native JSON document database API for Microsoft Azure Cosmos DB.",
-        default_port=443,
-        default_auth="token",
-        doc_type="data_contract",
-        monitored_scope="Cosmos NoSQL documents, hierarchical partition keys & stored procedure contracts."
-    ),
-    ConnectorMetadata(
-        id="mssql",
-        name="Microsoft SQL Server",
-        category="database",
-        category_label="Databases & Warehouses",
-        family="relational",
-        description="Relational database management system developed by Microsoft.",
-        default_port=1433,
-        doc_type="data_contract",
-        monitored_scope="MSSQL schemas, foreign key constraints, temporal tables & column encryption."
-    ),
-    ConnectorMetadata(
-        id="mongodb_self",
-        name="MongoDB (self-managed)",
-        category="database",
-        category_label="Databases & Warehouses",
-        family="nosql",
-        description="On-premises or self-hosted document database for flexible JSON schemas.",
-        default_port=27017,
-        doc_type="data_contract",
-        monitored_scope="MongoDB collections, $jsonSchema validation rules, unique indexes & shard keys."
-    ),
-    ConnectorMetadata(
-        id="mongodb_atlas",
-        name="MongoDB Atlas",
-        category="database",
-        category_label="Databases & Warehouses",
-        family="nosql",
-        description="Multi-cloud developer data platform with managed MongoDB databases.",
-        default_port=27017,
-        doc_type="data_contract",
-        monitored_scope="Atlas clusters, search indexes, collection schemas & automated backup SLAs."
-    ),
-    ConnectorMetadata(
-        id="mysql",
-        name="MySQL",
-        category="database",
-        category_label="Databases & Warehouses",
-        family="relational",
-        description="World's most popular open-source relational database management system.",
-        default_port=3306,
-        doc_type="data_contract",
-        monitored_scope="MySQL InnoDB schemas, foreign keys, auto-increment triggers & collation settings."
-    ),
-    ConnectorMetadata(
-        id="on_prem_databases",
-        name="On-Premises Databases",
-        category="database",
-        category_label="Databases & Warehouses",
-        family="relational",
-        description="Generic connector for private enterprise network database instances.",
-        default_port=5432,
-        doc_type="data_contract",
-        monitored_scope="Corporate private intranet tables, data dictionary comments & access control policies."
-    ),
-    ConnectorMetadata(
-        id="oracle",
-        name="Oracle Database",
-        category="database",
-        category_label="Databases & Warehouses",
-        family="relational",
-        description="Multi-model database management system commonly used for running online transaction processing (OLTP).",
-        default_port=1521,
-        doc_type="data_contract",
-        monitored_scope="Oracle schemas, table spaces, PL/SQL package definitions & constraints."
-    ),
-    ConnectorMetadata(
-        id="postgresql",
-        name="PostgreSQL",
-        category="database",
-        category_label="Databases & Warehouses",
-        family="relational",
-        description="Powerful, open source object-relational database system with strong ACID compliance.",
-        default_port=5432,
-        doc_type="data_contract",
-        monitored_scope="PostgreSQL tables, schemas, PK/FK constraints, column nullability & retention rules."
-    ),
-    ConnectorMetadata(
-        id="prestosql",
-        name="PrestoSQL",
-        category="database",
-        category_label="Databases & Warehouses",
-        family="relational",
-        description="Distributed SQL query engine designed to query large data sets distributed over one or more heterogeneous data sources.",
-        default_port=8080,
-        doc_type="data_contract",
-        monitored_scope="Presto catalog schemas, federated query contracts & connector connector mappings."
-    ),
-    ConnectorMetadata(
-        id="sap_ase",
-        name="SAP ASE",
-        category="database",
-        category_label="Databases & Warehouses",
-        family="relational",
-        description="High-performance relational database management system for transaction-intensive environments.",
-        default_port=5000,
-        doc_type="data_contract",
-        monitored_scope="SAP Sybase ASE tables, transaction logs, locking schemas & referential integrity."
-    ),
-    ConnectorMetadata(
-        id="sap_hana",
-        name="SAP HANA",
-        category="database",
-        category_label="Databases & Warehouses",
-        family="relational",
-        description="In-memory, column-oriented relational database management system from SAP.",
-        default_port=30015,
-        doc_type="data_contract",
-        monitored_scope="SAP HANA Calculation Views, CDS entities, column tables & tenant DB schemas."
-    ),
-    ConnectorMetadata(
-        id="starburst",
-        name="Starburst Enterprise",
-        category="database",
-        category_label="Databases & Warehouses",
-        family="relational",
-        description="Enterprise distribution of Trino providing fast SQL query engine for data lakes and data mesh architectures.",
-        default_port=8443,
-        doc_type="data_contract",
-        monitored_scope="Starburst data products, governance roles, Trino federated catalogs & masking policies."
-    ),
-    ConnectorMetadata(
-        id="teradata",
-        name="Teradata Vantage",
-        category="database",
-        category_label="Databases & Warehouses",
-        family="relational",
-        description="Connected multi-cloud data analytics platform for enterprise analytics.",
-        default_port=1025,
-        doc_type="data_contract",
-        monitored_scope="Teradata databases, primary index (PI) specifications, PPI partitioning & table columns."
-    ),
-    ConnectorMetadata(
-        id="trino",
-        name="Trino",
-        category="database",
-        category_label="Databases & Warehouses",
-        family="relational",
-        description="Fast distributed SQL query engine for big data analytics on data lakes.",
-        default_port=8080,
-        doc_type="data_contract",
-        monitored_scope="Trino schemas, catalogs, distributed execution plans & view definitions."
-    ),
+    def to_public_dict(
+        self,
+        *,
+        include_secrets: bool = False,
+    ) -> Dict[str, Any]:
+        """
+        Return metadata safe for API/frontend consumption.
 
-    # -------------------------------------------------------------
-    # 2. Data Warehouses / Lakehouses / Storage (9)
-    # -------------------------------------------------------------
-    ConnectorMetadata(
-        id="redshift",
-        name="Amazon Redshift",
-        category="storage",
-        category_label="Storage & Lakehouses",
-        family="relational",
-        description="Fast, simple, cost-effective data warehousing service in the AWS cloud.",
-        default_port=5439,
-        doc_type="data_contract",
-        monitored_scope="Redshift tables, distribution keys, sort keys, Redshift Spectrum schemas & workload queues."
-    ),
-    ConnectorMetadata(
-        id="s3",
-        name="Amazon S3",
-        category="storage",
-        category_label="Storage & Lakehouses",
-        family="storage",
-        description="Object storage built to retrieve any amount of data from anywhere.",
-        default_port=443,
-        default_auth="iam",
-        doc_type="data_contract",
-        monitored_scope="S3 buckets, Parquet/CSV data layouts, lifecycle expiration policies & bucket encryption."
-    ),
-    ConnectorMetadata(
-        id="dremio",
-        name="Dremio",
-        category="storage",
-        category_label="Storage & Lakehouses",
-        family="storage",
-        description="SQL Lakehouse platform providing self-service semantic layer and query acceleration.",
-        default_port=9047,
-        doc_type="data_contract",
-        monitored_scope="Dremio spaces, reflection acceleration datasets, Iceberg lakehouse tables & semantic models."
-    ),
-    ConnectorMetadata(
-        id="bigquery",
-        name="Google BigQuery",
-        category="storage",
-        category_label="Storage & Lakehouses",
-        family="relational",
-        description="Serverless, highly scalable, and cost-effective multi-cloud data warehouse.",
-        default_port=443,
-        default_auth="service_account",
-        doc_type="data_contract",
-        monitored_scope="BigQuery datasets, partitioned/clustered tables, materialized views & policy tags."
-    ),
-    ConnectorMetadata(
-        id="gcs",
-        name="Google Cloud Storage",
-        category="storage",
-        category_label="Storage & Lakehouses",
-        family="storage",
-        description="Unified object storage for developers and enterprises on Google Cloud.",
-        default_port=443,
-        default_auth="service_account",
-        doc_type="data_contract",
-        monitored_scope="GCS buckets, retention locks, object lifecycle rules & storage class transitions."
-    ),
-    ConnectorMetadata(
-        id="iceberg",
-        name="Apache Iceberg",
-        category="storage",
-        category_label="Storage & Lakehouses",
-        family="storage",
-        description="High-performance open table format for huge analytic tables with ACID transactions.",
-        default_port=443,
-        doc_type="data_contract",
-        monitored_scope="Iceberg table schemas, partition specs, snapshot histories & schema evolution audits."
-    ),
-    ConnectorMetadata(
-        id="synapse",
-        name="Microsoft Azure Synapse Analytics",
-        category="storage",
-        category_label="Storage & Lakehouses",
-        family="relational",
-        description="Limitless analytics service that brings together enterprise data warehousing and Big Data analytics.",
-        default_port=1433,
-        doc_type="data_contract",
-        monitored_scope="Synapse dedicated/serverless SQL pools, Lake databases & pipeline activities."
-    ),
-    ConnectorMetadata(
-        id="sap_datasphere",
-        name="SAP Datasphere",
-        category="storage",
-        category_label="Storage & Lakehouses",
-        family="storage",
-        description="Comprehensive data service built on the SAP Business Technology Platform for business data fabric.",
-        default_port=443,
-        doc_type="data_contract",
-        monitored_scope="SAP Datasphere spaces, Analytic Models, Data Flows & business catalog definitions."
-    ),
-    ConnectorMetadata(
-        id="snowflake",
-        name="Snowflake",
-        category="storage",
-        category_label="Storage & Lakehouses",
-        family="relational",
-        description="Cloud Data Platform providing a single, global platform for data warehousing and data lakes.",
-        default_port=443,
-        doc_type="data_contract",
-        monitored_scope="Snowflake databases, schemas, dynamic tables, masking policies & row access policies."
-    ),
+        Secret values are never stored in metadata itself, but field
+        definitions can mark fields as secret. This method strips any
+        catalog-level secret-like keys as an additional safeguard.
+        """
 
-    # -------------------------------------------------------------
-    # 3. ETL / Data Engineering (12)
-    # -------------------------------------------------------------
-    ConnectorMetadata(
-        id="aws_glue",
-        name="AWS Glue",
-        category="etl",
-        category_label="ETL & Pipelines",
-        family="etl",
-        description="Serverless data integration service that makes it easy to discover, prepare, and combine data.",
-        default_port=443,
-        default_auth="iam",
-        doc_type="pipeline_contract",
-        monitored_scope="Glue Data Catalog databases, table classifiers, crawler schedules & ETL job definitions."
-    ),
-    ConnectorMetadata(
-        id="alteryx",
-        name="Alteryx",
-        category="etl",
-        category_label="ETL & Pipelines",
-        family="etl",
-        description="Analytics automation platform that unifies analytics, data science, and process automation.",
-        default_port=443,
-        doc_type="pipeline_contract",
-        monitored_scope="Alteryx Server workflows, analytic apps, input/output data sources & schedule SLAs."
-    ),
-    ConnectorMetadata(
-        id="coalesce",
-        name="Coalesce",
-        category="etl",
-        category_label="ETL & Pipelines",
-        family="etl",
-        description="Data transformation tool built for scale, uniquely combining code automation and UI modeling.",
-        default_port=443,
-        doc_type="pipeline_contract",
-        monitored_scope="Coalesce workspaces, transformation nodes, column lineage graphs & deployment jobs."
-    ),
-    ConnectorMetadata(
-        id="fivetran",
-        name="Fivetran",
-        category="etl",
-        category_label="ETL & Pipelines",
-        family="etl",
-        description="Automated data movement platform moving data out of cloud applications into data warehouses.",
-        default_port=443,
-        default_auth="token",
-        doc_type="pipeline_contract",
-        monitored_scope="Fivetran connectors, destination sync status, schema migration logs & sync frequency SLAs."
-    ),
-    ConnectorMetadata(
-        id="hightouch",
-        name="Hightouch",
-        category="etl",
-        category_label="ETL & Pipelines",
-        family="etl",
-        description="Reverse ETL platform syncing data from warehouses to customer-facing business tools.",
-        default_port=443,
-        default_auth="token",
-        doc_type="pipeline_contract",
-        monitored_scope="Hightouch sync configurations, target CRM mappings, run frequencies & error thresholds."
-    ),
-    ConnectorMetadata(
-        id="informatica_cdi",
-        name="Informatica CDI",
-        category="etl",
-        category_label="ETL & Pipelines",
-        family="etl",
-        description="Informatica Cloud Data Integration providing enterprise ETL/ELT capabilities.",
-        default_port=443,
-        default_auth="token",
-        doc_type="pipeline_contract",
-        monitored_scope="Informatica mappings, task flows, source/target endpoints & data quality rules."
-    ),
-    ConnectorMetadata(
-        id="informatica_powercenter",
-        name="Informatica PowerCenter",
-        category="etl",
-        category_label="ETL & Pipelines",
-        family="etl",
-        description="Enterprise data integration platform for building enterprise data warehouses.",
-        default_port=6005,
-        doc_type="pipeline_contract",
-        monitored_scope="PowerCenter repository workflows, sessions, source definitions & transformation logic."
-    ),
-    ConnectorMetadata(
-        id="matillion",
-        name="Matillion",
-        category="etl",
-        category_label="ETL & Pipelines",
-        family="etl",
-        description="Data transformation platform purpose-built for cloud data warehouses.",
-        default_port=443,
-        doc_type="pipeline_contract",
-        monitored_scope="Matillion ETL/ELT orchestration pipelines, transformation components & version tags."
-    ),
-    ConnectorMetadata(
-        id="azure_data_factory",
-        name="Microsoft Azure Data Factory",
-        category="etl",
-        category_label="ETL & Pipelines",
-        family="etl",
-        description="Cloud-based data integration service that allows you to create data-driven workflows.",
-        default_port=443,
-        default_auth="service_account",
-        doc_type="pipeline_contract",
-        monitored_scope="Azure Data Factory pipelines, linked services, data flows & trigger schedules."
-    ),
-    ConnectorMetadata(
-        id="ssis",
-        name="SSIS (SQL Server Integration Services)",
-        category="etl",
-        category_label="ETL & Pipelines",
-        family="etl",
-        description="Microsoft enterprise-level data integration and data transformation solution.",
-        default_port=1433,
-        doc_type="pipeline_contract",
-        monitored_scope="SSISDB catalog packages, execution environments, data flow tasks & parameters."
-    ),
-    ConnectorMetadata(
-        id="talend",
-        name="Talend",
-        category="etl",
-        category_label="ETL & Pipelines",
-        family="etl",
-        description="Next-generation data integration platform combining data quality, big data, and cloud integration.",
-        default_port=443,
-        doc_type="pipeline_contract",
-        monitored_scope="Talend Management Console tasks, data governance plans, artifacts & execution plans."
-    ),
-    ConnectorMetadata(
-        id="dbt",
-        name="dbt (data build tool)",
-        category="etl",
-        category_label="ETL & Pipelines",
-        family="etl",
-        description="Transform data in your warehouse using SQL select statements, version control and automated testing.",
-        default_port=443,
-        doc_type="pipeline_contract",
-        monitored_scope="dbt models, manifest schema tests (not_null, unique, accepted_values), freshness & documentation."
-    ),
+        data = self.model_dump()
 
-    # -------------------------------------------------------------
-    # 4. Data Lineage / Orchestration (9)
-    # -------------------------------------------------------------
-    ConnectorMetadata(
-        id="mwaa_openlineage",
-        name="Amazon MWAA OpenLineage",
-        category="orchestration",
-        category_label="Orchestration & Lineage",
-        family="orchestration",
-        description="Managed Workflows for Apache Airflow with OpenLineage observability emitter.",
-        default_port=443,
-        default_auth="iam",
-        doc_type="pipeline_contract",
-        monitored_scope="MWAA DAGs, task lineage events, input/output dataset assertions & run durations."
-    ),
-    ConnectorMetadata(
-        id="airflow_openlineage",
-        name="Apache Airflow OpenLineage",
-        category="orchestration",
-        category_label="Orchestration & Lineage",
-        family="orchestration",
-        description="Standard Apache Airflow platform emitting OpenLineage operational dataset metadata.",
-        default_port=8080,
-        doc_type="pipeline_contract",
-        monitored_scope="Airflow DAG definitions, schedule intervals, dataset sensors & SLA policies."
-    ),
-    ConnectorMetadata(
-        id="flink_openlineage",
-        name="Apache Flink OpenLineage",
-        category="orchestration",
-        category_label="Orchestration & Lineage",
-        family="orchestration",
-        description="Stream processing framework emitting real-time continuous pipeline lineage.",
-        default_port=8081,
-        doc_type="pipeline_contract",
-        monitored_scope="Flink streaming jobs, checkpoint SLAs, source/sink schema lineage & watermark rules."
-    ),
-    ConnectorMetadata(
-        id="spark_openlineage",
-        name="Apache Spark OpenLineage",
-        category="orchestration",
-        category_label="Orchestration & Lineage",
-        family="orchestration",
-        description="Multi-language engine for executing data engineering and machine learning on large datasets.",
-        default_port=4040,
-        doc_type="pipeline_contract",
-        monitored_scope="Spark application plans, RDD transformations, table write assertions & driver metrics."
-    ),
-    ConnectorMetadata(
-        id="astronomer_openlineage",
-        name="Astronomer OpenLineage",
-        category="orchestration",
-        category_label="Orchestration & Lineage",
-        family="orchestration",
-        description="Managed Astro cloud data orchestration platform powered by Apache Airflow.",
-        default_port=443,
-        default_auth="token",
-        doc_type="pipeline_contract",
-        monitored_scope="Astronomer deployments, workspace DAGs, task failure alerts & cross-DAG dependencies."
-    ),
-    ConnectorMetadata(
-        id="dagster",
-        name="Dagster",
-        category="orchestration",
-        category_label="Orchestration & Lineage",
-        family="orchestration",
-        description="Cloud-native orchestrator designed for developing and maintaining data assets.",
-        default_port=3000,
-        doc_type="pipeline_contract",
-        monitored_scope="Dagster software-defined assets, auto-materialize policies, checks & freshness SLAs."
-    ),
-    ConnectorMetadata(
-        id="generic_openlineage",
-        name="Generic OpenLineage",
-        category="orchestration",
-        category_label="Orchestration & Lineage",
-        family="orchestration",
-        description="Standard OpenLineage REST API specification for custom enterprise orchestrators.",
-        default_port=443,
-        doc_type="pipeline_contract",
-        monitored_scope="Standardized OpenLineage RunEvents, Job Facets, Dataset Facets & Column Lineage."
-    ),
-    ConnectorMetadata(
-        id="cloud_composer_openlineage",
-        name="Google Cloud Composer OpenLineage",
-        category="orchestration",
-        category_label="Orchestration & Lineage",
-        family="orchestration",
-        description="Google Cloud managed Airflow service with integrated OpenLineage telemetry.",
-        default_port=443,
-        default_auth="service_account",
-        doc_type="pipeline_contract",
-        monitored_scope="Composer environment DAGs, BigQuery operators, Dataproc steps & pipeline health."
-    ),
-    ConnectorMetadata(
-        id="dataflow",
-        name="Google Dataflow",
-        category="orchestration",
-        category_label="Orchestration & Lineage",
-        family="orchestration",
-        description="Fully managed streaming analytics service based on Apache Beam.",
-        default_port=443,
-        default_auth="service_account",
-        doc_type="pipeline_contract",
-        monitored_scope="Dataflow job graph templates, pipeline execution parameters & autoscaling policies."
-    ),
+        data["lifecycle"] = self.lifecycle
 
-    # -------------------------------------------------------------
-    # 5. Messaging & Schema (7)
-    # -------------------------------------------------------------
-    ConnectorMetadata(
-        id="aiven_kafka",
-        name="Aiven Kafka",
-        category="messaging",
-        category_label="Streaming & Messaging",
-        family="streaming",
-        description="Fully managed Apache Kafka service across AWS, GCP, and Azure.",
-        default_port=9092,
-        default_auth="token",
-        doc_type="stream_contract",
-        monitored_scope="Aiven Kafka topics, Schema Registry subjects, ACL rules & retention window policies."
-    ),
-    ConnectorMetadata(
-        id="amazon_msk",
-        name="Amazon MSK",
-        category="messaging",
-        category_label="Streaming & Messaging",
-        family="streaming",
-        description="Amazon Managed Streaming for Apache Kafka providing secure streaming cluster infrastructure.",
-        default_port=9092,
-        default_auth="iam",
-        doc_type="stream_contract",
-        monitored_scope="MSK clusters, partition topology, MSK Connect connectors & IAM access policies."
-    ),
-    ConnectorMetadata(
-        id="apache_kafka",
-        name="Apache Kafka",
-        category="messaging",
-        category_label="Streaming & Messaging",
-        family="streaming",
-        description="Distributed event streaming platform used by thousands of companies for high-performance data pipelines.",
-        default_port=9092,
-        doc_type="stream_contract",
-        monitored_scope="Kafka topics, partition layouts, consumer groups, retention SLAs & serialization schemas."
-    ),
-    ConnectorMetadata(
-        id="confluent_kafka",
-        name="Confluent Kafka",
-        category="messaging",
-        category_label="Streaming & Messaging",
-        family="streaming",
-        description="Enterprise event streaming platform and Confluent Cloud cloud data streaming service.",
-        default_port=9092,
-        default_auth="token",
-        doc_type="stream_contract",
-        monitored_scope="Confluent stream topics, ksqlDB streams, Stream Governance tags & Schema Registry."
-    ),
-    ConnectorMetadata(
-        id="azure_event_hubs",
-        name="Microsoft Azure Event Hubs",
-        category="messaging",
-        category_label="Streaming & Messaging",
-        family="streaming",
-        description="Fully managed, real-time data ingestion service that's simple, trusted, and scalable.",
-        default_port=443,
-        default_auth="token",
-        doc_type="stream_contract",
-        monitored_scope="Event Hub namespaces, event hubs, consumer groups, message retention & capture policies."
-    ),
-    ConnectorMetadata(
-        id="redpanda_kafka",
-        name="Redpanda Kafka",
-        category="messaging",
-        category_label="Streaming & Messaging",
-        family="streaming",
-        description="C++ powered streaming platform compatible with Kafka APIs, delivering low-latency throughput.",
-        default_port=9092,
-        doc_type="stream_contract",
-        monitored_scope="Redpanda topics, raft replication groups, Schema Registry & WASM data transforms."
-    ),
-    ConnectorMetadata(
-        id="confluent_schema_registry",
-        name="Confluent Schema Registry",
-        category="messaging",
-        category_label="Streaming & Messaging",
-        family="streaming",
-        description="Centralized schema management serving Avro, JSON Schema, and Protobuf formats.",
-        default_port=8081,
-        doc_type="stream_contract",
-        monitored_scope="Schema Registry subjects, compatibility levels (BACKWARD/FULL), versions & schema rules."
-    ),
+        data["is_native"] = self.is_native
 
-    # -------------------------------------------------------------
-    # 6. BI / Analytics (19)
-    # -------------------------------------------------------------
-    ConnectorMetadata(
-        id="quicksight",
-        name="Amazon QuickSight",
-        category="bi",
-        category_label="BI & Analytics",
-        family="bi",
-        description="Serverless, machine learning-powered BI service built for the cloud.",
-        default_port=443,
-        default_auth="iam",
-        doc_type="metric_contract",
-        monitored_scope="QuickSight dashboards, SPICE datasets, calculated fields & visual user permissions."
-    ),
-    ConnectorMetadata(
-        id="anaplan",
-        name="Anaplan",
-        category="bi",
-        category_label="BI & Analytics",
-        family="bi",
-        description="Cloud-native enterprise planning and performance management software platform.",
-        default_port=443,
-        default_auth="token",
-        doc_type="metric_contract",
-        monitored_scope="Anaplan models, line items, multi-dimensional modules & forecasting formulas."
-    ),
-    ConnectorMetadata(
-        id="domo",
-        name="Domo",
-        category="bi",
-        category_label="BI & Analytics",
-        family="bi",
-        description="Cloud-based business management suite that integrates with multiple data sources.",
-        default_port=443,
-        default_auth="token",
-        doc_type="metric_contract",
-        monitored_scope="Domo cards, dashboards, Magic ETL data flows & dataset refresh schedules."
-    ),
-    ConnectorMetadata(
-        id="cognos",
-        name="IBM Cognos Analytics",
-        category="bi",
-        category_label="BI & Analytics",
-        family="bi",
-        description="AI-fueled business intelligence platform that supports the entire analytics cycle.",
-        default_port=9300,
-        doc_type="metric_contract",
-        monitored_scope="Cognos packages, report specifications, dashboard queries & data modules."
-    ),
-    ConnectorMetadata(
-        id="looker",
-        name="Looker",
-        category="bi",
-        category_label="BI & Analytics",
-        family="bi",
-        description="Enterprise platform for BI, data applications, and embedded analytics with LookML semantic layer.",
-        default_port=443,
-        default_auth="token",
-        doc_type="metric_contract",
-        monitored_scope="LookML views, explores, dimensions, measures, derived tables & dashboard tiles."
-    ),
-    ConnectorMetadata(
-        id="metabase",
-        name="Metabase",
-        category="bi",
-        category_label="BI & Analytics",
-        family="bi",
-        description="Easy, open source way for everyone in your company to ask questions and learn from data.",
-        default_port=3000,
-        doc_type="metric_contract",
-        monitored_scope="Metabase questions, dashboards, collections, custom expressions & pulse alerts."
-    ),
-    ConnectorMetadata(
-        id="microstrategy",
-        name="MicroStrategy",
-        category="bi",
-        category_label="BI & Analytics",
-        family="bi",
-        description="Enterprise analytics and mobility platform delivering modern reporting and hyperintelligence.",
-        default_port=443,
-        doc_type="metric_contract",
-        monitored_scope="MicroStrategy dossiers, schema attributes, metrics, cubes & security filters."
-    ),
-    ConnectorMetadata(
-        id="ms_fabric",
-        name="Microsoft Fabric",
-        category="bi",
-        category_label="BI & Analytics",
-        family="bi",
-        description="All-in-one analytics solution for enterprises that covers everything from data movement to data science.",
-        default_port=443,
-        default_auth="service_account",
-        doc_type="metric_contract",
-        monitored_scope="Fabric Lakehouses, Power BI semantic models, KQL databases & OneLake workspaces."
-    ),
-    ConnectorMetadata(
-        id="power_bi",
-        name="Microsoft Power BI",
-        category="bi",
-        category_label="BI & Analytics",
-        family="bi",
-        description="Interactive data visualization software product developed by Microsoft.",
-        default_port=443,
-        default_auth="service_account",
-        doc_type="metric_contract",
-        monitored_scope="Power BI workspaces, reports, DAX calculated measures, dataset lineage & refresh schedules."
-    ),
-    ConnectorMetadata(
-        id="ssrs",
-        name="Microsoft SSRS",
-        category="bi",
-        category_label="BI & Analytics",
-        family="bi",
-        description="Server-based report generating software system from Microsoft.",
-        default_port=80,
-        doc_type="metric_contract",
-        monitored_scope="SSRS RDL report definitions, shared datasets, parameter lists & data source credentials."
-    ),
-    ConnectorMetadata(
-        id="mode",
-        name="Mode Analytics",
-        category="bi",
-        category_label="BI & Analytics",
-        family="bi",
-        description="Collaborative data science and interactive business intelligence platform.",
-        default_port=443,
-        default_auth="token",
-        doc_type="metric_contract",
-        monitored_scope="Mode reports, SQL queries, Python notebooks, visual charts & sharing permissions."
-    ),
-    ConnectorMetadata(
-        id="omni",
-        name="Omni",
-        category="bi",
-        category_label="BI & Analytics",
-        family="bi",
-        description="Next-generation BI tool providing a shared data model with SQL and drag-and-drop flexibility.",
-        default_port=443,
-        default_auth="token",
-        doc_type="metric_contract",
-        monitored_scope="Omni shared data models, workbooks, topics, dimensions & measure definitions."
-    ),
-    ConnectorMetadata(
-        id="qlik_sense_cloud",
-        name="Qlik Sense Cloud",
-        category="bi",
-        category_label="BI & Analytics",
-        family="bi",
-        description="Cloud-native analytics platform powered by the Qlik Associative Engine.",
-        default_port=443,
-        default_auth="token",
-        doc_type="metric_contract",
-        monitored_scope="Qlik Cloud apps, sheets, master items, dimensions, measures & data connections."
-    ),
-    ConnectorMetadata(
-        id="qlik_sense_enterprise",
-        name="Qlik Sense Enterprise (Windows)",
-        category="bi",
-        category_label="BI & Analytics",
-        family="bi",
-        description="On-premises and private cloud enterprise deployment of Qlik Sense.",
-        default_port=443,
-        doc_type="metric_contract",
-        monitored_scope="Qlik QMC app streams, reload tasks, master dimensions & user access allocations."
-    ),
-    ConnectorMetadata(
-        id="redash",
-        name="Redash",
-        category="bi",
-        category_label="BI & Analytics",
-        family="bi",
-        description="Open source data visualization and collaboration tool for querying data sources.",
-        default_port=5000,
-        default_auth="token",
-        doc_type="metric_contract",
-        monitored_scope="Redash queries, visualizations, dashboards & scheduled query executions."
-    ),
-    ConnectorMetadata(
-        id="sigma",
-        name="Sigma Computing",
-        category="bi",
-        category_label="BI & Analytics",
-        family="bi",
-        description="Cloud analytics and BI platform providing a spreadsheet interface on cloud warehouses.",
-        default_port=443,
-        default_auth="token",
-        doc_type="metric_contract",
-        monitored_scope="Sigma workbooks, dataset models, calculations, warehouse lineage & permissions."
-    ),
-    ConnectorMetadata(
-        id="sisense",
-        name="Sisense",
-        category="bi",
-        category_label="BI & Analytics",
-        family="bi",
-        description="Analytics platform that empowers companies to build custom embedded analytics experiences.",
-        default_port=443,
-        default_auth="token",
-        doc_type="metric_contract",
-        monitored_scope="Sisense ElastiCubes, dashboards, widgets, formulas & security data access rules."
-    ),
-    ConnectorMetadata(
-        id="tableau",
-        name="Tableau",
-        category="bi",
-        category_label="BI & Analytics",
-        family="bi",
-        description="Visual analytics platform transforming the way we use data to solve problems.",
-        default_port=443,
-        default_auth="token",
-        doc_type="metric_contract",
-        monitored_scope="Tableau Server/Cloud workbooks, published data sources, custom SQL & calculated fields."
-    ),
-    ConnectorMetadata(
-        id="thoughtspot",
-        name="ThoughtSpot",
-        category="bi",
-        category_label="BI & Analytics",
-        family="bi",
-        description="AI-Powered Analytics platform providing natural language search and automated insights.",
-        default_port=443,
-        default_auth="token",
-        doc_type="metric_contract",
-        monitored_scope="ThoughtSpot Worksheets, Liveboards, Answers, formulas & verification tags."
-    ),
+        data["is_universal"] = self.is_universal
 
-    # -------------------------------------------------------------
-    # 7. Data Governance / Privacy / Observability (14)
-    # -------------------------------------------------------------
-    ConnectorMetadata(
-        id="altr",
-        name="ALTR",
-        category="governance",
-        category_label="Governance & Quality",
-        family="observability",
-        description="Cloud data control and policy automation platform providing automated data access controls.",
-        default_port=443,
-        default_auth="token",
-        doc_type="quality_contract",
-        monitored_scope="ALTR data access policies, masking rules, rate limits & anomalous query alerts."
-    ),
-    ConnectorMetadata(
-        id="sagemaker_unified_studio",
-        name="AWS SageMaker Unified Studio",
-        category="governance",
-        category_label="Governance & Quality",
-        family="observability",
-        description="Integrated environment for building, governing, and discovering data & AI assets.",
-        default_port=443,
-        default_auth="iam",
-        doc_type="quality_contract",
-        monitored_scope="Unified Studio domain assets, governance catalog terms, access grants & project scopes."
-    ),
-    ConnectorMetadata(
-        id="anomalo",
-        name="Anomalo",
-        category="governance",
-        category_label="Governance & Quality",
-        family="observability",
-        description="Automated data quality monitoring platform that surfaces data issues before consumers notice.",
-        default_port=443,
-        default_auth="token",
-        doc_type="quality_contract",
-        monitored_scope="Anomalo table checks, unsupervised ML anomaly detectors, null checks & metric drift rules."
-    ),
-    ConnectorMetadata(
-        id="ataccama",
-        name="Ataccama",
-        category="governance",
-        category_label="Governance & Quality",
-        family="observability",
-        description="Unified data quality, master data management, and data catalog governance platform.",
-        default_port=443,
-        default_auth="token",
-        doc_type="quality_contract",
-        monitored_scope="Ataccama business glossary, DQ rule dimensions (validity, completeness) & MDM entities."
-    ),
-    ConnectorMetadata(
-        id="bigid",
-        name="BigID",
-        category="governance",
-        category_label="Governance & Quality",
-        family="observability",
-        description="Data intelligence platform for privacy, security, compliance, and governance automation.",
-        default_port=443,
-        default_auth="token",
-        doc_type="quality_contract",
-        monitored_scope="BigID PII/PHI classifiers, GDPR/CCPA regulatory tags, data risk scores & catalog metadata."
-    ),
-    ConnectorMetadata(
-        id="bigeye",
-        name="Bigeye",
-        category="governance",
-        category_label="Governance & Quality",
-        family="observability",
-        description="Enterprise data observability platform tracking data quality SLAs across warehouses.",
-        default_port=443,
-        default_auth="token",
-        doc_type="quality_contract",
-        monitored_scope="Bigeye metrics, autothreshold bounds, data freshness SLAs & schema change detectors."
-    ),
-    ConnectorMetadata(
-        id="cyera",
-        name="Cyera",
-        category="governance",
-        category_label="Governance & Quality",
-        family="observability",
-        description="AI-powered data security and governance platform for multi-cloud data estates.",
-        default_port=443,
-        default_auth="token",
-        doc_type="quality_contract",
-        monitored_scope="Cyera sensitive data classifications, exposure risk assessments & compliance controls."
-    ),
-    ConnectorMetadata(
-        id="elementary",
-        name="Elementary Cloud",
-        category="governance",
-        category_label="Governance & Quality",
-        family="observability",
-        description="dbt-native data observability platform providing automated anomaly detection in your warehouse.",
-        default_port=443,
-        default_auth="token",
-        doc_type="quality_contract",
-        monitored_scope="Elementary anomaly test results, volume anomaly alerts, schema changes & test failure history."
-    ),
-    ConnectorMetadata(
-        id="google_knowledge_catalog",
-        name="Google Knowledge Catalog",
-        category="governance",
-        category_label="Governance & Quality",
-        family="observability",
-        description="Unified metadata management and data discovery service on Google Cloud (formerly Dataplex).",
-        default_port=443,
-        default_auth="service_account",
-        doc_type="quality_contract",
-        monitored_scope="Knowledge Catalog taxonomy tag templates, Dataplex data quality tasks & lineage."
-    ),
-    ConnectorMetadata(
-        id="immuta",
-        name="Immuta",
-        category="governance",
-        category_label="Governance & Quality",
-        family="observability",
-        description="Data security platform providing automated access control, data masking, and audit monitoring.",
-        default_port=443,
-        default_auth="token",
-        doc_type="quality_contract",
-        monitored_scope="Immuta subscription policies, dynamic data masking rules, purpose grants & audit logs."
-    ),
-    ConnectorMetadata(
-        id="monte_carlo",
-        name="Monte Carlo",
-        category="governance",
-        category_label="Governance & Quality",
-        family="observability",
-        description="End-to-end data observability platform identifying and preventing data downtime.",
-        default_port=443,
-        default_auth="token",
-        doc_type="quality_contract",
-        monitored_scope="Monte Carlo monitors, freshness/volume anomaly alerts, schema diffs & incident triage."
-    ),
-    ConnectorMetadata(
-        id="qualytics",
-        name="Qualytics",
-        category="governance",
-        category_label="Governance & Quality",
-        family="observability",
-        description="Autonomous data quality and data surveillance platform for enterprise datasets.",
-        default_port=443,
-        default_auth="token",
-        doc_type="quality_contract",
-        monitored_scope="Qualytics surveillance rules, confidence scores, anomaly remediations & audit trail."
-    ),
-    ConnectorMetadata(
-        id="soda",
-        name="Soda Core & Soda Cloud",
-        category="governance",
-        category_label="Governance & Quality",
-        family="observability",
-        description="Data quality testing and monitoring framework powered by SodaCL contracts.",
-        default_port=443,
-        default_auth="token",
-        doc_type="quality_contract",
-        monitored_scope="SodaCL agreement checks, metric thresholds, automated scan schedules & check pass rates."
-    ),
-    ConnectorMetadata(
-        id="telmai",
-        name="Telmai",
-        category="governance",
-        category_label="Governance & Quality",
-        family="observability",
-        description="Real-time data observability platform designed for hybrid data architectures.",
-        default_port=443,
-        default_auth="token",
-        doc_type="quality_contract",
-        monitored_scope="Telmai real-time metrics, streaming data drift alerts, schema evolution & value distributions."
-    ),
+        data["required_fields"] = self.required_fields
 
-    # -------------------------------------------------------------
-    # 8. Knowledge / CRM / ERP (9)
-    # -------------------------------------------------------------
-    ConnectorMetadata(
-        id="glean",
-        name="Glean",
-        category="crm_erp",
-        category_label="CRM & ERP",
-        family="enterprise_app",
-        description="Enterprise search and knowledge discovery platform indexing all corporate tools.",
-        default_port=443,
-        default_auth="token",
-        doc_type="crm_contract",
-        monitored_scope="Glean enterprise search indexes, corporate knowledge articles & entity resolution mappings."
-    ),
-    ConnectorMetadata(
-        id="netsuite",
-        name="NetSuite ERP",
-        category="crm_erp",
-        category_label="CRM & ERP",
-        family="enterprise_app",
-        description="Cloud ERP business management suite for finance, accounting, and operations.",
-        default_port=443,
-        default_auth="token",
-        doc_type="crm_contract",
-        monitored_scope="NetSuite SuiteTalk entities (Invoices, Customers, Purchase Orders) & accounting policies."
-    ),
-    ConnectorMetadata(
-        id="salesforce",
-        name="Salesforce CRM",
-        category="crm_erp",
-        category_label="CRM & ERP",
-        family="enterprise_app",
-        description="Customer relationship management platform for sales, service, and marketing.",
-        default_port=443,
-        default_auth="oauth",
-        doc_type="crm_contract",
-        monitored_scope="Salesforce Standard/Custom SObjects (Contract, Account, Case, Opportunity) & validation rules."
-    ),
-    ConnectorMetadata(
-        id="sap_bw_4hana",
-        name="SAP BW/4HANA",
-        category="crm_erp",
-        category_label="CRM & ERP",
-        family="enterprise_app",
-        description="Next-generation enterprise data warehouse solution optimized for the SAP HANA platform.",
-        default_port=30015,
-        doc_type="crm_contract",
-        monitored_scope="SAP BW InfoObjects, CompositeProviders, Advanced DataStore Objects (ADSO) & queries."
-    ),
-    ConnectorMetadata(
-        id="sap_ecc",
-        name="SAP ECC",
-        category="crm_erp",
-        category_label="CRM & ERP",
-        family="enterprise_app",
-        description="Enterprise Resource Planning central component for managing core business processes.",
-        default_port=3300,
-        doc_type="crm_contract",
-        monitored_scope="SAP ECC transparent tables (BKPF, BSEG, KNA1, VBAK), IDoc structures & BAPI interfaces."
-    ),
-    ConnectorMetadata(
-        id="sap_s4hana",
-        name="SAP S/4HANA",
-        category="crm_erp",
-        category_label="CRM & ERP",
-        family="enterprise_app",
-        description="Next-generation ERP business suite designed to run simplified on SAP HANA.",
-        default_port=443,
-        default_auth="oauth",
-        doc_type="crm_contract",
-        monitored_scope="SAP S/4HANA Core Data Services (CDS) views, business partner entities & finance journal rules."
-    ),
-    ConnectorMetadata(
-        id="confluence",
-        name="Atlassian Confluence",
-        category="crm_erp",
-        category_label="CRM & ERP",
-        family="enterprise_app",
-        description="Team workspace where knowledge and collaboration meet for documentation and policies.",
-        default_port=443,
-        default_auth="token",
-        doc_type="crm_contract",
-        monitored_scope="Confluence Spaces, policy documentation articles, architectural guidelines & release plans."
-    ),
-    ConnectorMetadata(
-        id="jira",
-        name="Atlassian Jira",
-        category="crm_erp",
-        category_label="CRM & ERP",
-        family="enterprise_app",
-        description="Issue tracking and agile project management tool for development and IT operations.",
-        default_port=443,
-        default_auth="token",
-        doc_type="crm_contract",
-        monitored_scope="Jira projects, issue types, incident post-mortems, SLAs & compliance runbooks."
-    ),
-    ConnectorMetadata(
-        id="github",
-        name="GitHub",
-        category="crm_erp",
-        category_label="CRM & ERP",
-        family="enterprise_app",
-        description="Version control and collaboration platform for software development and policy-as-code.",
-        default_port=443,
-        default_auth="token",
-        doc_type="crm_contract",
-        monitored_scope="GitHub repository markdown policies, OpenAPI specifications, security docs & CI/CD standards."
-    ),
+        if not include_secrets:
+            secret_keys = {
+                "password",
+                "secret",
+                "client_secret",
+                "access_token",
+                "api_token",
+                "token",
+                "private_key",
+            }
 
-    # -------------------------------------------------------------
-    # 9. ML / AI (2)
-    # -------------------------------------------------------------
-    ConnectorMetadata(
-        id="sagemaker",
-        name="Amazon SageMaker",
-        category="ml_ai",
-        category_label="ML & AI",
-        family="ml_ai",
-        description="Fully managed machine learning service for building, training, and deploying ML models.",
-        default_port=443,
-        default_auth="iam",
-        doc_type="ml_contract",
-        monitored_scope="SageMaker Model Registry cards, Feature Store feature groups, Model Monitor drift rules."
-    ),
-    ConnectorMetadata(
-        id="sagemaker_studio_ml",
-        name="AWS SageMaker Unified Studio ML",
-        category="ml_ai",
-        category_label="ML & AI",
-        family="ml_ai",
-        description="End-to-end ML governance, foundation model evaluation, and lifecycle tracking.",
-        default_port=443,
-        default_auth="iam",
-        doc_type="ml_contract",
-        monitored_scope="SageMaker AI governance cards, foundation model benchmark ratings & safety guardrail checks."
-    ),
-]
+            for key in list(data.keys()):
+                if key.lower() in secret_keys:
+                    data.pop(key, None)
+
+        return data
+
+
+# ---------------------------------------------------------------------
+# Registry
+# ---------------------------------------------------------------------
 
 
 class ConnectorRegistry:
-    """Central registry and connector discovery engine for all 104 enterprise data sources."""
+    """
+    Singleton-style registry backed by connector_catalog.json.
 
-    _catalog_by_id: Dict[str, ConnectorMetadata] = {c.id: c for c in CONNECTOR_CATALOG}
+    Usage:
+
+        ConnectorRegistry.get_by_id("postgresql")
+
+        ConnectorRegistry.list()
+
+        ConnectorRegistry.list_by_category("database")
+
+        ConnectorRegistry.get_configuration_schema("github")
+    """
+
+    _connectors: Dict[str, ConnectorMetadata] = {}
+
+    _aliases: Dict[str, str] = {}
+
+    _loaded: bool = False
+
+    _catalog_path: Path = REGISTRY_FILE
+
+    # -----------------------------------------------------------------
+    # Loading
+    # -----------------------------------------------------------------
 
     @classmethod
-    def get_all(cls) -> List[ConnectorMetadata]:
-        return CONNECTOR_CATALOG
+    def load(
+        cls,
+        path: Optional[str | Path] = None,
+        *,
+        force: bool = False,
+    ) -> Dict[str, ConnectorMetadata]:
+        """
+        Load the connector catalog.
+
+        The catalog is loaded lazily the first time the registry is
+        queried.
+        """
+
+        if cls._loaded and not force:
+            return cls._connectors
+
+        catalog_path = (
+            Path(path)
+            if path is not None
+            else cls._catalog_path
+        )
+
+        cls._connectors = {}
+        cls._aliases = {}
+
+        if not catalog_path.exists():
+            logger.warning(
+                "Connector catalog not found: %s",
+                catalog_path,
+            )
+
+            cls._loaded = True
+            return cls._connectors
+
+        try:
+            with catalog_path.open(
+                "r",
+                encoding="utf-8",
+            ) as file:
+                raw_catalog = json.load(file)
+
+        except json.JSONDecodeError as exc:
+            logger.exception(
+                "Invalid connector catalog JSON: %s",
+                catalog_path,
+            )
+            raise ValueError(
+                f"Invalid connector catalog JSON: {exc}"
+            ) from exc
+
+        except OSError as exc:
+            logger.exception(
+                "Unable to read connector catalog: %s",
+                catalog_path,
+            )
+            raise RuntimeError(
+                f"Unable to read connector catalog: {exc}"
+            ) from exc
+
+        entries = cls._extract_entries(raw_catalog)
+
+        for raw_entry in entries:
+            try:
+                metadata = cls._normalize_entry(raw_entry)
+            except Exception as exc:
+                connector_id = (
+                    raw_entry.get("id", "<unknown>")
+                    if isinstance(raw_entry, dict)
+                    else "<invalid>"
+                )
+
+                logger.warning(
+                    "Skipping invalid connector '%s': %s",
+                    connector_id,
+                    exc,
+                )
+
+                continue
+
+            if not metadata.enabled:
+                continue
+
+            connector_id = metadata.id.lower().strip()
+
+            if not connector_id:
+                continue
+
+            metadata.id = connector_id
+
+            cls._connectors[connector_id] = metadata
+
+            # Canonical id is always an alias to itself.
+            cls._aliases[connector_id] = connector_id
+
+            # Explicit aliases.
+            for alias in metadata.aliases:
+                alias_key = cls._normalize_key(alias)
+
+                if alias_key:
+                    cls._aliases[alias_key] = connector_id
+
+        # Native connectors should remain resolvable even if the
+        # catalog was created before the native implementation existed.
+        cls._register_native_aliases()
+
+        cls._loaded = True
+
+        logger.info(
+            "Loaded %d connectors from %s",
+            len(cls._connectors),
+            catalog_path,
+        )
+
+        return cls._connectors
 
     @classmethod
-    def get_by_id(cls, connector_id: str) -> Optional[ConnectorMetadata]:
-        clean_id = (connector_id or "").strip().lower().replace("-", "_").replace(" ", "_")
-        if clean_id in cls._catalog_by_id:
-            return cls._catalog_by_id[clean_id]
-        
-        # Alias matching
-        aliases = {
-            "git": "github",
-            "github_repo": "github",
-            "repo": "github",
-            "postgres": "postgresql",
-            "psql": "postgresql",
-            "mongodb": "mongodb_atlas",
-            "mongo": "mongodb_atlas",
-            "kafka": "apache_kafka",
-            "confluent": "confluent_kafka",
-            "mongo": "mongodb_atlas",
-            "sfdc": "salesforce",
-            "s3_bucket": "s3",
-            "bq": "bigquery",
-            "gcs_bucket": "gcs",
-            "airflow": "airflow_openlineage",
-            "powerbi": "power_bi",
-            "sagemaker_ai": "sagemaker",
-            "soda_core": "soda",
-            "soda_cloud": "soda",
+    def reload(
+        cls,
+    ) -> Dict[str, ConnectorMetadata]:
+        """Force a catalog reload."""
+        return cls.load(force=True)
+
+    # -----------------------------------------------------------------
+    # Catalog extraction
+    # -----------------------------------------------------------------
+
+    @classmethod
+    def _extract_entries(
+        cls,
+        catalog: Any,
+    ) -> List[Dict[str, Any]]:
+        """
+        Support multiple catalog JSON layouts.
+
+        Supported:
+
+            [
+                {...},
+                {...}
+            ]
+
+        or:
+
+            {
+                "connectors": [...]
+            }
+
+        or:
+
+            {
+                "catalog": [...]
+            }
+
+        or:
+
+            {
+                "data": [...]
+            }
+        """
+
+        if isinstance(catalog, list):
+            return [
+                item
+                for item in catalog
+                if isinstance(item, dict)
+            ]
+
+        if not isinstance(catalog, dict):
+            raise ValueError(
+                "Connector catalog must be a JSON array or object."
+            )
+
+        for key in (
+            "connectors",
+            "catalog",
+            "data",
+            "items",
+        ):
+            value = catalog.get(key)
+
+            if isinstance(value, list):
+                return [
+                    item
+                    for item in value
+                    if isinstance(item, dict)
+                ]
+
+        # Allow a mapping of connector id -> metadata.
+        if all(
+            isinstance(value, dict)
+            for value in catalog.values()
+        ):
+            entries: List[Dict[str, Any]] = []
+
+            for connector_id, value in catalog.items():
+                entry = dict(value)
+                entry.setdefault("id", connector_id)
+                entries.append(entry)
+
+            return entries
+
+        return []
+
+    # -----------------------------------------------------------------
+    # Entry normalization
+    # -----------------------------------------------------------------
+
+    @classmethod
+    def _normalize_entry(
+        cls,
+        entry: Dict[str, Any],
+    ) -> ConnectorMetadata:
+        """Normalize one JSON connector entry."""
+
+        data = dict(entry)
+
+        connector_id = (
+            data.get("id")
+            or data.get("connector_id")
+            or data.get("slug")
+            or data.get("key")
+        )
+
+        if not connector_id:
+            raise ValueError(
+                "Connector entry is missing id."
+            )
+
+        connector_id = cls._normalize_key(
+            str(connector_id)
+        )
+
+        name = (
+            data.get("name")
+            or data.get("display_name")
+            or connector_id.replace("_", " ").title()
+        )
+
+        category = (
+            data.get("category")
+            or data.get("type")
+            or "custom"
+        )
+
+        family = (
+            data.get("family")
+            or data.get("connector_family")
+            or "enterprise_app"
+        )
+
+        category_label = (
+            data.get("category_label")
+            or data.get("categoryLabel")
+            or cls._category_label(category)
+        )
+
+        description = (
+            data.get("description")
+            or ""
+        )
+
+        default_auth = (
+            data.get("default_auth")
+            or data.get("defaultAuth")
+            or data.get("auth_type")
+            or "password"
+        )
+
+        default_port = (
+            data.get("default_port")
+            or data.get("defaultPort")
+        )
+
+        if default_port is not None:
+            try:
+                default_port = int(default_port)
+            except (TypeError, ValueError):
+                default_port = None
+
+        doc_type = (
+            data.get("doc_type")
+            or data.get("docType")
+            or "data_contract"
+        )
+
+        monitored_scope = (
+            data.get("monitored_scope")
+            or data.get("monitoredScope")
+            or "Enterprise data and policy synchronization."
+        )
+
+        aliases = data.get("aliases") or []
+
+        if isinstance(aliases, str):
+            aliases = [aliases]
+
+        fields = (
+            data.get("fields")
+            or data.get("configuration")
+            or data.get("config_fields")
+            or []
+        )
+
+        if not isinstance(fields, list):
+            fields = []
+
+        capabilities = data.get(
+            "capabilities"
+        ) or {}
+
+        if not isinstance(capabilities, dict):
+            capabilities = {}
+
+        driver = (
+            data.get("driver")
+            or data.get("driver_type")
+            or data.get("implementation")
+        )
+
+        if not driver:
+            driver = (
+                "native"
+                if connector_id in NATIVE_CONNECTORS
+                else "universal"
+            )
+
+        status = (
+            data.get("status")
+            or data.get("availability")
+            or "active"
+        )
+
+        enabled = data.get(
+            "enabled",
+            True,
+        )
+
+        normalized = {
+            **data,
+            "id": connector_id,
+            "name": name,
+            "category": category,
+            "category_label": category_label,
+            "family": family,
+            "description": description,
+            "default_port": default_port,
+            "default_auth": default_auth,
+            "doc_type": doc_type,
+            "monitored_scope": monitored_scope,
+            "aliases": aliases,
+            "fields": fields,
+            "capabilities": capabilities,
+            "driver": driver,
+            "status": status,
+            "enabled": bool(enabled),
         }
-        target_id = aliases.get(clean_id)
-        if target_id and target_id in cls._catalog_by_id:
-            return cls._catalog_by_id[target_id]
 
-        return None
+        return ConnectorMetadata(**normalized)
+
+    # -----------------------------------------------------------------
+    # Lookup
+    # -----------------------------------------------------------------
 
     @classmethod
-    def find_connector(cls, query: str) -> Optional[ConnectorMetadata]:
-        """Find a connector by ID, alias, or fuzzy name match."""
-        direct = cls.get_by_id(query)
-        if direct:
-            return direct
-        q = (query or "").strip().lower()
-        if not q:
+    def get_by_id(
+        cls,
+        connector_id: Optional[str],
+    ) -> Optional[ConnectorMetadata]:
+        """
+        Resolve a connector by canonical id or alias.
+        """
+
+        if not connector_id:
             return None
-        for c in CONNECTOR_CATALOG:
-            if q in c.id.lower() or q in c.name.lower():
-                return c
-        return None
+
+        cls.load()
+
+        key = cls._normalize_key(connector_id)
+
+        canonical_id = cls._aliases.get(
+            key,
+            key,
+        )
+
+        return cls._connectors.get(
+            canonical_id
+        )
 
     @classmethod
-    def get_categories(cls) -> List[Dict[str, Any]]:
-        categories = [
-            {"id": "all", "label": "All Connectors", "count": len(CONNECTOR_CATALOG)},
-            {"id": "database", "label": "Databases & Warehouses", "count": sum(1 for c in CONNECTOR_CATALOG if c.category == "database")},
-            {"id": "storage", "label": "Storage & Lakehouses", "count": sum(1 for c in CONNECTOR_CATALOG if c.category == "storage")},
-            {"id": "etl", "label": "ETL & Pipelines", "count": sum(1 for c in CONNECTOR_CATALOG if c.category == "etl")},
-            {"id": "orchestration", "label": "Orchestration & Lineage", "count": sum(1 for c in CONNECTOR_CATALOG if c.category == "orchestration")},
-            {"id": "messaging", "label": "Streaming & Messaging", "count": sum(1 for c in CONNECTOR_CATALOG if c.category == "messaging")},
-            {"id": "bi", "label": "BI & Analytics", "count": sum(1 for c in CONNECTOR_CATALOG if c.category == "bi")},
-            {"id": "governance", "label": "Governance & Quality", "count": sum(1 for c in CONNECTOR_CATALOG if c.category == "governance")},
-            {"id": "crm_erp", "label": "Knowledge, CRM & Repos", "count": sum(1 for c in CONNECTOR_CATALOG if c.category == "crm_erp")},
-            {"id": "ml_ai", "label": "ML & AI", "count": sum(1 for c in CONNECTOR_CATALOG if c.category == "ml_ai")},
+    def get(
+        cls,
+        connector_id: Optional[str],
+    ) -> Optional[ConnectorMetadata]:
+        """Alias for get_by_id()."""
+        return cls.get_by_id(connector_id)
+
+    @classmethod
+    def require(
+        cls,
+        connector_id: str,
+    ) -> ConnectorMetadata:
+        """
+        Resolve a connector or raise a clear ValueError.
+        """
+
+        connector = cls.get_by_id(connector_id)
+
+        if connector is None:
+            raise ValueError(
+                f"Unsupported connector type: {connector_id}"
+            )
+
+        return connector
+
+    # -----------------------------------------------------------------
+    # Listing
+    # -----------------------------------------------------------------
+
+    @classmethod
+    def list(
+        cls,
+        *,
+        category: Optional[str] = None,
+        family: Optional[str] = None,
+        driver: Optional[str] = None,
+        enabled_only: bool = True,
+    ) -> List[ConnectorMetadata]:
+        """
+        List connector metadata with optional filters.
+        """
+
+        cls.load()
+
+        connectors: Iterable[
+            ConnectorMetadata
+        ] = cls._connectors.values()
+
+        if enabled_only:
+            connectors = (
+                connector
+                for connector in connectors
+                if connector.enabled
+            )
+
+        if category:
+            category_key = cls._normalize_key(
+                category
+            )
+
+            connectors = (
+                connector
+                for connector in connectors
+                if cls._normalize_key(
+                    connector.category
+                )
+                == category_key
+            )
+
+        if family:
+            family_key = cls._normalize_key(
+                family
+            )
+
+            connectors = (
+                connector
+                for connector in connectors
+                if cls._normalize_key(
+                    connector.family
+                )
+                == family_key
+            )
+
+        if driver:
+            driver_key = cls._normalize_key(
+                driver
+            )
+
+            connectors = (
+                connector
+                for connector in connectors
+                if cls._normalize_key(
+                    connector.driver
+                )
+                == driver_key
+            )
+
+        return sorted(
+            list(connectors),
+            key=lambda item: (
+                item.category_label.lower(),
+                item.name.lower(),
+            ),
+        )
+
+    @classmethod
+    def all(
+        cls,
+    ) -> List[ConnectorMetadata]:
+        """Return all enabled connectors."""
+        return cls.list()
+
+    @classmethod
+    def list_by_category(
+        cls,
+        category: str,
+    ) -> List[ConnectorMetadata]:
+        """Return connectors belonging to a category."""
+        return cls.list(
+            category=category
+        )
+
+    @classmethod
+    def list_by_family(
+        cls,
+        family: str,
+    ) -> List[ConnectorMetadata]:
+        """Return connectors belonging to a connector family."""
+        return cls.list(
+            family=family
+        )
+
+    @classmethod
+    def native_connectors(
+        cls,
+    ) -> List[ConnectorMetadata]:
+        """Return connectors with native application drivers."""
+        return cls.list(
+            driver="native"
+        )
+
+    @classmethod
+    def universal_connectors(
+        cls,
+    ) -> List[ConnectorMetadata]:
+        """Return connectors handled by UniversalConnectorDriver."""
+        return cls.list(
+            driver="universal"
+        )
+
+    # -----------------------------------------------------------------
+    # Search
+    # -----------------------------------------------------------------
+
+    @classmethod
+    def search(
+        cls,
+        query: str,
+    ) -> List[ConnectorMetadata]:
+        """
+        Search by connector id, name, category, family,
+        description, or alias.
+        """
+
+        cls.load()
+
+        query_key = cls._normalize_key(
+            query
+        )
+
+        if not query_key:
+            return cls.list()
+
+        results: List[ConnectorMetadata] = []
+
+        for connector in cls._connectors.values():
+            searchable = " ".join(
+                [
+                    connector.id,
+                    connector.name,
+                    connector.category,
+                    connector.category_label,
+                    connector.family,
+                    connector.description,
+                    " ".join(connector.aliases),
+                ]
+            )
+
+            if query_key in cls._normalize_key(
+                searchable
+            ):
+                results.append(connector)
+
+        return sorted(
+            results,
+            key=lambda item: item.name.lower(),
+        )
+
+    # -----------------------------------------------------------------
+    # Configuration schema
+    # -----------------------------------------------------------------
+
+    @classmethod
+    def get_configuration_schema(
+        cls,
+        connector_id: str,
+    ) -> Dict[str, Any]:
+        """
+        Return the configuration schema used by the ConnectorWizard.
+        """
+
+        connector = cls.require(
+            connector_id
+        )
+
+        return {
+            "connector_id": connector.id,
+            "name": connector.name,
+            "category": connector.category,
+            "category_label": connector.category_label,
+            "family": connector.family,
+            "description": connector.description,
+            "default_port": connector.default_port,
+            "default_auth": connector.default_auth,
+            "doc_type": connector.doc_type,
+            "fields": connector.required_fields,
+            "lifecycle": connector.lifecycle,
+            "driver": connector.driver,
+            "is_native": connector.is_native,
+            "is_universal": connector.is_universal,
+        }
+
+    # -----------------------------------------------------------------
+    # Lifecycle information
+    # -----------------------------------------------------------------
+
+    @classmethod
+    def get_lifecycle(
+        cls,
+        connector_id: str,
+    ) -> Dict[str, Any]:
+        """
+        Return lifecycle capability information.
+        """
+
+        connector = cls.require(
+            connector_id
+        )
+
+        return {
+            "connector_id": connector.id,
+            "connector_name": connector.name,
+            "driver": connector.driver,
+            "lifecycle": connector.lifecycle,
+            "stages": {
+                stage: stage in connector.lifecycle
+                for stage in CONNECTOR_LIFECYCLE
+            },
+        }
+
+    # -----------------------------------------------------------------
+    # Categories
+    # -----------------------------------------------------------------
+
+    @classmethod
+    def categories(
+        cls,
+    ) -> List[Dict[str, Any]]:
+        """
+        Return category summaries for the frontend connector hub.
+        """
+
+        cls.load()
+
+        grouped: Dict[str, Dict[str, Any]] = {}
+
+        for connector in cls._connectors.values():
+            key = connector.category
+
+            if key not in grouped:
+                grouped[key] = {
+                    "id": key,
+                    "label": connector.category_label,
+                    "count": 0,
+                    "connectors": [],
+                }
+
+            grouped[key]["count"] += 1
+
+            grouped[key]["connectors"].append(
+                connector.id
+            )
+
+        return sorted(
+            grouped.values(),
+            key=lambda item: item["label"].lower(),
+        )
+
+    # -----------------------------------------------------------------
+    # Public API catalog
+    # -----------------------------------------------------------------
+
+    @classmethod
+    def public_catalog(
+        cls,
+    ) -> Dict[str, Any]:
+        """
+        Return the complete catalog in a frontend/API-safe format.
+        """
+
+        connectors = cls.list()
+
+        return {
+            "version": "1.0",
+            "lifecycle": list(
+                CONNECTOR_LIFECYCLE
+            ),
+            "count": len(connectors),
+            "categories": cls.categories(),
+            "connectors": [
+                connector.to_public_dict()
+                for connector in connectors
+            ],
+        }
+
+    # -----------------------------------------------------------------
+    # Statistics
+    # -----------------------------------------------------------------
+
+    @classmethod
+    def stats(
+        cls,
+    ) -> Dict[str, Any]:
+        """Return registry statistics."""
+
+        connectors = cls.list()
+
+        native = [
+            connector
+            for connector in connectors
+            if connector.is_native
         ]
-        return categories
+
+        universal = [
+            connector
+            for connector in connectors
+            if connector.is_universal
+        ]
+
+        return {
+            "total": len(connectors),
+            "native": len(native),
+            "universal": len(universal),
+            "categories": len(
+                cls.categories()
+            ),
+            "lifecycle_stages": len(
+                CONNECTOR_LIFECYCLE
+            ),
+        }
+
+    # -----------------------------------------------------------------
+    # Validation
+    # -----------------------------------------------------------------
+
+    @classmethod
+    def validate(
+        cls,
+    ) -> Dict[str, Any]:
+        """
+        Validate the loaded catalog.
+
+        Returns a report instead of immediately raising so it can be
+        used by health/monitoring endpoints.
+        """
+
+        cls.load()
+
+        errors: List[str] = []
+        warnings: List[str] = []
+
+        seen_ids: set[str] = set()
+
+        for connector in cls._connectors.values():
+            if connector.id in seen_ids:
+                errors.append(
+                    f"Duplicate connector id: {connector.id}"
+                )
+
+            seen_ids.add(
+                connector.id
+            )
+
+            if not connector.name:
+                errors.append(
+                    f"{connector.id}: missing name"
+                )
+
+            if not connector.category:
+                warnings.append(
+                    f"{connector.id}: missing category"
+                )
+
+            if not connector.lifecycle:
+                warnings.append(
+                    f"{connector.id}: no lifecycle stages"
+                )
+
+            if connector.is_native:
+                if connector.driver not in (
+                    "native",
+                    "universal",
+                ):
+                    warnings.append(
+                        f"{connector.id}: native connector "
+                        f"uses driver '{connector.driver}'"
+                    )
+
+        return {
+            "valid": len(errors) == 0,
+            "errors": errors,
+            "warnings": warnings,
+            "stats": cls.stats(),
+        }
+
+    # -----------------------------------------------------------------
+    # Alias management
+    # -----------------------------------------------------------------
+
+    @classmethod
+    def register_alias(
+        cls,
+        alias: str,
+        connector_id: str,
+    ) -> None:
+        """
+        Register a runtime alias.
+
+        Useful when a legacy source_type needs to resolve to a catalog
+        connector without modifying the JSON catalog.
+        """
+
+        cls.load()
+
+        canonical = cls.get_by_id(
+            connector_id
+        )
+
+        if canonical is None:
+            raise ValueError(
+                f"Cannot register alias '{alias}': "
+                f"connector '{connector_id}' does not exist."
+            )
+
+        alias_key = cls._normalize_key(
+            alias
+        )
+
+        if not alias_key:
+            raise ValueError(
+                "Connector alias cannot be empty."
+            )
+
+        cls._aliases[alias_key] = canonical.id
+
+    @classmethod
+    def aliases_for(
+        cls,
+        connector_id: str,
+    ) -> List[str]:
+        """Return aliases resolving to a connector."""
+
+        connector = cls.require(
+            connector_id
+        )
+
+        return sorted(
+            alias
+            for alias, canonical in cls._aliases.items()
+            if canonical == connector.id
+            and alias != connector.id
+        )
+
+    # -----------------------------------------------------------------
+    # Native aliases
+    # -----------------------------------------------------------------
+
+    @classmethod
+    def _register_native_aliases(
+        cls,
+    ) -> None:
+        """
+        Ensure legacy native source_type values continue resolving.
+
+        These aliases correspond to the existing SyncEngine dispatch
+        logic.
+        """
+
+        native_aliases = {
+            "postgres": "postgresql",
+            "apache_kafka": "kafka",
+            "confluent": "kafka",
+            "sfdc": "salesforce",
+            "salesforce_crm": "salesforce",
+            "mongo": "mongodb",
+            "mongo_atlas": "mongodb",
+            "wiki": "confluence",
+            "jira_issues": "jira",
+            "repo": "github",
+            "git": "github",
+        }
+
+        for alias, canonical in native_aliases.items():
+            if canonical in cls._connectors:
+                cls._aliases[
+                    alias
+                ] = canonical
+
+    # -----------------------------------------------------------------
+    # Utilities
+    # -----------------------------------------------------------------
+
+    @staticmethod
+    def _normalize_key(
+        value: Any,
+    ) -> str:
+        """
+        Normalize ids/categories/aliases for matching.
+
+        Examples:
+
+            "PostgreSQL"      -> "postgresql"
+            "post-gresql"     -> "postgresql"
+            "Postgre SQL"     -> "postgresql"
+            "postgres_sql"    -> "postgresql"
+        """
+
+        if value is None:
+            return ""
+
+        return (
+            str(value)
+            .strip()
+            .lower()
+            .replace("-", "")
+            .replace("_", "")
+            .replace(" ", "")
+        )
+
+    @staticmethod
+    def _category_label(
+        category: str,
+    ) -> str:
+        """Generate a human-readable category label."""
+
+        labels = {
+            "database": "Databases & Warehouses",
+            "storage": "Storage & Lakehouses",
+            "streaming": "Streaming & Messaging",
+            "etl": "ETL & Data Integration",
+            "orchestration": "Orchestration",
+            "bi": "Business Intelligence",
+            "observability": "Observability",
+            "enterprise_app": "Enterprise Applications",
+            "ml_ai": "ML & AI",
+            "api": "APIs & Services",
+            "custom": "Custom Sources",
+        }
+
+        normalized = ConnectorRegistry._normalize_key(
+            category
+        )
+
+        for key, label in labels.items():
+            if ConnectorRegistry._normalize_key(
+                key
+            ) == normalized:
+                return label
+
+        return str(category).replace(
+            "_",
+            " ",
+        ).title()
+
+
+# ---------------------------------------------------------------------
+# Module-level compatibility helpers
+# ---------------------------------------------------------------------
+
+def get_connector(
+    connector_id: str,
+) -> Optional[ConnectorMetadata]:
+    """Convenience wrapper around ConnectorRegistry.get_by_id()."""
+    return ConnectorRegistry.get_by_id(
+        connector_id
+    )
+
+
+def get_connector_catalog() -> Dict[str, Any]:
+    """Return the public connector catalog."""
+    return ConnectorRegistry.public_catalog()
+
+
+def get_connector_schema(
+    connector_id: str,
+) -> Dict[str, Any]:
+    """Return the configuration schema for a connector."""
+    return ConnectorRegistry.get_configuration_schema(
+        connector_id
+    )
+
+
+def validate_connector_catalog() -> Dict[str, Any]:
+    """Validate the connector catalog."""
+    return ConnectorRegistry.validate()
+
+
+# ---------------------------------------------------------------------
+# Lazy initialization
+# ---------------------------------------------------------------------
+
+# Do not eagerly load the catalog during import. This avoids startup
+# failures when the application is being installed/migrated and the
+# catalog has not yet been copied into place.
+#
+# The first call to ConnectorRegistry.get_by_id(), list(), etc. loads it.
+
+# ---------------------------------------------------------------------
+# Aliases & Backward Compatibility
+# ---------------------------------------------------------------------
+get_connector_metadata = get_connector
+CONNECTOR_REGISTRY = ConnectorRegistry
+
