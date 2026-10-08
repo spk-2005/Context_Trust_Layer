@@ -47,13 +47,11 @@ class SSOService:
     """
 
     KNOWN_DOMAIN_MAPPINGS = {
-        "ssfa.com": "SSFA Capital Holdings",
-        "google.com": "Google Workspace Trust",
-        "microsoft.com": "Microsoft Enterprise Governance",
-        "okta.com": "Okta Workforce Enterprise",
-        "atlan.com": "Atlan Enterprise Workspace",
-        "deloitte.com": "Deloitte Risk & Assurance",
-        "goldmansachs.com": "Goldman Sachs Asset Management",
+        "trulin.ai": "Trulin Trust Workspace",
+        "demo.com": "Trulin Trust Workspace",
+        "ssfa.com": "Trulin Trust Workspace",
+        "enterprise.org": "Enterprise AI Governance",
+        "audit.internal": "Audit & Compliance Gateway",
     }
 
     @classmethod
@@ -267,13 +265,17 @@ class SSOService:
         # 1. Determine Organization Name & Slug
         if explicit_org_name:
             org_name = explicit_org_name.strip()
+            org_slug = re.sub(r"[^a-zA-Z0-9-]", "-", org_name.lower())[:50]
         elif domain in cls.KNOWN_DOMAIN_MAPPINGS:
             org_name = cls.KNOWN_DOMAIN_MAPPINGS[domain]
+            org_slug = re.sub(r"[^a-zA-Z0-9-]", "-", domain.lower())[:50]
+        elif domain in ["gmail.com", "googlemail.com", "yahoo.com", "outlook.com", "hotmail.com", "icloud.com"]:
+            org_name = f"{name}'s Demo Workspace"
+            org_slug = re.sub(r"[^a-zA-Z0-9-]", "-", f"user-{email.split('@')[0]}")[:50]
         else:
             base_name = domain.split(".")[0].replace("-", " ").title()
             org_name = f"{base_name} Enterprise"
-
-        org_slug = re.sub(r"[^a-zA-Z0-9-]", "-", domain.lower())[:50]
+            org_slug = re.sub(r"[^a-zA-Z0-9-]", "-", domain.lower())[:50]
 
         # 2. Find or create Organization
         org_stmt = (

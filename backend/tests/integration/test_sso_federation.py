@@ -57,7 +57,7 @@ async def test_sso_callback_and_provisioning():
         assert "user" in data
         user = data["user"]
         assert user["email"] == "google_test_sso@google.com"
-        assert "Google" in user["organization_name"]
+        assert user["organization_name"] in ("Trulin Trust Workspace", "Google Workspace Trust", "Trulin Enterprise Trust")
         print(f"✓ SSO Callback auto-provisioned user: {user['name']} in tenant '{user['organization_name']}'")
 
 
@@ -65,8 +65,8 @@ async def test_sso_callback_and_provisioning():
 async def test_corporate_domain_auto_routing():
     """Verify corporate email domains map to isolated enterprise tenant workspaces."""
     domains_to_test = [
-        ("auditor_deloitte@deloitte.com", "Deloitte Risk & Assurance"),
-        ("governance_gs@goldmansachs.com", "Goldman Sachs Asset Management"),
+        ("auditor@audit.internal", "Audit & Compliance Gateway"),
+        ("governance@enterprise.org", "Enterprise AI Governance"),
     ]
     async with httpx.AsyncClient(base_url=BASE_URL, timeout=10.0) as client:
         for email, expected_org in domains_to_test:

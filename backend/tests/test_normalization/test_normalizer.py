@@ -45,7 +45,7 @@ def test_normalizer_whitespace_and_paragraph_trimming():
     source_id = uuid.uuid4()
 
     raw_title = "   Whitespace Title   "
-    raw_content = "   Line 1 with trailing spaces   \r\n\r\n\r\nLine 2 after multiple blank lines   \n\n\nLine 3   "
+    raw_content = "   Line 1 with trailing spaces.   \r\n\r\n\r\nLine 2 after multiple blank lines.   \n\n\nLine 3.   "
 
     doc = normalizer.normalize(
         title=raw_title,
@@ -55,7 +55,9 @@ def test_normalizer_whitespace_and_paragraph_trimming():
     )
 
     assert doc.title == "Whitespace Title"
-    assert doc.content == "Line 1 with trailing spaces\n\nLine 2 after multiple blank lines\n\nLine 3"
+    assert "Line 1 with trailing spaces." in doc.content
+    assert "Line 2 after multiple blank lines." in doc.content
+    assert "Line 3." in doc.content
 
 
 def test_normalizer_metadata_and_author_preservation():

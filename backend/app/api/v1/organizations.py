@@ -558,3 +558,33 @@ async def accept_invite(
         user=_build_user_response(user, org_name=org.name),
         active_organization=_build_org_response(org, member_count=m_count),
     )
+
+
+# ==========================================
+# 6. Interactive Demo Sandbox Data Management
+# ==========================================
+
+@router.post("/{org_id}/reset-demo-data")
+async def reset_demo_data(
+    org_id: uuid.UUID,
+    current_user: Optional[User] = Depends(get_optional_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Restore or seed pristine demo knowledge (Connectors, Policies, Claims, Conflicts) for this tenant."""
+    from app.services.demo_seeder_service import DemoSeederService
+
+    org_stmt = select(Organization).where(Organization.id == org_id).limit(1)
+    res_org = await db.execute(org_stmt)
+    org = res_org.scalar_one_or_none()
+    if not org:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Target organization not found.")
+
+    user_id = current_user.id if current_user else None
+    result = await DemoSeederService.seed_starter_knowledge(
+        db=db,
+        organization_id=org_id,
+        user_id=user_id,
+        clear_existing=True,
+    )
+    return result
+

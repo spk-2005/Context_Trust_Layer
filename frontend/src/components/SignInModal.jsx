@@ -528,7 +528,7 @@ export default function SignInModal() {
                     <input
                       type="email"
                       required
-                      placeholder="e.g. elena.rostova@ssfa.com or name@deloitte.com"
+                      placeholder="e.g. elena.rostova@ssfa.com or alex@company.com"
                       value={ssoEmail}
                       onChange={(e) => setSsoEmail(e.target.value)}
                       style={{
@@ -562,10 +562,10 @@ export default function SignInModal() {
                   </span>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
                     {[
-                      { domain: 'elena.rostova@ssfa.com', org: 'SSFA Capital', badge: 'Tier 1 Customer' },
+                      { domain: 'elena.rostova@ssfa.com', org: 'Trulin Trust Gateway', badge: 'Primary Workspace' },
                       { domain: 'sarah.chen@google.com', org: 'Google Workspace', badge: 'Cloud IdP' },
                       { domain: 'marcus.vance@microsoft.com', org: 'Microsoft Entra', badge: 'Azure AD' },
-                      { domain: 'compliance@deloitte.com', org: 'Deloitte Risk', badge: 'Assurance' }
+                      { domain: 'compliance@trulin-demo.ai', org: 'Audit Assurance', badge: 'Governance' }
                     ].map((item) => (
                       <button
                         key={item.domain}

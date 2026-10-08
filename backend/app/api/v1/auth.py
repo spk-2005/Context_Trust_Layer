@@ -57,61 +57,101 @@ async def register_user(
     req: UserRegisterRequest,
     db: AsyncSession = Depends(get_db),
 ):
-    """Register a new enterprise user and assign/create an organization workspace."""
-    # 1. Resolve or create organization
-    org_name = req.organization_name.strip() if req.organization_name else "Enterprise Tenant"
-    org_stmt = select(Organization).where(Organization.name.ilike(org_name)).limit(1)
-    res_org = await db.execute(org_stmt)
-    org = res_org.scalar_one_or_none()
+    """Register a new enterprise/demo user and assign or create an organization workspace."""
+    import re
+    email_clean = req.email.strip().lower()
+    name_clean = req.name.strip()
 
-    if not org:
-        # Check if default demo org exists
-        default_org_id = uuid.UUID("11111111-1111-1111-1111-111111111111")
-        res_default = await db.execute(select(Organization).where(Organization.id == default_org_id))
-        org = res_default.scalar_one_or_none()
-        if not org:
-            slug = org_name.lower().replace(" ", "-")[:50]
-            org = Organization(
-                id=default_org_id,
-                name=org_name,
-                slug=slug,
-            )
-            db.add(org)
-            await db.flush()
-
-    # 2. Check if email already registered in this organization
-    user_stmt = select(User).where(User.email.ilike(req.email.strip())).limit(1)
+    # 1. Check if email already registered
+    user_stmt = select(User).where(User.email.ilike(email_clean)).limit(1)
     res_user = await db.execute(user_stmt)
     existing_user = res_user.scalar_one_or_none()
     if existing_user:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="An enterprise account with this email address is already registered.",
+            detail="An account with this email address is already registered.",
         )
+
+    # 2. Resolve or create organization
+    org_name = req.organization_name.strip() if req.organization_name else ""
+    if org_name:
+        org_stmt = select(Organization).where(Organization.name.ilike(org_name)).limit(1)
+        res_org = await db.execute(org_stmt)
+        org = res_org.scalar_one_or_none()
+        if not org:
+            org_slug = re.sub(r"[^a-zA-Z0-9-]", "-", org_name.lower())[:50]
+            org = Organization(
+                id=uuid.uuid4(),
+                name=org_name,
+                slug=org_slug,
+            )
+            db.add(org)
+            await db.flush()
+    else:
+        # Automatically provision organization for personal / demo / corporate domain
+        domain = email_clean.split("@")[-1] if "@" in email_clean else ""
+        if domain in ["gmail.com", "googlemail.com", "yahoo.com", "outlook.com", "hotmail.com", "icloud.com"]:
+            org_title = f"{name_clean}'s Workspace"
+            org_slug = f"user-{uuid.uuid4().hex[:8]}"
+            org = Organization(
+                id=uuid.uuid4(),
+                name=org_title,
+                slug=org_slug,
+            )
+            db.add(org)
+            await db.flush()
+        else:
+            base_name = domain.split(".")[0].replace("-", " ").title() if domain else "Enterprise Tenant"
+            org_title = f"{base_name} Workspace"
+            org_slug = domain.replace(".", "-")[:50] if domain else "enterprise"
+            org_stmt = select(Organization).where((Organization.slug == org_slug) | (Organization.name.ilike(org_title))).limit(1)
+            res_org = await db.execute(org_stmt)
+            org = res_org.scalar_one_or_none()
+            if not org:
+                org = Organization(
+                    id=uuid.uuid4(),
+                    name=org_title,
+                    slug=org_slug,
+                )
+                db.add(org)
+                await db.flush()
 
     # 3. Create user with hashed password
     hashed_pwd = get_password_hash(req.password)
     user_id = uuid.uuid4()
-    avatar = f"https://api.dicebear.com/7.x/bottts/svg?seed={req.name.replace(' ', '')}"
+    avatar = f"https://api.dicebear.com/7.x/bottts/svg?seed={name_clean.replace(' ', '')}"
     
     new_user = User(
         id=user_id,
         organization_id=org.id,
-        name=req.name.strip(),
-        email=req.email.strip().lower(),
+        name=name_clean,
+        email=email_clean,
         hashed_password=hashed_pwd,
-        role=req.role or UserRole.DEVELOPER,
+        role=req.role or UserRole.ADMIN,
         status=RecordStatus.ACTIVE,
         is_verified=True,
         avatar_url=avatar,
-        title=req.title or "AI Governance Member",
+        title=req.title or "Workspace Lead",
         department=req.department or "Engineering & Operations",
     )
     db.add(new_user)
     await db.commit()
     await db.refresh(new_user)
 
-    # 4. Generate tokens
+    # 4. Auto-seed starter knowledge graph for the new tenant
+    try:
+        from app.services.demo_seeder_service import DemoSeederService
+        await DemoSeederService.seed_starter_knowledge(
+            db=db,
+            organization_id=org.id,
+            user_id=new_user.id,
+            clear_existing=False,
+        )
+    except Exception as e:
+        # Non-blocking if seeding encounter minor edge case
+        pass
+
+    # 5. Generate tokens
     access_token = create_access_token(
         subject=str(new_user.id),
         claims={
@@ -213,6 +253,20 @@ async def persona_quick_login(
         # Fallback: get any active user
         fallback_res = await db.execute(select(User).options(selectinload(User.organization)).limit(1))
         user = fallback_res.scalar_one_or_none()
+
+    if not user:
+        # Auto-seed default personas for primary org
+        from app.db.repositories.user_repository import UserRepository
+        org_stmt = select(Organization).limit(1)
+        res_org = await db.execute(org_stmt)
+        org = res_org.scalar_one_or_none()
+        org_id = org.id if org else uuid.UUID("11111111-1111-1111-1111-111111111111")
+        
+        user_repo = UserRepository(db)
+        seeded = await user_repo.seed_default_personas(org_id)
+        await db.commit()
+        if seeded:
+            user = seeded[0]
 
     if not user:
         raise HTTPException(

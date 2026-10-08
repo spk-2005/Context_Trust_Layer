@@ -65,9 +65,9 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => {
     try {
       const saved = localStorage.getItem('ctl_user');
-      return saved ? JSON.parse(saved) : DEFAULT_ENTERPRISE_PERSONAS[0];
+      return saved ? JSON.parse(saved) : null;
     } catch {
-      return DEFAULT_ENTERPRISE_PERSONAS[0];
+      return null;
     }
   });
   const [organization, setOrganization] = useState(() => {
@@ -95,10 +95,6 @@ export function AuthProvider({ children }) {
         const data = await res.json();
         if (Array.isArray(data) && data.length > 0) {
           setPersonas(data);
-          if (!user) {
-            const defaultPersona = data.find(p => p.role === 'admin') || data[0];
-            loginAsPersona(defaultPersona);
-          }
           return data;
         }
       }

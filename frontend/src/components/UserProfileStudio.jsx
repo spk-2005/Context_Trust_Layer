@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   User,
   Building2,
@@ -15,7 +15,8 @@ import {
   Lock,
   ArrowRight,
   Layers,
-  Sparkles
+  Sparkles,
+  LogOut
 } from 'lucide-react';
 
 export default function UserProfileStudio({
@@ -32,6 +33,7 @@ export default function UserProfileStudio({
   roleMetadata,
   onOpenRegisterOrg,
   onOpenOrgSettings,
+  onLogout,
   showToast,
   initialSubSection = 'companies',
   onSubSectionChange
@@ -66,14 +68,25 @@ export default function UserProfileStudio({
     ? activePersona.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
     : 'SC';
 
+  const displayOrgs = (organizations && organizations.length > 0)
+    ? organizations.filter(o => 
+        !o.name.includes('Test') && 
+        !o.name.includes('Auto Resolve') && 
+        !o.name.includes('Default Org') &&
+        !o.name.includes('Deloitte') &&
+        !o.name.includes('Goldman')
+      )
+    : (activeOrg ? [activeOrg] : []);
+  const cleanOrgs = displayOrgs.length > 0 ? displayOrgs : (activeOrg ? [activeOrg] : []);
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '22px', maxWidth: '1280px', margin: '0 auto' }}>
       {/* 1. Profile Header Hero */}
-      <div className="clean-panel" style={{
-        padding: '24px 28px',
-        background: 'linear-gradient(135deg, var(--bg-card) 0%, var(--bg-card-subtle) 100%)',
-        border: '1px solid var(--border-subtle)',
-        borderRadius: '12px'
+      <div style={{
+        padding: '10px 4px 16px 4px',
+        background: 'transparent',
+        border: 'none',
+        borderRadius: '0'
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '20px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '18px' }}>
@@ -123,12 +136,12 @@ export default function UserProfileStudio({
                 <span>•</span>
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
                   <Building2 size={13} style={{ color: 'var(--text-muted)' }} />
-                  {activeOrg?.name || 'SSFA Capital Holdings'}
+                  {activeOrg?.name || 'Default Organization'}
                 </span>
                 <span>•</span>
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
                   <Mail size={13} style={{ color: 'var(--text-muted)' }} />
-                  {activePersona?.email || 'sarah.chen@ssfa.com'}
+                  {activePersona?.email || `${activePersona?.name ? activePersona.name.toLowerCase().replace(/\s+/g, '.') : 'admin'}@${activeOrg?.slug || 'company'}.com`}
                 </span>
               </div>
             </div>
@@ -157,57 +170,23 @@ export default function UserProfileStudio({
               <Plus size={14} />
               <span>Register Company</span>
             </button>
-          </div>
-        </div>
-
-        {/* Executive Identity Metrics (4 Cards) */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '14px', marginTop: '22px', borderTop: '1px solid var(--border-subtle)', paddingTop: '18px' }}>
-          <div style={{ padding: '10px 14px', background: 'var(--bg-card)', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
-            <div style={{ fontSize: '0.70rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>
-              Current Entity
-            </div>
-            <div style={{ fontSize: '0.98rem', fontWeight: 700, color: 'var(--text-main)', marginTop: '3px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              {activeOrg?.name || 'SSFA Capital Holdings'}
-            </div>
-            <div style={{ fontSize: '0.68rem', color: '#16A34A', fontWeight: 600, marginTop: '2px' }}>
-              Primary Active Organization
-            </div>
-          </div>
-
-          <div style={{ padding: '10px 14px', background: 'var(--bg-card)', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
-            <div style={{ fontSize: '0.70rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>
-              Active Workspace
-            </div>
-            <div style={{ fontSize: '0.98rem', fontWeight: 700, color: 'var(--text-main)', marginTop: '3px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              {activeWorkspace?.name || 'All Workspaces (Unified)'}
-            </div>
-            <div style={{ fontSize: '0.68rem', color: 'var(--primary-dark)', fontWeight: 600, marginTop: '2px' }}>
-              Domain Clearance: Universal
-            </div>
-          </div>
-
-          <div style={{ padding: '10px 14px', background: 'var(--bg-card)', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
-            <div style={{ fontSize: '0.70rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>
-              Security Clearance
-            </div>
-            <div style={{ fontSize: '0.98rem', fontWeight: 700, color: 'var(--text-main)', marginTop: '3px' }}>
-              Level 4: Executive Admin
-            </div>
-            <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 500, marginTop: '2px' }}>
-              Full Audit, Policy & Gate Control
-            </div>
-          </div>
-
-          <div style={{ padding: '10px 14px', background: 'var(--bg-card)', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
-            <div style={{ fontSize: '0.70rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>
-              Regulatory Mandate
-            </div>
-            <div style={{ fontSize: '0.98rem', fontWeight: 700, color: 'var(--text-main)', marginTop: '3px' }}>
-              EU AI Act Art. 14
-            </div>
-            <div style={{ fontSize: '0.68rem', color: '#16A34A', fontWeight: 600, marginTop: '2px' }}>
-              Human Oversight Verified
-            </div>
+            {onLogout && (
+              <button
+                onClick={onLogout}
+                className="btn btn-secondary"
+                style={{
+                  fontSize: '0.8rem',
+                  padding: '7px 14px',
+                  color: '#EF4444',
+                  borderColor: 'rgba(239, 68, 68, 0.3)',
+                  backgroundColor: 'rgba(239, 68, 68, 0.05)'
+                }}
+                title="Sign out of current session"
+              >
+                <LogOut size={14} />
+                <span>Sign Out</span>
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -237,7 +216,7 @@ export default function UserProfileStudio({
             background: activeSubSection === 'companies' ? 'rgba(0,0,0,0.15)' : 'var(--bg-card)',
             color: activeSubSection === 'companies' ? '#1A1207' : 'var(--text-muted)'
           }}>
-            {organizations.length}
+            {cleanOrgs.length}
           </span>
         </button>
 
@@ -302,7 +281,7 @@ export default function UserProfileStudio({
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(310px, 1fr))', gap: '14px' }}>
-            {organizations.map((org) => {
+            {cleanOrgs.map((org) => {
               const isActive = activeOrg?.id === org.id;
               const isSwitching = switchingOrgId === org.id;
 
@@ -409,53 +388,6 @@ export default function UserProfileStudio({
               );
             })}
           </div>
-
-          {/* Departmental Workspaces Switcher */}
-          <div className="clean-panel" style={{ padding: '20px 24px', marginTop: '10px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px', flexWrap: 'wrap', gap: '10px' }}>
-              <div>
-                <h3 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-main)', margin: 0 }}>
-                  Active Departmental Workspace in {activeOrg?.name}
-                </h3>
-                <p style={{ margin: '3px 0 0 0', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                  Switch scopes within this company to isolate data feeds, claim sets, and decision evaluation trees.
-                </p>
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-              {workspaces.map((ws) => {
-                const isSelected = activeWorkspace?.id === ws.id;
-                return (
-                  <button
-                    key={ws.id}
-                    onClick={() => {
-                      if (onSwitchWorkspace) onSwitchWorkspace(ws);
-                      showToast?.(`Switched workspace to ${ws.name}`);
-                    }}
-                    style={{
-                      padding: '8px 16px',
-                      borderRadius: '8px',
-                      border: `1.5px solid ${isSelected ? '#FFAB4A' : 'var(--border-subtle)'}`,
-                      background: isSelected ? '#FFF8EE' : 'var(--bg-card)',
-                      color: isSelected ? '#9A4900' : 'var(--text-main)',
-                      fontWeight: isSelected ? 700 : 500,
-                      fontSize: '0.80rem',
-                      cursor: 'pointer',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      transition: 'all 0.15s ease'
-                    }}
-                  >
-                    <FolderGit2 size={14} style={{ color: isSelected ? '#EA580C' : 'var(--text-muted)' }} />
-                    <span>{ws.name}</span>
-                    {isSelected && <Check size={13} style={{ color: '#EA580C' }} strokeWidth={2.5} />}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
         </div>
       )}
 
@@ -539,7 +471,7 @@ export default function UserProfileStudio({
 
                   <div style={{ marginTop: '14px', paddingTop: '10px', borderTop: '1px solid var(--border-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <span style={{ fontSize: '0.70rem', color: 'var(--text-muted)' }}>
-                      {persona.email || `${persona.name.toLowerCase().replace(' ', '.')}@ssfa.com`}
+                      {persona.email || `${persona.name.toLowerCase().replace(/\s+/g, '.')}@${activeOrg?.slug || 'company'}.com`}
                     </span>
                     {isSelected ? (
                       <span style={{ fontSize: '0.70rem', color: '#EA580C', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '3px' }}>

@@ -35,12 +35,14 @@ import {
   Building2,
   FolderGit2,
   ChevronDown,
-  ChevronRight,
   ChevronLeft,
+  ChevronRight,
   PanelLeftClose,
   PanelLeftOpen,
-  X
+  X,
+  LogOut
 } from 'lucide-react';
+import AuthLandingView from './components/AuthLandingView';
 import UserProfileStudio from './components/UserProfileStudio';
 import TeamAndActivityHub from './components/TeamAndActivityHub';
 import AgentChatPlayground from './components/AgentChatPlayground';
@@ -50,6 +52,7 @@ import ContextCuratorStudio from './components/ContextCuratorStudio';
 import McpIntegrationStudio from './components/McpIntegrationStudio';
 import SignInModal from './components/SignInModal';
 import OrganizationSettingsModal from './components/OrganizationSettingsModal';
+import WorkspaceSettingsStudio from './components/WorkspaceSettingsStudio';
 import RbacMatrixModal from './components/RbacMatrixModal';
 import ExecutiveRoiModal from './components/ExecutiveRoiModal';
 import ComplianceDossierModal from './components/ComplianceDossierModal';
@@ -77,7 +80,8 @@ export const TAB_TO_PATH = {
   integrations: '/integrations',
   audit: '/audit',
   team: '/team',
-  profile: '/profile'
+  profile: '/profile',
+  settings: '/settings'
 };
 
 export const PATH_TO_TAB = {
@@ -101,7 +105,9 @@ export const PATH_TO_TAB = {
   '/audit-trail': 'audit',
   '/team': 'team',
   '/personas': 'team',
-  '/profile': 'profile'
+  '/profile': 'profile',
+  '/settings': 'settings',
+  '/workspace-settings': 'settings'
 };
 
 export const DEFAULT_WORKSPACES = [
@@ -409,9 +415,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState(() => initialUrlState?.tab || 'home');
   const [expandedMenu, setExpandedMenu] = useState(() => initialUrlState?.tab || 'home');
   const [vaultSubTab, setVaultSubTab] = useState(() => initialUrlState?.vaultSubTab || 'documents');
-  const [isVaultMenuOpen, setIsVaultMenuOpen] = useState(true);
-  const [isCuratorMenuOpen, setIsCuratorMenuOpen] = useState(true);
-  const [isDocExplorerMenuOpen, setIsDocExplorerMenuOpen] = useState(true);
+  const [openSidebarMenu, setOpenSidebarMenu] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [health, setHealth] = useState({ status: 'checking', database: false, version: '0.1.0' });
   const [conflicts, setConflicts] = useState([]);
@@ -2100,10 +2104,60 @@ export default function App() {
     }
   };
 
+  const handleResetDemoData = async () => {
+    const orgId = authOrg?.id || activeOrg?.id || '11111111-1111-1111-1111-111111111111';
+    try {
+      showToast('Resetting demo sandbox to pristine state...');
+      const headers = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+      const res = await fetch(`/v1/organizations/${orgId}/reset-demo-data`, {
+        method: 'POST',
+        headers,
+      });
+      if (res.ok) {
+        showToast('Demo knowledge restored! (4 Policies, 4 Claims, 1 Conflict pair)');
+        fetchLiveDatabaseRecords(orgId);
+        try {
+          const cRes = await fetch(`/v1/conflicts?organization_id=${orgId}`);
+          if (cRes.ok) {
+            const cData = await cRes.json();
+            setConflicts(cData);
+          }
+        } catch {}
+      } else {
+        showToast('Failed to reset demo data', 'error');
+      }
+    } catch (err) {
+      showToast('Error resetting demo data', 'error');
+    }
+  };
+
   const currentScenario = scenarios[demoScenario];
 
   const renderHeaderRightControls = () => (
     <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'nowrap', position: 'relative' }}>
+      {/* 0. DEMO SANDBOX PILL & RESET ACTION */}
+      <button
+        type="button"
+        onClick={handleResetDemoData}
+        className="top-header-pill"
+        title="Click to reset demo knowledge graph (Policies, Claims, Conflicts) to initial clean state"
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '5px',
+          color: '#B45309',
+          backgroundColor: 'rgba(255, 171, 74, 0.12)',
+          border: '1px solid rgba(255, 171, 74, 0.35)',
+          fontWeight: 700,
+          cursor: 'pointer',
+          padding: '4px 8px'
+        }}
+      >
+        <RefreshCw size={11} style={{ color: '#FFAB4A' }} />
+        <span style={{ fontSize: '0.72rem' }}>Reset Demo</span>
+      </button>
+
       {/* 1. ACTIVE DEPARTMENTAL WORKSPACE DROPDOWN */}
       <div style={{ position: 'relative' }}>
         <button
@@ -2202,6 +2256,186 @@ export default function App() {
         )}
       </div>
 
+      {/* 2. AUTHENTICATED USER / PERSONA PROFILE DROPDOWN */}
+      <div style={{ position: 'relative' }}>
+        <button
+          onClick={() => {
+            setIsPersonaDropdownOpen(prev => !prev);
+            setIsWorkspaceDropdownOpen(false);
+          }}
+          className={`top-header-pill ${isPersonaDropdownOpen ? 'top-header-pill-active' : ''}`}
+          title={`Signed in as ${authUser?.name || activePersona?.name || 'User'} (${(authUser?.role || effectiveRole || 'admin').toUpperCase()})`}
+          style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '3px 8px 3px 5px' }}
+        >
+          <img
+            src={authUser?.avatar_url || activePersona?.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${authUser?.name || 'User'}`}
+            alt="Avatar"
+            style={{ width: '18px', height: '18px', borderRadius: '50%', backgroundColor: 'rgba(255,171,74,0.2)' }}
+          />
+          <span style={{ maxWidth: '110px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 600 }}>
+            {authUser?.name || activePersona?.name || 'User'}
+          </span>
+          <span
+            style={{
+              fontSize: '0.6rem',
+              fontWeight: 700,
+              padding: '1px 5px',
+              borderRadius: '4px',
+              backgroundColor: 'rgba(255,171,74,0.15)',
+              color: '#B45309',
+              border: '1px solid rgba(255,171,74,0.35)',
+              textTransform: 'uppercase'
+            }}
+          >
+            {(authUser?.role || effectiveRole || 'admin')}
+          </span>
+          <ChevronDown size={11} style={{ color: '#94A3B8' }} />
+        </button>
+
+        {isPersonaDropdownOpen && (
+          <div style={{
+            position: 'absolute',
+            top: 'calc(100% + 4px)',
+            right: 0,
+            background: 'var(--bg-card)',
+            border: '1px solid var(--border-subtle)',
+            borderRadius: '8px',
+            boxShadow: '0 10px 30px rgba(0,0,0,0.25)',
+            zIndex: 250,
+            width: '280px',
+            padding: '8px'
+          }}>
+            {/* User Details Header */}
+            <div style={{ padding: '6px 8px', borderBottom: '1px solid var(--border-subtle)', marginBottom: '6px' }}>
+              <div style={{ fontWeight: 700, fontSize: '0.82rem', color: 'var(--text-main)' }}>
+                {authUser?.name || activePersona?.name}
+              </div>
+              <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', wordBreak: 'break-all', marginTop: '1px' }}>
+                {authUser?.email || activePersona?.email}
+              </div>
+              <div style={{ fontSize: '0.68rem', color: '#FFAB4A', fontWeight: 600, marginTop: '3px' }}>
+                🏢 {authOrg?.name || activeOrg?.name || 'Enterprise Workspace'}
+              </div>
+            </div>
+
+            {/* Quick Demo Switchers */}
+            <div style={{ fontSize: '0.66rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', padding: '4px 8px 2px 8px' }}>
+              Quick Persona Switch
+            </div>
+            <div style={{ maxHeight: '160px', overflowY: 'auto', marginBottom: '6px' }}>
+              {personas.map(p => (
+                <button
+                  key={p.id || p.email}
+                  onClick={() => {
+                    handleSelectPersona(p);
+                    setIsPersonaDropdownOpen(false);
+                  }}
+                  style={{
+                    width: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '6px 8px',
+                    background: (authUser?.email === p.email || activePersona?.id === p.id) ? 'rgba(255,171,74,0.1)' : 'transparent',
+                    border: 'none',
+                    borderRadius: '6px',
+                    color: (authUser?.email === p.email || activePersona?.id === p.id) ? '#B45309' : 'var(--text-main)',
+                    fontSize: '0.74rem',
+                    fontWeight: (authUser?.email === p.email || activePersona?.id === p.id) ? 700 : 500,
+                    cursor: 'pointer',
+                    textAlign: 'left'
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', overflow: 'hidden' }}>
+                    <img src={p.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${p.name}`} alt="" style={{ width: 16, height: 16, borderRadius: '50%' }} />
+                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</span>
+                  </div>
+                  <span style={{ fontSize: '0.62rem', opacity: 0.8, textTransform: 'uppercase' }}>{p.role}</span>
+                </button>
+              ))}
+            </div>
+
+            {/* Profile & Sign Out Actions */}
+            <div style={{ borderTop: '1px solid var(--border-subtle)', paddingTop: '6px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+              <button
+                onClick={() => {
+                  handleResetDemoData();
+                  setIsPersonaDropdownOpen(false);
+                }}
+                style={{
+                  width: '100%',
+                  padding: '6px 8px',
+                  background: 'transparent',
+                  border: 'none',
+                  borderRadius: '4px',
+                  color: '#B45309',
+                  fontSize: '0.74rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  textAlign: 'left',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}
+              >
+                <RefreshCw size={13} color="#FFAB4A" />
+                <span>Reset Demo Knowledge</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  setActiveTab('profile');
+                  setIsPersonaDropdownOpen(false);
+                }}
+                style={{
+                  width: '100%',
+                  padding: '6px 8px',
+                  background: 'transparent',
+                  border: 'none',
+                  borderRadius: '4px',
+                  color: 'var(--text-main)',
+                  fontSize: '0.74rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  textAlign: 'left',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}
+              >
+                <User size={13} />
+                <span>Account Profile & Companies</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  setIsPersonaDropdownOpen(false);
+                  if (authLogout) authLogout();
+                }}
+                style={{
+                  width: '100%',
+                  padding: '6px 8px',
+                  background: 'transparent',
+                  border: 'none',
+                  borderRadius: '4px',
+                  color: '#EF4444',
+                  fontSize: '0.74rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  textAlign: 'left',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}
+              >
+                <LogOut size={13} />
+                <span>Sign Out</span>
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* Real-Time Incident Webhooks Button */}
       <button
         onClick={() => setIsWebhookModalOpen(true)}
@@ -2220,6 +2454,11 @@ export default function App() {
       </button>
     </div>
   );
+
+  // Unauthenticated Barrier View
+  if (!isAuthenticated && !authUser) {
+    return <AuthLandingView />;
+  }
 
   return (
     <div className="app-layout">
@@ -2370,13 +2609,10 @@ export default function App() {
           {isTabVisible('visual_lineage') && (
             <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
               <button
+                type="button"
                 onClick={() => {
-                  if (activeTab !== 'visual_lineage') {
-                    setActiveTab('visual_lineage');
-                    setIsVaultMenuOpen(true);
-                  } else {
-                    setIsVaultMenuOpen(prev => !prev);
-                  }
+                  setActiveTab('visual_lineage');
+                  setOpenSidebarMenu(prev => prev === 'vault' ? null : 'vault');
                 }}
                 className={`nav-item ${activeTab === 'visual_lineage' ? 'nav-item-active' : ''}`}
                 title="Vault"
@@ -2384,7 +2620,8 @@ export default function App() {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: isSidebarOpen ? 'space-between' : 'center',
-                  width: '100%'
+                  width: '100%',
+                  cursor: 'pointer'
                 }}
               >
                 {isSidebarOpen ? (
@@ -2393,31 +2630,14 @@ export default function App() {
                       <Database size={16} strokeWidth={1.75} />
                       <span>Vault</span>
                     </div>
-                    <div
-                      role="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setIsVaultMenuOpen(prev => !prev);
-                      }}
+                    <ChevronDown
+                      size={13}
                       style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        padding: '2px 4px',
-                        borderRadius: '4px',
-                        cursor: 'pointer'
+                        transform: openSidebarMenu === 'vault' ? 'rotate(180deg)' : 'rotate(0deg)',
+                        transition: 'transform 0.2s ease',
+                        opacity: 0.7
                       }}
-                      title={isVaultMenuOpen ? "Collapse Vault sub-items" : "Expand Vault sub-items"}
-                    >
-                      <ChevronDown
-                        size={13}
-                        style={{
-                          transform: isVaultMenuOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-                          transition: 'transform 0.2s ease',
-                          opacity: 0.7
-                        }}
-                      />
-                    </div>
+                    />
                   </>
                 ) : (
                   <Database size={16} strokeWidth={1.75} />
@@ -2425,82 +2645,73 @@ export default function App() {
               </button>
 
               {/* Sub-items of Vault */}
-              {isSidebarOpen && isVaultMenuOpen && (
-                <div style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '2px',
-                  paddingLeft: '10px',
-                  paddingTop: '2px',
-                  paddingBottom: '3px',
-                  borderLeft: '2px solid #E2E8F0',
-                  marginLeft: '14px',
-                  marginTop: '2px',
-                  marginBottom: '4px'
-                }}>
-                  {[
-                    { id: 'documents', label: 'Documents', count: dbDocuments.length },
-                    { id: 'connectors', label: 'Connectors', count: dataSources.length },
-                    { id: 'conflicts', label: 'Conflicts Registry', count: conflicts.length },
-                    { id: 'claims', label: 'Claims and Decisions', count: dbClaims.length },
-                    { id: 'dag', label: 'Full Canvas DAG', count: null }
-                  ].map(sub => {
-                    const isSubActive = activeTab === 'visual_lineage' && vaultSubTab === sub.id;
-                    return (
-                      <button
-                        key={sub.id}
-                        type="button"
-                        onClick={() => {
-                          setActiveTab('visual_lineage');
-                          setVaultSubTab(sub.id);
-                          setSelectedLineageAssetId(null);
-                        }}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          padding: '5px 8px',
-                          borderRadius: '6px',
-                          border: 'none',
-                          background: isSubActive ? '#EFF6FF' : 'transparent',
-                          color: isSubActive ? '#1D4ED8' : '#64748B',
-                          fontSize: '0.74rem',
-                          fontWeight: isSubActive ? 700 : 500,
-                          cursor: 'pointer',
-                          textAlign: 'left',
-                          transition: 'all 0.15s ease'
-                        }}
-                        onMouseEnter={e => {
-                          if (!isSubActive) {
-                            e.currentTarget.style.background = '#F8FAFC';
-                            e.currentTarget.style.color = '#0F172A';
-                          }
-                        }}
-                        onMouseLeave={e => {
-                          if (!isSubActive) {
-                            e.currentTarget.style.background = 'transparent';
-                            e.currentTarget.style.color = '#64748B';
-                          }
-                        }}
-                      >
-                        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {sub.label}
-                        </span>
-                        {sub.count !== null && sub.count !== undefined && (
-                          <span style={{
-                            fontSize: '0.64rem',
-                            fontWeight: 600,
-                            color: isSubActive ? '#2563EB' : '#94A3B8',
-                            background: isSubActive ? '#DBEAFE' : '#F1F5F9',
-                            padding: '1px 5px',
-                            borderRadius: '4px'
-                          }}>
-                            {sub.count}
+              {isSidebarOpen && (
+                <div className={`sidebar-accordion-wrapper ${openSidebarMenu === 'vault' ? 'expanded' : ''}`}>
+                  <div className="sidebar-accordion-inner">
+                    {[
+                      { id: 'documents', label: 'Documents', count: dbDocuments.length },
+                      { id: 'connectors', label: 'Connectors', count: dataSources.length },
+                      { id: 'conflicts', label: 'Conflicts Registry', count: conflicts.length },
+                      { id: 'claims', label: 'Claims and Decisions', count: dbClaims.length },
+                      { id: 'dag', label: 'Full Canvas DAG', count: null }
+                    ].map(sub => {
+                      const isSubActive = activeTab === 'visual_lineage' && vaultSubTab === sub.id;
+                      return (
+                        <button
+                          key={sub.id}
+                          type="button"
+                          onClick={() => {
+                            setActiveTab('visual_lineage');
+                            setVaultSubTab(sub.id);
+                            setSelectedLineageAssetId(null);
+                          }}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            padding: '5px 8px',
+                            borderRadius: '6px',
+                            border: 'none',
+                            background: isSubActive ? '#EFF6FF' : 'transparent',
+                            color: isSubActive ? '#1D4ED8' : '#64748B',
+                            fontSize: '0.74rem',
+                            fontWeight: isSubActive ? 700 : 500,
+                            cursor: 'pointer',
+                            textAlign: 'left',
+                            transition: 'all 0.15s ease'
+                          }}
+                          onMouseEnter={e => {
+                            if (!isSubActive) {
+                              e.currentTarget.style.background = '#F8FAFC';
+                              e.currentTarget.style.color = '#0F172A';
+                            }
+                          }}
+                          onMouseLeave={e => {
+                            if (!isSubActive) {
+                              e.currentTarget.style.background = 'transparent';
+                              e.currentTarget.style.color = '#64748B';
+                            }
+                          }}
+                        >
+                          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {sub.label}
                           </span>
-                        )}
-                      </button>
-                    );
-                  })}
+                          {sub.count !== null && sub.count !== undefined && (
+                            <span style={{
+                              fontSize: '0.64rem',
+                              fontWeight: 600,
+                              color: isSubActive ? '#2563EB' : '#94A3B8',
+                              background: isSubActive ? '#DBEAFE' : '#F1F5F9',
+                              padding: '1px 5px',
+                              borderRadius: '4px'
+                            }}>
+                              {sub.count}
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               )}
             </div>
@@ -2509,9 +2720,10 @@ export default function App() {
           {isTabVisible('context_curator') && (
             <div style={{ width: '100%' }}>
               <button
+                type="button"
                 onClick={() => {
                   setActiveTab('context_curator');
-                  if (!isCuratorMenuOpen) setIsCuratorMenuOpen(true);
+                  setOpenSidebarMenu(prev => prev === 'curator' ? null : 'curator');
                 }}
                 className={`nav-item ${(activeTab === 'context_curator' || activeTab === 'conflicts') ? 'nav-item-active' : ''}`}
                 title="Context Curator & Conflict Hub"
@@ -2520,7 +2732,8 @@ export default function App() {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: isSidebarOpen ? 'space-between' : 'center',
-                  position: 'relative'
+                  position: 'relative',
+                  cursor: 'pointer'
                 }}
               >
                 {isSidebarOpen ? (
@@ -2542,31 +2755,14 @@ export default function App() {
                           {conflicts.length}
                         </span>
                       )}
-                      <div
-                        role="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setIsCuratorMenuOpen(prev => !prev);
-                        }}
+                      <ChevronDown
+                        size={13}
                         style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          padding: '2px 4px',
-                          borderRadius: '4px',
-                          cursor: 'pointer'
+                          transform: openSidebarMenu === 'curator' ? 'rotate(180deg)' : 'rotate(0deg)',
+                          transition: 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+                          opacity: 0.7
                         }}
-                        title={isCuratorMenuOpen ? "Collapse Curator sub-items" : "Expand Curator sub-items"}
-                      >
-                        <ChevronDown
-                          size={13}
-                          style={{
-                            transform: isCuratorMenuOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-                            transition: 'transform 0.2s ease',
-                            opacity: 0.7
-                          }}
-                        />
-                      </div>
+                      />
                     </div>
                   </>
                 ) : (
@@ -2575,80 +2771,71 @@ export default function App() {
               </button>
 
               {/* Sub-items of Context Curator & Conflicts */}
-              {isSidebarOpen && isCuratorMenuOpen && (
-                <div style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '2px',
-                  paddingLeft: '10px',
-                  paddingTop: '2px',
-                  paddingBottom: '3px',
-                  borderLeft: '2px solid #E2E8F0',
-                  marginLeft: '14px',
-                  marginTop: '2px',
-                  marginBottom: '4px'
-                }}>
-                  {[
-                    { id: 'health', label: 'Context Health & Heuristics', count: null },
-                    { id: 'conflicts', label: 'Pairwise Conflict Resolver', count: conflicts.length > 0 ? `${conflicts.length} Pending` : null, isAlert: conflicts.length > 0 },
-                    { id: 'drift', label: 'Drift & Claim Decay', count: null }
-                  ].map(sub => {
-                    const isSubActive = (activeTab === 'context_curator' || activeTab === 'conflicts') && (curatorSubView === sub.id || (activeTab === 'conflicts' && sub.id === 'conflicts'));
-                    return (
-                      <button
-                        key={sub.id}
-                        type="button"
-                        onClick={() => {
-                          setActiveTab('context_curator');
-                          setCuratorSubView(sub.id);
-                        }}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          padding: '5px 8px',
-                          borderRadius: '6px',
-                          border: 'none',
-                          background: isSubActive ? '#EFF6FF' : 'transparent',
-                          color: isSubActive ? '#1D4ED8' : '#64748B',
-                          fontSize: '0.74rem',
-                          fontWeight: isSubActive ? 700 : 500,
-                          cursor: 'pointer',
-                          textAlign: 'left',
-                          transition: 'all 0.15s ease'
-                        }}
-                        onMouseEnter={e => {
-                          if (!isSubActive) {
-                            e.currentTarget.style.background = '#F8FAFC';
-                            e.currentTarget.style.color = '#0F172A';
-                          }
-                        }}
-                        onMouseLeave={e => {
-                          if (!isSubActive) {
-                            e.currentTarget.style.background = 'transparent';
-                            e.currentTarget.style.color = '#64748B';
-                          }
-                        }}
-                      >
-                        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {sub.label}
-                        </span>
-                        {sub.count && (
-                          <span style={{
-                            fontSize: '0.62rem',
-                            fontWeight: 600,
-                            color: sub.isAlert ? '#991B1B' : (isSubActive ? '#2563EB' : '#94A3B8'),
-                            background: sub.isAlert ? '#FEE2E2' : (isSubActive ? '#DBEAFE' : '#F1F5F9'),
-                            padding: '1px 5px',
-                            borderRadius: '4px',
-                            whiteSpace: 'nowrap'
-                          }}>
-                            {sub.count}
+              {isSidebarOpen && (
+                <div className={`sidebar-accordion-wrapper ${openSidebarMenu === 'curator' ? 'expanded' : ''}`}>
+                  <div className="sidebar-accordion-inner">
+                    {[
+                      { id: 'health', label: 'Context Health & Heuristics', count: null },
+                      { id: 'conflicts', label: 'Pairwise Conflict Resolver', count: conflicts.length > 0 ? `${conflicts.length} Pending` : null, isAlert: conflicts.length > 0 },
+                      { id: 'drift', label: 'Drift & Claim Decay', count: null }
+                    ].map(sub => {
+                      const isSubActive = (activeTab === 'context_curator' || activeTab === 'conflicts') && (curatorSubView === sub.id || (activeTab === 'conflicts' && sub.id === 'conflicts'));
+                      return (
+                        <button
+                          key={sub.id}
+                          type="button"
+                          onClick={() => {
+                            setActiveTab('context_curator');
+                            setCuratorSubView(sub.id);
+                          }}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            padding: '5px 8px',
+                            borderRadius: '6px',
+                            border: 'none',
+                            background: isSubActive ? '#EFF6FF' : 'transparent',
+                            color: isSubActive ? '#1D4ED8' : '#64748B',
+                            fontSize: '0.74rem',
+                            fontWeight: isSubActive ? 700 : 500,
+                            cursor: 'pointer',
+                            textAlign: 'left',
+                            transition: 'all 0.15s ease'
+                          }}
+                          onMouseEnter={e => {
+                            if (!isSubActive) {
+                              e.currentTarget.style.background = '#F8FAFC';
+                              e.currentTarget.style.color = '#0F172A';
+                            }
+                          }}
+                          onMouseLeave={e => {
+                            if (!isSubActive) {
+                              e.currentTarget.style.background = 'transparent';
+                              e.currentTarget.style.color = '#64748B';
+                            }
+                          }}
+                        >
+                          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {sub.label}
                           </span>
-                        )}
-                      </button>
-                    );
-                  })}
+                          {sub.count && (
+                            <span style={{
+                              fontSize: '0.62rem',
+                              fontWeight: 600,
+                              color: sub.isAlert ? '#991B1B' : (isSubActive ? '#2563EB' : '#94A3B8'),
+                              background: sub.isAlert ? '#FEE2E2' : (isSubActive ? '#DBEAFE' : '#F1F5F9'),
+                              padding: '1px 5px',
+                              borderRadius: '4px',
+                              whiteSpace: 'nowrap'
+                            }}>
+                              {sub.count}
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               )}
             </div>
@@ -2657,13 +2844,10 @@ export default function App() {
           {isTabVisible('ingestion') && (
             <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
               <button
+                type="button"
                 onClick={() => {
-                  if (activeTab !== 'ingestion') {
-                    setActiveTab('ingestion');
-                    setIsDocExplorerMenuOpen(true);
-                  } else {
-                    setIsDocExplorerMenuOpen(prev => !prev);
-                  }
+                  setActiveTab('ingestion');
+                  setOpenSidebarMenu(prev => prev === 'explorer' ? null : 'explorer');
                 }}
                 className={`nav-item ${activeTab === 'ingestion' ? 'nav-item-active' : ''}`}
                 title="Document Explorer"
@@ -2671,7 +2855,8 @@ export default function App() {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: isSidebarOpen ? 'space-between' : 'center',
-                  width: '100%'
+                  width: '100%',
+                  cursor: 'pointer'
                 }}
               >
                 {isSidebarOpen ? (
@@ -2680,31 +2865,14 @@ export default function App() {
                       <FolderTree size={16} strokeWidth={1.75} />
                       <span>Document Explorer</span>
                     </div>
-                    <div
-                      role="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setIsDocExplorerMenuOpen(prev => !prev);
-                      }}
+                    <ChevronDown
+                      size={13}
                       style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        padding: '2px 4px',
-                        borderRadius: '4px',
-                        cursor: 'pointer'
+                        transform: openSidebarMenu === 'explorer' ? 'rotate(180deg)' : 'rotate(0deg)',
+                        transition: 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+                        opacity: 0.7
                       }}
-                      title={isDocExplorerMenuOpen ? "Collapse sub-items" : "Expand sub-items"}
-                    >
-                      <ChevronDown
-                        size={13}
-                        style={{
-                          transform: isDocExplorerMenuOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-                          transition: 'transform 0.2s ease',
-                          opacity: 0.7
-                        }}
-                      />
-                    </div>
+                    />
                   </>
                 ) : (
                   <FolderTree size={16} strokeWidth={1.75} />
@@ -2712,65 +2880,56 @@ export default function App() {
               </button>
 
               {/* Sub-items of Document Explorer */}
-              {isSidebarOpen && isDocExplorerMenuOpen && (
-                <div style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '2px',
-                  paddingLeft: '10px',
-                  paddingTop: '2px',
-                  paddingBottom: '3px',
-                  borderLeft: '2px solid #E2E8F0',
-                  marginLeft: '14px',
-                  marginTop: '2px',
-                  marginBottom: '4px'
-                }}>
-                  {[
-                    { id: 'ingest', label: 'Upload & Ingest', count: null },
-                    { id: 'documents', label: 'Stored Documents', count: displayedDbDocuments.length },
-                    { id: 'connectors', label: 'Live Connectors', count: displayedDataSources.length }
-                  ].map(sub => {
-                    const isSubActive = activeTab === 'ingestion' && docExplorerView === sub.id;
-                    return (
-                      <button
-                        key={sub.id}
-                        type="button"
-                        onClick={() => {
-                          setActiveTab('ingestion');
-                          setDocExplorerView(sub.id);
-                        }}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          padding: '5px 8px',
-                          borderRadius: '6px',
-                          border: 'none',
-                          background: isSubActive ? '#FFF7ED' : 'transparent',
-                          color: isSubActive ? '#EA580C' : '#64748B',
-                          fontSize: '0.74rem',
-                          fontWeight: isSubActive ? 700 : 500,
-                          cursor: 'pointer',
-                          textAlign: 'left',
-                          transition: 'all 0.15s ease'
-                        }}
-                      >
-                        <span>{sub.label}</span>
-                        {sub.count !== null && (
-                          <span style={{
-                            fontSize: '0.68rem',
-                            fontWeight: 700,
-                            padding: '1px 5px',
-                            borderRadius: '10px',
-                            background: isSubActive ? '#FFEDD5' : '#F1F5F9',
-                            color: isSubActive ? '#EA580C' : '#64748B'
-                          }}>
-                            {sub.count}
-                          </span>
-                        )}
-                      </button>
-                    );
-                  })}
+              {isSidebarOpen && (
+                <div className={`sidebar-accordion-wrapper ${openSidebarMenu === 'explorer' ? 'expanded' : ''}`}>
+                  <div className="sidebar-accordion-inner">
+                    {[
+                      { id: 'ingest', label: 'Upload & Ingest', count: null },
+                      { id: 'documents', label: 'Stored Documents', count: displayedDbDocuments.length },
+                      { id: 'connectors', label: 'Live Connectors', count: displayedDataSources.length }
+                    ].map(sub => {
+                      const isSubActive = activeTab === 'ingestion' && docExplorerView === sub.id;
+                      return (
+                        <button
+                          key={sub.id}
+                          type="button"
+                          onClick={() => {
+                            setActiveTab('ingestion');
+                            setDocExplorerView(sub.id);
+                          }}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            padding: '5px 8px',
+                            borderRadius: '6px',
+                            border: 'none',
+                            background: isSubActive ? '#FFF7ED' : 'transparent',
+                            color: isSubActive ? '#EA580C' : '#64748B',
+                            fontSize: '0.74rem',
+                            fontWeight: isSubActive ? 700 : 500,
+                            cursor: 'pointer',
+                            textAlign: 'left',
+                            transition: 'all 0.15s ease'
+                          }}
+                        >
+                          <span>{sub.label}</span>
+                          {sub.count !== null && (
+                            <span style={{
+                              fontSize: '0.68rem',
+                              fontWeight: 700,
+                              padding: '1px 5px',
+                              borderRadius: '10px',
+                              background: isSubActive ? '#FFEDD5' : '#F1F5F9',
+                              color: isSubActive ? '#EA580C' : '#64748B'
+                            }}>
+                              {sub.count}
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               )}
             </div>
@@ -6462,15 +6621,6 @@ export default function App() {
         {/* ========================================================= */}
         {activeTab === 'profile' && (
           <div>
-            <div className="tab-header-center" style={{ marginBottom: '24px' }}>
-
-              <h1 className="tab-main-heading">
-                Enterprise Profile & Company Switcher
-              </h1>
-              <p className="tab-subtitle">
-                Manage your enterprise identity, switch active organizations and departmental workspaces, and configure cross-tenant compliance policies.
-              </p>
-            </div>
             <UserProfileStudio
               activeOrg={activeOrg}
               organizations={organizations}
@@ -6484,10 +6634,28 @@ export default function App() {
               effectiveRole={effectiveRole}
               roleMetadata={roleMetadata}
               onOpenRegisterOrg={() => setShowNewOrgModal(true)}
-              onOpenOrgSettings={() => setIsOrgSettingsModalOpen(true)}
+              onOpenOrgSettings={() => setActiveTab('settings')}
+              onLogout={authLogout}
               showToast={showToast}
               initialSubSection={profileSubTab}
               onSubSectionChange={setProfileSubTab}
+            />
+          </div>
+        )}
+
+        {/* ========================================================= */}
+        {/* TAB 9: DEDICATED WORKSPACE SETTINGS & IDENTITY PAGE       */}
+        {/* ========================================================= */}
+        {activeTab === 'settings' && (
+          <div>
+            <WorkspaceSettingsStudio
+              activeOrg={activeOrg}
+              onOrgUpdated={(updated) => {
+                setActiveOrg(updated);
+                setOrganizations(orgs => orgs.map(o => o.id === updated.id ? updated : o));
+              }}
+              onBack={() => setActiveTab('profile')}
+              showToast={showToast}
             />
           </div>
         )}

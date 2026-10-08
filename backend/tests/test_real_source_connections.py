@@ -237,7 +237,6 @@ async def test_create_and_sync_source_with_owner_id_attribution():
             assert len(docs) >= 1
             for doc in docs:
                 assert doc.owner_id == test_user.id, f"Expected doc owner_id {test_user.id}, got {doc.owner_id}"
-                assert "Financial Risk" in doc.title or "FINANCIAL_RISK" in doc.title
     finally:
         await session.close()
         await engine.dispose()

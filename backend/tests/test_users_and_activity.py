@@ -19,9 +19,9 @@ async def test_list_and_seed_users_personas():
 
         # Check for persona names
         names = [u["name"] for u in users]
-        assert any("Alex Rivera" in n or "Alex" in n for n in names)
-        assert any("Diana Vance" in n or "Diana" in n for n in names)
         assert any("Sarah Chen" in n or "Sarah" in n for n in names)
+        assert any("Marcus Vance" in n or "Marcus" in n for n in names)
+        assert any("Elena" in n or "Elena Rostova" in n for n in names)
 
 
 @pytest.mark.anyio

@@ -18,6 +18,9 @@ class BaseRepository(Generic[ModelType]):
     async def get_by_id(self, entity_id: uuid.UUID) -> ModelType | None:
         return await self.session.get(self.model, entity_id)
 
+    async def get(self, entity_id: uuid.UUID) -> ModelType | None:
+        return await self.get_by_id(entity_id)
+
     async def list_all(self, limit: int = 100, offset: int = 0) -> Sequence[ModelType]:
         stmt = select(self.model).offset(offset).limit(limit)
         result = await self.session.execute(stmt)
