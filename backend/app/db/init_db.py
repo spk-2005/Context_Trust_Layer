@@ -154,6 +154,22 @@ async def init_db_schema():
         "CREATE INDEX IF NOT EXISTS idx_decision_evaluations_verdict ON decision_evaluations(verdict);",
         "CREATE INDEX IF NOT EXISTS idx_decision_evaluations_created_at ON decision_evaluations(created_at);",
         "CREATE INDEX IF NOT EXISTS idx_decision_evaluations_actor ON decision_evaluations(actor_id);",
+        """
+        CREATE TABLE IF NOT EXISTS organization_invites (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+            email VARCHAR(255) NOT NULL,
+            role VARCHAR(50) NOT NULL DEFAULT 'developer',
+            token VARCHAR(255) NOT NULL UNIQUE,
+            invited_by_id UUID REFERENCES users(id) ON DELETE SET NULL,
+            expires_at TIMESTAMPTZ NOT NULL,
+            status VARCHAR(50) NOT NULL DEFAULT 'pending',
+            created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+        );
+        """,
+        "CREATE INDEX IF NOT EXISTS idx_org_invites_org ON organization_invites(organization_id);",
+        "CREATE INDEX IF NOT EXISTS idx_org_invites_token ON organization_invites(token);",
+        "CREATE INDEX IF NOT EXISTS idx_org_invites_email ON organization_invites(email);",
     ]
 
     async with engine.begin() as conn:

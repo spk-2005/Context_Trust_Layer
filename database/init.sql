@@ -239,3 +239,25 @@ BEGIN
     ON CONFLICT (id) DO NOTHING;
 END $$;
 
+-- 15. organization_invites
+CREATE TABLE IF NOT EXISTS organization_invites (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+    email VARCHAR(255) NOT NULL,
+    role VARCHAR(50) NOT NULL DEFAULT 'developer',
+    token VARCHAR(255) NOT NULL UNIQUE,
+    invited_by_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    expires_at TIMESTAMPTZ NOT NULL,
+    status VARCHAR(50) NOT NULL DEFAULT 'pending',
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_org_invites_org ON organization_invites(organization_id);
+CREATE INDEX IF NOT EXISTS idx_org_invites_token ON organization_invites(token);
+CREATE INDEX IF NOT EXISTS idx_org_invites_email ON organization_invites(email);
+
+-- Alembic version tracking
+CREATE TABLE IF NOT EXISTS alembic_version (
+    version_num VARCHAR(32) NOT NULL,
+    CONSTRAINT alembic_version_pkc PRIMARY KEY (version_num)
+);
+INSERT INTO alembic_version (version_num) VALUES ('aafacd791d21') ON CONFLICT DO NOTHING;

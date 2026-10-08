@@ -52,7 +52,7 @@ async def create_document(
         await db.commit()
     except DocumentValidationError as err:
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             detail=str(err),
         )
 
@@ -247,7 +247,7 @@ async def upload_document_file(
         await db.commit()
     except DocumentValidationError as err:
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             detail=str(err),
         )
 
@@ -385,7 +385,7 @@ async def upload_and_extract_document(
         document, version, normalized = await ingestion_service.ingest_document(doc_in)
         await db.commit()
     except DocumentValidationError as err:
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(err))
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(err))
 
     _persist_uploaded_file_bytes(document.id, filename, raw_bytes)
 

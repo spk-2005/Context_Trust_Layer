@@ -2,7 +2,10 @@
 set -e
 
 echo "==> Running database migrations with Alembic..."
-alembic upgrade head || echo "Notice: Alembic migrations skipped or already up to date."
+alembic upgrade head || {
+    echo "Notice: Alembic migrations skipped or pre-existing schema detected. Ensuring head is stamped..."
+    alembic stamp head 2>/dev/null || true
+}
 
 echo "==> Ensuring DB schema is initialized..."
 python -c "import asyncio; from app.db.init_db import init_db_schema; asyncio.run(init_db_schema())" || echo "Notice: Schema init handled by application."

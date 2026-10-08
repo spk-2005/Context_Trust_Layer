@@ -107,6 +107,7 @@ class ContextRetrievalEngine:
 
         evaluated_items: list[tuple[Claim, decimal.Decimal, bool, str | None, ContextItemResponse | None]] = []
         query_terms = set(request_in.query.lower().split())
+        now = datetime.now(timezone.utc)
 
         for claim in all_claims:
             # Determine latest trust score

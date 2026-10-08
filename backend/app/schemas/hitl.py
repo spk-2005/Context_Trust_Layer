@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Any, List, Optional
 from uuid import UUID
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class HitlEscalationResponse(BaseModel):
@@ -23,7 +23,7 @@ class HitlEscalationResponse(BaseModel):
     resolved_at: Optional[datetime] = None
     created_at: datetime
 
-    model_config = {"from_attributes": True}
+    model_config = ConfigDict(from_attributes=True)
 
 
 class HitlResolveRequest(BaseModel):
