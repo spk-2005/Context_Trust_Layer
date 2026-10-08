@@ -2249,9 +2249,9 @@ export default function App() {
         {/* Brand Header + Icon-Only Open/Close Toggle Button */}
         {isSidebarOpen ? (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '14px', padding: '2px 4px' }}>
-            <div 
+            <div
               onClick={() => { setActiveTab('home'); setExpandedMenu('home'); }}
-              style={{ 
+              style={{
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px',
@@ -2259,10 +2259,10 @@ export default function App() {
               }}
               title="Trulin AI Decision & Context Trust Platform"
             >
-              <img 
-                src="/Trulin-Main-NoBg.png" 
-                alt="Trulin" 
-                style={{ height: '24px', maxWidth: '120px', objectFit: 'contain' }} 
+              <img
+                src="/Trulin-Main-NoBg.png"
+                alt="Trulin"
+                style={{ height: '24px', maxWidth: '120px', objectFit: 'contain' }}
               />
               <span style={{ fontSize: '0.62rem', padding: '1px 6px', background: '#F1F5F9', color: '#64748B', border: '1px solid #E2E8F0', borderRadius: '999px', fontWeight: 700 }}>
                 v1.0
@@ -2301,9 +2301,9 @@ export default function App() {
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
-            <img 
-              src="/favicon.png" 
-              alt="Trulin" 
+            <img
+              src="/favicon.png"
+              alt="Trulin"
               onClick={() => { setActiveTab('home'); setExpandedMenu('home'); }}
               style={{
                 width: '32px',
@@ -2311,7 +2311,7 @@ export default function App() {
                 borderRadius: '8px',
                 objectFit: 'contain',
                 cursor: 'pointer'
-              }} 
+              }}
               title="Trulin"
             />
             <button
@@ -2916,37 +2916,37 @@ export default function App() {
                             fontWeight: isCurrent ? 600 : 500,
                             transition: 'all 0.15s ease'
                           }}
-                    onMouseEnter={e => {
-                      if (!isCurrent) {
-                        e.currentTarget.style.background = '#F1F5F9';
-                        e.currentTarget.style.color = '#0F172A';
-                      }
-                    }}
-                    onMouseLeave={e => {
-                      if (!isCurrent) {
-                        e.currentTarget.style.background = 'transparent';
-                        e.currentTarget.style.color = '#475569';
-                      }
-                    }}
-                  >
-                    <MessageSquare size={14} style={{ flexShrink: 0, opacity: isCurrent ? 1 : 0.65, color: isCurrent ? '#4F46E5' : '#64748B' }} />
-                    <span style={{
-                      flex: 1,
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap'
-                    }}>
-                      {session.title || 'Untitled Conversation'}
-                    </span>
-                  </button>
-                );
-              })
-            )}
-          </div>
-        </>
-      );
-    })()}
-  </div>
+                          onMouseEnter={e => {
+                            if (!isCurrent) {
+                              e.currentTarget.style.background = '#F1F5F9';
+                              e.currentTarget.style.color = '#0F172A';
+                            }
+                          }}
+                          onMouseLeave={e => {
+                            if (!isCurrent) {
+                              e.currentTarget.style.background = 'transparent';
+                              e.currentTarget.style.color = '#475569';
+                            }
+                          }}
+                        >
+                          <MessageSquare size={14} style={{ flexShrink: 0, opacity: isCurrent ? 1 : 0.65, color: isCurrent ? '#4F46E5' : '#64748B' }} />
+                          <span style={{
+                            flex: 1,
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap'
+                          }}>
+                            {session.title || 'Untitled Conversation'}
+                          </span>
+                        </button>
+                      );
+                    })
+                  )}
+                </div>
+              </>
+            );
+          })()}
+        </div>
 
         {/* Set 2: Bottom Pinned Governance & Administration Group */}
         <div className="sidebar-footer" style={{ width: '100%' }}>
@@ -3066,10 +3066,10 @@ export default function App() {
             {/* Centered Hero Banner */}
             <div className="tab-header-center" style={{ padding: '16px 20px', marginBottom: '28px' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '8px' }}>
-                <img 
-                  src="/Trulin-Main-NoBg.png" 
-                  alt="Trulin" 
-                  style={{ height: '38px', maxWidth: '175px', objectFit: 'contain' }} 
+                <img
+                  src="/Trulin-Main-NoBg.png"
+                  alt="Trulin"
+                  style={{ height: '38px', maxWidth: '175px', objectFit: 'contain' }}
                 />
               </div>
               <h1 className="tab-main-heading">
@@ -3746,248 +3746,248 @@ export default function App() {
               </>
             )}
 
-              {/* Policy Action Simulator Form Card */}
-              <div className="sim-form-card" style={{ marginTop: '16px' }}>
-                {/* Prompt Area with Signature Gradient Border, Ambient Shadow & Floating Preset Chips */}
-                <div className="sim-prompt-wrapper">
-                  <div className="sim-prompt-header-row">
-                
+            {/* Policy Action Simulator Form Card */}
+            <div className="sim-form-card" style={{ marginTop: '16px' }}>
+              {/* Prompt Area with Signature Gradient Border, Ambient Shadow & Floating Preset Chips */}
+              <div className="sim-prompt-wrapper">
+                <div className="sim-prompt-header-row">
 
-                    <div className="sim-prompt-floating-presets">
-                      <span className="sim-prompt-presets-hint">Benchmark Traps:</span>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setSimulatorMode('presets');
-                          setDemoScenario('refund_trap');
-                          setCustomActionText(scenarios.refund_trap.query);
-                          setCustomActorId(scenarios.refund_trap.actor.id);
-                          setCustomActorRole(scenarios.refund_trap.actor.role);
-                          setCustomRequiredScope(scenarios.refund_trap.claim2.scope);
-                          setDemoStep(0);
-                          setDemoResult(null);
-                        }}
-                        className={`sim-floating-preset-chip ${simulatorMode === 'presets' && demoScenario === 'refund_trap' ? 'active' : ''}`}
-                        title="Freshness Trap: Tests if agent honors updated 60-day Enterprise refund rule over stale 30-day handbook"
-                      >
-                        <Zap size={11} color={simulatorMode === 'presets' && demoScenario === 'refund_trap' ? '#EA580C' : '#94A3B8'} />
-                        <span>1. Refund Window</span>
-                        <span className="sim-chip-tag tag-warning">Freshness</span>
-                      </button>
 
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setSimulatorMode('presets');
-                          setDemoScenario('remote_work');
-                          setCustomActionText(scenarios.remote_work.query);
-                          setCustomActorId(scenarios.remote_work.actor.id);
-                          setCustomActorRole(scenarios.remote_work.actor.role);
-                          setCustomRequiredScope(scenarios.remote_work.claim2.scope);
-                          setDemoStep(0);
-                          setDemoResult(null);
-                        }}
-                        className={`sim-floating-preset-chip ${simulatorMode === 'presets' && demoScenario === 'remote_work' ? 'active' : ''}`}
-                        title="Scope Override: Tests VP memo 4-day remote authorization for Engineering over general 2-day policy"
-                      >
-                        <Zap size={11} color={simulatorMode === 'presets' && demoScenario === 'remote_work' ? '#EA580C' : '#94A3B8'} />
-                        <span>2. Remote Work</span>
-                        <span className="sim-chip-tag tag-blue">Scope</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setSimulatorMode('presets');
-                          setDemoScenario('unauthorized_deploy');
-                          setCustomActionText(scenarios.unauthorized_deploy.query);
-                          setCustomActorId(scenarios.unauthorized_deploy.actor.id);
-                          setCustomActorRole(scenarios.unauthorized_deploy.actor.role);
-                          setCustomRequiredScope(scenarios.unauthorized_deploy.claim2.scope);
-                          setDemoStep(0);
-                          setDemoResult(null);
-                        }}
-                        className={`sim-floating-preset-chip ${simulatorMode === 'presets' && demoScenario === 'unauthorized_deploy' ? 'active' : ''}`}
-                        title="Role Gate: Intercepts unauthorized plaintext HTTP port 8080 ingress attempt on Production"
-                      >
-                        <Zap size={11} color={simulatorMode === 'presets' && demoScenario === 'unauthorized_deploy' ? '#EA580C' : '#94A3B8'} />
-                        <span>3. Prod Ingress</span>
-                        <span className="sim-chip-tag tag-green">Role Gate</span>
-                      </button>
-
-                      {simulatorMode === 'presets' && demoScenario && (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setSimulatorMode('custom');
-                            setDemoScenario(null);
-                            setCustomActionText('');
-                            setDemoStep(0);
-                            setDemoResult(null);
-                          }}
-                          className="sim-floating-preset-chip-clear"
-                          title="Switch to Custom Prompt"
-                        >
-                          <X size={11} />
-                          <span>Custom</span>
-                        </button>
-                      )}
-                    </div>
-                  </div>
-
-                  <textarea
-                    value={customActionText}
-                    onChange={(e) => {
-                      setCustomActionText(e.target.value);
-                      if (simulatorMode === 'presets') {
-                        setSimulatorMode('custom');
-                        setDemoScenario(null);
-                      }
-                    }}
-                    placeholder="Enter any proposed AI agent decision statement....."
-                    rows={2}
-                    className="sim-textarea-gradient"
-                  />
-                </div>
-
-                {/* Real-time Context Inference & Action Execution Row */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap', marginTop: '10px' }}>
-                  {/* Left: Professional Catchy Micro-Telemetry Chips */}
-                  <div className="sim-telemetry-row">
-                    {/* Pulsing Auto-Inferred Badge */}
-                    <div className="sim-telemetry-chip lead">
-                      <span className="sim-telemetry-dot" />
-                      <Sparkles size={11} />
-                      <span>AUTO-INFERRED</span>
-                    </div>
-
-                    {/* Actor Persona Card */}
-                    <div className="sim-telemetry-chip actor" title={`Actor ID: ${customActorId} (${detectedContext.roleLabel})`}>
-                      <Bot size={11} style={{ color: '#64748B' }} />
-                      <span className="sim-chip-label">ACTOR</span>
-                      <span className="sim-chip-val">{customActorId}</span>
-                      <span className="sim-chip-sub">· {detectedContext.role === customActorRole ? (detectedContext.roleShort || detectedContext.role) : customActorRole}</span>
-                    </div>
-
-                    {/* Target Scope Card */}
-                    <div className="sim-telemetry-chip scope" title={`Operational Scope: ${detectedContext.scopeLabel}`}>
-                      <ShieldCheck size={11} style={{ color: '#2563EB' }} />
-                      <span className="sim-chip-label">SCOPE</span>
-                      <span className="sim-chip-val">{detectedContext.scope === customRequiredScope ? (detectedContext.scopeShort || customRequiredScope) : customRequiredScope}</span>
-                    </div>
-
-                    {/* Match Confidence Card */}
-                    <div className="sim-telemetry-chip match" title={detectedContext.rationale}>
-                      <Zap size={10} style={{ color: '#16A34A' }} />
-                      <span className="sim-chip-val">{detectedContext.confidence}</span>
-                      <span className="sim-chip-sub">match</span>
-                    </div>
-
-                    {/* Compact Override Toggle */}
+                  <div className="sim-prompt-floating-presets">
+                    <span className="sim-prompt-presets-hint">Benchmark Traps:</span>
                     <button
                       type="button"
-                      onClick={() => setShowManualOverride(!showManualOverride)}
-                      className={`sim-telemetry-chip override ${showManualOverride ? 'active' : ''}`}
-                      title="Adjust Actor Role or Scope manually"
+                      onClick={() => {
+                        setSimulatorMode('presets');
+                        setDemoScenario('refund_trap');
+                        setCustomActionText(scenarios.refund_trap.query);
+                        setCustomActorId(scenarios.refund_trap.actor.id);
+                        setCustomActorRole(scenarios.refund_trap.actor.role);
+                        setCustomRequiredScope(scenarios.refund_trap.claim2.scope);
+                        setDemoStep(0);
+                        setDemoResult(null);
+                      }}
+                      className={`sim-floating-preset-chip ${simulatorMode === 'presets' && demoScenario === 'refund_trap' ? 'active' : ''}`}
+                      title="Freshness Trap: Tests if agent honors updated 60-day Enterprise refund rule over stale 30-day handbook"
                     >
-                      <Sliders size={10} />
-                      <span>{showManualOverride ? 'Close' : 'Override'}</span>
+                      <Zap size={11} color={simulatorMode === 'presets' && demoScenario === 'refund_trap' ? '#EA580C' : '#94A3B8'} />
+                      <span>1. Refund Window</span>
+                      <span className="sim-chip-tag tag-warning">Freshness</span>
                     </button>
-                  </div>
 
-                  {/* Right: Evaluate Button */}
-                  {effectiveRole === 'viewer' ? (
                     <button
-                      disabled
-                      className="btn btn-secondary"
-                      style={{ height: '40px', padding: '0 16px', fontSize: '0.80rem', fontWeight: 600, opacity: 0.65, cursor: 'not-allowed', whiteSpace: 'nowrap', borderRadius: '8px' }}
-                      title="Observer Mode: Decision evaluations are restricted for read-only roles."
+                      type="button"
+                      onClick={() => {
+                        setSimulatorMode('presets');
+                        setDemoScenario('remote_work');
+                        setCustomActionText(scenarios.remote_work.query);
+                        setCustomActorId(scenarios.remote_work.actor.id);
+                        setCustomActorRole(scenarios.remote_work.actor.role);
+                        setCustomRequiredScope(scenarios.remote_work.claim2.scope);
+                        setDemoStep(0);
+                        setDemoResult(null);
+                      }}
+                      className={`sim-floating-preset-chip ${simulatorMode === 'presets' && demoScenario === 'remote_work' ? 'active' : ''}`}
+                      title="Scope Override: Tests VP memo 4-day remote authorization for Engineering over general 2-day policy"
                     >
-                      <Lock size={13} style={{ marginRight: '6px' }} />
-                      <span>Observer (Read-Only)</span>
+                      <Zap size={11} color={simulatorMode === 'presets' && demoScenario === 'remote_work' ? '#EA580C' : '#94A3B8'} />
+                      <span>2. Remote Work</span>
+                      <span className="sim-chip-tag tag-blue">Scope</span>
                     </button>
-                  ) : (
+
                     <button
-                      onClick={() => runKillerDemo()}
-                      disabled={demoRunning || !customActionText.trim()}
-                      className="sim-evaluate-btn"
+                      type="button"
+                      onClick={() => {
+                        setSimulatorMode('presets');
+                        setDemoScenario('unauthorized_deploy');
+                        setCustomActionText(scenarios.unauthorized_deploy.query);
+                        setCustomActorId(scenarios.unauthorized_deploy.actor.id);
+                        setCustomActorRole(scenarios.unauthorized_deploy.actor.role);
+                        setCustomRequiredScope(scenarios.unauthorized_deploy.claim2.scope);
+                        setDemoStep(0);
+                        setDemoResult(null);
+                      }}
+                      className={`sim-floating-preset-chip ${simulatorMode === 'presets' && demoScenario === 'unauthorized_deploy' ? 'active' : ''}`}
+                      title="Role Gate: Intercepts unauthorized plaintext HTTP port 8080 ingress attempt on Production"
                     >
-                      {demoRunning ? (
-                        <>
-                          <RefreshCw size={14} className="animate-spin" />
-                          <span>Evaluating...</span>
-                        </>
-                      ) : (
-                        <>
-                          <Zap size={14} />
-                          <span>Evaluate Action</span>
-                        </>
-                      )}
+                      <Zap size={11} color={simulatorMode === 'presets' && demoScenario === 'unauthorized_deploy' ? '#EA580C' : '#94A3B8'} />
+                      <span>3. Prod Ingress</span>
+                      <span className="sim-chip-tag tag-green">Role Gate</span>
                     </button>
-                  )}
+
+                    {simulatorMode === 'presets' && demoScenario && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSimulatorMode('custom');
+                          setDemoScenario(null);
+                          setCustomActionText('');
+                          setDemoStep(0);
+                          setDemoResult(null);
+                        }}
+                        className="sim-floating-preset-chip-clear"
+                        title="Switch to Custom Prompt"
+                      >
+                        <X size={11} />
+                        <span>Custom</span>
+                      </button>
+                    )}
+                  </div>
                 </div>
 
-                {/* Collapsible Manual Override Controls */}
-                {showManualOverride && (
-                  <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-                    gap: '12px',
-                    marginTop: '12px',
-                    padding: '12px 14px',
-                    background: '#F8FAFC',
-                    border: '1px dashed #CBD5E1',
-                    borderRadius: '8px'
-                  }}>
-                    <div>
-                      <label className="sim-input-label">
-                        Agent / Actor ID
-                      </label>
-                      <input
-                        type="text"
-                        value={customActorId}
-                        onChange={(e) => setCustomActorId(e.target.value)}
-                        placeholder="e.g. billing-bot-01"
-                        className="sim-input-control"
-                      />
-                    </div>
+                <textarea
+                  value={customActionText}
+                  onChange={(e) => {
+                    setCustomActionText(e.target.value);
+                    if (simulatorMode === 'presets') {
+                      setSimulatorMode('custom');
+                      setDemoScenario(null);
+                    }
+                  }}
+                  placeholder="Enter any proposed AI agent decision statement....."
+                  rows={2}
+                  className="sim-textarea-gradient"
+                />
+              </div>
 
-                    <div>
-                      <label className="sim-input-label">
-                        Actor Role & Permissions
-                      </label>
-                      <select
-                        value={customActorRole}
-                        onChange={(e) => setCustomActorRole(e.target.value)}
-                        className="sim-input-control"
-                      >
-                        <option value="support_agent">Support Agent (Customer Bot)</option>
-                        <option value="devops_engineer">DevOps Engineer (CI/CD Bot)</option>
-                        <option value="junior_developer">Junior Developer (Intern Bot)</option>
-                        <option value="hr_reviewer">HR Reviewer (Benefits Assistant)</option>
-                        <option value="compliance_officer">Compliance Officer (Risk Gate)</option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="sim-input-label">
-                        Target Operational Scope
-                      </label>
-                      <select
-                        value={customRequiredScope}
-                        onChange={(e) => setCustomRequiredScope(e.target.value)}
-                        className="sim-input-control"
-                      >
-                        <option value="Enterprise">Enterprise Customer Tier</option>
-                        <option value="Production">Production Environment</option>
-                        <option value="Staging">Staging Sandbox</option>
-                        <option value="Engineering">Engineering Department</option>
-                        <option value="General">Global Standard</option>
-                      </select>
-                    </div>
+              {/* Real-time Context Inference & Action Execution Row */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap', marginTop: '10px' }}>
+                {/* Left: Professional Catchy Micro-Telemetry Chips */}
+                <div className="sim-telemetry-row">
+                  {/* Pulsing Auto-Inferred Badge */}
+                  <div className="sim-telemetry-chip lead">
+                    <span className="sim-telemetry-dot" />
+                    <Sparkles size={11} />
+                    <span>AUTO-INFERRED</span>
                   </div>
+
+                  {/* Actor Persona Card */}
+                  <div className="sim-telemetry-chip actor" title={`Actor ID: ${customActorId} (${detectedContext.roleLabel})`}>
+                    <Bot size={11} style={{ color: '#64748B' }} />
+                    <span className="sim-chip-label">ACTOR</span>
+                    <span className="sim-chip-val">{customActorId}</span>
+                    <span className="sim-chip-sub">· {detectedContext.role === customActorRole ? (detectedContext.roleShort || detectedContext.role) : customActorRole}</span>
+                  </div>
+
+                  {/* Target Scope Card */}
+                  <div className="sim-telemetry-chip scope" title={`Operational Scope: ${detectedContext.scopeLabel}`}>
+                    <ShieldCheck size={11} style={{ color: '#2563EB' }} />
+                    <span className="sim-chip-label">SCOPE</span>
+                    <span className="sim-chip-val">{detectedContext.scope === customRequiredScope ? (detectedContext.scopeShort || customRequiredScope) : customRequiredScope}</span>
+                  </div>
+
+                  {/* Match Confidence Card */}
+                  <div className="sim-telemetry-chip match" title={detectedContext.rationale}>
+                    <Zap size={10} style={{ color: '#16A34A' }} />
+                    <span className="sim-chip-val">{detectedContext.confidence}</span>
+                    <span className="sim-chip-sub">match</span>
+                  </div>
+
+                  {/* Compact Override Toggle */}
+                  <button
+                    type="button"
+                    onClick={() => setShowManualOverride(!showManualOverride)}
+                    className={`sim-telemetry-chip override ${showManualOverride ? 'active' : ''}`}
+                    title="Adjust Actor Role or Scope manually"
+                  >
+                    <Sliders size={10} />
+                    <span>{showManualOverride ? 'Close' : 'Override'}</span>
+                  </button>
+                </div>
+
+                {/* Right: Evaluate Button */}
+                {effectiveRole === 'viewer' ? (
+                  <button
+                    disabled
+                    className="btn btn-secondary"
+                    style={{ height: '40px', padding: '0 16px', fontSize: '0.80rem', fontWeight: 600, opacity: 0.65, cursor: 'not-allowed', whiteSpace: 'nowrap', borderRadius: '8px' }}
+                    title="Observer Mode: Decision evaluations are restricted for read-only roles."
+                  >
+                    <Lock size={13} style={{ marginRight: '6px' }} />
+                    <span>Observer (Read-Only)</span>
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => runKillerDemo()}
+                    disabled={demoRunning || !customActionText.trim()}
+                    className="sim-evaluate-btn"
+                  >
+                    {demoRunning ? (
+                      <>
+                        <RefreshCw size={14} className="animate-spin" />
+                        <span>Evaluating...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Zap size={14} />
+                        <span>Evaluate Action</span>
+                      </>
+                    )}
+                  </button>
                 )}
               </div>
+
+              {/* Collapsible Manual Override Controls */}
+              {showManualOverride && (
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                  gap: '12px',
+                  marginTop: '12px',
+                  padding: '12px 14px',
+                  background: '#F8FAFC',
+                  border: '1px dashed #CBD5E1',
+                  borderRadius: '8px'
+                }}>
+                  <div>
+                    <label className="sim-input-label">
+                      Agent / Actor ID
+                    </label>
+                    <input
+                      type="text"
+                      value={customActorId}
+                      onChange={(e) => setCustomActorId(e.target.value)}
+                      placeholder="e.g. billing-bot-01"
+                      className="sim-input-control"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="sim-input-label">
+                      Actor Role & Permissions
+                    </label>
+                    <select
+                      value={customActorRole}
+                      onChange={(e) => setCustomActorRole(e.target.value)}
+                      className="sim-input-control"
+                    >
+                      <option value="support_agent">Support Agent (Customer Bot)</option>
+                      <option value="devops_engineer">DevOps Engineer (CI/CD Bot)</option>
+                      <option value="junior_developer">Junior Developer (Intern Bot)</option>
+                      <option value="hr_reviewer">HR Reviewer (Benefits Assistant)</option>
+                      <option value="compliance_officer">Compliance Officer (Risk Gate)</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="sim-input-label">
+                      Target Operational Scope
+                    </label>
+                    <select
+                      value={customRequiredScope}
+                      onChange={(e) => setCustomRequiredScope(e.target.value)}
+                      className="sim-input-control"
+                    >
+                      <option value="Enterprise">Enterprise Customer Tier</option>
+                      <option value="Production">Production Environment</option>
+                      <option value="Staging">Staging Sandbox</option>
+                      <option value="Engineering">Engineering Department</option>
+                      <option value="General">Global Standard</option>
+                    </select>
+                  </div>
+                </div>
+              )}
+            </div>
 
             {/* Main Decision Gate Panel */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
@@ -4709,922 +4709,922 @@ export default function App() {
                   </div>
                 </div>
 
-                      {/* Category Filter Chips */}
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '14px' }}>
-                        {catalogCategories.map(cat => (
-                          <button
-                            key={cat.id}
-                            type="button"
-                            onClick={() => {
-                              setCatalogFilterCategory(cat.id);
-                              setIsConnectorDropdownOpen(true);
-                            }}
-                            style={{
-                              padding: '4px 10px',
-                              fontSize: '0.72rem',
-                              fontWeight: 700,
-                              borderRadius: '14px',
-                              border: catalogFilterCategory === cat.id ? '1px solid var(--primary, #2563EB)' : '1px solid var(--border-subtle, #E2E8F0)',
-                              background: catalogFilterCategory === cat.id ? 'var(--primary, #2563EB)' : '#F8FAFC',
-                              color: catalogFilterCategory === cat.id ? '#FFFFFF' : 'var(--text-secondary, #475569)',
-                              cursor: 'pointer',
-                              transition: 'all 0.15s ease'
-                            }}
-                          >
-                            {cat.label} ({cat.count})
-                          </button>
-                        ))}
-                      </div>
+                {/* Category Filter Chips */}
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '14px' }}>
+                  {catalogCategories.map(cat => (
+                    <button
+                      key={cat.id}
+                      type="button"
+                      onClick={() => {
+                        setCatalogFilterCategory(cat.id);
+                        setIsConnectorDropdownOpen(true);
+                      }}
+                      style={{
+                        padding: '4px 10px',
+                        fontSize: '0.72rem',
+                        fontWeight: 700,
+                        borderRadius: '14px',
+                        border: catalogFilterCategory === cat.id ? '1px solid var(--primary, #2563EB)' : '1px solid var(--border-subtle, #E2E8F0)',
+                        background: catalogFilterCategory === cat.id ? 'var(--primary, #2563EB)' : '#F8FAFC',
+                        color: catalogFilterCategory === cat.id ? '#FFFFFF' : 'var(--text-secondary, #475569)',
+                        cursor: 'pointer',
+                        transition: 'all 0.15s ease'
+                      }}
+                    >
+                      {cat.label} ({cat.count})
+                    </button>
+                  ))}
+                </div>
 
-                      {/* Professional Search Bar with Inline Dropdown Below */}
-                      <div style={{ position: 'relative', marginBottom: '16px' }}>
-                        <label style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary, #475569)', display: 'block', marginBottom: '5px' }}>
-                          Search Target Data Source ({
-                            catalogConnectors.filter(c =>
-                              (catalogFilterCategory === 'all' || c.category === catalogFilterCategory) &&
-                              (!catalogSearchQuery || c.name.toLowerCase().includes(catalogSearchQuery.toLowerCase()) || c.description.toLowerCase().includes(catalogSearchQuery.toLowerCase()) || c.id.toLowerCase().includes(catalogSearchQuery.toLowerCase()))
-                            ).length
-                          } available):
-                        </label>
-                        <div style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          background: '#FFFFFF',
-                          border: isConnectorDropdownOpen ? '1px solid var(--primary, #2563EB)' : '1px solid var(--border-medium, #CBD5E1)',
-                          borderRadius: '8px',
-                          padding: '8px 12px',
-                          boxShadow: isConnectorDropdownOpen ? '0 0 0 3px rgba(37, 99, 235, 0.12)' : '0 1px 3px rgba(0,0,0,0.04)',
-                          transition: 'all 0.15s ease'
-                        }}>
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted, #64748B)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '8px', flexShrink: 0 }}>
-                            <circle cx="11" cy="11" r="8"></circle>
-                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                          </svg>
-                          <input
-                            type="text"
-                            placeholder="Search across 105 data sources... e.g. GitHub, Snowflake, PostgreSQL, S3, Kafka, Databricks"
-                            value={catalogSearchQuery}
-                            onFocus={() => setIsConnectorDropdownOpen(true)}
-                            onChange={e => {
-                              setCatalogSearchQuery(e.target.value);
-                              setIsConnectorDropdownOpen(true);
-                            }}
-                            style={{
-                              width: '100%',
-                              border: 'none',
-                              outline: 'none',
-                              background: 'transparent',
-                              fontSize: '0.84rem',
-                              color: 'var(--text-main, #0F172A)'
-                            }}
-                          />
-                          {catalogSearchQuery && (
-                            <button
-                              type="button"
-                              onClick={() => { setCatalogSearchQuery(''); setIsConnectorDropdownOpen(true); }}
-                              style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94A3B8', padding: '2px 4px', fontSize: '0.85rem' }}
-                              title="Clear search"
-                            >
-                              ✕
-                            </button>
-                          )}
-                        </div>
+                {/* Professional Search Bar with Inline Dropdown Below */}
+                <div style={{ position: 'relative', marginBottom: '16px' }}>
+                  <label style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary, #475569)', display: 'block', marginBottom: '5px' }}>
+                    Search Target Data Source ({
+                      catalogConnectors.filter(c =>
+                        (catalogFilterCategory === 'all' || c.category === catalogFilterCategory) &&
+                        (!catalogSearchQuery || c.name.toLowerCase().includes(catalogSearchQuery.toLowerCase()) || c.description.toLowerCase().includes(catalogSearchQuery.toLowerCase()) || c.id.toLowerCase().includes(catalogSearchQuery.toLowerCase()))
+                      ).length
+                    } available):
+                  </label>
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    background: '#FFFFFF',
+                    border: isConnectorDropdownOpen ? '1px solid var(--primary, #2563EB)' : '1px solid var(--border-medium, #CBD5E1)',
+                    borderRadius: '8px',
+                    padding: '8px 12px',
+                    boxShadow: isConnectorDropdownOpen ? '0 0 0 3px rgba(37, 99, 235, 0.12)' : '0 1px 3px rgba(0,0,0,0.04)',
+                    transition: 'all 0.15s ease'
+                  }}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted, #64748B)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '8px', flexShrink: 0 }}>
+                      <circle cx="11" cy="11" r="8"></circle>
+                      <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                    <input
+                      type="text"
+                      placeholder="Search across 105 data sources... e.g. GitHub, Snowflake, PostgreSQL, S3, Kafka, Databricks"
+                      value={catalogSearchQuery}
+                      onFocus={() => setIsConnectorDropdownOpen(true)}
+                      onChange={e => {
+                        setCatalogSearchQuery(e.target.value);
+                        setIsConnectorDropdownOpen(true);
+                      }}
+                      style={{
+                        width: '100%',
+                        border: 'none',
+                        outline: 'none',
+                        background: 'transparent',
+                        fontSize: '0.84rem',
+                        color: 'var(--text-main, #0F172A)'
+                      }}
+                    />
+                    {catalogSearchQuery && (
+                      <button
+                        type="button"
+                        onClick={() => { setCatalogSearchQuery(''); setIsConnectorDropdownOpen(true); }}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94A3B8', padding: '2px 4px', fontSize: '0.85rem' }}
+                        title="Clear search"
+                      >
+                        ✕
+                      </button>
+                    )}
+                  </div>
 
-                        {/* Interactive Dropdown Directly Below Search Bar */}
-                        {isConnectorDropdownOpen && (
-                          <div style={{
-                            position: 'absolute',
-                            top: '100%',
-                            left: 0,
-                            right: 0,
-                            marginTop: '4px',
-                            background: '#FFFFFF',
-                            borderRadius: '8px',
-                            border: '1px solid var(--border-medium, #CBD5E1)',
-                            boxShadow: '0 12px 28px rgba(0,0,0,0.15)',
-                            maxHeight: '260px',
-                            overflowY: 'auto',
-                            zIndex: 1050,
-                            padding: '6px'
-                          }}>
-                            {(() => {
-                              const matches = catalogConnectors.filter(c =>
-                                (catalogFilterCategory === 'all' || c.category === catalogFilterCategory) &&
-                                (!catalogSearchQuery ||
-                                  c.name.toLowerCase().includes(catalogSearchQuery.toLowerCase()) ||
-                                  c.description.toLowerCase().includes(catalogSearchQuery.toLowerCase()) ||
-                                  c.id.toLowerCase().includes(catalogSearchQuery.toLowerCase()) ||
-                                  c.category_label.toLowerCase().includes(catalogSearchQuery.toLowerCase()))
-                              );
-                              if (matches.length === 0) {
-                                return (
-                                  <div style={{ padding: '16px', textAlign: 'center', fontSize: '0.8rem', color: 'var(--text-muted, #64748B)' }}>
-                                    No connector matching "{catalogSearchQuery}". Try another keyword or category filter.
-                                  </div>
-                                );
-                              }
-                              return matches.map(c => {
-                                const isSelected = newSourceForm.sourceType === c.id;
-                                return (
-                                  <div
-                                    key={c.id}
-                                    onClick={() => {
-                                      let defaultName = `Production ${c.name}`;
-                                      setNewSourceForm({ ...newSourceForm, sourceType: c.id, name: defaultName });
-                                      setSelectedConnectorMeta(c);
-                                      setCatalogSearchQuery(c.name);
-                                      setIsConnectorDropdownOpen(false);
-                                      setTestConnectionResult(null);
-                                    }}
-                                    style={{
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      justifyContent: 'space-between',
-                                      padding: '8px 12px',
-                                      borderRadius: '6px',
-                                      cursor: 'pointer',
-                                      background: isSelected ? 'rgba(37, 99, 235, 0.08)' : 'transparent',
-                                      borderLeft: isSelected ? '3px solid var(--primary, #2563EB)' : '3px solid transparent',
-                                      transition: 'background 0.1s ease',
-                                      marginBottom: '2px'
-                                    }}
-                                    onMouseEnter={e => { if (!isSelected) e.currentTarget.style.background = '#F8FAFC'; }}
-                                    onMouseLeave={e => { if (!isSelected) e.currentTarget.style.background = 'transparent'; }}
-                                  >
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                      <span style={{ fontSize: '1.2rem' }}>{c.icon || '🔌'}</span>
-                                      <div>
-                                        <div style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-main, #0F172A)' }}>
-                                          {c.name}
-                                        </div>
-                                        <div style={{ fontSize: '0.7rem', color: 'var(--text-muted, #64748B)', maxWidth: '440px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                          {c.description}
-                                        </div>
-                                      </div>
-                                    </div>
-                                    <span className="badge badge-verified" style={{ fontSize: '0.66rem', padding: '2px 6px', flexShrink: 0 }}>
-                                      {c.category_label}
-                                    </span>
-                                  </div>
-                                );
-                              });
-                            })()}
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Selected Connector Scope Banner */}
+                  {/* Interactive Dropdown Directly Below Search Bar */}
+                  {isConnectorDropdownOpen && (
+                    <div style={{
+                      position: 'absolute',
+                      top: '100%',
+                      left: 0,
+                      right: 0,
+                      marginTop: '4px',
+                      background: '#FFFFFF',
+                      borderRadius: '8px',
+                      border: '1px solid var(--border-medium, #CBD5E1)',
+                      boxShadow: '0 12px 28px rgba(0,0,0,0.15)',
+                      maxHeight: '260px',
+                      overflowY: 'auto',
+                      zIndex: 1050,
+                      padding: '6px'
+                    }}>
                       {(() => {
-                        const currentMeta = catalogConnectors.find(c => c.id === newSourceForm.sourceType) || selectedConnectorMeta || catalogConnectors[0];
-                        if (!currentMeta) return null;
-                        return (
-                          <div style={{
-                            background: '#F8FAFC',
-                            border: '1px solid var(--border-subtle, #E2E8F0)',
-                            borderRadius: '8px',
-                            padding: '12px 14px',
-                            marginBottom: '16px',
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'flex-start'
-                          }}>
-                            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
-                              <span style={{ fontSize: '1.5rem', lineHeight: 1 }}>{currentMeta.icon || '🔌'}</span>
-                              <div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '2px' }}>
-                                  <span style={{ fontWeight: 800, fontSize: '0.88rem', color: 'var(--text-main, #0F172A)' }}>{currentMeta.name}</span>
-                                  <span className="badge badge-verified" style={{ fontSize: '0.68rem' }}>{currentMeta.category_label}</span>
-                                </div>
-                                <div style={{ fontSize: '0.74rem', color: 'var(--text-secondary, #475569)', marginBottom: '4px' }}>{currentMeta.description}</div>
-                                <div style={{ fontSize: '0.72rem', color: 'var(--primary, #2563EB)', fontWeight: 600 }}>
-                                  Monitored Contract Scope: {currentMeta.monitored_scope}
-                                </div>
-                              </div>
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => setIsConnectorDropdownOpen(true)}
-                              style={{
-                                background: '#FFFFFF',
-                                border: '1px solid var(--border-medium, #CBD5E1)',
-                                borderRadius: '4px',
-                                padding: '3px 8px',
-                                fontSize: '0.72rem',
-                                fontWeight: 600,
-                                color: 'var(--text-secondary, #475569)',
-                                cursor: 'pointer',
-                                flexShrink: 0
-                              }}
-                            >
-                              Change
-                            </button>
-                          </div>
+                        const matches = catalogConnectors.filter(c =>
+                          (catalogFilterCategory === 'all' || c.category === catalogFilterCategory) &&
+                          (!catalogSearchQuery ||
+                            c.name.toLowerCase().includes(catalogSearchQuery.toLowerCase()) ||
+                            c.description.toLowerCase().includes(catalogSearchQuery.toLowerCase()) ||
+                            c.id.toLowerCase().includes(catalogSearchQuery.toLowerCase()) ||
+                            c.category_label.toLowerCase().includes(catalogSearchQuery.toLowerCase()))
                         );
+                        if (matches.length === 0) {
+                          return (
+                            <div style={{ padding: '16px', textAlign: 'center', fontSize: '0.8rem', color: 'var(--text-muted, #64748B)' }}>
+                              No connector matching "{catalogSearchQuery}". Try another keyword or category filter.
+                            </div>
+                          );
+                        }
+                        return matches.map(c => {
+                          const isSelected = newSourceForm.sourceType === c.id;
+                          return (
+                            <div
+                              key={c.id}
+                              onClick={() => {
+                                let defaultName = `Production ${c.name}`;
+                                setNewSourceForm({ ...newSourceForm, sourceType: c.id, name: defaultName });
+                                setSelectedConnectorMeta(c);
+                                setCatalogSearchQuery(c.name);
+                                setIsConnectorDropdownOpen(false);
+                                setTestConnectionResult(null);
+                              }}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                padding: '8px 12px',
+                                borderRadius: '6px',
+                                cursor: 'pointer',
+                                background: isSelected ? 'rgba(37, 99, 235, 0.08)' : 'transparent',
+                                borderLeft: isSelected ? '3px solid var(--primary, #2563EB)' : '3px solid transparent',
+                                transition: 'background 0.1s ease',
+                                marginBottom: '2px'
+                              }}
+                              onMouseEnter={e => { if (!isSelected) e.currentTarget.style.background = '#F8FAFC'; }}
+                              onMouseLeave={e => { if (!isSelected) e.currentTarget.style.background = 'transparent'; }}
+                            >
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                <span style={{ fontSize: '1.2rem' }}>{c.icon || '🔌'}</span>
+                                <div>
+                                  <div style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-main, #0F172A)' }}>
+                                    {c.name}
+                                  </div>
+                                  <div style={{ fontSize: '0.7rem', color: 'var(--text-muted, #64748B)', maxWidth: '440px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                    {c.description}
+                                  </div>
+                                </div>
+                              </div>
+                              <span className="badge badge-verified" style={{ fontSize: '0.66rem', padding: '2px 6px', flexShrink: 0 }}>
+                                {c.category_label}
+                              </span>
+                            </div>
+                          );
+                        });
                       })()}
-
-                      <form onSubmit={handleConnectNewSource} style={{ display: 'grid', gap: '14px' }}>
-                        {/* Connection Instance Name */}
-                        <div>
-                          <label style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary, #475569)', display: 'block', marginBottom: '4px' }}>
-                            Connector Instance Name:
-                          </label>
-                          <input
-                            type="text"
-                            placeholder="e.g. Production Core Snowflake Warehouse"
-                            value={newSourceForm.name}
-                            onChange={e => setNewSourceForm({ ...newSourceForm, name: e.target.value })}
-                            style={{ width: '100%', padding: '8px 10px', fontSize: '0.84rem' }}
-                            required
-                          />
-                        </div>
-
-                        {/* 1. GITHUB SPECIFIC FIELDS */}
-                        {newSourceForm.sourceType === 'github' && (
-                          <div style={{ background: '#F8FAFC', border: '1px solid var(--border-subtle, #E2E8F0)', borderRadius: '8px', padding: '14px', display: 'grid', gap: '12px' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #E2E8F0', paddingBottom: '6px' }}>
-                              <span style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--text-main)' }}>GitHub Repository Connection Parameters</span>
-                              <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>🔒 Token encrypted with AES-256 / pgcrypto</span>
-                            </div>
-
-                            <div>
-                              <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>GitHub Repository (owner/repo):</label>
-                              <input
-                                type="text"
-                                placeholder="e.g. facebook/react or my-org/security-standards"
-                                value={newSourceForm.githubRepo}
-                                onChange={e => setNewSourceForm({ ...newSourceForm, githubRepo: e.target.value })}
-                                style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
-                                required
-                              />
-                            </div>
-
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '10px' }}>
-                              <div>
-                                <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Branch:</label>
-                                <input
-                                  type="text"
-                                  value={newSourceForm.githubBranch}
-                                  onChange={e => setNewSourceForm({ ...newSourceForm, githubBranch: e.target.value })}
-                                  placeholder="main"
-                                  style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
-                                />
-                              </div>
-
-                              <div>
-                                <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Personal Access Token (PAT):</label>
-                                <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                                  <input
-                                    type={showTokenMask ? "text" : "password"}
-                                    value={newSourceForm.githubToken}
-                                    onChange={e => setNewSourceForm({ ...newSourceForm, githubToken: e.target.value })}
-                                    placeholder="ghp_... (Optional for public repos)"
-                                    style={{ width: '100%', padding: '7px 32px 7px 9px', fontSize: '0.82rem' }}
-                                  />
-                                  <button
-                                    type="button"
-                                    onClick={() => setShowTokenMask(!showTokenMask)}
-                                    style={{ position: 'absolute', right: '8px', background: 'none', border: 'none', cursor: 'pointer', color: '#64748B', display: 'flex', alignItems: 'center' }}
-                                    title={showTokenMask ? "Hide token" : "Show token"}
-                                  >
-                                    {showTokenMask ? (
-                                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
-                                        <line x1="1" y1="1" x2="23" y2="23"></line>
-                                      </svg>
-                                    ) : (
-                                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                                        <circle cx="12" cy="12" r="3"></circle>
-                                      </svg>
-                                    )}
-                                  </button>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-
-                        {/* 2. POSTGRESQL & RELATIONAL DATABASES */}
-                        {(['postgresql', 'postgres', 'cloud_sql_postgres', 'alloydb', 'mysql', 'sql_server', 'oracle', 'clickhouse'].includes(newSourceForm.sourceType)) && (
-                          <div style={{ background: '#F8FAFC', border: '1px solid var(--border-subtle, #E2E8F0)', borderRadius: '8px', padding: '14px', display: 'grid', gap: '12px' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #E2E8F0', paddingBottom: '6px' }}>
-                              <span style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--text-main)' }}>Relational Database Connection Parameters</span>
-                              <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>🔒 Credentials stored in PostgreSQL</span>
-                            </div>
-
-                            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '10px' }}>
-                              <div>
-                                <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Host / Hostname:</label>
-                                <input
-                                  type="text"
-                                  value={newSourceForm.pgHost}
-                                  onChange={e => setNewSourceForm({ ...newSourceForm, pgHost: e.target.value })}
-                                  placeholder="localhost or db.internal"
-                                  style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
-                                />
-                              </div>
-                              <div>
-                                <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Port:</label>
-                                <input
-                                  type="number"
-                                  value={newSourceForm.pgPort}
-                                  onChange={e => setNewSourceForm({ ...newSourceForm, pgPort: e.target.value })}
-                                  style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
-                                />
-                              </div>
-                            </div>
-
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                              <div>
-                                <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Database Name:</label>
-                                <input
-                                  type="text"
-                                  value={newSourceForm.pgDatabase}
-                                  onChange={e => setNewSourceForm({ ...newSourceForm, pgDatabase: e.target.value })}
-                                  placeholder="enterprise_core"
-                                  style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
-                                />
-                              </div>
-                              <div>
-                                <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Target Schemas (comma-separated):</label>
-                                <input
-                                  type="text"
-                                  value={newSourceForm.pgSchemas}
-                                  onChange={e => setNewSourceForm({ ...newSourceForm, pgSchemas: e.target.value })}
-                                  placeholder="public, analytics"
-                                  style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
-                                />
-                              </div>
-                            </div>
-
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                              <div>
-                                <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Username:</label>
-                                <input
-                                  type="text"
-                                  value={newSourceForm.pgUsername}
-                                  onChange={e => setNewSourceForm({ ...newSourceForm, pgUsername: e.target.value })}
-                                  placeholder="postgres"
-                                  style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
-                                />
-                              </div>
-                              <div>
-                                <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Password:</label>
-                                <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                                  <input
-                                    type={showPasswordMask ? "text" : "password"}
-                                    value={newSourceForm.pgPassword}
-                                    onChange={e => setNewSourceForm({ ...newSourceForm, pgPassword: e.target.value })}
-                                    placeholder="••••••••"
-                                    style={{ width: '100%', padding: '7px 32px 7px 9px', fontSize: '0.82rem' }}
-                                  />
-                                  <button
-                                    type="button"
-                                    onClick={() => setShowPasswordMask(!showPasswordMask)}
-                                    style={{ position: 'absolute', right: '8px', background: 'none', border: 'none', cursor: 'pointer', color: '#64748B', display: 'flex', alignItems: 'center' }}
-                                    title={showPasswordMask ? "Hide password" : "Show password"}
-                                  >
-                                    {showPasswordMask ? (
-                                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
-                                        <line x1="1" y1="1" x2="23" y2="23"></line>
-                                      </svg>
-                                    ) : (
-                                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                                        <circle cx="12" cy="12" r="3"></circle>
-                                      </svg>
-                                    )}
-                                  </button>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-
-                        {/* 3. SNOWFLAKE SPECIFIC FIELDS */}
-                        {newSourceForm.sourceType === 'snowflake' && (
-                          <div style={{ background: '#F8FAFC', border: '1px solid var(--border-subtle, #E2E8F0)', borderRadius: '8px', padding: '14px', display: 'grid', gap: '12px' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #E2E8F0', paddingBottom: '6px' }}>
-                              <span style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--text-main)' }}>Snowflake Data Cloud Parameters</span>
-                              <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>🔒 Snowflake Role-Based Auth</span>
-                            </div>
-
-                            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '10px' }}>
-                              <div>
-                                <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Account Identifier (org-account):</label>
-                                <input
-                                  type="text"
-                                  value={genericConfig.host}
-                                  onChange={e => setGenericConfig({ ...genericConfig, host: e.target.value })}
-                                  placeholder="xy12345.us-east-1 or company.snowflakecomputing.com"
-                                  style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
-                                />
-                              </div>
-                              <div>
-                                <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Warehouse:</label>
-                                <input
-                                  type="text"
-                                  value={genericConfig.port}
-                                  onChange={e => setGenericConfig({ ...genericConfig, port: e.target.value })}
-                                  placeholder="COMPUTE_WH"
-                                  style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
-                                />
-                              </div>
-                            </div>
-
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                              <div>
-                                <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Database Name:</label>
-                                <input
-                                  type="text"
-                                  value={genericConfig.database}
-                                  onChange={e => setGenericConfig({ ...genericConfig, database: e.target.value })}
-                                  placeholder="ANALYTICS_PROD"
-                                  style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
-                                />
-                              </div>
-                              <div>
-                                <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Target Schema:</label>
-                                <input
-                                  type="text"
-                                  value={genericConfig.schemas}
-                                  onChange={e => setGenericConfig({ ...genericConfig, schemas: e.target.value })}
-                                  placeholder="PUBLIC, CORE"
-                                  style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
-                                />
-                              </div>
-                            </div>
-
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                              <div>
-                                <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Username / Service Role:</label>
-                                <input
-                                  type="text"
-                                  value={genericConfig.username}
-                                  onChange={e => setGenericConfig({ ...genericConfig, username: e.target.value })}
-                                  placeholder="DW_SVC_USER"
-                                  style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
-                                />
-                              </div>
-                              <div>
-                                <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Password / Key:</label>
-                                <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                                  <input
-                                    type={showPasswordMask ? "text" : "password"}
-                                    value={genericConfig.password}
-                                    onChange={e => setGenericConfig({ ...genericConfig, password: e.target.value })}
-                                    placeholder="••••••••"
-                                    style={{ width: '100%', padding: '7px 32px 7px 9px', fontSize: '0.82rem' }}
-                                  />
-                                  <button
-                                    type="button"
-                                    onClick={() => setShowPasswordMask(!showPasswordMask)}
-                                    style={{ position: 'absolute', right: '8px', background: 'none', border: 'none', cursor: 'pointer', color: '#64748B', display: 'flex', alignItems: 'center' }}
-                                  >
-                                    {showPasswordMask ? (
-                                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
-                                    ) : (
-                                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                                    )}
-                                  </button>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-
-                        {/* 4. AMAZON S3 FIELDS */}
-                        {newSourceForm.sourceType === 's3' && (
-                          <div style={{ background: '#F8FAFC', border: '1px solid var(--border-subtle, #E2E8F0)', borderRadius: '8px', padding: '14px', display: 'grid', gap: '12px' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #E2E8F0', paddingBottom: '6px' }}>
-                              <span style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--text-main)' }}>Amazon S3 Bucket Storage Parameters</span>
-                              <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>🔒 AWS SigV4 Auth</span>
-                            </div>
-
-                            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '10px' }}>
-                              <div>
-                                <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>S3 Bucket Name:</label>
-                                <input
-                                  type="text"
-                                  value={genericConfig.database}
-                                  onChange={e => setGenericConfig({ ...genericConfig, database: e.target.value })}
-                                  placeholder="enterprise-lakehouse-contracts"
-                                  style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
-                                />
-                              </div>
-                              <div>
-                                <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>AWS Region:</label>
-                                <input
-                                  type="text"
-                                  value={genericConfig.host}
-                                  onChange={e => setGenericConfig({ ...genericConfig, host: e.target.value })}
-                                  placeholder="us-east-1"
-                                  style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
-                                />
-                              </div>
-                            </div>
-
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                              <div>
-                                <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>AWS Access Key ID:</label>
-                                <input
-                                  type="text"
-                                  value={genericConfig.username}
-                                  onChange={e => setGenericConfig({ ...genericConfig, username: e.target.value })}
-                                  placeholder="AKIAIOSFODNN7EXAMPLE"
-                                  style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
-                                />
-                              </div>
-                              <div>
-                                <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Secret Access Key:</label>
-                                <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                                  <input
-                                    type={showPasswordMask ? "text" : "password"}
-                                    value={genericConfig.password}
-                                    onChange={e => setGenericConfig({ ...genericConfig, password: e.target.value })}
-                                    placeholder="••••••••"
-                                    style={{ width: '100%', padding: '7px 32px 7px 9px', fontSize: '0.82rem' }}
-                                  />
-                                  <button
-                                    type="button"
-                                    onClick={() => setShowPasswordMask(!showPasswordMask)}
-                                    style={{ position: 'absolute', right: '8px', background: 'none', border: 'none', cursor: 'pointer', color: '#64748B', display: 'flex', alignItems: 'center' }}
-                                  >
-                                    {showPasswordMask ? (
-                                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
-                                    ) : (
-                                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                                    )}
-                                  </button>
-                                </div>
-                              </div>
-                            </div>
-
-                            <div>
-                              <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Folder Prefix / Scope Path:</label>
-                              <input
-                                type="text"
-                                value={genericConfig.schemas}
-                                onChange={e => setGenericConfig({ ...genericConfig, schemas: e.target.value })}
-                                placeholder="policies/, compliance/contracts/v1/"
-                                style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
-                              />
-                            </div>
-                          </div>
-                        )}
-
-                        {/* 5. APACHE KAFKA & STREAMING */}
-                        {(['kafka', 'apache_kafka', 'confluent_kafka', 'amazon_msk', 'aiven_kafka', 'redpanda_kafka'].includes(newSourceForm.sourceType)) && (
-                          <div style={{ background: '#F8FAFC', border: '1px solid var(--border-subtle, #E2E8F0)', borderRadius: '8px', padding: '14px', display: 'grid', gap: '12px' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #E2E8F0', paddingBottom: '6px' }}>
-                              <span style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--text-main)' }}>Streaming & Topic Topology Parameters</span>
-                              <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>🔒 TLS / SASL Protocol</span>
-                            </div>
-
-                            <div>
-                              <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Bootstrap Servers (host:port):</label>
-                              <input
-                                type="text"
-                                value={newSourceForm.kafkaBootstrap}
-                                onChange={e => setNewSourceForm({ ...newSourceForm, kafkaBootstrap: e.target.value })}
-                                placeholder="kafka-cluster-prod.internal:9092"
-                                style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
-                              />
-                            </div>
-
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                              <div>
-                                <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Security Protocol:</label>
-                                <select
-                                  value={newSourceForm.kafkaSecurityProtocol}
-                                  onChange={e => setNewSourceForm({ ...newSourceForm, kafkaSecurityProtocol: e.target.value })}
-                                  style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
-                                >
-                                  <option value="PLAINTEXT">PLAINTEXT</option>
-                                  <option value="SSL">SSL</option>
-                                  <option value="SASL_PLAINTEXT">SASL_PLAINTEXT</option>
-                                  <option value="SASL_SSL">SASL_SSL</option>
-                                </select>
-                              </div>
-                              <div>
-                                <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Schema Registry URL:</label>
-                                <input
-                                  type="text"
-                                  value={newSourceForm.kafkaSchemaRegistry}
-                                  onChange={e => setNewSourceForm({ ...newSourceForm, kafkaSchemaRegistry: e.target.value })}
-                                  placeholder="http://schema-registry:8081"
-                                  style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
-                                />
-                              </div>
-                            </div>
-
-                            <div>
-                              <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Monitored Topics (comma-separated):</label>
-                              <input
-                                type="text"
-                                value={newSourceForm.kafkaTopics}
-                                onChange={e => setNewSourceForm({ ...newSourceForm, kafkaTopics: e.target.value })}
-                                placeholder="financial.payments.settled.v1, security.audit.access.v2"
-                                style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
-                              />
-                            </div>
-                          </div>
-                        )}
-
-                        {/* 6. MONGODB & DOCUMENT DATABASES */}
-                        {(['mongodb', 'mongodb_atlas', 'mongodb_self', 'documentdb'].includes(newSourceForm.sourceType)) && (
-                          <div style={{ background: '#F8FAFC', border: '1px solid var(--border-subtle, #E2E8F0)', borderRadius: '8px', padding: '14px', display: 'grid', gap: '12px' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #E2E8F0', paddingBottom: '6px' }}>
-                              <span style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--text-main)' }}>Document Database Parameters</span>
-                              <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>🔒 MongoDB Connection URI</span>
-                            </div>
-
-                            <div>
-                              <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Connection URI:</label>
-                              <input
-                                type="text"
-                                value={newSourceForm.mongoUri}
-                                onChange={e => setNewSourceForm({ ...newSourceForm, mongoUri: e.target.value })}
-                                placeholder="mongodb://production-cluster:27017 or mongodb+srv://..."
-                                style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
-                              />
-                            </div>
-
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                              <div>
-                                <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Database Name:</label>
-                                <input
-                                  type="text"
-                                  value={newSourceForm.mongoDatabase}
-                                  onChange={e => setNewSourceForm({ ...newSourceForm, mongoDatabase: e.target.value })}
-                                  placeholder="production"
-                                  style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
-                                />
-                              </div>
-                              <div>
-                                <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Target Collections:</label>
-                                <input
-                                  type="text"
-                                  value={newSourceForm.mongoCollections}
-                                  onChange={e => setNewSourceForm({ ...newSourceForm, mongoCollections: e.target.value })}
-                                  placeholder="refund_orders, user_entitlements"
-                                  style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
-                                />
-                              </div>
-                            </div>
-                          </div>
-                        )}
-
-                        {/* 7. SALESFORCE CRM */}
-                        {newSourceForm.sourceType === 'salesforce' && (
-                          <div style={{ background: '#F8FAFC', border: '1px solid var(--border-subtle, #E2E8F0)', borderRadius: '8px', padding: '14px', display: 'grid', gap: '12px' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #E2E8F0', paddingBottom: '6px' }}>
-                              <span style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--text-main)' }}>Salesforce Connected App Parameters</span>
-                              <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>🔒 OAuth 2.0 Client Secret</span>
-                            </div>
-
-                            <div>
-                              <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Salesforce Instance URL:</label>
-                              <input
-                                type="text"
-                                value={newSourceForm.sfInstanceUrl}
-                                onChange={e => setNewSourceForm({ ...newSourceForm, sfInstanceUrl: e.target.value })}
-                                placeholder="https://company.my.salesforce.com"
-                                style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
-                              />
-                            </div>
-
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                              <div>
-                                <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Connected App Client ID:</label>
-                                <input
-                                  type="text"
-                                  value={newSourceForm.sfClientId}
-                                  onChange={e => setNewSourceForm({ ...newSourceForm, sfClientId: e.target.value })}
-                                  placeholder="3MVG9..."
-                                  style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
-                                />
-                              </div>
-                              <div>
-                                <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Client Secret:</label>
-                                <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                                  <input
-                                    type={showPasswordMask ? "text" : "password"}
-                                    value={newSourceForm.sfClientSecret}
-                                    onChange={e => setNewSourceForm({ ...newSourceForm, sfClientSecret: e.target.value })}
-                                    placeholder="••••••••"
-                                    style={{ width: '100%', padding: '7px 32px 7px 9px', fontSize: '0.82rem' }}
-                                  />
-                                  <button
-                                    type="button"
-                                    onClick={() => setShowPasswordMask(!showPasswordMask)}
-                                    style={{ position: 'absolute', right: '8px', background: 'none', border: 'none', cursor: 'pointer', color: '#64748B', display: 'flex', alignItems: 'center' }}
-                                  >
-                                    {showPasswordMask ? (
-                                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
-                                    ) : (
-                                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                                    )}
-                                  </button>
-                                </div>
-                              </div>
-                            </div>
-
-                            <div>
-                              <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Target SObjects to Ingest (comma-separated):</label>
-                              <input
-                                type="text"
-                                value={newSourceForm.sfObjects}
-                                onChange={e => setNewSourceForm({ ...newSourceForm, sfObjects: e.target.value })}
-                                placeholder="Contract, Refund_Request__c, Case, Opportunity"
-                                style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
-                              />
-                            </div>
-                          </div>
-                        )}
-
-                        {/* 8. UNIVERSAL DRIVER CONFIGURATION FOR ALL OTHER ENTERPRISE CONNECTORS */}
-                        {!['github', 'postgresql', 'postgres', 'cloud_sql_postgres', 'alloydb', 'mysql', 'sql_server', 'oracle', 'clickhouse', 'snowflake', 's3', 'kafka', 'apache_kafka', 'confluent_kafka', 'amazon_msk', 'aiven_kafka', 'redpanda_kafka', 'mongodb', 'mongodb_atlas', 'mongodb_self', 'documentdb', 'salesforce'].includes(newSourceForm.sourceType) && (
-                          <div style={{ background: '#F8FAFC', border: '1px solid var(--border-subtle, #E2E8F0)', borderRadius: '8px', padding: '14px', display: 'grid', gap: '12px' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #E2E8F0', paddingBottom: '6px' }}>
-                              <span style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--text-main)' }}>Enterprise Endpoint Connection Parameters</span>
-                              <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>🔒 TLS 1.3 / Token Auth</span>
-                            </div>
-
-                            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '10px' }}>
-                              <div>
-                                <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Host / Endpoint URL / Account:</label>
-                                <input
-                                  type="text"
-                                  value={genericConfig.host}
-                                  onChange={e => setGenericConfig({ ...genericConfig, host: e.target.value })}
-                                  placeholder={`e.g. ${newSourceForm.sourceType}-cluster.prod.internal or https://${newSourceForm.sourceType}.corp.com`}
-                                  style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
-                                />
-                              </div>
-                              <div>
-                                <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Port (Optional):</label>
-                                <input
-                                  type="number"
-                                  value={genericConfig.port}
-                                  onChange={e => setGenericConfig({ ...genericConfig, port: e.target.value })}
-                                  placeholder="Default"
-                                  style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
-                                />
-                              </div>
-                            </div>
-
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                              <div>
-                                <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Database / Workspace / Project:</label>
-                                <input
-                                  type="text"
-                                  value={genericConfig.database}
-                                  onChange={e => setGenericConfig({ ...genericConfig, database: e.target.value })}
-                                  placeholder="analytics_prod or default"
-                                  style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
-                                />
-                              </div>
-                              <div>
-                                <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Target Schemas / Datasets:</label>
-                                <input
-                                  type="text"
-                                  value={genericConfig.schemas}
-                                  onChange={e => setGenericConfig({ ...genericConfig, schemas: e.target.value })}
-                                  placeholder="public, models, core"
-                                  style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
-                                />
-                              </div>
-                            </div>
-
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                              <div>
-                                <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Username / Service Account:</label>
-                                <input
-                                  type="text"
-                                  value={genericConfig.username}
-                                  onChange={e => setGenericConfig({ ...genericConfig, username: e.target.value })}
-                                  placeholder="service_account_bot"
-                                  style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
-                                />
-                              </div>
-                              <div>
-                                <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Password / API Key / Secret:</label>
-                                <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                                  <input
-                                    type={showPasswordMask ? "text" : "password"}
-                                    value={genericConfig.password}
-                                    onChange={e => setGenericConfig({ ...genericConfig, password: e.target.value })}
-                                    placeholder="••••••••"
-                                    style={{ width: '100%', padding: '7px 32px 7px 9px', fontSize: '0.82rem' }}
-                                  />
-                                  <button
-                                    type="button"
-                                    onClick={() => setShowPasswordMask(!showPasswordMask)}
-                                    style={{ position: 'absolute', right: '8px', background: 'none', border: 'none', cursor: 'pointer', color: '#64748B', display: 'flex', alignItems: 'center' }}
-                                  >
-                                    {showPasswordMask ? (
-                                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
-                                    ) : (
-                                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                                    )}
-                                  </button>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Authority Slider */}
-                        <div>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                            <label style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary, #475569)' }}>
-                              Trust Authority Level:
-                            </label>
-                            <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--primary, #2563EB)' }}>
-                              {newSourceForm.authorityLevel}%
-                            </span>
-                          </div>
-                          <input
-                            type="range"
-                            min="10"
-                            max="100"
-                            value={newSourceForm.authorityLevel}
-                            onChange={e => setNewSourceForm({ ...newSourceForm, authorityLevel: e.target.value })}
-                            style={{ width: '100%' }}
-                          />
-                          <div style={{ fontSize: '0.7rem', color: 'var(--text-muted, #64748B)' }}>
-                            High authority sources (90%+) supersede conflicting claims from lower authority sources.
-                          </div>
-                        </div>
-
-                        {/* Test Connection Diagnostic Result */}
-                        {testConnectionResult && (
-                          <div style={{
-                            padding: '10px 14px',
-                            borderRadius: '8px',
-                            fontSize: '0.78rem',
-                            background: testConnectionResult.success ? 'var(--badge-verified-bg, #F0FDF4)' : '#FEF2F2',
-                            border: `1px solid ${testConnectionResult.success ? 'var(--badge-verified-border, #BBF7D0)' : '#FCA5A5'}`,
-                            color: testConnectionResult.success ? 'var(--badge-verified-text, #15803D)' : '#B91C1C'
-                          }}>
-                            <div style={{ fontWeight: 800, marginBottom: '2px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                              <span>{testConnectionResult.success ? '✓ Pre-flight Diagnostic Passed' : '✕ Connection Diagnostic Failed'}</span>
-                            </div>
-                            <div>{testConnectionResult.message}</div>
-                            {testConnectionResult.details && Object.keys(testConnectionResult.details).length > 0 && (
-                              <div style={{ fontSize: '0.72rem', marginTop: '4px', opacity: 0.85 }}>
-                                Details: {JSON.stringify(testConnectionResult.details)}
-                              </div>
-                            )}
-                          </div>
-                        )}
-
-                        {/* Action Buttons */}
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px' }}>
-                          <button
-                            type="button"
-                            onClick={handleTestConnection}
-                            disabled={isTestingConnection}
-                            className="btn btn-secondary"
-                            style={{
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '6px',
-                              padding: '8px 14px',
-                              fontSize: '0.8rem',
-                              fontWeight: 600
-                            }}
-                          >
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
-                            </svg>
-                            {isTestingConnection ? "Running Diagnostic..." : "Test Connection"}
-                          </button>
-
-                          <div style={{ display: 'flex', gap: '8px' }}>
-                            <button
-                              type="button"
-                              onClick={() => { setDocExplorerView('connectors'); setTestConnectionResult(null); setIsConnectorDropdownOpen(false); }}
-                              className="btn btn-secondary"
-                              style={{ padding: '8px 16px', fontSize: '0.82rem', fontWeight: 600 }}
-                            >
-                              Cancel
-                            </button>
-                            <button
-                              type="submit"
-                              disabled={isConnectingSource}
-                              className="btn btn-primary"
-                              style={{ padding: '8px 20px', fontSize: '0.82rem', fontWeight: 700, background: '#EA580C', borderColor: '#EA580C', boxShadow: '0 2px 6px rgba(234, 88, 12, 0.25)' }}
-                            >
-                              {isConnectingSource ? "Connecting & Syncing..." : "Save & Sync Connection"}
-                            </button>
-                          </div>
-                        </div>
-                      </form>
                     </div>
                   )}
+                </div>
+
+                {/* Selected Connector Scope Banner */}
+                {(() => {
+                  const currentMeta = catalogConnectors.find(c => c.id === newSourceForm.sourceType) || selectedConnectorMeta || catalogConnectors[0];
+                  if (!currentMeta) return null;
+                  return (
+                    <div style={{
+                      background: '#F8FAFC',
+                      border: '1px solid var(--border-subtle, #E2E8F0)',
+                      borderRadius: '8px',
+                      padding: '12px 14px',
+                      marginBottom: '16px',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'flex-start'
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+                        <span style={{ fontSize: '1.5rem', lineHeight: 1 }}>{currentMeta.icon || '🔌'}</span>
+                        <div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '2px' }}>
+                            <span style={{ fontWeight: 800, fontSize: '0.88rem', color: 'var(--text-main, #0F172A)' }}>{currentMeta.name}</span>
+                            <span className="badge badge-verified" style={{ fontSize: '0.68rem' }}>{currentMeta.category_label}</span>
+                          </div>
+                          <div style={{ fontSize: '0.74rem', color: 'var(--text-secondary, #475569)', marginBottom: '4px' }}>{currentMeta.description}</div>
+                          <div style={{ fontSize: '0.72rem', color: 'var(--primary, #2563EB)', fontWeight: 600 }}>
+                            Monitored Contract Scope: {currentMeta.monitored_scope}
+                          </div>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setIsConnectorDropdownOpen(true)}
+                        style={{
+                          background: '#FFFFFF',
+                          border: '1px solid var(--border-medium, #CBD5E1)',
+                          borderRadius: '4px',
+                          padding: '3px 8px',
+                          fontSize: '0.72rem',
+                          fontWeight: 600,
+                          color: 'var(--text-secondary, #475569)',
+                          cursor: 'pointer',
+                          flexShrink: 0
+                        }}
+                      >
+                        Change
+                      </button>
+                    </div>
+                  );
+                })()}
+
+                <form onSubmit={handleConnectNewSource} style={{ display: 'grid', gap: '14px' }}>
+                  {/* Connection Instance Name */}
+                  <div>
+                    <label style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary, #475569)', display: 'block', marginBottom: '4px' }}>
+                      Connector Instance Name:
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Production Core Snowflake Warehouse"
+                      value={newSourceForm.name}
+                      onChange={e => setNewSourceForm({ ...newSourceForm, name: e.target.value })}
+                      style={{ width: '100%', padding: '8px 10px', fontSize: '0.84rem' }}
+                      required
+                    />
+                  </div>
+
+                  {/* 1. GITHUB SPECIFIC FIELDS */}
+                  {newSourceForm.sourceType === 'github' && (
+                    <div style={{ background: '#F8FAFC', border: '1px solid var(--border-subtle, #E2E8F0)', borderRadius: '8px', padding: '14px', display: 'grid', gap: '12px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #E2E8F0', paddingBottom: '6px' }}>
+                        <span style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--text-main)' }}>GitHub Repository Connection Parameters</span>
+                        <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>🔒 Token encrypted with AES-256 / pgcrypto</span>
+                      </div>
+
+                      <div>
+                        <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>GitHub Repository (owner/repo):</label>
+                        <input
+                          type="text"
+                          placeholder="e.g. facebook/react or my-org/security-standards"
+                          value={newSourceForm.githubRepo}
+                          onChange={e => setNewSourceForm({ ...newSourceForm, githubRepo: e.target.value })}
+                          style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
+                          required
+                        />
+                      </div>
+
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '10px' }}>
+                        <div>
+                          <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Branch:</label>
+                          <input
+                            type="text"
+                            value={newSourceForm.githubBranch}
+                            onChange={e => setNewSourceForm({ ...newSourceForm, githubBranch: e.target.value })}
+                            placeholder="main"
+                            style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
+                          />
+                        </div>
+
+                        <div>
+                          <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Personal Access Token (PAT):</label>
+                          <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                            <input
+                              type={showTokenMask ? "text" : "password"}
+                              value={newSourceForm.githubToken}
+                              onChange={e => setNewSourceForm({ ...newSourceForm, githubToken: e.target.value })}
+                              placeholder="ghp_... (Optional for public repos)"
+                              style={{ width: '100%', padding: '7px 32px 7px 9px', fontSize: '0.82rem' }}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowTokenMask(!showTokenMask)}
+                              style={{ position: 'absolute', right: '8px', background: 'none', border: 'none', cursor: 'pointer', color: '#64748B', display: 'flex', alignItems: 'center' }}
+                              title={showTokenMask ? "Hide token" : "Show token"}
+                            >
+                              {showTokenMask ? (
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                                  <line x1="1" y1="1" x2="23" y2="23"></line>
+                                </svg>
+                              ) : (
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                  <circle cx="12" cy="12" r="3"></circle>
+                                </svg>
+                              )}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 2. POSTGRESQL & RELATIONAL DATABASES */}
+                  {(['postgresql', 'postgres', 'cloud_sql_postgres', 'alloydb', 'mysql', 'sql_server', 'oracle', 'clickhouse'].includes(newSourceForm.sourceType)) && (
+                    <div style={{ background: '#F8FAFC', border: '1px solid var(--border-subtle, #E2E8F0)', borderRadius: '8px', padding: '14px', display: 'grid', gap: '12px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #E2E8F0', paddingBottom: '6px' }}>
+                        <span style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--text-main)' }}>Relational Database Connection Parameters</span>
+                        <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>🔒 Credentials stored in PostgreSQL</span>
+                      </div>
+
+                      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '10px' }}>
+                        <div>
+                          <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Host / Hostname:</label>
+                          <input
+                            type="text"
+                            value={newSourceForm.pgHost}
+                            onChange={e => setNewSourceForm({ ...newSourceForm, pgHost: e.target.value })}
+                            placeholder="localhost or db.internal"
+                            style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
+                          />
+                        </div>
+                        <div>
+                          <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Port:</label>
+                          <input
+                            type="number"
+                            value={newSourceForm.pgPort}
+                            onChange={e => setNewSourceForm({ ...newSourceForm, pgPort: e.target.value })}
+                            style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
+                          />
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                        <div>
+                          <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Database Name:</label>
+                          <input
+                            type="text"
+                            value={newSourceForm.pgDatabase}
+                            onChange={e => setNewSourceForm({ ...newSourceForm, pgDatabase: e.target.value })}
+                            placeholder="enterprise_core"
+                            style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
+                          />
+                        </div>
+                        <div>
+                          <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Target Schemas (comma-separated):</label>
+                          <input
+                            type="text"
+                            value={newSourceForm.pgSchemas}
+                            onChange={e => setNewSourceForm({ ...newSourceForm, pgSchemas: e.target.value })}
+                            placeholder="public, analytics"
+                            style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
+                          />
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                        <div>
+                          <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Username:</label>
+                          <input
+                            type="text"
+                            value={newSourceForm.pgUsername}
+                            onChange={e => setNewSourceForm({ ...newSourceForm, pgUsername: e.target.value })}
+                            placeholder="postgres"
+                            style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
+                          />
+                        </div>
+                        <div>
+                          <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Password:</label>
+                          <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                            <input
+                              type={showPasswordMask ? "text" : "password"}
+                              value={newSourceForm.pgPassword}
+                              onChange={e => setNewSourceForm({ ...newSourceForm, pgPassword: e.target.value })}
+                              placeholder="••••••••"
+                              style={{ width: '100%', padding: '7px 32px 7px 9px', fontSize: '0.82rem' }}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowPasswordMask(!showPasswordMask)}
+                              style={{ position: 'absolute', right: '8px', background: 'none', border: 'none', cursor: 'pointer', color: '#64748B', display: 'flex', alignItems: 'center' }}
+                              title={showPasswordMask ? "Hide password" : "Show password"}
+                            >
+                              {showPasswordMask ? (
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                                  <line x1="1" y1="1" x2="23" y2="23"></line>
+                                </svg>
+                              ) : (
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                  <circle cx="12" cy="12" r="3"></circle>
+                                </svg>
+                              )}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 3. SNOWFLAKE SPECIFIC FIELDS */}
+                  {newSourceForm.sourceType === 'snowflake' && (
+                    <div style={{ background: '#F8FAFC', border: '1px solid var(--border-subtle, #E2E8F0)', borderRadius: '8px', padding: '14px', display: 'grid', gap: '12px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #E2E8F0', paddingBottom: '6px' }}>
+                        <span style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--text-main)' }}>Snowflake Data Cloud Parameters</span>
+                        <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>🔒 Snowflake Role-Based Auth</span>
+                      </div>
+
+                      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '10px' }}>
+                        <div>
+                          <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Account Identifier (org-account):</label>
+                          <input
+                            type="text"
+                            value={genericConfig.host}
+                            onChange={e => setGenericConfig({ ...genericConfig, host: e.target.value })}
+                            placeholder="xy12345.us-east-1 or company.snowflakecomputing.com"
+                            style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
+                          />
+                        </div>
+                        <div>
+                          <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Warehouse:</label>
+                          <input
+                            type="text"
+                            value={genericConfig.port}
+                            onChange={e => setGenericConfig({ ...genericConfig, port: e.target.value })}
+                            placeholder="COMPUTE_WH"
+                            style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
+                          />
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                        <div>
+                          <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Database Name:</label>
+                          <input
+                            type="text"
+                            value={genericConfig.database}
+                            onChange={e => setGenericConfig({ ...genericConfig, database: e.target.value })}
+                            placeholder="ANALYTICS_PROD"
+                            style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
+                          />
+                        </div>
+                        <div>
+                          <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Target Schema:</label>
+                          <input
+                            type="text"
+                            value={genericConfig.schemas}
+                            onChange={e => setGenericConfig({ ...genericConfig, schemas: e.target.value })}
+                            placeholder="PUBLIC, CORE"
+                            style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
+                          />
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                        <div>
+                          <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Username / Service Role:</label>
+                          <input
+                            type="text"
+                            value={genericConfig.username}
+                            onChange={e => setGenericConfig({ ...genericConfig, username: e.target.value })}
+                            placeholder="DW_SVC_USER"
+                            style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
+                          />
+                        </div>
+                        <div>
+                          <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Password / Key:</label>
+                          <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                            <input
+                              type={showPasswordMask ? "text" : "password"}
+                              value={genericConfig.password}
+                              onChange={e => setGenericConfig({ ...genericConfig, password: e.target.value })}
+                              placeholder="••••••••"
+                              style={{ width: '100%', padding: '7px 32px 7px 9px', fontSize: '0.82rem' }}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowPasswordMask(!showPasswordMask)}
+                              style={{ position: 'absolute', right: '8px', background: 'none', border: 'none', cursor: 'pointer', color: '#64748B', display: 'flex', alignItems: 'center' }}
+                            >
+                              {showPasswordMask ? (
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                              ) : (
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                              )}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 4. AMAZON S3 FIELDS */}
+                  {newSourceForm.sourceType === 's3' && (
+                    <div style={{ background: '#F8FAFC', border: '1px solid var(--border-subtle, #E2E8F0)', borderRadius: '8px', padding: '14px', display: 'grid', gap: '12px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #E2E8F0', paddingBottom: '6px' }}>
+                        <span style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--text-main)' }}>Amazon S3 Bucket Storage Parameters</span>
+                        <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>🔒 AWS SigV4 Auth</span>
+                      </div>
+
+                      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '10px' }}>
+                        <div>
+                          <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>S3 Bucket Name:</label>
+                          <input
+                            type="text"
+                            value={genericConfig.database}
+                            onChange={e => setGenericConfig({ ...genericConfig, database: e.target.value })}
+                            placeholder="enterprise-lakehouse-contracts"
+                            style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
+                          />
+                        </div>
+                        <div>
+                          <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>AWS Region:</label>
+                          <input
+                            type="text"
+                            value={genericConfig.host}
+                            onChange={e => setGenericConfig({ ...genericConfig, host: e.target.value })}
+                            placeholder="us-east-1"
+                            style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
+                          />
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                        <div>
+                          <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>AWS Access Key ID:</label>
+                          <input
+                            type="text"
+                            value={genericConfig.username}
+                            onChange={e => setGenericConfig({ ...genericConfig, username: e.target.value })}
+                            placeholder="AKIAIOSFODNN7EXAMPLE"
+                            style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
+                          />
+                        </div>
+                        <div>
+                          <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Secret Access Key:</label>
+                          <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                            <input
+                              type={showPasswordMask ? "text" : "password"}
+                              value={genericConfig.password}
+                              onChange={e => setGenericConfig({ ...genericConfig, password: e.target.value })}
+                              placeholder="••••••••"
+                              style={{ width: '100%', padding: '7px 32px 7px 9px', fontSize: '0.82rem' }}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowPasswordMask(!showPasswordMask)}
+                              style={{ position: 'absolute', right: '8px', background: 'none', border: 'none', cursor: 'pointer', color: '#64748B', display: 'flex', alignItems: 'center' }}
+                            >
+                              {showPasswordMask ? (
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                              ) : (
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                              )}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Folder Prefix / Scope Path:</label>
+                        <input
+                          type="text"
+                          value={genericConfig.schemas}
+                          onChange={e => setGenericConfig({ ...genericConfig, schemas: e.target.value })}
+                          placeholder="policies/, compliance/contracts/v1/"
+                          style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 5. APACHE KAFKA & STREAMING */}
+                  {(['kafka', 'apache_kafka', 'confluent_kafka', 'amazon_msk', 'aiven_kafka', 'redpanda_kafka'].includes(newSourceForm.sourceType)) && (
+                    <div style={{ background: '#F8FAFC', border: '1px solid var(--border-subtle, #E2E8F0)', borderRadius: '8px', padding: '14px', display: 'grid', gap: '12px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #E2E8F0', paddingBottom: '6px' }}>
+                        <span style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--text-main)' }}>Streaming & Topic Topology Parameters</span>
+                        <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>🔒 TLS / SASL Protocol</span>
+                      </div>
+
+                      <div>
+                        <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Bootstrap Servers (host:port):</label>
+                        <input
+                          type="text"
+                          value={newSourceForm.kafkaBootstrap}
+                          onChange={e => setNewSourceForm({ ...newSourceForm, kafkaBootstrap: e.target.value })}
+                          placeholder="kafka-cluster-prod.internal:9092"
+                          style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
+                        />
+                      </div>
+
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                        <div>
+                          <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Security Protocol:</label>
+                          <select
+                            value={newSourceForm.kafkaSecurityProtocol}
+                            onChange={e => setNewSourceForm({ ...newSourceForm, kafkaSecurityProtocol: e.target.value })}
+                            style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
+                          >
+                            <option value="PLAINTEXT">PLAINTEXT</option>
+                            <option value="SSL">SSL</option>
+                            <option value="SASL_PLAINTEXT">SASL_PLAINTEXT</option>
+                            <option value="SASL_SSL">SASL_SSL</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Schema Registry URL:</label>
+                          <input
+                            type="text"
+                            value={newSourceForm.kafkaSchemaRegistry}
+                            onChange={e => setNewSourceForm({ ...newSourceForm, kafkaSchemaRegistry: e.target.value })}
+                            placeholder="http://schema-registry:8081"
+                            style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Monitored Topics (comma-separated):</label>
+                        <input
+                          type="text"
+                          value={newSourceForm.kafkaTopics}
+                          onChange={e => setNewSourceForm({ ...newSourceForm, kafkaTopics: e.target.value })}
+                          placeholder="financial.payments.settled.v1, security.audit.access.v2"
+                          style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 6. MONGODB & DOCUMENT DATABASES */}
+                  {(['mongodb', 'mongodb_atlas', 'mongodb_self', 'documentdb'].includes(newSourceForm.sourceType)) && (
+                    <div style={{ background: '#F8FAFC', border: '1px solid var(--border-subtle, #E2E8F0)', borderRadius: '8px', padding: '14px', display: 'grid', gap: '12px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #E2E8F0', paddingBottom: '6px' }}>
+                        <span style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--text-main)' }}>Document Database Parameters</span>
+                        <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>🔒 MongoDB Connection URI</span>
+                      </div>
+
+                      <div>
+                        <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Connection URI:</label>
+                        <input
+                          type="text"
+                          value={newSourceForm.mongoUri}
+                          onChange={e => setNewSourceForm({ ...newSourceForm, mongoUri: e.target.value })}
+                          placeholder="mongodb://production-cluster:27017 or mongodb+srv://..."
+                          style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
+                        />
+                      </div>
+
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                        <div>
+                          <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Database Name:</label>
+                          <input
+                            type="text"
+                            value={newSourceForm.mongoDatabase}
+                            onChange={e => setNewSourceForm({ ...newSourceForm, mongoDatabase: e.target.value })}
+                            placeholder="production"
+                            style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
+                          />
+                        </div>
+                        <div>
+                          <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Target Collections:</label>
+                          <input
+                            type="text"
+                            value={newSourceForm.mongoCollections}
+                            onChange={e => setNewSourceForm({ ...newSourceForm, mongoCollections: e.target.value })}
+                            placeholder="refund_orders, user_entitlements"
+                            style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 7. SALESFORCE CRM */}
+                  {newSourceForm.sourceType === 'salesforce' && (
+                    <div style={{ background: '#F8FAFC', border: '1px solid var(--border-subtle, #E2E8F0)', borderRadius: '8px', padding: '14px', display: 'grid', gap: '12px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #E2E8F0', paddingBottom: '6px' }}>
+                        <span style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--text-main)' }}>Salesforce Connected App Parameters</span>
+                        <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>🔒 OAuth 2.0 Client Secret</span>
+                      </div>
+
+                      <div>
+                        <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Salesforce Instance URL:</label>
+                        <input
+                          type="text"
+                          value={newSourceForm.sfInstanceUrl}
+                          onChange={e => setNewSourceForm({ ...newSourceForm, sfInstanceUrl: e.target.value })}
+                          placeholder="https://company.my.salesforce.com"
+                          style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
+                        />
+                      </div>
+
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                        <div>
+                          <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Connected App Client ID:</label>
+                          <input
+                            type="text"
+                            value={newSourceForm.sfClientId}
+                            onChange={e => setNewSourceForm({ ...newSourceForm, sfClientId: e.target.value })}
+                            placeholder="3MVG9..."
+                            style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
+                          />
+                        </div>
+                        <div>
+                          <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Client Secret:</label>
+                          <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                            <input
+                              type={showPasswordMask ? "text" : "password"}
+                              value={newSourceForm.sfClientSecret}
+                              onChange={e => setNewSourceForm({ ...newSourceForm, sfClientSecret: e.target.value })}
+                              placeholder="••••••••"
+                              style={{ width: '100%', padding: '7px 32px 7px 9px', fontSize: '0.82rem' }}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowPasswordMask(!showPasswordMask)}
+                              style={{ position: 'absolute', right: '8px', background: 'none', border: 'none', cursor: 'pointer', color: '#64748B', display: 'flex', alignItems: 'center' }}
+                            >
+                              {showPasswordMask ? (
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                              ) : (
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                              )}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Target SObjects to Ingest (comma-separated):</label>
+                        <input
+                          type="text"
+                          value={newSourceForm.sfObjects}
+                          onChange={e => setNewSourceForm({ ...newSourceForm, sfObjects: e.target.value })}
+                          placeholder="Contract, Refund_Request__c, Case, Opportunity"
+                          style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 8. UNIVERSAL DRIVER CONFIGURATION FOR ALL OTHER ENTERPRISE CONNECTORS */}
+                  {!['github', 'postgresql', 'postgres', 'cloud_sql_postgres', 'alloydb', 'mysql', 'sql_server', 'oracle', 'clickhouse', 'snowflake', 's3', 'kafka', 'apache_kafka', 'confluent_kafka', 'amazon_msk', 'aiven_kafka', 'redpanda_kafka', 'mongodb', 'mongodb_atlas', 'mongodb_self', 'documentdb', 'salesforce'].includes(newSourceForm.sourceType) && (
+                    <div style={{ background: '#F8FAFC', border: '1px solid var(--border-subtle, #E2E8F0)', borderRadius: '8px', padding: '14px', display: 'grid', gap: '12px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #E2E8F0', paddingBottom: '6px' }}>
+                        <span style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--text-main)' }}>Enterprise Endpoint Connection Parameters</span>
+                        <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>🔒 TLS 1.3 / Token Auth</span>
+                      </div>
+
+                      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '10px' }}>
+                        <div>
+                          <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Host / Endpoint URL / Account:</label>
+                          <input
+                            type="text"
+                            value={genericConfig.host}
+                            onChange={e => setGenericConfig({ ...genericConfig, host: e.target.value })}
+                            placeholder={`e.g. ${newSourceForm.sourceType}-cluster.prod.internal or https://${newSourceForm.sourceType}.corp.com`}
+                            style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
+                          />
+                        </div>
+                        <div>
+                          <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Port (Optional):</label>
+                          <input
+                            type="number"
+                            value={genericConfig.port}
+                            onChange={e => setGenericConfig({ ...genericConfig, port: e.target.value })}
+                            placeholder="Default"
+                            style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
+                          />
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                        <div>
+                          <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Database / Workspace / Project:</label>
+                          <input
+                            type="text"
+                            value={genericConfig.database}
+                            onChange={e => setGenericConfig({ ...genericConfig, database: e.target.value })}
+                            placeholder="analytics_prod or default"
+                            style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
+                          />
+                        </div>
+                        <div>
+                          <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Target Schemas / Datasets:</label>
+                          <input
+                            type="text"
+                            value={genericConfig.schemas}
+                            onChange={e => setGenericConfig({ ...genericConfig, schemas: e.target.value })}
+                            placeholder="public, models, core"
+                            style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
+                          />
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                        <div>
+                          <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Username / Service Account:</label>
+                          <input
+                            type="text"
+                            value={genericConfig.username}
+                            onChange={e => setGenericConfig({ ...genericConfig, username: e.target.value })}
+                            placeholder="service_account_bot"
+                            style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
+                          />
+                        </div>
+                        <div>
+                          <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Password / API Key / Secret:</label>
+                          <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                            <input
+                              type={showPasswordMask ? "text" : "password"}
+                              value={genericConfig.password}
+                              onChange={e => setGenericConfig({ ...genericConfig, password: e.target.value })}
+                              placeholder="••••••••"
+                              style={{ width: '100%', padding: '7px 32px 7px 9px', fontSize: '0.82rem' }}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowPasswordMask(!showPasswordMask)}
+                              style={{ position: 'absolute', right: '8px', background: 'none', border: 'none', cursor: 'pointer', color: '#64748B', display: 'flex', alignItems: 'center' }}
+                            >
+                              {showPasswordMask ? (
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                              ) : (
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                              )}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Authority Slider */}
+                  <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                      <label style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary, #475569)' }}>
+                        Trust Authority Level:
+                      </label>
+                      <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--primary, #2563EB)' }}>
+                        {newSourceForm.authorityLevel}%
+                      </span>
+                    </div>
+                    <input
+                      type="range"
+                      min="10"
+                      max="100"
+                      value={newSourceForm.authorityLevel}
+                      onChange={e => setNewSourceForm({ ...newSourceForm, authorityLevel: e.target.value })}
+                      style={{ width: '100%' }}
+                    />
+                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted, #64748B)' }}>
+                      High authority sources (90%+) supersede conflicting claims from lower authority sources.
+                    </div>
+                  </div>
+
+                  {/* Test Connection Diagnostic Result */}
+                  {testConnectionResult && (
+                    <div style={{
+                      padding: '10px 14px',
+                      borderRadius: '8px',
+                      fontSize: '0.78rem',
+                      background: testConnectionResult.success ? 'var(--badge-verified-bg, #F0FDF4)' : '#FEF2F2',
+                      border: `1px solid ${testConnectionResult.success ? 'var(--badge-verified-border, #BBF7D0)' : '#FCA5A5'}`,
+                      color: testConnectionResult.success ? 'var(--badge-verified-text, #15803D)' : '#B91C1C'
+                    }}>
+                      <div style={{ fontWeight: 800, marginBottom: '2px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span>{testConnectionResult.success ? '✓ Pre-flight Diagnostic Passed' : '✕ Connection Diagnostic Failed'}</span>
+                      </div>
+                      <div>{testConnectionResult.message}</div>
+                      {testConnectionResult.details && Object.keys(testConnectionResult.details).length > 0 && (
+                        <div style={{ fontSize: '0.72rem', marginTop: '4px', opacity: 0.85 }}>
+                          Details: {JSON.stringify(testConnectionResult.details)}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Action Buttons */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px' }}>
+                    <button
+                      type="button"
+                      onClick={handleTestConnection}
+                      disabled={isTestingConnection}
+                      className="btn btn-secondary"
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        padding: '8px 14px',
+                        fontSize: '0.8rem',
+                        fontWeight: 600
+                      }}
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                      </svg>
+                      {isTestingConnection ? "Running Diagnostic..." : "Test Connection"}
+                    </button>
+
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <button
+                        type="button"
+                        onClick={() => { setDocExplorerView('connectors'); setTestConnectionResult(null); setIsConnectorDropdownOpen(false); }}
+                        className="btn btn-secondary"
+                        style={{ padding: '8px 16px', fontSize: '0.82rem', fontWeight: 600 }}
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={isConnectingSource}
+                        className="btn btn-primary"
+                        style={{ padding: '8px 20px', fontSize: '0.82rem', fontWeight: 700, background: '#EA580C', borderColor: '#EA580C', boxShadow: '0 2px 6px rgba(234, 88, 12, 0.25)' }}
+                      >
+                        {isConnectingSource ? "Connecting & Syncing..." : "Save & Sync Connection"}
+                      </button>
+                    </div>
+                  </div>
+                </form>
+              </div>
+            )}
 
             {/* VIEW 1: LIVE INGESTION STUDIO & CLAIM EXTRACTOR */}
             {docExplorerView === 'ingest' && (
@@ -5911,49 +5911,49 @@ export default function App() {
                               </div>
                             </div>
 
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px', paddingTop: '10px', borderTop: '1px solid var(--border-subtle)', fontSize: '0.74rem', color: 'var(--text-muted)', flexWrap: 'wrap', gap: '8px' }}>
-                            <span>SHA-256 Hash: <code style={{ color: 'var(--text-secondary)' }}>{doc.content_hash?.substring(0, 24)}...</code></span>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                              <span>Versions: <strong style={{ color: 'var(--primary)' }}>{doc.versions?.length || 1}</strong></span>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setSelectedLineageAssetId(doc.id);
-                                  setVaultSubTab('documents');
-                                  setActiveTab('visual_lineage');
-                                }}
-                                className="btn btn-primary"
-                                style={{
-                                  padding: '5px 12px',
-                                  fontSize: '0.74rem',
-                                  fontWeight: 700,
-                                  display: 'inline-flex',
-                                  alignItems: 'center',
-                                  gap: '5px'
-                                }}
-                                title="Open document in Lineage & 360° Facilities Viewer"
-                              >
-                                <span>📄 View in Lineage & 360</span>
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => setInspectorState({
-                                  isOpen: true,
-                                  assetType: 'document',
-                                  assetId: doc.id,
-                                  assetTitle: doc.title
-                                })}
-                                className="btn btn-secondary"
-                                style={{ padding: '5px 12px', fontSize: '0.74rem', fontWeight: 700, color: 'var(--primary, #2563EB)', borderColor: 'var(--primary, #2563EB)' }}
-                                title="Deep-dive into this document's atomic claims, conflicts, and provenance"
-                              >
-                                🔍 Inspect Claims & Conflicts ➔
-                              </button>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px', paddingTop: '10px', borderTop: '1px solid var(--border-subtle)', fontSize: '0.74rem', color: 'var(--text-muted)', flexWrap: 'wrap', gap: '8px' }}>
+                              <span>SHA-256 Hash: <code style={{ color: 'var(--text-secondary)' }}>{doc.content_hash?.substring(0, 24)}...</code></span>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                <span>Versions: <strong style={{ color: 'var(--primary)' }}>{doc.versions?.length || 1}</strong></span>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setSelectedLineageAssetId(doc.id);
+                                    setVaultSubTab('documents');
+                                    setActiveTab('visual_lineage');
+                                  }}
+                                  className="btn btn-primary"
+                                  style={{
+                                    padding: '5px 12px',
+                                    fontSize: '0.74rem',
+                                    fontWeight: 700,
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '5px'
+                                  }}
+                                  title="Open document in Lineage & 360° Facilities Viewer"
+                                >
+                                  <span>📄 View in Lineage & 360</span>
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setInspectorState({
+                                    isOpen: true,
+                                    assetType: 'document',
+                                    assetId: doc.id,
+                                    assetTitle: doc.title
+                                  })}
+                                  className="btn btn-secondary"
+                                  style={{ padding: '5px 12px', fontSize: '0.74rem', fontWeight: 700, color: 'var(--primary, #2563EB)', borderColor: 'var(--primary, #2563EB)' }}
+                                  title="Deep-dive into this document's atomic claims, conflicts, and provenance"
+                                >
+                                  🔍 Inspect Claims & Conflicts ➔
+                                </button>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      );
-                    })}
+                        );
+                      })}
                   </div>
                 )}
               </div>
@@ -6042,94 +6042,94 @@ export default function App() {
               </div>
             </div>
 
-              {/* 6 Compliance KPI Summary Cards */}
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
-                gap: '12px',
-                marginTop: '20px'
-              }}>
-                <div style={{ background: 'var(--bg-card-subtle)', padding: '14px 16px', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
-                  <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>
-                    Total Decisions
-                  </div>
-                  <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--text-main)', marginTop: '4px' }}>
-                    {auditSummary.total_decisions}
-                  </div>
-                  <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '2px' }}>
-                    100% Provenance Captured
-                  </div>
+            {/* 6 Compliance KPI Summary Cards */}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
+              gap: '12px',
+              marginTop: '20px'
+            }}>
+              <div style={{ background: 'var(--bg-card-subtle)', padding: '14px 16px', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
+                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>
+                  Total Decisions
                 </div>
-
-                <div style={{ background: 'var(--bg-card-subtle)', padding: '14px 16px', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
-                  <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>
-                    Policy Allow Rate
-                  </div>
-                  <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--success-text)', marginTop: '4px' }}>
-                    {auditSummary.allow_rate_pct}%
-                  </div>
-                  <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '2px' }}>
-                    {auditSummary.allow_count} Allowed / {auditSummary.block_count} Blocked
-                  </div>
+                <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--text-main)', marginTop: '4px' }}>
+                  {auditSummary.total_decisions}
                 </div>
-
-                <div style={{ background: 'var(--bg-card-subtle)', padding: '14px 16px', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
-                  <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>
-                    Risk Interceptions
-                  </div>
-                  <div style={{ fontSize: '1.6rem', fontWeight: 800, color: auditSummary.block_count > 0 ? 'var(--danger-text, #ef4444)' : 'var(--text-main)', marginTop: '4px' }}>
-                    {auditSummary.block_count + auditSummary.review_count}
-                  </div>
-                  <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '2px' }}>
-                    {auditSummary.high_risk_count} High Risk Blocked
-                  </div>
-                </div>
-
-                <div 
-                  onClick={() => setIsRoiModalOpen(true)}
-                  style={{ background: '#ECFDF5', padding: '14px 16px', borderRadius: '8px', border: '1px solid #A7F3D0', cursor: 'pointer', transition: 'transform 0.15s ease' }}
-                  onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
-                  onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
-                  title="Click to view full Financial Liability ROI breakdown"
-                >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ fontSize: '0.72rem', color: '#047857', fontWeight: 700, textTransform: 'uppercase' }}>
-                      Liability Prevented
-                    </div>
-                    <span className="badge badge-allow" style={{ fontSize: '0.62rem', padding: '1px 5px' }}>ROI View</span>
-                  </div>
-                  <div style={{ fontSize: '1.6rem', fontWeight: 900, color: '#059669', marginTop: '4px' }}>
-                    ${auditSummary.financial_liability_prevented_usd ? Number(auditSummary.financial_liability_prevented_usd).toLocaleString() : '0'}
-                  </div>
-                  <div style={{ fontSize: '0.7rem', color: '#047857', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <span>💰</span> {auditSummary.total_blocked_incidents || (auditSummary.block_count + auditSummary.review_count)} Incidents Intercepted
-                  </div>
-                </div>
-
-                <div style={{ background: 'var(--bg-card-subtle)', padding: '14px 16px', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
-                  <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>
-                    Crypto Signatures
-                  </div>
-                  <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--primary)', marginTop: '4px' }}>
-                    100% SHA-256
-                  </div>
-                  <div style={{ fontSize: '0.7rem', color: 'var(--success-text)', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <span>✓</span> Tamper-Evident Chain
-                  </div>
-                </div>
-
-                <div style={{ background: 'var(--bg-card-subtle)', padding: '14px 16px', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
-                  <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>
-                    Avg Gate Latency
-                  </div>
-                  <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--text-main)', marginTop: '4px' }}>
-                    {auditSummary.avg_latency_ms} <span style={{ fontSize: '0.9rem', fontWeight: 600 }}>ms</span>
-                  </div>
-                  <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '2px' }}>
-                    Real-time inline guard
-                  </div>
+                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                  100% Provenance Captured
                 </div>
               </div>
+
+              <div style={{ background: 'var(--bg-card-subtle)', padding: '14px 16px', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
+                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>
+                  Policy Allow Rate
+                </div>
+                <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--success-text)', marginTop: '4px' }}>
+                  {auditSummary.allow_rate_pct}%
+                </div>
+                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                  {auditSummary.allow_count} Allowed / {auditSummary.block_count} Blocked
+                </div>
+              </div>
+
+              <div style={{ background: 'var(--bg-card-subtle)', padding: '14px 16px', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
+                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>
+                  Risk Interceptions
+                </div>
+                <div style={{ fontSize: '1.6rem', fontWeight: 800, color: auditSummary.block_count > 0 ? 'var(--danger-text, #ef4444)' : 'var(--text-main)', marginTop: '4px' }}>
+                  {auditSummary.block_count + auditSummary.review_count}
+                </div>
+                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                  {auditSummary.high_risk_count} High Risk Blocked
+                </div>
+              </div>
+
+              <div
+                onClick={() => setIsRoiModalOpen(true)}
+                style={{ background: '#ECFDF5', padding: '14px 16px', borderRadius: '8px', border: '1px solid #A7F3D0', cursor: 'pointer', transition: 'transform 0.15s ease' }}
+                onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
+                onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+                title="Click to view full Financial Liability ROI breakdown"
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ fontSize: '0.72rem', color: '#047857', fontWeight: 700, textTransform: 'uppercase' }}>
+                    Liability Prevented
+                  </div>
+                  <span className="badge badge-allow" style={{ fontSize: '0.62rem', padding: '1px 5px' }}>ROI View</span>
+                </div>
+                <div style={{ fontSize: '1.6rem', fontWeight: 900, color: '#059669', marginTop: '4px' }}>
+                  ${auditSummary.financial_liability_prevented_usd ? Number(auditSummary.financial_liability_prevented_usd).toLocaleString() : '0'}
+                </div>
+                <div style={{ fontSize: '0.7rem', color: '#047857', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <span>💰</span> {auditSummary.total_blocked_incidents || (auditSummary.block_count + auditSummary.review_count)} Incidents Intercepted
+                </div>
+              </div>
+
+              <div style={{ background: 'var(--bg-card-subtle)', padding: '14px 16px', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
+                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>
+                  Crypto Signatures
+                </div>
+                <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--primary)', marginTop: '4px' }}>
+                  100% SHA-256
+                </div>
+                <div style={{ fontSize: '0.7rem', color: 'var(--success-text)', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <span>✓</span> Tamper-Evident Chain
+                </div>
+              </div>
+
+              <div style={{ background: 'var(--bg-card-subtle)', padding: '14px 16px', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
+                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>
+                  Avg Gate Latency
+                </div>
+                <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--text-main)', marginTop: '4px' }}>
+                  {auditSummary.avg_latency_ms} <span style={{ fontSize: '0.9rem', fontWeight: 600 }}>ms</span>
+                </div>
+                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                  Real-time inline guard
+                </div>
+              </div>
+            </div>
 
             {/* Filter Toolbar & Live Audit Log Stream */}
             <div className="clean-panel" style={{ padding: '20px', background: 'var(--bg-card)' }}>
@@ -6373,7 +6373,7 @@ export default function App() {
         {/* ========================================================= */}
         {activeTab === 'visual_lineage' && (
           <div>
-            
+
             <VisualLineageGraph
               activeOrg={activeOrg}
               activeWorkspace={activeWorkspace}

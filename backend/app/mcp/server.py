@@ -23,7 +23,118 @@ from app.retrieval.engine import ContextRetrievalEngine
 
 MCP_PROTOCOL_VERSION = "2024-11-05"
 MCP_SERVER_NAME = "context-trust-layer"
-MCP_SERVER_VERSION = "0.1.0"
+MCP_SERVER_VERSION = "0.2.0"
+
+# -------------------------------------------------------------
+# MCP Resources Definitions (Read-only Context Data Streams)
+# -------------------------------------------------------------
+MCP_RESOURCES = [
+    {
+        "uri": "context://claims/verified",
+        "name": "Verified Atomic Claims",
+        "description": "Live stream of verified, high-trust enterprise policy statements and authority scores.",
+        "mimeType": "application/json"
+    },
+    {
+        "uri": "context://documents/active",
+        "name": "Active Ingested Documents",
+        "description": "Catalog of all synchronized enterprise sources (Slack, Notion, Confluence, G-Drive) and metadata.",
+        "mimeType": "application/json"
+    },
+    {
+        "uri": "context://contradictions/active",
+        "name": "Active Policy Contradictions",
+        "description": "Real-time ledger of cross-source policy disputes and contradiction alerts requiring data steward reconciliation.",
+        "mimeType": "application/json"
+    },
+    {
+        "uri": "context://audit/health",
+        "name": "Context Decay & Health Audit",
+        "description": "Tenant governance health, decay curve distribution, and trust index breakdown.",
+        "mimeType": "application/json"
+    },
+    {
+        "uri": "context://policies/active",
+        "name": "Core Enterprise Governance Baseline",
+        "description": "High-authority enterprise baseline standards for finance, SecOps, HR, and customer support.",
+        "mimeType": "application/json"
+    }
+]
+
+MCP_RESOURCE_TEMPLATES = [
+    {
+        "uriTemplate": "context://claims/{claim_id}",
+        "name": "Specific Claim Lineage & Evidence",
+        "description": "Fetches a single atomic claim along with its evidence chain, validity decay status, and trust score history.",
+        "mimeType": "application/json"
+    },
+    {
+        "uriTemplate": "context://documents/{document_id}",
+        "name": "Document Claims Extracted",
+        "description": "Fetches all atomic claims and extracted lineage for a specific source document ID.",
+        "mimeType": "application/json"
+    }
+]
+
+# -------------------------------------------------------------
+# MCP Prompts Definitions (Pre-Engineered Governed System Prompts)
+# -------------------------------------------------------------
+MCP_PROMPTS = [
+    {
+        "name": "governed_financial_decision",
+        "description": "Pre-execution financial decision prompt enforcing SOX approval thresholds, dispute limits, and role entitlements.",
+        "arguments": [
+            {
+                "name": "action_description",
+                "description": "The financial action or refund to evaluate (e.g. 'Issue $5,000 goodwill credit to account')",
+                "required": True
+            },
+            {
+                "name": "amount_usd",
+                "description": "Dollar transaction amount",
+                "required": False
+            }
+        ]
+    },
+    {
+        "name": "sox_compliance_audit",
+        "description": "Segregation-of-duties review prompt ensuring hotfixes, access grants, and ledger changes maintain four-eyes validation.",
+        "arguments": [
+            {
+                "name": "system_name",
+                "description": "Core service or ledger target name",
+                "required": True
+            }
+        ]
+    },
+    {
+        "name": "zero_trust_retrieval",
+        "description": "Context grounding prompt requiring strict citation of high-trust verified claims with decay curve validation.",
+        "arguments": [
+            {
+                "name": "inquiry",
+                "description": "The enterprise topic or policy question",
+                "required": True
+            }
+        ]
+    },
+    {
+        "name": "secops_ingress_approval",
+        "description": "Zero-trust network policy evaluation prompt checking production firewall rules against SecOps cryptographic key rotation rules.",
+        "arguments": [
+            {
+                "name": "service_name",
+                "description": "Target production service name",
+                "required": True
+            },
+            {
+                "name": "port",
+                "description": "Target port or protocol",
+                "required": True
+            }
+        ]
+    }
+]
 
 # -------------------------------------------------------------
 # MCP Tool Definitions (JSON Schema conforming to MCP Spec)
@@ -634,5 +745,214 @@ async def execute_mcp_tool(tool_name: str, arguments: Dict[str, Any], session: A
     if not handler:
         raise ValueError(f"Tool '{tool_name}' not found. Available tools: {list(TOOL_HANDLERS.keys())}")
     return await handler(session, arguments)
+
+
+# -------------------------------------------------------------
+# MCP Resources Execution Handler
+# -------------------------------------------------------------
+async def execute_mcp_resource(uri: str, session: AsyncSession) -> Dict[str, Any]:
+    from app.db.models.document import Document
+    demo_org_id = uuid.UUID("11111111-1111-1111-1111-111111111111")
+
+    if uri == "context://claims/verified":
+        stmt = select(Claim).where(Claim.organization_id == demo_org_id).limit(30)
+        res = await session.execute(stmt)
+        claims = res.scalars().all()
+        return {
+            "uri": uri,
+            "mimeType": "application/json",
+            "text": json.dumps([
+                {
+                    "id": str(c.id),
+                    "claim_text": c.claim_text,
+                    "status": str(c.status),
+                    "created_at": c.created_at.isoformat() if c.created_at else None
+                } for c in claims
+            ], indent=2)
+        }
+
+    elif uri == "context://documents/active":
+        stmt = select(Document).where(Document.organization_id == demo_org_id).limit(20)
+        res = await session.execute(stmt)
+        docs = res.scalars().all()
+        return {
+            "uri": uri,
+            "mimeType": "application/json",
+            "text": json.dumps([
+                {
+                    "id": str(d.id),
+                    "title": d.title,
+                    "source_type": d.source_type,
+                    "sync_status": str(d.sync_status) if hasattr(d, "sync_status") else "active"
+                } for d in docs
+            ], indent=2)
+        }
+
+    elif uri == "context://contradictions/active":
+        stmt = select(ClaimConflict).where(
+            ClaimConflict.organization_id == demo_org_id,
+            ClaimConflict.resolution_status != ConflictStatus.RESOLVED
+        ).limit(20)
+        res = await session.execute(stmt)
+        conflicts = res.scalars().all()
+        return {
+            "uri": uri,
+            "mimeType": "application/json",
+            "text": json.dumps([
+                {
+                    "conflict_id": str(cf.id),
+                    "conflict_type": str(cf.conflict_type),
+                    "severity": str(cf.severity),
+                    "status": str(cf.resolution_status)
+                } for cf in conflicts
+            ], indent=2)
+        }
+
+    elif uri == "context://audit/health":
+        from app.services.steward_agent import StewardAgentService
+        steward = StewardAgentService(session)
+        audit_res = await steward.run_context_audit(demo_org_id)
+        return {
+            "uri": uri,
+            "mimeType": "application/json",
+            "text": json.dumps(audit_res, indent=2)
+        }
+
+    elif uri == "context://policies/active":
+        return {
+            "uri": uri,
+            "mimeType": "application/json",
+            "text": json.dumps({
+                "governance_standard": "Context Trust Layer Zero-Trust Baseline v2.4",
+                "finance": {
+                    "refund_window_days": 30,
+                    "goodwill_credit_max_tier1_usd": 500,
+                    "sox_segregation_required": True
+                },
+                "secops": {
+                    "token_expiry_minutes": 15,
+                    "ingress_approval_role": "VP of Infrastructure",
+                    "public_wifi_vpn_mandatory": True
+                },
+                "hr": {
+                    "workstation_allowance_annual_usd": 1500,
+                    "remote_security_compliance": "Enforced"
+                }
+            }, indent=2)
+        }
+
+    elif uri.startswith("context://claims/"):
+        claim_id_str = uri.replace("context://claims/", "").strip()
+        try:
+            cid = uuid.UUID(claim_id_str)
+            stmt = select(Claim).where(Claim.id == cid)
+            res = await session.execute(stmt)
+            claim = res.scalar_one_or_none()
+            if claim:
+                return {
+                    "uri": uri,
+                    "mimeType": "application/json",
+                    "text": json.dumps({
+                        "id": str(claim.id),
+                        "claim_text": claim.claim_text,
+                        "status": str(claim.status),
+                        "created_at": claim.created_at.isoformat() if claim.created_at else None
+                    }, indent=2)
+                }
+        except Exception:
+            pass
+
+    return {
+        "uri": uri,
+        "mimeType": "application/json",
+        "text": json.dumps({"error": f"Resource URI '{uri}' not found or empty."}, indent=2)
+    }
+
+
+# -------------------------------------------------------------
+# MCP Governed Prompts Execution Handler
+# -------------------------------------------------------------
+async def execute_mcp_prompt(prompt_name: str, arguments: Dict[str, Any], session: AsyncSession) -> Dict[str, Any]:
+    if prompt_name == "governed_financial_decision":
+        action = arguments.get("action_description", "Execute billing modification")
+        amount = arguments.get("amount_usd", "unspecified")
+        return {
+            "description": f"Governed Financial Decision for: {action}",
+            "messages": [
+                {
+                    "role": "system",
+                    "content": {
+                        "type": "text",
+                        "text": (
+                            "You are a Governed Autonomous Financial Agent operating under Context Trust Layer policies.\n"
+                            "RULES:\n"
+                            "1. All refunds over $500 require Tier-2 Manager approval.\n"
+                            "2. Verify that the customer contract has not expired before calculating proration.\n"
+                            "3. Do NOT execute destructive ledger changes without verifying SOX compliance.\n"
+                            f"Action Target: {action} (Amount: ${amount})"
+                        )
+                    }
+                }
+            ]
+        }
+
+    elif prompt_name == "sox_compliance_audit":
+        system = arguments.get("system_name", "Core Billing Service")
+        return {
+            "description": f"SOX Segregation of Duties Audit for: {system}",
+            "messages": [
+                {
+                    "role": "system",
+                    "content": {
+                        "type": "text",
+                        "text": (
+                            f"Execute a strict four-eyes verification audit on {system}.\n"
+                            "Verify that no single engineer or agent holds simultaneous pull-request merge and production deployment permissions."
+                        )
+                    }
+                }
+            ]
+        }
+
+    elif prompt_name == "zero_trust_retrieval":
+        inquiry = arguments.get("inquiry", "")
+        return {
+            "description": "Zero-Trust Context Grounding Prompt",
+            "messages": [
+                {
+                    "role": "system",
+                    "content": {
+                        "type": "text",
+                        "text": (
+                            "You are the Context Trust Layer Grounding Assistant.\n"
+                            f"Answer inquiry: '{inquiry}' using strictly verified claims with Trust Score >= 0.75.\n"
+                            "Cite specific source documents and highlight any active contradictions."
+                        )
+                    }
+                }
+            ]
+        }
+
+    elif prompt_name == "secops_ingress_approval":
+        svc = arguments.get("service_name", "Ingress Gateway")
+        port = arguments.get("port", "443")
+        return {
+            "description": f"SecOps Firewall Rule Evaluation: {svc}:{port}",
+            "messages": [
+                {
+                    "role": "system",
+                    "content": {
+                        "type": "text",
+                        "text": (
+                            f"Evaluate firewall ingress exception proposal for service '{svc}' on port {port}.\n"
+                            "Enforce mandatory mTLS 1.3 and block 0.0.0.0/0 SSH (port 22) ingress without VPN."
+                        )
+                    }
+                }
+            ]
+        }
+
+    raise ValueError(f"Prompt '{prompt_name}' not recognized in MCP Server catalog.")
+
 
 
