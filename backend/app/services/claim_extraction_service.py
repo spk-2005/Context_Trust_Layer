@@ -1,24 +1,38 @@
 import asyncio
 import hashlib
+import logging
 import uuid
 from typing import Sequence
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.config import settings
 from app.db.enums import ClaimStatus
 from app.db.models.claim import Claim
 from app.db.models.claim_evidence import ClaimEvidence
+import decimal
+from app.db.models.claim_trust_score import ClaimTrustScore
 from app.db.models.claim_validity import ClaimValidity
 from app.db.models.document_version import DocumentVersion
 from app.db.repositories.claim_repository import ClaimRepository
 from app.db.repositories.document_repository import DocumentRepository
+from app.ingestion.grounding_verifier import GroundingVerifier
 from app.llm.base import BaseLLMProvider
 from app.llm.factory import get_llm_provider
 from app.normalization.normalizer import DocumentNormalizer
 
+logger = logging.getLogger(__name__)
+
 
 class ClaimExtractionService:
-    """Extracts atomic claims, exact evidence spans, and validity from normalized documents."""
+    """Hybrid Local-First Claim Extraction & Python Grounding Verification Service.
+    
+    1. Pre-filters empty/noisy sections deterministically.
+    2. Uses Ollama/configured LLM with structured schema outputs.
+    3. Runs Python GroundingVerifier: validates exact evidence in source document,
+       computes SHA-256 hashes, exact character offsets, and verifies numerical integrity.
+    4. Enforces canonical deduplication and persists verified claims into PostgreSQL.
+    """
 
     def __init__(
         self,
@@ -30,6 +44,7 @@ class ClaimExtractionService:
         self.claim_repo = ClaimRepository(session)
         self.normalizer = DocumentNormalizer()
         self.llm = llm_provider or get_llm_provider()
+        self.semaphore = asyncio.Semaphore(getattr(settings, "extraction_max_concurrency", 2))
 
     @staticmethod
     def calculate_evidence_hash(text_span: str) -> str:
@@ -39,12 +54,6 @@ class ClaimExtractionService:
         self,
         document_version_id: uuid.UUID,
     ) -> Sequence[Claim]:
-        """Extract claims for a specific document version and persist in database.
-
-        All document sections are processed in parallel via asyncio.gather so
-        Ollama (or any async LLM provider) handles them concurrently rather
-        than one-at-a-time, reducing wall-clock time by N x for N sections.
-        """
         # 1. Fetch document version and parent document
         version = await self.session.get(DocumentVersion, document_version_id)
         if not version:
@@ -62,21 +71,28 @@ class ClaimExtractionService:
             raw_text=raw_text,
         )
 
-        # 2. Extract all sections in PARALLEL with noise scrubbing and entity anchoring
+        # 2. Extract sections with pre-filtering and concurrency throttle
         async def _extract_section(section):
             scrubbed_content = self.normalizer.scrub_noise(section.content)
             if not scrubbed_content.strip():
                 scrubbed_content = section.content
 
-            # Provide qualified hierarchical section title
+            # Deterministic Pre-filter: skip obvious non-assertive noise sections
+            if not GroundingVerifier.needs_claim_extraction(scrubbed_content):
+                logger.debug("Skipping non-assertive section '%s' via deterministic pre-filter", section.title)
+                from app.llm.schemas import ClaimExtractionResult
+                return section, ClaimExtractionResult(claims=[], extraction_model=self.llm.model if hasattr(self.llm, "model") else "prefilter")
+
             sec_display = section.title or "General"
             qualified_sec_title = f"{doc.title} > {sec_display}" if sec_display != "General" else doc.title
 
-            return section, await self.llm.extract_claims(
-                document_title=doc.title,
-                section_title=qualified_sec_title,
-                section_content=scrubbed_content,
-            )
+            async with self.semaphore:
+                result = await self.llm.extract_claims(
+                    document_title=doc.title,
+                    section_title=qualified_sec_title,
+                    section_content=scrubbed_content,
+                )
+                return section, result
 
         section_results = await asyncio.gather(
             *[_extract_section(s) for s in normalized.sections],
@@ -85,32 +101,41 @@ class ClaimExtractionService:
 
         extracted_claim_records: list[Claim] = []
         claim_cache: dict[str, Claim] = {}
+        require_evidence_match = getattr(settings, "extraction_require_evidence_match", True)
+        require_numeric_grounding = getattr(settings, "extraction_require_numeric_grounding", True)
 
-        # 3. Persist results with Canonical Deduplication & Multi-Citation Lineage
+        # 3. Python Grounding Verification, Deduplication & Database Persistence
         for section, result in section_results:
             for item in result.claims:
-                # 3-pre: Number Grounding & Containment Verification
-                if item.numeric_value is not None:
-                    int_str = str(int(item.numeric_value)) if item.numeric_value.is_integer() else str(item.numeric_value)
-                    float_str = str(item.numeric_value)
-                    context_span = f"{item.evidence_text_span or ''} {item.claim_text}"
-                    if int_str not in context_span and float_str not in context_span:
-                        item.numeric_value = None
-                        item.numeric_unit = None
+                # 3a. Deterministic Grounding & Evidence Offset Verification in Python
+                verification = GroundingVerifier.verify_and_ground_claim(
+                    claim=item,
+                    source_text=raw_text,
+                    section_start_offset=section.start_char_offset,
+                    require_numeric_grounding=require_numeric_grounding,
+                )
 
-                # 3a. Generate canonical multi-factor matching keys
+                if not verification.is_valid:
+                    if require_evidence_match:
+                        logger.warning(
+                            "Dropping ungrounded candidate claim '%s': %s",
+                            item.claim_text[:60],
+                            verification.rejection_reason,
+                        )
+                        continue
+
+                # 3b. Multi-factor Canonical Matching Keys
                 norm_text_key = " ".join(item.claim_text.strip().lower().split())
-                
                 sub_clean = (item.subject or "").strip().lower()
                 pred_clean = (item.predicate or "").strip().lower()
                 obj_clean = (item.object or "").strip().lower()
                 spo_key = f"{sub_clean}::{pred_clean}::{obj_clean}" if (sub_clean and pred_clean) else None
-                
+
                 num_key = None
                 if item.numeric_value is not None and sub_clean and pred_clean:
                     num_key = f"{sub_clean}::{pred_clean}::{item.numeric_value}::{item.numeric_unit or ''}"
 
-                # 3b. Check canonical cache
+                # 3c. Check canonical deduplication cache
                 claim = (
                     claim_cache.get(norm_text_key)
                     or (claim_cache.get(spo_key) if spo_key else None)
@@ -133,14 +158,14 @@ class ClaimExtractionService:
                     self.session.add(claim)
                     await self.session.flush()
                     await self.session.refresh(claim)
-                    
-                    # Register canonical keys
+
+                    # Register canonical cache keys
                     claim_cache[norm_text_key] = claim
                     if spo_key:
                         claim_cache[spo_key] = claim
                     if num_key:
                         claim_cache[num_key] = claim
-                        
+
                     extracted_claim_records.append(claim)
 
                     validity = ClaimValidity(
@@ -153,28 +178,39 @@ class ClaimExtractionService:
                     )
                     self.session.add(validity)
 
-                # 3c. Always attach evidence citation (direct quote span, hash, section)
-                text_span = item.evidence_text_span or item.claim_text
-                start_offset = section.start_char_offset
-                end_offset = section.end_char_offset
+                    # Initial Claim Trust Score calculation
+                    base_conf = decimal.Decimal(str(round(verification.verified_confidence, 4)))
+                    ts = ClaimTrustScore(
+                        claim_id=claim.id,
+                        source_score=decimal.Decimal("0.9500"),
+                        freshness_score=decimal.Decimal("1.0000"),
+                        evidence_score=base_conf,
+                        consistency_score=decimal.Decimal("0.9500"),
+                        authority_score=decimal.Decimal("0.9500"),
+                        human_score=decimal.Decimal("0.0000"),
+                        overall_score=base_conf,
+                    )
+                    self.session.add(ts)
 
-                span_idx = raw_text.find(text_span)
-                if span_idx != -1:
-                    start_offset = span_idx
-                    end_offset = span_idx + len(text_span)
-
+                # 3d. Always attach verified Direct Quote Evidence
+                evidence_text = verification.verified_evidence_text or item.evidence_text_span or item.claim_text
                 evidence = ClaimEvidence(
                     claim_id=claim.id,
                     document_id=doc.id,
                     evidence_type="direct_quote",
                     section=section.title,
-                    text_span=text_span,
-                    start_offset=start_offset,
-                    end_offset=end_offset,
-                    evidence_hash=self.calculate_evidence_hash(text_span),
+                    text_span=evidence_text,
+                    start_offset=verification.start_offset,
+                    end_offset=verification.end_offset,
+                    evidence_hash=verification.evidence_hash or self.calculate_evidence_hash(evidence_text),
                     page_number=section.page_number or 1,
                 )
                 self.session.add(evidence)
 
         await self.session.flush()
+        logger.info(
+            "ClaimExtractionService finished: %d grounded claims saved for version %s",
+            len(extracted_claim_records),
+            document_version_id,
+        )
         return extracted_claim_records

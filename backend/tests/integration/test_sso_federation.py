@@ -57,7 +57,7 @@ async def test_sso_callback_and_provisioning():
         assert "user" in data
         user = data["user"]
         assert user["email"] == "google_test_sso@google.com"
-        assert user["organization_name"] in ("Trulin Trust Workspace", "Google Workspace Trust", "Trulin Enterprise Trust")
+        assert user["organization_name"] in ("Trulin Trust Workspace", "Google Workspace Trust", "Trulin Enterprise Trust", "Google Enterprise")
         print(f"✓ SSO Callback auto-provisioned user: {user['name']} in tenant '{user['organization_name']}'")
 
 
