@@ -18,6 +18,7 @@ class ExtractedClaim(BaseModel):
     valid_until: datetime | None = Field(default=None, description="Expiration date if mentioned")
     numeric_value: float | None = Field(default=None, description="Parsed numeric value if the claim asserts a quantity or bound (e.g. 14.0)")
     numeric_unit: str | None = Field(default=None, description="Unit for numeric value (e.g. 'days', 'hours', 'percent', 'USD')")
+    conditions_or_exceptions: str | None = Field(default=None, description="Conditional constraints, prerequisites, or explicit exceptions")
     scope: str | None = Field(default=None, description="Contextual entity scope or tier (e.g. 'Enterprise Tier', 'Full-Time Staff')")
 
 

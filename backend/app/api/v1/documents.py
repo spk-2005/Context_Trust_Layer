@@ -145,91 +145,10 @@ async def upload_document_file(
     doc_title = doc_title.replace("\x00", "").strip()
     doc_external_id = (external_id or f"file://{filename}").replace("\x00", "").strip()
 
-    content_text = ""
-    lower_filename = filename.lower()
+    from app.ingestion.universal_file_parser import UniversalFileParser
 
-    if lower_filename.endswith(".pdf"):
-        try:
-            import pypdf
-            reader = pypdf.PdfReader(io.BytesIO(raw_bytes))
-            pages_text = []
-            for page_num, page in enumerate(reader.pages, start=1):
-                page_text = page.extract_text()
-                if page_text and page_text.strip():
-                    reflowed_page = DocumentNormalizer.reflow_fragmented_lines(page_text.strip())
-                    pages_text.append(f"## Page {page_num}\n{reflowed_page}")
-            if pages_text:
-                content_text = f"# {doc_title}\n\n" + "\n\n".join(pages_text)
-                from app.normalization.document_restructurer import DocumentSemanticRestructurer
-                content_text = DocumentSemanticRestructurer.restructure(content_text)
-            else:
-                content_text = f"# {doc_title}\n\nIngested PDF document {filename} ({len(reader.pages)} pages)."
-        except Exception:
-            try:
-                content_text = raw_bytes.decode("utf-8", errors="ignore")
-            except Exception:
-                content_text = f"# {doc_title}\n\nIngested PDF document {filename}."
-    elif lower_filename.endswith((".docx", ".doc")):
-        try:
-            import docx
-            doc = docx.Document(io.BytesIO(raw_bytes))
-            paragraphs = []
-            for p in doc.paragraphs:
-                txt = p.text.strip()
-                if not txt:
-                    continue
-                style_name = (p.style.name if hasattr(p, "style") and p.style else "").lower()
-                is_heading = (
-                    "heading" in style_name
-                    or bool(re.match(r"^(Chapter\s+\d+|Page\s+\d+|Section\s+\d+|Control\s+rule)", txt, re.IGNORECASE))
-                )
-                if is_heading:
-                    paragraphs.append(f"## {txt}")
-                else:
-                    paragraphs.append(txt)
-            for table in doc.tables:
-                for row in table.rows:
-                    row_text = " | ".join(cell.text.strip() for cell in row.cells if cell.text.strip())
-                    if row_text:
-                        paragraphs.append(row_text)
-            if paragraphs:
-                content_text = f"# {doc_title}\n\n" + "\n\n".join(paragraphs)
-            else:
-                content_text = f"# {doc_title}\n\nIngested Word document {filename}."
-        except Exception:
-            try:
-                import zipfile
-                import xml.etree.ElementTree as ET
-                with zipfile.ZipFile(io.BytesIO(raw_bytes)) as zf:
-                    xml_content = zf.read("word/document.xml")
-                    tree = ET.fromstring(xml_content)
-                    ns = {"w": "http://schemas.openxmlformats.org/wordprocessingml/2006/main"}
-                    paragraphs = []
-                    for p in tree.findall(".//w:p", ns):
-                        texts = [node.text for node in p.findall(".//w:t", ns) if node.text]
-                        if texts:
-                            paragraphs.append("".join(texts).strip())
-                    paragraphs = [p for p in paragraphs if p]
-                    if paragraphs:
-                        content_text = f"# {doc_title}\n\n" + "\n\n".join(paragraphs)
-                    else:
-                        content_text = f"# {doc_title}\n\nIngested Word document {filename}."
-            except Exception:
-                content_text = f"# {doc_title}\n\nIngested Word document {filename}."
-    else:
-        try:
-            content_text = raw_bytes.decode("utf-8")
-        except UnicodeDecodeError:
-            try:
-                content_text = raw_bytes.decode("latin-1", errors="replace")
-            except Exception:
-                content_text = f"# {doc_title}\n\nIngested file {filename}."
+    content_text = UniversalFileParser.parse_file(filename=filename, raw_bytes=raw_bytes, doc_title=doc_title)
 
-    # Strip any null bytes (PostgreSQL UTF-8 restriction)
-    content_text = content_text.replace("\x00", "")
-
-    if not content_text.strip():
-        content_text = f"# {doc_title}\n\nIngested from file {filename}."
 
     doc_in = DocumentCreate(
         organization_id=organization_id,
@@ -288,14 +207,15 @@ async def upload_and_extract_document(
     title: str | None = Form(None),
     document_type: str = Form("policy"),
     external_id: str | None = Form(None),
-    use_mock: bool = Form(True),
+    use_mock: bool = Form(False),
+    provider: str | None = Form(None),
     db: AsyncSession = Depends(get_db),
 ):
     """Upload a file, parse text, extract atomic claims, score trust, and run conflict checks in 1 atomic pipeline."""
     resolved_source_id = await _ensure_source_exists(db, organization_id, source_id)
     import io
     import time
-    from app.llm.mock_provider import MockLLMProvider
+    from app.llm.factory import get_llm_provider
     from app.services.claim_extraction_service import ClaimExtractionService
     from app.services.conflict_service import ConflictService
     from app.services.trust_service import TrustService
@@ -308,67 +228,10 @@ async def upload_and_extract_document(
     doc_title = doc_title.replace("\x00", "").strip()
     doc_external_id = (external_id or f"file://{filename}").replace("\x00", "").strip()
 
-    content_text = ""
-    lower_filename = filename.lower()
+    from app.ingestion.universal_file_parser import UniversalFileParser
 
-    if lower_filename.endswith(".pdf"):
-        try:
-            import pypdf
-            reader = pypdf.PdfReader(io.BytesIO(raw_bytes))
-            pages_text = []
-            for page_num, page in enumerate(reader.pages, start=1):
-                page_text = page.extract_text()
-                if page_text and page_text.strip():
-                    reflowed_page = DocumentNormalizer.reflow_fragmented_lines(page_text.strip())
-                    pages_text.append(f"## Page {page_num}\n{reflowed_page}")
-            if pages_text:
-                content_text = f"# {doc_title}\n\n" + "\n\n".join(pages_text)
-            else:
-                content_text = f"# {doc_title}\n\nIngested PDF document {filename} ({len(reader.pages)} pages)."
-        except Exception:
-            content_text = f"# {doc_title}\n\nIngested PDF document {filename}."
-    elif lower_filename.endswith((".docx", ".doc")):
-        try:
-            import docx
-            doc = docx.Document(io.BytesIO(raw_bytes))
-            paragraphs = []
-            for p in doc.paragraphs:
-                txt = p.text.strip()
-                if not txt:
-                    continue
-                style_name = (p.style.name if hasattr(p, "style") and p.style else "").lower()
-                is_heading = (
-                    "heading" in style_name
-                    or bool(re.match(r"^(Chapter\s+\d+|Page\s+\d+|Section\s+\d+|Control\s+rule)", txt, re.IGNORECASE))
-                )
-                if is_heading:
-                    paragraphs.append(f"## {txt}")
-                else:
-                    paragraphs.append(txt)
-            for table in doc.tables:
-                for row in table.rows:
-                    row_text = " | ".join(cell.text.strip() for cell in row.cells if cell.text.strip())
-                    if row_text:
-                        paragraphs.append(row_text)
-            content_text = f"# {doc_title}\n\n" + ("\n\n".join(paragraphs) if paragraphs else f"Ingested Word document {filename}.")
-        except Exception:
-            content_text = f"# {doc_title}\n\nIngested Word document {filename}."
-    elif lower_filename.endswith(".json"):
-        try:
-            import json
-            parsed_json = json.loads(raw_bytes.decode("utf-8"))
-            content_text = f"# {doc_title} (JSON Schema/Config)\n\n```json\n{json.dumps(parsed_json, indent=2)}\n```"
-        except Exception:
-            content_text = raw_bytes.decode("utf-8", errors="ignore")
-    else:
-        try:
-            content_text = raw_bytes.decode("utf-8")
-        except UnicodeDecodeError:
-            content_text = raw_bytes.decode("latin-1", errors="replace")
+    content_text = UniversalFileParser.parse_file(filename=filename, raw_bytes=raw_bytes, doc_title=doc_title)
 
-    content_text = content_text.replace("\x00", "").strip()
-    if not content_text:
-        content_text = f"# {doc_title}\n\nIngested file {filename}."
 
     doc_in = DocumentCreate(
         organization_id=organization_id,
@@ -389,11 +252,15 @@ async def upload_and_extract_document(
 
     _persist_uploaded_file_bytes(document.id, filename, raw_bytes)
 
-    # Run Extraction, Conflict Detection, and Trust Scoring
-    llm_provider = MockLLMProvider() if use_mock else None
-    extraction_service = ClaimExtractionService(db, llm_provider=llm_provider)
+    # Run Extraction, Conflict Detection, and Trust Scoring with requested LLM provider
+    target_prov = provider
+    if not target_prov and use_mock:
+        target_prov = "mock"
+    
+    llm_instance = get_llm_provider(target_prov)
+    extraction_service = ClaimExtractionService(db, llm_provider=llm_instance)
     trust_service = TrustService(db)
-    conflict_service = ConflictService(db, llm_provider=llm_provider)
+    conflict_service = ConflictService(db, llm_provider=llm_instance)
     claim_repo = ClaimRepository(db)
 
     extracted_claims = []

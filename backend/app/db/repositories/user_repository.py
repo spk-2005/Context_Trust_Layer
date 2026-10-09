@@ -56,10 +56,6 @@ class UserRepository(BaseRepository[User]):
 
     async def seed_default_personas(self, organization_id: uuid.UUID) -> Sequence[User]:
         """Seed 5 Atlan-inspired personas for an organization if not already seeded."""
-        existing = await self.list_by_organization(organization_id)
-        if len(existing) >= 5:
-            return existing
-
         default_personas = [
             {
                 "id": uuid.UUID("22222222-2222-2222-2222-222222222222"),
@@ -111,21 +107,29 @@ class UserRepository(BaseRepository[User]):
         created_users = []
         for p in default_personas:
             existing_user = await self.get(p["id"])
-            if not existing_user:
-                existing_user = await self.get_by_email(organization_id, p["email"])
-            if not existing_user:
-                u = await self.create_user(
-                    id=p["id"],
-                    organization_id=organization_id,
-                    name=p["name"],
-                    email=p["email"],
-                    role=p["role"],
-                    title=p["title"],
-                    department=p["department"],
-                    avatar_url=p["avatar_url"],
-                )
-                created_users.append(u)
-            else:
+            if existing_user:
+                if existing_user.organization_id != organization_id:
+                    existing_user.organization_id = organization_id
+                if existing_user.role != p["role"]:
+                    existing_user.role = p["role"]
+                if existing_user.name != p["name"]:
+                    existing_user.name = p["name"]
                 created_users.append(existing_user)
+            else:
+                existing_by_email = await self.get_by_email(organization_id, p["email"])
+                if not existing_by_email:
+                    u = await self.create_user(
+                        id=p["id"],
+                        organization_id=organization_id,
+                        name=p["name"],
+                        email=p["email"],
+                        role=p["role"],
+                        title=p["title"],
+                        department=p["department"],
+                        avatar_url=p["avatar_url"],
+                    )
+                    created_users.append(u)
+                else:
+                    created_users.append(existing_by_email)
 
-        return created_users
+        return await self.list_by_organization(organization_id)

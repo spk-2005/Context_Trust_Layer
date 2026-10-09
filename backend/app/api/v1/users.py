@@ -29,10 +29,8 @@ async def list_users(
 ):
     """List team members for the organization. Auto-seeds default Atlan personas if table is empty."""
     user_repo = UserRepository(db)
-    users = await user_repo.list_by_organization(organization_id)
-    if not users:
-        users = await user_repo.seed_default_personas(organization_id)
-        await db.commit()
+    users = await user_repo.seed_default_personas(organization_id)
+    await db.commit()
     return users
 
 
