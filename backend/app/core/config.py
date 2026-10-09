@@ -10,6 +10,8 @@ PROJECT_ROOT = Path(__file__).resolve().parents[3]
 class Settings(BaseSettings):
     app_name: str = "Context Trust Layer"
     app_env: str = "development"
+    secret_key: str = "context-trust-master-encryption-secret-key-32b"
+    credential_encryption_key: str | None = None
 
     postgres_server: str = "localhost"
     postgres_user: str = "context_user"

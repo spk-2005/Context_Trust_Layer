@@ -1,7 +1,7 @@
 import base64
 import os
 import uuid
-from typing import Sequence
+from typing import Any, Sequence
 
 import httpx
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -73,6 +73,138 @@ class GitHubConnector(BaseConnector):
         self.token = (token or os.getenv("GITHUB_TOKEN", "")).strip()
         self.paths = paths or ["", "docs", "policies", ".github"]
         self.ingestion_service = DocumentIngestionService(session)
+
+    async def test_connection(self) -> dict[str, Any]:
+        """Authenticates and verifies access to the configured GitHub repository."""
+        clean_repo = sanitize_github_repo(self.repo)
+        headers = {
+            "Accept": "application/vnd.github.v3+json",
+            "User-Agent": "Context-Trust-Layer-Validator",
+        }
+        if self.token:
+            headers["Authorization"] = f"Bearer {self.token}" if not self.token.startswith(("Bearer ", "token ")) else self.token
+
+        try:
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                resp = await client.get(f"https://api.github.com/repos/{clean_repo}", headers=headers)
+                if resp.status_code == 200:
+                    data = resp.json()
+                    default_branch = data.get("default_branch", self.branch or "main")
+                    is_private = data.get("private", False)
+                    return {
+                        "success": True,
+                        "status": "ok",
+                        "message": f"Successfully authenticated and verified repository '{clean_repo}' ({'private' if is_private else 'public'}, default branch: {default_branch}).",
+                        "details": {
+                            "repo": clean_repo,
+                            "default_branch": default_branch,
+                            "is_private": is_private,
+                            "stars": data.get("stargazers_count", 0),
+                            "auth_mode": "authenticated" if self.token else "public",
+                        },
+                    }
+                elif resp.status_code == 401:
+                    return {
+                        "success": False,
+                        "status": "error",
+                        "message": "GitHub authentication failed: Personal Access Token is invalid or expired.",
+                        "details": {"repo": clean_repo},
+                    }
+                elif resp.status_code == 404:
+                    # Check if unauthenticated raw readme works
+                    raw_check = await client.get(f"https://raw.githubusercontent.com/{clean_repo}/{self.branch or 'main'}/README.md")
+                    if raw_check.status_code == 200:
+                        return {
+                            "success": True,
+                            "status": "ok",
+                            "message": f"Verified public repository '{clean_repo}' via raw access.",
+                            "details": {"repo": clean_repo, "branch": self.branch or "main"},
+                        }
+                    return {
+                        "success": False,
+                        "status": "error",
+                        "message": f"GitHub repository '{clean_repo}' not found. Verify repository name and ensure token has repo access.",
+                        "details": {"repo": clean_repo},
+                    }
+                elif resp.status_code in (403, 429):
+                    # Rate limit encountered
+                    raw_check = await client.get(f"https://raw.githubusercontent.com/{clean_repo}/{self.branch or 'main'}/README.md")
+                    if raw_check.status_code == 200:
+                        return {
+                            "success": True,
+                            "status": "warning",
+                            "message": f"Repository '{clean_repo}' verified via CDN (API rate-limited). Provide Personal Access Token for full API features.",
+                            "details": {"repo": clean_repo},
+                        }
+                    return {
+                        "success": False,
+                        "status": "error",
+                        "message": "GitHub API rate limit exceeded. Please configure a valid Personal Access Token.",
+                        "details": {"repo": clean_repo},
+                    }
+                else:
+                    return {
+                        "success": False,
+                        "status": "error",
+                        "message": f"GitHub API returned HTTP {resp.status_code}: {resp.text[:200]}",
+                        "details": {"repo": clean_repo, "status_code": resp.status_code},
+                    }
+        except httpx.TimeoutException:
+            return {
+                "success": False,
+                "status": "error",
+                "message": "Connection to GitHub API timed out (10s limit exceeded).",
+                "details": {"repo": clean_repo},
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "status": "error",
+                "message": f"GitHub connection error: {str(e)}",
+                "details": {"repo": clean_repo},
+            }
+
+    @staticmethod
+    async def discover_repositories(token: str | None = None, owner: str | None = None) -> list[dict[str, Any]]:
+        """Discovers accessible repositories via GitHub API."""
+        headers = {
+            "Accept": "application/vnd.github.v3+json",
+            "User-Agent": "Context-Trust-Layer-Validator",
+        }
+        if token:
+            clean_token = token.strip()
+            headers["Authorization"] = f"Bearer {clean_token}" if not clean_token.startswith(("Bearer ", "token ")) else clean_token
+
+        async with httpx.AsyncClient(timeout=12.0) as client:
+            if owner and owner.strip():
+                clean_owner = owner.strip()
+                # Try org repos first then user repos
+                url = f"https://api.github.com/orgs/{clean_owner}/repos?per_page=50&sort=updated"
+                resp = await client.get(url, headers=headers)
+                if resp.status_code != 200:
+                    url = f"https://api.github.com/users/{clean_owner}/repos?per_page=50&sort=updated"
+                    resp = await client.get(url, headers=headers)
+            else:
+                url = "https://api.github.com/user/repos?per_page=50&sort=updated" if token else ""
+
+            if not url:
+                return []
+
+            resp = await client.get(url, headers=headers)
+            if resp.status_code == 200:
+                repos = resp.json()
+                if isinstance(repos, list):
+                    return [
+                        {
+                            "name": r.get("name"),
+                            "full_name": r.get("full_name"),
+                            "default_branch": r.get("default_branch", "main"),
+                            "private": r.get("private", False),
+                            "description": r.get("description", ""),
+                        }
+                        for r in repos
+                    ]
+            return []
 
     async def ingest_markdown(
         self,

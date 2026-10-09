@@ -1,18 +1,30 @@
+import io
+import os
+import re
+import textwrap
+import time
 import uuid
+from pathlib import Path
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile, status
-from sqlalchemy import or_, select
+from fastapi.responses import Response
+from sqlalchemy import or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.db.database import get_db
+from app.db.enums import ClaimStatus, ConflictStatus, RecordStatus
 from app.db.models.claim import Claim
 from app.db.models.claim_conflict import ClaimConflict
 from app.db.models.data_source import DataSource
-from app.db.enums import RecordStatus, ClaimStatus, ConflictStatus
+from app.db.models.document import Document
+from app.db.models.document_version import DocumentVersion
+from app.db.models.organization import Organization
 from app.db.repositories.document_repository import DocumentRepository
 from app.ingestion.document_ingestion import DocumentIngestionService
+from app.normalization.normalizer import DocumentNormalizer
 from app.normalization.validators import DocumentValidationError
+from app.schemas.claim import ClaimResponse
 from app.schemas.document import (
     DocumentCreate,
     DocumentIngestionResult,
@@ -22,6 +34,191 @@ from app.schemas.document import (
 from app.services.activity_service import ActivityService
 
 router = APIRouter(prefix="/documents", tags=["documents"])
+
+STORAGE_UPLOADS_DIR = Path(__file__).resolve().parents[3] / "storage" / "uploads"
+
+
+async def _ensure_source_exists(db: AsyncSession, organization_id: uuid.UUID, source_id: uuid.UUID | None) -> uuid.UUID:
+    """Finds or creates a dedicated file-upload DataSource for the organization so uploaded PDFs/files never mix with DB connectors."""
+    # Ensure organization exists
+    res_org = await db.execute(select(Organization).where(Organization.id == organization_id))
+    if not res_org.scalar_one_or_none():
+        org = Organization(id=organization_id, name="Default Org", slug=f"org-{str(organization_id)[:8]}")
+        db.add(org)
+        await db.flush()
+
+    # If source_id passed and exists, return it
+    if source_id:
+        res_src = await db.execute(select(DataSource).where(DataSource.id == source_id))
+        if res_src.scalar_one_or_none():
+            return source_id
+
+    # Find existing 'file' upload source for this specific organization
+    res_file_src = await db.execute(
+        select(DataSource).where(
+            DataSource.organization_id == organization_id,
+            DataSource.source_type == "file",
+        ).limit(1)
+    )
+    existing_file_src = res_file_src.scalar_one_or_none()
+    if existing_file_src:
+        return existing_file_src.id
+
+    # Create dedicated file upload source for this organization
+    new_src_id = uuid.uuid4()
+    new_source = DataSource(
+        id=new_src_id,
+        organization_id=organization_id,
+        name="Direct Document Upload",
+        source_type="file",
+        external_id=f"file-upload-{str(organization_id)[:8]}",
+        authority_level=85,
+        status=RecordStatus.ACTIVE,
+    )
+    db.add(new_source)
+    await db.flush()
+    return new_src_id
+
+
+def _persist_uploaded_file_bytes(doc_id: uuid.UUID, filename: str, raw_bytes: bytes) -> None:
+    """Saves the exact raw uploaded file bytes on disk so it can be viewed directly as uploaded."""
+    try:
+        doc_dir = STORAGE_UPLOADS_DIR / str(doc_id)
+        doc_dir.mkdir(parents=True, exist_ok=True)
+        safe_name = os.path.basename(filename or "document.pdf")
+        (doc_dir / safe_name).write_bytes(raw_bytes)
+        if safe_name.lower().endswith(".pdf"):
+            (STORAGE_UPLOADS_DIR / f"{doc_id}.pdf").write_bytes(raw_bytes)
+    except Exception as exc:
+        print(f"Warning: Could not persist raw upload file for {doc_id}: {exc}")
+
+
+def _escape_pdf_text(text: str) -> str:
+    """Escapes a string for PDF literal string syntax (...) in Latin-1 safe form."""
+    cleaned = (
+        text.replace("\u2014", "-")
+        .replace("\u2013", "-")
+        .replace("\u2018", "'")
+        .replace("\u2019", "'")
+        .replace("\u201c", '"')
+        .replace("\u201d", '"')
+        .replace("\u2022", "*")
+        .replace("\u00a0", " ")
+    )
+    cleaned = cleaned.encode("latin-1", errors="replace").decode("latin-1")
+    return cleaned.replace("\\", "\\\\").replace("(", "\\(").replace(")", "\\)")
+
+
+def _build_pdf_bytes_from_document(title: str, external_id: str | None, content: str) -> bytes:
+    """Builds a standards-compliant multi-page PDF 1.4 binary stream from the full original document content."""
+    raw_lines = (content or "").splitlines()
+    if not raw_lines:
+        raw_lines = [title or "Enterprise Document"]
+
+    # Prepare wrapped lines with style metadata: (text, font_key, font_size, leading, indent)
+    styled_lines: list[tuple[str, str, int, int, int]] = []
+    styled_lines.append((title or "Document", "/F2", 15, 22, 0))
+    if external_id:
+        styled_lines.append((f"Source URI: {external_id}", "/F1", 9, 16, 0))
+    styled_lines.append(("", "/F1", 10, 10, 0))
+
+    for line in raw_lines:
+        stripped = line.strip()
+        if not stripped:
+            styled_lines.append(("", "/F1", 10, 10, 0))
+            continue
+        if stripped.startswith("# "):
+            heading = stripped[2:].strip()
+            for w in textwrap.wrap(heading, width=68) or [heading]:
+                styled_lines.append((w, "/F2", 13, 19, 0))
+        elif stripped.startswith("## "):
+            heading = stripped[3:].strip()
+            for w in textwrap.wrap(heading, width=74) or [heading]:
+                styled_lines.append((w, "/F2", 11, 17, 0))
+        elif stripped.startswith("### "):
+            heading = stripped[4:].strip()
+            for w in textwrap.wrap(heading, width=78) or [heading]:
+                styled_lines.append((w, "/F2", 10, 15, 0))
+        else:
+            clean_line = stripped.replace("**", "")
+            is_bullet = clean_line.startswith(("- ", "* "))
+            wrap_width = 84 if not is_bullet else 80
+            wrapped = textwrap.wrap(clean_line, width=wrap_width) or [clean_line]
+            for idx, w in enumerate(wrapped):
+                indent = 12 if (is_bullet and idx > 0) else (4 if is_bullet else 0)
+                styled_lines.append((w, "/F1", 10, 14, indent))
+
+    # Paginate into US Letter (612 x 792 pt), top=740, bottom=55
+    pages_streams: list[str] = []
+    idx = 0
+    total_lines = len(styled_lines)
+    while idx < total_lines:
+        y = 742
+        ops = ["BT"]
+        # Top header rule
+        while idx < total_lines and y >= 60:
+            txt, font_key, fsize, leading, indent = styled_lines[idx]
+            idx += 1
+            if txt:
+                esc = _escape_pdf_text(txt)
+                x = 50 + indent
+                ops.append(f"{font_key} {fsize} Tf")
+                ops.append(f"1 0 0 1 {x} {y} Tm ({esc}) Tj")
+            y -= leading
+        ops.append("ET")
+        pages_streams.append("\n".join(ops))
+
+    if not pages_streams:
+        pages_streams = ["BT /F2 14 Tf 1 0 0 1 50 730 Tm (Document) Tj ET"]
+
+    # Assemble PDF objects:
+    # 1: Catalog, 2: Pages, 3: Font Regular (/F1), 4: Font Bold (/F2)
+    # Then for each page i: page_obj = 5 + 2*i, content_obj = 6 + 2*i
+    num_pages = len(pages_streams)
+    objects: dict[int, bytes] = {}
+    objects[1] = b"<< /Type /Catalog /Pages 2 0 R >>"
+    page_refs = " ".join(f"{5 + 2 * i} 0 R" for i in range(num_pages))
+    objects[2] = f"<< /Type /Pages /Kids [{page_refs}] /Count {num_pages} >>".encode("ascii")
+    objects[3] = b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>"
+    objects[4] = b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>"
+
+    for i, stream_text in enumerate(pages_streams):
+        page_obj_id = 5 + 2 * i
+        content_obj_id = 6 + 2 * i
+        # Add page number footer
+        footer = f"\nBT /F1 8 Tf 1 0 0 1 280 32 Tm (Page {i + 1} of {num_pages}) Tj ET"
+        full_stream = (stream_text + footer).encode("latin-1", errors="replace")
+        objects[content_obj_id] = (
+            f"<< /Length {len(full_stream)} >>\nstream\n".encode("ascii")
+            + full_stream
+            + b"\nendstream"
+        )
+        objects[page_obj_id] = (
+            f"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] "
+            f"/Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> "
+            f"/Contents {content_obj_id} 0 R >>"
+        ).encode("ascii")
+
+    max_id = 4 + 2 * num_pages
+    out = bytearray(b"%PDF-1.4\n%\xe2\xe3\xcf\xd3\n")
+    offsets: dict[int, int] = {}
+    for obj_id in range(1, max_id + 1):
+        offsets[obj_id] = len(out)
+        out.extend(f"{obj_id} 0 obj\n".encode("ascii"))
+        out.extend(objects[obj_id])
+        out.extend(b"\nendobj\n")
+
+    xref_offset = len(out)
+    out.extend(f"xref\n0 {max_id + 1}\n".encode("ascii"))
+    out.extend(b"0000000000 65535 f \n")
+    for obj_id in range(1, max_id + 1):
+        out.extend(f"{offsets[obj_id]:010d} 00000 n \n".encode("ascii"))
+
+    out.extend(
+        f"trailer\n<< /Size {max_id + 1} /Root 1 0 R >>\nstartxref\n{xref_offset}\n%%EOF\n".encode("ascii")
+    )
+    return bytes(out)
+
 
 
 @router.post(
@@ -80,46 +277,6 @@ async def create_document(
     )
 
 
-from app.db.models.data_source import DataSource
-from app.db.models.organization import Organization
-from app.db.enums import RecordStatus
-from sqlalchemy import select
-
-
-async def _ensure_source_exists(db: AsyncSession, organization_id: uuid.UUID, source_id: uuid.UUID | None) -> uuid.UUID:
-    """Finds or creates a dedicated file-upload DataSource for the organization so uploaded PDFs/files never mix with DB connectors."""
-    # Ensure organization exists
-    res_org = await db.execute(select(Organization).where(Organization.id == organization_id))
-    if not res_org.scalar_one_or_none():
-        org = Organization(id=organization_id, name="Default Org", slug=f"org-{str(organization_id)[:8]}")
-        db.add(org)
-        await db.flush()
-
-    # Find existing 'file' upload source for this specific organization
-    res_file_src = await db.execute(
-        select(DataSource).where(
-            DataSource.organization_id == organization_id,
-            DataSource.source_type == "file",
-        ).limit(1)
-    )
-    existing_file_src = res_file_src.scalar_one_or_none()
-    if existing_file_src:
-        return existing_file_src.id
-
-    # Create dedicated file upload source for this organization
-    new_src_id = uuid.uuid4()
-    new_source = DataSource(
-        id=new_src_id,
-        organization_id=organization_id,
-        name="Direct Document Upload",
-        source_type="file",
-        external_id=f"file-upload-{str(organization_id)[:8]}",
-        authority_level=85,
-        status=RecordStatus.ACTIVE,
-    )
-    db.add(new_source)
-    await db.flush()
-    return new_src_id
 
 
 @router.post(
@@ -321,152 +478,8 @@ async def get_document(
     return DocumentResponse.model_validate(document)
 
 
-import os
-import textwrap
-from pathlib import Path
-from fastapi.responses import Response
-
-STORAGE_UPLOADS_DIR = Path(__file__).resolve().parents[3] / "storage" / "uploads"
 
 
-def _persist_uploaded_file_bytes(doc_id: uuid.UUID, filename: str, raw_bytes: bytes) -> None:
-    """Saves the exact raw uploaded file bytes on disk so it can be viewed directly as uploaded."""
-    try:
-        doc_dir = STORAGE_UPLOADS_DIR / str(doc_id)
-        doc_dir.mkdir(parents=True, exist_ok=True)
-        safe_name = os.path.basename(filename or "document.pdf")
-        (doc_dir / safe_name).write_bytes(raw_bytes)
-        if safe_name.lower().endswith(".pdf"):
-            (STORAGE_UPLOADS_DIR / f"{doc_id}.pdf").write_bytes(raw_bytes)
-    except Exception as exc:
-        print(f"Warning: Could not persist raw upload file for {doc_id}: {exc}")
-
-
-def _escape_pdf_text(text: str) -> str:
-    """Escapes a string for PDF literal string syntax (...) in Latin-1 safe form."""
-    cleaned = (
-        text.replace("\u2014", "-")
-        .replace("\u2013", "-")
-        .replace("\u2018", "'")
-        .replace("\u2019", "'")
-        .replace("\u201c", '"')
-        .replace("\u201d", '"')
-        .replace("\u2022", "*")
-        .replace("\u00a0", " ")
-    )
-    cleaned = cleaned.encode("latin-1", errors="replace").decode("latin-1")
-    return cleaned.replace("\\", "\\\\").replace("(", "\\(").replace(")", "\\)")
-
-
-def _build_pdf_bytes_from_document(title: str, external_id: str | None, content: str) -> bytes:
-    """Builds a standards-compliant multi-page PDF 1.4 binary stream from the full original document content."""
-    raw_lines = (content or "").splitlines()
-    if not raw_lines:
-        raw_lines = [title or "Enterprise Document"]
-
-    # Prepare wrapped lines with style metadata: (text, font_key, font_size, leading, indent)
-    styled_lines: list[tuple[str, str, int, int, int]] = []
-    styled_lines.append((title or "Document", "/F2", 15, 22, 0))
-    if external_id:
-        styled_lines.append((f"Source URI: {external_id}", "/F1", 9, 16, 0))
-    styled_lines.append(("", "/F1", 10, 10, 0))
-
-    for line in raw_lines:
-        stripped = line.strip()
-        if not stripped:
-            styled_lines.append(("", "/F1", 10, 10, 0))
-            continue
-        if stripped.startswith("# "):
-            heading = stripped[2:].strip()
-            for w in textwrap.wrap(heading, width=68) or [heading]:
-                styled_lines.append((w, "/F2", 13, 19, 0))
-        elif stripped.startswith("## "):
-            heading = stripped[3:].strip()
-            for w in textwrap.wrap(heading, width=74) or [heading]:
-                styled_lines.append((w, "/F2", 11, 17, 0))
-        elif stripped.startswith("### "):
-            heading = stripped[4:].strip()
-            for w in textwrap.wrap(heading, width=78) or [heading]:
-                styled_lines.append((w, "/F2", 10, 15, 0))
-        else:
-            clean_line = stripped.replace("**", "")
-            is_bullet = clean_line.startswith(("- ", "* "))
-            wrap_width = 84 if not is_bullet else 80
-            wrapped = textwrap.wrap(clean_line, width=wrap_width) or [clean_line]
-            for idx, w in enumerate(wrapped):
-                indent = 12 if (is_bullet and idx > 0) else (4 if is_bullet else 0)
-                styled_lines.append((w, "/F1", 10, 14, indent))
-
-    # Paginate into US Letter (612 x 792 pt), top=740, bottom=55
-    pages_streams: list[str] = []
-    idx = 0
-    total_lines = len(styled_lines)
-    while idx < total_lines:
-        y = 742
-        ops = ["BT"]
-        # Top header rule
-        while idx < total_lines and y >= 60:
-            txt, font_key, fsize, leading, indent = styled_lines[idx]
-            idx += 1
-            if txt:
-                esc = _escape_pdf_text(txt)
-                x = 50 + indent
-                ops.append(f"{font_key} {fsize} Tf")
-                ops.append(f"1 0 0 1 {x} {y} Tm ({esc}) Tj")
-            y -= leading
-        ops.append("ET")
-        pages_streams.append("\n".join(ops))
-
-    if not pages_streams:
-        pages_streams = ["BT /F2 14 Tf 1 0 0 1 50 730 Tm (Document) Tj ET"]
-
-    # Assemble PDF objects:
-    # 1: Catalog, 2: Pages, 3: Font Regular (/F1), 4: Font Bold (/F2)
-    # Then for each page i: page_obj = 5 + 2*i, content_obj = 6 + 2*i
-    num_pages = len(pages_streams)
-    objects: dict[int, bytes] = {}
-    objects[1] = b"<< /Type /Catalog /Pages 2 0 R >>"
-    page_refs = " ".join(f"{5 + 2 * i} 0 R" for i in range(num_pages))
-    objects[2] = f"<< /Type /Pages /Kids [{page_refs}] /Count {num_pages} >>".encode("ascii")
-    objects[3] = b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>"
-    objects[4] = b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>"
-
-    for i, stream_text in enumerate(pages_streams):
-        page_obj_id = 5 + 2 * i
-        content_obj_id = 6 + 2 * i
-        # Add page number footer
-        footer = f"\nBT /F1 8 Tf 1 0 0 1 280 32 Tm (Page {i + 1} of {num_pages}) Tj ET"
-        full_stream = (stream_text + footer).encode("latin-1", errors="replace")
-        objects[content_obj_id] = (
-            f"<< /Length {len(full_stream)} >>\nstream\n".encode("ascii")
-            + full_stream
-            + b"\nendstream"
-        )
-        objects[page_obj_id] = (
-            f"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] "
-            f"/Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> "
-            f"/Contents {content_obj_id} 0 R >>"
-        ).encode("ascii")
-
-    max_id = 4 + 2 * num_pages
-    out = bytearray(b"%PDF-1.4\n%\xe2\xe3\xcf\xd3\n")
-    offsets: dict[int, int] = {}
-    for obj_id in range(1, max_id + 1):
-        offsets[obj_id] = len(out)
-        out.extend(f"{obj_id} 0 obj\n".encode("ascii"))
-        out.extend(objects[obj_id])
-        out.extend(b"\nendobj\n")
-
-    xref_offset = len(out)
-    out.extend(f"xref\n0 {max_id + 1}\n".encode("ascii"))
-    out.extend(b"0000000000 65535 f \n")
-    for obj_id in range(1, max_id + 1):
-        out.extend(f"{offsets[obj_id]:010d} 00000 n \n".encode("ascii"))
-
-    out.extend(
-        f"trailer\n<< /Size {max_id + 1} /Root 1 0 R >>\nstartxref\n{xref_offset}\n%%EOF\n".encode("ascii")
-    )
-    return bytes(out)
 
 
 @router.get("/{document_id}/file")
@@ -934,22 +947,18 @@ async def list_documents(
     db: AsyncSession = Depends(get_db),
 ):
     repo = DocumentRepository(db)
+    eff_source_id = source_id if isinstance(source_id, uuid.UUID) else None
     documents = await repo.list_by_organization(
         organization_id=organization_id,
-        source_id=source_id,
+        source_id=eff_source_id,
         limit=limit,
         offset=offset,
     )
-    # Filter to uploaded documents (PDFs, DOCX, Markdown, TXT, policy files) so DB connector objects stay in Connectors
-    res_srcs = await db.execute(select(DataSource))
-    src_type_map = {s.id: (s.source_type or "").lower() for s in res_srcs.scalars().all()}
-    uploaded_docs = [
+    valid_docs = [
         d for d in documents
-        if (src_type_map.get(d.source_id, "file") in ("file", "upload", "local_file")
-        or (d.external_id or "").startswith("file://"))
-        and (include_archived or (d.status.value if hasattr(d.status, "value") else str(d.status)).lower() not in ("deleted", "inactive", "archived"))
+        if include_archived or (d.status.value if hasattr(d.status, "value") else str(d.status)).lower() not in ("deleted", "inactive", "archived")
     ]
-    return [DocumentResponse.model_validate(d) for d in uploaded_docs]
+    return [DocumentResponse.model_validate(d) for d in valid_docs]
 
 
 @router.get("/{document_id}/blast-radius")

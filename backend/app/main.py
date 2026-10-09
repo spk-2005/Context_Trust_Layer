@@ -9,13 +9,18 @@ from app.db.database import AsyncSessionLocal
 from app.db.init_db import init_db_schema
 
 
+from app.ingestion.scheduler import scheduler
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     try:
         await init_db_schema()
     except Exception as e:
         print(f"Warning: Failed to auto-initialize DB schema: {e}")
+    scheduler.start()
     yield
+    scheduler.stop()
 
 
 app = FastAPI(

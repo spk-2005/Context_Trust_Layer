@@ -96,6 +96,69 @@ class PostgresConnector(BaseConnector):
         except Exception as e:
             raise RuntimeError(f"PostgreSQL sync failed for '{self.database}' at {self.host}:{self.port}: {str(e)}")
 
+    @staticmethod
+    async def discover_schemas(
+        host: str = "localhost",
+        port: int = 5432,
+        database: str = "postgres",
+        username: str = "postgres",
+        password: str = "",
+        ssl_mode: str = "prefer",
+    ) -> list[str]:
+        """Discovers non-system schemas in PostgreSQL database."""
+        ssl_val = None if ssl_mode in ("disable", "prefer") else ssl_mode
+        conn = await asyncpg.connect(
+            host=host,
+            port=port,
+            database=database,
+            user=username,
+            password=password,
+            ssl=ssl_val,
+            timeout=8.0,
+        )
+        try:
+            rows = await conn.fetch(
+                "SELECT schema_name FROM information_schema.schemata WHERE schema_name NOT IN ('pg_catalog', 'information_schema') ORDER BY schema_name;"
+            )
+            return [r["schema_name"] for r in rows]
+        finally:
+            await conn.close()
+
+    @staticmethod
+    async def discover_tables(
+        host: str = "localhost",
+        port: int = 5432,
+        database: str = "postgres",
+        username: str = "postgres",
+        password: str = "",
+        schema: str = "public",
+        ssl_mode: str = "prefer",
+    ) -> list[dict[str, str]]:
+        """Discovers tables and views in target schema."""
+        ssl_val = None if ssl_mode in ("disable", "prefer") else ssl_mode
+        conn = await asyncpg.connect(
+            host=host,
+            port=port,
+            database=database,
+            user=username,
+            password=password,
+            ssl=ssl_val,
+            timeout=8.0,
+        )
+        try:
+            rows = await conn.fetch(
+                """
+                SELECT table_name, table_type
+                FROM information_schema.tables
+                WHERE table_schema = $1
+                ORDER BY table_name;
+                """,
+                schema,
+            )
+            return [{"table_name": r["table_name"], "table_type": r["table_type"]} for r in rows]
+        finally:
+            await conn.close()
+
     async def _sync_live_postgres(self) -> list[tuple[Document, DocumentVersion]]:
         ssl_val = None if self.ssl_mode in ("disable", "prefer") else self.ssl_mode
         conn = await asyncpg.connect(
@@ -149,6 +212,7 @@ class PostgresConnector(BaseConnector):
                         t_name,
                     )
 
+                    # 1. Ingest table contract / schema
                     content = self._format_table_markdown(schema, t_name, t_type, cols_rows, constraints_rows)
                     doc_in = DocumentCreate(
                         organization_id=self.organization_id,
@@ -165,10 +229,55 @@ class PostgresConnector(BaseConnector):
                             "table": t_name,
                             "table_type": t_type,
                             "columns_count": len(cols_rows),
+                            "owner_id": str(self.owner_id) if self.owner_id else None,
                         },
                     )
                     doc, ver, _, is_changed = await self.ingestion_service.ingest_document_with_dedup(doc_in)
                     synced.append((doc, ver))
+
+                    # 2. Ingest sample records for Stored Documents visibility (read-only query)
+                    # Sanitize schema and table identifiers to prevent injection
+                    clean_s = schema.replace('"', '').replace("'", "")
+                    clean_t = t_name.replace('"', '').replace("'", "")
+                    try:
+                        record_rows = await conn.fetch(f'SELECT * FROM "{clean_s}"."{clean_t}" LIMIT 20;')
+                        for r_idx, r_val in enumerate(record_rows):
+                            row_dict = dict(r_val)
+                            # Find primary key or stable identifier
+                            pk_col = next((c.get("column_name") for c in constraints_rows if c.get("constraint_type") == "PRIMARY KEY"), None)
+                            row_pk = str(row_dict.get(pk_col)) if pk_col and pk_col in row_dict else str(r_idx + 1)
+
+                            row_lines = [
+                                f"# PostgreSQL Record: {clean_s}.{clean_t} #{row_pk}",
+                                f"\n**Database**: `{self.database}` | **Schema**: `{clean_s}` | **Table**: `{clean_t}` | **PK**: `{row_pk}`\n",
+                                "| Column | Value |",
+                                "| :--- | :--- |",
+                            ]
+                            for c_k, c_v in row_dict.items():
+                                row_lines.append(f"| `{c_k}` | `{str(c_v)[:100]}` |")
+
+                            rec_in = DocumentCreate(
+                                organization_id=self.organization_id,
+                                source_id=self.source_id,
+                                owner_id=self.owner_id,
+                                title=f"{clean_t} Record #{row_pk}",
+                                content="\n".join(row_lines),
+                                document_type="record",
+                                external_id=f"postgresql://{self.host}:{self.port}/{self.database}/{clean_s}/{clean_t}/{row_pk}",
+                                metadata={
+                                    "connector": "postgresql",
+                                    "database": self.database,
+                                    "schema": clean_s,
+                                    "table": clean_t,
+                                    "record_id": row_pk,
+                                    "owner_id": str(self.owner_id) if self.owner_id else None,
+                                },
+                            )
+                            r_doc, r_ver, _, _ = await self.ingestion_service.ingest_document_with_dedup(rec_in)
+                            synced.append((r_doc, r_ver))
+                    except Exception:
+                        # If table query restricted or empty, proceed with schema document
+                        pass
         finally:
             await conn.close()
         return synced
@@ -210,3 +319,7 @@ class PostgresConnector(BaseConnector):
         lines.append(f"- Mutability: Direct UPDATE operations on `{table}` require audited administrative privileges.")
 
         return "\n".join(lines)
+
+
+# Alias for consistent naming
+PostgreSQLConnector = PostgresConnector
