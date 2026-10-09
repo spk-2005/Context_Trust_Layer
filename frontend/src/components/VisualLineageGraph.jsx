@@ -38,6 +38,8 @@ import { useAuth } from '../context/AuthContext';
 import VisualClaimExtractionStudio from './VisualClaimExtractionStudio';
 import SmartDocumentCanvas from './SmartDocumentCanvas';
 import ExecutiveDeleteModal from './ExecutiveDeleteModal';
+import AssetClaimsStudioPane from './AssetClaimsStudioPane';
+import AssetConflictsStudioPane from './AssetConflictsStudioPane';
 
 const CARD_WIDTH = 260;
 const CARD_HEIGHT = 76;
@@ -3066,6 +3068,89 @@ export default function VisualLineageGraph({
                     onHighlightClause={(clause) => {
                       setDocReaderClauseFilter('raw');
                       showToast?.(`Locating clause in document view: "${clause.substring(0, 45)}..."`);
+                    }}
+                    showToast={showToast}
+                  />
+                );
+              }
+
+              if (selectedAsset360 && (asset360Section === 'claims')) {
+                return (
+                  <AssetClaimsStudioPane
+                    asset={selectedAsset360}
+                    claims={selectedAsset360.claims}
+                    allConflictedClaimIds={allConflictedClaimIds}
+                    graphData={graphData}
+                    onLocateInDoc={(claim) => {
+                      handleSectionChange('summary');
+                      setIsFileViewerOpen(true);
+                      setIsDetailsOpen(true);
+                      setActiveClaimInspector(claim);
+                      const cid = claim.cleanId || String(claim.id || '').replace(/^cl_/, '');
+                      const targetId = claim.id.startsWith('cl_') ? claim.id : `cl_${cid}`;
+                      const matchedNode = graphData?.nodes?.find(n => n.id === targetId || n.id === claim.id || n.id === `cl_${claim.id}`);
+                      const actualNodeId = matchedNode ? matchedNode.id : targetId;
+                      setSelectedNodeId(actualNodeId);
+                      setInteractiveRootId(actualNodeId);
+                      fetchBlastRadius(cid);
+                      showToast?.(`Locating claim in document canvas: "${(claim.label || claim.fullText || '').substring(0, 45)}..."`);
+                    }}
+                    onInspectInDag={(claim) => {
+                      const cid = claim.cleanId || String(claim.id || '').replace(/^cl_/, '');
+                      const targetId = claim.id.startsWith('cl_') ? claim.id : `cl_${cid}`;
+                      const matchedNode = graphData?.nodes?.find(n => n.id === targetId || n.id === claim.id || n.id === `cl_${claim.id}`);
+                      const actualNodeId = matchedNode ? matchedNode.id : targetId;
+                      setActiveClaimInspector(claim);
+                      setSelectedNodeId(actualNodeId);
+                      setInteractiveRootId(actualNodeId);
+                      setViewMode('interactive');
+                      setLineageGranularity('claim');
+                      setExpandedUpstreamSet(new Set([actualNodeId, selectedAsset360.node.id]));
+                      setExpandedDownstreamSet(new Set([actualNodeId]));
+                      setExpandedConflictClaimsSet(new Set());
+                      handleSectionChange('dag');
+                      fetchBlastRadius(cid);
+                      showToast?.(`Loaded claim "${(claim.label || '').substring(0, 35)}" in Interactive Lineage DAG`);
+                      setTimeout(() => handleFitView(), 150);
+                    }}
+                    showToast={showToast}
+                  />
+                );
+              }
+
+              if (selectedAsset360 && (asset360Section === 'conflicts')) {
+                return (
+                  <AssetConflictsStudioPane
+                    asset={selectedAsset360}
+                    conflicts={selectedAsset360.conflicts}
+                    conflictMap={conflictMap}
+                    graphData={graphData}
+                    onFocusInDag={(conflict) => {
+                      const cItem = conflictMap[conflict.id];
+                      const isResolved = (conflict.status || '').toLowerCase() === 'resolved' || (conflict.status || '').toLowerCase() === 'dismissed';
+                      if (isResolved) setFilterStatus('all');
+                      setSelectedNodeId(conflict.id);
+                      setInteractiveRootId(conflict.id);
+                      setExpandedDownstreamSet(prev => new Set(prev).add(selectedAsset360.node.id));
+                      if (cItem?.claimAId) setExpandedConflictClaimsSet(prev => new Set(prev).add(cItem.claimAId));
+                      if (cItem?.claimBId) setExpandedConflictClaimsSet(prev => new Set(prev).add(cItem.claimBId));
+                      handleSectionChange('dag');
+                      showToast?.(`Focused conflict "${conflict.label}" in Interactive Lineage DAG`);
+                      setTimeout(() => handleFitView(), 150);
+                    }}
+                    onLocateInDoc={(claim) => {
+                      handleSectionChange('summary');
+                      setIsFileViewerOpen(true);
+                      setIsDetailsOpen(true);
+                      setActiveClaimInspector(claim);
+                      const cid = claim.cleanId || String(claim.id || '').replace(/^cl_/, '');
+                      const targetId = claim.id.startsWith('cl_') ? claim.id : `cl_${cid}`;
+                      const matchedNode = graphData?.nodes?.find(n => n.id === targetId || n.id === claim.id || n.id === `cl_${claim.id}`);
+                      const actualNodeId = matchedNode ? matchedNode.id : targetId;
+                      setSelectedNodeId(actualNodeId);
+                      setInteractiveRootId(actualNodeId);
+                      fetchBlastRadius(cid);
+                      showToast?.(`Locating assertion in document canvas: "${(claim.label || claim.fullText || '').substring(0, 45)}..."`);
                     }}
                     showToast={showToast}
                   />

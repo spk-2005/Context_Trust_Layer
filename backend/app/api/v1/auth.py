@@ -250,12 +250,7 @@ async def persona_quick_login(
     user = res.scalar_one_or_none()
 
     if not user:
-        # Fallback: get any active user
-        fallback_res = await db.execute(select(User).options(selectinload(User.organization)).limit(1))
-        user = fallback_res.scalar_one_or_none()
-
-    if not user:
-        # Auto-seed default personas for primary org
+        # Auto-seed default personas for primary org if requested persona is not found
         from app.db.repositories.user_repository import UserRepository
         org_stmt = select(Organization).limit(1)
         res_org = await db.execute(org_stmt)
@@ -263,10 +258,17 @@ async def persona_quick_login(
         org_id = org.id if org else uuid.UUID("11111111-1111-1111-1111-111111111111")
         
         user_repo = UserRepository(db)
-        seeded = await user_repo.seed_default_personas(org_id)
+        await user_repo.seed_default_personas(org_id)
         await db.commit()
-        if seeded:
-            user = seeded[0]
+        
+        # Re-query with requested criteria
+        res = await db.execute(stmt.limit(1))
+        user = res.scalar_one_or_none()
+
+    if not user:
+        # Fallback: get any active user
+        fallback_res = await db.execute(select(User).options(selectinload(User.organization)).limit(1))
+        user = fallback_res.scalar_one_or_none()
 
     if not user:
         raise HTTPException(

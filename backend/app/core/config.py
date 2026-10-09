@@ -35,9 +35,18 @@ class Settings(BaseSettings):
 
     # Ollama Settings (local LLM via Ollama)
     ollama_base_url: str = "http://localhost:11434"
-    ollama_model: str = "qwen3:1.7b"
-    ollama_embedding_model: str = "qwen3:1.7b"
+    ollama_model: str = "qwen2.5:7b"
+    ollama_embedding_model: str = "qwen2.5:7b"
     ollama_timeout: int = 120  # seconds to wait for Ollama completions
+    ollama_temperature: float = 0.0
+    ollama_num_ctx: int = 8192
+
+    # Hybrid Extraction & Grounding Settings
+    extraction_chunk_chars: int = 3000
+    extraction_chunk_overlap: int = 200
+    extraction_max_concurrency: int = 2
+    extraction_require_evidence_match: bool = True
+    extraction_require_numeric_grounding: bool = True
 
     # Trust Engine Defaults
     default_trust_threshold: float = 0.80

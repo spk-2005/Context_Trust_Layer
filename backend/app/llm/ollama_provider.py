@@ -1,26 +1,40 @@
-import hashlib, json, logging, math, re
+import hashlib
+import inspect
+import json
+import logging
+import math
+import re
 from typing import Sequence
 import httpx
+
 from app.llm.base import BaseLLMProvider
 from app.llm.schemas import ClaimExtractionResult, ContradictionResult, ExtractedClaim
 
 logger = logging.getLogger(__name__)
 
-_CLAIM_PROMPT = (
-    'Extract atomic claims from the text below as JSON: {{"claims": [...]}}. '
-    "Each claim must have: claim_text, subject, predicate, object, "
-    "claim_type (policy|technical|financial|metric|compliance), "
-    "confidence (0.0-1.0), evidence_text_span.\n"
-    "Rules: one fact per claim, preserve exact numbers, NO extra text, ONLY valid JSON.\n\n"
-    "Title: {document_title} | Section: {section_title}\n"
-    "Text: {section_content}\n"
+CLAIM_EXTRACTION_SYSTEM_PROMPT = (
+    "You are a strict enterprise document claim extractor. "
+    "Extract ONLY explicit, verifiable claims stated in the supplied source text.\n\n"
+    "Extraction Rules:\n"
+    "1. ATOMIC CLAIMS: Extract atomic claims only. One claim must contain exactly one discrete factual statement.\n"
+    "2. NO HALLUCINATIONS: Do not infer facts, policies, dates, numbers, permissions, or exceptions.\n"
+    "3. PRESERVE MEANING: Preserve the document's meaning; do not rewrite a weaker statement as a stronger one.\n"
+    "4. NAMED ENTITIES: Use complete named entities. Resolve pronouns only when the referent is explicit in the provided text.\n"
+    "5. EXACT EVIDENCE: For every claim, include an exact verbatim evidence_text substring copied directly from the source.\n"
+    "6. NUMERICAL EXTRACTION: If a number, amount, period, date, percentage, or limit exists, populate numeric_value and numeric_unit only when explicitly stated.\n"
+    "7. EMPTY FALLBACK: If there are no clear policy, technical, or factual claims, return {\"claims\": []}.\n\n"
+    "Modality Definitions:\n"
+    "- MUST: Mandatory obligation or requirement\n"
+    "- CANNOT: Prohibition or barred action\n"
+    "- CAN or MAY: Permission or allowed action\n"
+    "- SHOULD: Recommendation\n"
+    "- IS: Factual definition, state, or relationship"
 )
 
-_CONTRA_PROMPT = (
-    "Do these two claims contradict? Reply ONLY with JSON:\n"
-    '{{"is_contradiction":bool,"conflict_type":"direct_contradiction|numerical_discrepancy|temporal_outdated|complementary|compatible",'
-    '"severity":"high|medium|low","confidence":float,"reasoning":"one sentence"}}\n\n'
-    "A: {claim_a}\nB: {claim_b}\n"
+CONTRADICTION_SYSTEM_PROMPT = (
+    "Determine if the two claims contradict each other based strictly on enterprise policy logic. "
+    "Return valid JSON with: is_contradiction (bool), conflict_type ('direct_contradiction'|'numerical_discrepancy'|'temporal_outdated'|'complementary'), "
+    "severity ('high'|'medium'|'low'), confidence (0.0-1.0), and reasoning."
 )
 
 
@@ -37,50 +51,49 @@ def _hash_emb(text: str, dim: int = 1536) -> list[float]:
     return [v / norm for v in vec] if norm > 0 else vec
 
 
-def _sf(v, d=0.0):
-    try:
-        return float(v)
-    except Exception:
-        return d
-
-
-def _ss(v, d=""):
-    return str(v) if v is not None else d
-
-
 class OllamaProvider(BaseLLMProvider):
-    """Real LLM provider backed by a local Ollama server."""
+    """Local LLM provider using Ollama with JSON-Schema constrained structured extraction."""
 
     def __init__(self):
+        import os
         from app.core.config import settings
-        self.base_url = settings.ollama_base_url.rstrip("/")
-        self.model = settings.ollama_model
-        self.emb_model = settings.ollama_embedding_model
-        self.timeout = settings.ollama_timeout
+        self.base_url = os.getenv("OLLAMA_BASE_URL", settings.ollama_base_url).rstrip("/")
+        self.model = os.getenv("OLLAMA_MODEL", settings.ollama_model or "qwen2.5:7b")
+        self.emb_model = os.getenv("OLLAMA_EMBEDDING_MODEL", getattr(settings, "ollama_embedding_model", self.model))
+        self.timeout = int(os.getenv("OLLAMA_TIMEOUT", str(getattr(settings, "ollama_timeout", 120))))
+        self.temperature = getattr(settings, "ollama_temperature", 0.0)
+        self.num_ctx = getattr(settings, "ollama_num_ctx", 8192)
         self.embedding_dim = 1536
-        logger.info("OllamaProvider ready  model=%s  url=%s", self.model, self.base_url)
+        logger.info("OllamaProvider initialized: model=%s base_url=%s num_ctx=%d", self.model, self.base_url, self.num_ctx)
 
-    async def _chat(self, prompt: str) -> str:
-        async with httpx.AsyncClient(timeout=self.timeout) as c:
-            r = await c.post(
-                f"{self.base_url}/api/chat",
-                json={
-                    "model": self.model,
-                    "messages": [
-                        {"role": "system", "content": "Output valid JSON only. Do not output thinking or markdown formatting."},
-                        {"role": "user", "content": prompt}
-                    ],
-                    "format": "json",
-                    "stream": False,
-                    "options": {
-                        "temperature": 0.0,
-                        "num_ctx": 2048,
-                        "num_predict": 512,
-                    },
-                },
-            )
-            r.raise_for_status()
-        return r.json()["message"]["content"].strip()
+    async def _chat(self, prompt: str, schema: dict | None = None) -> str:
+        payload = {
+            "model": self.model,
+            "messages": [
+                {"role": "system", "content": CLAIM_EXTRACTION_SYSTEM_PROMPT},
+                {"role": "user", "content": prompt}
+            ],
+            "stream": False,
+            "options": {
+                "temperature": self.temperature,
+                "num_ctx": self.num_ctx,
+            },
+        }
+        if schema:
+            payload["format"] = schema
+        else:
+            payload["format"] = "json"
+
+        async with httpx.AsyncClient(timeout=self.timeout) as client:
+            resp = await client.post(f"{self.base_url}/api/chat", json=payload)
+            if hasattr(resp, "raise_for_status"):
+                if inspect.iscoroutinefunction(resp.raise_for_status):
+                    await resp.raise_for_status()
+                else:
+                    resp.raise_for_status()
+            raw_data = resp.json() if callable(resp.json) else resp.json
+            data = await raw_data if inspect.isawaitable(raw_data) else raw_data
+            return data.get("message", {}).get("content", "").strip()
 
     @staticmethod
     def _clean(raw: str) -> str:
@@ -97,14 +110,43 @@ class OllamaProvider(BaseLLMProvider):
         )
         if not (section_content or "").strip():
             return empty
-        prompt = _CLAIM_PROMPT.format(
-            document_title=document_title,
-            section_title=section_title or "General",
-            section_content=section_content,
+
+        user_prompt = (
+            f"Document Title: {document_title}\n"
+            f"Section Title: {section_title or 'General'}\n"
+            f"Section Text:\n---\n{section_content}\n---"
         )
+
+        claim_json_schema = {
+            "type": "object",
+            "properties": {
+                "claims": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "claim_text": {"type": "string"},
+                            "subject": {"type": "string"},
+                            "predicate": {"type": "string"},
+                            "object": {"type": "string"},
+                            "modality": {"type": "string", "enum": ["MUST", "CANNOT", "CAN", "MAY", "SHOULD", "IS"]},
+                            "claim_type": {"type": "string", "enum": ["policy", "security", "financial", "compliance", "operational", "technical", "general"]},
+                            "evidence_text": {"type": "string"},
+                            "evidence_text_span": {"type": "string"},
+                            "confidence": {"type": "number"},
+                            "numeric_value": {"type": ["number", "null"]},
+                            "numeric_unit": {"type": ["string", "null"]}
+                        },
+                        "required": ["subject", "predicate", "object", "modality", "claim_type"]
+                    }
+                }
+            },
+            "required": ["claims"]
+        }
+
         raw = ""
         try:
-            raw = self._clean(await self._chat(prompt))
+            raw = self._clean(await self._chat(user_prompt, schema=claim_json_schema))
             data = json.loads(raw)
             if isinstance(data, dict):
                 rows = data.get("claims") or data.get("data") or [data]
@@ -113,72 +155,119 @@ class OllamaProvider(BaseLLMProvider):
             else:
                 rows = []
         except (httpx.RequestError, httpx.HTTPStatusError) as e:
-            logger.warning("Ollama extract_claims network error: %s", e)
+            logger.warning("Ollama extract_claims network error (%s): %s", self.model, e)
             return empty
         except json.JSONDecodeError:
-            logger.warning("Ollama extract_claims non-JSON (model=%s): %s", self.model, raw[:400])
+            logger.warning("Ollama extract_claims non-JSON (%s): %s", self.model, raw[:400])
             return empty
 
         claims = []
         for item in rows:
             if not isinstance(item, dict):
                 continue
-            ct = _ss(item.get("claim_text") or item.get("claim") or item.get("statement") or item.get("text")).strip()
+            
+            ct = str(item.get("claim_text") or item.get("claim") or item.get("statement") or "").strip()
+            subj = str(item.get("subject") or "").strip()
+            pred = str(item.get("predicate") or "").strip()
+            obj = str(item.get("object") or "").strip()
+
+            if not ct and subj and pred and obj:
+                ct = f"{subj} {pred} {obj}."
+
             if not ct:
                 continue
+
+            ev = str(item.get("evidence_text_span") or item.get("evidence_text") or ct).strip()
+            modality = str(item.get("modality") or "MUST").upper()
+            claim_type = str(item.get("claim_type") or "policy")
+            
+            conf = 0.95
+            try:
+                if item.get("confidence") is not None:
+                    conf = float(item["confidence"])
+            except Exception:
+                pass
+
+            num_val = None
+            if item.get("numeric_value") is not None:
+                try:
+                    num_val = float(item["numeric_value"])
+                except Exception:
+                    pass
+
+            num_unit = str(item.get("numeric_unit")).strip() if item.get("numeric_unit") else None
+
             claims.append(
                 ExtractedClaim(
                     claim_text=ct,
-                    subject=_ss(item.get("subject") or "Unknown")[:250],
-                    predicate=_ss(item.get("predicate") or "specifies")[:250],
-                    object=_ss(item.get("object") or ct),
-                    claim_type=_ss(item.get("claim_type") or "policy"),
-                    confidence=_sf(item.get("confidence"), 0.90),
-                    evidence_text_span=_ss(item.get("evidence_text_span") or ct),
+                    subject=subj or "Document Policy",
+                    predicate=pred or "asserts",
+                    object=obj or ct,
+                    claim_type=claim_type,
+                    modality=modality,
+                    confidence=min(1.0, max(0.0, conf)),
+                    evidence_text_span=ev,
+                    numeric_value=num_val,
+                    numeric_unit=num_unit,
                 )
             )
-        logger.info("OllamaProvider extracted %d claims from section '%s'", len(claims), section_title)
+
+        logger.info("OllamaProvider extracted %d candidate claims from '%s'", len(claims), section_title)
         return ClaimExtractionResult(
-            claims=claims, extraction_model=self.model, extraction_method="ollama_json_extraction"
+            claims=claims,
+            extraction_model=self.model,
+            extraction_method="ollama_json_extraction",
         )
-
-    async def get_embedding(self, text: str) -> list[float]:
-        try:
-            async with httpx.AsyncClient(timeout=30) as c:
-                r = await c.post(
-                    f"{self.base_url}/api/embeddings",
-                    json={"model": self.emb_model, "prompt": text},
-                )
-            if r.status_code == 200:
-                emb = r.json().get("embedding", [])
-                if emb:
-                    return emb
-        except (httpx.RequestError, httpx.HTTPStatusError):
-            pass
-        return _hash_emb(text, self.embedding_dim)
-
-    async def get_embeddings(self, texts: Sequence[str]) -> list[list[float]]:
-        return [await self.get_embedding(t) for t in texts]
 
     async def evaluate_contradiction(
         self, claim_a_text: str, claim_b_text: str
     ) -> ContradictionResult:
-        prompt = _CONTRA_PROMPT.format(claim_a=claim_a_text, claim_b=claim_b_text)
-        raw = ""
+        user_prompt = f"{CONTRADICTION_SYSTEM_PROMPT}\n\nClaim A: {claim_a_text}\nClaim B: {claim_b_text}"
         try:
-            raw = self._clean(await self._chat(prompt))
+            raw = self._clean(await self._chat(user_prompt))
             data = json.loads(raw)
             return ContradictionResult(
                 is_contradiction=bool(data.get("is_contradiction", False)),
-                conflict_type=_ss(data.get("conflict_type", "compatible")),
-                severity=_ss(data.get("severity", "low")),
-                confidence=_sf(data.get("confidence"), 0.85),
-                reasoning=_ss(data.get("reasoning", "No reasoning.")),
+                conflict_type=str(data.get("conflict_type", "direct_contradiction")),
+                severity=str(data.get("severity", "high")),
+                confidence=float(data.get("confidence", 0.90)),
+                reasoning=str(data.get("reasoning", "")),
             )
-        except (httpx.RequestError, httpx.HTTPStatusError, json.JSONDecodeError) as e:
-            logger.debug("Ollama contradiction eval fallback due to: %s", e)
-            from app.llm.mock_provider import MockLLMProvider
-            return await MockLLMProvider().evaluate_contradiction(claim_a_text, claim_b_text)
+        except Exception as e:
+            logger.warning("Ollama evaluate_contradiction failed (%s): %s", self.model, e)
+            return ContradictionResult(is_contradiction=False, conflict_type="none", severity="low", confidence=0.5)
+
+    async def detect_contradiction(self, claim_a_text: str, claim_b_text: str) -> ContradictionResult:
+        return await self.evaluate_contradiction(claim_a_text, claim_b_text)
+
+    async def get_embedding(self, text: str) -> list[float]:
+        try:
+            async with httpx.AsyncClient(timeout=15.0) as client:
+                resp = await client.post(
+                    f"{self.base_url}/api/embeddings",
+                    json={"model": self.emb_model, "prompt": text}
+                )
+                if resp.status_code == 200:
+                    raw_data = resp.json() if callable(resp.json) else resp.json
+                    data = await raw_data if inspect.isawaitable(raw_data) else raw_data
+                    emb = data.get("embedding")
+                    if emb and len(emb) > 0:
+                        return emb
+        except Exception:
+            pass
+        return _hash_emb(text, self.embedding_dim)
+
+    async def generate_embedding(self, text: str) -> list[float]:
+        return await self.get_embedding(text)
+
+    async def get_embeddings(self, texts: Sequence[str]) -> list[list[float]]:
+        results = []
+        for t in texts:
+            results.append(await self.get_embedding(t))
+        return results
+
+    async def generate_embeddings_batch(self, texts: Sequence[str]) -> list[list[float]]:
+        return await self.get_embeddings(texts)
 
     async def generate_grounded_answer(
         self,
@@ -187,25 +276,42 @@ class OllamaProvider(BaseLLMProvider):
         has_conflicts: bool = False,
         warnings: list[str] | None = None,
     ) -> str:
-        if not citations:
-            return (
-                f'No verified claims or policies matching "{query}" were found in the current organization knowledge base. '
-                "Please ingest the relevant documentation or connect enterprise data sources."
-            )
-        claims_text = "\n".join(f"- {c.get('claim_text', '')} (Source: {c.get('source_title', 'Doc')})" for c in citations[:5])
-        prompt = (
-            f"You are Context Trust Layer AI Copilot. Answer the user's question using ONLY the provided verified claims.\n"
-            f"User Question: {query}\n\n"
-            f"Verified Claims:\n{claims_text}\n\n"
-            f"Conflicts present: {has_conflicts}\n"
-            "Provide a concise, direct, authoritative answer citing the sources."
+        """Synthesize a factual, grounded answer to query based strictly on verified context claims."""
+        context_items = []
+        for idx, c in enumerate(citations, start=1):
+            claim_txt = c.get("claim_text", "")
+            source_doc = c.get("source_document", "Verified Knowledge")
+            context_items.append(f"[{idx}] {claim_txt} (Source: {source_doc})")
+        
+        context_block = "\n".join(context_items) if context_items else "No verified claims found."
+        
+        system_prompt = (
+            "You are the Context Trust Layer Grounded Answer Engine. "
+            "Answer the user query using ONLY the verified context claims provided below. "
+            "Cite claim numbers [1], [2], etc., for every assertion. "
+            "If the context does not contain enough information, state that clearly."
         )
+        user_prompt = f"Query: {query}\n\nVerified Context Claims:\n{context_block}"
+        
         try:
-            ans = await self._chat(prompt)
-            if ans and len(ans.strip()) > 10:
-                return ans.strip()
+            async with httpx.AsyncClient(timeout=self.timeout) as client:
+                resp = await client.post(
+                    f"{self.base_url}/api/chat",
+                    json={
+                        "model": self.model,
+                        "messages": [
+                            {"role": "system", "content": system_prompt},
+                            {"role": "user", "content": user_prompt}
+                        ],
+                        "stream": False,
+                        "options": {"temperature": 0.1, "num_ctx": self.num_ctx}
+                    }
+                )
+                if resp.status_code == 200:
+                    raw_data = resp.json() if callable(resp.json) else resp.json
+                    data = await raw_data if inspect.isawaitable(raw_data) else raw_data
+                    return data.get("message", {}).get("content", "").strip()
         except Exception as e:
-            logger.debug("Ollama chat completion fallback due to: %s", e)
-        from app.llm.mock_provider import MockLLMProvider
-        return await MockLLMProvider().generate_grounded_answer(query, citations, has_conflicts, warnings)
-
+            logger.warning("Ollama generate_grounded_answer error: %s", e)
+        
+        return f"Based on verified organizational ground truth:\n\n" + "\n".join(f"- {c.get('claim_text')}" for c in citations)
