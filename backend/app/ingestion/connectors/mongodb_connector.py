@@ -1,7 +1,11 @@
 import json
+import logging
+import re
 import uuid
 from typing import Any, Sequence
 from urllib.parse import urlparse
+
+logger = logging.getLogger(__name__)
 
 try:
     import motor.motor_asyncio
@@ -40,8 +44,20 @@ class MongoDbConnector(BaseConnector):
     ):
         super().__init__(session, organization_id, source_id, owner_id=owner_id)
         config = connection_config or {}
-        self.connection_string = config.get("connection_string", connection_string)
-        self.database = config.get("database", database)
+        raw_uri = (
+            config.get("connection_string")
+            or config.get("connection_uri")
+            or config.get("mongoUri")
+            or config.get("mongo_uri")
+            or config.get("uri")
+            or config.get("url")
+            or kwargs.get("connection_string")
+            or kwargs.get("mongoUri")
+            or kwargs.get("uri")
+            or connection_string
+        )
+        self.connection_string = raw_uri
+        self.database = config.get("database") or config.get("mongoDatabase") or database
         self.collections = config.get("collections", collections or ["*"])
         self.auth_database = config.get("auth_database", auth_database)
         self.tls_enabled = config.get("tls_enabled", tls_enabled)
@@ -52,7 +68,25 @@ class MongoDbConnector(BaseConnector):
         """Verify MongoDB URI structure, connectivity, and database access against live instance."""
         masked_uri = self._mask_uri(self.connection_string)
 
+        # Check for literal placeholder brackets in URI password (e.g. <spk> or <password>)
+        has_angle_brackets = False
+        bracket_val = None
+        match = re.search(r"://([^:@\s]+):([^@\s]+)@", self.connection_string)
+        if match:
+            user_part, pwd_part = match.group(1), match.group(2)
+            if pwd_part.startswith("<") and pwd_part.endswith(">"):
+                has_angle_brackets = True
+                bracket_val = pwd_part[1:-1]
+                logger.warning(
+                    "MongoDB URI password contains literal angle brackets '<%s>' for user '%s'. "
+                    "Atlas templates use '<password>' as a placeholder; angle brackets should be removed.",
+                    bracket_val, user_part
+                )
+
+        logger.info("Starting MongoDB connection test for database '%s' at %s", self.database, masked_uri)
+
         if motor is None:
+            logger.error("MongoDB test aborted: driver 'motor' is not installed.")
             return {
                 "success": False,
                 "status": "error",
@@ -72,6 +106,8 @@ class MongoDbConnector(BaseConnector):
             cols = await db.list_collection_names()
             client.close()
 
+            logger.info("MongoDB connection test PASSED for database '%s' (%d collections found)", self.database, len(cols))
+
             return {
                 "success": True,
                 "status": "ok",
@@ -84,11 +120,39 @@ class MongoDbConnector(BaseConnector):
                 },
             }
         except Exception as e:
+            raw_err = str(e)
+            logger.error("MongoDB connection test FAILED for database '%s' at %s: %s", self.database, masked_uri, raw_err)
+
+            actionable_msg = f"MongoDB connection test failed: {raw_err}"
+
+            if "bad auth" in raw_err.lower() or "8000" in raw_err:
+                bracket_hint = ""
+                if has_angle_brackets:
+                    bracket_hint = (
+                        f"⚠️ PLACEHOLDER ANGLE BRACKETS DETECTED:\n"
+                        f"Your password is set to '<{bracket_val}>' with angle brackets. In MongoDB Atlas templates, '<password>' is a placeholder.\n"
+                        f"Remove the '<' and '>' characters from your password (use '{bracket_val}', not '<{bracket_val}>').\n\n"
+                    )
+
+                actionable_msg = (
+                    f"MongoDB Atlas authentication failed (Atlas Error 8000: 'bad auth').\n\n"
+                    f"{bracket_hint}"
+                    f"Actionable Troubleshooting Steps:\n"
+                    f"1. Database User Credentials: In MongoDB Atlas, ensure you are using a Database User configured under 'Security' → 'Database Access', NOT your Atlas web portal email/password.\n"
+                    f"2. URL-Encode Special Characters: If the password contains symbols like '@', ':', '/', '?', '#', '%', '$', '&', they must be percent-encoded (e.g., '@' becomes '%40', '#' becomes '%23').\n"
+                    f"3. Auth Source: Add '?authSource=admin' to your URI if your user was created in the default admin authentication database.\n"
+                    f"4. Target Database: Specify your database name in the URI path (e.g., 'mongodb+srv://<user>:<pass>@cluster0.3tw5iwh.mongodb.net/your_db?authSource=admin')."
+                )
+
             return {
                 "success": False,
                 "status": "error",
-                "message": f"MongoDB connection test failed: {str(e)}",
-                "details": {"connection_uri": masked_uri},
+                "message": actionable_msg,
+                "details": {
+                    "connection_uri": masked_uri,
+                    "error_code": 8000 if ("8000" in raw_err or "bad auth" in raw_err.lower()) else None,
+                    "has_placeholder_brackets": has_angle_brackets,
+                },
             }
 
     def _mask_uri(self, uri: str) -> str:
@@ -107,6 +171,43 @@ class MongoDbConnector(BaseConnector):
             return await self._sync_live_mongodb()
         except Exception as e:
             raise RuntimeError(f"MongoDB sync failed for '{self.database}': {str(e)}")
+
+    @staticmethod
+    async def discover_databases(connection_string: str) -> list[str]:
+        """Discovers accessible databases on MongoDB cluster."""
+        if motor is None:
+            raise RuntimeError("MongoDB driver 'motor' is not installed in this environment.")
+        client = motor.motor_asyncio.AsyncIOMotorClient(
+            connection_string,
+            serverSelectionTimeoutMS=5000,
+            connectTimeoutMS=5000,
+        )
+        try:
+            dbs = await client.list_database_names()
+            return [d for d in dbs if d not in ("admin", "local", "config")]
+        except Exception as e:
+            err_str = str(e)
+            if "bad auth" in err_str.lower() or "8000" in err_str:
+                raise ValueError("MongoDB Atlas authentication failed ('bad auth'). Check credentials in Atlas -> Database Access and ensure special characters are URL-encoded.") from e
+            raise
+        finally:
+            client.close()
+
+    @staticmethod
+    async def discover_collections(connection_string: str, database: str) -> list[str]:
+        """Discovers accessible collections in target MongoDB database."""
+        if motor is None:
+            raise RuntimeError("MongoDB driver 'motor' is not installed in this environment.")
+        client = motor.motor_asyncio.AsyncIOMotorClient(
+            connection_string,
+            serverSelectionTimeoutMS=5000,
+            connectTimeoutMS=5000,
+        )
+        try:
+            db = client[database]
+            return await db.list_collection_names()
+        finally:
+            client.close()
 
     async def _sync_live_mongodb(self) -> list[tuple[Document, DocumentVersion]]:
         if motor is None:
@@ -130,7 +231,7 @@ class MongoDbConnector(BaseConnector):
                 # Fetch collection indexes
                 indexes = await col.index_information()
                 
-                # Sample documents to infer field types
+                # Sample documents with cursor-based limit
                 sample_docs = await col.find().to_list(length=self.sample_size)
                 field_types = {}
                 for doc in sample_docs:
@@ -139,10 +240,12 @@ class MongoDbConnector(BaseConnector):
                         if k not in field_types:
                             field_types[k] = tname
 
+                # 1. Ingest collection schema & contract
                 content = self._format_mongodb_markdown(col_name, indexes, field_types, len(sample_docs))
                 doc_in = DocumentCreate(
                     organization_id=self.organization_id,
                     source_id=self.source_id,
+                    owner_id=self.owner_id,
                     title=f"MongoDB Collection: {self.database}.{col_name}",
                     content=content,
                     document_type="data_contract",
@@ -153,10 +256,39 @@ class MongoDbConnector(BaseConnector):
                         "collection": col_name,
                         "indexes_count": len(indexes),
                         "sampled_fields_count": len(field_types),
+                        "owner_id": str(self.owner_id) if self.owner_id else None,
                     },
                 )
                 doc, ver, _, is_changed = await self.ingestion_service.ingest_document_with_dedup(doc_in)
                 synced.append((doc, ver))
+
+                # 2. Ingest individual records (bounded batch) for Stored Documents visibility
+                for doc_record in sample_docs[:20]:
+                    doc_id_val = str(doc_record.get("_id", "unknown"))
+                    rec_json = json.dumps(doc_record, default=str, indent=2)
+                    rec_content = (
+                        f"# MongoDB Record: {self.database}.{col_name} [{doc_id_val}]\n\n"
+                        f"**Database**: `{self.database}` | **Collection**: `{col_name}` | **ID**: `{doc_id_val}`\n\n"
+                        f"```json\n{rec_json}\n```"
+                    )
+                    rec_in = DocumentCreate(
+                        organization_id=self.organization_id,
+                        source_id=self.source_id,
+                        owner_id=self.owner_id,
+                        title=f"{col_name} Record #{doc_id_val[:12]}",
+                        content=rec_content,
+                        document_type="record",
+                        external_id=f"mongodb://{self.database}/{col_name}/{doc_id_val}",
+                        metadata={
+                            "connector": "mongodb",
+                            "database": self.database,
+                            "collection": col_name,
+                            "document_id": doc_id_val,
+                            "owner_id": str(self.owner_id) if self.owner_id else None,
+                        },
+                    )
+                    r_doc, r_ver, _, _ = await self.ingestion_service.ingest_document_with_dedup(rec_in)
+                    synced.append((r_doc, r_ver))
         finally:
             client.close()
 
@@ -192,3 +324,7 @@ class MongoDbConnector(BaseConnector):
         lines.append(f"- Retention: Collection `{col_name}` is governed by standard enterprise retention policies.")
         lines.append(f"- Access Controls: Read and write access restricted to certified application service accounts.")
         return "\n".join(lines)
+
+
+# Alias for consistent naming
+MongoDBConnector = MongoDbConnector

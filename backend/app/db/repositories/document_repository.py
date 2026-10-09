@@ -48,7 +48,7 @@ class DocumentRepository(BaseRepository[Document]):
         offset: int = 0,
     ) -> Sequence[Document]:
         stmt = select(Document).where(Document.organization_id == organization_id)
-        if source_id:
+        if source_id and isinstance(source_id, uuid.UUID):
             stmt = stmt.where(Document.source_id == source_id)
         stmt = (
             stmt.offset(offset)

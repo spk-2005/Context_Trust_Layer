@@ -32,7 +32,7 @@ class DocumentCreate(BaseModel):
 class DocumentResponse(BaseModel):
     id: uuid.UUID
     organization_id: uuid.UUID
-    source_id: uuid.UUID
+    source_id: uuid.UUID | None = None
     owner_id: uuid.UUID | None = None
     external_id: str | None = None
     title: str

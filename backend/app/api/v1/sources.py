@@ -1,16 +1,28 @@
+import logging
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
+from typing import Any, Optional
+
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+logger = logging.getLogger(__name__)
+
+from app.api.deps import require_permission
+from app.core.encryption import EncryptionService
+from app.core.permissions import Permission
 from app.db.database import get_db
+from app.db.models.data_source import DataSource
+from app.db.models.user import User
 from app.db.repositories.data_source_repository import DataSourceRepository
 from app.ingestion.connector_registry import ConnectorRegistry
+from app.ingestion.connectors.confluence_connector import ConfluenceConnector
+from app.ingestion.connectors.github_connector import GitHubConnector, sanitize_github_repo
+from app.ingestion.connectors.jira_connector import JiraConnector
 from app.ingestion.connectors.kafka_connector import KafkaConnector
 from app.ingestion.connectors.mongodb_connector import MongoDbConnector
 from app.ingestion.connectors.postgres_connector import PostgresConnector
 from app.ingestion.connectors.salesforce_connector import SalesforceConnector
-from app.ingestion.connectors.github_connector import sanitize_github_repo
 from app.ingestion.connectors.universal_driver import UniversalConnectorDriver
 from app.ingestion.sync_engine import SyncEngine, SyncResult
 from app.schemas.data_source import (
@@ -18,24 +30,153 @@ from app.schemas.data_source import (
     ConnectionTestResult,
     DataSourceCreate,
     DataSourceResponse,
+    DataSourceUpdate,
+    ResourceDiscoveryRequest,
+    ResourceDiscoveryResponse,
+    ScheduleUpdateRequest,
 )
 from app.services.activity_service import ActivityService
-from typing import Optional
-from app.api.deps import require_permission
-from app.core.permissions import Permission
-from app.db.models.user import User
 
 router = APIRouter(prefix="/sources", tags=["sources"])
+
+LIVE_SUPPORTED_PROVIDERS = {
+    "github",
+    "mongodb",
+    "mongodb_atlas",
+    "jira",
+    "confluence",
+    "postgresql",
+    "postgres",
+}
+
+
+def _mask_source_response(source: DataSource) -> DataSourceResponse:
+    """Creates a safe DataSourceResponse with all credentials and secrets redacted."""
+    safe_config = EncryptionService.redact_credentials(source.connection_config)
+    res = DataSourceResponse.model_validate(source)
+    res.connection_config = safe_config
+    return res
+
+
+def _secure_and_validate_config(source_type: str, raw_config: dict[str, Any], test_passed: bool) -> tuple[dict[str, Any], dict[str, Any]]:
+    """
+    Validates connector configuration, extracts credentials into encrypted payload,
+    and returns (persisted_config, redacted_safe_config).
+    """
+    stype = (source_type or "").lower().strip()
+    if stype in ("slack", "slack_message", "slack_bot"):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Slack connector is not supported or permitted in this workflow."
+        )
+
+    clean_cfg = dict(raw_config or {})
+    schedule_val = str(clean_cfg.get("schedule", "off")).lower().strip()
+    if schedule_val not in ("off", "1m", "10m"):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid synchronization schedule '{schedule_val}'. Must be 'off', '1m', or '10m'."
+        )
+
+    # Provider specific validations & secret extractions
+    secret_payload: dict[str, Any] = {}
+
+    if stype in ("github", "repo", "git"):
+        repo = clean_cfg.get("repo") or clean_cfg.get("repository") or ""
+        if not repo.strip():
+            raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail="GitHub repository name is required.")
+        token = clean_cfg.get("token") or clean_cfg.get("access_token") or ""
+        if token:
+            secret_payload["token"] = token
+            secret_payload["access_token"] = token
+
+    elif stype in ("mongodb", "mongodb_atlas", "mongo"):
+        uri = clean_cfg.get("connection_string") or clean_cfg.get("uri") or ""
+        database = clean_cfg.get("database") or ""
+        if not uri.strip() or not database.strip():
+            raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail="MongoDB connection string and database name are required.")
+        secret_payload["connection_string"] = uri
+        if clean_cfg.get("password"):
+            secret_payload["password"] = clean_cfg["password"]
+
+    elif stype in ("jira", "jira_issues"):
+        base_url = clean_cfg.get("base_url") or clean_cfg.get("url") or ""
+        email = clean_cfg.get("user_email") or clean_cfg.get("email") or ""
+        token = clean_cfg.get("api_token") or clean_cfg.get("token") or ""
+        project = clean_cfg.get("project_key") or ""
+        if not base_url.strip() or not email.strip() or not token.strip() or not project.strip():
+            raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail="Jira requires base URL, user email, API token, and project key.")
+        try:
+            clean_cfg["base_url"] = EncryptionService.validate_external_url(base_url)
+        except ValueError as err:
+            raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(err))
+        secret_payload["api_token"] = token
+        secret_payload["token"] = token
+
+    elif stype in ("confluence", "wiki"):
+        base_url = clean_cfg.get("base_url") or clean_cfg.get("url") or ""
+        email = clean_cfg.get("user_email") or clean_cfg.get("email") or ""
+        token = clean_cfg.get("api_token") or clean_cfg.get("token") or ""
+        raw_space = clean_cfg.get("space_key") or clean_cfg.get("space_keys") or clean_cfg.get("spaces") or ""
+        parsed_spaces = ConfluenceConnector._parse_space_keys(raw_space)
+        if not base_url.strip() or not email.strip() or not token.strip() or not parsed_spaces:
+            raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail="Confluence requires base URL, user email, API token, and at least one target space key.")
+        clean_cfg["space_key"] = ",".join(parsed_spaces)
+        clean_cfg["space_keys"] = parsed_spaces
+        try:
+            clean_cfg["base_url"] = ConfluenceConnector._normalize_base_url(EncryptionService.validate_external_url(base_url))
+        except ValueError as err:
+            raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(err))
+        secret_payload["api_token"] = token
+        secret_payload["token"] = token
+
+    elif stype in ("postgresql", "postgres"):
+        host = clean_cfg.get("host") or ""
+        port = int(clean_cfg.get("port") or 5432)
+        database = clean_cfg.get("database") or ""
+        username = clean_cfg.get("username") or ""
+        password = clean_cfg.get("password") or ""
+        if not host.strip() or not database.strip() or not username.strip():
+            raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail="PostgreSQL requires host, database, and username.")
+        if port < 1 or port > 65535:
+            raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail="Port must be between 1 and 65535.")
+        if password:
+            secret_payload["password"] = password
+
+    # State transition rule: Connected ONLY after successful test
+    connection_status = "connected" if test_passed else "disconnected"
+
+    # Encrypt secrets into envelope token
+    persisted_config = dict(clean_cfg)
+    if secret_payload:
+        persisted_config["_encrypted_credentials"] = EncryptionService.encrypt_payload(secret_payload)
+
+    # Redact raw secrets before storing or exposing
+    for k in ("password", "token", "access_token", "api_token", "api_key", "secret", "client_secret"):
+        if k in persisted_config and persisted_config[k]:
+            persisted_config[k] = "••••••••"
+    if "connection_string" in persisted_config and persisted_config["connection_string"]:
+        persisted_config["connection_string"] = EncryptionService.mask_uri(persisted_config["connection_string"])
+
+    persisted_config["connection_status"] = connection_status
+    persisted_config["schedule"] = schedule_val
+    if schedule_val in ("1m", "10m"):
+        interval_secs = 60 if schedule_val == "1m" else 600
+        persisted_config["next_sync_at"] = (datetime.now(timezone.utc) + timedelta(seconds=interval_secs)).isoformat()
+    else:
+        persisted_config["next_sync_at"] = None
+
+    return persisted_config, EncryptionService.redact_credentials(persisted_config)
 
 
 @router.get("/catalog")
 async def get_connector_catalog(
-    category: str | None = Query(None, description="Optional category filter (database, storage, etl, orchestration, messaging, bi, governance, crm_erp, ml_ai)"),
+    category: str | None = Query(None, description="Optional category filter"),
     search: str | None = Query(None, description="Optional search term matching connector name, description, or id"),
 ):
     """
-    Get the complete catalog of all 104 supported enterprise data source connectors
-    grouped into 10 architectural categories.
+    Get the complete catalog of supported enterprise data source connectors,
+    marking the five live supported connectors (GitHub, MongoDB Atlas, Jira, Confluence, PostgreSQL).
     """
     all_connectors = ConnectorRegistry.get_all()
     categories = ConnectorRegistry.get_categories()
@@ -51,11 +192,20 @@ async def get_connector_catalog(
             if s_lower in c.name.lower() or s_lower in c.description.lower() or s_lower in c.id.lower() or s_lower in c.category_label.lower()
         ]
 
+    # Exclude Slack from any catalog output
+    filtered = [c for c in filtered if c.id not in ("slack", "slack_message")]
+
+    connector_dicts = []
+    for c in filtered:
+        c_dict = c.model_dump()
+        c_dict["live_supported"] = c.id in LIVE_SUPPORTED_PROVIDERS
+        connector_dicts.append(c_dict)
+
     return {
-        "total_supported": len(all_connectors),
-        "total_matched": len(filtered),
+        "total_supported": len(connector_dicts),
+        "total_matched": len(connector_dicts),
         "categories": categories,
-        "connectors": [c.model_dump() for c in filtered],
+        "connectors": connector_dicts,
     }
 
 
@@ -65,11 +215,19 @@ async def test_source_connection(
     db: AsyncSession = Depends(get_db),
 ):
     """
-    Perform pre-flight connectivity verification for any of the 104 enterprise data sources.
+    Perform pre-flight connectivity verification for any of the supported live data sources.
+    Uses real provider APIs, database drivers, and official SDKs.
     """
     stype = (data.source_type or "").lower().strip()
+    if stype in ("slack", "slack_message", "slack_bot"):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Slack connector is explicitly excluded and not supported."
+        )
+
     dummy_org = uuid.UUID("11111111-1111-1111-1111-111111111111")
     dummy_src = uuid.uuid4()
+    logger.info("Initiating live connection test for source type '%s'", stype)
 
     try:
         if stype in ("postgresql", "postgres"):
@@ -80,13 +238,44 @@ async def test_source_connection(
                 connection_config=data.connection_config,
             )
             res = await connector.test_connection()
-            return ConnectionTestResult(
-                success=res.get("success", True),
-                status=res.get("status", "ok"),
-                message=res.get("message", "PostgreSQL connection test completed."),
-                details=res.get("details", {}),
-                tested_at=datetime.now(timezone.utc),
+
+        elif stype in ("mongodb", "mongo", "mongo_atlas", "mongodb_atlas", "mongodb_self", "documentdb", "cosmos_mongo"):
+            connector = MongoDbConnector(
+                session=db,
+                organization_id=dummy_org,
+                source_id=dummy_src,
+                connection_config=data.connection_config,
             )
+            res = await connector.test_connection()
+
+        elif stype in ("github", "repo", "git"):
+            connector = GitHubConnector(
+                session=db,
+                organization_id=dummy_org,
+                source_id=dummy_src,
+                repo=data.connection_config.get("repo") or data.connection_config.get("repository") or "demo-org/security-standards",
+                branch=data.connection_config.get("branch"),
+                token=data.connection_config.get("token") or data.connection_config.get("access_token"),
+            )
+            res = await connector.test_connection()
+
+        elif stype in ("jira", "jira_issues"):
+            connector = JiraConnector(
+                session=db,
+                organization_id=dummy_org,
+                source_id=dummy_src,
+                connection_config=data.connection_config,
+            )
+            res = await connector.test_connection()
+
+        elif stype in ("confluence", "wiki"):
+            connector = ConfluenceConnector(
+                session=db,
+                organization_id=dummy_org,
+                source_id=dummy_src,
+                connection_config=data.connection_config,
+            )
+            res = await connector.test_connection()
 
         elif stype in ("kafka", "apache_kafka", "confluent"):
             connector = KafkaConnector(
@@ -96,13 +285,6 @@ async def test_source_connection(
                 connection_config=data.connection_config,
             )
             res = await connector.test_connection()
-            return ConnectionTestResult(
-                success=res.get("success", True),
-                status=res.get("status", "ok"),
-                message=res.get("message", "Kafka connection test completed."),
-                details=res.get("details", {}),
-                tested_at=datetime.now(timezone.utc),
-            )
 
         elif stype in ("salesforce", "sfdc", "salesforce_crm"):
             connector = SalesforceConnector(
@@ -112,90 +294,8 @@ async def test_source_connection(
                 connection_config=data.connection_config,
             )
             res = await connector.test_connection()
-            return ConnectionTestResult(
-                success=res.get("success", True),
-                status=res.get("status", "ok"),
-                message=res.get("message", "Salesforce connection test completed."),
-                details=res.get("details", {}),
-                tested_at=datetime.now(timezone.utc),
-            )
-
-        elif stype in ("mongodb", "mongo", "mongo_atlas", "mongodb_self", "mongodb_atlas", "documentdb", "cosmos_mongo"):
-            connector = MongoDbConnector(
-                session=db,
-                organization_id=dummy_org,
-                source_id=dummy_src,
-                connection_config=data.connection_config,
-            )
-            res = await connector.test_connection()
-            return ConnectionTestResult(
-                success=res.get("success", True),
-                status=res.get("status", "ok"),
-                message=res.get("message", "MongoDB connection test completed."),
-                details=res.get("details", {}),
-                tested_at=datetime.now(timezone.utc),
-            )
-
-        elif stype in ("github", "repo", "git"):
-            repo_name = data.connection_config.get("repo") or data.connection_config.get("repository") or "demo-org/security-standards"
-            branch = data.connection_config.get("branch", "main")
-            token = data.connection_config.get("token") or data.connection_config.get("access_token", "")
-            clean_repo = sanitize_github_repo(repo_name)
-            
-            is_valid = True
-            msg = f"GitHub repository '{clean_repo}' verified on branch '{branch}'."
-            details = {"repo": clean_repo, "branch": branch, "auth_mode": "token" if token else "public"}
-            try:
-                import httpx
-                headers = {"User-Agent": "Context-Trust-Layer-Validator", "Accept": "application/vnd.github.v3+json"}
-                if token:
-                    headers["Authorization"] = f"Bearer {token}"
-                async with httpx.AsyncClient(timeout=6.0) as client:
-                    resp = await client.get(f"https://api.github.com/repos/{clean_repo}", headers=headers)
-                    if resp.status_code == 200:
-                        r_data = resp.json()
-                        msg = f"GitHub repository '{clean_repo}' validated successfully ({'private' if r_data.get('private') else 'public'})."
-                        details["default_branch"] = r_data.get("default_branch", branch)
-                    elif resp.status_code in (401, 403, 429):
-                        # Probe raw CDN to verify repo accessibility without consuming rate limit
-                        raw_resp = await client.get(f"https://raw.githubusercontent.com/{clean_repo}/{branch}/README.md")
-                        if raw_resp.status_code == 200:
-                            msg = f"GitHub repository '{clean_repo}' verified via GitHub CDN (API rate limited, raw access OK)."
-                        else:
-                            msg = f"GitHub repository '{clean_repo}' connected (API rate limited, unauthenticated mode)."
-                    elif resp.status_code == 404:
-                        raw_resp = await client.get(f"https://raw.githubusercontent.com/{clean_repo}/{branch}/README.md")
-                        if raw_resp.status_code != 200:
-                            return ConnectionTestResult(
-                                success=False,
-                                status="error",
-                                message=f"GitHub repository '{clean_repo}' not found. Make sure repository name is accurate.",
-                                details=details,
-                                tested_at=datetime.now(timezone.utc),
-                            )
-            except Exception:
-                pass
-
-            return ConnectionTestResult(
-                success=True,
-                status="ok",
-                message=msg,
-                details=details,
-                tested_at=datetime.now(timezone.utc),
-            )
-
-        elif stype in ("confluence", "jira"):
-            key = data.connection_config.get("space_key") or data.connection_config.get("project_key") or "POLICIES"
-            return ConnectionTestResult(
-                success=True,
-                status="ok",
-                message=f"Atlassian {stype.capitalize()} endpoint and space/project key '{key}' verified.",
-                details={"target_key": key},
-                tested_at=datetime.now(timezone.utc),
-            )
 
         else:
-            # Universal driver pre-flight test for any of the 105 catalog sources
             driver = UniversalConnectorDriver(
                 session=db,
                 organization_id=dummy_org,
@@ -204,14 +304,27 @@ async def test_source_connection(
                 connection_config=data.connection_config,
             )
             res = await driver.test_connection()
-            return ConnectionTestResult(
-                success=res.get("success", True),
-                status=res.get("status", "ok"),
-                message=res.get("message", f"Connector '{stype}' connection verified."),
-                details=res.get("details", data.connection_config),
-                tested_at=datetime.now(timezone.utc),
-            )
+
+        # Sanitize details to guarantee zero secret leakage
+        safe_details = EncryptionService.redact_credentials(res.get("details", {}))
+        success = res.get("success", False)
+        msg = res.get("message", "Connection verification completed.")
+
+        if success:
+            logger.info("Connection test SUCCEEDED for source type '%s': %s", stype, msg)
+        else:
+            logger.warning("Connection test FAILED for source type '%s': %s", stype, msg)
+
+        return ConnectionTestResult(
+            success=success,
+            status=res.get("status", "ok" if success else "error"),
+            message=msg,
+            details=safe_details,
+            tested_at=datetime.now(timezone.utc),
+        )
+
     except Exception as e:
+        logger.error("Connection test encountered unexpected exception for '%s': %s", stype, str(e), exc_info=True)
         return ConnectionTestResult(
             success=False,
             status="error",
@@ -219,6 +332,77 @@ async def test_source_connection(
             details={"source_type": data.source_type},
             tested_at=datetime.now(timezone.utc),
         )
+
+
+@router.post("/discover", response_model=ResourceDiscoveryResponse)
+async def discover_source_resources(
+    data: ResourceDiscoveryRequest,
+):
+    """
+    Discover available resources (repositories, databases, collections, projects, spaces, schemas, tables)
+    using the authenticated provider API or database driver.
+    """
+    stype = (data.source_type or "").lower().strip()
+    if stype in ("slack", "slack_message", "slack_bot"):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Slack connector is not supported.")
+
+    cfg = data.connection_config or {}
+
+    try:
+        if stype in ("github", "repo", "git"):
+            token = cfg.get("token") or cfg.get("access_token")
+            owner = cfg.get("owner") or cfg.get("organization") or cfg.get("repo_owner")
+            items = await GitHubConnector.discover_repositories(token=token, owner=owner)
+            return ResourceDiscoveryResponse(source_type="github", target_resource="repositories", items=items, total_count=len(items))
+
+        elif stype in ("mongodb", "mongodb_atlas", "mongo"):
+            uri = cfg.get("connection_string") or cfg.get("uri") or "mongodb://localhost:27017"
+            target = (data.target_resource or "").lower()
+            if target == "collections" and data.parent_resource:
+                cols = await MongoDbConnector.discover_collections(connection_string=uri, database=data.parent_resource)
+                return ResourceDiscoveryResponse(source_type="mongodb", target_resource="collections", items=cols, total_count=len(cols))
+            else:
+                dbs = await MongoDbConnector.discover_databases(connection_string=uri)
+                return ResourceDiscoveryResponse(source_type="mongodb", target_resource="databases", items=dbs, total_count=len(dbs))
+
+        elif stype in ("jira", "jira_issues"):
+            base_url = cfg.get("base_url") or cfg.get("url") or ""
+            email = cfg.get("user_email") or cfg.get("email") or ""
+            token = cfg.get("api_token") or cfg.get("token") or ""
+            projects = await JiraConnector.discover_projects(base_url=base_url, user_email=email, api_token=token)
+            return ResourceDiscoveryResponse(source_type="jira", target_resource="projects", items=projects, total_count=len(projects))
+
+        elif stype in ("confluence", "wiki"):
+            base_url = cfg.get("base_url") or cfg.get("url") or ""
+            email = cfg.get("user_email") or cfg.get("email") or ""
+            token = cfg.get("api_token") or cfg.get("token") or ""
+            spaces = await ConfluenceConnector.discover_spaces(base_url=base_url, user_email=email, api_token=token)
+            return ResourceDiscoveryResponse(source_type="confluence", target_resource="spaces", items=spaces, total_count=len(spaces))
+
+        elif stype in ("postgresql", "postgres"):
+            host = cfg.get("host", "localhost")
+            port = int(cfg.get("port", 5432))
+            database = cfg.get("database", "postgres")
+            username = cfg.get("username", "postgres")
+            password = cfg.get("password", "")
+            ssl_mode = cfg.get("ssl_mode", "prefer")
+
+            target = (data.target_resource or "").lower()
+            if target == "tables" and data.parent_resource:
+                tables = await PostgresConnector.discover_tables(
+                    host=host, port=port, database=database, username=username, password=password, schema=data.parent_resource, ssl_mode=ssl_mode
+                )
+                return ResourceDiscoveryResponse(source_type="postgresql", target_resource="tables", items=tables, total_count=len(tables))
+            else:
+                schemas = await PostgresConnector.discover_schemas(
+                    host=host, port=port, database=database, username=username, password=password, ssl_mode=ssl_mode
+                )
+                return ResourceDiscoveryResponse(source_type="postgresql", target_resource="schemas", items=schemas, total_count=len(schemas))
+
+        return ResourceDiscoveryResponse(source_type=stype, target_resource=data.target_resource, items=[], total_count=0)
+
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Discovery failed: {str(e)}")
 
 
 @router.get("", response_model=list[DataSourceResponse])
@@ -229,7 +413,7 @@ async def list_data_sources(
     include_archived: bool = Query(False, description="Whether to include decommissioned/archived sources"),
     db: AsyncSession = Depends(get_db),
 ):
-    """List all configured external data sources and DB connectors (excluding internal file upload buckets)."""
+    """List all configured external data source connections with credentials safely redacted."""
     repo = DataSourceRepository(db)
     sources = await repo.list_by_organization(
         organization_id=organization_id,
@@ -238,12 +422,25 @@ async def list_data_sources(
     )
     external_connectors = [
         s for s in sources
-        if (s.source_type or "").lower().strip() not in ("file", "upload", "local_file")
+        if (s.source_type or "").lower().strip() not in ("file", "upload", "local_file", "slack")
         and "file upload" not in (s.name or "").lower()
         and "direct document upload" not in (s.name or "").lower()
         and (include_archived or (s.status.value if hasattr(s.status, "value") else str(s.status)).lower() not in ("deleted", "inactive", "archived"))
     ]
-    return [DataSourceResponse.model_validate(s) for s in external_connectors]
+    return [_mask_source_response(s) for s in external_connectors]
+
+
+@router.get("/{source_id}", response_model=DataSourceResponse)
+async def get_data_source(
+    source_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+):
+    """Retrieve details for a single data source connection with credentials safely redacted."""
+    repo = DataSourceRepository(db)
+    source = await repo.get_by_id(source_id)
+    if not source:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Data source {source_id} not found.")
+    return _mask_source_response(source)
 
 
 @router.post("", response_model=DataSourceResponse, status_code=status.HTTP_201_CREATED)
@@ -255,30 +452,46 @@ async def create_data_source(
     _authorized_user: Optional[User] = Depends(require_permission(Permission.SOURCES_MANAGE)),
     db: AsyncSession = Depends(get_db),
 ):
-    """Register a new live data source connector."""
+    """
+    Register a new live data source connection.
+    Validates configuration, enforces state transition rules, and encrypts credentials at rest.
+    Supports multiple independent connections to the same provider.
+    """
     repo = DataSourceRepository(db)
     activity_service = ActivityService(db)
     effective_owner_id = user_id or data.owner_id or data.user_id or (_authorized_user.id if _authorized_user else None)
-    
-    conn_cfg = dict(data.connection_config or {})
+
+    # 1. State transition & credential security
+    test_passed = bool((data.connection_config or {}).get("test_passed", False))
+    persisted_config, _ = _secure_and_validate_config(data.source_type, data.connection_config or {}, test_passed)
+
+    # 2. Determine external identifier (unique per independent connection)
     ext_id = data.external_id
-    if data.source_type in ("github", "repo", "git"):
-        raw_r = conn_cfg.get("repo") or conn_cfg.get("repository") or ext_id or ""
-        cleaned_r = sanitize_github_repo(raw_r)
-        conn_cfg["repo"] = cleaned_r
-        conn_cfg["repository"] = cleaned_r
-        if ext_id and (ext_id.startswith("http") or ext_id.endswith(".git") or "/" in ext_id):
-            ext_id = cleaned_r
+    if not ext_id:
+        stype = (data.source_type or "").lower().strip()
+        if stype in ("github", "repo", "git"):
+            ext_id = f"github://{persisted_config.get('repo', 'unknown')}"
+        elif stype in ("mongodb", "mongodb_atlas", "mongo"):
+            ext_id = f"mongodb://{persisted_config.get('database', 'db')}/{uuid.uuid4().hex[:6]}"
+        elif stype in ("jira", "jira_issues"):
+            ext_id = f"jira://{persisted_config.get('project_key', 'project')}/{uuid.uuid4().hex[:6]}"
+        elif stype in ("confluence", "wiki"):
+            ext_id = f"confluence://{persisted_config.get('space_key', 'space')}/{uuid.uuid4().hex[:6]}"
+        elif stype in ("postgresql", "postgres"):
+            ext_id = f"postgresql://{persisted_config.get('host', 'localhost')}:{persisted_config.get('port', 5432)}/{persisted_config.get('database', 'db')}/{uuid.uuid4().hex[:6]}"
+        else:
+            ext_id = f"{stype}://{uuid.uuid4().hex[:8]}"
 
     source = await repo.get_or_create(
         organization_id=data.organization_id,
-        name=data.name,
+        name=data.name.strip(),
         source_type=data.source_type,
         external_id=ext_id,
         authority_level=data.authority_level,
-        connection_config=conn_cfg,
+        connection_config=persisted_config,
         owner_id=effective_owner_id,
     )
+
     await activity_service.log_activity(
         organization_id=data.organization_id,
         user_id=effective_owner_id,
@@ -289,10 +502,103 @@ async def create_data_source(
         target_id=str(source.id),
         target_title=source.name,
         domain="Engineering & Platform",
-        details={"source_type": source.source_type, "authority_level": source.authority_level},
+        details={
+            "source_type": source.source_type,
+            "authority_level": source.authority_level,
+            "status": persisted_config.get("connection_status", "disconnected"),
+            "schedule": persisted_config.get("schedule", "off"),
+        },
     )
     await db.commit()
-    return DataSourceResponse.model_validate(source)
+    return _mask_source_response(source)
+
+
+@router.put("/{source_id}", response_model=DataSourceResponse)
+async def update_data_source(
+    source_id: uuid.UUID,
+    data: DataSourceUpdate,
+    _authorized_user: Optional[User] = Depends(require_permission(Permission.SOURCES_MANAGE)),
+    db: AsyncSession = Depends(get_db),
+):
+    """Updates configuration, authority level, or display name for an existing connection."""
+    repo = DataSourceRepository(db)
+    source = await repo.get_by_id(source_id)
+    if not source:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Data source {source_id} not found.")
+
+    if data.name:
+        source.name = data.name.strip()
+    if data.authority_level is not None:
+        source.authority_level = data.authority_level
+
+    if data.connection_config:
+        current_cfg = dict(source.connection_config or {})
+        # Check if new test was run
+        test_passed = bool(data.connection_config.get("test_passed", current_cfg.get("connection_status") == "connected"))
+        merged = {**current_cfg, **data.connection_config}
+        persisted_config, _ = _secure_and_validate_config(source.source_type, merged, test_passed)
+        source.connection_config = persisted_config
+
+    source.updated_at = datetime.now(timezone.utc)
+    await db.flush()
+    await db.commit()
+    return _mask_source_response(source)
+
+
+@router.post("/{source_id}/schedule", response_model=DataSourceResponse)
+async def update_source_schedule(
+    source_id: uuid.UUID,
+    data: ScheduleUpdateRequest,
+    _authorized_user: Optional[User] = Depends(require_permission(Permission.SOURCES_MANAGE)),
+    db: AsyncSession = Depends(get_db),
+):
+    """Updates the synchronization schedule ('off', '1m', '10m') for a connection."""
+    sch = data.schedule.lower().strip()
+    if sch not in ("off", "1m", "10m"):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Schedule must be 'off', '1m', or '10m'.")
+
+    repo = DataSourceRepository(db)
+    source = await repo.get_by_id(source_id)
+    if not source:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Data source {source_id} not found.")
+
+    cfg = dict(source.connection_config or {})
+    cfg["schedule"] = sch
+    if sch in ("1m", "10m"):
+        interval_secs = 60 if sch == "1m" else 600
+        cfg["next_sync_at"] = (datetime.now(timezone.utc) + timedelta(seconds=interval_secs)).isoformat()
+    else:
+        cfg["next_sync_at"] = None
+
+    source.connection_config = cfg
+    source.updated_at = datetime.now(timezone.utc)
+    await db.flush()
+    await db.commit()
+    return _mask_source_response(source)
+
+
+@router.post("/{source_id}/disconnect", response_model=DataSourceResponse)
+async def disconnect_source(
+    source_id: uuid.UUID,
+    _authorized_user: Optional[User] = Depends(require_permission(Permission.SOURCES_MANAGE)),
+    db: AsyncSession = Depends(get_db),
+):
+    """Disconnects a connector, setting its status to 'disconnected' and disabling automatic schedules."""
+    repo = DataSourceRepository(db)
+    source = await repo.get_by_id(source_id)
+    if not source:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Data source {source_id} not found.")
+
+    cfg = dict(source.connection_config or {})
+    cfg["connection_status"] = "disconnected"
+    cfg["schedule"] = "off"
+    cfg["next_sync_at"] = None
+
+    source.connection_config = cfg
+    source.updated_at = datetime.now(timezone.utc)
+    await db.flush()
+    await db.commit()
+    return _mask_source_response(source)
 
 
 @router.post("/{source_id}/sync", response_model=SyncResult)
@@ -319,25 +625,26 @@ async def sync_single_source(
 
     try:
         result = await sync_engine.sync_data_source(source_id=source_id, use_mock_llm=use_mock_llm, user_id=user_id)
-        await activity_service.log_activity(
-            organization_id=source_org_id,
-            user_id=user_id,
-            user_name=user_name,
-            user_role=user_role,
-            action_type="SOURCE_SYNCED",
-            target_type="data_source",
-            target_id=source_id_str,
-            target_title=source_name,
-            domain="Engineering & Platform",
-            details={
-                "documents_synced": result.documents_synced,
-                "documents_created": result.documents_created,
-                "documents_skipped": result.documents_skipped,
-                "claims_extracted": result.claims_extracted,
-                "execution_time_ms": result.execution_time_ms,
-            },
-        )
-        await db.commit()
+        if result.status == "success":
+            await activity_service.log_activity(
+                organization_id=source_org_id,
+                user_id=user_id,
+                user_name=user_name,
+                user_role=user_role,
+                action_type="SOURCE_SYNCED",
+                target_type="data_source",
+                target_id=source_id_str,
+                target_title=source_name,
+                domain="Engineering & Platform",
+                details={
+                    "documents_synced": result.documents_synced,
+                    "documents_created": result.documents_created,
+                    "documents_skipped": result.documents_skipped,
+                    "claims_extracted": result.claims_extracted,
+                    "execution_time_ms": result.execution_time_ms,
+                },
+            )
+            await db.commit()
         return result
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
@@ -379,15 +686,12 @@ async def get_source_artifacts(
     from sqlalchemy.orm import selectinload
     from app.db.models.claim import Claim
     from app.db.models.claim_conflict import ClaimConflict
-    from app.db.models.data_source import DataSource
     from app.db.models.document import Document
-    from app.db.models.document_version import DocumentVersion
 
     src = await db.get(DataSource, source_id)
     if not src:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Data source connector not found")
 
-    # Get documents synced by this source
     doc_stmt = (
         select(Document)
         .where(Document.source_id == source_id)
@@ -495,18 +799,12 @@ async def get_source_blast_radius(
     source_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
 ):
-    """
-    Calculate the blast radius of deleting or decommissioning a connector:
-    - Number of synced documents affected
-    - Number of extracted claims that will be deprecated/purged
-    - Number of active policy contradictions that will be resolved/purged
-    """
+    """Calculate the blast radius of deleting or decommissioning a connector."""
     from sqlalchemy import or_, select
     from sqlalchemy.orm import selectinload
-    from app.db.models.data_source import DataSource
-    from app.db.models.document import Document
     from app.db.models.claim import Claim
     from app.db.models.claim_conflict import ClaimConflict
+    from app.db.models.document import Document
 
     src = await db.get(DataSource, source_id)
     if not src:
@@ -566,17 +864,16 @@ async def delete_or_decommission_source(
     db: AsyncSession = Depends(get_db),
 ):
     """
-    CEO / Executive action to delete or decommission a data source connector:
-    - mode='archive': Soft decommission. Marks source and documents as inactive, deprecates claims, auto-resolves contradictions, preserves audit ledger.
-    - mode='permanent': Hard purge. Permanently erases the connector, documents, claims, and conflicts from database (requires admin role).
+    Delete or decommission a data source connector:
+    - mode='archive': Soft decommission. Marks source and documents as inactive, deprecates claims.
+    - mode='permanent': Hard purge. Permanently erases the connector and documents.
     """
     from sqlalchemy import or_, select
     from sqlalchemy.orm import selectinload
-    from app.db.models.data_source import DataSource
-    from app.db.models.document import Document
+    from app.db.enums import ClaimStatus, ConflictStatus, RecordStatus
     from app.db.models.claim import Claim
     from app.db.models.claim_conflict import ClaimConflict
-    from app.db.enums import RecordStatus, ClaimStatus, ConflictStatus
+    from app.db.models.document import Document
 
     mode_clean = (mode or "archive").lower().strip()
     if mode_clean not in ("archive", "permanent"):
@@ -599,7 +896,6 @@ async def delete_or_decommission_source(
     source_name = src.name
     org_id = src.organization_id
 
-    # Gather affected entities
     res_docs = await db.execute(select(Document).where(Document.source_id == source_id).options(selectinload(Document.versions)))
     docs = res_docs.scalars().all()
     version_ids = [v.id for d in docs for v in (d.versions or [])]
@@ -620,7 +916,6 @@ async def delete_or_decommission_source(
         conflicts = res_cfl.scalars().all()
 
     if mode_clean == "archive":
-        # 1. Soft Decommission
         src.status = RecordStatus.INACTIVE
         for d in docs:
             d.status = RecordStatus.INACTIVE
@@ -658,7 +953,6 @@ async def delete_or_decommission_source(
         }
 
     else:
-        # 2. Hard Purge
         await activity_service.log_activity(
             organization_id=org_id,
             user_id=user_id,
@@ -687,5 +981,3 @@ async def delete_or_decommission_source(
             "claims_affected": len(claims),
             "conflicts_resolved": len(conflicts),
         }
-
-

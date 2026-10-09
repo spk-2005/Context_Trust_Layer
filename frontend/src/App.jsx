@@ -875,11 +875,23 @@ export default function App() {
   const [isConnectingSource, setIsConnectingSource] = useState(false);
   const [isTestingConnection, setIsTestingConnection] = useState(false);
   const [testConnectionResult, setTestConnectionResult] = useState(null);
+  const [discoveredOptions, setDiscoveredOptions] = useState({
+    repos: [],
+    databases: [],
+    collections: [],
+    projects: [],
+    spaces: [],
+    schemas: [],
+    tables: []
+  });
+  const [isDiscovering, setIsDiscovering] = useState(false);
+  const [discoveryError, setDiscoveryError] = useState(null);
   const [newSourceForm, setNewSourceForm] = useState({
     name: '',
     sourceType: 'postgresql',
     authorityLevel: 90,
     externalId: '',
+    schedule: 'off', // 'off' | '1m' | '10m'
     // Postgres
     pgHost: 'localhost',
     pgPort: 5432,
@@ -888,6 +900,7 @@ export default function App() {
     pgPassword: '',
     pgSslMode: 'prefer',
     pgSchemas: 'public',
+    pgTables: '',
     // Kafka
     kafkaBootstrap: '',
     kafkaSchemaRegistry: '',
@@ -908,14 +921,22 @@ export default function App() {
     mongoUri: '',
     mongoDatabase: '',
     mongoCollections: '',
-    // GitHub / Atlassian
+    // GitHub
     githubRepo: '',
+    githubOwner: '',
     githubBranch: 'main',
     githubToken: '',
+    // Confluence
     confluenceSpace: '',
     confluenceBaseUrl: '',
+    confluenceEmail: '',
+    confluenceToken: '',
+    // Jira
     jiraProject: '',
     jiraBaseUrl: '',
+    jiraEmail: '',
+    jiraToken: '',
+    jiraFilter: '',
   });
 
   // -------------------------------------------------------------
@@ -1483,64 +1504,94 @@ export default function App() {
 
   const buildConnectionConfig = () => {
     const st = newSourceForm.sourceType;
+    const base = {
+      schedule: newSourceForm.schedule || 'off',
+      test_passed: Boolean(testConnectionResult?.success)
+    };
     if (st === 'postgresql') {
       return {
+        ...base,
         host: newSourceForm.pgHost,
         port: Number(newSourceForm.pgPort) || 5432,
         database: newSourceForm.pgDatabase,
         username: newSourceForm.pgUsername,
         password: newSourceForm.pgPassword,
         ssl_mode: newSourceForm.pgSslMode,
-        schemas: newSourceForm.pgSchemas.split(',').map(s => s.trim()).filter(Boolean)
+        schemas: newSourceForm.pgSchemas ? newSourceForm.pgSchemas.split(',').map(s => s.trim()).filter(Boolean) : ['public'],
+        tables: newSourceForm.pgTables ? newSourceForm.pgTables.split(',').map(s => s.trim()).filter(Boolean) : []
       };
     } else if (st === 'kafka' || st === 'apache_kafka' || st === 'confluent_kafka' || st === 'amazon_msk' || st === 'aiven_kafka' || st === 'redpanda_kafka') {
       return {
+        ...base,
         bootstrap_servers: newSourceForm.kafkaBootstrap,
         schema_registry_url: newSourceForm.kafkaSchemaRegistry,
         security_protocol: newSourceForm.kafkaSecurityProtocol,
         sasl_mechanism: newSourceForm.kafkaSaslMechanism,
         sasl_username: newSourceForm.kafkaSaslUsername,
         sasl_password: newSourceForm.kafkaSaslPassword,
-        topic_patterns: newSourceForm.kafkaTopics.split(',').map(s => s.trim()).filter(Boolean)
+        topic_patterns: newSourceForm.kafkaTopics ? newSourceForm.kafkaTopics.split(',').map(s => s.trim()).filter(Boolean) : []
       };
     } else if (st === 'salesforce') {
       return {
+        ...base,
         instance_url: newSourceForm.sfInstanceUrl,
         client_id: newSourceForm.sfClientId,
         client_secret: newSourceForm.sfClientSecret,
         username: newSourceForm.sfUsername,
         password: newSourceForm.sfPassword,
         security_token: newSourceForm.sfSecurityToken,
-        objects: newSourceForm.sfObjects.split(',').map(s => s.trim()).filter(Boolean)
+        objects: newSourceForm.sfObjects ? newSourceForm.sfObjects.split(',').map(s => s.trim()).filter(Boolean) : []
       };
     } else if (st === 'mongodb' || st === 'mongodb_atlas' || st === 'mongodb_self' || st === 'documentdb') {
       return {
+        ...base,
         connection_string: newSourceForm.mongoUri,
         database: newSourceForm.mongoDatabase,
-        collections: newSourceForm.mongoCollections.split(',').map(s => s.trim()).filter(Boolean)
+        collections: newSourceForm.mongoCollections ? newSourceForm.mongoCollections.split(',').map(s => s.trim()).filter(Boolean) : []
       };
     } else if (st === 'github') {
       let repo = (newSourceForm.githubRepo || '').trim();
       repo = repo.replace(/^https?:\/\/github\.com\//i, '').replace(/^git@github\.com:/i, '').replace(/\/+$/, '');
       if (repo.endsWith('.git')) repo = repo.slice(0, -4);
       return {
+        ...base,
         repo: repo,
+        owner: (newSourceForm.githubOwner || repo.split('/')[0] || '').trim(),
         branch: (newSourceForm.githubBranch || 'main').trim(),
         token: (newSourceForm.githubToken || '').trim()
       };
     } else if (st === 'confluence') {
+      let cleanedUrl = (newSourceForm.confluenceBaseUrl || '').trim().replace(/\/+$/, '');
+      if (cleanedUrl.endsWith('/wiki')) {
+        cleanedUrl = cleanedUrl.slice(0, -5).replace(/\/+$/, '');
+      }
+      const rawSpaces = (newSourceForm.confluenceSpace || '').split(',').map(s => s.trim().toUpperCase()).filter(Boolean);
+      const cleanedSpaceKey = rawSpaces.join(',');
       return {
-        space_key: newSourceForm.confluenceSpace,
-        base_url: newSourceForm.confluenceBaseUrl
+        ...base,
+        space_key: cleanedSpaceKey || 'POLICIES',
+        space_keys: rawSpaces.length > 0 ? rawSpaces : ['POLICIES'],
+        base_url: cleanedUrl,
+        user_email: (newSourceForm.confluenceEmail || '').trim(),
+        email: (newSourceForm.confluenceEmail || '').trim(),
+        api_token: (newSourceForm.confluenceToken || '').trim(),
+        token: (newSourceForm.confluenceToken || '').trim()
       };
     } else if (st === 'jira') {
       return {
+        ...base,
         project_key: newSourceForm.jiraProject,
-        base_url: newSourceForm.jiraBaseUrl
+        base_url: newSourceForm.jiraBaseUrl,
+        user_email: (newSourceForm.jiraEmail || '').trim(),
+        email: (newSourceForm.jiraEmail || '').trim(),
+        api_token: (newSourceForm.jiraToken || '').trim(),
+        token: (newSourceForm.jiraToken || '').trim(),
+        jql: (newSourceForm.jiraFilter || '').trim() || undefined
       };
     }
     // Generic Universal Driver config for all other catalog connectors
     return {
+      ...base,
       host: genericConfig.host || `${st}.internal`,
       port: Number(genericConfig.port) || undefined,
       database: genericConfig.database || 'production',
@@ -1550,6 +1601,41 @@ export default function App() {
       token: genericConfig.apiToken || '',
       schemas: genericConfig.schemas ? genericConfig.schemas.split(',').map(s => s.trim()).filter(Boolean) : ['public']
     };
+  };
+
+  const handleDiscoverResource = async (targetResource, parentResource = null) => {
+    setIsDiscovering(true);
+    setDiscoveryError(null);
+    try {
+      const config = buildConnectionConfig();
+      const res = await fetch('/v1/sources/discover', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          source_type: newSourceForm.sourceType,
+          connection_config: config,
+          target_resource: targetResource,
+          parent_resource: parentResource || undefined
+        })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setDiscoveredOptions(prev => ({
+          ...prev,
+          [targetResource]: data.items || []
+        }));
+        showToast(`Discovered ${data.total_count || data.items?.length || 0} ${targetResource}!`);
+      } else {
+        const err = await res.json().catch(() => ({ detail: res.statusText }));
+        setDiscoveryError(err.detail || `Failed to discover ${targetResource}`);
+        showToast(err.detail || `Failed to discover ${targetResource}`, 'error');
+      }
+    } catch (err) {
+      setDiscoveryError(err.message);
+      showToast(`Discovery request error: ${err.message}`, 'error');
+    } finally {
+      setIsDiscovering(false);
+    }
   };
 
   const handleTestConnection = async () => {
@@ -1594,30 +1680,79 @@ export default function App() {
     }
   };
 
+  const handleUpdateSchedule = async (sourceId, newSchedule) => {
+    try {
+      const res = await fetch(`/v1/sources/${sourceId}/schedule`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ schedule: newSchedule })
+      });
+      if (res.ok) {
+        const updated = await res.json();
+        setDataSources(prev => prev.map(s => s.id === sourceId ? updated : s));
+        const label = newSchedule === 'off' ? 'Off' : newSchedule === '1m' ? 'Every 1 minute' : 'Every 10 minutes';
+        showToast(`Schedule updated to '${label}'`);
+      } else {
+        const err = await res.json().catch(() => ({ detail: res.statusText }));
+        showToast(err.detail || "Failed to update schedule", "error");
+      }
+    } catch (e) {
+      showToast("Error updating schedule: " + e.message, "error");
+    }
+  };
+
+  const handleDisconnectSource = async (sourceId, sourceName) => {
+    if (!window.confirm(`Are you sure you want to disconnect '${sourceName}'?`)) {
+      return;
+    }
+    try {
+      const res = await fetch(`/v1/sources/${sourceId}/disconnect`, {
+        method: 'POST'
+      });
+      if (res.ok) {
+        const updated = await res.json();
+        setDataSources(prev => prev.map(s => s.id === sourceId ? updated : s));
+        showToast(`'${sourceName}' has been disconnected.`);
+      } else {
+        const err = await res.json().catch(() => ({ detail: res.statusText }));
+        showToast(err.detail || "Failed to disconnect source", "error");
+      }
+    } catch (e) {
+      showToast("Error disconnecting source: " + e.message, "error");
+    }
+  };
+
   const handleConnectNewSource = async (e) => {
     if (e) e.preventDefault();
     if (!newSourceForm.name.trim()) {
       showToast("Please enter a source name", "error");
       return;
     }
+    // Enforce state transition constraint: connection test MUST succeed before saving
+    if (!testConnectionResult || !testConnectionResult.success) {
+      showToast("Pre-flight connection test must succeed before saving.", "error");
+      return;
+    }
+
     setIsConnectingSource(true);
     try {
       const config = buildConnectionConfig();
       let externalId = newSourceForm.externalId.trim();
+      const uniqueSuffix = Math.random().toString(36).substring(2, 7);
       if (!externalId) {
-        if (newSourceForm.sourceType === 'postgresql') externalId = `${newSourceForm.pgHost}:${newSourceForm.pgPort}/${newSourceForm.pgDatabase}`;
+        if (newSourceForm.sourceType === 'postgresql') externalId = `postgresql://${newSourceForm.pgHost}:${newSourceForm.pgPort}/${newSourceForm.pgDatabase}/${uniqueSuffix}`;
         else if (newSourceForm.sourceType === 'kafka') externalId = newSourceForm.kafkaBootstrap;
         else if (newSourceForm.sourceType === 'salesforce') externalId = newSourceForm.sfInstanceUrl;
-        else if (newSourceForm.sourceType === 'mongodb') externalId = `${newSourceForm.mongoUri}/${newSourceForm.mongoDatabase}`;
+        else if (newSourceForm.sourceType === 'mongodb' || newSourceForm.sourceType === 'mongodb_atlas') externalId = `mongodb://${newSourceForm.mongoDatabase}/${uniqueSuffix}`;
         else if (newSourceForm.sourceType === 'github') {
           let repo = (newSourceForm.githubRepo || '').trim();
           repo = repo.replace(/^https?:\/\/github\.com\//i, '').replace(/^git@github\.com:/i, '').replace(/\/+$/, '');
           if (repo.endsWith('.git')) repo = repo.slice(0, -4);
-          externalId = repo;
+          externalId = `github://${repo}/${uniqueSuffix}`;
         }
-        else if (newSourceForm.sourceType === 'confluence') externalId = newSourceForm.confluenceSpace;
-        else if (newSourceForm.sourceType === 'jira') externalId = newSourceForm.jiraProject;
-        else externalId = newSourceForm.name.trim();
+        else if (newSourceForm.sourceType === 'confluence') externalId = `confluence://${newSourceForm.confluenceSpace}/${uniqueSuffix}`;
+        else if (newSourceForm.sourceType === 'jira') externalId = `jira://${newSourceForm.jiraProject}/${uniqueSuffix}`;
+        else externalId = `${newSourceForm.sourceType}://${newSourceForm.name.trim().toLowerCase().replace(/\s+/g, '-')}/${uniqueSuffix}`;
       }
 
       const userName = encodeURIComponent(activePersona?.name || 'Alex Rivera');
@@ -1649,11 +1784,11 @@ export default function App() {
         await fetchSources(activeOrg?.id);
         showToast(`'${created.name}' connected & synced! Documents are live in PostgreSQL.`);
       } else {
-        const errText = await res.text();
-        showToast(`Failed to connect: ${res.status}`, "error");
+        const errData = await res.json().catch(() => ({ detail: res.statusText }));
+        showToast(`Failed to connect: ${errData.detail || res.status}`, "error");
       }
     } catch (err) {
-      showToast("Connection failed to backend", "error");
+      showToast("Connection failed to backend: " + err.message, "error");
     } finally {
       setIsConnectingSource(false);
     }
@@ -4571,218 +4706,576 @@ export default function App() {
               )}
             </div>
 
-            {/* VIEW 0: LIVE CONNECTORS DIRECTORY (SQUARE TILES GRID) */}
-            {docExplorerView === 'connectors' && (
-              <div>
-                {/* Clean Search & Category Filter Toolbar */}
-                <div style={{
-                  background: '#FFFFFF',
-                  border: '1px solid #E2E8F0',
-                  borderRadius: '12px',
-                  padding: '14px 18px',
-                  marginBottom: '20px',
-                  boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  flexWrap: 'wrap',
-                  gap: '12px'
-                }}>
-                  {/* Category Filter Pills */}
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', flex: 1 }}>
-                    {catalogCategories.map(cat => {
-                      const isSelected = catalogFilterCategory === cat.id;
-                      return (
-                        <button
-                          key={cat.id}
-                          type="button"
-                          onClick={() => setCatalogFilterCategory(cat.id)}
-                          style={{
-                            padding: '5px 12px',
-                            fontSize: '0.74rem',
-                            fontWeight: isSelected ? 700 : 500,
-                            borderRadius: '16px',
-                            border: isSelected ? '1px solid #EA580C' : '1px solid #E2E8F0',
-                            background: isSelected ? '#FFF7ED' : '#F8FAFC',
-                            color: isSelected ? '#EA580C' : '#475569',
-                            cursor: 'pointer',
-                            transition: 'all 0.15s ease'
-                          }}
-                        >
-                          {cat.label} ({cat.count})
-                        </button>
-                      );
-                    })}
-                  </div>
+            {/* VIEW 0: CONNECTORS HUB (LIVE CONNECTORS & SYNCHRONIZED CONNECTORS WORKFLOW) */}
+            {docExplorerView === 'connectors' && (() => {
+              const LIVE_CONNECTOR_TYPES = ['github', 'mongodb', 'mongodb_atlas', 'jira', 'confluence', 'postgresql'];
+              const liveConfiguredSources = dataSources.filter(s =>
+                LIVE_CONNECTOR_TYPES.includes((s.source_type || '').toLowerCase())
+              );
+              const synchronizedSources = liveConfiguredSources.filter(s =>
+                Boolean(s.last_synced_at || s.connection_config?.last_successful_sync_at)
+              );
+              const activeCount = liveConfiguredSources.filter(s =>
+                (s.connection_config?.connection_status || s.status) === 'connected' || s.status === 'active'
+              ).length;
+              const syncingCount = liveConfiguredSources.filter(s =>
+                s.connection_config?.connection_status === 'syncing' || syncingSourceId === s.id
+              ).length;
 
-                  {/* Search Input */}
-                  <div style={{ position: 'relative', width: '260px' }}>
-                    <input
-                      type="text"
-                      value={catalogSearchQuery}
-                      onChange={(e) => setCatalogSearchQuery(e.target.value)}
-                      placeholder="Search 105+ connectors..."
-                      style={{
-                        width: '100%',
-                        padding: '7px 12px 7px 32px',
-                        fontSize: '0.80rem',
-                        borderRadius: '8px',
-                        border: '1px solid #CBD5E1',
-                        background: '#F8FAFC'
-                      }}
-                    />
-                    <span style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', opacity: 0.5, fontSize: '0.85rem' }}>🔍</span>
-                    {catalogSearchQuery && (
+              const supportedLiveCatalog = [
+                {
+                  id: 'github',
+                  name: 'GitHub',
+                  icon: '🐙',
+                  family: 'Version Control & Repos',
+                  category_label: 'Code & Knowledge',
+                  description: 'Live integration via GitHub REST API. Ingests READMEs, markdown documentation, architecture files, and JSON schemas.',
+                  scope: 'README, .md, .json, source files',
+                  default_port: null
+                },
+                {
+                  id: 'mongodb_atlas',
+                  name: 'MongoDB Atlas',
+                  icon: '🍃',
+                  family: 'Document Database',
+                  category_label: 'NoSQL & Document Stores',
+                  description: 'Live database connection via Motor/PyMongo driver. Discovers databases, collections, and streams document payloads.',
+                  scope: 'Collections & JSON Documents',
+                  default_port: 27017
+                },
+                {
+                  id: 'jira',
+                  name: 'Jira',
+                  icon: '🎯',
+                  family: 'Issue Tracking & Project Management',
+                  category_label: 'Work & Issue Tracking',
+                  description: 'Live connection via Atlassian Jira Cloud REST API. Extracts project issues, ADF task descriptions, and acceptance criteria.',
+                  scope: 'Project Issues, Acceptance Criteria & JQL',
+                  default_port: 443
+                },
+                {
+                  id: 'confluence',
+                  name: 'Confluence',
+                  icon: '📘',
+                  family: 'Enterprise Wiki & Documentation',
+                  category_label: 'Knowledge & Wikis',
+                  description: 'Live connection via Atlassian Confluence REST API. Crawls wiki spaces, parses storage format HTML into Markdown policies.',
+                  scope: 'Wiki Spaces, SOPs & Technical Architecture',
+                  default_port: 443
+                },
+                {
+                  id: 'postgresql',
+                  name: 'PostgreSQL',
+                  icon: '🐘',
+                  family: 'Relational Database',
+                  category_label: 'Relational Databases',
+                  description: 'Live database connection via asyncpg driver. Discovers schemas, tables, and performs read-only parameterized row extraction.',
+                  scope: 'Schemas, Tables & ACID Relational Records',
+                  default_port: 5432
+                }
+              ];
+
+              return (
+                <div style={{ display: 'grid', gap: '24px' }}>
+                  {/* KPI Summary Strip */}
+                  <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                    gap: '14px',
+                    background: '#FFFFFF',
+                    border: '1px solid #E2E8F0',
+                    borderRadius: '12px',
+                    padding: '16px 20px',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.03)'
+                  }}>
+                    <div>
+                      <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Configured Live Connections</div>
+                      <div style={{ fontSize: '1.65rem', fontWeight: 800, color: '#0F172A', marginTop: '2px' }}>{liveConfiguredSources.length}</div>
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Connected & Operational</div>
+                      <div style={{ fontSize: '1.65rem', fontWeight: 800, color: '#15803D', marginTop: '2px' }}>{activeCount}</div>
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Synchronized Sources</div>
+                      <div style={{ fontSize: '1.65rem', fontWeight: 800, color: '#2563EB', marginTop: '2px' }}>{synchronizedSources.length}</div>
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Currently Syncing</div>
+                      <div style={{ fontSize: '1.65rem', fontWeight: 800, color: syncingCount > 0 ? '#EA580C' : '#64748B', marginTop: '2px' }}>
+                        {syncingCount}
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
                       <button
                         type="button"
-                        onClick={() => setCatalogSearchQuery('')}
-                        style={{ position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)', border: 'none', background: 'transparent', cursor: 'pointer', color: '#94A3B8', fontSize: '0.75rem' }}
+                        onClick={() => {
+                          const def = supportedLiveCatalog[0];
+                          setSelectedConnectorMeta(def);
+                          setNewSourceForm(prev => ({
+                            ...prev,
+                            name: `Production ${def.name}`,
+                            sourceType: def.id,
+                            authorityLevel: 85,
+                            externalId: ''
+                          }));
+                          setTestConnectionResult(null);
+                          setDocExplorerView('connect');
+                        }}
+                        className="btn btn-primary"
+                        style={{ padding: '9px 16px', fontSize: '0.82rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px' }}
                       >
-                        ✕
+                        <span>+ Connect Live Source</span>
                       </button>
-                    )}
+                    </div>
                   </div>
-                </div>
 
-                {/* Square Box Cards Grid */}
-                <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
-                  gap: '16px',
-                  marginBottom: '28px'
-                }}>
-                  {catalogConnectors
-                    .filter(c => {
-                      const matchCat = catalogFilterCategory === 'all' || c.category === catalogFilterCategory;
-                      const q = catalogSearchQuery.trim().toLowerCase();
-                      const matchQuery = !q || c.name.toLowerCase().includes(q) || c.description.toLowerCase().includes(q) || c.id.toLowerCase().includes(q);
-                      return matchCat && matchQuery;
-                    })
-                    .map(connector => {
-                      // Check if already connected in dataSources
-                      const activeInstance = displayedDataSources.find(s =>
-                        (s.source_type || '').toLowerCase() === connector.id.toLowerCase() ||
-                        (s.name || '').toLowerCase().includes(connector.name.toLowerCase())
-                      );
+                  {/* SECTION 1: LIVE CONNECTORS */}
+                  <div style={{
+                    background: '#FFFFFF',
+                    border: '1px solid #E2E8F0',
+                    borderRadius: '12px',
+                    padding: '20px',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.03)'
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
+                      <div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0F172A', margin: 0 }}>
+                            ⚡ Live Connectors ({liveConfiguredSources.length})
+                          </h3>
+                          <span style={{ fontSize: '0.7rem', fontWeight: 700, padding: '2px 8px', borderRadius: '12px', background: '#F1F5F9', color: '#475569' }}>
+                            Encrypted Credentials • Per-Connection Locking
+                          </span>
+                        </div>
+                        <p style={{ fontSize: '0.76rem', color: '#64748B', margin: '4px 0 0 0' }}>
+                          Configured connections to GitHub, MongoDB Atlas, Jira, Confluence, and PostgreSQL with live health, schedule, and state.
+                        </p>
+                      </div>
+                    </div>
 
-                      return (
-                        <div
-                          key={connector.id}
+                    {liveConfiguredSources.length === 0 ? (
+                      <div style={{ padding: '36px 20px', textAlign: 'center', background: '#F8FAFC', borderRadius: '10px', border: '1px dashed #CBD5E1' }}>
+                        <div style={{ fontSize: '1.8rem', marginBottom: '8px' }}>🔌</div>
+                        <div style={{ fontWeight: 700, color: '#0F172A', fontSize: '0.92rem', marginBottom: '4px' }}>No live data sources connected yet</div>
+                        <div style={{ fontSize: '0.78rem', color: '#64748B', maxWidth: '500px', margin: '0 auto 16px auto' }}>
+                          Select one of the 5 supported live connectors below to configure authenticated access, test live connectivity, and synchronize source records into PostgreSQL.
+                        </div>
+                        <button
+                          type="button"
                           onClick={() => {
-                            setSelectedConnectorMeta(connector);
-                            setNewSourceForm(prev => ({
-                              ...prev,
-                              name: `${connector.name} Production`,
-                              sourceType: connector.id,
-                              authorityLevel: 85,
-                              pgPort: connector.default_port || 5432,
-                              externalId: `${connector.id}://production`
-                            }));
+                            const def = supportedLiveCatalog[0];
+                            setSelectedConnectorMeta(def);
+                            setNewSourceForm(prev => ({ ...prev, name: `Production ${def.name}`, sourceType: def.id, authorityLevel: 85 }));
                             setTestConnectionResult(null);
                             setDocExplorerView('connect');
                           }}
-                          style={{
-                            aspectRatio: '1 / 1',
-                            background: '#FFFFFF',
-                            border: activeInstance ? '1.5px solid #22C55E' : '1px solid #E2E8F0',
-                            borderRadius: '14px',
-                            padding: '16px',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            justifyContent: 'space-between',
-                            alignItems: 'center',
-                            textAlign: 'center',
-                            cursor: 'pointer',
-                            transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                            boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
-                            position: 'relative',
-                            overflow: 'hidden'
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.transform = 'translateY(-3px)';
-                            e.currentTarget.style.boxShadow = '0 8px 16px rgba(0,0,0,0.08)';
-                            e.currentTarget.style.borderColor = activeInstance ? '#22C55E' : '#EA580C';
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.transform = 'translateY(0)';
-                            e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.04)';
-                            e.currentTarget.style.borderColor = activeInstance ? '#22C55E' : '#E2E8F0';
-                          }}
+                          className="btn btn-primary"
+                          style={{ padding: '8px 18px', fontSize: '0.80rem' }}
                         >
-                          {/* Top Tag */}
-                          <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <span style={{
-                              fontSize: '0.65rem',
-                              fontWeight: 700,
-                              textTransform: 'uppercase',
-                              padding: '2px 6px',
-                              borderRadius: '4px',
-                              background: '#F1F5F9',
-                              color: '#64748B'
-                            }}>
-                              {connector.family || connector.category}
-                            </span>
-                            {activeInstance && (
-                              <span style={{
-                                width: '8px',
-                                height: '8px',
-                                borderRadius: '50%',
-                                background: '#22C55E',
-                                display: 'inline-block',
-                                boxShadow: '0 0 0 2px rgba(34, 197, 94, 0.25)'
-                              }} title="Connected & Synced" />
-                            )}
-                          </div>
+                          + Configure First Connection
+                        </button>
+                      </div>
+                    ) : (
+                      <div style={{ display: 'grid', gap: '14px' }}>
+                        {liveConfiguredSources.map(src => {
+                          const cfg = src.connection_config || {};
+                          const rawStatus = (cfg.connection_status || src.status || 'disconnected').toLowerCase();
+                          const isSyncing = rawStatus === 'syncing' || syncingSourceId === src.id;
+                          const isFailed = rawStatus === 'failed';
+                          const isConnected = rawStatus === 'connected' || rawStatus === 'active';
+                          const statusLabel = isSyncing ? 'Syncing' : isFailed ? 'Failed' : isConnected ? 'Connected' : 'Disconnected';
+                          const statusColor = isSyncing ? '#2563EB' : isFailed ? '#DC2626' : isConnected ? '#15803D' : '#64748B';
+                          const statusBg = isSyncing ? '#EFF6FF' : isFailed ? '#FEF2F2' : isConnected ? '#F0FDF4' : '#F1F5F9';
 
-                          {/* Center Brand Icon & Name */}
-                          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', margin: 'auto 0' }}>
-                            <span style={{ fontSize: '2.4rem', lineHeight: 1 }}>{connector.icon || '🔌'}</span>
-                            <div>
-                              <div style={{ fontSize: '0.85rem', fontWeight: 800, color: '#0F172A', lineHeight: 1.2 }}>
-                                {connector.name}
+                          const icon = src.source_type === 'github' ? '🐙'
+                            : (src.source_type === 'mongodb' || src.source_type === 'mongodb_atlas') ? '🍃'
+                            : src.source_type === 'jira' ? '🎯'
+                            : src.source_type === 'confluence' ? '📘'
+                            : src.source_type === 'postgresql' ? '🐘'
+                            : '🔌';
+
+                          const docCount = cfg.discovered_items_count || dbDocuments.filter(d => d.source_id === src.id).length;
+                          const currentSchedule = cfg.schedule || 'off';
+
+                          return (
+                            <div
+                              key={src.id}
+                              style={{
+                                background: '#FFFFFF',
+                                border: '1px solid #E2E8F0',
+                                borderRadius: '10px',
+                                padding: '16px 18px',
+                                display: 'grid',
+                                gap: '12px',
+                                transition: 'all 0.15s ease',
+                                boxShadow: '0 1px 2px rgba(0,0,0,0.02)'
+                              }}
+                            >
+                              {/* Header row */}
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '10px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                  <span style={{ fontSize: '1.6rem', lineHeight: 1 }}>{icon}</span>
+                                  <div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                      <span style={{ fontWeight: 800, fontSize: '0.94rem', color: '#0F172A' }}>{src.name}</span>
+                                      <span style={{
+                                        fontSize: '0.68rem',
+                                        fontWeight: 700,
+                                        padding: '2px 8px',
+                                        borderRadius: '10px',
+                                        background: statusBg,
+                                        color: statusColor,
+                                        border: `1px solid ${statusColor}33`,
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: '4px'
+                                      }}>
+                                        <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: statusColor, display: 'inline-block' }} />
+                                        {isSyncing ? 'Syncing...' : statusLabel}
+                                      </span>
+                                      <span style={{ fontSize: '0.68rem', padding: '2px 6px', borderRadius: '4px', background: '#F1F5F9', color: '#64748B', fontWeight: 600 }}>
+                                        {src.source_type.toUpperCase()}
+                                      </span>
+                                    </div>
+                                    <div style={{ fontSize: '0.72rem', color: '#64748B', marginTop: '2px' }}>
+                                      Source ID: <code style={{ fontSize: '0.70rem' }}>{src.id}</code> • Authority: <strong>{src.authority_level}%</strong>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* Schedule Management Dropdown */}
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                  <span style={{ fontSize: '0.72rem', fontWeight: 600, color: '#64748B' }}>Schedule:</span>
+                                  <select
+                                    value={currentSchedule}
+                                    onChange={(e) => handleUpdateSchedule(src.id, e.target.value)}
+                                    style={{
+                                      padding: '4px 8px',
+                                      fontSize: '0.74rem',
+                                      fontWeight: 600,
+                                      borderRadius: '6px',
+                                      border: '1px solid #CBD5E1',
+                                      background: currentSchedule !== 'off' ? '#FFF7ED' : '#F8FAFC',
+                                      color: currentSchedule !== 'off' ? '#EA580C' : '#334155',
+                                      cursor: 'pointer'
+                                    }}
+                                  >
+                                    <option value="off">Off (Manual Sync)</option>
+                                    <option value="1m">Every 1 minute</option>
+                                    <option value="10m">Every 10 minutes</option>
+                                  </select>
+                                </div>
                               </div>
-                              <div style={{ fontSize: '0.68rem', color: '#94A3B8', marginTop: '3px', lineClamp: 1, WebkitLineClamp: 1, overflow: 'hidden', display: '-webkit-box', WebkitBoxOrient: 'vertical' }}>
-                                {connector.default_port ? `Port ${connector.default_port}` : connector.category_label}
+
+                              {/* Details Metrics Grid */}
+                              <div style={{
+                                display: 'grid',
+                                gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
+                                gap: '10px',
+                                background: '#F8FAFC',
+                                borderRadius: '8px',
+                                padding: '10px 14px',
+                                fontSize: '0.74rem'
+                              }}>
+                                <div>
+                                  <span style={{ color: '#64748B', display: 'block', fontSize: '0.68rem', fontWeight: 600 }}>DISCOVERED / STORED</span>
+                                  <strong style={{ color: '#0F172A', fontSize: '0.86rem' }}>{docCount} documents</strong>
+                                </div>
+                                <div>
+                                  <span style={{ color: '#64748B', display: 'block', fontSize: '0.68rem', fontWeight: 600 }}>LAST SUCCESSFUL SYNC</span>
+                                  <span style={{ color: '#0F172A', fontWeight: 600 }}>
+                                    {src.last_synced_at ? new Date(src.last_synced_at).toLocaleString() : 'Never'}
+                                  </span>
+                                </div>
+                                <div>
+                                  <span style={{ color: '#64748B', display: 'block', fontSize: '0.68rem', fontWeight: 600 }}>NEXT SCHEDULED SYNC</span>
+                                  <span style={{ color: cfg.next_sync_at ? '#2563EB' : '#64748B', fontWeight: 600 }}>
+                                    {cfg.next_sync_at ? new Date(cfg.next_sync_at).toLocaleTimeString() : (currentSchedule === 'off' ? 'Disabled' : 'Pending')}
+                                  </span>
+                                </div>
+                                <div>
+                                  <span style={{ color: '#64748B', display: 'block', fontSize: '0.68rem', fontWeight: 600 }}>LAST ATTEMPT</span>
+                                  <span style={{ color: '#0F172A' }}>
+                                    {cfg.last_attempt_at ? new Date(cfg.last_attempt_at).toLocaleTimeString() : 'N/A'}
+                                  </span>
+                                </div>
+                              </div>
+
+                              {/* Actionable Error Callout */}
+                              {cfg.last_error && (
+                                <div style={{
+                                  background: '#FEF2F2',
+                                  border: '1px solid #FCA5A5',
+                                  borderRadius: '6px',
+                                  padding: '8px 12px',
+                                  fontSize: '0.72rem',
+                                  color: '#991B1B'
+                                }}>
+                                  <strong>⚠️ Sync Diagnostic:</strong> {cfg.last_error}
+                                </div>
+                              )}
+
+                              {/* Action Buttons Row */}
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '4px' }}>
+                                <div style={{ display: 'flex', gap: '8px' }}>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleSyncSource(src.id, src.name)}
+                                    disabled={isSyncing}
+                                    className="btn btn-primary"
+                                    style={{
+                                      padding: '5px 12px',
+                                      fontSize: '0.74rem',
+                                      fontWeight: 700,
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      gap: '5px',
+                                      background: '#2563EB',
+                                      borderColor: '#2563EB'
+                                    }}
+                                  >
+                                    <span className={isSyncing ? "spin" : ""}>🔄</span>
+                                    <span>{isSyncing ? "Syncing Now..." : "Sync Now"}</span>
+                                  </button>
+
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setDocSourceFilter(src.id);
+                                      setDocExplorerView('documents');
+                                    }}
+                                    className="btn btn-secondary"
+                                    style={{ padding: '5px 12px', fontSize: '0.74rem', fontWeight: 600 }}
+                                  >
+                                    📄 Stored Documents ({docCount})
+                                  </button>
+                                </div>
+
+                                <button
+                                  type="button"
+                                  onClick={() => handleDisconnectSource(src.id, src.name)}
+                                  className="btn btn-secondary"
+                                  style={{ padding: '5px 10px', fontSize: '0.72rem', color: '#DC2626', borderColor: '#FCA5A5' }}
+                                >
+                                  Disconnect
+                                </button>
                               </div>
                             </div>
-                          </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
 
-                          {/* Bottom Action CTA */}
-                          <div style={{ width: '100%' }}>
-                            {activeInstance ? (
-                              <div style={{
-                                width: '100%',
-                                padding: '4px 0',
-                                borderRadius: '6px',
-                                background: '#F0FDF4',
-                                color: '#15803D',
-                                fontSize: '0.70rem',
-                                fontWeight: 700
-                              }}>
-                                🟢 Active • {activeInstance.authority_level}%
-                              </div>
-                            ) : (
-                              <div style={{
-                                width: '100%',
-                                padding: '4px 0',
-                                borderRadius: '6px',
+                  {/* SECTION 2: SYNCHRONIZED CONNECTORS */}
+                  <div style={{
+                    background: '#FFFFFF',
+                    border: '1px solid #E2E8F0',
+                    borderRadius: '12px',
+                    padding: '20px',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.03)'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                      <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0F172A', margin: 0 }}>
+                        📊 Synchronized Connectors ({synchronizedSources.length})
+                      </h3>
+                      <span className="badge badge-verified" style={{ fontSize: '0.70rem', padding: '2px 8px' }}>
+                        PostgreSQL ACID Backed
+                      </span>
+                    </div>
+                    <p style={{ fontSize: '0.76rem', color: '#64748B', margin: '0 0 16px 0' }}>
+                      Connections with at least one verified historical synchronization. Synchronized records remain queryable even during transient network errors.
+                    </p>
+
+                    {synchronizedSources.length === 0 ? (
+                      <div style={{ padding: '24px', textAlign: 'center', background: '#F8FAFC', borderRadius: '8px', border: '1px dashed #E2E8F0', fontSize: '0.78rem', color: '#64748B' }}>
+                        No connectors have completed synchronization yet. Trigger <strong>"Sync Now"</strong> on any configured live connector above to synchronize source documents.
+                      </div>
+                    ) : (
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '12px' }}>
+                        {synchronizedSources.map(src => {
+                          const icon = src.source_type === 'github' ? '🐙'
+                            : (src.source_type === 'mongodb' || src.source_type === 'mongodb_atlas') ? '🍃'
+                            : src.source_type === 'jira' ? '🎯'
+                            : src.source_type === 'confluence' ? '📘'
+                            : src.source_type === 'postgresql' ? '🐘'
+                            : '🔌';
+                          const count = dbDocuments.filter(d => d.source_id === src.id).length;
+
+                          return (
+                            <div
+                              key={src.id}
+                              style={{
                                 background: '#F8FAFC',
                                 border: '1px solid #E2E8F0',
-                                color: '#EA580C',
-                                fontSize: '0.70rem',
-                                fontWeight: 700,
-                                transition: 'all 0.15s ease'
-                              }}>
-                                + Connect
+                                borderRadius: '8px',
+                                padding: '14px',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                justifyContent: 'space-between',
+                                gap: '10px'
+                              }}
+                            >
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <span style={{ fontSize: '1.4rem' }}>{icon}</span>
+                                <div>
+                                  <div style={{ fontWeight: 800, fontSize: '0.86rem', color: '#0F172A' }}>{src.name}</div>
+                                  <div style={{ fontSize: '0.70rem', color: '#64748B' }}>{src.source_type.toUpperCase()}</div>
+                                </div>
                               </div>
-                            )}
+
+                              <div style={{ fontSize: '0.74rem', color: '#334155' }}>
+                                <div><strong>{count}</strong> documents synchronized</div>
+                                <div style={{ fontSize: '0.68rem', color: '#64748B', marginTop: '2px' }}>
+                                  Last synced: {src.last_synced_at ? new Date(src.last_synced_at).toLocaleDateString() : 'N/A'}
+                                </div>
+                              </div>
+
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setDocSourceFilter(src.id);
+                                  setDocExplorerView('documents');
+                                }}
+                                style={{
+                                  padding: '5px 10px',
+                                  fontSize: '0.72rem',
+                                  fontWeight: 700,
+                                  background: '#FFFFFF',
+                                  border: '1px solid #CBD5E1',
+                                  borderRadius: '6px',
+                                  cursor: 'pointer',
+                                  color: '#2563EB',
+                                  textAlign: 'center'
+                                }}
+                              >
+                                View Ingested Documents →
+                              </button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* SECTION 3: AVAILABLE LIVE DATA PROVIDERS (5 SUPPORTED PROVIDERS) */}
+                  <div style={{
+                    background: '#FFFFFF',
+                    border: '1px solid #E2E8F0',
+                    borderRadius: '12px',
+                    padding: '20px',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.03)'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                      <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0F172A', margin: 0 }}>
+                        🔌 Available Live Connectors (5 Supported Providers)
+                      </h3>
+                      <span className="badge badge-verified" style={{ fontSize: '0.70rem', padding: '2px 8px' }}>
+                        Production Drivers • Zero Mockups
+                      </span>
+                    </div>
+                    <p style={{ fontSize: '0.76rem', color: '#64748B', margin: '0 0 18px 0' }}>
+                      Connect to real external systems with genuine API handshakes, database drivers, schema discovery, and encrypted credentials. (Slack is explicitly excluded).
+                    </p>
+
+                    <div style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+                      gap: '16px'
+                    }}>
+                      {supportedLiveCatalog.map(connector => {
+                        const existingCount = liveConfiguredSources.filter(s =>
+                          (s.source_type || '').toLowerCase() === connector.id.toLowerCase()
+                        ).length;
+
+                        return (
+                          <div
+                            key={connector.id}
+                            style={{
+                              background: '#FFFFFF',
+                              border: '1px solid #E2E8F0',
+                              borderRadius: '12px',
+                              padding: '18px',
+                              display: 'flex',
+                              flexDirection: 'column',
+                              justifyContent: 'space-between',
+                              gap: '14px',
+                              transition: 'all 0.15s ease',
+                              boxShadow: '0 1px 3px rgba(0,0,0,0.03)'
+                            }}
+                          >
+                            <div>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                                <span style={{ fontSize: '2rem' }}>{connector.icon}</span>
+                                <span style={{
+                                  fontSize: '0.64rem',
+                                  fontWeight: 700,
+                                  textTransform: 'uppercase',
+                                  padding: '2px 6px',
+                                  borderRadius: '4px',
+                                  background: '#F1F5F9',
+                                  color: '#475569'
+                                }}>
+                                  {connector.category_label}
+                                </span>
+                              </div>
+
+                              <div style={{ fontSize: '0.94rem', fontWeight: 800, color: '#0F172A' }}>
+                                {connector.name}
+                              </div>
+                              <div style={{ fontSize: '0.72rem', color: '#64748B', marginTop: '4px', lineHeight: 1.4 }}>
+                                {connector.description}
+                              </div>
+                              <div style={{ fontSize: '0.68rem', color: '#2563EB', fontWeight: 600, marginTop: '8px' }}>
+                                Scope: {connector.scope}
+                              </div>
+                            </div>
+
+                            <div>
+                              {existingCount > 0 && (
+                                <div style={{ fontSize: '0.68rem', color: '#15803D', fontWeight: 700, marginBottom: '6px' }}>
+                                  ✓ {existingCount} independent {existingCount === 1 ? 'connection' : 'connections'} active
+                                </div>
+                              )}
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setSelectedConnectorMeta(connector);
+                                  setNewSourceForm(prev => ({
+                                    ...prev,
+                                    name: `Production ${connector.name} ${existingCount > 0 ? `#${existingCount + 1}` : ''}`.trim(),
+                                    sourceType: connector.id,
+                                    authorityLevel: 85,
+                                    pgPort: connector.default_port || 5432,
+                                    schedule: 'off',
+                                    externalId: ''
+                                  }));
+                                  setTestConnectionResult(null);
+                                  setDocExplorerView('connect');
+                                }}
+                                className="btn btn-primary"
+                                style={{
+                                  width: '100%',
+                                  padding: '7px 0',
+                                  fontSize: '0.76rem',
+                                  fontWeight: 700,
+                                  background: '#EA580C',
+                                  borderColor: '#EA580C',
+                                  textAlign: 'center'
+                                }}
+                              >
+                                + Connect {connector.name}
+                              </button>
+                            </div>
                           </div>
-                        </div>
-                      );
-                    })}
+                        );
+                      })}
+                    </div>
+                  </div>
                 </div>
-              </div>
-            )}
+              );
+            })()}
 
             {/* VIEW: FULL PAGE CONNECT REAL ENTERPRISE DATA SOURCE (ATLAN ARCHITECTURE) */}
             {docExplorerView === 'connect' && (
@@ -5102,73 +5595,101 @@ export default function App() {
                     <div style={{ background: '#F8FAFC', border: '1px solid var(--border-subtle, #E2E8F0)', borderRadius: '8px', padding: '14px', display: 'grid', gap: '12px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #E2E8F0', paddingBottom: '6px' }}>
                         <span style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--text-main)' }}>GitHub Repository Connection Parameters</span>
-                        <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>🔒 Token encrypted with AES-256 / pgcrypto</span>
+                        <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>🔒 Token envelope-encrypted with Fernet</span>
                       </div>
 
-                      <div>
-                        <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>GitHub Repository (owner/repo):</label>
-                        <input
-                          type="text"
-                          placeholder="e.g. facebook/react or my-org/security-standards"
-                          value={newSourceForm.githubRepo}
-                          onChange={e => setNewSourceForm({ ...newSourceForm, githubRepo: e.target.value })}
-                          style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
-                          required
-                        />
-                      </div>
-
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '10px' }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                        <div>
+                          <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Owner / Organization:</label>
+                          <input
+                            type="text"
+                            placeholder="e.g. facebook or your-org"
+                            value={newSourceForm.githubOwner}
+                            onChange={e => { setNewSourceForm({ ...newSourceForm, githubOwner: e.target.value }); setTestConnectionResult(null); }}
+                            style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
+                          />
+                        </div>
                         <div>
                           <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Branch:</label>
                           <input
                             type="text"
                             value={newSourceForm.githubBranch}
-                            onChange={e => setNewSourceForm({ ...newSourceForm, githubBranch: e.target.value })}
+                            onChange={e => { setNewSourceForm({ ...newSourceForm, githubBranch: e.target.value }); setTestConnectionResult(null); }}
                             placeholder="main"
                             style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
                           />
                         </div>
+                      </div>
 
-                        <div>
+                      <div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2px' }}>
                           <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Personal Access Token (PAT):</label>
-                          <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                            <input
-                              type={showTokenMask ? "text" : "password"}
-                              value={newSourceForm.githubToken}
-                              onChange={e => setNewSourceForm({ ...newSourceForm, githubToken: e.target.value })}
-                              placeholder="ghp_... (Optional for public repos)"
-                              style={{ width: '100%', padding: '7px 32px 7px 9px', fontSize: '0.82rem' }}
-                            />
-                            <button
-                              type="button"
-                              onClick={() => setShowTokenMask(!showTokenMask)}
-                              style={{ position: 'absolute', right: '8px', background: 'none', border: 'none', cursor: 'pointer', color: '#64748B', display: 'flex', alignItems: 'center' }}
-                              title={showTokenMask ? "Hide token" : "Show token"}
-                            >
-                              {showTokenMask ? (
-                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                  <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
-                                  <line x1="1" y1="1" x2="23" y2="23"></line>
-                                </svg>
-                              ) : (
-                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                                  <circle cx="12" cy="12" r="3"></circle>
-                                </svg>
-                              )}
-                            </button>
-                          </div>
+                          <span style={{ fontSize: '0.68rem', color: '#64748B' }}>Requires repo read scope</span>
                         </div>
+                        <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                          <input
+                            type={showTokenMask ? "text" : "password"}
+                            value={newSourceForm.githubToken}
+                            onChange={e => { setNewSourceForm({ ...newSourceForm, githubToken: e.target.value }); setTestConnectionResult(null); }}
+                            placeholder="ghp_... (Optional for public repos)"
+                            style={{ width: '100%', padding: '7px 32px 7px 9px', fontSize: '0.82rem' }}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowTokenMask(!showTokenMask)}
+                            style={{ position: 'absolute', right: '8px', background: 'none', border: 'none', cursor: 'pointer', color: '#64748B', display: 'flex', alignItems: 'center' }}
+                            title={showTokenMask ? "Hide token" : "Show token"}
+                          >
+                            👁️
+                          </button>
+                        </div>
+                      </div>
+
+                      <div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                          <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Target Repository (owner/repo):</label>
+                          <button
+                            type="button"
+                            onClick={() => handleDiscoverResource('repos')}
+                            disabled={isDiscovering}
+                            style={{ background: '#EFF6FF', border: '1px solid #BFDBFE', color: '#1D4ED8', borderRadius: '4px', padding: '2px 8px', fontSize: '0.70rem', fontWeight: 700, cursor: 'pointer' }}
+                          >
+                            {isDiscovering ? 'Discovering...' : '🔍 Discover Repositories'}
+                          </button>
+                        </div>
+                        <input
+                          type="text"
+                          placeholder="e.g. facebook/react or my-org/security-standards"
+                          value={newSourceForm.githubRepo}
+                          onChange={e => { setNewSourceForm({ ...newSourceForm, githubRepo: e.target.value }); setTestConnectionResult(null); }}
+                          style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
+                          required
+                        />
+                        {discoveredOptions.repos && discoveredOptions.repos.length > 0 && (
+                          <div style={{ marginTop: '6px', display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                            <span style={{ fontSize: '0.68rem', color: '#64748B', alignSelf: 'center' }}>Discovered:</span>
+                            {discoveredOptions.repos.slice(0, 6).map(r => (
+                              <button
+                                key={r}
+                                type="button"
+                                onClick={() => setNewSourceForm(prev => ({ ...prev, githubRepo: r }))}
+                                style={{ padding: '2px 6px', fontSize: '0.68rem', background: '#F1F5F9', border: '1px solid #CBD5E1', borderRadius: '4px', cursor: 'pointer' }}
+                              >
+                                {r}
+                              </button>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     </div>
                   )}
 
-                  {/* 2. POSTGRESQL & RELATIONAL DATABASES */}
-                  {(['postgresql', 'postgres', 'cloud_sql_postgres', 'alloydb', 'mysql', 'sql_server', 'oracle', 'clickhouse'].includes(newSourceForm.sourceType)) && (
+                  {/* 2. POSTGRESQL SPECIFIC FIELDS */}
+                  {(['postgresql', 'postgres'].includes(newSourceForm.sourceType)) && (
                     <div style={{ background: '#F8FAFC', border: '1px solid var(--border-subtle, #E2E8F0)', borderRadius: '8px', padding: '14px', display: 'grid', gap: '12px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #E2E8F0', paddingBottom: '6px' }}>
-                        <span style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--text-main)' }}>Relational Database Connection Parameters</span>
-                        <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>🔒 Credentials stored in PostgreSQL</span>
+                        <span style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--text-main)' }}>PostgreSQL Connection Parameters</span>
+                        <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>🔒 asyncpg Driver • Parameterized Queries</span>
                       </div>
 
                       <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '10px' }}>
@@ -5177,9 +5698,10 @@ export default function App() {
                           <input
                             type="text"
                             value={newSourceForm.pgHost}
-                            onChange={e => setNewSourceForm({ ...newSourceForm, pgHost: e.target.value })}
+                            onChange={e => { setNewSourceForm({ ...newSourceForm, pgHost: e.target.value }); setTestConnectionResult(null); }}
                             placeholder="localhost or db.internal"
                             style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
+                            required
                           />
                         </div>
                         <div>
@@ -5187,8 +5709,9 @@ export default function App() {
                           <input
                             type="number"
                             value={newSourceForm.pgPort}
-                            onChange={e => setNewSourceForm({ ...newSourceForm, pgPort: e.target.value })}
+                            onChange={e => { setNewSourceForm({ ...newSourceForm, pgPort: e.target.value }); setTestConnectionResult(null); }}
                             style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
+                            required
                           />
                         </div>
                       </div>
@@ -5199,20 +5722,23 @@ export default function App() {
                           <input
                             type="text"
                             value={newSourceForm.pgDatabase}
-                            onChange={e => setNewSourceForm({ ...newSourceForm, pgDatabase: e.target.value })}
-                            placeholder="enterprise_core"
+                            onChange={e => { setNewSourceForm({ ...newSourceForm, pgDatabase: e.target.value }); setTestConnectionResult(null); }}
+                            placeholder="postgres or context_trust"
                             style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
+                            required
                           />
                         </div>
                         <div>
-                          <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Target Schemas (comma-separated):</label>
-                          <input
-                            type="text"
-                            value={newSourceForm.pgSchemas}
-                            onChange={e => setNewSourceForm({ ...newSourceForm, pgSchemas: e.target.value })}
-                            placeholder="public, analytics"
+                          <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>SSL Mode:</label>
+                          <select
+                            value={newSourceForm.pgSslMode}
+                            onChange={e => { setNewSourceForm({ ...newSourceForm, pgSslMode: e.target.value }); setTestConnectionResult(null); }}
                             style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
-                          />
+                          >
+                            <option value="prefer">prefer</option>
+                            <option value="require">require</option>
+                            <option value="disable">disable</option>
+                          </select>
                         </div>
                       </div>
 
@@ -5222,9 +5748,10 @@ export default function App() {
                           <input
                             type="text"
                             value={newSourceForm.pgUsername}
-                            onChange={e => setNewSourceForm({ ...newSourceForm, pgUsername: e.target.value })}
+                            onChange={e => { setNewSourceForm({ ...newSourceForm, pgUsername: e.target.value }); setTestConnectionResult(null); }}
                             placeholder="postgres"
                             style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
+                            required
                           />
                         </div>
                         <div>
@@ -5233,106 +5760,7 @@ export default function App() {
                             <input
                               type={showPasswordMask ? "text" : "password"}
                               value={newSourceForm.pgPassword}
-                              onChange={e => setNewSourceForm({ ...newSourceForm, pgPassword: e.target.value })}
-                              placeholder="••••••••"
-                              style={{ width: '100%', padding: '7px 32px 7px 9px', fontSize: '0.82rem' }}
-                            />
-                            <button
-                              type="button"
-                              onClick={() => setShowPasswordMask(!showPasswordMask)}
-                              style={{ position: 'absolute', right: '8px', background: 'none', border: 'none', cursor: 'pointer', color: '#64748B', display: 'flex', alignItems: 'center' }}
-                              title={showPasswordMask ? "Hide password" : "Show password"}
-                            >
-                              {showPasswordMask ? (
-                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                  <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
-                                  <line x1="1" y1="1" x2="23" y2="23"></line>
-                                </svg>
-                              ) : (
-                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                                  <circle cx="12" cy="12" r="3"></circle>
-                                </svg>
-                              )}
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* 3. SNOWFLAKE SPECIFIC FIELDS */}
-                  {newSourceForm.sourceType === 'snowflake' && (
-                    <div style={{ background: '#F8FAFC', border: '1px solid var(--border-subtle, #E2E8F0)', borderRadius: '8px', padding: '14px', display: 'grid', gap: '12px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #E2E8F0', paddingBottom: '6px' }}>
-                        <span style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--text-main)' }}>Snowflake Data Cloud Parameters</span>
-                        <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>🔒 Snowflake Role-Based Auth</span>
-                      </div>
-
-                      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '10px' }}>
-                        <div>
-                          <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Account Identifier (org-account):</label>
-                          <input
-                            type="text"
-                            value={genericConfig.host}
-                            onChange={e => setGenericConfig({ ...genericConfig, host: e.target.value })}
-                            placeholder="xy12345.us-east-1 or company.snowflakecomputing.com"
-                            style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
-                          />
-                        </div>
-                        <div>
-                          <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Warehouse:</label>
-                          <input
-                            type="text"
-                            value={genericConfig.port}
-                            onChange={e => setGenericConfig({ ...genericConfig, port: e.target.value })}
-                            placeholder="COMPUTE_WH"
-                            style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
-                          />
-                        </div>
-                      </div>
-
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                        <div>
-                          <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Database Name:</label>
-                          <input
-                            type="text"
-                            value={genericConfig.database}
-                            onChange={e => setGenericConfig({ ...genericConfig, database: e.target.value })}
-                            placeholder="ANALYTICS_PROD"
-                            style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
-                          />
-                        </div>
-                        <div>
-                          <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Target Schema:</label>
-                          <input
-                            type="text"
-                            value={genericConfig.schemas}
-                            onChange={e => setGenericConfig({ ...genericConfig, schemas: e.target.value })}
-                            placeholder="PUBLIC, CORE"
-                            style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
-                          />
-                        </div>
-                      </div>
-
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                        <div>
-                          <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Username / Service Role:</label>
-                          <input
-                            type="text"
-                            value={genericConfig.username}
-                            onChange={e => setGenericConfig({ ...genericConfig, username: e.target.value })}
-                            placeholder="DW_SVC_USER"
-                            style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
-                          />
-                        </div>
-                        <div>
-                          <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Password / Key:</label>
-                          <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                            <input
-                              type={showPasswordMask ? "text" : "password"}
-                              value={genericConfig.password}
-                              onChange={e => setGenericConfig({ ...genericConfig, password: e.target.value })}
+                              onChange={e => { setNewSourceForm({ ...newSourceForm, pgPassword: e.target.value }); setTestConnectionResult(null); }}
                               placeholder="••••••••"
                               style={{ width: '100%', padding: '7px 32px 7px 9px', fontSize: '0.82rem' }}
                             />
@@ -5341,193 +5769,182 @@ export default function App() {
                               onClick={() => setShowPasswordMask(!showPasswordMask)}
                               style={{ position: 'absolute', right: '8px', background: 'none', border: 'none', cursor: 'pointer', color: '#64748B', display: 'flex', alignItems: 'center' }}
                             >
-                              {showPasswordMask ? (
-                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
-                              ) : (
-                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                              )}
+                              👁️
                             </button>
                           </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* 4. AMAZON S3 FIELDS */}
-                  {newSourceForm.sourceType === 's3' && (
-                    <div style={{ background: '#F8FAFC', border: '1px solid var(--border-subtle, #E2E8F0)', borderRadius: '8px', padding: '14px', display: 'grid', gap: '12px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #E2E8F0', paddingBottom: '6px' }}>
-                        <span style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--text-main)' }}>Amazon S3 Bucket Storage Parameters</span>
-                        <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>🔒 AWS SigV4 Auth</span>
-                      </div>
-
-                      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '10px' }}>
-                        <div>
-                          <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>S3 Bucket Name:</label>
-                          <input
-                            type="text"
-                            value={genericConfig.database}
-                            onChange={e => setGenericConfig({ ...genericConfig, database: e.target.value })}
-                            placeholder="enterprise-lakehouse-contracts"
-                            style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
-                          />
-                        </div>
-                        <div>
-                          <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>AWS Region:</label>
-                          <input
-                            type="text"
-                            value={genericConfig.host}
-                            onChange={e => setGenericConfig({ ...genericConfig, host: e.target.value })}
-                            placeholder="us-east-1"
-                            style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
-                          />
                         </div>
                       </div>
 
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                         <div>
-                          <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>AWS Access Key ID:</label>
-                          <input
-                            type="text"
-                            value={genericConfig.username}
-                            onChange={e => setGenericConfig({ ...genericConfig, username: e.target.value })}
-                            placeholder="AKIAIOSFODNN7EXAMPLE"
-                            style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
-                          />
-                        </div>
-                        <div>
-                          <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Secret Access Key:</label>
-                          <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                            <input
-                              type={showPasswordMask ? "text" : "password"}
-                              value={genericConfig.password}
-                              onChange={e => setGenericConfig({ ...genericConfig, password: e.target.value })}
-                              placeholder="••••••••"
-                              style={{ width: '100%', padding: '7px 32px 7px 9px', fontSize: '0.82rem' }}
-                            />
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2px' }}>
+                            <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Target Schema(s):</label>
                             <button
                               type="button"
-                              onClick={() => setShowPasswordMask(!showPasswordMask)}
-                              style={{ position: 'absolute', right: '8px', background: 'none', border: 'none', cursor: 'pointer', color: '#64748B', display: 'flex', alignItems: 'center' }}
+                              onClick={() => handleDiscoverResource('schemas')}
+                              disabled={isDiscovering}
+                              style={{ background: '#EFF6FF', border: '1px solid #BFDBFE', color: '#1D4ED8', borderRadius: '4px', padding: '1px 6px', fontSize: '0.68rem', fontWeight: 700, cursor: 'pointer' }}
                             >
-                              {showPasswordMask ? (
-                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
-                              ) : (
-                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                              )}
+                              🔍 Discover
                             </button>
                           </div>
-                        </div>
-                      </div>
-
-                      <div>
-                        <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Folder Prefix / Scope Path:</label>
-                        <input
-                          type="text"
-                          value={genericConfig.schemas}
-                          onChange={e => setGenericConfig({ ...genericConfig, schemas: e.target.value })}
-                          placeholder="policies/, compliance/contracts/v1/"
-                          style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
-                        />
-                      </div>
-                    </div>
-                  )}
-
-                  {/* 5. APACHE KAFKA & STREAMING */}
-                  {(['kafka', 'apache_kafka', 'confluent_kafka', 'amazon_msk', 'aiven_kafka', 'redpanda_kafka'].includes(newSourceForm.sourceType)) && (
-                    <div style={{ background: '#F8FAFC', border: '1px solid var(--border-subtle, #E2E8F0)', borderRadius: '8px', padding: '14px', display: 'grid', gap: '12px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #E2E8F0', paddingBottom: '6px' }}>
-                        <span style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--text-main)' }}>Streaming & Topic Topology Parameters</span>
-                        <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>🔒 TLS / SASL Protocol</span>
-                      </div>
-
-                      <div>
-                        <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Bootstrap Servers (host:port):</label>
-                        <input
-                          type="text"
-                          value={newSourceForm.kafkaBootstrap}
-                          onChange={e => setNewSourceForm({ ...newSourceForm, kafkaBootstrap: e.target.value })}
-                          placeholder="kafka-cluster-prod.internal:9092"
-                          style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
-                        />
-                      </div>
-
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                        <div>
-                          <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Security Protocol:</label>
-                          <select
-                            value={newSourceForm.kafkaSecurityProtocol}
-                            onChange={e => setNewSourceForm({ ...newSourceForm, kafkaSecurityProtocol: e.target.value })}
-                            style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
-                          >
-                            <option value="PLAINTEXT">PLAINTEXT</option>
-                            <option value="SSL">SSL</option>
-                            <option value="SASL_PLAINTEXT">SASL_PLAINTEXT</option>
-                            <option value="SASL_SSL">SASL_SSL</option>
-                          </select>
-                        </div>
-                        <div>
-                          <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Schema Registry URL:</label>
                           <input
                             type="text"
-                            value={newSourceForm.kafkaSchemaRegistry}
-                            onChange={e => setNewSourceForm({ ...newSourceForm, kafkaSchemaRegistry: e.target.value })}
-                            placeholder="http://schema-registry:8081"
+                            value={newSourceForm.pgSchemas}
+                            onChange={e => setNewSourceForm({ ...newSourceForm, pgSchemas: e.target.value })}
+                            placeholder="public, analytics"
+                            style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
+                          />
+                        </div>
+                        <div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2px' }}>
+                            <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Tables (Optional filter):</label>
+                            <button
+                              type="button"
+                              onClick={() => handleDiscoverResource('tables', newSourceForm.pgSchemas || 'public')}
+                              disabled={isDiscovering}
+                              style={{ background: '#EFF6FF', border: '1px solid #BFDBFE', color: '#1D4ED8', borderRadius: '4px', padding: '1px 6px', fontSize: '0.68rem', fontWeight: 700, cursor: 'pointer' }}
+                            >
+                              🔍 Discover
+                            </button>
+                          </div>
+                          <input
+                            type="text"
+                            value={newSourceForm.pgTables}
+                            onChange={e => setNewSourceForm({ ...newSourceForm, pgTables: e.target.value })}
+                            placeholder="e.g. users, policies (all if empty)"
                             style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
                           />
                         </div>
                       </div>
-
-                      <div>
-                        <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Monitored Topics (comma-separated):</label>
-                        <input
-                          type="text"
-                          value={newSourceForm.kafkaTopics}
-                          onChange={e => setNewSourceForm({ ...newSourceForm, kafkaTopics: e.target.value })}
-                          placeholder="financial.payments.settled.v1, security.audit.access.v2"
-                          style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
-                        />
-                      </div>
                     </div>
                   )}
 
-                  {/* 6. MONGODB & DOCUMENT DATABASES */}
+                  {/* 3. MONGODB ATLAS SPECIFIC FIELDS */}
                   {(['mongodb', 'mongodb_atlas', 'mongodb_self', 'documentdb'].includes(newSourceForm.sourceType)) && (
                     <div style={{ background: '#F8FAFC', border: '1px solid var(--border-subtle, #E2E8F0)', borderRadius: '8px', padding: '14px', display: 'grid', gap: '12px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #E2E8F0', paddingBottom: '6px' }}>
-                        <span style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--text-main)' }}>Document Database Parameters</span>
-                        <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>🔒 MongoDB Connection URI</span>
+                        <span style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--text-main)' }}>MongoDB Atlas Cluster Parameters</span>
+                        <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>🔒 Motor Driver • Bounded Cursor Batching</span>
                       </div>
 
                       <div>
                         <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Connection URI:</label>
-                        <input
-                          type="text"
-                          value={newSourceForm.mongoUri}
-                          onChange={e => setNewSourceForm({ ...newSourceForm, mongoUri: e.target.value })}
-                          placeholder="mongodb://production-cluster:27017 or mongodb+srv://..."
-                          style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
-                        />
+                        <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                          <input
+                            type={showPasswordMask ? "text" : "password"}
+                            value={newSourceForm.mongoUri}
+                            onChange={e => { setNewSourceForm({ ...newSourceForm, mongoUri: e.target.value }); setTestConnectionResult(null); }}
+                            placeholder="mongodb+srv://user:pass@cluster.mongodb.net/test or mongodb://localhost:27017"
+                            style={{ width: '100%', padding: '7px 32px 7px 9px', fontSize: '0.82rem' }}
+                            required
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowPasswordMask(!showPasswordMask)}
+                            style={{ position: 'absolute', right: '8px', background: 'none', border: 'none', cursor: 'pointer', color: '#64748B', display: 'flex', alignItems: 'center' }}
+                          >
+                            👁️
+                          </button>
+                        </div>
+                        <div style={{ fontSize: '0.68rem', color: '#64748B', marginTop: '4px', lineHeight: '1.3' }}>
+                          💡 <strong>Atlas Tip:</strong> Use credentials from <em>Security → Database Access</em> (not your web portal login). If your password contains symbols like <code>@</code>, <code>#</code>, or <code>:</code>, URL-encode them (e.g. <code>%40</code> for <code>@</code>, <code>%23</code> for <code>#</code>).
+                        </div>
+                        {newSourceForm.mongoUri && (newSourceForm.mongoUri.includes('<') || newSourceForm.mongoUri.includes('>')) && (
+                          <div style={{
+                            background: '#FEF2F2',
+                            border: '1px solid #FCA5A5',
+                            borderRadius: '6px',
+                            padding: '6px 10px',
+                            marginTop: '6px',
+                            fontSize: '0.72rem',
+                            color: '#991B1B',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            gap: '8px'
+                          }}>
+                            <span>
+                              ⚠️ <strong>Placeholder Brackets Detected:</strong> Your URI contains <code>&lt;</code> and <code>&gt;</code> (e.g. <code>&lt;spk&gt;</code>). In MongoDB Atlas, angle brackets are placeholders. Remove <code>&lt;</code> and <code>&gt;</code> around your password.
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const cleaned = newSourceForm.mongoUri.replace(/<([^>]+)>/g, '$1');
+                                setNewSourceForm({ ...newSourceForm, mongoUri: cleaned });
+                                setTestConnectionResult(null);
+                              }}
+                              style={{
+                                background: '#DC2626',
+                                color: '#FFF',
+                                border: 'none',
+                                borderRadius: '4px',
+                                padding: '3px 8px',
+                                fontSize: '0.68rem',
+                                fontWeight: 700,
+                                cursor: 'pointer',
+                                whiteSpace: 'nowrap'
+                              }}
+                            >
+                              Auto-Fix Brackets
+                            </button>
+                          </div>
+                        )}
                       </div>
 
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                         <div>
-                          <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Database Name:</label>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2px' }}>
+                            <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Database Name:</label>
+                            <button
+                              type="button"
+                              onClick={() => handleDiscoverResource('databases')}
+                              disabled={isDiscovering}
+                              style={{ background: '#EFF6FF', border: '1px solid #BFDBFE', color: '#1D4ED8', borderRadius: '4px', padding: '1px 6px', fontSize: '0.68rem', fontWeight: 700, cursor: 'pointer' }}
+                            >
+                              🔍 Discover DBs
+                            </button>
+                          </div>
                           <input
                             type="text"
                             value={newSourceForm.mongoDatabase}
-                            onChange={e => setNewSourceForm({ ...newSourceForm, mongoDatabase: e.target.value })}
-                            placeholder="production"
+                            onChange={e => { setNewSourceForm({ ...newSourceForm, mongoDatabase: e.target.value }); setTestConnectionResult(null); }}
+                            placeholder="production or analytics"
                             style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
+                            required
                           />
+                          {discoveredOptions.databases && discoveredOptions.databases.length > 0 && (
+                            <div style={{ marginTop: '4px', display: 'flex', flexWrap: 'wrap', gap: '3px' }}>
+                              {discoveredOptions.databases.slice(0, 4).map(db => (
+                                <button
+                                  key={db}
+                                  type="button"
+                                  onClick={() => setNewSourceForm(prev => ({ ...prev, mongoDatabase: db }))}
+                                  style={{ padding: '1px 5px', fontSize: '0.68rem', background: '#F1F5F9', border: '1px solid #CBD5E1', borderRadius: '3px', cursor: 'pointer' }}
+                                >
+                                  {db}
+                                </button>
+                              ))}
+                            </div>
+                          )}
                         </div>
                         <div>
-                          <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Target Collections:</label>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2px' }}>
+                            <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Target Collections (comma-separated):</label>
+                            <button
+                              type="button"
+                              onClick={() => handleDiscoverResource('collections', newSourceForm.mongoDatabase)}
+                              disabled={isDiscovering}
+                              style={{ background: '#EFF6FF', border: '1px solid #BFDBFE', color: '#1D4ED8', borderRadius: '4px', padding: '1px 6px', fontSize: '0.68rem', fontWeight: 700, cursor: 'pointer' }}
+                            >
+                              🔍 Discover Colls
+                            </button>
+                          </div>
                           <input
                             type="text"
                             value={newSourceForm.mongoCollections}
                             onChange={e => setNewSourceForm({ ...newSourceForm, mongoCollections: e.target.value })}
-                            placeholder="refund_orders, user_entitlements"
+                            placeholder="e.g. orders, policies, entitlements"
                             style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
                           />
                         </div>
@@ -5535,76 +5952,215 @@ export default function App() {
                     </div>
                   )}
 
-                  {/* 7. SALESFORCE CRM */}
-                  {newSourceForm.sourceType === 'salesforce' && (
+                  {/* 4. JIRA SPECIFIC FIELDS */}
+                  {newSourceForm.sourceType === 'jira' && (
                     <div style={{ background: '#F8FAFC', border: '1px solid var(--border-subtle, #E2E8F0)', borderRadius: '8px', padding: '14px', display: 'grid', gap: '12px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #E2E8F0', paddingBottom: '6px' }}>
-                        <span style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--text-main)' }}>Salesforce Connected App Parameters</span>
-                        <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>🔒 OAuth 2.0 Client Secret</span>
+                        <span style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--text-main)' }}>Jira Cloud / Server Connection Parameters</span>
+                        <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>🔒 Atlassian REST API v3 • ADF Extraction</span>
                       </div>
 
                       <div>
-                        <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Salesforce Instance URL:</label>
+                        <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Jira Base URL:</label>
                         <input
-                          type="text"
-                          value={newSourceForm.sfInstanceUrl}
-                          onChange={e => setNewSourceForm({ ...newSourceForm, sfInstanceUrl: e.target.value })}
-                          placeholder="https://company.my.salesforce.com"
+                          type="url"
+                          value={newSourceForm.jiraBaseUrl}
+                          onChange={e => { setNewSourceForm({ ...newSourceForm, jiraBaseUrl: e.target.value }); setTestConnectionResult(null); }}
+                          placeholder="https://your-domain.atlassian.net"
                           style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
+                          required
                         />
                       </div>
 
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                         <div>
-                          <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Connected App Client ID:</label>
+                          <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>User Email / Username:</label>
                           <input
-                            type="text"
-                            value={newSourceForm.sfClientId}
-                            onChange={e => setNewSourceForm({ ...newSourceForm, sfClientId: e.target.value })}
-                            placeholder="3MVG9..."
+                            type="email"
+                            value={newSourceForm.jiraEmail}
+                            onChange={e => { setNewSourceForm({ ...newSourceForm, jiraEmail: e.target.value }); setTestConnectionResult(null); }}
+                            placeholder="dev@company.com"
                             style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
+                            required
                           />
                         </div>
                         <div>
-                          <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Client Secret:</label>
+                          <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>API Token:</label>
                           <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
                             <input
                               type={showPasswordMask ? "text" : "password"}
-                              value={newSourceForm.sfClientSecret}
-                              onChange={e => setNewSourceForm({ ...newSourceForm, sfClientSecret: e.target.value })}
+                              value={newSourceForm.jiraToken}
+                              onChange={e => { setNewSourceForm({ ...newSourceForm, jiraToken: e.target.value }); setTestConnectionResult(null); }}
                               placeholder="••••••••"
                               style={{ width: '100%', padding: '7px 32px 7px 9px', fontSize: '0.82rem' }}
+                              required
                             />
                             <button
                               type="button"
                               onClick={() => setShowPasswordMask(!showPasswordMask)}
                               style={{ position: 'absolute', right: '8px', background: 'none', border: 'none', cursor: 'pointer', color: '#64748B', display: 'flex', alignItems: 'center' }}
                             >
-                              {showPasswordMask ? (
-                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
-                              ) : (
-                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                              )}
+                              👁️
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                        <div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2px' }}>
+                            <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Project Key:</label>
+                            <button
+                              type="button"
+                              onClick={() => handleDiscoverResource('projects')}
+                              disabled={isDiscovering}
+                              style={{ background: '#EFF6FF', border: '1px solid #BFDBFE', color: '#1D4ED8', borderRadius: '4px', padding: '1px 6px', fontSize: '0.68rem', fontWeight: 700, cursor: 'pointer' }}
+                            >
+                              🔍 Discover Projects
+                            </button>
+                          </div>
+                          <input
+                            type="text"
+                            value={newSourceForm.jiraProject}
+                            onChange={e => { setNewSourceForm({ ...newSourceForm, jiraProject: e.target.value }); setTestConnectionResult(null); }}
+                            placeholder="e.g. SEC, ENG, OPS"
+                            style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
+                            required
+                          />
+                          {discoveredOptions.projects && discoveredOptions.projects.length > 0 && (
+                            <div style={{ marginTop: '4px', display: 'flex', flexWrap: 'wrap', gap: '3px' }}>
+                              {discoveredOptions.projects.slice(0, 5).map(p => (
+                                <button
+                                  key={p.key || p}
+                                  type="button"
+                                  onClick={() => setNewSourceForm(prev => ({ ...prev, jiraProject: p.key || p }))}
+                                  style={{ padding: '1px 5px', fontSize: '0.68rem', background: '#F1F5F9', border: '1px solid #CBD5E1', borderRadius: '3px', cursor: 'pointer' }}
+                                >
+                                  {p.key || p}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                        <div>
+                          <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Optional JQL Filter:</label>
+                          <input
+                            type="text"
+                            value={newSourceForm.jiraFilter}
+                            onChange={e => setNewSourceForm({ ...newSourceForm, jiraFilter: e.target.value })}
+                            placeholder="status = Done ORDER BY updated DESC"
+                            style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 5. CONFLUENCE SPECIFIC FIELDS */}
+                  {newSourceForm.sourceType === 'confluence' && (
+                    <div style={{ background: '#F8FAFC', border: '1px solid var(--border-subtle, #E2E8F0)', borderRadius: '8px', padding: '14px', display: 'grid', gap: '12px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #E2E8F0', paddingBottom: '6px' }}>
+                        <span style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--text-main)' }}>Confluence Wiki Connection Parameters</span>
+                        <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>🔒 Atlassian Wiki API • HTML to Markdown Normalization</span>
+                      </div>
+
+                      <div>
+                        <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Confluence Base URL:</label>
+                        <input
+                          type="url"
+                          value={newSourceForm.confluenceBaseUrl}
+                          onChange={e => { setNewSourceForm({ ...newSourceForm, confluenceBaseUrl: e.target.value }); setTestConnectionResult(null); }}
+                          placeholder="https://your-domain.atlassian.net/wiki"
+                          style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
+                          required
+                        />
+                      </div>
+
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                        <div>
+                          <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>User Email / Username:</label>
+                          <input
+                            type="email"
+                            value={newSourceForm.confluenceEmail}
+                            onChange={e => { setNewSourceForm({ ...newSourceForm, confluenceEmail: e.target.value }); setTestConnectionResult(null); }}
+                            placeholder="dev@company.com"
+                            style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
+                            required
+                          />
+                        </div>
+                        <div>
+                          <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>API Token:</label>
+                          <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                            <input
+                              type={showPasswordMask ? "text" : "password"}
+                              value={newSourceForm.confluenceToken}
+                              onChange={e => { setNewSourceForm({ ...newSourceForm, confluenceToken: e.target.value }); setTestConnectionResult(null); }}
+                              placeholder="••••••••"
+                              style={{ width: '100%', padding: '7px 32px 7px 9px', fontSize: '0.82rem' }}
+                              required
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowPasswordMask(!showPasswordMask)}
+                              style={{ position: 'absolute', right: '8px', background: 'none', border: 'none', cursor: 'pointer', color: '#64748B', display: 'flex', alignItems: 'center' }}
+                            >
+                              👁️
                             </button>
                           </div>
                         </div>
                       </div>
 
                       <div>
-                        <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Target SObjects to Ingest (comma-separated):</label>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2px' }}>
+                          <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Target Space Key(s) (comma-separated):</label>
+                          <button
+                            type="button"
+                            onClick={() => handleDiscoverResource('spaces')}
+                            disabled={isDiscovering}
+                            style={{ background: '#EFF6FF', border: '1px solid #BFDBFE', color: '#1D4ED8', borderRadius: '4px', padding: '1px 6px', fontSize: '0.68rem', fontWeight: 700, cursor: 'pointer' }}
+                          >
+                            🔍 Discover Spaces
+                          </button>
+                        </div>
                         <input
                           type="text"
-                          value={newSourceForm.sfObjects}
-                          onChange={e => setNewSourceForm({ ...newSourceForm, sfObjects: e.target.value })}
-                          placeholder="Contract, Refund_Request__c, Case, Opportunity"
+                          value={newSourceForm.confluenceSpace}
+                          onChange={e => { setNewSourceForm({ ...newSourceForm, confluenceSpace: e.target.value }); setTestConnectionResult(null); }}
+                          placeholder="e.g. POLICIES, TECHNICALITY, SD"
                           style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
+                          required
                         />
+                        {discoveredOptions.spaces && discoveredOptions.spaces.length > 0 && (
+                          <div style={{ marginTop: '4px', display: 'flex', flexWrap: 'wrap', gap: '3px' }}>
+                            {discoveredOptions.spaces.slice(0, 8).map(s => {
+                              const spaceKey = (typeof s === 'object' ? s.key : s) || '';
+                              return (
+                                <button
+                                  key={spaceKey}
+                                  type="button"
+                                  onClick={() => setNewSourceForm(prev => {
+                                    const currentList = (prev.confluenceSpace || '').split(',').map(x => x.trim().toUpperCase()).filter(Boolean);
+                                    if (currentList.includes(spaceKey.toUpperCase())) return prev;
+                                    return {
+                                      ...prev,
+                                      confluenceSpace: currentList.length > 0 ? `${currentList.join(', ')}, ${spaceKey}` : spaceKey
+                                    };
+                                  })}
+                                  style={{ padding: '2px 6px', fontSize: '0.68rem', background: '#F1F5F9', border: '1px solid #CBD5E1', borderRadius: '3px', cursor: 'pointer' }}
+                                  title={`Add space ${spaceKey}`}
+                                >
+                                  + {spaceKey}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        )}
                       </div>
                     </div>
                   )}
 
-                  {/* 8. UNIVERSAL DRIVER CONFIGURATION FOR ALL OTHER ENTERPRISE CONNECTORS */}
-                  {!['github', 'postgresql', 'postgres', 'cloud_sql_postgres', 'alloydb', 'mysql', 'sql_server', 'oracle', 'clickhouse', 'snowflake', 's3', 'kafka', 'apache_kafka', 'confluent_kafka', 'amazon_msk', 'aiven_kafka', 'redpanda_kafka', 'mongodb', 'mongodb_atlas', 'mongodb_self', 'documentdb', 'salesforce'].includes(newSourceForm.sourceType) && (
+                  {/* 6. UNIVERSAL DRIVER CONFIGURATION FOR NON-LIVE CATALOG CONNECTORS */}
+                  {!['github', 'postgresql', 'postgres', 'mongodb', 'mongodb_atlas', 'jira', 'confluence'].includes(newSourceForm.sourceType) && (
                     <div style={{ background: '#F8FAFC', border: '1px solid var(--border-subtle, #E2E8F0)', borderRadius: '8px', padding: '14px', display: 'grid', gap: '12px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #E2E8F0', paddingBottom: '6px' }}>
                         <span style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--text-main)' }}>Enterprise Endpoint Connection Parameters</span>
@@ -5617,8 +6173,8 @@ export default function App() {
                           <input
                             type="text"
                             value={genericConfig.host}
-                            onChange={e => setGenericConfig({ ...genericConfig, host: e.target.value })}
-                            placeholder={`e.g. ${newSourceForm.sourceType}-cluster.prod.internal or https://${newSourceForm.sourceType}.corp.com`}
+                            onChange={e => { setGenericConfig({ ...genericConfig, host: e.target.value }); setTestConnectionResult(null); }}
+                            placeholder={`e.g. ${newSourceForm.sourceType}-cluster.prod.internal`}
                             style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
                           />
                         </div>
@@ -5627,7 +6183,7 @@ export default function App() {
                           <input
                             type="number"
                             value={genericConfig.port}
-                            onChange={e => setGenericConfig({ ...genericConfig, port: e.target.value })}
+                            onChange={e => { setGenericConfig({ ...genericConfig, port: e.target.value }); setTestConnectionResult(null); }}
                             placeholder="Default"
                             style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
                           />
@@ -5636,64 +6192,65 @@ export default function App() {
 
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                         <div>
-                          <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Database / Workspace / Project:</label>
+                          <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Database / Workspace:</label>
                           <input
                             type="text"
                             value={genericConfig.database}
-                            onChange={e => setGenericConfig({ ...genericConfig, database: e.target.value })}
-                            placeholder="analytics_prod or default"
+                            onChange={e => { setGenericConfig({ ...genericConfig, database: e.target.value }); setTestConnectionResult(null); }}
+                            placeholder="production"
                             style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
                           />
                         </div>
                         <div>
-                          <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Target Schemas / Datasets:</label>
+                          <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>API Key / Secret:</label>
                           <input
-                            type="text"
-                            value={genericConfig.schemas}
-                            onChange={e => setGenericConfig({ ...genericConfig, schemas: e.target.value })}
-                            placeholder="public, models, core"
+                            type="password"
+                            value={genericConfig.password}
+                            onChange={e => { setGenericConfig({ ...genericConfig, password: e.target.value }); setTestConnectionResult(null); }}
+                            placeholder="••••••••"
                             style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
                           />
-                        </div>
-                      </div>
-
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                        <div>
-                          <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Username / Service Account:</label>
-                          <input
-                            type="text"
-                            value={genericConfig.username}
-                            onChange={e => setGenericConfig({ ...genericConfig, username: e.target.value })}
-                            placeholder="service_account_bot"
-                            style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
-                          />
-                        </div>
-                        <div>
-                          <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Password / API Key / Secret:</label>
-                          <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                            <input
-                              type={showPasswordMask ? "text" : "password"}
-                              value={genericConfig.password}
-                              onChange={e => setGenericConfig({ ...genericConfig, password: e.target.value })}
-                              placeholder="••••••••"
-                              style={{ width: '100%', padding: '7px 32px 7px 9px', fontSize: '0.82rem' }}
-                            />
-                            <button
-                              type="button"
-                              onClick={() => setShowPasswordMask(!showPasswordMask)}
-                              style={{ position: 'absolute', right: '8px', background: 'none', border: 'none', cursor: 'pointer', color: '#64748B', display: 'flex', alignItems: 'center' }}
-                            >
-                              {showPasswordMask ? (
-                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
-                              ) : (
-                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                              )}
-                            </button>
-                          </div>
                         </div>
                       </div>
                     </div>
                   )}
+
+                  {/* STEP 3: SCHEDULE CONFIGURATION SELECTOR */}
+                  <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '8px', padding: '14px' }}>
+                    <label style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary, #475569)', display: 'block', marginBottom: '8px' }}>
+                      Automated Synchronization Schedule:
+                    </label>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
+                      {[
+                        { id: 'off', label: 'Off', desc: 'Manual on-demand synchronization only' },
+                        { id: '1m', label: 'Every 1 minute', desc: 'Continuous automated low-latency crawl' },
+                        { id: '10m', label: 'Every 10 minutes', desc: 'Periodic background synchronization' }
+                      ].map(sch => {
+                        const isSelected = (newSourceForm.schedule || 'off') === sch.id;
+                        return (
+                          <div
+                            key={sch.id}
+                            onClick={() => setNewSourceForm(prev => ({ ...prev, schedule: sch.id }))}
+                            style={{
+                              padding: '10px 12px',
+                              borderRadius: '8px',
+                              border: isSelected ? '2px solid #EA580C' : '1px solid #CBD5E1',
+                              background: isSelected ? '#FFF7ED' : '#FFFFFF',
+                              cursor: 'pointer',
+                              transition: 'all 0.15s ease'
+                            }}
+                          >
+                            <div style={{ fontSize: '0.80rem', fontWeight: 700, color: isSelected ? '#EA580C' : '#0F172A' }}>
+                              {sch.label}
+                            </div>
+                            <div style={{ fontSize: '0.68rem', color: '#64748B', marginTop: '2px' }}>
+                              {sch.desc}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
 
                   {/* Authority Slider */}
                   <div>
@@ -5721,19 +6278,19 @@ export default function App() {
                   {/* Test Connection Diagnostic Result */}
                   {testConnectionResult && (
                     <div style={{
-                      padding: '10px 14px',
+                      padding: '12px 16px',
                       borderRadius: '8px',
                       fontSize: '0.78rem',
-                      background: testConnectionResult.success ? 'var(--badge-verified-bg, #F0FDF4)' : '#FEF2F2',
-                      border: `1px solid ${testConnectionResult.success ? 'var(--badge-verified-border, #BBF7D0)' : '#FCA5A5'}`,
-                      color: testConnectionResult.success ? 'var(--badge-verified-text, #15803D)' : '#B91C1C'
+                      background: testConnectionResult.success ? '#F0FDF4' : '#FEF2F2',
+                      border: `1px solid ${testConnectionResult.success ? '#BBF7D0' : '#FCA5A5'}`,
+                      color: testConnectionResult.success ? '#15803D' : '#B91C1C'
                     }}>
                       <div style={{ fontWeight: 800, marginBottom: '2px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <span>{testConnectionResult.success ? '✓ Pre-flight Diagnostic Passed' : '✕ Connection Diagnostic Failed'}</span>
+                        <span>{testConnectionResult.success ? '✓ Pre-flight Connection Succeeded' : '✕ Connection Diagnostic Failed'}</span>
                       </div>
                       <div>{testConnectionResult.message}</div>
                       {testConnectionResult.details && Object.keys(testConnectionResult.details).length > 0 && (
-                        <div style={{ fontSize: '0.72rem', marginTop: '4px', opacity: 0.85 }}>
+                        <div style={{ fontSize: '0.72rem', marginTop: '4px', opacity: 0.9 }}>
                           Details: {JSON.stringify(testConnectionResult.details)}
                         </div>
                       )}
@@ -5751,15 +6308,15 @@ export default function App() {
                         display: 'inline-flex',
                         alignItems: 'center',
                         gap: '6px',
-                        padding: '8px 14px',
-                        fontSize: '0.8rem',
-                        fontWeight: 600
+                        padding: '8px 16px',
+                        fontSize: '0.82rem',
+                        fontWeight: 700,
+                        background: '#F8FAFC',
+                        border: '1px solid #CBD5E1'
                       }}
                     >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
-                      </svg>
-                      {isTestingConnection ? "Running Diagnostic..." : "Test Connection"}
+                      <span className={isTestingConnection ? "spin" : ""}>⚡</span>
+                      {isTestingConnection ? "Running Connection Diagnostic..." : "Test Connection"}
                     </button>
 
                     <div style={{ display: 'flex', gap: '8px' }}>
@@ -5773,11 +6330,20 @@ export default function App() {
                       </button>
                       <button
                         type="submit"
-                        disabled={isConnectingSource}
+                        disabled={isConnectingSource || !testConnectionResult?.success}
                         className="btn btn-primary"
-                        style={{ padding: '8px 20px', fontSize: '0.82rem', fontWeight: 700, background: '#EA580C', borderColor: '#EA580C', boxShadow: '0 2px 6px rgba(234, 88, 12, 0.25)' }}
+                        style={{
+                          padding: '8px 20px',
+                          fontSize: '0.82rem',
+                          fontWeight: 700,
+                          background: testConnectionResult?.success ? '#EA580C' : '#94A3B8',
+                          borderColor: testConnectionResult?.success ? '#EA580C' : '#94A3B8',
+                          boxShadow: testConnectionResult?.success ? '0 2px 6px rgba(234, 88, 12, 0.25)' : 'none',
+                          cursor: testConnectionResult?.success ? 'pointer' : 'not-allowed'
+                        }}
+                        title={!testConnectionResult?.success ? "Run and pass 'Test Connection' before saving" : "Save connection and run initial sync"}
                       >
-                        {isConnectingSource ? "Connecting & Syncing..." : "Save & Sync Connection"}
+                        {isConnectingSource ? "Connecting & Syncing..." : "Save Securely & Ingest"}
                       </button>
                     </div>
                   </div>
@@ -5832,17 +6398,6 @@ export default function App() {
                     >
                       <span>🔌</span>
                       <span>Manage Connectors & Sync</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => setShowAddSourceModal(true)}
-                      className="btn btn-primary"
-                      style={{ padding: '7px 14px', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '6px' }}
-                      title="Connect a new real data source (GitHub, Confluence, Jira, Postgres, etc.)"
-                    >
-                      <span style={{ fontSize: '1.05rem', lineHeight: 1 }}>+</span>
-                      <span>Connect Real Source</span>
                     </button>
 
                     <button
@@ -5903,7 +6458,12 @@ export default function App() {
                   {displayedDataSources.map(src => {
                     const count = dbDocuments.filter(d => d.source_id === src.id).length;
                     const isSelected = docSourceFilter === src.id;
-                    const icon = src.source_type === 'github' ? '🐙' : src.source_type === 'confluence' ? '📘' : src.source_type === 'jira' ? '🎯' : '🔌';
+                    const icon = src.source_type === 'github' ? '🐙'
+                      : (src.source_type === 'mongodb' || src.source_type === 'mongodb_atlas') ? '🍃'
+                      : src.source_type === 'jira' ? '🎯'
+                      : src.source_type === 'confluence' ? '📘'
+                      : src.source_type === 'postgresql' ? '🐘'
+                      : '🔌';
                     return (
                       <button
                         key={src.id}
@@ -5967,8 +6527,8 @@ export default function App() {
                       {docSourceFilter !== 'all'
                         ? "Try syncing this connector or clear the filter to view all documents."
                         : activeWorkspace && activeWorkspace.id !== 'all' && !docExplorerScopeAll
-                          ? `No documents found matching ${activeWorkspace.name}. Switch to "All Combined Resources" or connect a real data source.`
-                          : "Connect a real enterprise data source or run a manual ingestion to populate documents."}
+                          ? `No documents found matching ${activeWorkspace.name}. Switch to "All Combined Resources" or check your connectors.`
+                          : "No documents currently stored in PostgreSQL. Run a synchronization from Manage Connectors & Sync to populate documents."}
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', flexWrap: 'wrap' }}>
                       <button
@@ -5981,14 +6541,6 @@ export default function App() {
                         style={{ padding: '7px 16px', fontSize: '0.8rem' }}
                       >
                         ← Return to Live Connectors
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setShowAddSourceModal(true)}
-                        className="btn btn-primary"
-                        style={{ padding: '7px 16px', fontSize: '0.8rem' }}
-                      >
-                        + Connect Real Data Source
                       </button>
                     </div>
                   </div>
@@ -6003,7 +6555,12 @@ export default function App() {
                       .map((doc, idx) => {
                         const matchedSrc = dataSources.find(s => s.id === doc.source_id);
                         const srcName = matchedSrc?.name || (doc.external_id?.includes('github') ? 'GitHub' : doc.external_id?.includes('confluence') ? 'Confluence' : 'Connected Source');
-                        const srcIcon = matchedSrc?.source_type === 'github' ? '🐙' : matchedSrc?.source_type === 'confluence' ? '📘' : matchedSrc?.source_type === 'jira' ? '🎯' : '🔌';
+                        const srcIcon = matchedSrc?.source_type === 'github' ? '🐙'
+                          : (matchedSrc?.source_type === 'mongodb' || matchedSrc?.source_type === 'mongodb_atlas') ? '🍃'
+                          : matchedSrc?.source_type === 'jira' ? '🎯'
+                          : matchedSrc?.source_type === 'confluence' ? '📘'
+                          : matchedSrc?.source_type === 'postgresql' ? '🐘'
+                          : '🔌';
 
                         return (
                           <div key={doc.id || idx} style={{ background: '#FFFFFF', border: '1px solid var(--border-subtle)', padding: '16px', borderRadius: '8px' }}>
@@ -6033,9 +6590,14 @@ export default function App() {
                                     <span>{srcIcon}</span>
                                     <span>Connector: {srcName}</span>
                                   </span>
+                                  {matchedSrc?.last_synced_at && (
+                                    <span style={{ fontSize: '0.70rem', color: '#64748B' }}>
+                                      Synced: {new Date(matchedSrc.last_synced_at).toLocaleDateString()}
+                                    </span>
+                                  )}
                                 </div>
                                 <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-                                  External ID: <span className="code-pill">{doc.external_id || 'N/A'}</span> • Created: {new Date(doc.created_at).toLocaleDateString()}
+                                  Source ID: <span className="code-pill">{doc.external_id || 'N/A'}</span> • Created: {new Date(doc.created_at).toLocaleDateString()}
                                 </div>
                               </div>
 
