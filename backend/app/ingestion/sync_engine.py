@@ -2,14 +2,15 @@ import asyncio
 import time
 import uuid
 from datetime import datetime, timezone
-from typing import Any
+from typing import Any, List, Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.encryption import EncryptionService
 from app.db.models.data_source import DataSource
 from app.db.repositories.data_source_repository import DataSourceRepository
+from app.ingestion.base import DiscoveredAsset, RawSourceAsset, SourceFamily, SyncMode
 from app.ingestion.connector_registry import ConnectorRegistry
 from app.ingestion.connectors.confluence_connector import ConfluenceConnector
 from app.ingestion.connectors.github_connector import GitHubConnector, sanitize_github_repo
@@ -34,12 +35,16 @@ class SyncResult(BaseModel):
     documents_created: int = 0
     documents_updated: int = 0
     documents_skipped: int = 0
+    assets_discovered: int = 0
+    assets_fetched: int = 0
+    assets_deleted: int = 0
     claims_extracted: int
     conflicts_detected: int
     execution_time_ms: int = 0
     status: str = "success"
     synced_at: datetime
     message: str
+    checkpoint: Optional[dict[str, Any]] = None
 
 
 class SyncEngine:
@@ -351,3 +356,55 @@ class SyncEngine:
                     )
                 )
         return results
+
+    async def discover_source_assets(self, source_id: uuid.UUID) -> list[DiscoveredAsset]:
+        """Discovers live assets (tables, collections, files, spaces, issues) for a data source."""
+        source = await self.source_repo.get_by_id(source_id)
+        if not source:
+            raise ValueError(f"Data source {source_id} not found.")
+
+        connector = self.get_connector_for_source(source)
+        if hasattr(connector, "discover_assets"):
+            return await connector.discover_assets()
+        return []
+
+    async def update_selected_assets(
+        self,
+        source_id: uuid.UUID,
+        selected_asset_ids: list[str],
+    ) -> DataSource:
+        """Persists the user's selected asset scopes for targeted delta synchronization."""
+        source = await self.source_repo.get_by_id(source_id)
+        if not source:
+            raise ValueError(f"Data source {source_id} not found.")
+
+        cfg = dict(source.connection_config or {})
+        cfg["selected_assets"] = selected_asset_ids
+        source.connection_config = cfg
+        await self.session.flush()
+        await self.session.commit()
+        return source
+
+    async def fetch_native_assets(
+        self,
+        source_id: uuid.UUID,
+        sync_mode: SyncMode = SyncMode.INITIAL_FULL,
+    ) -> list[RawSourceAsset]:
+        """Fetches native un-flattened payloads and schema dictionaries for Layer 3 ingestion."""
+        source = await self.source_repo.get_by_id(source_id)
+        if not source:
+            raise ValueError(f"Data source {source_id} not found.")
+
+        connector = self.get_connector_for_source(source)
+        cfg = source.connection_config or {}
+        selected_assets = cfg.get("selected_assets")
+        checkpoint = cfg.get("sync_checkpoint")
+
+        if hasattr(connector, "fetch_native_assets"):
+            return await connector.fetch_native_assets(
+                selected_asset_ids=selected_assets,
+                sync_mode=sync_mode,
+                checkpoint=checkpoint,
+            )
+        return []
+

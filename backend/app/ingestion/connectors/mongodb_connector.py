@@ -344,6 +344,121 @@ class MongoDbConnector(BaseConnector):
 
         return synced
 
+    async def discover_assets(self) -> list[DiscoveredAsset]:
+        """Discovers MongoDB collections as hierarchical DiscoveredAssets."""
+        assets: list[DiscoveredAsset] = []
+        if motor is None:
+            return assets
+
+        try:
+            client = motor.motor_asyncio.AsyncIOMotorClient(
+                self.connection_string,
+                serverSelectionTimeoutMS=5000,
+                connectTimeoutMS=5000,
+            )
+            try:
+                db = client[self.database]
+                cols = await db.list_collection_names()
+                for col in cols:
+                    if col.startswith("system."):
+                        continue
+                    assets.append(
+                        DiscoveredAsset(
+                            asset_id=f"mongodb://{self.database}/{col}",
+                            name=f"{self.database}.{col}",
+                            asset_type="collection",
+                            source_family=SourceFamily.STRUCTURED,
+                            parent_id=f"mongodb://{self.database}",
+                            metadata={
+                                "database": self.database,
+                                "collection": col,
+                            },
+                        )
+                    )
+            finally:
+                client.close()
+        except Exception:
+            pass
+        return assets
+
+    async def fetch_native_assets(
+        self,
+        selected_asset_ids: list[str] | None = None,
+        sync_mode: SyncMode = SyncMode.INITIAL_FULL,
+        checkpoint: dict[str, Any] | None = None,
+    ) -> list[RawSourceAsset]:
+        """Fetches native BSON/JSON records and schema dictionaries without flattening."""
+        native_assets: list[RawSourceAsset] = []
+        if motor is None:
+            return native_assets
+
+        try:
+            client = motor.motor_asyncio.AsyncIOMotorClient(
+                self.connection_string,
+                serverSelectionTimeoutMS=5000,
+                connectTimeoutMS=5000,
+            )
+            try:
+                db = client[self.database]
+                target_cols = self.collections
+                if "*" in target_cols:
+                    target_cols = await db.list_collection_names()
+
+                for col_name in target_cols:
+                    if col_name.startswith("system."):
+                        continue
+                    asset_id = f"mongodb://{self.database}/{col_name}"
+                    if selected_asset_ids and asset_id not in selected_asset_ids:
+                        continue
+
+                    col = db[col_name]
+                    cursor = col.find({}).limit(self.sample_size)
+                    docs = await cursor.to_list(length=self.sample_size)
+
+                    # 1. Collection schema asset
+                    native_assets.append(
+                        RawSourceAsset(
+                            asset_id=asset_id,
+                            source_family=SourceFamily.STRUCTURED,
+                            native_format="json_schema",
+                            source_version="1",
+                            raw_payload={
+                                "database": self.database,
+                                "collection": col_name,
+                                "sampled_count": len(docs),
+                            },
+                            locator_metadata={
+                                "database": self.database,
+                                "collection": col_name,
+                            },
+                        )
+                    )
+
+                    # 2. Individual documents with exact JSON paths preserved
+                    for d in docs:
+                        doc_id = str(d.get("_id", "unknown"))
+                        # Serialize safely
+                        d_clean = json.loads(json.dumps(d, default=str))
+                        native_assets.append(
+                            RawSourceAsset(
+                                asset_id=f"{asset_id}/{doc_id}",
+                                source_family=SourceFamily.STRUCTURED,
+                                native_format="json",
+                                source_version="1",
+                                raw_payload=d_clean,
+                                locator_metadata={
+                                    "database": self.database,
+                                    "collection": col_name,
+                                    "document_id": doc_id,
+                                },
+                            )
+                        )
+            finally:
+                client.close()
+        except Exception:
+            pass
+        return native_assets
+
     def _format_mongodb_markdown(
         self,
         col_name: str,

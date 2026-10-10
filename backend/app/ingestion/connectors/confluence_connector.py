@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.encryption import EncryptionService
 from app.db.models.document import Document
 from app.db.models.document_version import DocumentVersion
+from app.ingestion.base import DiscoveredAsset, RawSourceAsset, SourceFamily, SyncMode
 from app.ingestion.connectors.base import BaseConnector
 from app.ingestion.document_ingestion import DocumentIngestionService
 from app.schemas.document import DocumentCreate
@@ -327,3 +328,105 @@ class ConfluenceConnector(BaseConnector):
                     synced.append(res)
 
         return synced
+
+    async def discover_assets(self) -> list[DiscoveredAsset]:
+        """Discovers Confluence spaces and root pages as DiscoveredAssets."""
+        assets: list[DiscoveredAsset] = []
+        if not self.base_url or not self.api_token or not self.user_email:
+            return assets
+
+        valid_url = self._normalize_base_url(EncryptionService.validate_external_url(self.base_url))
+        auth = (self.user_email.strip(), self.api_token.strip())
+        headers = {"Accept": "application/json", "User-Agent": "Context-Trust-Layer-Discovery"}
+
+        async with httpx.AsyncClient(timeout=15.0) as client:
+            try:
+                for sp in self.space_keys:
+                    assets.append(
+                        DiscoveredAsset(
+                            asset_id=f"confluence://{sp}",
+                            name=f"Space: {sp}",
+                            asset_type="space",
+                            source_family=SourceFamily.DOCUMENT,
+                            metadata={"space_key": sp},
+                        )
+                    )
+                    url = f"{valid_url}/wiki/rest/api/content?spaceKey={sp}&limit=50"
+                    resp = await client.get(url, auth=auth, headers=headers)
+                    if resp.status_code == 200:
+                        data = resp.json()
+                        for item in data.get("results", []):
+                            pid = str(item.get("id"))
+                            title = item.get("title", f"Page {pid}")
+                            assets.append(
+                                DiscoveredAsset(
+                                    asset_id=f"confluence://{sp}/page/{pid}",
+                                    name=title,
+                                    asset_type="page",
+                                    source_family=SourceFamily.DOCUMENT,
+                                    parent_id=f"confluence://{sp}",
+                                    metadata={"space_key": sp, "page_id": pid},
+                                )
+                            )
+            except Exception:
+                pass
+        return assets
+
+    async def fetch_native_assets(
+        self,
+        selected_asset_ids: list[str] | None = None,
+        sync_mode: SyncMode = SyncMode.INITIAL_FULL,
+        checkpoint: dict[str, Any] | None = None,
+    ) -> list[RawSourceAsset]:
+        """Fetches raw Confluence page HTML/storage trees and metadata."""
+        native_assets: list[RawSourceAsset] = []
+        if not self.base_url or not self.api_token or not self.user_email:
+            return native_assets
+
+        valid_url = self._normalize_base_url(EncryptionService.validate_external_url(self.base_url))
+        auth = (self.user_email.strip(), self.api_token.strip())
+        headers = {"Accept": "application/json", "User-Agent": "Context-Trust-Layer-Ingestion"}
+
+        async with httpx.AsyncClient(timeout=25.0) as client:
+            try:
+                for sp in self.space_keys:
+                    url = f"{valid_url}/wiki/rest/api/content?spaceKey={sp}&expand=body.storage,version,history&limit=50"
+                    resp = await client.get(url, auth=auth, headers=headers)
+                    if resp.status_code == 200:
+                        data = resp.json()
+                        for item in data.get("results", []):
+                            pid = str(item.get("id"))
+                            asset_id = f"confluence://{sp}/page/{pid}"
+                            if selected_asset_ids and asset_id not in selected_asset_ids:
+                                continue
+
+                            title = item.get("title", f"Confluence Page {pid}")
+                            body_html = (item.get("body") or {}).get("storage", {}).get("value", "")
+                            ver_num = str((item.get("version") or {}).get("number", 1))
+                            created_by = (item.get("history") or {}).get("createdBy") or {}
+                            by_info = created_by.get("displayName", "Confluence User")
+
+                            native_assets.append(
+                                RawSourceAsset(
+                                    asset_id=asset_id,
+                                    source_family=SourceFamily.DOCUMENT,
+                                    native_format="confluence_html",
+                                    source_version=ver_num,
+                                    raw_payload={
+                                        "title": title,
+                                        "body_storage_html": body_html,
+                                        "version": ver_num,
+                                        "author": by_info,
+                                    },
+                                    locator_metadata={
+                                        "space_key": sp,
+                                        "page_id": pid,
+                                        "page_title": title,
+                                        "version": ver_num,
+                                    },
+                                )
+                            )
+            except Exception:
+                pass
+        return native_assets
+

@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models.document import Document
 from app.db.models.document_version import DocumentVersion
+from app.ingestion.base import DiscoveredAsset, RawSourceAsset, SourceFamily, SyncMode
 from app.ingestion.connector_registry import ConnectorMetadata, ConnectorRegistry
 from app.ingestion.connectors.base import BaseConnector
 from app.ingestion.document_ingestion import DocumentIngestionService
@@ -204,3 +205,70 @@ class UniversalConnectorDriver(BaseConnector):
         )
         doc, ver, _, _ = await self.ingestion_service.ingest_document_with_dedup(doc_in)
         return [(doc, ver)]
+
+    async def discover_assets(self) -> list[DiscoveredAsset]:
+        """Discovers assets for universal connector."""
+        endpoint = (
+            self.config.get("endpoint")
+            or self.config.get("host")
+            or self.config.get("instance_url")
+            or self.config.get("connection_string")
+            or self.config.get("bootstrap_servers")
+            or "primary"
+        )
+        fam = SourceFamily.STRUCTURED if self.meta.family in ("relational_db", "nosql_db", "data_warehouse") else (
+            SourceFamily.CONVERSATION if self.meta.family == "collaboration" else (
+                SourceFamily.METADATA if self.meta.family in ("bi_analytics", "event_stream") else SourceFamily.DOCUMENT
+            )
+        )
+        return [
+            DiscoveredAsset(
+                asset_id=f"{self.meta.id}://{endpoint}",
+                name=f"{self.meta.name} Scope",
+                asset_type="resource",
+                source_family=fam,
+                metadata={"connector": self.meta.id, "endpoint": endpoint},
+            )
+        ]
+
+    async def fetch_native_assets(
+        self,
+        selected_asset_ids: list[str] | None = None,
+        sync_mode: SyncMode = SyncMode.INITIAL_FULL,
+        checkpoint: dict[str, Any] | None = None,
+    ) -> list[RawSourceAsset]:
+        """Fetches native representation for universal driver."""
+        endpoint = (
+            self.config.get("endpoint")
+            or self.config.get("host")
+            or self.config.get("instance_url")
+            or self.config.get("connection_string")
+            or self.config.get("bootstrap_servers")
+            or "primary"
+        )
+        asset_id = f"{self.meta.id}://{endpoint}"
+        if selected_asset_ids and asset_id not in selected_asset_ids:
+            return []
+
+        fam = SourceFamily.STRUCTURED if self.meta.family in ("relational_db", "nosql_db", "data_warehouse") else (
+            SourceFamily.CONVERSATION if self.meta.family == "collaboration" else (
+                SourceFamily.METADATA if self.meta.family in ("bi_analytics", "event_stream") else SourceFamily.DOCUMENT
+            )
+        )
+        return [
+            RawSourceAsset(
+                asset_id=asset_id,
+                source_family=fam,
+                native_format="json",
+                source_version="1",
+                raw_payload={
+                    "connector_id": self.meta.id,
+                    "connector_name": self.meta.name,
+                    "category": self.meta.category,
+                    "family": self.meta.family,
+                    "config_keys": list(self.config.keys()),
+                },
+                locator_metadata={"endpoint": endpoint, "connector": self.meta.id},
+            )
+        ]
+

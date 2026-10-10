@@ -344,6 +344,152 @@ class PostgresConnector(BaseConnector):
             await conn.close()
         return synced
 
+    async def discover_assets(self) -> list[DiscoveredAsset]:
+        """Discovers relational tables and schemas as hierarchical DiscoveredAssets."""
+        assets: list[DiscoveredAsset] = []
+        try:
+            ssl_val = None if self.ssl_mode in ("disable", "prefer") else self.ssl_mode
+            conn = await asyncpg.connect(
+                host=self.host,
+                port=self.port,
+                database=self.database,
+                user=self.username,
+                password=self.password,
+                ssl=ssl_val,
+                timeout=8.0,
+            )
+            try:
+                for schema in self.schemas:
+                    tables = await conn.fetch(
+                        """
+                        SELECT table_name, table_type 
+                        FROM information_schema.tables 
+                        WHERE table_schema = $1
+                        ORDER BY table_name;
+                        """,
+                        schema,
+                    )
+                    for t in tables:
+                        tname = t["table_name"]
+                        ttype = t["table_type"]
+                        assets.append(
+                            DiscoveredAsset(
+                                asset_id=f"postgres://{self.database}/{schema}/{tname}",
+                                name=f"{schema}.{tname}",
+                                asset_type="table" if ttype == "BASE TABLE" else "view",
+                                source_family=SourceFamily.STRUCTURED,
+                                parent_id=f"postgres://{self.database}/{schema}",
+                                metadata={
+                                    "database": self.database,
+                                    "schema": schema,
+                                    "table_name": tname,
+                                    "table_type": ttype,
+                                },
+                            )
+                        )
+            finally:
+                await conn.close()
+        except Exception:
+            pass
+        return assets
+
+    async def fetch_native_assets(
+        self,
+        selected_asset_ids: list[str] | None = None,
+        sync_mode: SyncMode = SyncMode.INITIAL_FULL,
+        checkpoint: dict[str, Any] | None = None,
+    ) -> list[RawSourceAsset]:
+        """Fetches native schema dictionaries and structured table records."""
+        native_assets: list[RawSourceAsset] = []
+        try:
+            ssl_val = None if self.ssl_mode in ("disable", "prefer") else self.ssl_mode
+            conn = await asyncpg.connect(
+                host=self.host,
+                port=self.port,
+                database=self.database,
+                user=self.username,
+                password=self.password,
+                ssl=ssl_val,
+                timeout=8.0,
+            )
+            try:
+                for schema in self.schemas:
+                    tables = await conn.fetch(
+                        """
+                        SELECT table_name, table_type 
+                        FROM information_schema.tables 
+                        WHERE table_schema = $1
+                        ORDER BY table_name;
+                        """,
+                        schema,
+                    )
+                    for t in tables:
+                        tname = t["table_name"]
+                        asset_id = f"postgres://{self.database}/{schema}/{tname}"
+                        if selected_asset_ids and asset_id not in selected_asset_ids:
+                            continue
+
+                        cols = await conn.fetch(
+                            """
+                            SELECT column_name, data_type, is_nullable, column_default 
+                            FROM information_schema.columns 
+                            WHERE table_schema = $1 AND table_name = $2
+                            ORDER BY ordinal_position;
+                            """,
+                            schema,
+                            tname,
+                        )
+                        columns_data = [dict(c) for c in cols]
+
+                        # 1. Schema metadata asset
+                        native_assets.append(
+                            RawSourceAsset(
+                                asset_id=asset_id,
+                                source_family=SourceFamily.STRUCTURED,
+                                native_format="sql_schema",
+                                source_version="1",
+                                raw_payload={
+                                    "database": self.database,
+                                    "schema": schema,
+                                    "table_name": tname,
+                                    "table_type": t["table_type"],
+                                    "columns": columns_data,
+                                },
+                                locator_metadata={
+                                    "database": self.database,
+                                    "schema": schema,
+                                    "table": tname,
+                                },
+                            )
+                        )
+
+                        # 2. Sample records asset
+                        try:
+                            rows = await conn.fetch(f'SELECT * FROM "{schema}"."{tname}" LIMIT 20;')
+                            if rows:
+                                native_assets.append(
+                                    RawSourceAsset(
+                                        asset_id=f"{asset_id}/records",
+                                        source_family=SourceFamily.STRUCTURED,
+                                        native_format="sql_rows",
+                                        source_version="1",
+                                        raw_payload=[dict(r) for r in rows],
+                                        locator_metadata={
+                                            "database": self.database,
+                                            "schema": schema,
+                                            "table": tname,
+                                            "row_count": len(rows),
+                                        },
+                                    )
+                                )
+                        except Exception:
+                            pass
+            finally:
+                await conn.close()
+        except Exception:
+            pass
+        return native_assets
+
     def _format_table_markdown(
         self,
         schema: str,
@@ -385,3 +531,4 @@ class PostgresConnector(BaseConnector):
 
 # Alias for consistent naming
 PostgreSQLConnector = PostgresConnector
+
