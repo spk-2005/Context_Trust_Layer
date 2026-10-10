@@ -14,4 +14,4 @@ echo "==> Ensuring demo knowledge is seeded..."
 python seed_demo_knowledge.py || echo "Notice: Demo knowledge already seeded."
 
 echo "==> Launching FastAPI application on port ${PORT:-8000}..."
-exec uvicorn app.main:app --host 0.0.0.0 --port "${PORT:-8000}"
+exec uvicorn app.main:app --host 0.0.0.0 --port "${PORT:-8000}" --reload

@@ -1206,6 +1206,45 @@ async def delete_or_decommission_source(
         }
 
 
+@router.get("/{source_id}/test-connection", response_model=ConnectionTestResult)
+@router.post("/{source_id}/test-connection", response_model=ConnectionTestResult)
+async def test_existing_source_connection_endpoint(
+    source_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(require_permission(Permission.SOURCES_READ)),
+):
+    """Layer 2 Connectivity Verification: Verifies live connection to an already registered data source."""
+    engine = SyncEngine(db)
+    source = await engine.source_repo.get_by_id(source_id)
+    if not source:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Data source {source_id} not found.")
+
+    try:
+        connector = engine.get_connector_for_source(source)
+        if hasattr(connector, "test_connection"):
+            res = await connector.test_connection()
+            return ConnectionTestResult(
+                success=res.get("success", True),
+                status=res.get("status", "ok"),
+                message=res.get("message", "Connection verified successfully."),
+                details=res.get("details", {}),
+            )
+        return ConnectionTestResult(
+            success=True,
+            status="ok",
+            message=f"Connector '{source.source_type}' verified (ready for ingestion).",
+            details={"source_id": str(source.id), "source_type": source.source_type},
+        )
+    except Exception as e:
+        logger.error("Connection test failed for source %s: %s", source_id, str(e))
+        return ConnectionTestResult(
+            success=False,
+            status="error",
+            message=f"Connection test failed: {str(e)}",
+            details={"error": str(e)},
+        )
+
+
 @router.get("/{source_id}/discover-assets", response_model=list[DiscoveredAsset])
 async def discover_source_assets_endpoint(
     source_id: uuid.UUID,

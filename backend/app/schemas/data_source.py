@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -63,10 +63,10 @@ class ConnectionTestRequest(BaseModel):
 
 class ConnectionTestResult(BaseModel):
     success: bool
-    status: str = "ok"  # ok, error, warning
-    message: str
+    status: str = "ok"
+    message: str = ""
     details: dict[str, Any] = Field(default_factory=dict)
-    tested_at: datetime
+    tested_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 class ResourceDiscoveryRequest(BaseModel):

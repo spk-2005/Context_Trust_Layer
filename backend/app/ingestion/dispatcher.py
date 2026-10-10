@@ -102,7 +102,25 @@ class SourceTypeDetector:
                 handler_name="metadata_operational_parser",
             )
 
-        # 3. Check for Structured Data (SQL schemas, tables, MongoDB BSON, JSON/CSV/XML)
+        # 3. Check for Documents & Files (Markdown, HTML, Confluence, PDF, DOCX, text)
+        if (
+            fam == SourceFamily.DOCUMENT
+            or fmt in ("markdown", "confluence_html", "html", "pdf", "docx", "txt", "document_text")
+            or "confluence://" in asset_id
+            or "github://" in asset_id
+            or (isinstance(payload, str) and not fmt.startswith("sql"))
+        ):
+            return RoutingDecision(
+                envelope_id=envelope.envelope_id,
+                asset_id=envelope.asset_id,
+                target_parser=TargetParserCategory.DOCUMENTS_AND_FILES,
+                detected_format=fmt or "document_text",
+                confidence=0.95,
+                reason="Identified as narrative document, wiki, policy, or file asset.",
+                handler_name="document_ast_parser",
+            )
+
+        # 4. Check for Structured Data (SQL schemas, tables, MongoDB BSON, JSON/CSV/XML)
         if (
             fam == SourceFamily.STRUCTURED
             or fmt in ("sql_schema", "json_schema", "json", "csv", "xml", "parquet", "bson", "table_row")
@@ -121,14 +139,14 @@ class SourceTypeDetector:
                 handler_name="structured_data_parser",
             )
 
-        # 4. Default to Documents & Files (PDF, Markdown, DOCX, HTML, plain text)
+        # 5. Default Fallback
         return RoutingDecision(
             envelope_id=envelope.envelope_id,
             asset_id=envelope.asset_id,
             target_parser=TargetParserCategory.DOCUMENTS_AND_FILES,
             detected_format=fmt or "document_text",
-            confidence=0.95,
-            reason="Identified as narrative document, policy, or file asset.",
+            confidence=0.85,
+            reason="Default fallback to narrative document/file handler.",
             handler_name="document_ast_parser",
         )
 

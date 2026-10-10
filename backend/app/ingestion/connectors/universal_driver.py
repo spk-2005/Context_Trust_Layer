@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 import httpx
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.db.enums import SourceIntent
 from app.db.models.document import Document
 from app.db.models.document_version import DocumentVersion
 from app.ingestion.base import DiscoveredAsset, RawSourceAsset, SourceFamily, SyncMode
@@ -29,8 +30,19 @@ class UniversalConnectorDriver(BaseConnector):
         source_type: str,
         connection_config: dict[str, Any] | None = None,
         owner_id: uuid.UUID | None = None,
+        scope_config: dict[str, Any] | None = None,
+        source_intent: SourceIntent | None = None,
+        **kwargs: Any,
     ):
-        super().__init__(session, organization_id, source_id, owner_id)
+        super().__init__(
+            session,
+            organization_id,
+            source_id,
+            owner_id=owner_id,
+            scope_config=scope_config,
+            source_intent=source_intent,
+            **kwargs,
+        )
         self.source_type = source_type
         self.meta = ConnectorRegistry.get_by_id(source_type) or ConnectorMetadata(
             id=source_type,

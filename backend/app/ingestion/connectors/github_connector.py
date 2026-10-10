@@ -129,11 +129,13 @@ class GitHubConnector(BaseConnector):
                             assets.append(
                                 DiscoveredAsset(
                                     id=path,
+                                    asset_id=path,
                                     name=path.split("/")[-1],
                                     asset_type="file",
+                                    source_family=SourceFamily.DOCUMENT,
                                     parent_scope=path.rsplit("/", 1)[0] if "/" in path else "",
                                     is_selectable=True,
-                                    metadata={"sha": it.get("sha"), "size": it.get("size")},
+                                    metadata={"path": path, "sha": it.get("sha"), "size": it.get("size")},
                                 )
                             )
         except Exception:
@@ -144,11 +146,13 @@ class GitHubConnector(BaseConnector):
                 assets.append(
                     DiscoveredAsset(
                         id=p,
+                        asset_id=p,
                         name=p.split("/")[-1],
                         asset_type="file",
+                        source_family=SourceFamily.DOCUMENT,
                         parent_scope=p.rsplit("/", 1)[0] if "/" in p else "",
                         is_selectable=True,
-                        metadata={"probe_candidate": True},
+                        metadata={"path": p, "probe_candidate": True},
                     )
                 )
 
@@ -570,7 +574,7 @@ class GitHubConnector(BaseConnector):
                         if not matched:
                             continue
 
-                    path = asset.metadata.get("path") or asset.name
+                    path = asset.metadata.get("path") or asset.asset_id or asset.id or asset.name
                     raw_url = f"https://raw.githubusercontent.com/{self.repo}/{branch}/{path}"
                     raw_headers = {"User-Agent": "Context-Trust-Layer-Bot"}
                     if self.token:

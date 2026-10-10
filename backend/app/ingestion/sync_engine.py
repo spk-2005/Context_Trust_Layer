@@ -69,6 +69,11 @@ class SyncEngine:
 
         effective_owner = owner_id or source.owner_id
 
+        common_layer1 = {
+            "scope_config": source.scope_config,
+            "source_intent": source.source_intent,
+        }
+
         if source_type in ("postgresql", "postgres"):
             return PostgresConnector(
                 session=self.session,
@@ -76,6 +81,7 @@ class SyncEngine:
                 source_id=source.id,
                 connection_config=raw_config,
                 owner_id=effective_owner,
+                **common_layer1,
             )
         elif source_type in ("kafka", "apache_kafka", "confluent"):
             return KafkaConnector(
@@ -84,6 +90,7 @@ class SyncEngine:
                 source_id=source.id,
                 connection_config=raw_config,
                 owner_id=effective_owner,
+                **common_layer1,
             )
         elif source_type in ("salesforce", "sfdc", "salesforce_crm"):
             return SalesforceConnector(
@@ -92,6 +99,7 @@ class SyncEngine:
                 source_id=source.id,
                 connection_config=raw_config,
                 owner_id=effective_owner,
+                **common_layer1,
             )
         elif source_type in ("mongodb", "mongo", "mongo_atlas", "mongodb_atlas", "mongodb_self", "documentdb", "cosmos_mongo"):
             return MongoDbConnector(
@@ -100,6 +108,7 @@ class SyncEngine:
                 source_id=source.id,
                 connection_config=raw_config,
                 owner_id=effective_owner,
+                **common_layer1,
             )
         elif source_type in ("confluence", "wiki"):
             return ConfluenceConnector(
@@ -112,6 +121,7 @@ class SyncEngine:
                 user_email=raw_config.get("user_email") or raw_config.get("email"),
                 owner_id=effective_owner,
                 connection_config=raw_config,
+                **common_layer1,
             )
         elif source_type in ("jira", "jira_issues"):
             return JiraConnector(
@@ -124,6 +134,7 @@ class SyncEngine:
                 user_email=raw_config.get("user_email") or raw_config.get("email"),
                 owner_id=effective_owner,
                 connection_config=raw_config,
+                **common_layer1,
             )
         elif source_type in ("github", "repo", "git"):
             raw_repo = raw_config.get("repository") or raw_config.get("repo") or source.external_id or "demo-org/security-standards"
@@ -138,6 +149,7 @@ class SyncEngine:
                 token=token_val,
                 owner_id=effective_owner,
                 connection_config=raw_config,
+                **common_layer1,
             )
         else:
             return UniversalConnectorDriver(
@@ -147,6 +159,7 @@ class SyncEngine:
                 source_type=source_type,
                 connection_config=raw_config,
                 owner_id=effective_owner,
+                **common_layer1,
             )
 
     async def sync_data_source(
