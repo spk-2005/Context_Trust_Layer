@@ -15,6 +15,7 @@ from app.db.database import get_db
 from app.db.models.data_source import DataSource
 from app.db.models.user import User
 from app.db.repositories.data_source_repository import DataSourceRepository
+from app.ingestion.base import DiscoveredAsset, RawSourceAsset
 from app.ingestion.connector_registry import ConnectorRegistry
 from app.ingestion.connectors.confluence_connector import ConfluenceConnector
 from app.ingestion.connectors.github_connector import GitHubConnector, sanitize_github_repo
@@ -981,3 +982,57 @@ async def delete_or_decommission_source(
             "claims_affected": len(claims),
             "conflicts_resolved": len(conflicts),
         }
+
+
+@router.get("/{source_id}/discover-assets", response_model=list[DiscoveredAsset])
+async def discover_source_assets_endpoint(
+    source_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(require_permission(Permission.SOURCES_READ)),
+):
+    """Layer 2 Asset Discovery: Dynamically inspects tables, collections, files, or spaces from source."""
+    engine = SyncEngine(db)
+    try:
+        return await engine.discover_source_assets(source_id)
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    except Exception as e:
+        logger.error("Asset discovery failed for %s: %s", source_id, str(e))
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Discovery failed: {str(e)}")
+
+
+@router.post("/{source_id}/select-assets", response_model=DataSourceResponse)
+async def select_source_assets_endpoint(
+    source_id: uuid.UUID,
+    payload: dict[str, Any],
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(require_permission(Permission.SOURCES_MANAGE)),
+):
+    """Layer 2 Scope Selection: Persists the user's targeted asset IDs for scoped synchronization."""
+    selected_assets = payload.get("selected_assets", [])
+    engine = SyncEngine(db)
+    try:
+        updated_source = await engine.update_selected_assets(source_id, selected_assets)
+        return _mask_source_response(updated_source)
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
+
+@router.get("/{source_id}/native-assets", response_model=list[RawSourceAsset])
+async def fetch_native_assets_preview(
+    source_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(require_permission(Permission.SOURCES_READ)),
+):
+    """Layer 2 Native Payload Extraction: Retrieves un-flattened raw assets with locators."""
+    engine = SyncEngine(db)
+    try:
+        return await engine.fetch_native_assets(source_id)
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
+

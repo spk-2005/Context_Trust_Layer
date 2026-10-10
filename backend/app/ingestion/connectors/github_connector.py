@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models.document import Document
 from app.db.models.document_version import DocumentVersion
+from app.ingestion.base import DiscoveredAsset, RawSourceAsset, SourceFamily, SyncMode
 from app.ingestion.connectors.base import BaseConnector
 from app.ingestion.document_ingestion import DocumentIngestionService
 from app.schemas.document import DocumentCreate
@@ -393,8 +394,112 @@ class GitHubConnector(BaseConnector):
                         synced.append(res)
                 except Exception:
                     continue
-            if synced:
-                # If we found files on this branch, no need to probe other branches
-                break
+    async def discover_assets(self) -> list[DiscoveredAsset]:
+        """Discovers markdown policies, documentation, and configuration files in the target repository."""
+        assets: list[DiscoveredAsset] = []
+        headers = {"Accept": "application/vnd.github.v3+json", "User-Agent": "Context-Trust-Layer-App"}
+        if self.token:
+            headers["Authorization"] = f"token {self.token}"
 
-        return synced
+        api_base = "https://api.github.com"
+        branch = self.branch or "main"
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            try:
+                tree_url = f"{api_base}/repos/{self.repo}/git/trees/{branch}?recursive=1"
+                resp = await client.get(tree_url, headers=headers)
+                if resp.status_code == 200:
+                    tree_data = resp.json().get("tree", [])
+                    for item in tree_data:
+                        path = item.get("path", "")
+                        if item.get("type") == "blob" and (path.endswith(".md") or path.endswith(".markdown") or path.endswith(".json")):
+                            assets.append(
+                                DiscoveredAsset(
+                                    asset_id=f"github://{self.repo}/{branch}/{path}",
+                                    name=path,
+                                    asset_type="file",
+                                    source_family=SourceFamily.DOCUMENT if path.endswith((".md", ".markdown")) else SourceFamily.STRUCTURED,
+                                    parent_id=f"github://{self.repo}/{branch}",
+                                    metadata={
+                                        "repository": self.repo,
+                                        "branch": branch,
+                                        "path": path,
+                                        "sha": item.get("sha"),
+                                        "size": item.get("size"),
+                                    },
+                                )
+                            )
+                else:
+                    # Fallback candidate probe
+                    for candidate in self.COMMON_PROBE_PATHS:
+                        assets.append(
+                            DiscoveredAsset(
+                                asset_id=f"github://{self.repo}/{branch}/{candidate}",
+                                name=candidate,
+                                asset_type="file",
+                                source_family=SourceFamily.DOCUMENT,
+                                parent_id=f"github://{self.repo}/{branch}",
+                                metadata={"repository": self.repo, "branch": branch, "path": candidate},
+                            )
+                        )
+            except Exception:
+                pass
+        return assets
+
+    async def fetch_native_assets(
+        self,
+        selected_asset_ids: list[str] | None = None,
+        sync_mode: SyncMode = SyncMode.INITIAL_FULL,
+        checkpoint: dict[str, Any] | None = None,
+    ) -> list[RawSourceAsset]:
+        """Fetches raw markdown content, commit SHAs, and file coordinates without loss of structure."""
+        native_assets: list[RawSourceAsset] = []
+        headers = {"Accept": "application/vnd.github.v3+json", "User-Agent": "Context-Trust-Layer-App"}
+        if self.token:
+            headers["Authorization"] = f"token {self.token}"
+
+        api_base = "https://api.github.com"
+        branch = self.branch or "main"
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            try:
+                # 1. Fetch latest commit SHA
+                commit_sha = "HEAD"
+                try:
+                    c_resp = await client.get(f"{api_base}/repos/{self.repo}/commits/{branch}", headers=headers)
+                    if c_resp.status_code == 200:
+                        commit_sha = c_resp.json().get("sha", "HEAD")[:12]
+                except Exception:
+                    pass
+
+
+                # 2. Get discovered files
+                discovered = await self.discover_assets()
+                for asset in discovered:
+                    if selected_asset_ids and asset.asset_id not in selected_asset_ids:
+                        continue
+
+                    path = asset.metadata.get("path") or asset.name
+                    raw_url = f"https://raw.githubusercontent.com/{self.repo}/{self.branch}/{path}"
+                    try:
+                        resp = await client.get(raw_url, headers={"User-Agent": "Context-Trust-Layer-Bot"})
+                        if resp.status_code == 200 and resp.text.strip():
+                            native_assets.append(
+                                RawSourceAsset(
+                                    asset_id=asset.asset_id,
+                                    source_family=asset.source_family,
+                                    native_format="markdown" if path.endswith((".md", ".markdown")) else "json",
+                                    source_version=commit_sha,
+                                    raw_payload=resp.text,
+                                    locator_metadata={
+                                        "repository": self.repo,
+                                        "branch": self.branch,
+                                        "path": path,
+                                        "commit_sha": commit_sha,
+                                    },
+                                )
+                            )
+                    except Exception:
+                        continue
+            except Exception:
+                pass
+        return native_assets
+

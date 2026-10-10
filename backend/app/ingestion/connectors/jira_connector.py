@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.encryption import EncryptionService
 from app.db.models.document import Document
 from app.db.models.document_version import DocumentVersion
+from app.ingestion.base import DiscoveredAsset, RawSourceAsset, SourceFamily, SyncMode
 from app.ingestion.connectors.base import BaseConnector
 from app.ingestion.document_ingestion import DocumentIngestionService
 from app.schemas.document import DocumentCreate
@@ -234,6 +235,92 @@ class JiraConnector(BaseConnector):
 
         return synced
 
+    async def discover_assets(self) -> list[DiscoveredAsset]:
+        """Discovers Jira projects and active issue types as DiscoveredAssets."""
+        assets: list[DiscoveredAsset] = []
+        if not self.base_url or not self.user_email or not self.api_token:
+            return assets
+
+        url = f"{self.base_url}/rest/api/3/project/{self.project_key}"
+        auth = (self.user_email, self.api_token)
+        headers = {"Accept": "application/json", "User-Agent": "Context-Trust-Layer-Discovery"}
+
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            try:
+                resp = await client.get(url, auth=auth, headers=headers)
+                if resp.status_code == 200:
+                    proj = resp.json()
+                    assets.append(
+                        DiscoveredAsset(
+                            asset_id=f"jira://{self.project_key}",
+                            name=f"{proj.get('name', self.project_key)} ({self.project_key})",
+                            asset_type="project",
+                            source_family=SourceFamily.CONVERSATION,
+                            metadata={"project_key": self.project_key, "project_id": proj.get("id")},
+                        )
+                    )
+                    for itype in proj.get("issueTypes", []):
+                        assets.append(
+                            DiscoveredAsset(
+                                asset_id=f"jira://{self.project_key}/type/{itype.get('id')}",
+                                name=itype.get("name", "Issue Type"),
+                                asset_type="issue_type",
+                                source_family=SourceFamily.CONVERSATION,
+                                parent_id=f"jira://{self.project_key}",
+                                metadata={"type_id": itype.get("id"), "subtask": itype.get("subtask")},
+                            )
+                        )
+            except Exception:
+                pass
+        return assets
+
+    async def fetch_native_assets(
+        self,
+        selected_asset_ids: list[str] | None = None,
+        sync_mode: SyncMode = SyncMode.INITIAL_FULL,
+        checkpoint: dict[str, Any] | None = None,
+    ) -> list[RawSourceAsset]:
+        """Fetches native Jira issues with full author, timestamps, status transitions, and fields."""
+        native_assets: list[RawSourceAsset] = []
+        if not self.base_url or not self.user_email or not self.api_token:
+            return native_assets
+
+        jql = f"project = '{self.project_key}' ORDER BY updated DESC"
+        url = f"{self.base_url}/rest/api/3/search?jql={httpx.URL('', params={'q': jql}).query.decode()[2:]}&maxResults=50"
+        auth = (self.user_email, self.api_token)
+        headers = {"Accept": "application/json", "User-Agent": "Context-Trust-Layer-Ingestion"}
+
+        async with httpx.AsyncClient(timeout=25.0) as client:
+            try:
+                resp = await client.get(url, auth=auth, headers=headers)
+                if resp.status_code == 200:
+                    data = resp.json()
+                    for issue in data.get("issues", []):
+                        key = issue.get("key")
+                        asset_id = f"jira://{self.project_key}/issue/{key}"
+                        if selected_asset_ids and asset_id not in selected_asset_ids:
+                            continue
+
+                        fields = issue.get("fields", {})
+                        native_assets.append(
+                            RawSourceAsset(
+                                asset_id=asset_id,
+                                source_family=SourceFamily.CONVERSATION,
+                                native_format="jira_issue",
+                                source_version=str(fields.get("updated") or "1"),
+                                raw_payload=issue,
+                                locator_metadata={
+                                    "project_key": self.project_key,
+                                    "issue_key": key,
+                                    "status": fields.get("status", {}).get("name"),
+                                    "author": fields.get("creator", {}).get("displayName"),
+                                },
+                            )
+                        )
+            except Exception:
+                pass
+        return native_assets
+
     def _extract_adf_text(self, adf_node: Any) -> str:
         """Recursively extracts plain text from Atlassian Document Format structure."""
         if not adf_node:
@@ -252,3 +339,4 @@ class JiraConnector(BaseConnector):
         if isinstance(adf_node, list):
             return "\n".join(self._extract_adf_text(item) for item in adf_node)
         return str(adf_node)
+
