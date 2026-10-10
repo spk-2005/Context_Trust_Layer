@@ -549,28 +549,46 @@ class GitHubConnector(BaseConnector):
                 except Exception:
                     pass
 
-
                 # 2. Get discovered files
                 discovered = await self.discover_assets()
                 for asset in discovered:
-                    if selected_asset_ids and asset.asset_id not in selected_asset_ids:
-                        continue
+                    # Robust scope matching: matches exact asset_id, repo URL, path prefix, or wildcard
+                    if selected_asset_ids and "*" not in selected_asset_ids:
+                        matched = False
+                        for sel in selected_asset_ids:
+                            sel_clean = (sel or "").strip().rstrip("/")
+                            if not sel_clean:
+                                continue
+                            if (
+                                sel_clean == asset.asset_id
+                                or sel_clean in (asset.asset_id or "")
+                                or sanitize_github_repo(sel_clean) == self.repo
+                                or (asset.metadata.get("path") and sel_clean.endswith(asset.metadata["path"]))
+                            ):
+                                matched = True
+                                break
+                        if not matched:
+                            continue
 
                     path = asset.metadata.get("path") or asset.name
-                    raw_url = f"https://raw.githubusercontent.com/{self.repo}/{self.branch}/{path}"
+                    raw_url = f"https://raw.githubusercontent.com/{self.repo}/{branch}/{path}"
+                    raw_headers = {"User-Agent": "Context-Trust-Layer-Bot"}
+                    if self.token:
+                        raw_headers["Authorization"] = f"token {self.token}"
+
                     try:
-                        resp = await client.get(raw_url, headers={"User-Agent": "Context-Trust-Layer-Bot"})
+                        resp = await client.get(raw_url, headers=raw_headers)
                         if resp.status_code == 200 and resp.text.strip():
                             native_assets.append(
                                 RawSourceAsset(
-                                    asset_id=asset.asset_id,
+                                    asset_id=asset.asset_id or asset.id or f"github://{self.repo}/{branch}/{path}",
                                     source_family=asset.source_family,
                                     native_format="markdown" if path.endswith((".md", ".markdown")) else "json",
                                     source_version=commit_sha,
                                     raw_payload=resp.text,
                                     locator_metadata={
                                         "repository": self.repo,
-                                        "branch": self.branch,
+                                        "branch": branch,
                                         "path": path,
                                         "commit_sha": commit_sha,
                                     },
