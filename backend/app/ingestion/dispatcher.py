@@ -66,10 +66,10 @@ class SourceTypeDetector:
 
         # 1. Check for Conversation Family (Slack, Teams, Jira comments, PR reviews)
         if (
-            fam == SourceFamily.ISSUE_TRACKER
-            or fam == SourceFamily.CONVERSATION
+            fam == SourceFamily.CONVERSATION
             or "slack://" in asset_id
             or "teams://" in asset_id
+            or "jira://" in asset_id
             or "comment" in asset_id
             or "thread" in asset_id
             or fmt in ("chat_thread", "email_thread", "slack_message", "jira_comment")
@@ -86,7 +86,8 @@ class SourceTypeDetector:
 
         # 2. Check for Metadata & Operational (BI models, lineage graphs, metrics, events/logs)
         if (
-            intent in (SourceIntent.ANALYTICS_METRIC, SourceIntent.LINEAGE_GRAPH)
+            fam == SourceFamily.METADATA
+            or intent == SourceIntent.ANALYTICS_METRIC
             or fmt in ("bi_model", "lineage_graph", "telemetry_log", "metric_definition")
             or "dbt://" in asset_id
             or "looker://" in asset_id
@@ -103,7 +104,7 @@ class SourceTypeDetector:
 
         # 3. Check for Structured Data (SQL schemas, tables, MongoDB BSON, JSON/CSV/XML)
         if (
-            fam in (SourceFamily.RELATIONAL, SourceFamily.DOCUMENT_DB, SourceFamily.STRUCTURED)
+            fam == SourceFamily.STRUCTURED
             or fmt in ("sql_schema", "json_schema", "json", "csv", "xml", "parquet", "bson", "table_row")
             or "postgres://" in asset_id
             or "mongodb://" in asset_id

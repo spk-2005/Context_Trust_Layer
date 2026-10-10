@@ -129,8 +129,8 @@ class MongoDbConnector(BaseConnector):
         try:
             client = motor.motor_asyncio.AsyncIOMotorClient(
                 self.connection_string,
-                serverSelectionTimeoutMS=5000,
-                connectTimeoutMS=5000,
+                serverSelectionTimeoutMS=15000,
+                connectTimeoutMS=15000,
             )
             # Trigger server ping
             await client.admin.command("ping")
@@ -335,8 +335,8 @@ class MongoDbConnector(BaseConnector):
         try:
             client = motor.motor_asyncio.AsyncIOMotorClient(
                 self.connection_string,
-                serverSelectionTimeoutMS=5000,
-                connectTimeoutMS=5000,
+                serverSelectionTimeoutMS=15000,
+                connectTimeoutMS=15000,
             )
             try:
                 db = client[self.database]
@@ -377,8 +377,8 @@ class MongoDbConnector(BaseConnector):
         try:
             client = motor.motor_asyncio.AsyncIOMotorClient(
                 self.connection_string,
-                serverSelectionTimeoutMS=5000,
-                connectTimeoutMS=5000,
+                serverSelectionTimeoutMS=15000,
+                connectTimeoutMS=15000,
             )
             try:
                 db = client[self.database]
