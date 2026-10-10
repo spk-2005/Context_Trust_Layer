@@ -95,25 +95,6 @@ class MongoDbConnector(BaseConnector):
             "native_identifier_field": "_id",
         }
 
-    async def discover_assets(self) -> list[DiscoveredAsset]:
-        """Layer 2 discovery: Discovers collections in the target MongoDB database."""
-        assets = []
-        try:
-            colls = await self.discover_collections(self.connection_string, self.database)
-            for c in colls:
-                assets.append(
-                    DiscoveredAsset(
-                        id=f"{self.database}.{c}",
-                        name=c,
-                        asset_type="collection",
-                        parent_scope=self.database,
-                        is_selectable=True,
-                        metadata={"database": self.database},
-                    )
-                )
-        except Exception as e:
-            logger.warning("Failed to discover MongoDB assets: %s", str(e))
-        return assets
 
     async def test_connection(self) -> dict[str, Any]:
         """Verify MongoDB URI structure, connectivity, and database access against live instance."""
@@ -409,8 +390,23 @@ class MongoDbConnector(BaseConnector):
                     if col_name.startswith("system."):
                         continue
                     asset_id = f"mongodb://{self.database}/{col_name}"
-                    if selected_asset_ids and asset_id not in selected_asset_ids:
-                        continue
+                    if selected_asset_ids and "*" not in selected_asset_ids:
+                        matched = False
+                        for sel in selected_asset_ids:
+                            sel_clean = (sel or "").strip().rstrip("/")
+                            if not sel_clean:
+                                continue
+                            if (
+                                sel_clean == asset_id
+                                or sel_clean == col_name
+                                or sel_clean == f"{self.database}.{col_name}"
+                                or sel_clean.endswith(f"/{col_name}")
+                                or sel_clean.endswith(f".{col_name}")
+                            ):
+                                matched = True
+                                break
+                        if not matched:
+                            continue
 
                     col = db[col_name]
                     cursor = col.find({}).limit(self.sample_size)

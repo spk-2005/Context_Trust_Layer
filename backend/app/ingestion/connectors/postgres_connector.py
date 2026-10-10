@@ -13,6 +13,8 @@ from app.ingestion.connectors.base import BaseConnector
 from app.ingestion.document_ingestion import DocumentIngestionService
 from app.schemas.document import DocumentCreate
 
+from urllib.parse import urlparse, unquote, parse_qs
+
 logger = logging.getLogger(__name__)
 
 
@@ -39,6 +41,7 @@ class PostgresConnector(BaseConnector):
         owner_id: uuid.UUID | None = None,
         scope_config: dict[str, Any] | None = None,
         source_intent: SourceIntent | None = None,
+        **kwargs,
     ):
         super().__init__(
             session,
@@ -49,12 +52,54 @@ class PostgresConnector(BaseConnector):
             source_intent=source_intent,
         )
         config = connection_config or {}
-        self.host = config.get("host", host)
-        self.port = int(config.get("port", port))
-        self.database = config.get("database", database)
-        self.username = config.get("username", username)
-        self.password = config.get("password", password)
-        self.ssl_mode = config.get("ssl_mode", ssl_mode)
+        raw_uri = (
+            config.get("connection_string")
+            or config.get("database_url")
+            or config.get("uri")
+            or config.get("url")
+            or kwargs.get("connection_string")
+            or kwargs.get("database_url")
+            or kwargs.get("uri")
+        )
+
+        parsed_host = host
+        parsed_port = port
+        parsed_db = database
+        parsed_user = username
+        parsed_pwd = password
+        parsed_ssl = ssl_mode
+
+        if raw_uri:
+            try:
+                # Handle postgres:// vs postgresql://
+                clean_uri = raw_uri
+                if clean_uri.startswith("postgres://"):
+                    clean_uri = "postgresql://" + clean_uri[len("postgres://"):]
+                u = urlparse(clean_uri)
+                if u.hostname:
+                    parsed_host = u.hostname
+                if u.port:
+                    parsed_port = u.port
+                if u.path and len(u.path) > 1:
+                    parsed_db = u.path.lstrip("/")
+                if u.username:
+                    parsed_user = unquote(u.username)
+                if u.password:
+                    parsed_pwd = unquote(u.password)
+                query_params = parse_qs(u.query)
+                if "sslmode" in query_params:
+                    parsed_ssl = query_params["sslmode"][0]
+                elif "ssl" in query_params:
+                    parsed_ssl = "require" if query_params["ssl"][0].lower() in ("true", "1", "require") else "prefer"
+            except Exception as e:
+                logger.warning("Failed to parse PostgreSQL URI: %s", str(e))
+
+        self.host = config.get("host", parsed_host)
+        self.port = int(config.get("port", parsed_port))
+        self.database = config.get("database", parsed_db)
+        self.username = config.get("username", parsed_user)
+        self.password = config.get("password", parsed_pwd)
+        self.ssl_mode = config.get("ssl_mode", parsed_ssl)
         self.schemas = config.get("schemas", schemas or ["public"])
         self.include_views = config.get("include_views", include_views)
         self.ingestion_service = DocumentIngestionService(session)
@@ -78,35 +123,6 @@ class PostgresConnector(BaseConnector):
             "pagination_type": "cursor",
             "native_identifier_field": "primary_key",
         }
-
-    async def discover_assets(self) -> list[DiscoveredAsset]:
-        """Layer 2 discovery: Discovers tables across target schemas."""
-        assets = []
-        try:
-            for s in self.schemas:
-                tables = await self.discover_tables(
-                    host=self.host,
-                    port=self.port,
-                    database=self.database,
-                    username=self.username,
-                    password=self.password,
-                    schema=s,
-                    ssl_mode=self.ssl_mode,
-                )
-                for t in tables:
-                    assets.append(
-                        DiscoveredAsset(
-                            id=f"{s}.{t['table_name']}",
-                            name=t["table_name"],
-                            asset_type=t.get("table_type", "table").lower(),
-                            parent_scope=s,
-                            is_selectable=True,
-                            metadata={"schema": s, "database": self.database},
-                        )
-                    )
-        except Exception as e:
-            logger.warning("Failed to discover Postgres assets: %s", str(e))
-        return assets
 
     async def test_connection(self) -> dict[str, Any]:
         """Verify connectivity, credentials, and schema access against live PostgreSQL cluster."""
@@ -427,8 +443,23 @@ class PostgresConnector(BaseConnector):
                     for t in tables:
                         tname = t["table_name"]
                         asset_id = f"postgres://{self.database}/{schema}/{tname}"
-                        if selected_asset_ids and asset_id not in selected_asset_ids:
-                            continue
+                        if selected_asset_ids and "*" not in selected_asset_ids:
+                            matched = False
+                            for sel in selected_asset_ids:
+                                sel_clean = (sel or "").strip().rstrip("/")
+                                if not sel_clean:
+                                    continue
+                                if (
+                                    sel_clean == asset_id
+                                    or sel_clean == tname
+                                    or sel_clean == f"{schema}.{tname}"
+                                    or sel_clean.endswith(f"/{schema}/{tname}")
+                                    or sel_clean.endswith(f"/{tname}")
+                                ):
+                                    matched = True
+                                    break
+                            if not matched:
+                                continue
 
                         cols = await conn.fetch(
                             """

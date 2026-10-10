@@ -311,6 +311,19 @@ async def upload_document_file(
     content_text = UniversalFileParser.parse_file(filename=filename, raw_bytes=raw_bytes, doc_title=doc_title)
 
 
+    from app.ingestion.envelope import EnvelopeFactory
+    from app.ingestion.dispatcher import global_envelope_router
+
+    canonical_env = EnvelopeFactory.create_from_file_upload(
+        filename=filename,
+        raw_bytes=raw_bytes,
+        parsed_content=content_text,
+        organization_id=organization_id,
+        source_id=resolved_source_id,
+        document_type=document_type,
+    )
+    routing_decision = global_envelope_router.route(canonical_env)
+
     doc_in = DocumentCreate(
         organization_id=organization_id,
         source_id=resolved_source_id,
@@ -318,7 +331,14 @@ async def upload_document_file(
         content=content_text,
         document_type=document_type.replace("\x00", ""),
         external_id=doc_external_id,
-        metadata={"filename": filename, "file_size": len(raw_bytes)},
+        metadata={
+            "filename": filename,
+            "file_size": len(raw_bytes),
+            "envelope_id": str(canonical_env.envelope_id),
+            "target_parser": routing_decision.target_parser.value,
+            "detected_format": routing_decision.detected_format,
+            "content_hash": canonical_env.content_hash,
+        },
     )
 
     ingestion_service = DocumentIngestionService(db)

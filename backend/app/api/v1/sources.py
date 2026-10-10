@@ -1258,3 +1258,48 @@ async def fetch_native_assets_preview(
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
 
+@router.get("/{source_id}/envelopes")
+async def fetch_canonical_envelopes_endpoint(
+    source_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(require_permission(Permission.SOURCES_READ)),
+):
+    """Layer 3 Canonical Source Envelopes: Retrieves standardized, sealed multi-tenant envelopes."""
+    engine = SyncEngine(db)
+    try:
+        envelopes = await engine.fetch_canonical_envelopes(source_id)
+        return [env.to_dict() for env in envelopes]
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
+
+@router.get("/{source_id}/envelopes-preview")
+async def fetch_envelopes_routing_preview(
+    source_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(require_permission(Permission.SOURCES_READ)),
+):
+    """Layer 3 Routing Preview: Evaluates type detection and resolves Layer 4 target parsers."""
+    from app.ingestion.dispatcher import global_envelope_router
+    engine = SyncEngine(db)
+    try:
+        envelopes = await engine.fetch_canonical_envelopes(source_id)
+        return await global_envelope_router.batch_dispatch(envelopes)
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
+
+@router.get("/router/telemetry")
+async def get_router_telemetry_endpoint(
+    user: User = Depends(require_permission(Permission.SOURCES_READ)),
+):
+    """Layer 3 Telemetry: Returns routing dispatch metrics and dead-letter registry statistics."""
+    from app.ingestion.dispatcher import global_envelope_router
+    return global_envelope_router.get_telemetry()
+
+
+

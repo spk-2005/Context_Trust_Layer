@@ -408,3 +408,29 @@ class SyncEngine:
             )
         return []
 
+    async def fetch_canonical_envelopes(
+        self,
+        source_id: uuid.UUID,
+        sync_mode: SyncMode = SyncMode.INITIAL_FULL,
+    ) -> list[Any]:
+        """Layer 3: Fetches native assets and packages them into sealed CanonicalSourceEnvelopes."""
+        source = await self.source_repo.get_by_id(source_id)
+        if not source:
+            raise ValueError(f"Data source {source_id} not found.")
+
+        from app.ingestion.envelope import EnvelopeFactory
+        raw_assets = await self.fetch_native_assets(source_id, sync_mode=sync_mode)
+        envelopes = []
+        for ra in raw_assets:
+            env = EnvelopeFactory.create_from_raw_asset(
+                raw_asset=ra,
+                organization_id=source.organization_id,
+                source_id=source.id,
+                source_intent=source.source_intent,
+                access_scope={"source_name": source.name, "organization_id": str(source.organization_id)},
+                extra_metadata={"source_type": source.source_type},
+            )
+            envelopes.append(env)
+        return envelopes
+
+
