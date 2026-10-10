@@ -1,23 +1,26 @@
 import uuid
-from abc import ABC, abstractmethod
 from typing import Any, Sequence
-
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.db.enums import SourceFamily, SourceIntent
 from app.db.models.document import Document
 from app.db.models.document_version import DocumentVersion
+from app.ingestion.base import (
+    DiscoveredAsset,
+    RawSourceAsset,
+    SyncMode,
+    UnifiedConnector,
+    BaseSourceAdapter,
+)
 
+# Re-export for connector implementations
+BaseConnector = UnifiedConnector
 
-class BaseConnector(ABC):
-    """Abstract Base Class for Data Source Connectors."""
-
-    def __init__(self, session: AsyncSession, organization_id: uuid.UUID, source_id: uuid.UUID, owner_id: uuid.UUID | None = None):
-        self.session = session
-        self.organization_id = organization_id
-        self.source_id = source_id
-        self.owner_id = owner_id
-
-    @abstractmethod
-    async def sync(self) -> Sequence[tuple[Document, DocumentVersion]]:
-        """Sync records from external source into documents and document_versions."""
-        pass
+__all__ = [
+    "UnifiedConnector",
+    "BaseConnector",
+    "BaseSourceAdapter",
+    "DiscoveredAsset",
+    "RawSourceAsset",
+    "SyncMode",
+]

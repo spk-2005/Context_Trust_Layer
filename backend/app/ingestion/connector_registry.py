@@ -1,7 +1,89 @@
-import uuid
 from typing import Any, Dict, List, Optional
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.db.enums import SourceFamily, SourceIntent
+
+
+def resolve_source_family(source_type: str) -> SourceFamily:
+    """Classifies any connector or provider string into its Trulin Layer 1 SourceFamily."""
+    st = (source_type or "").lower().strip()
+    if st in ("file", "manual_upload", "pdf", "docx", "markdown", "confluence", "wiki", "notion", "google_docs"):
+        return SourceFamily.DOCUMENT
+    elif st in ("github", "git", "gitlab", "bitbucket"):
+        return SourceFamily.DOCUMENT
+    elif st in ("slack", "teams", "jira_comments", "email", "discord"):
+        return SourceFamily.CONVERSATION
+    elif st in ("jira", "jira_issues"):
+        return SourceFamily.CONVERSATION
+    elif st in (
+        "tableau", "looker", "power_bi", "dbt", "airflow", "dagster",
+        "kafka", "apache_kafka", "confluent", "lineage", "datadog", "newrelic", "sentry"
+    ):
+        return SourceFamily.METADATA_OPERATIONAL
+    else:
+        # Default for DBs, warehouses, object storage, NoSQL, CRM records
+        return SourceFamily.STRUCTURED_DATA
+
+
+def get_default_intent(source_type: str) -> SourceIntent:
+    """Assigns the initial semantic intent for claim candidate scoping."""
+    st = (source_type or "").lower().strip()
+    if st in ("file", "manual_upload", "confluence", "wiki", "github", "git"):
+        return SourceIntent.GOVERNANCE_POLICY
+    elif st in ("slack", "teams", "discord"):
+        return SourceIntent.PROPOSALS_DISCUSSIONS
+    elif st in ("tableau", "looker", "power_bi"):
+        return SourceIntent.ANALYTICS_METRIC
+    elif st in ("dbt", "airflow", "lineage", "kafka"):
+        return SourceIntent.FACTUAL_KNOWLEDGE
+    else:
+        return SourceIntent.OPERATIONAL_DATA
+
+
+def get_default_capabilities(source_type: str) -> Dict[str, Any]:
+    """Returns technical capability flags for the connector."""
+    fam = resolve_source_family(source_type)
+    if fam == SourceFamily.STRUCTURED_DATA:
+        return {
+            "supports_incremental": True,
+            "supports_cdc": False,
+            "supports_schema_discovery": True,
+            "supports_granular_selection": True,
+            "supports_snapshots": True,
+            "pagination_type": "cursor",
+            "native_identifier_field": "primary_key",
+        }
+    elif fam == SourceFamily.DOCUMENT:
+        return {
+            "supports_incremental": True,
+            "supports_cdc": False,
+            "supports_schema_discovery": True,
+            "supports_granular_selection": True,
+            "supports_snapshots": True,
+            "pagination_type": "none",
+            "native_identifier_field": "path_or_uri",
+        }
+    elif fam == SourceFamily.CONVERSATION:
+        return {
+            "supports_incremental": True,
+            "supports_cdc": False,
+            "supports_schema_discovery": True,
+            "supports_granular_selection": True,
+            "supports_snapshots": True,
+            "pagination_type": "page",
+            "native_identifier_field": "message_or_issue_id",
+        }
+    else:
+        return {
+            "supports_incremental": True,
+            "supports_cdc": False,
+            "supports_schema_discovery": True,
+            "supports_granular_selection": True,
+            "supports_snapshots": True,
+            "pagination_type": "none",
+            "native_identifier_field": "metric_or_entity_id",
+        }
 
 
 class ConnectorMetadata(BaseModel):
@@ -15,6 +97,18 @@ class ConnectorMetadata(BaseModel):
     default_auth: str = "password"  # password, oauth, token, iam, service_account
     doc_type: str = "data_contract"  # data_contract, stream_contract, crm_contract, pipeline_contract, metric_contract, quality_contract, ml_contract
     monitored_scope: str
+
+    @property
+    def source_family(self) -> SourceFamily:
+        return resolve_source_family(self.id)
+
+    @property
+    def default_intent(self) -> SourceIntent:
+        return get_default_intent(self.id)
+
+    @property
+    def capabilities(self) -> Dict[str, Any]:
+        return get_default_capabilities(self.id)
 
     @property
     def required_fields(self) -> List[Dict[str, Any]]:

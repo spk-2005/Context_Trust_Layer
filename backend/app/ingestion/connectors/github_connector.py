@@ -6,9 +6,10 @@ from typing import Any, Sequence
 import httpx
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.db.enums import SourceFamily, SourceIntent
 from app.db.models.document import Document
 from app.db.models.document_version import DocumentVersion
-from app.ingestion.connectors.base import BaseConnector
+from app.ingestion.connectors.base import BaseConnector, DiscoveredAsset
 from app.ingestion.document_ingestion import DocumentIngestionService
 from app.schemas.document import DocumentCreate
 
@@ -65,14 +66,92 @@ class GitHubConnector(BaseConnector):
         token: str | None = None,
         paths: list[str] | None = None,
         owner_id: uuid.UUID | None = None,
+        scope_config: dict[str, Any] | None = None,
+        source_intent: SourceIntent | None = None,
         **kwargs,
     ):
-        super().__init__(session, organization_id, source_id, owner_id)
+        super().__init__(
+            session,
+            organization_id,
+            source_id,
+            owner_id=owner_id,
+            scope_config=scope_config,
+            source_intent=source_intent,
+        )
         self.repo = sanitize_github_repo(repo)
         self.branch = branch.strip() if branch and branch.strip() else None
         self.token = (token or os.getenv("GITHUB_TOKEN", "")).strip()
         self.paths = paths or ["", "docs", "policies", ".github"]
         self.ingestion_service = DocumentIngestionService(session)
+
+    @property
+    def source_family(self) -> SourceFamily:
+        return SourceFamily.DOCUMENT
+
+    @property
+    def source_intent(self) -> SourceIntent:
+        return self._source_intent or SourceIntent.GOVERNANCE_POLICY
+
+    @property
+    def capabilities(self) -> dict[str, Any]:
+        return {
+            "supports_incremental": True,
+            "supports_cdc": False,
+            "supports_schema_discovery": True,
+            "supports_granular_selection": True,
+            "supports_snapshots": True,
+            "pagination_type": "none",
+            "native_identifier_field": "commit_sha",
+        }
+
+    async def discover_assets(self) -> list[DiscoveredAsset]:
+        """Layer 2 discovery: Discovers selectable files in the repository."""
+        assets = []
+        clean_repo = sanitize_github_repo(self.repo)
+        active_branch = self.branch or "main"
+        headers = {
+            "Accept": "application/vnd.github.v3+json",
+            "User-Agent": "Context-Trust-Layer-Validator",
+        }
+        if self.token:
+            headers["Authorization"] = f"Bearer {self.token}" if not self.token.startswith(("Bearer ", "token ")) else self.token
+
+        try:
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                trees_url = f"https://api.github.com/repos/{clean_repo}/git/trees/{active_branch}?recursive=1"
+                resp = await client.get(trees_url, headers=headers)
+                if resp.status_code == 200:
+                    tree_data = resp.json().get("tree", [])
+                    for it in tree_data:
+                        path = it.get("path", "")
+                        if it.get("type") == "blob" and path.lower().endswith((".md", ".txt", ".json", ".yaml", ".yml")):
+                            assets.append(
+                                DiscoveredAsset(
+                                    id=path,
+                                    name=path.split("/")[-1],
+                                    asset_type="file",
+                                    parent_scope=path.rsplit("/", 1)[0] if "/" in path else "",
+                                    is_selectable=True,
+                                    metadata={"sha": it.get("sha"), "size": it.get("size")},
+                                )
+                            )
+        except Exception:
+            pass
+
+        if not assets:
+            for p in self.COMMON_PROBE_PATHS:
+                assets.append(
+                    DiscoveredAsset(
+                        id=p,
+                        name=p.split("/")[-1],
+                        asset_type="file",
+                        parent_scope=p.rsplit("/", 1)[0] if "/" in p else "",
+                        is_selectable=True,
+                        metadata={"probe_candidate": True},
+                    )
+                )
+
+        return assets
 
     async def test_connection(self) -> dict[str, Any]:
         """Authenticates and verifies access to the configured GitHub repository."""

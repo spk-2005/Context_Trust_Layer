@@ -12,10 +12,16 @@ from app.api.deps import require_permission
 from app.core.encryption import EncryptionService
 from app.core.permissions import Permission
 from app.db.database import get_db
+from app.db.enums import SourceFamily, SourceIntent
 from app.db.models.data_source import DataSource
 from app.db.models.user import User
 from app.db.repositories.data_source_repository import DataSourceRepository
-from app.ingestion.connector_registry import ConnectorRegistry
+from app.ingestion.connector_registry import (
+    ConnectorRegistry,
+    get_default_capabilities,
+    get_default_intent,
+    resolve_source_family,
+)
 from app.ingestion.connectors.confluence_connector import ConfluenceConnector
 from app.ingestion.connectors.github_connector import GitHubConnector, sanitize_github_repo
 from app.ingestion.connectors.jira_connector import JiraConnector
@@ -35,6 +41,7 @@ from app.schemas.data_source import (
     ResourceDiscoveryResponse,
     ScheduleUpdateRequest,
 )
+from app.schemas.source_scope import SourceInventoryItem, SourceInventoryResponse
 from app.services.activity_service import ActivityService
 
 router = APIRouter(prefix="/sources", tags=["sources"])
@@ -482,6 +489,11 @@ async def create_data_source(
         else:
             ext_id = f"{stype}://{uuid.uuid4().hex[:8]}"
 
+    fam = data.source_family or resolve_source_family(data.source_type)
+    intent = data.source_intent or get_default_intent(data.source_type)
+    caps = data.capabilities or get_default_capabilities(data.source_type)
+    scope = data.scope_config or {}
+
     source = await repo.get_or_create(
         organization_id=data.organization_id,
         name=data.name.strip(),
@@ -490,6 +502,10 @@ async def create_data_source(
         authority_level=data.authority_level,
         connection_config=persisted_config,
         owner_id=effective_owner_id,
+        source_family=fam,
+        source_intent=intent,
+        scope_config=scope,
+        capabilities=caps,
     )
 
     await activity_service.log_activity(
@@ -504,6 +520,8 @@ async def create_data_source(
         domain="Engineering & Platform",
         details={
             "source_type": source.source_type,
+            "source_family": source.source_family.value,
+            "source_intent": source.source_intent.value,
             "authority_level": source.authority_level,
             "status": persisted_config.get("connection_status", "disconnected"),
             "schedule": persisted_config.get("schedule", "off"),
@@ -528,6 +546,14 @@ async def update_data_source(
 
     if data.name:
         source.name = data.name.strip()
+    if data.source_family:
+        source.source_family = data.source_family
+    if data.source_intent:
+        source.source_intent = data.source_intent
+    if data.scope_config is not None:
+        source.scope_config = data.scope_config
+    if data.capabilities is not None:
+        source.capabilities = data.capabilities
     if data.authority_level is not None:
         source.authority_level = data.authority_level
 
@@ -538,6 +564,202 @@ async def update_data_source(
         merged = {**current_cfg, **data.connection_config}
         persisted_config, _ = _secure_and_validate_config(source.source_type, merged, test_passed)
         source.connection_config = persisted_config
+
+    source.updated_at = datetime.now(timezone.utc)
+    await db.flush()
+    await db.commit()
+    return _mask_source_response(source)
+
+
+@router.get("/{source_id}/inventory", response_model=SourceInventoryResponse)
+async def get_source_inventory(
+    source_id: uuid.UUID,
+    _authorized_user: Optional[User] = Depends(require_permission(Permission.SOURCES_READ)),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Discovers available selectable entities (tables, collections, repos, files, spaces)
+    within the configured data source without converting them to markdown or extracting claims prematurely.
+    """
+    repo = DataSourceRepository(db)
+    source = await repo.get_by_id(source_id)
+    if not source:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Data source {source_id} not found.")
+
+    stype = (source.source_type or "").lower().strip()
+    cfg = dict(source.connection_config or {})
+    if "_encrypted_credentials" in cfg:
+        decrypted = EncryptionService.decrypt_payload(cfg["_encrypted_credentials"])
+        cfg.update(decrypted)
+
+    items = []
+    try:
+        if stype in ("postgresql", "postgres"):
+            connector = PostgresConnector(
+                session=db,
+                organization_id=source.organization_id,
+                source_id=source.id,
+                connection_config=cfg,
+                scope_config=source.scope_config,
+                source_intent=source.source_intent,
+            )
+            res = await connector.discover_inventory()
+            items = res.get("items", [])
+        elif stype in ("mongodb", "mongodb_atlas", "mongo"):
+            connector = MongoDbConnector(
+                session=db,
+                organization_id=source.organization_id,
+                source_id=source.id,
+                connection_config=cfg,
+                scope_config=source.scope_config,
+                source_intent=source.source_intent,
+            )
+            res = await connector.discover_inventory()
+            items = res.get("items", [])
+        elif stype in ("github", "repo", "git"):
+            connector = GitHubConnector(
+                session=db,
+                organization_id=source.organization_id,
+                source_id=source.id,
+                repo=cfg.get("repo") or cfg.get("repository") or "demo-org/security-standards",
+                branch=cfg.get("branch"),
+                token=cfg.get("token") or cfg.get("access_token"),
+                scope_config=source.scope_config,
+                source_intent=source.source_intent,
+            )
+            res = await connector.discover_inventory()
+            items = res.get("items", [])
+        elif stype in ("confluence", "wiki"):
+            raw_spaces = cfg.get("space_keys") or [cfg.get("space_key", "default")]
+            items = [
+                {
+                    "id": sp,
+                    "name": f"Space: {sp}",
+                    "item_type": "space",
+                    "parent": None,
+                    "is_selectable": True,
+                    "metadata": {},
+                }
+                for sp in raw_spaces if sp
+            ]
+        elif stype in ("jira", "jira_issues"):
+            pkey = cfg.get("project_key", "default")
+            items = [
+                {
+                    "id": pkey,
+                    "name": f"Project: {pkey}",
+                    "item_type": "project",
+                    "parent": None,
+                    "is_selectable": True,
+                    "metadata": {},
+                }
+            ]
+    except Exception as e:
+        logger.warning("Inventory discovery failed for source %s: %s", str(source_id), str(e))
+
+    inventory_items = [
+        SourceInventoryItem(
+            id=it["id"],
+            name=it.get("name", it["id"]),
+            item_type=it.get("item_type", "entity"),
+            parent=it.get("parent"),
+            is_selectable=it.get("is_selectable", True),
+            metadata=it.get("metadata", {}),
+        )
+        for it in items
+    ]
+
+    return SourceInventoryResponse(
+        source_id=source.id,
+        source_type=source.source_type,
+        source_family=source.source_family,
+        items=inventory_items,
+        total_count=len(inventory_items),
+        discovered_at=datetime.now(timezone.utc).isoformat(),
+    )
+
+
+@router.post("/{source_id}/scope", response_model=DataSourceResponse)
+async def update_source_scope(
+    source_id: uuid.UUID,
+    scope_config: dict[str, Any],
+    _authorized_user: Optional[User] = Depends(require_permission(Permission.SOURCES_MANAGE)),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Sets the granular extraction scope (selected tables, collections, branches, channels, or paths)
+    for a data source.
+    """
+    repo = DataSourceRepository(db)
+    source = await repo.get_by_id(source_id)
+    if not source:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Data source {source_id} not found.")
+
+    source.scope_config = scope_config
+    # Also mirror into connection_config for Layer 2 compatibility
+    cfg = dict(source.connection_config or {})
+    if "selected_entities" in scope_config:
+        cfg["selected_assets"] = scope_config["selected_entities"]
+    elif "selected_assets" in scope_config:
+        cfg["selected_assets"] = scope_config["selected_assets"]
+    source.connection_config = cfg
+
+    source.updated_at = datetime.now(timezone.utc)
+    await db.flush()
+    await db.commit()
+    return _mask_source_response(source)
+
+
+@router.get("/{source_id}/discover-assets")
+async def discover_source_assets(
+    source_id: uuid.UUID,
+    _authorized_user: Optional[User] = Depends(require_permission(Permission.SOURCES_READ)),
+    db: AsyncSession = Depends(get_db),
+):
+    """Layer 2 endpoint: Discovers assets within a data source."""
+    inv = await get_source_inventory(source_id=source_id, _authorized_user=_authorized_user, db=db)
+    return {
+        "source_id": str(source_id),
+        "source_type": inv.source_type,
+        "source_family": inv.source_family.value,
+        "assets": [
+            {
+                "id": it.id,
+                "name": it.name,
+                "asset_type": it.asset_type or it.item_type,
+                "parent_scope": it.parent_scope or it.parent,
+                "is_selectable": it.is_selectable,
+                "metadata": it.metadata,
+            }
+            for it in inv.items
+        ],
+        "total_count": inv.total_count,
+        "discovered_at": inv.discovered_at,
+    }
+
+
+@router.post("/{source_id}/select-assets", response_model=DataSourceResponse)
+async def select_source_assets(
+    source_id: uuid.UUID,
+    data: dict[str, Any],
+    _authorized_user: Optional[User] = Depends(require_permission(Permission.SOURCES_MANAGE)),
+    db: AsyncSession = Depends(get_db),
+):
+    """Layer 2 endpoint: Selects specific assets/entities for sync."""
+    repo = DataSourceRepository(db)
+    source = await repo.get_by_id(source_id)
+    if not source:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Data source {source_id} not found.")
+
+    selected_ids = data.get("selected_asset_ids") or data.get("selected_assets") or []
+    current_scope = dict(source.scope_config or {})
+    current_scope["selected_assets"] = selected_ids
+    current_scope["selected_entities"] = selected_ids
+    source.scope_config = current_scope
+
+    current_cfg = dict(source.connection_config or {})
+    current_cfg["selected_assets"] = selected_ids
+    source.connection_config = current_cfg
 
     source.updated_at = datetime.now(timezone.utc)
     await db.flush()
