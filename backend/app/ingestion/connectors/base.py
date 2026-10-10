@@ -23,11 +23,14 @@ class BaseConnector(UnifiedConnector, ABC):
 
     def __init__(
         self,
-        session: AsyncSession,
-        organization_id: uuid.UUID,
-        source_id: uuid.UUID,
+        session: AsyncSession = None,
+        organization_id: uuid.UUID | None = None,
+        source_id: uuid.UUID | None = None,
         owner_id: uuid.UUID | None = None,
         connection_config: dict[str, Any] | None = None,
+        scope_config: dict[str, Any] | None = None,
+        source_intent: SourceIntent | None = None,
+        **kwargs: Any,
     ):
         super().__init__(
             session=session,
@@ -35,6 +38,9 @@ class BaseConnector(UnifiedConnector, ABC):
             source_id=source_id,
             connection_config=connection_config,
             owner_id=owner_id,
+            scope_config=scope_config,
+            source_intent=source_intent,
+            **kwargs,
         )
 
     @abstractmethod

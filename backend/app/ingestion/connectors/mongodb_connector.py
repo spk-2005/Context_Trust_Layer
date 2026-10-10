@@ -17,7 +17,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.enums import SourceFamily, SourceIntent
 from app.db.models.document import Document
 from app.db.models.document_version import DocumentVersion
-from app.ingestion.connectors.base import BaseConnector, DiscoveredAsset
+from app.ingestion.base import DiscoveredAsset, RawSourceAsset, SyncMode
+from app.ingestion.connectors.base import BaseConnector
 from app.ingestion.document_ingestion import DocumentIngestionService
 from app.schemas.document import DocumentCreate
 

@@ -16,6 +16,7 @@ from app.db.enums import SourceFamily, SourceIntent
 from app.db.models.data_source import DataSource
 from app.db.models.user import User
 from app.db.repositories.data_source_repository import DataSourceRepository
+from app.ingestion.base import DiscoveredAsset, RawSourceAsset
 from app.ingestion.connector_registry import (
     ConnectorRegistry,
     get_default_capabilities,
