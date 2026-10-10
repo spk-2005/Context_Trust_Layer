@@ -1,15 +1,18 @@
 import uuid
+import logging
 from typing import Any, Sequence
 
 import asyncpg
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.db.enums import SourceFamily, SourceIntent
 from app.db.models.document import Document
 from app.db.models.document_version import DocumentVersion
-from app.ingestion.base import DiscoveredAsset, RawSourceAsset, SourceFamily, SyncMode
-from app.ingestion.connectors.base import BaseConnector
+from app.ingestion.connectors.base import BaseConnector, DiscoveredAsset
 from app.ingestion.document_ingestion import DocumentIngestionService
 from app.schemas.document import DocumentCreate
+
+logger = logging.getLogger(__name__)
 
 
 class PostgresConnector(BaseConnector):
@@ -33,8 +36,17 @@ class PostgresConnector(BaseConnector):
         include_views: bool = True,
         connection_config: dict[str, Any] | None = None,
         owner_id: uuid.UUID | None = None,
+        scope_config: dict[str, Any] | None = None,
+        source_intent: SourceIntent | None = None,
     ):
-        super().__init__(session, organization_id, source_id, owner_id)
+        super().__init__(
+            session,
+            organization_id,
+            source_id,
+            owner_id=owner_id,
+            scope_config=scope_config,
+            source_intent=source_intent,
+        )
         config = connection_config or {}
         self.host = config.get("host", host)
         self.port = int(config.get("port", port))
@@ -45,6 +57,55 @@ class PostgresConnector(BaseConnector):
         self.schemas = config.get("schemas", schemas or ["public"])
         self.include_views = config.get("include_views", include_views)
         self.ingestion_service = DocumentIngestionService(session)
+
+    @property
+    def source_family(self) -> SourceFamily:
+        return SourceFamily.STRUCTURED
+
+    @property
+    def source_intent(self) -> SourceIntent:
+        return self._source_intent or SourceIntent.OPERATIONAL_DATA
+
+    @property
+    def capabilities(self) -> dict[str, Any]:
+        return {
+            "supports_incremental": True,
+            "supports_cdc": False,
+            "supports_schema_discovery": True,
+            "supports_granular_selection": True,
+            "supports_snapshots": True,
+            "pagination_type": "cursor",
+            "native_identifier_field": "primary_key",
+        }
+
+    async def discover_assets(self) -> list[DiscoveredAsset]:
+        """Layer 2 discovery: Discovers tables across target schemas."""
+        assets = []
+        try:
+            for s in self.schemas:
+                tables = await self.discover_tables(
+                    host=self.host,
+                    port=self.port,
+                    database=self.database,
+                    username=self.username,
+                    password=self.password,
+                    schema=s,
+                    ssl_mode=self.ssl_mode,
+                )
+                for t in tables:
+                    assets.append(
+                        DiscoveredAsset(
+                            id=f"{s}.{t['table_name']}",
+                            name=t["table_name"],
+                            asset_type=t.get("table_type", "table").lower(),
+                            parent_scope=s,
+                            is_selectable=True,
+                            metadata={"schema": s, "database": self.database},
+                        )
+                    )
+        except Exception as e:
+            logger.warning("Failed to discover Postgres assets: %s", str(e))
+        return assets
 
     async def test_connection(self) -> dict[str, Any]:
         """Verify connectivity, credentials, and schema access against live PostgreSQL cluster."""

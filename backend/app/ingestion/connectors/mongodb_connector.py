@@ -14,10 +14,10 @@ except ImportError:
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.db.enums import SourceFamily, SourceIntent
 from app.db.models.document import Document
 from app.db.models.document_version import DocumentVersion
-from app.ingestion.base import DiscoveredAsset, RawSourceAsset, SourceFamily, SyncMode
-from app.ingestion.connectors.base import BaseConnector
+from app.ingestion.connectors.base import BaseConnector, DiscoveredAsset
 from app.ingestion.document_ingestion import DocumentIngestionService
 from app.schemas.document import DocumentCreate
 
@@ -41,9 +41,18 @@ class MongoDbConnector(BaseConnector):
         sample_size: int = 50,
         connection_config: dict[str, Any] | None = None,
         owner_id: uuid.UUID | None = None,
+        scope_config: dict[str, Any] | None = None,
+        source_intent: SourceIntent | None = None,
         **kwargs,
     ):
-        super().__init__(session, organization_id, source_id, owner_id=owner_id)
+        super().__init__(
+            session,
+            organization_id,
+            source_id,
+            owner_id=owner_id,
+            scope_config=scope_config,
+            source_intent=source_intent,
+        )
         config = connection_config or {}
         raw_uri = (
             config.get("connection_string")
@@ -64,6 +73,46 @@ class MongoDbConnector(BaseConnector):
         self.tls_enabled = config.get("tls_enabled", tls_enabled)
         self.sample_size = int(config.get("sample_size", sample_size))
         self.ingestion_service = DocumentIngestionService(session)
+
+    @property
+    def source_family(self) -> SourceFamily:
+        return SourceFamily.STRUCTURED
+
+    @property
+    def source_intent(self) -> SourceIntent:
+        return self._source_intent or SourceIntent.OPERATIONAL_DATA
+
+    @property
+    def capabilities(self) -> dict[str, Any]:
+        return {
+            "supports_incremental": True,
+            "supports_cdc": False,
+            "supports_schema_discovery": True,
+            "supports_granular_selection": True,
+            "supports_snapshots": True,
+            "pagination_type": "cursor",
+            "native_identifier_field": "_id",
+        }
+
+    async def discover_assets(self) -> list[DiscoveredAsset]:
+        """Layer 2 discovery: Discovers collections in the target MongoDB database."""
+        assets = []
+        try:
+            colls = await self.discover_collections(self.connection_string, self.database)
+            for c in colls:
+                assets.append(
+                    DiscoveredAsset(
+                        id=f"{self.database}.{c}",
+                        name=c,
+                        asset_type="collection",
+                        parent_scope=self.database,
+                        is_selectable=True,
+                        metadata={"database": self.database},
+                    )
+                )
+        except Exception as e:
+            logger.warning("Failed to discover MongoDB assets: %s", str(e))
+        return assets
 
     async def test_connection(self) -> dict[str, Any]:
         """Verify MongoDB URI structure, connectivity, and database access against live instance."""

@@ -38,6 +38,10 @@ async def init_db_schema():
         "ALTER TABLE data_sources ADD COLUMN IF NOT EXISTS domain VARCHAR(100) DEFAULT 'General';",
         "ALTER TABLE data_sources ADD COLUMN IF NOT EXISTS owner_id UUID REFERENCES users(id) ON DELETE SET NULL;",
         "ALTER TABLE data_sources ADD COLUMN IF NOT EXISTS connection_config JSONB DEFAULT '{}'::jsonb;",
+        "ALTER TABLE data_sources ADD COLUMN IF NOT EXISTS source_family VARCHAR(50) NOT NULL DEFAULT 'document';",
+        "ALTER TABLE data_sources ADD COLUMN IF NOT EXISTS source_intent VARCHAR(50) NOT NULL DEFAULT 'governance_policy';",
+        "ALTER TABLE data_sources ADD COLUMN IF NOT EXISTS scope_config JSONB DEFAULT '{}'::jsonb;",
+        "ALTER TABLE data_sources ADD COLUMN IF NOT EXISTS capabilities JSONB DEFAULT '{}'::jsonb;",
         "ALTER TABLE documents ADD COLUMN IF NOT EXISTS domain VARCHAR(100) DEFAULT 'General';",
         "ALTER TABLE documents ADD COLUMN IF NOT EXISTS owner_id UUID REFERENCES users(id) ON DELETE SET NULL;",
         """

@@ -49,3 +49,37 @@ class ReviewDecision(str, Enum):
     MARK_OUTDATED = "mark_outdated"
     MERGE = "merge"
     ESCALATE = "escalate"
+
+
+class SourceFamily(str, Enum):
+    """Native source family categories harmonized between Layer 1 & Layer 2."""
+    DOCUMENT = "document"                    # PDF, DOCX, Markdown, HTML, Confluence pages
+    STRUCTURED = "structured"                # Layer 2 primary naming
+    STRUCTURED_DATA = "structured"           # Layer 1 alias
+    CONVERSATION = "conversation"            # Slack, Teams, Jira comments, Email threads
+    METADATA = "metadata"                    # Layer 2 primary naming
+    METADATA_OPERATIONAL = "metadata"        # Layer 1 alias
+
+    @classmethod
+    def _missing_(cls, value: object):
+        if isinstance(value, str):
+            val_lower = value.lower().strip()
+            if val_lower in ("structured", "structured_data", "relational", "database"):
+                return cls.STRUCTURED
+            if val_lower in ("metadata", "metadata_operational"):
+                return cls.METADATA
+            if val_lower in ("document", "documents", "file"):
+                return cls.DOCUMENT
+            if val_lower in ("conversation", "chat", "discussions"):
+                return cls.CONVERSATION
+        return super()._missing_(value)
+
+
+class SourceIntent(str, Enum):
+    """Business semantic intent declared for data source to prevent misclassification."""
+    GOVERNANCE_POLICY = "governance_policy"  # Mandatory policies, compliance regulations, constraints
+    OPERATIONAL_DATA = "operational_data"    # Operational records, facts, telemetry, DB records
+    PROPOSALS_DISCUSSIONS = "discussions"    # Ideas, proposals, discussions, meeting notes
+    FACTUAL_KNOWLEDGE = "factual_knowledge"  # Q&A pairs, data dictionary, definitions
+    ANALYTICS_METRIC = "analytics_metric"    # Calculated measures, KPIs, aggregation rules
+

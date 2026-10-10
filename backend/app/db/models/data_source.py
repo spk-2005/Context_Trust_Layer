@@ -17,7 +17,7 @@ from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
-from app.db.enums import RecordStatus
+from app.db.enums import RecordStatus, SourceFamily, SourceIntent
 
 
 class DataSource(Base):
@@ -66,6 +66,30 @@ class DataSource(Base):
         nullable=False,
     )
 
+    source_family: Mapped[SourceFamily] = mapped_column(
+        Enum(
+            SourceFamily,
+            name="source_family",
+            native_enum=False,
+            values_callable=lambda x: [e.value for e in x],
+        ),
+        nullable=False,
+        default=SourceFamily.DOCUMENT,
+        server_default=text("'document'"),
+    )
+
+    source_intent: Mapped[SourceIntent] = mapped_column(
+        Enum(
+            SourceIntent,
+            name="source_intent",
+            native_enum=False,
+            values_callable=lambda x: [e.value for e in x],
+        ),
+        nullable=False,
+        default=SourceIntent.GOVERNANCE_POLICY,
+        server_default=text("'governance_policy'"),
+    )
+
     external_id: Mapped[str | None] = mapped_column(
         String(255),
         nullable=True,
@@ -96,6 +120,20 @@ class DataSource(Base):
     )
 
     connection_config: Mapped[dict[str, Any] | None] = mapped_column(
+        JSONB,
+        nullable=True,
+        default=dict,
+        server_default=text("'{}'::jsonb"),
+    )
+
+    scope_config: Mapped[dict[str, Any] | None] = mapped_column(
+        JSONB,
+        nullable=True,
+        default=dict,
+        server_default=text("'{}'::jsonb"),
+    )
+
+    capabilities: Mapped[dict[str, Any] | None] = mapped_column(
         JSONB,
         nullable=True,
         default=dict,

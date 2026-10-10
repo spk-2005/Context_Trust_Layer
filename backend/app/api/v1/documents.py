@@ -13,7 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.db.database import get_db
-from app.db.enums import ClaimStatus, ConflictStatus, RecordStatus
+from app.db.enums import ClaimStatus, ConflictStatus, RecordStatus, SourceFamily, SourceIntent
 from app.db.models.claim import Claim
 from app.db.models.claim_conflict import ClaimConflict
 from app.db.models.data_source import DataSource
@@ -71,9 +71,13 @@ async def _ensure_source_exists(db: AsyncSession, organization_id: uuid.UUID, so
         organization_id=organization_id,
         name="Direct Document Upload",
         source_type="file",
+        source_family=SourceFamily.DOCUMENT,
+        source_intent=SourceIntent.GOVERNANCE_POLICY,
         external_id=f"file-upload-{str(organization_id)[:8]}",
         authority_level=85,
         status=RecordStatus.ACTIVE,
+        scope_config={"include_all_uploads": True},
+        capabilities={"supports_file_upload": True, "supports_snapshots": True},
     )
     db.add(new_source)
     await db.flush()

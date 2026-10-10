@@ -4,10 +4,19 @@ from typing import Any, List, Optional, Sequence
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.db.enums import SourceFamily, SourceIntent
 from app.db.models.document import Document
 from app.db.models.document_version import DocumentVersion
-from app.ingestion.base import DiscoveredAsset, RawSourceAsset, SourceFamily, SyncMode, UnifiedConnector
+from app.ingestion.base import (
+    DiscoveredAsset,
+    RawSourceAsset,
+    SyncMode,
+    UnifiedConnector,
+    BaseSourceAdapter,
+)
 
+# Re-export for connector implementations
+BaseConnector = UnifiedConnector
 
 class BaseConnector(UnifiedConnector, ABC):
     """Abstract Base Class for Data Source Connectors in Layer 2."""
@@ -46,3 +55,11 @@ class BaseConnector(UnifiedConnector, ABC):
         """Default native asset fetch implementation."""
         return []
 
+__all__ = [
+    "UnifiedConnector",
+    "BaseConnector",
+    "BaseSourceAdapter",
+    "DiscoveredAsset",
+    "RawSourceAsset",
+    "SyncMode",
+]
