@@ -1,0 +1,146 @@
+"""
+Layer 5: Universal Candidate Claim & Verification Models.
+Defines strongly-typed representations for candidate claims, extraction strategies,
+verification plugin outcomes, and completeness ledger entries.
+"""
+
+from __future__ import annotations
+
+import hashlib
+import json
+import uuid
+from datetime import datetime, timezone
+from enum import Enum
+from typing import Any, List, Optional
+
+from pydantic import BaseModel, Field
+
+
+class ExtractionStrategyType(str, Enum):
+    """Extraction strategy assigned to candidate evidence units."""
+    DETERMINISTIC_SCHEMA = "deterministic_schema"  # Zero-hallucination structured DB & BSON extractor
+    LLM_SEMANTIC = "llm_semantic"                  # Semantic extractor for narrative prose & policies
+    DOMAIN_RULES = "domain_rules"                  # Regex & pattern-based extractor for enterprise standards
+
+
+class CandidateClaim(BaseModel):
+    """
+    An atomic claim candidate identified from an evidence unit.
+    Preserves subject-predicate-object structure, exact quote locators, and verification state.
+    """
+    candidate_id: str = Field(..., description="Deterministic unique identifier for this candidate")
+    envelope_id: uuid.UUID = Field(..., description="Parent Layer 3 CanonicalSourceEnvelope identifier")
+    unit_id: str = Field(..., description="Parent Layer 4 ParsedEvidenceUnit identifier")
+    asset_id: str = Field(..., description="Native external asset identifier")
+    
+    # Semantic Representation
+    claim_text: str = Field(..., description="Normalized claim statement")
+    subject: str = Field(..., description="Entity or component governed by the claim")
+    predicate: str = Field(..., description="Relationship or modal action (e.g. requires, enforces, is)")
+    object: str = Field(..., description="Constraint, target value, or property")
+    modal_operator: Optional[str] = Field(default=None, description="Normative modal operator (must, shall, prohibited, required)")
+    claim_type: str = Field(default="policy", description="Semantic category (policy, invariant, metric, decision)")
+    
+    # Provenance & Locators
+    extraction_strategy: ExtractionStrategyType = Field(default=ExtractionStrategyType.DETERMINISTIC_SCHEMA)
+    evidence_text_span: str = Field(..., description="Exact textual evidence quote from source")
+    locator: dict[str, Any] = Field(default_factory=dict, description="Precision source coordinates")
+    structured_values: dict[str, Any] = Field(default_factory=dict, description="Preserved native typed values or field paths")
+    
+    # Verification & Quality
+    status: str = Field(default="candidate", description="Validation status (candidate, verified, unverified, rejected)")
+    confidence: float = Field(ge=0.0, le=1.0, default=1.0, description="Extraction and verification confidence score")
+    verification_plugin: Optional[str] = Field(default=None, description="Name of plugin that verified this claim")
+    verification_details: dict[str, Any] = Field(default_factory=dict, description="Cryptographic check and grounding proof")
+    content_hash: str = Field(..., description="SHA-256 hash of the claim semantics and evidence")
+    extracted_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+    @classmethod
+    def create(
+        cls,
+        envelope_id: uuid.UUID,
+        unit_id: str,
+        asset_id: str,
+        claim_text: str,
+        subject: str,
+        predicate: str,
+        object_: str,
+        evidence_text_span: str,
+        modal_operator: Optional[str] = None,
+        claim_type: str = "policy",
+        extraction_strategy: ExtractionStrategyType = ExtractionStrategyType.DETERMINISTIC_SCHEMA,
+        locator: dict[str, Any] | None = None,
+        structured_values: dict[str, Any] | None = None,
+        confidence: float = 1.0,
+    ) -> CandidateClaim:
+        text_clean = claim_text.strip()
+        hash_input = f"{asset_id}:{subject}:{predicate}:{object_}:{evidence_text_span}:{json.dumps(structured_values or {}, sort_keys=True, default=str)}"
+        claim_hash = hashlib.sha256(hash_input.encode("utf-8")).hexdigest()
+        cand_id = f"cand:{unit_id}:{claim_hash[:10]}"
+
+        return cls(
+            candidate_id=cand_id,
+            envelope_id=envelope_id,
+            unit_id=unit_id,
+            asset_id=asset_id,
+            claim_text=text_clean,
+            subject=subject.strip(),
+            predicate=predicate.strip(),
+            object=object_.strip(),
+            modal_operator=modal_operator,
+            claim_type=claim_type,
+            extraction_strategy=extraction_strategy,
+            evidence_text_span=evidence_text_span.strip(),
+            locator=locator or {},
+            structured_values=structured_values or {},
+            status="candidate",
+            confidence=confidence,
+            content_hash=claim_hash,
+            extracted_at=datetime.now(timezone.utc),
+        )
+
+
+class CompletenessLedgerRecord(BaseModel):
+    """Audit entry recording the lifecycle of an individual evidence unit through Layer 5."""
+    ledger_id: uuid.UUID = Field(default_factory=uuid.uuid4)
+    envelope_id: uuid.UUID
+    unit_id: str
+    asset_id: str
+    block_type: str
+    candidate_status: str     # discovered, extracted, verified, rejected, skipped
+    extractor_used: str
+    verification_plugin: Optional[str] = None
+    verification_passed: bool = False
+    claims_count: int = 0
+    failure_reason: Optional[str] = None
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+
+class Layer5ExtractionResult(BaseModel):
+    """Aggregated output of Layer 5 candidate extraction and verification."""
+    envelope_id: uuid.UUID
+    asset_id: str
+    total_evidence_units_received: int
+    candidates_discovered: int
+    claims_extracted: int
+    claims_verified: int
+    claims_rejected: int
+    completeness_score: float = Field(ge=0.0, le=1.0)
+    candidates: List[CandidateClaim] = Field(default_factory=list)
+    ledger_summary: dict[str, Any] = Field(default_factory=dict)
+    extracted_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "envelope_id": str(self.envelope_id),
+            "asset_id": self.asset_id,
+            "total_evidence_units_received": self.total_evidence_units_received,
+            "candidates_discovered": self.candidates_discovered,
+            "claims_extracted": self.claims_extracted,
+            "claims_verified": self.claims_verified,
+            "claims_rejected": self.claims_rejected,
+            "completeness_score": self.completeness_score,
+            "candidates": [c.model_dump() for c in self.candidates],
+            "ledger_summary": self.ledger_summary,
+            "extracted_at": self.extracted_at.isoformat(),
+        }

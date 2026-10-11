@@ -1366,5 +1366,52 @@ async def fetch_parsed_evidence_endpoint(
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
 
+@router.get("/{source_id}/extract-candidates")
+async def extract_and_verify_candidates_endpoint(
+    source_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(require_permission(Permission.SOURCES_READ)),
+):
+    """Layer 5 Candidate Extraction & Source-Aware Verification: Extracts and validates candidate claims across evidence plugins."""
+    from app.ingestion.dispatcher import global_envelope_router
+    from app.extraction.pipeline import global_extraction_pipeline
+    from app.ingestion.parsers.evidence_model import ParsedEvidenceResult
+
+    engine = SyncEngine(db)
+    try:
+        envelopes = await engine.fetch_canonical_envelopes(source_id)
+        layer5_results = []
+
+        for env in envelopes:
+            # 1. Parse into Layer 4 Evidence
+            raw_evidence = await global_envelope_router.dispatch(env)
+            if isinstance(raw_evidence, dict) and "units" not in raw_evidence:
+                continue
+
+            # Convert to ParsedEvidenceResult if dict
+            if isinstance(raw_evidence, dict):
+                evidence_obj = ParsedEvidenceResult.model_validate(raw_evidence)
+            else:
+                evidence_obj = raw_evidence
+
+            # 2. Run through Layer 5 Candidate Extraction & Verification Pipeline
+            res5 = await global_extraction_pipeline.process_envelope(env, evidence_obj)
+            layer5_results.append(res5.to_dict())
+
+        return {
+            "source_id": str(source_id),
+            "total_assets_processed": len(envelopes),
+            "total_claims_extracted": sum(r["claims_extracted"] for r in layer5_results),
+            "total_claims_verified": sum(r["claims_verified"] for r in layer5_results),
+            "total_claims_rejected": sum(r["claims_rejected"] for r in layer5_results),
+            "extraction_results": layer5_results,
+        }
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
+
+
 
 
