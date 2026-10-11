@@ -1341,4 +1341,30 @@ async def get_router_telemetry_endpoint(
     return global_envelope_router.get_telemetry()
 
 
+@router.get("/{source_id}/parsed-evidence")
+async def fetch_parsed_evidence_endpoint(
+    source_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(require_permission(Permission.SOURCES_READ)),
+):
+    """Layer 4 Parsed Evidence Extraction: Routes canonical envelopes to specialized parsers and returns structured evidence."""
+    from app.ingestion.dispatcher import global_envelope_router
+    engine = SyncEngine(db)
+    try:
+        envelopes = await engine.fetch_canonical_envelopes(source_id)
+        dispatch_bundle = await global_envelope_router.batch_dispatch(envelopes)
+        return {
+            "source_id": str(source_id),
+            "total_assets": len(envelopes),
+            "evidence_results": dispatch_bundle.get("results", []),
+            "routing_decisions": dispatch_bundle.get("routing_decisions", []),
+            "telemetry": dispatch_bundle.get("telemetry", {}),
+        }
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
+
+
 

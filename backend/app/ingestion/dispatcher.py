@@ -248,7 +248,13 @@ class SourceEnvelopeRouter:
                 "reason": decision.reason,
             })
             res = await self.dispatch(env)
-            results.append(res)
+            if hasattr(res, "to_dict"):
+                res_formatted = res.to_dict()
+            elif hasattr(res, "model_dump"):
+                res_formatted = res.model_dump()
+            else:
+                res_formatted = res
+            results.append(res_formatted)
 
         return {
             "total_envelopes": len(envelopes),
@@ -267,5 +273,22 @@ class SourceEnvelopeRouter:
         }
 
 
+def _register_default_parsers(router: SourceEnvelopeRouter) -> None:
+    try:
+        from app.ingestion.parsers.document_parser import DocumentParser
+        from app.ingestion.parsers.structured_parser import StructuredDataParser
+        from app.ingestion.parsers.conversation_parser import ConversationParser
+        from app.ingestion.parsers.metadata_parser import MetadataParser
+
+        router.register_parser_handler(TargetParserCategory.DOCUMENTS_AND_FILES, DocumentParser.parse)
+        router.register_parser_handler(TargetParserCategory.STRUCTURED_DATA, StructuredDataParser.parse)
+        router.register_parser_handler(TargetParserCategory.CONVERSATIONS, ConversationParser.parse)
+        router.register_parser_handler(TargetParserCategory.METADATA_OPERATIONAL, MetadataParser.parse)
+    except Exception as exc:
+        logger.warning("Could not auto-register default Layer 4 parsers: %s", str(exc))
+
+
 # Global singleton instance for platform-wide dispatch
 global_envelope_router = SourceEnvelopeRouter()
+_register_default_parsers(global_envelope_router)
+
