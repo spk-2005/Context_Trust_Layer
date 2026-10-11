@@ -112,3 +112,41 @@ async def list_claims(
         offset=offset,
     )
     return [ClaimResponse.model_validate(c) for c in claims]
+
+
+@router.get("/lifecycle-summary", status_code=status.HTTP_200_OK)
+async def get_claims_lifecycle_summary(
+    organization_id: uuid.UUID = Query(..., description="Organization ID"),
+    db: AsyncSession = Depends(get_db),
+):
+    """Layer 6: Returns enterprise claim lifecycle status breakdown and trust metrics."""
+    from sqlalchemy import func, select
+    from app.db.models.claim import Claim
+    from app.db.models.claim_trust_score import ClaimTrustScore
+
+    status_counts_stmt = (
+        select(Claim.status, func.count(Claim.id))
+        .where(Claim.organization_id == organization_id)
+        .group_by(Claim.status)
+    )
+    status_counts_res = await db.execute(status_counts_stmt)
+    status_breakdown = {str(row[0].value if hasattr(row[0], 'value') else row[0]): row[1] for row in status_counts_res.all()}
+
+    avg_score_stmt = (
+        select(func.avg(ClaimTrustScore.overall_score))
+        .join(Claim, Claim.id == ClaimTrustScore.claim_id)
+        .where(Claim.organization_id == organization_id)
+    )
+    avg_score = (await db.execute(avg_score_stmt)).scalar() or 0.0
+
+    total_claims = sum(status_breakdown.values())
+    return {
+        "organization_id": str(organization_id),
+        "total_claims": total_claims,
+        "status_breakdown": status_breakdown,
+        "approved_claims": status_breakdown.get("verified", 0) + status_breakdown.get("active", 0),
+        "review_queued_claims": status_breakdown.get("candidate", 0),
+        "rejected_claims": status_breakdown.get("rejected", 0),
+        "average_trust_score": round(float(avg_score), 4),
+    }
+
