@@ -1604,12 +1604,19 @@ textarea:focus {
 
 .ingest-stages-flow {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 10px;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
   position: relative;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1200px) {
+  .ingest-stages-flow {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+}
+
+@media (max-width: 700px) {
   .ingest-stages-flow {
     grid-template-columns: 1fr;
     gap: 8px;
@@ -2137,6 +2144,163 @@ textarea:focus {
 
 .btn-mcp-orange:active {
   transform: scale(0.98);
+}
+
+/* =========================================================================
+   6-LAYER UNIVERSAL CLAIM ARCHITECTURE STYLES
+   ========================================================================= */
+
+.layer-arch-card {
+  background: var(--bg-surface, #FFFFFF);
+  border: 1px solid var(--border-color, #E2E8F0);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.02);
+}
+
+.layer-arch-card:hover {
+  border-color: rgba(234, 88, 12, 0.3);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+}
+
+.layer-header-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border-color, #F1F5F9);
+  padding-bottom: 10px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.layer-title-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+.layer-title-badge.l1 { background: #EEF2FF; color: #4338CA; border: 1px solid #C7D2FE; }
+.layer-title-badge.l2 { background: #ECFEFF; color: #0891B2; border: 1px solid #A5F3FC; }
+.layer-title-badge.l3 { background: #FEF3C7; color: #B45309; border: 1px solid #FDE68A; }
+.layer-title-badge.l4 { background: #F3E8FF; color: #7E22CE; border: 1px solid #E9D5FF; }
+.layer-title-badge.l5 { background: #FFF7ED; color: #C2410C; border: 1px solid #FFEDD5; }
+.layer-title-badge.l6 { background: #ECFDF5; color: #047857; border: 1px solid #A7F3D0; }
+
+.layer-hash-pill {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 0.68rem;
+  background: #0F172A;
+  color: #38BDF8;
+  padding: 4px 8px;
+  border-radius: 6px;
+  letter-spacing: 0.03em;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid #334155;
+}
+
+.layer-matrix-6d {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 6px;
+}
+
+@media (max-width: 900px) {
+  .layer-matrix-6d {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 500px) {
+  .layer-matrix-6d {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.layer-matrix-cell {
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 6px;
+  padding: 6px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: center;
+  transition: all 0.15s ease;
+}
+
+.layer-matrix-cell.pass {
+  background: #F0FDF4;
+  border-color: #86EFAC;
+}
+
+.layer-matrix-cell.warn {
+  background: #FEFCE8;
+  border-color: #FDE047;
+}
+
+.layer-matrix-cell.fail {
+  background: #FEF2F2;
+  border-color: #FCA5A5;
+}
+
+.layer-matrix-cell-title {
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: #64748B;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.layer-matrix-cell-val {
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.layer-matrix-cell.pass .layer-matrix-cell-val { color: #15803D; }
+.layer-matrix-cell.warn .layer-matrix-cell-val { color: #A16207; }
+.layer-matrix-cell.fail .layer-matrix-cell-val { color: #B91C1C; }
+
+.layer-ledger-strip {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%);
+  border-radius: 10px;
+  padding: 10px 14px;
+  color: #FFFFFF;
+  flex-wrap: wrap;
+}
+
+.layer-ledger-item {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.layer-ledger-item-label {
+  font-size: 0.60rem;
+  font-weight: 700;
+  color: #94A3B8;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.layer-ledger-item-val {
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: #F8FAFC;
 }
 
 
