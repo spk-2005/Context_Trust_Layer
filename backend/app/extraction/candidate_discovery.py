@@ -18,7 +18,7 @@ class CandidateDiscoveryEngine:
 
     # Modal verbs and normative policy markers
     MODAL_PATTERN = re.compile(
-        r"\b(must|shall|required|requires|mandates?|prohibited|forbidden|should|enforces?|restricted to|always|never|guarantees?)\b",
+        r"\b(must|shall|required|requires|mandates?|prohibited|forbidden|should|enforces?|restricted to|always|never|guarantees?|holds the right|reserves the right|permitted|may)\b",
         re.IGNORECASE,
     )
     # Thresholds, numerical values, and standard time windows
@@ -139,8 +139,8 @@ class CandidateDiscoveryEngine:
                 return True, ExtractionStrategyType.DOMAIN_RULES, "Strict policy prohibition clause."
             elif has_modal and has_threshold:
                 return True, ExtractionStrategyType.DOMAIN_RULES, "Strict policy clause with modal obligations and numerical thresholds."
-            elif has_modal or modality == "OBLIGATION":
-                return True, ExtractionStrategyType.DOMAIN_RULES, "Normative assertion containing modal requirements."
+            elif has_modal or modality in ("OBLIGATION", "PERMISSION"):
+                return True, ExtractionStrategyType.DOMAIN_RULES, "Normative assertion containing modal requirements or discretionary permissions."
             elif has_threshold and len(text.split()) > 4:
                 return True, ExtractionStrategyType.LLM_SEMANTIC, "Factual claim containing quantitative thresholds."
             return False, ExtractionStrategyType.LLM_SEMANTIC, "Informational prose without normative constraints."

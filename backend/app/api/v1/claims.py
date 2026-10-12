@@ -100,6 +100,7 @@ async def get_claim(
 async def list_claims(
     organization_id: uuid.UUID = Query(..., description="Organization ID"),
     status: ClaimStatus | None = Query(None, description="Filter by claim status"),
+    canonical_only: bool = Query(False, description="Filter to return only canonical operative rules, excluding summaries"),
     limit: int = Query(50, ge=1, le=100),
     offset: int = Query(0, ge=0),
     db: AsyncSession = Depends(get_db),
@@ -108,6 +109,7 @@ async def list_claims(
     claims = await repo.list_by_organization(
         organization_id=organization_id,
         status=status,
+        canonical_only=canonical_only,
         limit=limit,
         offset=offset,
     )

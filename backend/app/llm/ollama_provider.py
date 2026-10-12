@@ -234,8 +234,15 @@ class OllamaProvider(BaseLLMProvider):
                 reasoning=str(data.get("reasoning", "")),
             )
         except Exception as e:
-            logger.warning("Ollama evaluate_contradiction failed (%s): %s", self.model, e)
-            return ContradictionResult(is_contradiction=False, conflict_type="none", severity="low", confidence=0.5)
+            if not getattr(self, "_warned_missing_model", False):
+                logger.warning(
+                    "Ollama evaluate_contradiction failed (%s): %s. Falling back to deterministic contradiction evaluator.",
+                    self.model,
+                    e,
+                )
+                self._warned_missing_model = True
+            from app.llm.mock_provider import MockLLMProvider
+            return await MockLLMProvider().evaluate_contradiction(claim_a_text, claim_b_text)
 
     async def detect_contradiction(self, claim_a_text: str, claim_b_text: str) -> ContradictionResult:
         return await self.evaluate_contradiction(claim_a_text, claim_b_text)

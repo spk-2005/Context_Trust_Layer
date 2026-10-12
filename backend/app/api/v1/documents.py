@@ -435,32 +435,21 @@ async def upload_and_extract_document(
 
     _persist_uploaded_file_bytes(document.id, filename, raw_bytes)
 
-    # Run Extraction, Conflict Detection, and Trust Scoring with requested LLM provider
+    # Run conflict detection and trust scoring services
     target_prov = provider
     if not target_prov and use_mock:
         target_prov = "mock"
     
     llm_instance = get_llm_provider(target_prov)
-    extraction_service = ClaimExtractionService(db, llm_provider=llm_instance)
     trust_service = TrustService(db)
     conflict_service = ConflictService(db, llm_provider=llm_instance)
     claim_repo = ClaimRepository(db)
-
-    extracted_claims = []
-    try:
-        await extraction_service.extract_claims_from_version(version.id)
-        await conflict_service.run_conflict_detection_for_version(version.id)
-        await trust_service.calculate_for_version(version.id)
-        await db.commit()
-        full_claims = await claim_repo.list_by_version(version.id)
-        extracted_claims = [ClaimResponse.model_validate(c) for c in full_claims]
-    except Exception as e:
-        print(f"Warning: Extraction step encountered error: {e}")
 
     # -------------------------------------------------------------
     # TRULIN 6-LAYER UNIVERSAL CLAIM ARCHITECTURE PIPELINE
     # -------------------------------------------------------------
     layers_payload = None
+    extracted_claims = []
     try:
         from app.ingestion.envelope import EnvelopeFactory
         from app.ingestion.parsers.document_parser import DocumentParser
@@ -504,6 +493,14 @@ async def upload_and_extract_document(
             canonical_env, l5_extraction_result, session=db
         )
         await db.commit()
+
+        # Run conflict detection & trust scoring on the persisted claims
+        await conflict_service.run_conflict_detection_for_version(version.id)
+        await trust_service.calculate_for_version(version.id)
+        await db.commit()
+
+        full_claims = await claim_repo.list_by_version(version.id)
+        extracted_claims = [ClaimResponse.model_validate(c) for c in full_claims]
 
         layers_payload = {
             "layer_1_governance": {

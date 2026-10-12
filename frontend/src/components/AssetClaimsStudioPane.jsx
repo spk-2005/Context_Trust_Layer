@@ -46,6 +46,8 @@ export default function AssetClaimsStudioPane({
   const metrics = useMemo(() => {
     let verifiedCount = 0;
     let conflictedCount = 0;
+    let canonicalCount = 0;
+    let summaryCount = 0;
     let totalScore = 0;
 
     claims.forEach(cl => {
@@ -54,6 +56,18 @@ export default function AssetClaimsStudioPane({
         conflictedCount++;
       } else {
         verifiedCount++;
+      }
+
+      const isSummary = cl.claim_type === 'derived_summary' || 
+                        cl.claim_type === 'summary_non_canonical' ||
+                        cl.data?.claim_type === 'derived_summary' ||
+                        cl.data?.claim_type === 'summary_non_canonical' ||
+                        cl.is_canonical === false || 
+                        cl.data?.is_canonical === false;
+      if (isSummary) {
+        summaryCount++;
+      } else {
+        canonicalCount++;
       }
 
       const score = Number(
@@ -73,6 +87,8 @@ export default function AssetClaimsStudioPane({
       total: totalClaims,
       verified: verifiedCount,
       conflicted: conflictedCount,
+      canonical: canonicalCount,
+      summary: summaryCount,
       verifiedPct,
       avgScore
     };
@@ -82,10 +98,18 @@ export default function AssetClaimsStudioPane({
   const filteredClaims = useMemo(() => {
     return claims.filter(cl => {
       const isConf = allConflictedClaimIds.has(cl.id) || cl.status === 'conflicted';
+      const isSummary = cl.claim_type === 'derived_summary' || 
+                        cl.claim_type === 'summary_non_canonical' ||
+                        cl.data?.claim_type === 'derived_summary' ||
+                        cl.data?.claim_type === 'summary_non_canonical' ||
+                        cl.is_canonical === false || 
+                        cl.data?.is_canonical === false;
 
       // Status filter
       if (statusFilter === 'verified' && isConf) return false;
       if (statusFilter === 'conflicted' && !isConf) return false;
+      if (statusFilter === 'canonical' && isSummary) return false;
+      if (statusFilter === 'summary' && !isSummary) return false;
 
       // Trust tier filter
       const score = Number(
@@ -278,6 +302,8 @@ export default function AssetClaimsStudioPane({
           <div style={{ display: 'flex', alignItems: 'center', background: '#F1F5F9', padding: '2px', borderRadius: '6px' }}>
             {[
               { id: 'all', label: `All (${totalClaims})` },
+              { id: 'canonical', label: `Canonical (${metrics.canonical})` },
+              ...(metrics.summary > 0 ? [{ id: 'summary', label: `Summaries (${metrics.summary})` }] : []),
               { id: 'verified', label: `Verified (${metrics.verified})` },
               { id: 'conflicted', label: `In Conflict (${metrics.conflicted})` }
             ].map(tab => (
@@ -449,6 +475,12 @@ export default function AssetClaimsStudioPane({
               0.95
             );
             const trustPercent = Math.round(trustVal * 100);
+            const isSummary = cl.claim_type === 'derived_summary' || 
+                              cl.claim_type === 'summary_non_canonical' ||
+                              cl.data?.claim_type === 'derived_summary' ||
+                              cl.data?.claim_type === 'summary_non_canonical' ||
+                              cl.is_canonical === false || 
+                              cl.data?.is_canonical === false;
             const subject = cl.subject || cl.data?.subject || '';
             const predicate = cl.predicate || cl.data?.predicate || '';
             const claimText = cl.fullText || cl.label || cl.data?.claim_text || '';
@@ -504,6 +536,19 @@ export default function AssetClaimsStudioPane({
                       }}>
                         {isConf ? '⚠️ In Conflict' : '✅ Verified'}
                       </span>
+                      {isSummary && (
+                        <span style={{
+                          fontSize: '0.62rem',
+                          fontWeight: 700,
+                          padding: '2px 7px',
+                          borderRadius: '999px',
+                          background: '#F1F5F9',
+                          color: '#475569',
+                          border: '1px solid #CBD5E1'
+                        }} title="Derived macro summary; non-canonical rule.">
+                          📑 Derived Summary
+                        </span>
+                      )}
                     </div>
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
@@ -701,6 +746,12 @@ export default function AssetClaimsStudioPane({
                   0.95
                 );
                 const trustPercent = Math.round(trustVal * 100);
+                const isSummary = cl.claim_type === 'derived_summary' || 
+                                  cl.claim_type === 'summary_non_canonical' ||
+                                  cl.data?.claim_type === 'derived_summary' ||
+                                  cl.data?.claim_type === 'summary_non_canonical' ||
+                                  cl.is_canonical === false || 
+                                  cl.data?.is_canonical === false;
                 const subject = cl.subject || cl.data?.subject || '—';
                 const predicate = cl.predicate || cl.data?.predicate || '—';
                 const claimText = cl.fullText || cl.label || cl.data?.claim_text || '';
@@ -728,6 +779,20 @@ export default function AssetClaimsStudioPane({
                       }}>
                         {isConf ? '⚠️ Conflict' : '✅ Verified'}
                       </span>
+                      {isSummary && (
+                        <span style={{
+                          marginLeft: '4px',
+                          fontSize: '0.58rem',
+                          fontWeight: 700,
+                          padding: '1px 5px',
+                          borderRadius: '999px',
+                          background: '#F1F5F9',
+                          color: '#475569',
+                          border: '1px solid #CBD5E1'
+                        }}>
+                          Summary
+                        </span>
+                      )}
                     </td>
                     <td style={{ padding: '8px 12px', fontWeight: 800, color: trustPercent >= 90 ? '#059669' : trustPercent >= 70 ? '#D97706' : '#DC2626' }}>
                       {trustPercent}%

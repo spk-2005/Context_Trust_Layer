@@ -27,41 +27,96 @@ class DeonticClassifier:
     ]
 
     PERMISSION_PATTERNS = [
-        re.compile(r"\b(may|is permitted to|are permitted to|can|allowed to|eligible to|at the discretion of|discretionary)\b", re.IGNORECASE),
+        re.compile(r"\b(may|is permitted to|are permitted to|can|allowed to|eligible to|at the discretion of|discretionary|holds the right to|reserves the right to|holds the right)\b", re.IGNORECASE),
+    ]
+
+    DISCRETIONARY_RIGHT_PATTERNS = [
+        re.compile(r"\b(holds the right to|reserves the right to|reserves right to|at company discretion|discretionary right)\b", re.IGNORECASE),
+    ]
+
+    BENEFIT_OR_EXPENSE_PATTERNS = [
+        re.compile(r"\b(will be covered by|shall be covered by|will be reimbursed by|shall be reimbursed by|covered by the company|reimbursed by the company|eligible for reimbursement)\b", re.IGNORECASE),
     ]
 
     DESCRIPTIVE_PATTERNS = [
-        re.compile(r"\b(primary goal is|aims to|outlines the expected|purpose of this policy|is designed to|is intended to|serves as|provides guidance|promoting fairness|facilitating a comprehensive|expected duration an employee)\b", re.IGNORECASE),
+        re.compile(r"\b(primary goal is|aims to|outlines the expected|purpose of this policy|is designed to|is intended to|serves as|provides guidance|promoting fairness|facilitating a comprehensive|expected duration an employee|our .* policy ensures)\b", re.IGNORECASE),
     ]
 
     MACRO_SUMMARY_PATTERNS = [
-        re.compile(r"\b(grade-based tenures|establishes notice durations calibrated|calibrated by wingify levels)\b", re.IGNORECASE),
-        re.compile(r"\b(full\s+&\s+final\s+settlement\s+deductions|deductions\s+from\s+full\s+&\s+final|settlement\s+deductions?\s+summary|deductions\s+including\s+asset/laptop)\b", re.IGNORECASE),
+        re.compile(r"\b(summary|overview)\b.*\b(may include|vary based on|outlines various aspects)\b", re.IGNORECASE),
+        re.compile(r"\b(deductions\s+from\s+full\s+(?:&|and)\s+final\s+salary\s+may\s+include|notice\s+periods\s+vary\s+based\s+on)\b", re.IGNORECASE),
+        re.compile(r"\b(grade-based tenures|establishes notice durations calibrated|calibrated by .* levels)\b", re.IGNORECASE),
+        re.compile(r"\b(settlement\s+deductions?\s+summary|deductions\s+including\s+asset/laptop)\b", re.IGNORECASE),
     ]
 
     @classmethod
     def strip_markdown(cls, text: str) -> str:
-        """Removes markdown bold, italics, backticks, and extra spacing."""
+        """Removes markdown bold, italics, backticks, bullet markers, and extra spacing."""
         if not text:
             return ""
         s = str(text)
         s = re.sub(r"\*\*([^*]+)\*\*", r"\1", s)
         s = re.sub(r"\*([^*]+)\*", r"\1", s)
         s = re.sub(r"`([^`]+)`", r"\1", s)
+        s = re.sub(r"^[●❖\-\*]\s*", "", s)
+        s = re.sub(r"[\*`_]+", "", s)
         s = re.sub(r"\s+", " ", s).strip()
         return s
 
     @classmethod
     def is_macro_summary(cls, text: str) -> bool:
-        """Checks if text is a macro summary duplicating table rows."""
+        """Checks if text is a macro summary duplicating detailed clauses or table rows."""
         clean = cls.strip_markdown(text)
         return any(pat.search(clean) for pat in cls.MACRO_SUMMARY_PATTERNS)
+
+    @classmethod
+    def extract_conditions_and_dependencies(cls, text: str) -> Tuple[List[str], List[str]]:
+        """
+        Universally extracts explicit conditions and cross-referenced external policies/instruments
+        from any clause without injecting ungrounded words.
+        """
+        conditions: List[str] = []
+        dependencies: List[str] = []
+        clean = cls.strip_markdown(text)
+
+        # 1. External policy dependencies: "as per (the) X", "based on (the) X", "terms mentioned in (the) X"
+        dep_matches = re.findall(
+            r"\b(?:as per|based on|governed by|terms mentioned in)\s+(?:the\s+)?([A-Za-z0-9\s]+?(?:Policy|Framework|Agreement|Contract|Guidelines|Matrix|offer letter|Offer Letter))",
+            clean,
+            re.IGNORECASE,
+        )
+        for d in dep_matches:
+            d_clean = d.strip()
+            if d_clean and d_clean not in dependencies:
+                dependencies.append(d_clean)
+
+        # 2. Conditional trigger clauses
+        cond_patterns = [
+            r"\bif\s+([^,;.]+)",
+            r"\bwhere\s+([^,;.]+)",
+            r"\bunless\s+([^,;.]+)",
+            r"\bin cases (?:of|where)\s+([^,;.]+)",
+            r"\bupon\s+([A-Za-z0-9\s]+?)(?:[.,;]|$)",
+            r"\bduring\s+([A-Za-z0-9\s]+?)(?:[.,;]|$)",
+            r"\bas declared on\s+([A-Za-z0-9\s]+?)(?:[.,;]|$)",
+            r"\bbeyond\s+(?:the\s+)?([A-Za-z0-9\s]+?quota)(?:[.,;]|$)",
+            r"\bwithin\s+([A-Za-z0-9\s]+?of joining)(?:[.,;]|$)",
+        ]
+
+        for cp in cond_patterns:
+            matches = re.findall(cp, clean, re.IGNORECASE)
+            for m in matches:
+                m_str = m.strip().rstrip(".")
+                if len(m_str.split()) >= 1 and m_str not in conditions:
+                    conditions.append(m_str)
+
+        return conditions, dependencies
 
     @classmethod
     def split_compound_deductions(cls, text: str) -> Optional[List[Dict[str, Any]]]:
         """
         Decomposes compound multi-item deduction statements into discrete atomic rules with explicit conditions.
-        Preserves source wording without adding ungrounded qualifiers (e.g. 'annual' or 'beyond accrual').
+        Preserves source wording without adding ungrounded qualifiers (e.g. 'annual', 'active', or 'balances').
         """
         clean = cls.strip_markdown(text)
         if not re.search(r"\b(deductions?\s+including|settlement\s+deductions?|deductions?\s+such\s+as|deductions\s+from\s+full\s+&\s+final)\b", clean, re.IGNORECASE):
@@ -83,8 +138,8 @@ class DeonticClassifier:
                 "claim_text": "Full & Final Settlement covers deduction for outstanding employee loans or advances.",
                 "subject": "Full & Final Settlement (F&F)",
                 "predicate": "adjusts_outstanding_loans",
-                "object": "Outstanding loan and advance balances",
-                "conditions": ["Active outstanding employee loan or advance balances at offboarding"],
+                "object": "Outstanding loans or advances",
+                "conditions": ["Outstanding loans or advances the employee takes upon offboarding"],
                 "modality": "POLICY_FACT",
                 "modal_operator": "enforces",
             },
@@ -104,7 +159,7 @@ class DeonticClassifier:
                 "subject": "Full & Final Settlement (F&F)",
                 "predicate": "recovers_wfh_allowance",
                 "object": "WFH allowance recovery amount",
-                "conditions": ["Employee separation occurs within 1 year of joining or allowance disbursement"],
+                "conditions": ["Employee separation occurs within 1 year of joining"],
                 "modality": "POLICY_FACT",
                 "modal_operator": "enforces",
             },
@@ -138,21 +193,31 @@ class DeonticClassifier:
             if pat.search(clean):
                 return "PROHIBITION", "prohibits", True
 
-        # 3. Macro Summaries (valid derived statements, tagged for display)
+        # 3. Macro Summaries (valid derived statements, tagged for audit ledger)
         if cls.is_macro_summary(clean):
             return "POLICY_FACT", "summarizes", True
 
-        # 4. Obligations
+        # 4. Discretionary Rights
+        for pat in cls.DISCRETIONARY_RIGHT_PATTERNS:
+            if pat.search(clean):
+                return "PERMISSION", "holds_the_right", True
+
+        # 5. Company Benefit / Expense Coverage
+        for pat in cls.BENEFIT_OR_EXPENSE_PATTERNS:
+            if pat.search(clean):
+                return "POLICY_FACT", "covers", True
+
+        # 6. Obligations
         for pat in cls.OBLIGATION_PATTERNS:
             if pat.search(clean):
                 return "OBLIGATION", "requires", True
 
-        # 5. Permissions
+        # 7. Permissions
         for pat in cls.PERMISSION_PATTERNS:
             if pat.search(clean):
                 return "PERMISSION", "permits", True
 
-        # 6. Default factual statement
+        # 8. Default factual statement
         return "POLICY_FACT", "specifies", True
 
     @classmethod

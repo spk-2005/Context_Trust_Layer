@@ -8,7 +8,6 @@ import {
   Scale,
   CheckCircle2,
   Clock,
-  Sparkles,
   Sliders,
   Database,
   Lock,
@@ -207,62 +206,6 @@ export default function LiveIngestionStudio({ activeOrg, activePersona, onClaimE
   return (
     <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '16px' }}>
 
-      {/* ========================================================
-          1. TOP COMMAND BAR & QUICK-LOAD ENTERPRISE SAMPLES
-          ======================================================== */}
-      <div style={{
-        background: 'var(--bg-surface)',
-        border: '1px solid var(--border-color)',
-        borderRadius: '12px',
-        padding: '12px 18px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        flexWrap: 'wrap',
-        gap: '12px',
-        boxShadow: '0 1px 4px rgba(0,0,0,0.02)'
-      }}>
-        {/* Left: Hub Title & Status */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <div style={{
-            width: '32px',
-            height: '32px',
-            borderRadius: '8px',
-            background: 'linear-gradient(135deg, #FFF7ED 0%, #FFEDD5 100%)',
-            border: '1px solid rgba(234, 88, 12, 0.25)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: '#EA580C'
-          }}>
-            <Sparkles size={17} />
-          </div>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ fontSize: '0.94rem', fontWeight: 800, color: 'var(--text-main)', letterSpacing: '-0.01em' }}>
-                Autonomous Ingestion Hub
-              </span>
-              <span className="badge badge-verified" style={{ fontSize: '0.64rem', padding: '1px 6px' }}>
-                Sub-500ms Extractor
-              </span>
-            </div>
-            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-              Drop or browse your custom corporate PDF, Word, Excel, Markdown, CSV, or JSON documents.
-            </span>
-          </div>
-        </div>
-
-        {/* Right: Production Clearance Badge */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-          <span className="badge badge-verified" style={{ fontSize: '0.68rem', padding: '3px 8px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <ShieldCheck size={12} />
-            <span>Production Ingestion Mode</span>
-          </span>
-          <span style={{ fontSize: '0.70rem', color: '#64748B' }}>
-            Active Tenant Only
-          </span>
-        </div>
-      </div>
 
       {/* ========================================================
           2. FULL-WIDTH HORIZONTAL PIPELINE STREAM (ALL 6 LAYERS)
@@ -291,34 +234,62 @@ export default function LiveIngestionStudio({ activeOrg, activePersona, onClaimE
           )}
         </div>
 
-        {/* 6-Layer Horizontal Grid Flow */}
-        <div className="ingest-stages-flow">
-          {stages.map((st) => {
-            const isDone = pipelineStage > st.id || pipelineStage === 7;
-            const isCurrent = pipelineStage === st.id;
-            const isPending = pipelineStage < st.id && pipelineStage !== 7;
-            const Icon = st.icon;
+        {/* Horizontal Process Line with Circle Points & Connecting Lines (No Cards) */}
+        <div className="process-line-container">
+          <div className="process-line-flow">
+            {stages.map((st, idx) => {
+              const isDone = pipelineStage > st.id || pipelineStage === 7;
+              const isCurrent = pipelineStage === st.id;
+              const isPending = pipelineStage < st.id && pipelineStage !== 7;
 
-            return (
-              <div
-                key={st.id}
-                className={`ingest-stage-card ${isDone ? 'done' : isCurrent ? 'current' : 'pending'}`}
-              >
-                <div className="ingest-stage-top">
-                  <span className="ingest-stage-num">L{st.id}</span>
-                  {isDone ? (
-                    <CheckCircle2 size={14} color="#059669" />
-                  ) : isCurrent ? (
-                    <RefreshCw size={13} className="animate-spin" color="#EA580C" />
-                  ) : (
-                    <Icon size={13} color="#94A3B8" />
-                  )}
+              return (
+                <div key={st.id} className="process-step-item">
+                  {/* Top node track with connecting lines and circle */}
+                  <div className="process-node-track">
+                    {/* Left connector */}
+                    {idx > 0 && (
+                      <div
+                        className={`process-connector connector-left ${
+                          stages[idx - 1] && (pipelineStage > stages[idx - 1].id || pipelineStage === 7)
+                            ? 'active'
+                            : ''
+                        }`}
+                      />
+                    )}
+
+                    {/* Circle Node Point */}
+                    <div
+                      className={`process-circle-node ${isDone ? 'done' : isCurrent ? 'current' : 'pending'}`}
+                      title={`${st.label}: ${st.desc}`}
+                    >
+                      {isDone ? (
+                        <Check size={14} strokeWidth={2.8} />
+                      ) : isCurrent ? (
+                        <RefreshCw size={13} className="animate-spin" />
+                      ) : (
+                        <span>{st.id}</span>
+                      )}
+                    </div>
+
+                    {/* Right connector */}
+                    {idx < stages.length - 1 && (
+                      <div className={`process-connector connector-right ${isDone ? 'active' : ''}`} />
+                    )}
+                  </div>
+
+                  {/* Clean text details (No cards) */}
+                  <div className="process-step-content">
+                    <h4 className={`process-step-name ${isDone ? 'done' : isCurrent ? 'current' : ''}`}>
+                      {st.label}
+                    </h4>
+                    <p className="process-step-sub">
+                      {st.desc}
+                    </p>
+                  </div>
                 </div>
-                <h4 className="ingest-stage-title">{st.label}</h4>
-                <p className="ingest-stage-desc">{st.desc}</p>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       </div>
 

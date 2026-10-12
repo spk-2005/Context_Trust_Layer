@@ -402,6 +402,7 @@ async def handle_get_trusted_context(session: AsyncSession, args: Dict[str, Any]
             select(Claim)
             .where(Claim.organization_id == org_id)
             .where(Claim.status == ClaimStatus.VERIFIED)
+            .where(Claim.claim_type != "derived_summary")
             .options(
                 selectinload(Claim.evidence).selectinload(ClaimEvidence.document),
                 selectinload(Claim.trust_scores),
@@ -493,6 +494,7 @@ async def handle_evaluate_decision(session: AsyncSession, args: Dict[str, Any]) 
             select(Claim)
             .where(Claim.organization_id == org_id)
             .where(Claim.status == ClaimStatus.VERIFIED)
+            .where(Claim.claim_type != "derived_summary")
             .options(
                 selectinload(Claim.evidence).selectinload(ClaimEvidence.document),
                 selectinload(Claim.trust_scores)

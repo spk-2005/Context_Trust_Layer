@@ -4,6 +4,7 @@ Layer 5: Candidate Extraction & Source-Aware Verification Package.
 
 from app.extraction.models import (
     CandidateClaim,
+    ClaimType,
     CompletenessLedgerRecord,
     ExtractionStrategyType,
     Layer5ExtractionResult,
@@ -15,6 +16,7 @@ from app.extraction.pipeline import Layer5ExtractionPipeline, global_extraction_
 
 __all__ = [
     "CandidateClaim",
+    "ClaimType",
     "CompletenessLedgerRecord",
     "ExtractionStrategyType",
     "Layer5ExtractionResult",

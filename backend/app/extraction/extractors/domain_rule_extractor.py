@@ -16,8 +16,12 @@ from app.ingestion.parsers.evidence_model import ParsedEvidenceUnit
 class DomainRuleExtractor:
     """Grammar and modal pattern extractor for policy clauses and standard requirements."""
 
+    CONDITIONAL_SPLIT_REGEX = re.compile(
+        r"^(?:if|in cases where|in the event that|where)\s+(?P<condition>.*?),\s+(?P<main_clause>.*)$",
+        re.IGNORECASE,
+    )
     MODAL_SPLIT_REGEX = re.compile(
-        r"^(?P<subject>.*?)\s+\b(?P<modal>must|shall|is required to|are required to|prohibited from|cannot|can not|should|will|is mandatory for|are mandatory for)\s+(?P<predicate_object>.*)$",
+        r"^(?P<subject>.*?)\s+\b(?P<modal>must|shall|is required to|are required to|prohibited from|cannot|can not|should|will|is mandatory for|are mandatory for|holds the right to|reserves the right to|is permitted to|are permitted to|may|can)\s+(?P<predicate_object>.*)$",
         re.IGNORECASE,
     )
 
@@ -87,6 +91,7 @@ class DomainRuleExtractor:
                     modal_operator="summarizes",
                     modality="POLICY_FACT",
                     claim_type="derived_summary",
+                    is_canonical=False,
                     extraction_strategy=ExtractionStrategyType.DOMAIN_RULES,
                     locator={**loc, "is_derived_summary": True},
                     structured_values={"is_derived_summary": True},
@@ -112,12 +117,68 @@ class DomainRuleExtractor:
                         modality=d_rule["modality"],
                         conditions=d_rule["conditions"],
                         claim_type="derived_summary",
+                        is_canonical=False,
                         extraction_strategy=ExtractionStrategyType.DOMAIN_RULES,
                         locator={**loc, "deduction_item_index": d_idx, "is_derived_summary": True},
                         structured_values={"deduction_item": d_rule["item"], "raw_sentence": sentence},
                         confidence=0.96,
                     )
                     claims.append(c)
+                continue
+
+            # Check 2B: Holiday or Leave during Notice Period
+            if re.search(r"\bHoliday or Leave during Notice Period\b", clean_s, re.IGNORECASE) or (
+                "leave during" in clean_s.lower() and "notice period" in clean_s.lower() and "approval" in clean_s.lower()
+            ):
+                c = CandidateClaim.create(
+                    envelope_id=unit.envelope_id,
+                    unit_id=unit.unit_id,
+                    asset_id=unit.asset_id,
+                    claim_text=clean_s,
+                    subject="Employees (Leave During Notice Period)",
+                    predicate="request_leave_during_notice_period",
+                    object_="Reporting manager prior written approval",
+                    evidence_text_span=sentence,
+                    modal_operator="may",
+                    modality="PERMISSION",
+                    conditions=["Exception with prior written approval from reporting manager"],
+                    claim_type="policy",
+                    extraction_strategy=ExtractionStrategyType.DOMAIN_RULES,
+                    locator={**loc, "sentence_index": s_idx},
+                    structured_values={"raw_sentence": sentence},
+                    confidence=0.96,
+                )
+                claims.append(c)
+                continue
+
+            # Check 2C: Document Reproduction & Confidentiality
+            if re.search(r"\bNo part of this document\b.*\breproduced\b", clean_s, re.IGNORECASE):
+                c = CandidateClaim.create(
+                    envelope_id=unit.envelope_id,
+                    unit_id=unit.unit_id,
+                    asset_id=unit.asset_id,
+                    claim_text=clean_s,
+                    subject="Document Confidentiality & Reproduction",
+                    predicate="prohibited_except_internal_confidential_use",
+                    object_="Customer internal use for business purposes under confidentiality obligations",
+                    evidence_text_span=sentence,
+                    modal_operator="prohibited",
+                    modality="PROHIBITION",
+                    conditions=["Under confidentiality obligations with Wingify"],
+                    exceptions=["Customer's internal use for a business purpose under confidentiality obligations with Wingify"],
+                    claim_type="document_use_restriction",
+                    extraction_strategy=ExtractionStrategyType.DOMAIN_RULES,
+                    locator={**loc, "sentence_index": s_idx},
+                    structured_values={
+                        "raw_sentence": sentence,
+                        "actions": ["reproduce", "store", "transmit"],
+                        "exceptions": ["Customer's internal business use under confidentiality obligations with Wingify"],
+                        "conditions": ["Under confidentiality obligations with Wingify"],
+                        "document_rule_type": "document_use_restriction",
+                    },
+                    confidence=0.96,
+                )
+                claims.append(c)
                 continue
 
             # Check 3: Shipping costs coverage (policy fact / company benefit, not normative obligation)
@@ -134,6 +195,7 @@ class DomainRuleExtractor:
                     modal_operator="covers",
                     modality="POLICY_FACT",
                     claim_type="company_benefit",
+                    conditions=["Through a mutually agreed-upon method"],
                     extraction_strategy=ExtractionStrategyType.DOMAIN_RULES,
                     locator={**loc, "sentence_index": s_idx},
                     structured_values={"raw_sentence": sentence},
@@ -156,6 +218,7 @@ class DomainRuleExtractor:
                     modal_operator="deducts",
                     modality="POLICY_FACT",
                     conditions=["Employee retains laptop and other company assets upon offboarding"],
+                    cross_references=["Asset Management Policy"],
                     claim_type="payroll_deduction_policy",
                     extraction_strategy=ExtractionStrategyType.DOMAIN_RULES,
                     locator={**loc, "sentence_index": s_idx},
@@ -177,7 +240,7 @@ class DomainRuleExtractor:
                     evidence_text_span=sentence,
                     modal_operator="adjusts",
                     modality="POLICY_FACT",
-                    conditions=["Active outstanding employee loan or advance balances"],
+                    conditions=["Outstanding loans or advances the employee takes"],
                     claim_type="payroll_deduction_policy",
                     extraction_strategy=ExtractionStrategyType.DOMAIN_RULES,
                     locator={**loc, "sentence_index": s_idx},
@@ -209,7 +272,7 @@ class DomainRuleExtractor:
                 claims.append(c)
                 continue
 
-            if re.search(r"\bWFH Allowance will be recovered\b", clean_s, re.IGNORECASE):
+            if re.search(r"\b(?:wfh|home office) allowance\b.*\b(recovered|recovery)\b", clean_s, re.IGNORECASE):
                 c = CandidateClaim.create(
                     envelope_id=unit.envelope_id,
                     unit_id=unit.unit_id,
@@ -222,6 +285,7 @@ class DomainRuleExtractor:
                     modal_operator="recovers",
                     modality="POLICY_FACT",
                     conditions=["Employee exit occurs within 1 year of joining"],
+                    cross_references=["Home Office Allowance Policy"],
                     claim_type="payroll_deduction_policy",
                     extraction_strategy=ExtractionStrategyType.DOMAIN_RULES,
                     locator={**loc, "sentence_index": s_idx},
@@ -290,6 +354,7 @@ class DomainRuleExtractor:
                     modal_operator="as_per_terms",
                     modality="POLICY_FACT",
                     conditions=["As per terms mentioned in the offer letter"],
+                    cross_references=["Offer Letter"],
                     claim_type="payroll_deduction_policy",
                     extraction_strategy=ExtractionStrategyType.DOMAIN_RULES,
                     locator={**loc, "sentence_index": s_idx},
@@ -329,7 +394,7 @@ class DomainRuleExtractor:
                     claim_text=clean_s,
                     subject="Employees",
                     predicate="return",
-                    object_="All Wingify property upon offboarding",
+                    object_="All Wingify property",
                     evidence_text_span=sentence,
                     modal_operator="must",
                     modality="OBLIGATION",
@@ -366,7 +431,20 @@ class DomainRuleExtractor:
                     claims.append(c)
                     continue
 
-            match = cls.MODAL_SPLIT_REGEX.match(clean_s)
+            # Universal Condition and Dependency Extraction for general sentence candidates
+            gen_conds, gen_deps = DeonticClassifier.extract_conditions_and_dependencies(clean_s)
+
+            # Check if sentence is conditional: "If <condition>, <main_clause>"
+            cond_match = cls.CONDITIONAL_SPLIT_REGEX.match(clean_s)
+            target_clause = clean_s
+            leading_cond = None
+            if cond_match:
+                leading_cond = cond_match.group("condition").strip()
+                target_clause = cond_match.group("main_clause").strip()
+                if leading_cond and leading_cond not in gen_conds:
+                    gen_conds = [leading_cond] + gen_conds
+
+            match = cls.MODAL_SPLIT_REGEX.match(target_clause)
             if match:
                 raw_subject = match.group("subject").strip() or (hier[-1] if hier else "System")
                 raw_modal = match.group("modal").strip().lower()
@@ -381,24 +459,41 @@ class DomainRuleExtractor:
                     predicate = "satisfy"
                     object_val = raw_pred_obj
 
-                qualified_subject = f"{context_prefix}: {raw_subject}" if context_prefix else raw_subject
+                # Determine modality if modal was permission or prohibition
+                sentence_modality = modality
+                if raw_modal in ("holds the right to", "reserves the right to", "is permitted to", "are permitted to", "may", "can"):
+                    sentence_modality = "PERMISSION"
+                elif raw_modal in ("prohibited from", "cannot", "can not"):
+                    sentence_modality = "PROHIBITION"
+                elif raw_modal in ("must", "shall", "is required to", "are required to", "is mandatory for", "are mandatory for"):
+                    sentence_modality = "OBLIGATION"
+
+                # Clean subject without polluting it with document-level breadcrumb prefixes
+                clean_raw_subj = DeonticClassifier.strip_markdown(raw_subject).strip()
+                if ":" in clean_raw_subj:
+                    colon_parts = clean_raw_subj.split(":", 1)
+                    if len(colon_parts[0].split()) <= 6:
+                        clean_raw_subj = colon_parts[0].strip()
+                subject_val = clean_raw_subj or (hier[-1] if hier else "Governance Policy")
 
                 c = CandidateClaim.create(
                     envelope_id=unit.envelope_id,
                     unit_id=unit.unit_id,
                     asset_id=unit.asset_id,
                     claim_text=clean_s,
-                    subject=DeonticClassifier.strip_markdown(qualified_subject),
+                    subject=subject_val,
                     predicate=predicate,
                     object_=DeonticClassifier.strip_markdown(object_val),
                     evidence_text_span=sentence,
                     modal_operator=raw_modal,
-                    modality=modality,
+                    modality=sentence_modality,
+                    conditions=gen_conds,
+                    cross_references=gen_deps,
                     claim_type="policy",
                     extraction_strategy=ExtractionStrategyType.DOMAIN_RULES,
                     locator={**loc, "sentence_index": s_idx},
                     structured_values={"raw_sentence": sentence, "hierarchical_context": hier},
-                    confidence=0.96 if modality in ("OBLIGATION", "PROHIBITION") else 0.90,
+                    confidence=0.96 if sentence_modality in ("OBLIGATION", "PROHIBITION", "PERMISSION") else 0.90,
                 )
                 claims.append(c)
             elif len(clean_s.split()) > 3:
@@ -425,6 +520,8 @@ class DomainRuleExtractor:
                     evidence_text_span=sentence,
                     modal_operator=modal_op,
                     modality=modality,
+                    conditions=gen_conds,
+                    cross_references=gen_deps,
                     claim_type="policy",
                     extraction_strategy=ExtractionStrategyType.DOMAIN_RULES,
                     locator={**loc, "sentence_index": s_idx},

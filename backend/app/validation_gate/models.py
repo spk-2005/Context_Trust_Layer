@@ -63,6 +63,32 @@ class ClaimLifecycleDecision(str, Enum):
     REJECT = "reject"
 
 
+class DecisionCode(str, Enum):
+    """Machine-readable cause code for Layer 6 claim lifecycle decisions."""
+    APPROVE_ALL_PASSED = "APPROVE_ALL_PASSED"
+    REJECT_GROUNDING_FAILED = "REJECT_GROUNDING_FAILED"
+    REJECT_SCOPE_VIOLATION = "REJECT_SCOPE_VIOLATION"
+    REJECT_SEMANTIC_MISMATCH = "REJECT_SEMANTIC_MISMATCH"
+    REJECT_DESCRIPTIVE_PURPOSE = "REJECT_DESCRIPTIVE_PURPOSE"
+    
+    # Invariant knockout & anti-cross-wiring codes (NIST AI RMF)
+    EVIDENCE_CANDIDATE_MISMATCH = "EVIDENCE_CANDIDATE_MISMATCH"
+    ROW_VALUE_MISMATCH = "ROW_VALUE_MISMATCH"
+    TABLE_CELL_AMBIGUITY = "TABLE_CELL_AMBIGUITY"
+    GROUNDING_KNOCKOUT = "GROUNDING_KNOCKOUT"
+    DEONTIC_MODALITY_MISMATCH = "DEONTIC_MODALITY_MISMATCH"
+    UNSUPPORTED_CONDITION = "UNSUPPORTED_CONDITION"
+    SUMMARY_NON_CANONICAL = "SUMMARY_NON_CANONICAL"
+
+    REVIEW_SCORE_BELOW_THRESHOLD = "REVIEW_SCORE_BELOW_THRESHOLD"
+    REVIEW_DERIVED_SUMMARY = "REVIEW_DERIVED_SUMMARY"
+    REVIEW_AMBIGUITY_FLAGGED = "REVIEW_AMBIGUITY_FLAGGED"
+    REVIEW_UNCERTAIN_MEANING = "REVIEW_UNCERTAIN_MEANING"
+    REVIEW_PARTIAL_COMPLETENESS = "REVIEW_PARTIAL_COMPLETENESS"
+    REVIEW_NON_AUTHORITATIVE = "REVIEW_NON_AUTHORITATIVE"
+    REVIEW_STALE_EVIDENCE = "REVIEW_STALE_EVIDENCE"
+
+
 class DimensionEvaluation(BaseModel):
     """Result for an individual evaluation dimension."""
     dimension_name: str
@@ -105,6 +131,7 @@ class CandidateGateEvaluation(BaseModel):
     # Lifecycle Synthesis
     composite_trust_score: float = Field(ge=0.0, le=1.0)
     lifecycle_decision: ClaimLifecycleDecision
+    decision_code: DecisionCode = Field(default=DecisionCode.APPROVE_ALL_PASSED)
     decision_reason: str
     persisted_claim_id: Optional[uuid.UUID] = None
     evaluated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
@@ -139,6 +166,7 @@ class CandidateGateEvaluation(BaseModel):
             },
             "composite_trust_score": self.composite_trust_score,
             "lifecycle_decision": self.lifecycle_decision.value,
+            "decision_code": self.decision_code.value,
             "decision_reason": self.decision_reason,
             "persisted_claim_id": str(self.persisted_claim_id) if self.persisted_claim_id else None,
             "evaluated_at": self.evaluated_at.isoformat(),

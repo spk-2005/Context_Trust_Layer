@@ -50,12 +50,15 @@ class ClaimRepository(BaseRepository[Claim]):
         self,
         organization_id: uuid.UUID,
         status: ClaimStatus | None = None,
+        canonical_only: bool = False,
         limit: int = 50,
         offset: int = 0,
     ) -> Sequence[Claim]:
         stmt = select(Claim).where(Claim.organization_id == organization_id)
         if status:
             stmt = stmt.where(Claim.status == status)
+        if canonical_only:
+            stmt = stmt.where(Claim.claim_type != "derived_summary")
         stmt = stmt.offset(offset).limit(limit).options(
             selectinload(Claim.evidence),
             selectinload(Claim.validity_records),

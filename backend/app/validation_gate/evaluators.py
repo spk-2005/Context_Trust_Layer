@@ -95,6 +95,43 @@ class CompletenessEvaluator:
             if getattr(candidate, "scope", None):
                 details_dict["scope"] = candidate.scope
 
+            # Grounding check for contextual preconditions / exceptions
+            unsupported_conditions = []
+            if getattr(candidate, "conditions", None):
+                import json
+                ev_corpus = (
+                    span + " " +
+                    str(getattr(candidate, "claim_text", "") or "") + " " +
+                    json.dumps(getattr(candidate, "structured_values", {}) or {}, default=str) + " " +
+                    json.dumps(getattr(candidate, "locator", {}) or {}, default=str)
+                ).lower()
+                stop_tokens = {
+                    "and", "the", "for", "with", "all", "status", "criteria", "per",
+                    "upon", "under", "from", "any", "not", "require", "requires", "must", "shall", "or",
+                    "employee", "employees", "employment", "staff", "role", "state", "applicable", "policy"
+                }
+                for cond in candidate.conditions:
+                    cond_words = [
+                        w.lower() for w in re.findall(r"[a-zA-Z]{3,}", str(cond))
+                        if w.lower() not in stop_tokens
+                    ]
+                    missing_words = [
+                        w for w in cond_words
+                        if w not in ev_corpus and (len(w) < 5 or w[:5] not in ev_corpus)
+                    ]
+                    if missing_words:
+                        unsupported_conditions.append(f"Condition '{cond}' has ungrounded terms: {', '.join(missing_words)}")
+
+            if unsupported_conditions:
+                return DimensionEvaluation(
+                    dimension_name="completeness",
+                    status=CompletenessStatus.PARTIAL.value,
+                    score=0.65,
+                    passed=False,
+                    reason=f"Unsupported conditions detected: {'; '.join(unsupported_conditions)}.",
+                    details={"unsupported_conditions": unsupported_conditions, **details_dict},
+                )
+
             return DimensionEvaluation(
                 dimension_name="completeness",
                 status=CompletenessStatus.COMPLETE.value,
@@ -166,7 +203,10 @@ class MeaningEvaluator:
 
         # 2. Deontic consistency verification against evidence text
         deontic_mismatch = False
-        if modality == "OBLIGATION" and not cls.OBLIGATION_EVIDENCE.search(evidence):
+        discretionary_phrases = ("holds the right", "holds right", "may request", "may", "permitted", "option to", "at its discretion")
+        has_discretionary = any(p in evidence.lower() or p in text.lower() for p in discretionary_phrases)
+
+        if modality == "OBLIGATION" and (has_discretionary or not cls.OBLIGATION_EVIDENCE.search(evidence)):
             deontic_mismatch = True
         elif modality == "PROHIBITION" and not cls.PROHIBITION_EVIDENCE.search(evidence):
             deontic_mismatch = True
@@ -175,9 +215,9 @@ class MeaningEvaluator:
             return DimensionEvaluation(
                 dimension_name="meaning",
                 status=MeaningStatus.UNCERTAIN.value,
-                score=0.72,
+                score=0.20,
                 passed=False,
-                reason=f"Deontic mismatch: claim claims {modality} but underlying source evidence lacks normative imperative verbs.",
+                reason=f"Deontic mismatch: claim claims {modality} but underlying source evidence reflects discretionary/permissive phrasing or lacks normative imperative verbs.",
                 details={"confidence": confidence, "modality": modality, "deontic_mismatch": True},
             )
 

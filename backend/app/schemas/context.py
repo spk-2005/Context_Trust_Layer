@@ -15,6 +15,7 @@ class ContextQueryRequest(BaseModel):
     max_results: int = Field(default=10, gt=0)
     domain: str | None = None
     workspace_id: str | None = None
+    canonical_only: bool = Field(default=True, description="When true, excludes derived summaries to ensure only governing operative rules reach agents")
 
 
 class ContextSourceInfo(BaseModel):
@@ -35,6 +36,8 @@ class ContextItemResponse(BaseModel):
     validity: ContextValidityInfo
     source: ContextSourceInfo
     evidence: list[str] = []
+    claim_type: str | None = None
+    is_canonical: bool = True
 
 
 class ContextQueryResponse(BaseModel):

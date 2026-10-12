@@ -24,6 +24,20 @@ class ExtractionStrategyType(str, Enum):
     TABLE_AWARE = "table_aware"                    # Table grid extractor with cell, row, and column binding
 
 
+class ClaimType(str, Enum):
+    """Controlled enterprise vocabulary for claim classifications."""
+    OBLIGATION = "OBLIGATION"
+    PROHIBITION = "PROHIBITION"
+    PERMISSION_OR_RIGHT = "PERMISSION_OR_RIGHT"
+    POLICY_FACT = "POLICY_FACT"
+    BENEFIT = "BENEFIT"
+    SUMMARY_NON_CANONICAL = "SUMMARY_NON_CANONICAL"
+    DOCUMENT_METADATA = "DOCUMENT_METADATA"
+    INVARIANT = "INVARIANT"
+    METRIC_RULE = "METRIC_RULE"
+    DECISION = "DECISION"
+
+
 class UnitOutcome(str, Enum):
     """The 6 explicit audit outcomes for every evidence unit passing through Layer 5."""
     PROCESSED_WITH_CLAIMS = "processed_with_claims"  # Successfully generated 1+ grounded atomic assertions
@@ -32,6 +46,22 @@ class UnitOutcome(str, Enum):
     NEEDS_REVIEW          = "needs_review"           # Ambiguous layout (e.g. merged cells or uncertain scope)
     FAILED_RETRYABLE      = "failed_retryable"       # Transient execution failure eligible for retry with alternate parser
     FAILED_TERMINAL       = "failed_terminal"        # Unrecoverable parsing error (e.g. corrupted binary encoding)
+
+
+class TableGridBinding(BaseModel):
+    """
+    Cryptographic and spatial proof binding an extracted claim to a 2D table matrix.
+    Prevents parallel-array cross-wiring between rows and values.
+    """
+    table_id: str = Field(..., description="Unique table identifier within the source document")
+    row_key: str = Field(..., description="Key identifier for row (e.g. 'Grade E (E1, E2 & E3)')")
+    column_header: str = Field(..., description="Column header (e.g. 'Probationers')")
+    cell_value: str = Field(..., description="Verbatim raw cell value (e.g. '15 days')")
+    normalized_value: Optional[Any] = Field(default=None, description="Normalized scalar value (e.g. 15)")
+    normalized_unit: Optional[str] = Field(default=None, description="Measurement unit (e.g. 'days')")
+    row_index: int = Field(default=0, description="0-indexed row position in grid")
+    col_index: int = Field(default=0, description="0-indexed column position in grid")
+    is_merged_cell: bool = Field(default=False, description="Flagged true if cell spans multiple rows/cols")
 
 
 class CandidateClaim(BaseModel):
@@ -44,6 +74,12 @@ class CandidateClaim(BaseModel):
     unit_id: str = Field(..., description="Parent Layer 4 ParsedEvidenceUnit identifier")
     asset_id: str = Field(..., description="Native external asset identifier")
     
+    # Stable Identity & Association (Anti-Cross-Wiring)
+    run_id: Optional[uuid.UUID] = Field(default=None, description="Ingestion pipeline run identifier")
+    source_unit_id: Optional[str] = Field(default=None, description="Layer 4 ParsedEvidenceUnit identifier")
+    evidence_id: Optional[str] = Field(default=None, description="Cryptographic evidence locator identifier")
+    table_binding: Optional[TableGridBinding] = Field(default=None, description="2D table grid binding coordinates")
+    
     # Semantic Representation
     claim_text: str = Field(..., description="Normalized claim statement")
     subject: str = Field(..., description="Entity or component governed by the claim")
@@ -53,7 +89,8 @@ class CandidateClaim(BaseModel):
     unit: Optional[str] = Field(default=None, description="Unit of measurement (e.g. days, hours, %)")
     modal_operator: Optional[str] = Field(default=None, description="Normative modal operator (must, shall, prohibited, required)")
     modality: str = Field(default="REQUIRED", description="Standardized normative modality: REQUIRED, PROHIBITED, PERMITTED, RECOMMENDED")
-    conditions: List[str] = Field(default_factory=list, description="Explicit contextual preconditions, triggers, or exceptions")
+    conditions: List[str] = Field(default_factory=list, description="Explicit contextual preconditions, triggers, or activation requirements")
+    exceptions: List[str] = Field(default_factory=list, description="Explicit permitted exemptions or negative preconditions (e.g. Customer internal business use)")
     scope: dict[str, Any] = Field(default_factory=dict, description="Target population, grade, jurisdiction, or scope constraints")
     claim_type: str = Field(default="policy", description="Semantic category (policy, invariant, metric, decision)")
     
@@ -64,6 +101,8 @@ class CandidateClaim(BaseModel):
     structured_values: dict[str, Any] = Field(default_factory=dict, description="Preserved native typed values or field paths")
     
     # Verification & Quality
+    is_canonical: bool = Field(default=True, description="False if macro summary or non-canonical context")
+    cross_references: List[str] = Field(default_factory=list, description="External policies, instruments or documents referenced")
     status: str = Field(default="candidate", description="Validation status (candidate, verified, unverified, rejected)")
     confidence: float = Field(ge=0.0, le=1.0, default=1.0, description="Extraction and verification confidence score")
     is_ambiguous: bool = Field(default=False, description="Flagged true if cell bindings, scope, or conditions are ambiguous")
@@ -89,14 +128,21 @@ class CandidateClaim(BaseModel):
         modal_operator: Optional[str] = None,
         modality: str = "REQUIRED",
         conditions: Optional[List[str]] = None,
+        exceptions: Optional[List[str]] = None,
         scope: Optional[dict[str, Any]] = None,
         claim_type: str = "policy",
+        is_canonical: bool = True,
+        cross_references: Optional[List[str]] = None,
         extraction_strategy: ExtractionStrategyType = ExtractionStrategyType.DETERMINISTIC_SCHEMA,
         locator: dict[str, Any] | None = None,
         structured_values: dict[str, Any] | None = None,
         is_ambiguous: bool = False,
         ambiguity_reason: Optional[str] = None,
         confidence: float = 1.0,
+        run_id: Optional[uuid.UUID] = None,
+        source_unit_id: Optional[str] = None,
+        evidence_id: Optional[str] = None,
+        table_binding: Optional[TableGridBinding] = None,
     ) -> CandidateClaim:
         text_clean = claim_text.strip()
         hash_input = f"{asset_id}:{subject}:{predicate}:{object_}:{value}:{unit}:{evidence_text_span}:{json.dumps(structured_values or {}, sort_keys=True, default=str)}"
@@ -108,6 +154,10 @@ class CandidateClaim(BaseModel):
             envelope_id=envelope_id,
             unit_id=unit_id,
             asset_id=asset_id,
+            run_id=run_id,
+            source_unit_id=source_unit_id or unit_id,
+            evidence_id=evidence_id or f"ev:{unit_id}",
+            table_binding=table_binding,
             claim_text=text_clean,
             subject=subject.strip(),
             predicate=predicate.strip(),
@@ -117,8 +167,11 @@ class CandidateClaim(BaseModel):
             modal_operator=modal_operator,
             modality=modality,
             conditions=conditions or [],
+            exceptions=exceptions or [],
             scope=scope or {},
             claim_type=claim_type,
+            is_canonical=is_canonical,
+            cross_references=cross_references or [],
             extraction_strategy=extraction_strategy,
             evidence_text_span=evidence_text_span.strip(),
             locator=locator or {},

@@ -104,9 +104,9 @@ class ConflictDetector:
         """Compare target_claim against all topically related active claims in the same organization."""
         detected_conflicts: list[ClaimConflict] = []
 
-        # Pillar 2: Illustrative sample pre-filter
-        # Concrete transaction examples/scenarios never contradict governing enterprise policies
-        if is_illustrative_claim(target_claim):
+        # Pillar 2: Illustrative sample & non-canonical summary pre-filter
+        # Concrete transaction examples and derived summaries never contradict operative canonical policies
+        if is_illustrative_claim(target_claim) or getattr(target_claim, "claim_type", "") in ("derived_summary", "summary_non_canonical"):
             return detected_conflicts
 
         # Tier 1: Candidate Ingestion Pruning via FacetSharder (O(N^2) -> O(K))
@@ -116,8 +116,8 @@ class ConflictDetector:
 
         unprocessed_candidates = []
         for cand in candidates:
-            # Pillar 2: Skip illustrative candidates
-            if is_illustrative_claim(cand):
+            # Pillar 2: Skip illustrative candidates and non-canonical summaries
+            if is_illustrative_claim(cand) or getattr(cand, "claim_type", "") in ("derived_summary", "summary_non_canonical"):
                 continue
 
             # Facet compatibility pruning

@@ -1623,6 +1623,139 @@ textarea:focus {
   }
 }
 
+/* ========================================================
+   HORIZONTAL PROCESS LINE PIPELINE (CARDLESS STEPPER)
+   ======================================================== */
+.process-line-container {
+  width: 100%;
+  overflow-x: auto;
+  padding: 8px 0 4px 0;
+}
+
+.process-line-flow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  width: 100%;
+  min-width: 680px;
+  position: relative;
+}
+
+.process-step-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  text-align: center;
+  padding: 0 4px;
+}
+
+.process-node-track {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 36px;
+}
+
+.process-connector {
+  position: absolute;
+  top: 50%;
+  height: 2px;
+  background: var(--border-color, #E2E8F0);
+  transform: translateY(-50%);
+  z-index: 1;
+  transition: background 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.process-connector.connector-left {
+  left: 0;
+  right: 50%;
+}
+
+.process-connector.connector-right {
+  left: 50%;
+  right: 0;
+}
+
+.process-connector.active {
+  background: #059669;
+}
+
+.process-circle-node {
+  position: relative;
+  z-index: 2;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.76rem;
+  font-weight: 700;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  user-select: none;
+}
+
+.process-circle-node.pending {
+  background: var(--bg-surface, #FFFFFF);
+  border: 2px solid var(--border-color, #CBD5E1);
+  color: var(--text-muted, #64748B);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.process-circle-node.current {
+  background: #EA580C;
+  border: 2px solid #EA580C;
+  color: #FFFFFF;
+  box-shadow: 0 0 0 4px rgba(234, 88, 12, 0.2), 0 2px 8px rgba(234, 88, 12, 0.35);
+  transform: scale(1.08);
+}
+
+.process-circle-node.done {
+  background: #059669;
+  border: 2px solid #059669;
+  color: #FFFFFF;
+  box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.15);
+}
+
+.process-step-content {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  width: 100%;
+}
+
+.process-step-name {
+  font-size: 0.77rem;
+  font-weight: 700;
+  color: var(--text-main, #0F172A);
+  margin: 0;
+  line-height: 1.25;
+  transition: color 0.2s ease;
+  letter-spacing: -0.01em;
+}
+
+.process-step-name.current {
+  color: #EA580C;
+  font-weight: 800;
+}
+
+.process-step-name.done {
+  color: #065F46;
+}
+
+.process-step-sub {
+  font-size: 0.68rem;
+  color: var(--text-muted, #64748B);
+  margin: 0;
+  line-height: 1.35;
+}
+
 .ingest-stage-card {
   position: relative;
   background: #FFFFFF;

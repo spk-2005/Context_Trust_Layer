@@ -9,7 +9,7 @@ from __future__ import annotations
 import logging
 from typing import Any, List
 
-from app.extraction.models import CandidateClaim, ExtractionStrategyType
+from app.extraction.models import CandidateClaim, ExtractionStrategyType, TableGridBinding
 from app.ingestion.parsers.evidence_model import ParsedEvidenceUnit
 
 logger = logging.getLogger(__name__)
@@ -215,10 +215,30 @@ class DeterministicSchemaExtractor:
                         "grid_label": f"Row '{grid_key}' • Col '{k}' • Cell '{clean_val}'",
                     }
 
+                    table_id_str = str(loc.get("table_id") or f"tbl_{loc.get('table_start_line', 0)}")
+                    col_idx = col_keys.index(k) if k in col_keys else 0
+                    row_idx = loc.get("line_start", 0)
+
+                    table_binding = TableGridBinding(
+                        table_id=table_id_str,
+                        row_key=grid_key,
+                        column_header=k,
+                        cell_value=clean_val,
+                        normalized_value=scalar_val,
+                        normalized_unit=unit_val,
+                        row_index=int(row_idx) if isinstance(row_idx, int) else 0,
+                        col_index=int(col_idx),
+                        is_merged_cell=is_ambiguous,
+                    )
+
                     c = CandidateClaim.create(
                         envelope_id=unit.envelope_id,
                         unit_id=unit.unit_id,
                         asset_id=unit.asset_id,
+                        run_id=getattr(unit, "run_id", None),
+                        source_unit_id=unit.unit_id,
+                        evidence_id=f"ev:{unit.unit_id}",
+                        table_binding=table_binding,
                         claim_text=normalized["claim_text"],
                         subject=normalized["subject"],
                         predicate=normalized["predicate"],

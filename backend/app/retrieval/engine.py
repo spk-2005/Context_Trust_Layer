@@ -95,12 +95,15 @@ class ContextRetrievalEngine:
                 Claim.organization_id == request_in.organization_id,
                 Claim.status.in_([ClaimStatus.ACTIVE, ClaimStatus.VERIFIED, ClaimStatus.CONFLICTED]),
             )
-            .options(
-                selectinload(Claim.evidence).selectinload(ClaimEvidence.document),
-                selectinload(Claim.validity_records),
-                selectinload(Claim.trust_scores),
-                selectinload(Claim.document_version),
-            )
+        )
+        if getattr(request_in, "canonical_only", True):
+            stmt = stmt.where(Claim.claim_type != "derived_summary")
+
+        stmt = stmt.options(
+            selectinload(Claim.evidence).selectinload(ClaimEvidence.document),
+            selectinload(Claim.validity_records),
+            selectinload(Claim.trust_scores),
+            selectinload(Claim.document_version),
         )
         res = await self.session.execute(stmt)
         all_claims = res.scalars().all()
@@ -200,6 +203,8 @@ class ContextRetrievalEngine:
                         page=page_num,
                     ),
                     evidence=evidence_quotes,
+                    claim_type=claim.claim_type,
+                    is_canonical=(claim.claim_type != "derived_summary"),
                 )
 
             evaluated_items.append((claim, latest_score, included, exclusion_reason, item_response, relevance_score))
