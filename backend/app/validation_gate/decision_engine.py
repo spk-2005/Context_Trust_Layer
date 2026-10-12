@@ -83,23 +83,33 @@ class ClaimLifecycleDecisionEngine:
         composite_score = round(min(max(composite_score, 0.0), 1.0), 4)
 
         # 4. Synthesize Claim Lifecycle Decision
+        claim_type = getattr(candidate, "claim_type", "policy")
+        if claim_type == "descriptive_purpose":
+            decision = ClaimLifecycleDecision.REJECT
+            reason = "REJECTED: Descriptive purpose/preamble statement; non-normative context cannot be enforced as an operative constraint."
+        elif claim_type == "derived_summary":
+            decision = ClaimLifecycleDecision.REVIEW
+            reason = "DERIVED SUMMARY: Retained for overview display; excluded from active decision gate to prevent duplicate evaluation against atomic row claims."
         # Fatal rules -> Hard REJECT
-        if not source_match.passed:
+        elif not source_match.passed:
             decision = ClaimLifecycleDecision.REJECT
             reason = f"REJECTED: Grounding failure. {source_match.reason}"
         elif not scope.passed:
             decision = ClaimLifecycleDecision.REJECT
             reason = f"REJECTED: Scope violation. {scope.reason}"
+        elif not meaning.passed and ("Subject-Evidence mismatch" in meaning.reason or meaning.status == "unsupported"):
+            decision = ClaimLifecycleDecision.REJECT
+            reason = f"REJECTED: Semantic grounding failure. {meaning.reason}"
         # HITL rules -> REVIEW
-        elif needs_review or composite_score < 0.80:
+        elif needs_review or composite_score < 0.88:
             decision = ClaimLifecycleDecision.REVIEW
             reasons = []
             if not meaning.passed: reasons.append(meaning.reason)
             if not completeness.passed: reasons.append(completeness.reason)
             if not authority.passed: reasons.append(authority.reason)
             if not time_eval.passed: reasons.append(time_eval.reason)
-            if composite_score < 0.80: reasons.append(f"Trust score {composite_score:.2f} is below 0.80 threshold")
-            reason = f"REVIEW: Human review required. {'; '.join(reasons)}"
+            if composite_score < 0.88: reasons.append(f"Trust score {composite_score:.2f} is below 0.88 auto-approval threshold")
+            reason = f"REVIEW: Human review recommended. {'; '.join(reasons)}"
         # All passed -> APPROVE
         else:
             decision = ClaimLifecycleDecision.APPROVE
@@ -110,10 +120,23 @@ class ClaimLifecycleDecisionEngine:
             envelope_id=envelope.envelope_id,
             asset_id=envelope.asset_id,
             claim_text=candidate.claim_text,
+            subject=candidate.subject,
+            predicate=candidate.predicate,
+            object_=candidate.object,
+            evidence_text_span=candidate.evidence_text_span,
+            claim_type=claim_type,
+            modality=getattr(candidate, "modality", "POLICY_FACT"),
+            conditions=getattr(candidate, "conditions", []),
+            value=getattr(candidate, "value", None),
+            unit=getattr(candidate, "unit", None),
+            scope=getattr(candidate, "scope", {}),
+            locator=getattr(candidate, "locator", {}),
+            is_ambiguous=getattr(candidate, "is_ambiguous", False),
+            ambiguity_reason=getattr(candidate, "ambiguity_reason", None),
             source_match=source_match,
             completeness=completeness,
             meaning=meaning,
-            scope=scope,
+            scope_eval=scope,
             time=time_eval,
             authority=authority,
             review_trigger=review_trigger,

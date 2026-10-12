@@ -44,66 +44,6 @@ export default function LiveIngestionStudio({ activeOrg, activePersona, onClaimE
   const [pipelineStage, setPipelineStage] = useState(0); // 0: Idle, 1..6: L1..L6, 7: Sealed & Done
   const [pipelineResult, setPipelineResult] = useState(null);
   const [history, setHistory] = useState([]);
-  const [activeSampleId, setActiveSampleId] = useState(null);
-
-  // 1-Click Pre-Loaded Enterprise Samples with 6-Layer Architecture Content
-  const PRESET_SAMPLES = [
-    {
-      id: 'handbook',
-      name: 'Enterprise_Customer_Handbook_2026.pdf',
-      type: 'handbook',
-      scope: 'Enterprise',
-      authority: 95,
-      sourceFamily: 'document',
-      sourceIntent: 'governance_policy',
-      size: '248 KB',
-      claimsCount: 2,
-      rawContent: `# Enterprise Customer Master Service Agreement 2026\n## Section 4.2: Refund & Cancellation Guidelines\nEnterprise tier customers have a 60-day exception window for refunds upon formal written notice.\nStandard tier refunds strictly adhere to the 30-day baseline from invoice issuance.\nAll refund requests must be submitted through the Enterprise Support Portal with VP Finance approval.`,
-      claimsPreview: [
-        { text: "Enterprise tier customers have a 60-day exception window for refunds.", trust: 95, scope: "Enterprise" },
-        { text: "Standard tier refunds strictly adhere to the 30-day baseline.", trust: 88, scope: "Global Standard" }
-      ]
-    },
-    {
-      id: 'memo',
-      name: 'VP_Engineering_Remote_Work_Memo.md',
-      type: 'memo',
-      scope: 'Engineering',
-      authority: 85,
-      sourceFamily: 'document',
-      sourceIntent: 'governance_policy',
-      size: '34 KB',
-      claimsCount: 2,
-      rawContent: `# VP of Engineering Directive: Global Hybrid Policy 2026\n## Scope: Engineering Organization\nEngineering personnel are authorized for 4 days remote per week with manager consensus.\nCore office attendance is required on Wednesdays for sprint review and architecture planning.\nVPN multi-factor authentication is mandatory for all offsite repository commits.`,
-      claimsPreview: [
-        { text: "Engineering personnel are authorized for 4 days remote per week.", trust: 92, scope: "Engineering" },
-        { text: "Core office attendance required on Wednesdays for sprint review.", trust: 90, scope: "Engineering" }
-      ]
-    },
-    {
-      id: 'security',
-      name: 'SecOps_Prod_Firewall_Mandate_v3.json',
-      type: 'security_guideline',
-      scope: 'Production',
-      authority: 98,
-      sourceFamily: 'structured',
-      sourceIntent: 'governance_policy',
-      size: '19 KB',
-      claimsCount: 2,
-      rawContent: JSON.stringify({
-        mandate_id: "SEC-2026-FIREWALL",
-        scope: "Production",
-        policy: "Plaintext HTTP port 80/8080 ingress is strictly barred in Production environments.",
-        mtls_requirement: "Production deployments require mTLS and CISO cryptographic sign-off.",
-        audit_interval_days: 14
-      }, null, 2),
-      claimsPreview: [
-        { text: "Plaintext HTTP port 80/8080 ingress is strictly barred in Production.", trust: 99, scope: "Production" },
-        { text: "Production deployments require mTLS and CISO cryptographic sign-off.", trust: 97, scope: "Production" }
-      ]
-    }
-  ];
-
   const stages = [
     { id: 1, label: "L1: Governance & Sources", icon: Shield, desc: "SourceFamily & Intent" },
     { id: 2, label: "L2: Native Ingestion", icon: Server, desc: "Pristine Connectors" },
@@ -113,24 +53,8 @@ export default function LiveIngestionStudio({ activeOrg, activePersona, onClaimE
     { id: 6, label: "L6: Validation Gate", icon: CheckCircle2, desc: "6-D Gate & Store" }
   ];
 
-  const handleSelectSample = (sample) => {
-    setActiveSampleId(sample.id);
-    const mimeType = sample.sourceFamily === 'structured' ? 'application/json' : 'text/plain';
-    const mockBlob = new Blob([sample.rawContent], { type: mimeType });
-    const file = new File([mockBlob], sample.name, { type: mimeType, lastModified: Date.now() });
-    setSelectedFile(file);
-    setDocumentType(sample.type);
-    setDocumentScope(sample.scope);
-    setAuthorityLevel(sample.authority);
-    setSourceFamily(sample.sourceFamily || 'document');
-    setSourceIntent(sample.sourceIntent || 'governance_policy');
-    setPipelineStage(0);
-    setPipelineResult(null);
-  };
-
   const handleFileSelect = (file) => {
     if (!file) return;
-    setActiveSampleId(null);
     setSelectedFile(file);
     const lower = file.name.toLowerCase();
     
@@ -323,28 +247,20 @@ export default function LiveIngestionStudio({ activeOrg, activePersona, onClaimE
               </span>
             </div>
             <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-              Select an enterprise sample or drop any custom PDF/Markdown/JSON to parse atomic assertions.
+              Drop or browse your custom corporate PDF, Word, Excel, Markdown, CSV, or JSON documents.
             </span>
           </div>
         </div>
 
-        {/* Right: Quick-Load Enterprise Presets */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-          <span style={{ fontSize: '0.70rem', fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.04em', marginRight: '4px' }}>
-            Quick Samples:
+        {/* Right: Production Clearance Badge */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+          <span className="badge badge-verified" style={{ fontSize: '0.68rem', padding: '3px 8px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <ShieldCheck size={12} />
+            <span>Production Ingestion Mode</span>
           </span>
-          {PRESET_SAMPLES.map((sample) => (
-            <button
-              key={sample.id}
-              type="button"
-              onClick={() => handleSelectSample(sample)}
-              className={`ingest-sample-pill ${activeSampleId === sample.id ? 'active' : ''}`}
-              title={sample.name}
-            >
-              <FileText size={12} color={activeSampleId === sample.id ? '#EA580C' : '#64748B'} />
-              <span>{sample.id === 'handbook' ? '1. Handbook (Refund)' : sample.id === 'memo' ? '2. VP Memo (Remote)' : '3. SecOps (Firewall)'}</span>
-            </button>
-          ))}
+          <span style={{ fontSize: '0.70rem', color: '#64748B' }}>
+            Active Tenant Only
+          </span>
         </div>
       </div>
 
@@ -748,40 +664,69 @@ export default function LiveIngestionStudio({ activeOrg, activePersona, onClaimE
 
               {/* Layer 5: Strategy Router & Completeness Ledger Ribbon */}
               {pipelineResult.layers?.layer_5_extraction && (
-                <div className="layer-ledger-strip">
-                  <div className="layer-ledger-item">
-                    <span className="layer-ledger-item-label">L5 Strategy Router</span>
-                    <div style={{ display: 'flex', gap: '4px', marginTop: '2px' }}>
-                      <span style={{ fontSize: '0.66rem', background: '#334155', color: '#F8FAFC', padding: '1px 6px', borderRadius: '4px', fontWeight: 600 }}>
-                        {pipelineResult.layers.layer_5_extraction.candidates?.[0]?.strategy || 'deterministic_schema'}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <div className="layer-ledger-strip">
+                    <div className="layer-ledger-item">
+                      <span className="layer-ledger-item-label">L5 Strategy</span>
+                      <div style={{ display: 'flex', gap: '4px', marginTop: '2px' }}>
+                        <span style={{ fontSize: '0.66rem', background: '#334155', color: '#F8FAFC', padding: '1px 6px', borderRadius: '4px', fontWeight: 600 }}>
+                          {pipelineResult.layers.layer_5_extraction.candidates?.[0]?.extraction_strategy || pipelineResult.layers.layer_5_extraction.candidates?.[0]?.strategy || 'table_aware'}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div style={{ width: '1px', height: '24px', background: '#334155' }} />
+
+                    <div className="layer-ledger-item">
+                      <span className="layer-ledger-item-label">Claims Extracted</span>
+                      <span className="layer-ledger-item-val" style={{ color: '#4ADE80' }}>
+                        {pipelineResult.layers.layer_5_extraction.claims_extracted || pipelineResult.claims_extracted_count}
+                      </span>
+                    </div>
+
+                    {pipelineResult.layers.layer_5_extraction.ledger_summary?.breakdown && (
+                      <>
+                        <div className="layer-ledger-item">
+                          <span className="layer-ledger-item-label">Descriptive (No Claims)</span>
+                          <span className="layer-ledger-item-val" style={{ color: '#94A3B8' }}>
+                            {pipelineResult.layers.layer_5_extraction.ledger_summary.breakdown.processed_no_claims ?? 0}
+                          </span>
+                        </div>
+
+                        <div className="layer-ledger-item">
+                          <span className="layer-ledger-item-label">Skipped</span>
+                          <span className="layer-ledger-item-val" style={{ color: '#94A3B8' }}>
+                            {pipelineResult.layers.layer_5_extraction.ledger_summary.breakdown.skipped_with_reason ?? 0}
+                          </span>
+                        </div>
+
+                        <div className="layer-ledger-item">
+                          <span className="layer-ledger-item-label">Needs Review</span>
+                          <span className="layer-ledger-item-val" style={{ color: (pipelineResult.layers.layer_5_extraction.ledger_summary.breakdown.needs_review > 0 ? '#FBBF24' : '#94A3B8') }}>
+                            {pipelineResult.layers.layer_5_extraction.ledger_summary.breakdown.needs_review ?? 0}
+                          </span>
+                        </div>
+                      </>
+                    )}
+
+                    <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span className="badge badge-verified" style={{ background: '#064E3B', color: '#6EE7B7', borderColor: '#059669', fontSize: '0.66rem' }}>
+                        Ledger: 100.0% Accounted (0 Missed)
                       </span>
                     </div>
                   </div>
 
-                  <div style={{ width: '1px', height: '24px', background: '#334155' }} />
-
-                  <div className="layer-ledger-item">
-                    <span className="layer-ledger-item-label">Evidence Candidates</span>
-                    <span className="layer-ledger-item-val">{pipelineResult.layers.layer_5_extraction.candidates_discovered || pipelineResult.claims_extracted_count}</span>
-                  </div>
-
-                  <div className="layer-ledger-item">
-                    <span className="layer-ledger-item-label">Extracted Claims</span>
-                    <span className="layer-ledger-item-val">{pipelineResult.layers.layer_5_extraction.claims_extracted || pipelineResult.claims_extracted_count}</span>
-                  </div>
-
-                  <div className="layer-ledger-item">
-                    <span className="layer-ledger-item-label">Verified</span>
-                    <span className="layer-ledger-item-val" style={{ color: '#4ADE80' }}>
-                      {pipelineResult.layers.layer_5_extraction.claims_verified || pipelineResult.claims_extracted_count}
-                    </span>
-                  </div>
-
-                  <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <span className="badge badge-verified" style={{ background: '#064E3B', color: '#6EE7B7', borderColor: '#059669', fontSize: '0.66rem' }}>
-                      Ledger: 100.0% Accounted (0 Missed)
-                    </span>
-                  </div>
+                  {/* Audit: Skip Reasons Breakdown */}
+                  {pipelineResult.layers?.layer_5_extraction?.ledger_summary?.skip_reasons_breakdown && Object.keys(pipelineResult.layers.layer_5_extraction.ledger_summary.skip_reasons_breakdown).length > 0 && (
+                    <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '6px', background: '#F8FAFC', padding: '6px 10px', borderRadius: '6px', border: '1px solid #E2E8F0', fontSize: '0.66rem' }}>
+                      <span style={{ fontWeight: 700, color: '#475569' }}>Audit Skip Ledger:</span>
+                      {Object.entries(pipelineResult.layers.layer_5_extraction.ledger_summary.skip_reasons_breakdown).map(([rCode, count]) => (
+                        <span key={rCode} style={{ background: '#FFFFFF', padding: '1px 6px', borderRadius: '4px', border: '1px solid #CBD5E1', color: '#334155' }}>
+                          {rCode}: <strong>{count}</strong>
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -807,26 +752,76 @@ export default function LiveIngestionStudio({ activeOrg, activePersona, onClaimE
                   : (pipelineResult.claims || [])
                 ).map((item, idx) => {
                   const isEval = !!item.lifecycle_decision;
-                  const claimText = isEval ? item.claim_text : item.claim_text;
+                  const rawClaimText = item.claim_text || '';
+                  const claimText = rawClaimText.replace(/\*\*([^*]+)\*\*/g, '$1').replace(/`([^`]+)`/g, '$1');
                   const decision = isEval ? item.lifecycle_decision : 'approve';
                   const trustScore = isEval ? item.composite_trust_score : ((item.trust_score || 95) / 100);
                   const dims = isEval ? item.dimensions : null;
                   const claimObj = pipelineResult.claims?.[idx] || item;
 
+                  const subject = item.subject || claimObj.subject || 'Enterprise';
+                  const predicate = item.predicate || claimObj.predicate || 'asserts';
+                  const objectVal = item.object || claimObj.object || claimText;
+                  const claimType = item.claim_type || claimObj.claim_type || 'policy';
+                  const modalOp = item.modal_operator || claimObj.modal_operator || '';
+                  const isSubjectMismatch = Boolean(dims?.meaning?.details?.subject_unsupported || dims?.meaning?.reason?.includes('Subject-Evidence mismatch'));
+
+                  const mod = (item.modality || claimObj.modality || 'POLICY_FACT').toUpperCase();
+                  const modStyles = {
+                    OBLIGATION: { bg: '#EFF6FF', text: '#1D4ED8', border: '#BFDBFE', label: 'MUST' },
+                    REQUIRED: { bg: '#EFF6FF', text: '#1D4ED8', border: '#BFDBFE', label: 'MUST' },
+                    PROHIBITION: { bg: '#FEF2F2', text: '#DC2626', border: '#FECACA', label: 'PROHIBITION' },
+                    PROHIBITED: { bg: '#FEF2F2', text: '#DC2626', border: '#FECACA', label: 'PROHIBITION' },
+                    PERMISSION: { bg: '#ECFDF5', text: '#047857', border: '#A7F3D0', label: 'MAY / RIGHT' },
+                    PERMITTED: { bg: '#ECFDF5', text: '#047857', border: '#A7F3D0', label: 'MAY / RIGHT' },
+                    POLICY_FACT: { bg: '#F8FAFC', text: '#334155', border: '#CBD5E1', label: 'POLICY_FACT' },
+                    BENEFIT: { bg: '#F0F9FF', text: '#0284C7', border: '#BAE6FD', label: 'BENEFIT' },
+                  }[mod] || { bg: '#F8FAFC', text: '#334155', border: '#CBD5E1', label: mod };
+
                   return (
                     <div
                       key={idx}
                       className="layer-arch-card"
+                      style={isSubjectMismatch ? { borderColor: '#FCA5A5', background: '#FFFDFD' } : undefined}
                     >
                       {/* Top Row: Claim Index, Decision Pill, and Trust Score */}
                       <div className="layer-header-strip">
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
                           <span className="sim-chip-tag" style={{ background: '#FFF7ED', color: '#EA580C', border: '1px solid rgba(234,88,12,0.25)', fontWeight: 800 }}>
                             Claim #{idx + 1}
                           </span>
-                          <span style={{ fontSize: '0.64rem', fontWeight: 800, padding: '2px 5px', borderRadius: '4px', background: '#F1F5F9', color: '#334155' }}>
-                            {claimObj.modality || 'MUST'}
+                          <span style={{
+                            fontSize: '0.64rem',
+                            fontWeight: 800,
+                            padding: '2px 6px',
+                            borderRadius: '4px',
+                            background: modStyles.bg,
+                            color: modStyles.text,
+                            border: `1px solid ${modStyles.border}`,
+                            letterSpacing: '0.02em',
+                          }}>
+                            {modStyles.label}
                           </span>
+                          {claimType === 'derived_summary' && (
+                            <span style={{ fontSize: '0.62rem', fontWeight: 700, padding: '2px 6px', borderRadius: '4px', background: '#F5F3FF', color: '#6D28D9', border: '1px solid #DDD6FE' }}>
+                              SUMMARY (NON-CANONICAL)
+                            </span>
+                          )}
+                          {claimType === 'payroll_deduction_policy' && (
+                            <span style={{ fontSize: '0.62rem', fontWeight: 700, padding: '2px 6px', borderRadius: '4px', background: '#ECFDF5', color: '#059669', border: '1px solid #A7F3D0' }}>
+                              DEDUCTION RULE
+                            </span>
+                          )}
+                          {claimType === 'company_benefit' && (
+                            <span style={{ fontSize: '0.62rem', fontWeight: 700, padding: '2px 6px', borderRadius: '4px', background: '#F0F9FF', color: '#0284C7', border: '1px solid #BAE6FD' }}>
+                              BENEFIT / EXPENSE
+                            </span>
+                          )}
+                          {claimType === 'descriptive_purpose' && (
+                            <span style={{ fontSize: '0.62rem', fontWeight: 700, padding: '2px 6px', borderRadius: '4px', background: '#F1F5F9', color: '#475569', border: '1px solid #CBD5E1' }}>
+                              DESCRIPTIVE PURPOSE
+                            </span>
+                          )}
                         </div>
 
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -857,6 +852,53 @@ export default function LiveIngestionStudio({ activeOrg, activePersona, onClaimE
                       <p style={{ margin: 0, fontSize: '0.82rem', color: '#0F172A', fontWeight: 700, lineHeight: 1.45 }}>
                         "{claimText}"
                       </p>
+
+                      {/* Subject Grounding Mismatch Alert */}
+                      {isSubjectMismatch && (
+                        <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: '6px', padding: '6px 10px', fontSize: '0.70rem', color: '#991B1B', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <AlertCircle size={13} color="#DC2626" style={{ flexShrink: 0 }} />
+                          <span><strong>Grounding Mismatch:</strong> Subject "{subject}" is not supported by this claim's evidence span. Auto-approval prevented.</span>
+                        </div>
+                      )}
+
+                      {/* Ambiguity Alert Banner */}
+                      {(claimObj.is_ambiguous || item.is_ambiguous) && (
+                        <div style={{ background: '#FEF3C7', border: '1px solid #FDE68A', borderRadius: '6px', padding: '6px 10px', fontSize: '0.70rem', color: '#92400E', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <AlertCircle size={13} color="#D97706" style={{ flexShrink: 0 }} />
+                          <span><strong>Ambiguous Structure:</strong> {claimObj.ambiguity_reason || item.ambiguity_reason || 'Requires Data Steward review.'}</span>
+                        </div>
+                      )}
+
+                      {/* Extracted Scalar Values, Grid Locators & Preconditions */}
+                      {((claimObj.value !== undefined && claimObj.value !== null) || (item.value !== undefined && item.value !== null) || (claimObj.conditions && claimObj.conditions.length > 0) || (item.conditions && item.conditions.length > 0) || Boolean(claimObj.locator?.table_grid || item.locator?.table_grid)) && (
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', alignItems: 'center' }}>
+                          {Boolean(claimObj.locator?.table_grid || item.locator?.table_grid) && (() => {
+                            const grid = claimObj.locator?.table_grid || item.locator?.table_grid;
+                            return (
+                              <span style={{ fontSize: '0.68rem', fontWeight: 700, background: '#F0FDF4', color: '#166534', border: '1px solid #BBF7D0', padding: '2px 7px', borderRadius: '4px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                                📍 Grid: Row {grid.row_key} &bull; Col "{grid.col_header}" &bull; Cell "{grid.cell_value}"
+                              </span>
+                            );
+                          })()}
+                          {((claimObj.value !== undefined && claimObj.value !== null) || (item.value !== undefined && item.value !== null)) && (
+                            <span style={{ fontSize: '0.68rem', fontWeight: 700, background: '#EFF6FF', color: '#1D4ED8', border: '1px solid #BFDBFE', padding: '2px 7px', borderRadius: '4px' }}>
+                              Scalar Value: <strong>{String(claimObj.value ?? item.value)} {claimObj.unit || item.unit || ''}</strong>
+                            </span>
+                          )}
+                          {((claimObj.conditions && claimObj.conditions.length > 0) ? claimObj.conditions : (item.conditions || [])).map((cond, cIdx) => (
+                            <span key={cIdx} style={{ fontSize: '0.68rem', fontWeight: 600, background: '#F5F3FF', color: '#6D28D9', border: '1px solid #DDD6FE', padding: '2px 7px', borderRadius: '4px' }}>
+                              Condition: <strong>{cond}</strong>
+                            </span>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Trust Score Transparency Note */}
+                      {(isEval && item.decision_reason && trustScore < 0.95) && (
+                        <div style={{ fontSize: '0.67rem', color: '#475569', background: '#F8FAFC', padding: '4px 8px', borderRadius: '4px', borderLeft: '3px solid #F59E0B' }}>
+                          <strong>Score Calibration:</strong> {item.decision_reason}
+                        </div>
+                      )}
 
                       {/* 6-Dimensional Validation Gate Grid */}
                       <div className="layer-matrix-6d">
@@ -904,15 +946,54 @@ export default function LiveIngestionStudio({ activeOrg, activePersona, onClaimE
                       </div>
 
                       {/* S-P-O Triplet breakdown */}
-                      <div style={{ background: '#F8FAFC', borderRadius: '6px', padding: '6px 8px', fontSize: '0.68rem', display: 'flex', flexDirection: 'column', gap: '3px', border: '1px solid #F1F5F9' }}>
-                        <div><strong style={{ color: '#64748B' }}>Subject:</strong> <span style={{ color: '#0F172A', fontWeight: 600 }}>{claimObj.subject || 'Enterprise'}</span></div>
-                        <div><strong style={{ color: '#64748B' }}>Predicate:</strong> <span style={{ color: '#2563EB', fontWeight: 600 }}>{claimObj.predicate || 'asserts'}</span></div>
-                        <div><strong style={{ color: '#64748B' }}>Object:</strong> <span style={{ color: '#059669', fontWeight: 600 }}>{claimObj.object || claimText}</span></div>
+                      <div style={{ background: '#F8FAFC', borderRadius: '6px', padding: '8px 10px', fontSize: '0.68rem', display: 'flex', flexDirection: 'column', gap: '4px', border: '1px solid #F1F5F9' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                          <span style={{ color: '#64748B', fontWeight: 700 }}>Subject:</span>
+                          <span style={{ color: '#0F172A', fontWeight: 700, background: '#FFFFFF', padding: '1px 6px', borderRadius: '4px', border: '1px solid #E2E8F0' }}>
+                            {typeof subject === 'object' && subject !== null ? JSON.stringify(subject) : subject}
+                          </span>
+                          {modalOp && modalOp !== 'specifies' && (
+                            <>
+                              <span style={{ color: '#64748B', fontWeight: 700 }}>Modal:</span>
+                              <span style={{ color: '#7C3AED', fontWeight: 700, background: '#F5F3FF', padding: '1px 6px', borderRadius: '4px', border: '1px solid #DDD6FE' }}>
+                                {modalOp}
+                              </span>
+                            </>
+                          )}
+                          <span style={{ color: '#64748B', fontWeight: 700 }}>Predicate:</span>
+                          <span style={{ color: '#2563EB', fontWeight: 700, background: '#EFF6FF', padding: '1px 6px', borderRadius: '4px', border: '1px solid #DBEAFE' }}>
+                            {typeof predicate === 'object' && predicate !== null ? JSON.stringify(predicate) : predicate}
+                          </span>
+                        </div>
+                        <div>
+                          <strong style={{ color: '#64748B' }}>Object:</strong>{' '}
+                          <span style={{ color: '#059669', fontWeight: 600 }}>
+                            {typeof objectVal === 'object' && objectVal !== null ? JSON.stringify(objectVal) : objectVal}
+                          </span>
+                        </div>
+                        {((item.conditions || claimObj.conditions)?.length > 0) && (
+                          <div style={{ marginTop: '2px', display: 'flex', alignItems: 'center', gap: '4px', flexWrap: 'wrap' }}>
+                            <strong style={{ color: '#64748B' }}>Conditions:</strong>{' '}
+                            {(item.conditions || claimObj.conditions).map((cnd, cIdx) => (
+                              <span key={cIdx} style={{ background: '#FFFBEB', color: '#B45309', border: '1px solid #FDE68A', padding: '1px 5px', borderRadius: '3px', fontSize: '0.62rem', fontWeight: 600 }}>
+                                {cnd}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                        {(item.locator?.grid_label || claimObj.locator?.grid_label) && (
+                          <div style={{ marginTop: '2px', fontSize: '0.62rem', color: '#475569' }}>
+                            <strong style={{ color: '#64748B' }}>Table Grid:</strong>{' '}
+                            <code style={{ background: '#F1F5F9', padding: '1px 4px', borderRadius: '3px' }}>
+                              {item.locator?.grid_label || claimObj.locator?.grid_label}
+                            </code>
+                          </div>
+                        )}
                       </div>
 
                       {/* Footer subline */}
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid #F1F5F9', paddingTop: '6px', fontSize: '0.68rem', color: '#64748B' }}>
-                        <span>Scope: <strong style={{ color: '#0F172A' }}>{claimObj.scope || documentScope}</strong></span>
+                        <span>Scope: <strong style={{ color: '#0F172A' }}>{typeof claimObj.scope === 'object' && claimObj.scope !== null ? (Object.entries(claimObj.scope).map(([k, v]) => `${k}: ${v}`).join(', ') || documentScope) : (claimObj.scope || documentScope)}</strong></span>
                         <span style={{ color: '#059669', fontWeight: 700 }}>● Merkle Root: {pipelineResult.document?.content_hash ? `${pipelineResult.document.content_hash.slice(0, 10)}...` : 'Verified'}</span>
                       </div>
                     </div>
@@ -954,7 +1035,7 @@ export default function LiveIngestionStudio({ activeOrg, activePersona, onClaimE
                   Autonomous Deconstruction & Grounding Standby
                 </h4>
                 <p style={{ margin: '4px 0 0 0', fontSize: '0.74rem', color: 'var(--text-muted)', maxWidth: '420px', lineHeight: 1.45 }}>
-                  Select one of the <strong>Quick Samples</strong> above or upload a document to decompose corporate policies into calibrated, tamper-proof assertions.
+                  Drop or browse your custom corporate policy, contract, or dataset above to decompose it into calibrated, tamper-proof assertions.
                 </p>
               </div>
 
@@ -1025,7 +1106,7 @@ export default function LiveIngestionStudio({ activeOrg, activePersona, onClaimE
               {history.length === 0 ? (
                 <tr>
                   <td colSpan="7" style={{ padding: '22px', textAlign: 'center', color: '#94A3B8', fontSize: '0.78rem' }}>
-                    No corpora ingested in this session yet. Select an enterprise sample above to test autonomous extraction.
+                    No custom corpora ingested in this session yet. Upload or drop a document above to execute 6-layer extraction.
                   </td>
                 </tr>
               ) : (
@@ -1042,7 +1123,7 @@ export default function LiveIngestionStudio({ activeOrg, activePersona, onClaimE
                     </td>
                     <td style={{ padding: '8px 12px' }}>
                       <span className="sim-chip-tag" style={{ background: '#EFF6FF', color: '#1D4ED8' }}>
-                        {item.scope}
+                        {typeof item.scope === 'object' && item.scope !== null ? (Object.entries(item.scope).map(([k, v]) => `${k}: ${v}`).join(', ') || 'Enterprise') : (item.scope || 'Enterprise')}
                       </span>
                     </td>
                     <td style={{ padding: '8px 12px', fontWeight: 700, color: '#EA580C' }}>

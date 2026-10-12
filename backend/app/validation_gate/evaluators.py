@@ -61,7 +61,7 @@ class SourceMatchEvaluator:
 
 
 class CompletenessEvaluator:
-    """Evaluates syntactic and attribute completeness of the extracted claim."""
+    """Evaluates syntactic, attribute, and condition completeness of the extracted claim."""
 
     @staticmethod
     def evaluate(candidate: CandidateClaim) -> DimensionEvaluation:
@@ -69,18 +69,39 @@ class CompletenessEvaluator:
         pred = (candidate.predicate or "").strip()
         obj = (candidate.object or "").strip()
         span = (candidate.evidence_text_span or "").strip()
+        is_ambiguous = getattr(candidate, "is_ambiguous", False)
+        ambiguity_reason = getattr(candidate, "ambiguity_reason", None)
 
         has_spo = bool(subj and pred and obj)
         has_evidence = bool(span)
 
+        if is_ambiguous:
+            return DimensionEvaluation(
+                dimension_name="completeness",
+                status=CompletenessStatus.PARTIAL.value,
+                score=0.7,
+                passed=False,
+                reason=f"Ambiguous structure or cell mapping: {ambiguity_reason or 'Mapping requires review'}.",
+                details={"subject": subj, "predicate": pred, "object": obj, "is_ambiguous": True},
+            )
+
         if has_spo and has_evidence:
+            details_dict: dict[str, Any] = {"subject": subj, "predicate": pred, "object": obj}
+            if getattr(candidate, "conditions", None):
+                details_dict["conditions"] = candidate.conditions
+            if getattr(candidate, "value", None) is not None:
+                details_dict["value"] = candidate.value
+                details_dict["unit"] = getattr(candidate, "unit", None)
+            if getattr(candidate, "scope", None):
+                details_dict["scope"] = candidate.scope
+
             return DimensionEvaluation(
                 dimension_name="completeness",
                 status=CompletenessStatus.COMPLETE.value,
                 score=1.0,
                 passed=True,
-                reason="Subject-Predicate-Object semantics and evidence coordinates are 100% complete.",
-                details={"subject": subj, "predicate": pred, "object": obj},
+                reason="Subject-Predicate-Object semantics, conditions, and evidence coordinates are 100% complete.",
+                details=details_dict,
             )
         else:
             missing = []
@@ -100,29 +121,77 @@ class CompletenessEvaluator:
 
 
 class MeaningEvaluator:
-    """Evaluates semantic clarity, confidence, and absence of speculative hedges."""
+    """Evaluates semantic clarity, deontic consistency, confidence, and absence of speculative hedges."""
 
     # Words signaling uncertainty or hedges
     UNCERTAIN_HEDGES = re.compile(r"\b(might|maybe|possibly|perhaps|unclear|tentative|assumed|unconfirmed)\b", re.IGNORECASE)
+    OBLIGATION_EVIDENCE = re.compile(r"\b(must|shall|required|requires|mandates?|mandatory|obligated|has to|have to|return)\b", re.IGNORECASE)
+    PROHIBITION_EVIDENCE = re.compile(r"\b(prohibited|shall not|must not|forbidden|strictly prohibited|unauthorized\s+.*?\s+prohibited)\b", re.IGNORECASE)
 
     @classmethod
     def evaluate(cls, candidate: CandidateClaim) -> DimensionEvaluation:
         text = candidate.claim_text or ""
+        evidence = candidate.evidence_text_span or ""
         confidence = candidate.confidence
+        modality = getattr(candidate, "modality", "POLICY_FACT")
 
         has_hedge = bool(cls.UNCERTAIN_HEDGES.search(text))
 
-        if not has_hedge and confidence >= 0.80:
+        # 1. Subject-Evidence Grounding Validation
+        # The asserted subject must be semantically grounded in the claim's own evidence span
+        subj_words = [
+            w.lower()
+            for w in re.findall(r"[a-zA-Z]{3,}", candidate.subject or "")
+            if w.lower() not in {"the", "and", "for", "with", "all", "per", "from", "any", "upon", "under", "into"}
+        ]
+        ev_lower = evidence.lower()
+        has_table_grid = bool(getattr(candidate, "locator", {}) and candidate.locator.get("table_grid"))
+        is_derived_summary = bool(getattr(candidate, "claim_type", "") == "derived_summary")
+        from app.extraction.models import ExtractionStrategyType
+        is_structured_schema = bool(getattr(candidate, "extraction_strategy", None) == ExtractionStrategyType.DETERMINISTIC_SCHEMA)
+
+        if subj_words and not has_table_grid and not is_derived_summary and not is_structured_schema:
+            matched_subj = any(w in ev_lower for w in subj_words)
+            # Allow general policy/governance meta subjects if evidence mentions policy/guideline
+            is_doc_meta_subj = any(w in {"policy", "governance", "document"} for w in subj_words) and ("policy" in ev_lower or "guideline" in ev_lower)
+            if not matched_subj and not is_doc_meta_subj:
+                return DimensionEvaluation(
+                    dimension_name="meaning",
+                    status=MeaningStatus.UNSUPPORTED.value,
+                    score=0.20,
+                    passed=False,
+                    reason=f"Subject-Evidence mismatch: asserted subject '{candidate.subject}' has no grounding in the underlying evidence span.",
+                    details={"subject": candidate.subject, "evidence": evidence[:120], "subject_unsupported": True},
+                )
+
+        # 2. Deontic consistency verification against evidence text
+        deontic_mismatch = False
+        if modality == "OBLIGATION" and not cls.OBLIGATION_EVIDENCE.search(evidence):
+            deontic_mismatch = True
+        elif modality == "PROHIBITION" and not cls.PROHIBITION_EVIDENCE.search(evidence):
+            deontic_mismatch = True
+
+        if deontic_mismatch:
+            return DimensionEvaluation(
+                dimension_name="meaning",
+                status=MeaningStatus.UNCERTAIN.value,
+                score=0.72,
+                passed=False,
+                reason=f"Deontic mismatch: claim claims {modality} but underlying source evidence lacks normative imperative verbs.",
+                details={"confidence": confidence, "modality": modality, "deontic_mismatch": True},
+            )
+
+        if not has_hedge and confidence >= 0.88:
             return DimensionEvaluation(
                 dimension_name="meaning",
                 status=MeaningStatus.SUPPORTED.value,
                 score=round(confidence, 4),
                 passed=True,
-                reason="Clear normative assertion with strong grounding confidence.",
-                details={"confidence": confidence},
+                reason="Clear assertion with verified deontic alignment and strong grounding confidence.",
+                details={"confidence": confidence, "modality": modality},
             )
         else:
-            reason = "Speculative language or uncertainty detected." if has_hedge else f"Low semantic confidence ({confidence*100:.0f}%)."
+            reason = "Speculative language or uncertainty detected." if has_hedge else f"Sub-threshold semantic confidence ({confidence*100:.0f}% < 88%)."
             return DimensionEvaluation(
                 dimension_name="meaning",
                 status=MeaningStatus.UNCERTAIN.value,

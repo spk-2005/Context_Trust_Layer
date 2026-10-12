@@ -129,29 +129,114 @@ class DeterministicSchemaExtractor:
         # 3. Structured Table Matrix Row
         elif b_type == "table_row":
             cols = s_data.get("columns", {})
+            is_ambiguous = s_data.get("is_ambiguous", False)
+            ambiguity_reason = s_data.get("ambiguity_reason")
+
             if cols:
-                # E.g. Role: Developer, Access Tier: Staging, Approval: Team Lead
-                primary_key_col = list(cols.keys())[0]
-                primary_val = cols[primary_key_col]
-                subject = f"{primary_key_col}: {primary_val}"
+                col_keys = list(cols.keys())
+                col_keys_lower = [str(k).lower().strip() for k in col_keys]
+
+                # Safety check: skip metadata tables if they reached here
+                if (any("ver" in k or "revision" in k for k in col_keys_lower) and any("date" in k or "description" in k for k in col_keys_lower)):
+                    return claims
+                if (any("section" in k for k in col_keys_lower) and any("title" in k for k in col_keys_lower)):
+                    return claims
+                if (any("role" in k or "sign" in k for k in col_keys_lower) and any("name" in k or "designation" in k for k in col_keys_lower)):
+                    return claims
+
+                from app.extraction.deontic_classifier import DeonticClassifier
+
+                # Separate scoping/identifier keys from rule/value keys
+                scope_keywords = ("level", "grade", "group", "role", "tier", "department", "category", "scope")
+                scope_keys = [k for k in col_keys if any(sk in k.lower() for sk in scope_keywords)]
                 
-                for k, v in list(cols.items())[1:]:
-                    claim_text = f"`{subject}` specifies `{k}` as `{v}`."
+                # If no explicit scope keyword, use the first column as primary key
+                if not scope_keys:
+                    scope_keys = [col_keys[0]]
+
+                # Build scope dictionary and combined subject
+                scope_dict = {k: cols[k] for k in scope_keys}
+                rule_keys = [k for k in col_keys if k not in scope_keys]
+                # If all columns were considered scope keys, fall back to last column as rule
+                if not rule_keys and len(col_keys) > 1:
+                    rule_keys = [col_keys[-1]]
+                    scope_keys = col_keys[:-1]
+                    scope_dict = {k: cols[k] for k in scope_keys}
+
+                import re
+                for k in rule_keys:
+                    v = cols[k]
+                    val_str = str(v).strip()
+                    clean_val = DeonticClassifier.strip_markdown(val_str)
+                    
+                    # Extract scalar number and unit if applicable
+                    scalar_val = clean_val
+                    unit_val = None
+                    num_match = re.search(r"^(\d+(?:\.\d+)?)\s*([a-zA-Z%]+)?$", clean_val)
+                    if num_match:
+                        try:
+                            scalar_val = float(num_match.group(1)) if "." in num_match.group(1) else int(num_match.group(1))
+                        except ValueError:
+                            scalar_val = num_match.group(1)
+                        unit_val = num_match.group(2)
+
+                    # Extract condition if column header reflects conditionality
+                    conditions = []
+                    k_lower = k.lower()
+                    if "probation" in k_lower:
+                        conditions.append("Probationary status")
+                    elif "confirmed" in k_lower:
+                        conditions.append("Confirmed status")
+                    elif "exemption" in k_lower:
+                        conditions.append("Exemption criteria")
+
+                    normalized = DeonticClassifier.normalize_table_policy_claim(
+                        scope_dict=scope_dict,
+                        rule_key=k,
+                        rule_value=val_str,
+                        conditions=conditions,
+                    )
+
+                    # Build exact grid coordinates for verifiable grounding (NIST AI RMF)
+                    grid_key = DeonticClassifier.strip_markdown(str(cols.get(scope_keys[0], "")))
+                    grid_coordinates = {
+                        "table_type": "policy_matrix",
+                        "row_key": grid_key,
+                        "row_scope": scope_dict,
+                        "col_header": k,
+                        "cell_value": clean_val,
+                        "unit": unit_val,
+                        "table_start_line": loc.get("table_start_line"),
+                        "row_line": loc.get("line_start"),
+                    }
+                    enhanced_locator = {
+                        **loc,
+                        "table_grid": grid_coordinates,
+                        "grid_label": f"Row '{grid_key}' • Col '{k}' • Cell '{clean_val}'",
+                    }
+
                     c = CandidateClaim.create(
                         envelope_id=unit.envelope_id,
                         unit_id=unit.unit_id,
                         asset_id=unit.asset_id,
-                        claim_text=claim_text,
-                        subject=subject,
-                        predicate=f"requires_{k.lower().replace(' ', '_')}",
-                        object_=str(v),
-                        evidence_text_span=f"{primary_val} | {k}: {v}",
-                        modal_operator="requires",
+                        claim_text=normalized["claim_text"],
+                        subject=normalized["subject"],
+                        predicate=normalized["predicate"],
+                        object_=normalized["object"],
+                        evidence_text_span=f"{' | '.join([f'{sk}: {cols[sk]}' for sk in scope_keys])} | {k}: {v}",
+                        value=scalar_val,
+                        unit=unit_val,
+                        modal_operator=normalized["modal_operator"],
+                        modality=normalized["modality"],
+                        conditions=normalized.get("conditions", conditions),
+                        scope=scope_dict,
                         claim_type="policy_rule",
-                        extraction_strategy=ExtractionStrategyType.DETERMINISTIC_SCHEMA,
-                        locator=loc,
-                        structured_values={"columns": cols},
-                        confidence=0.98,
+                        extraction_strategy=ExtractionStrategyType.TABLE_AWARE,
+                        locator=enhanced_locator,
+                        structured_values={"columns": cols, "scope": scope_dict, "table_grid": grid_coordinates},
+                        is_ambiguous=is_ambiguous,
+                        ambiguity_reason=ambiguity_reason,
+                        confidence=0.70 if is_ambiguous else 0.98,
                     )
                     claims.append(c)
 

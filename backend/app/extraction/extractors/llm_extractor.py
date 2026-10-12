@@ -46,18 +46,24 @@ class LLMSemanticExtractor:
                     section_content=text,
                 )
                 if extraction_result and extraction_result.claims:
+                    from app.extraction.deontic_classifier import DeonticClassifier
                     for idx, c in enumerate(extraction_result.claims):
                         evidence_span = c.evidence.exact_quote if c.evidence else text
+                        modality, modal_op, is_decision_eligible = DeonticClassifier.classify_text(c.claim_text)
+                        if not is_decision_eligible or modality == "DESCRIPTIVE":
+                            continue
+
                         cand = CandidateClaim.create(
                             envelope_id=unit.envelope_id,
                             unit_id=unit.unit_id,
                             asset_id=unit.asset_id,
-                            claim_text=c.claim_text,
-                            subject=c.subject or doc_title,
+                            claim_text=DeonticClassifier.strip_markdown(c.claim_text),
+                            subject=DeonticClassifier.strip_markdown(c.subject or doc_title),
                             predicate=c.predicate or "specifies",
-                            object_=c.object or c.claim_text,
+                            object_=DeonticClassifier.strip_markdown(c.object or c.claim_text),
                             evidence_text_span=evidence_span,
-                            modal_operator="requires",
+                            modal_operator=modal_op,
+                            modality=modality,
                             claim_type=c.claim_type or "policy",
                             extraction_strategy=ExtractionStrategyType.LLM_SEMANTIC,
                             locator=unit.locator,

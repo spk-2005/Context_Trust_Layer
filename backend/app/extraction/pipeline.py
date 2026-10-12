@@ -10,7 +10,7 @@ from typing import Any, List
 
 from app.extraction.candidate_discovery import CandidateDiscoveryEngine
 from app.extraction.completeness_ledger import CompletenessLedger
-from app.extraction.models import CandidateClaim, Layer5ExtractionResult
+from app.extraction.models import CandidateClaim, Layer5ExtractionResult, UnitOutcome
 from app.extraction.plugins import VerificationPluginManager
 from app.extraction.strategy_router import StrategyRouter
 from app.ingestion.envelope import CanonicalSourceEnvelope
@@ -53,6 +53,7 @@ class Layer5ExtractionPipeline:
                     unit_id=unit.unit_id,
                     block_type=unit.block_type,
                     candidate_status="skipped",
+                    outcome=UnitOutcome.SKIPPED_WITH_REASON,
                     extractor_used="none",
                     failure_reason=reason,
                 )
@@ -69,6 +70,7 @@ class Layer5ExtractionPipeline:
                     unit_id=unit.unit_id,
                     block_type=unit.block_type,
                     candidate_status="failed",
+                    outcome=UnitOutcome.FAILED_RETRYABLE,
                     extractor_used=strategy.value,
                     failure_reason=str(e),
                 )
@@ -101,11 +103,26 @@ class Layer5ExtractionPipeline:
 
                 all_candidates.append(claim)
 
-            # Record in Completeness Ledger
+            # Record in Completeness Ledger with 6 explicit states
+            if not extracted_claims:
+                outcome = UnitOutcome.PROCESSED_NO_CLAIMS
+                status_str = "no_claims"
+            elif any(getattr(c, "is_ambiguous", False) for c in extracted_claims):
+                outcome = UnitOutcome.NEEDS_REVIEW
+                status_str = "needs_review"
+                unit_failure_reason = "Ambiguous cell or layout structure flagged for review"
+            elif unit_verified_all:
+                outcome = UnitOutcome.PROCESSED_WITH_CLAIMS
+                status_str = "verified"
+            else:
+                outcome = UnitOutcome.PROCESSED_WITH_CLAIMS
+                status_str = "extracted"
+
             ledger.record_entry(
                 unit_id=unit.unit_id,
                 block_type=unit.block_type,
-                candidate_status="verified" if unit_verified_all and extracted_claims else ("extracted" if extracted_claims else "no_claims"),
+                candidate_status=status_str,
+                outcome=outcome,
                 extractor_used=strategy.value,
                 verification_plugin=extracted_claims[0].verification_plugin if extracted_claims else None,
                 verification_passed=unit_verified_all and bool(extracted_claims),

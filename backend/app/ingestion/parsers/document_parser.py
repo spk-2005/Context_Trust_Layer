@@ -117,12 +117,37 @@ class DocumentParser:
                     table_headers = row_cells
                     table_start_char = line_start_char
                     table_start_line = line_num
+
+                    # Classify table semantic type from headers
+                    clean_hdrs = [h.lower().strip() for h in table_headers]
+                    is_rev = any("ver" in h or "revision" in h for h in clean_hdrs) and any("date" in h or "description" in h or "approv" in h for h in clean_hdrs)
+                    is_toc = any("section" in h for h in clean_hdrs) and any("title" in h or "topic" in h for h in clean_hdrs)
+                    is_sign = any("role" in h or "sign" in h for h in clean_hdrs) and any("name" in h or "designation" in h for h in clean_hdrs)
+
+                    if is_rev:
+                        table_semantic_type = "revision_history"
+                    elif is_toc:
+                        table_semantic_type = "table_of_contents"
+                    elif is_sign:
+                        table_semantic_type = "approver_signoff"
+                    else:
+                        table_semantic_type = "policy_matrix"
                 else:
                     # Data row
                     row_dict = {}
+                    is_ambiguous = len(row_cells) != len(table_headers)
+                    ambiguity_reason = "Table row cell count does not match header count" if is_ambiguous else None
+
                     for idx, cell_val in enumerate(row_cells):
                         col_name = table_headers[idx] if idx < len(table_headers) else f"col_{idx+1}"
                         row_dict[col_name] = cell_val
+                        # Check for merged cell or undefined scope indicator
+                        clean_lower = cell_val.lower().strip("[]() ")
+                        if any(kw in clean_lower for kw in ("merged", "spanned", "ditto", "as above", "same as")) or clean_lower in ("^", '""', '"'):
+                            is_ambiguous = True
+                            ambiguity_reason = f"Cell in column '{col_name}' contains merged or spanned indicator '{cell_val}'"
+                        elif is_ambiguous and idx >= len(table_headers):
+                            ambiguity_reason = f"Cell in column '{col_name}' exceeds table header count"
 
                     context = [h[1] for h in breadcrumb_stack]
                     row_text = " | ".join(f"{k}: {v}" for k, v in row_dict.items())
@@ -132,17 +157,28 @@ class DocumentParser:
                         asset_id=envelope.asset_id,
                         block_type="table_row",
                         content_text=row_text,
-                        structured_data={"columns": row_dict, "table_headers": table_headers},
+                        structured_data={
+                            "columns": row_dict,
+                            "table_headers": table_headers,
+                            "table_type": table_semantic_type,
+                            "is_ambiguous": is_ambiguous,
+                            "ambiguity_reason": ambiguity_reason,
+                        },
                         locator={
                             "line_start": line_num,
                             "line_end": line_num,
                             "start_char": line_start_char,
                             "end_char": line_end_char,
+                            "table_start_line": table_start_line,
                             **envelope.locator_metadata,
                         },
                         hierarchical_context=context,
                         sequence_index=seq_idx,
-                        metadata={"in_table": True, "table_start_line": table_start_line},
+                        metadata={
+                            "in_table": True,
+                            "table_start_line": table_start_line,
+                            "is_ambiguous": is_ambiguous,
+                        },
                     )
                     units.append(unit)
                     seq_idx += 1

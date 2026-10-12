@@ -2784,8 +2784,8 @@ export default function App() {
                 <div className={`sidebar-accordion-wrapper ${openSidebarMenu === 'vault' ? 'expanded' : ''}`}>
                   <div className="sidebar-accordion-inner">
                     {[
-                      { id: 'documents', label: 'Documents', count: dbDocuments.length },
-                      { id: 'connectors', label: 'Connectors', count: dataSources.length },
+                      { id: 'documents', label: 'Documents', count: displayedDbDocuments.length },
+                      { id: 'connectors', label: 'Connectors', count: displayedDataSources.length },
                       { id: 'conflicts', label: 'Conflicts Registry', count: conflicts.length },
                       { id: 'claims', label: 'Claims and Decisions', count: dbClaims.length },
                       { id: 'dag', label: 'Full Canvas DAG', count: null }
@@ -2831,7 +2831,7 @@ export default function App() {
                           <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                             {sub.label}
                           </span>
-                          {sub.count !== null && sub.count !== undefined && (
+                          {typeof sub.count === 'number' && sub.count > 0 && (
                             <span style={{
                               fontSize: '0.64rem',
                               fontWeight: 600,

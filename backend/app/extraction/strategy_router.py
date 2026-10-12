@@ -32,7 +32,7 @@ class StrategyRouter:
         strategy: ExtractionStrategyType,
     ) -> List[CandidateClaim]:
         """Invokes the selected extractor for a candidate evidence unit."""
-        if strategy == ExtractionStrategyType.DETERMINISTIC_SCHEMA:
+        if strategy in (ExtractionStrategyType.DETERMINISTIC_SCHEMA, ExtractionStrategyType.TABLE_AWARE):
             return DeterministicSchemaExtractor.extract_from_unit(unit)
 
         elif strategy == ExtractionStrategyType.DOMAIN_RULES:

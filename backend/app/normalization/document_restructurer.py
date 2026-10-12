@@ -137,7 +137,7 @@ class DocumentSemanticRestructurer:
                         "- **WFH Allowance Recovery:** Home office allowance will be recovered based on the Home Office Allowance Policy if exit occurs within one year of joining.\n"
                         "- **Excess Leave Recovery:** Recovery will be made for any excess leaves taken beyond the allotted annual quota.\n"
                         "- **Short Notice Adjustment:** If the employee does not serve the full notice period, the company holds the right to recover the amount equivalent to the unserved short notice period.\n"
-                        "- **Joining Bonus:** Joining bonus recovery will be enforced as per the terms specified in the employee's formal offer letter.\n"
+                        "- **Joining Bonus:** Joining Bonus recovery will be as per the terms mentioned in the offer letter.\n"
                         "- **Statutory Deductions:** Mandatory EPF (Employee Provident Fund) and VPF (Voluntary Provident Fund) deductions will be made and deposited into the employee's account.\n\n"
                         "## 4. Reference and/or Documentation\n\n"
                         "This policy operates in conjunction with related Wingify enterprise governance documents:\n\n"

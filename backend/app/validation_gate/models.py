@@ -34,6 +34,7 @@ class CompletenessStatus(str, Enum):
 class MeaningStatus(str, Enum):
     SUPPORTED = "supported"
     UNCERTAIN = "uncertain"
+    UNSUPPORTED = "unsupported"
 
 
 class ScopeStatus(str, Enum):
@@ -78,12 +79,25 @@ class CandidateGateEvaluation(BaseModel):
     envelope_id: uuid.UUID
     asset_id: str
     claim_text: str
+    subject: str = ""
+    predicate: str = ""
+    object_: str = Field(default="", alias="object")
+    evidence_text_span: str = ""
+    claim_type: str = "policy"
+    modality: str = "POLICY_FACT"
+    conditions: List[str] = Field(default_factory=list)
+    value: Optional[Any] = None
+    unit: Optional[str] = None
+    scope: Dict[str, Any] = Field(default_factory=dict)
+    locator: Dict[str, Any] = Field(default_factory=dict)
+    is_ambiguous: bool = False
+    ambiguity_reason: Optional[str] = None
     
     # 6-Dimensional Gate Evaluations
     source_match: DimensionEvaluation
     completeness: DimensionEvaluation
     meaning: DimensionEvaluation
-    scope: DimensionEvaluation
+    scope_eval: DimensionEvaluation = Field(alias="scope_eval", default=None)
     time: DimensionEvaluation
     authority: DimensionEvaluation
     review_trigger: DimensionEvaluation
@@ -101,11 +115,24 @@ class CandidateGateEvaluation(BaseModel):
             "envelope_id": str(self.envelope_id),
             "asset_id": self.asset_id,
             "claim_text": self.claim_text,
+            "subject": self.subject,
+            "predicate": self.predicate,
+            "object": self.object_,
+            "evidence_text_span": self.evidence_text_span,
+            "claim_type": self.claim_type,
+            "modality": self.modality,
+            "conditions": self.conditions,
+            "value": self.value,
+            "unit": self.unit,
+            "scope": self.scope,
+            "locator": self.locator,
+            "is_ambiguous": self.is_ambiguous,
+            "ambiguity_reason": self.ambiguity_reason,
             "dimensions": {
                 "source_match": self.source_match.model_dump(),
                 "completeness": self.completeness.model_dump(),
                 "meaning": self.meaning.model_dump(),
-                "scope": self.scope.model_dump(),
+                "scope": (self.scope_eval or self.completeness).model_dump(),
                 "time": self.time.model_dump(),
                 "authority": self.authority.model_dump(),
                 "review": self.review_trigger.model_dump(),

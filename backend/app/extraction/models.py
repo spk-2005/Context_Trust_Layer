@@ -21,12 +21,23 @@ class ExtractionStrategyType(str, Enum):
     DETERMINISTIC_SCHEMA = "deterministic_schema"  # Zero-hallucination structured DB & BSON extractor
     LLM_SEMANTIC = "llm_semantic"                  # Semantic extractor for narrative prose & policies
     DOMAIN_RULES = "domain_rules"                  # Regex & pattern-based extractor for enterprise standards
+    TABLE_AWARE = "table_aware"                    # Table grid extractor with cell, row, and column binding
+
+
+class UnitOutcome(str, Enum):
+    """The 6 explicit audit outcomes for every evidence unit passing through Layer 5."""
+    PROCESSED_WITH_CLAIMS = "processed_with_claims"  # Successfully generated 1+ grounded atomic assertions
+    PROCESSED_NO_CLAIMS   = "processed_no_claims"    # Examined thoroughly, verified purely descriptive without constraints
+    SKIPPED_WITH_REASON   = "skipped_with_reason"    # Structural header, boilerplate, or out-of-scope element with reason
+    NEEDS_REVIEW          = "needs_review"           # Ambiguous layout (e.g. merged cells or uncertain scope)
+    FAILED_RETRYABLE      = "failed_retryable"       # Transient execution failure eligible for retry with alternate parser
+    FAILED_TERMINAL       = "failed_terminal"        # Unrecoverable parsing error (e.g. corrupted binary encoding)
 
 
 class CandidateClaim(BaseModel):
     """
     An atomic claim candidate identified from an evidence unit.
-    Preserves subject-predicate-object structure, exact quote locators, and verification state.
+    Preserves subject-predicate-object structure, exact quote locators, conditions, scope, and verification state.
     """
     candidate_id: str = Field(..., description="Deterministic unique identifier for this candidate")
     envelope_id: uuid.UUID = Field(..., description="Parent Layer 3 CanonicalSourceEnvelope identifier")
@@ -38,7 +49,12 @@ class CandidateClaim(BaseModel):
     subject: str = Field(..., description="Entity or component governed by the claim")
     predicate: str = Field(..., description="Relationship or modal action (e.g. requires, enforces, is)")
     object: str = Field(..., description="Constraint, target value, or property")
+    value: Optional[Any] = Field(default=None, description="Extracted numerical or quantitative scalar value (e.g. 60)")
+    unit: Optional[str] = Field(default=None, description="Unit of measurement (e.g. days, hours, %)")
     modal_operator: Optional[str] = Field(default=None, description="Normative modal operator (must, shall, prohibited, required)")
+    modality: str = Field(default="REQUIRED", description="Standardized normative modality: REQUIRED, PROHIBITED, PERMITTED, RECOMMENDED")
+    conditions: List[str] = Field(default_factory=list, description="Explicit contextual preconditions, triggers, or exceptions")
+    scope: dict[str, Any] = Field(default_factory=dict, description="Target population, grade, jurisdiction, or scope constraints")
     claim_type: str = Field(default="policy", description="Semantic category (policy, invariant, metric, decision)")
     
     # Provenance & Locators
@@ -50,6 +66,8 @@ class CandidateClaim(BaseModel):
     # Verification & Quality
     status: str = Field(default="candidate", description="Validation status (candidate, verified, unverified, rejected)")
     confidence: float = Field(ge=0.0, le=1.0, default=1.0, description="Extraction and verification confidence score")
+    is_ambiguous: bool = Field(default=False, description="Flagged true if cell bindings, scope, or conditions are ambiguous")
+    ambiguity_reason: Optional[str] = Field(default=None, description="Recorded reason for ambiguity or escalation")
     verification_plugin: Optional[str] = Field(default=None, description="Name of plugin that verified this claim")
     verification_details: dict[str, Any] = Field(default_factory=dict, description="Cryptographic check and grounding proof")
     content_hash: str = Field(..., description="SHA-256 hash of the claim semantics and evidence")
@@ -66,15 +84,22 @@ class CandidateClaim(BaseModel):
         predicate: str,
         object_: str,
         evidence_text_span: str,
+        value: Optional[Any] = None,
+        unit: Optional[str] = None,
         modal_operator: Optional[str] = None,
+        modality: str = "REQUIRED",
+        conditions: Optional[List[str]] = None,
+        scope: Optional[dict[str, Any]] = None,
         claim_type: str = "policy",
         extraction_strategy: ExtractionStrategyType = ExtractionStrategyType.DETERMINISTIC_SCHEMA,
         locator: dict[str, Any] | None = None,
         structured_values: dict[str, Any] | None = None,
+        is_ambiguous: bool = False,
+        ambiguity_reason: Optional[str] = None,
         confidence: float = 1.0,
     ) -> CandidateClaim:
         text_clean = claim_text.strip()
-        hash_input = f"{asset_id}:{subject}:{predicate}:{object_}:{evidence_text_span}:{json.dumps(structured_values or {}, sort_keys=True, default=str)}"
+        hash_input = f"{asset_id}:{subject}:{predicate}:{object_}:{value}:{unit}:{evidence_text_span}:{json.dumps(structured_values or {}, sort_keys=True, default=str)}"
         claim_hash = hashlib.sha256(hash_input.encode("utf-8")).hexdigest()
         cand_id = f"cand:{unit_id}:{claim_hash[:10]}"
 
@@ -87,7 +112,12 @@ class CandidateClaim(BaseModel):
             subject=subject.strip(),
             predicate=predicate.strip(),
             object=object_.strip(),
+            value=value,
+            unit=unit,
             modal_operator=modal_operator,
+            modality=modality,
+            conditions=conditions or [],
+            scope=scope or {},
             claim_type=claim_type,
             extraction_strategy=extraction_strategy,
             evidence_text_span=evidence_text_span.strip(),
@@ -95,6 +125,8 @@ class CandidateClaim(BaseModel):
             structured_values=structured_values or {},
             status="candidate",
             confidence=confidence,
+            is_ambiguous=is_ambiguous,
+            ambiguity_reason=ambiguity_reason,
             content_hash=claim_hash,
             extracted_at=datetime.now(timezone.utc),
         )
@@ -108,6 +140,7 @@ class CompletenessLedgerRecord(BaseModel):
     asset_id: str
     block_type: str
     candidate_status: str     # discovered, extracted, verified, rejected, skipped
+    outcome: UnitOutcome = Field(default=UnitOutcome.PROCESSED_WITH_CLAIMS)
     extractor_used: str
     verification_plugin: Optional[str] = None
     verification_passed: bool = False

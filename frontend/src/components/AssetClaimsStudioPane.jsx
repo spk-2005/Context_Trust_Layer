@@ -158,7 +158,7 @@ export default function AssetClaimsStudioPane({
       border: '1px solid #E2E8F0',
       boxSizing: 'border-box'
     }}>
-      {/* 1. TOP HEADER & METRICS BAR */}
+      {/* 1. TOP HEADER */}
       <div style={{
         background: '#FFFFFF',
         border: '1px solid #E2E8F0',
@@ -189,59 +189,23 @@ export default function AssetClaimsStudioPane({
             <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800, color: '#0F172A' }}>
               Extracted Atomic Claims ({totalClaims})
             </h3>
-            <span style={{
-              fontSize: '0.72rem',
-              fontWeight: 700,
-              padding: '2px 8px',
-              borderRadius: '999px',
-              background: metrics.conflicted > 0 ? '#FEF2F2' : '#F0FDF4',
-              color: metrics.conflicted > 0 ? '#DC2626' : '#16A34A',
-              border: `1px solid ${metrics.conflicted > 0 ? '#FCA5A5' : '#BBF7D0'}`
-            }}>
-              {metrics.conflicted > 0 ? `${metrics.conflicted} in conflict` : '100% Consistent'}
-            </span>
+            {metrics.conflicted > 0 && (
+              <span style={{
+                fontSize: '0.72rem',
+                fontWeight: 700,
+                padding: '2px 8px',
+                borderRadius: '999px',
+                background: '#FEF2F2',
+                color: '#DC2626',
+                border: '1px solid #FCA5A5'
+              }}>
+                {metrics.conflicted} in conflict
+              </span>
+            )}
           </div>
           <p style={{ margin: '4px 0 0 36px', fontSize: '0.78rem', color: '#64748B' }}>
             Fine-grained atomic facts extracted by AI from <strong>{asset?.node?.label || 'this asset'}</strong> to govern agent executions.
           </p>
-        </div>
-
-        {/* Telemetry chips */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-          <div style={{
-            background: '#F8FAFC',
-            border: '1px solid #E2E8F0',
-            borderRadius: '6px',
-            padding: '6px 12px',
-            textAlign: 'center'
-          }}>
-            <div style={{ fontSize: '0.66rem', color: '#64748B', fontWeight: 600, textTransform: 'uppercase' }}>Verified Rate</div>
-            <div style={{ fontSize: '0.95rem', fontWeight: 800, color: '#059669' }}>{metrics.verifiedPct}%</div>
-          </div>
-
-          <div style={{
-            background: '#F8FAFC',
-            border: '1px solid #E2E8F0',
-            borderRadius: '6px',
-            padding: '6px 12px',
-            textAlign: 'center'
-          }}>
-            <div style={{ fontSize: '0.66rem', color: '#64748B', fontWeight: 600, textTransform: 'uppercase' }}>Avg Trust</div>
-            <div style={{ fontSize: '0.95rem', fontWeight: 800, color: '#2563EB' }}>{metrics.avgScore}%</div>
-          </div>
-
-          <div style={{
-            background: '#F8FAFC',
-            border: '1px solid #E2E8F0',
-            borderRadius: '6px',
-            padding: '6px 12px',
-            textAlign: 'center'
-          }}>
-            <div style={{ fontSize: '0.66rem', color: '#64748B', fontWeight: 600, textTransform: 'uppercase' }}>Conflicts</div>
-            <div style={{ fontSize: '0.95rem', fontWeight: 800, color: metrics.conflicted > 0 ? '#EA580C' : '#059669' }}>
-              {metrics.conflicted}
-            </div>
-          </div>
         </div>
       </div>
 
@@ -579,7 +543,7 @@ export default function AssetClaimsStudioPane({
                           borderRadius: '4px',
                           border: '1px solid #DBEAFE'
                         }}>
-                          {predicate}
+                          Pred: {predicate}
                         </span>
                       )}
                     </div>

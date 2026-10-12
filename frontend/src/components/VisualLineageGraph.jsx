@@ -100,7 +100,7 @@ export default function VisualLineageGraph({
     }
   }, [initialAssetId, graphData]);
 
-  const [asset360Section, setAsset360Section] = useState(initialSection || 'summary'); // 'summary' | 'extraction' | 'dag' | 'conflicts' | 'claims' | 'all'
+  const [asset360Section, setAsset360Section] = useState(initialSection || 'summary'); // 'summary' | 'extraction' | 'dag' | 'claims' | 'conflicts' | 'all'
 
   useEffect(() => {
     if (initialSection) {
@@ -1979,8 +1979,14 @@ export default function VisualLineageGraph({
       if (!activeDoc) return null;
       const parentEdge = edges.find(e => e.target === activeDoc.id && e.source.startsWith('src_'));
       const parentSource = nodes.find(n => n.id === parentEdge?.source) || null;
+      const rawActiveDocId = activeDoc.data?.doc_id || String(activeDoc.id || '').replace(/^doc_/, '');
       const claimIds = new Set(edges.filter(e => e.source === activeDoc.id && e.target.startsWith('cl_')).map(e => e.target));
-      const assetClaims = allClaimsRaw.filter(cl => claimIds.has(cl.id));
+      const assetClaims = allClaimsRaw.filter(cl => {
+        if (claimIds.has(cl.id)) return true;
+        const clDocId = cl.data?.doc_id || cl.doc_id || cl.asset_id;
+        if (clDocId && (clDocId === activeDoc.id || clDocId === rawActiveDocId)) return true;
+        return false;
+      });
       const assetConflicts = allConflictsRaw.filter(c => {
         const cItem = conflictMap[c.id];
         return claimIds.has(cItem?.claimAId) || claimIds.has(cItem?.claimBId);
@@ -2997,8 +3003,8 @@ export default function VisualLineageGraph({
                     { id: 'summary', label: 'Overview' },
                     { id: 'dag', label: 'Lineage' },
                     { id: 'extraction', label: 'Visual Claim Extraction' },
-                    { id: 'conflicts', label: `Conflicts (${selectedAsset360.conflicts.length})` },
                     { id: 'claims', label: `Claims (${selectedAsset360.claims.length})` },
+                    { id: 'conflicts', label: `Conflicts (${selectedAsset360.conflicts.length})` },
                     { id: 'all', label: 'All Facilities' }
                   ].map(sec => {
                     const active = asset360Section === sec.id;
@@ -5577,62 +5583,7 @@ export default function VisualLineageGraph({
               </div>
             )}
 
-            {/* 4. SELECTED ASSET'S ATOMIC CLAIMS & DOWNSTREAM AI DECISIONS */}
-            {selectedAsset360 && (asset360Section === 'all' || asset360Section === 'claims') && (
-              <div style={{
-                background: '#FFFFFF',
-                border: '1px solid #E2E8F0',
-                borderRadius: '10px',
-                padding: '14px 18px',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '12px'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', borderBottom: '1px solid #F1F5F9', paddingBottom: '8px' }}>
-                  <div>
-                    <h4 style={{ margin: 0, fontSize: '0.88rem', fontWeight: 800, color: '#0F172A' }}>
-                      ⚡ Extracted Atomic Claims ({selectedAsset360.claims.length}) & Downstream AI Decisions ({selectedAsset360.decisions.length})
-                    </h4>
-                    <span style={{ fontSize: '0.72rem', color: '#64748B' }}>
-                      All atomic rules and governance verdicts derived from "{selectedAsset360.node.label}"
-                    </span>
-                  </div>
-                </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))', gap: '10px' }}>
-                  {selectedAsset360.claims.map(cl => {
-                    const isConf = allConflictedClaimIds.has(cl.id);
-                    return (
-                      <div
-                        key={cl.id}
-                        style={{
-                          border: isConf ? '1.5px solid #FED7AA' : '1px solid #E2E8F0',
-                          background: isConf ? '#FFF7ED' : '#F8FAFC',
-                          borderRadius: '8px',
-                          padding: '10px 12px',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          justifyContent: 'space-between',
-                          gap: '6px'
-                        }}
-                      >
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                          <span className={isConf ? 'badge badge-warning' : 'badge badge-verified'} style={{ fontSize: '0.62rem' }}>
-                            {isConf ? '⚠️ In Conflict' : '✅ Verified Claim'}
-                          </span>
-                          <span style={{ fontSize: '0.66rem', fontWeight: 700, color: '#059669' }}>
-                            Trust: {((cl.trustScore || 0.92) * 100).toFixed(0)}%
-                          </span>
-                        </div>
-                        <p style={{ margin: 0, fontSize: '0.75rem', color: '#1E293B', lineHeight: 1.38, fontWeight: 500 }}>
-                          "{cl.fullText || cl.label}"
-                        </p>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
                 </div>
               );
 
@@ -6408,7 +6359,7 @@ export default function VisualLineageGraph({
 
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '3px', borderTop: '1px solid #f1f5f9', paddingTop: '6px' }}>
                         <span style={{ fontSize: '0.66rem', color: '#64748b' }}>
-                          Scope: <strong>{cl.data?.scope || 'Enterprise'}</strong> &bull; ID: <code>{cl.id.slice(0, 12)}</code>
+                          Scope: <strong>{typeof cl.data?.scope === 'object' && cl.data?.scope !== null ? (Object.entries(cl.data.scope).map(([k, v]) => `${k}: ${v}`).join(', ') || 'Enterprise') : (cl.data?.scope || 'Enterprise')}</strong> &bull; ID: <code>{cl.id.slice(0, 12)}</code>
                         </span>
                         <button
                           onClick={() => {
