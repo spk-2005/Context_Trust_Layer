@@ -33,43 +33,53 @@ class DocumentParser:
         text_lower = text.lower().strip()
         context_lower = " > ".join(context).lower()
 
-        # 1. Revision History & Approvals
+        # 1. Illustrative Examples and Case Studies (Prioritized before Revision History for hybrid sections like '20. Revision History and Sample Case Studies')
+        if any(w in context_lower for w in ("sample case", "sample cases", "case stud", "case study", "illustrative scenario", "worked example", "hypothetical scenario", "examples", "example")):
+            return ContentRole.EXAMPLE
+        if re.match(r"^case\s+[a-z]\b", text_lower) or any(text_lower.startswith(w) for w in ("for example", "example:", "e.g.", "scenario:", "sample calculation:", "case a", "case b", "case c", "case d", "case e", "case f")):
+            return ContentRole.EXAMPLE
+
+        # 2. Contact Information and Escalation Channels
+        if any(w in context_lower for w in ("contact information", "contact info", "escalation", "customer care", "support channels")):
+            return ContentRole.CONTACT_INFO
+        if "@" in text and any(w in text_lower for w in ("contact", "email", ".com", ".org", "people_success", "support")):
+            return ContentRole.CONTACT_INFO
+        if any(text_lower.startswith(w) for w in ("for any clarifications", "reach out to", "contact us", "support desk", "for inquiries", "call 1-", "phone (", "email:", "mailing address:")):
+            return ContentRole.CONTACT_INFO
+
+        # 3. Frequently Asked Questions (FAQ) - Disambiguate Questions vs Answers
+        is_faq_context = any(w in context_lower for w in ("frequently asked", "faq", "q&a", "questions and answers"))
+        if text_lower.endswith("?") or re.match(r"^(?:q\s*[:.]|question\s*[:.]|q\d+[:.]|\d+\.\s*(?:can|what|will|how|is|where|why|do|does|did|should))\b", text_lower):
+            return ContentRole.FAQ_QUESTION
+        if re.match(r"^(?:a\s*[:.]|answer\s*[:.]|a\d+[:.])\b", text_lower):
+            return ContentRole.FAQ
+        if is_faq_context:
+            return ContentRole.FAQ
+
+        # 4. Revision History & Document Control
         if any(w in context_lower for w in ("revision history", "version history", "change log", "document control", "approval matrix", "table of contents")):
             return ContentRole.REVISION_HISTORY
         if any(w in text_lower for w in ("first release", "initial release", "version 1", "rev 1", "approved by ceo", "prepared by", "initial policy baseline")):
             return ContentRole.REVISION_HISTORY
 
-        # 2. Contact Information
-        if "@" in text and any(w in text_lower for w in ("contact", "email", ".com", ".org", "people_success", "support")):
-            return ContentRole.CONTACT_INFO
-        if any(text_lower.startswith(w) for w in ("for any clarifications", "reach out to", "contact us", "support desk", "for inquiries")):
-            return ContentRole.CONTACT_INFO
+        # 5. Introductory Context & Framing sentences
+        if any(w in context_lower for w in ("overview", "introduction", "background", "purpose", "scope")):
+            if any(text_lower.startswith(w) for w in ("the purpose of this document", "this policy outlines", "this document sets forth", "welcome to", "in this section", "how to request a refund")):
+                return ContentRole.INTRODUCTORY_CONTEXT
 
-        # 3. Frequently Asked Questions (FAQ)
-        if any(w in context_lower for w in ("frequently asked", "faq", "q&a", "questions and answers")):
-            return ContentRole.FAQ
-        if re.match(r"^(?:q\s*:|question\s*:|a\s*:|answer\s*:|\d+\.\s*can\s+|\d+\.\s*what\s+)", text_lower):
-            return ContentRole.FAQ
-
-        # 4. Illustrative Examples
-        if any(w in context_lower for w in ("illustrative scenario", "worked example", "hypothetical scenario", "examples", "example")):
-            return ContentRole.EXAMPLE
-        if any(text_lower.startswith(w) for w in ("for example", "example:", "e.g.", "scenario:", "sample calculation:")):
-            return ContentRole.EXAMPLE
-
-        # 5. Definitions
+        # 6. Definitions
         if any(w in context_lower for w in ("definitions", "glossary", "interpretation", "defined terms")):
             return ContentRole.DEFINITION
         if any(w in text_lower for w in ("means an employee", "means any person", "is defined as", "refers to the", "means ")):
             return ContentRole.DEFINITION
 
-        # 6. Operational Procedures
+        # 7. Operational Procedures
         if any(w in context_lower for w in ("procedure", "process flow", "operational steps", "submission workflow", "offboarding process")):
             return ContentRole.PROCEDURE
         if re.match(r"^step\s*\d+\s*:", text_lower) or any(text_lower.startswith(w) for w in ("step 1:", "step 2:", "the employee must submit resignation via")):
             return ContentRole.PROCEDURE
 
-        # 7. Default to Policy Rule
+        # 8. Default to Policy Rule
         return ContentRole.POLICY_RULE
 
     @classmethod
@@ -190,6 +200,10 @@ class DocumentParser:
                         or (len(clean_hdrs) >= 2 and all(re.match(r"^\d+$", h) for h in clean_hdrs[1:] if h))
                     )
                     is_sign = (any("role" in h or "sign" in h for h in clean_hdrs) and any("name" in h or "designation" in h for h in clean_hdrs)) or "approver" in ctx_lower or "reviewer" in ctx_lower
+                    is_form_spec = (
+                        any("field" in h for h in clean_hdrs)
+                        and (any("required" in h for h in clean_hdrs) or any("example" in h or "format" in h for h in clean_hdrs))
+                    )
 
                     if is_rev:
                         table_semantic_type = "revision_history"
@@ -197,9 +211,24 @@ class DocumentParser:
                         table_semantic_type = "table_of_contents"
                     elif is_sign:
                         table_semantic_type = "approver_signoff"
+                    elif is_form_spec:
+                        table_semantic_type = "form_field_specification"
                     else:
                         table_semantic_type = "policy_matrix"
                 else:
+                    table_id_str = f"table_line_{table_start_line}"
+                    # Check if this row is a multiline continuation of the previous table row (e.g. wrapped multiline cells where col 0 is empty)
+                    if row_cells and not row_cells[0].strip() and units and units[-1].block_type == "table_row" and units[-1].structured_data.get("table_id") == table_id_str:
+                        prev_unit = units[-1]
+                        prev_cols = prev_unit.structured_data.get("columns", {})
+                        for idx, cell_val in enumerate(row_cells):
+                            if cell_val.strip() and idx < len(table_headers):
+                                col_name = table_headers[idx]
+                                prev_cols[col_name] = (prev_cols.get(col_name, "") + " " + cell_val.strip()).strip()
+                        prev_unit.structured_data["columns"] = prev_cols
+                        prev_unit.content_text = " | ".join(f"{k}: {v}" for k, v in prev_cols.items())
+                        continue
+
                     # Data row
                     table_row_count += 1
                     row_dict = {}
@@ -223,28 +252,36 @@ class DocumentParser:
                     # Classify ContentRole for this table row
                     context_str = " > ".join(context).lower()
                     hdrs_str = " ".join(table_headers).lower()
+                    row_is_canonical = True
                     if table_semantic_type in ("revision_history", "table_of_contents", "approver_signoff") or "revision" in context_str or "revision" in hdrs_str:
                         row_content_role = ContentRole.REVISION_HISTORY
+                        row_is_canonical = False
+                    elif table_semantic_type == "form_field_specification":
+                        row_content_role = ContentRole.PROCEDURE
+                        row_is_canonical = False
                     elif any(w in context_str for w in ("definition", "glossary")) or ("term" in hdrs_str and "definition" in hdrs_str):
                         row_content_role = ContentRole.DEFINITION
+                        row_is_canonical = False
                     elif any(w in context_str for w in ("contact", "escalation channel", "support channel")) or any(w in hdrs_str for w in ("channel", "hours", "phone")):
                         row_content_role = ContentRole.CONTACT_INFO
+                        row_is_canonical = False
                     elif any(w in context_str for w in ("faq", "frequently asked")) or "question" in hdrs_str:
                         row_content_role = ContentRole.FAQ
-                    elif any(w in context_str for w in ("example", "scenario", "case stud")):
+                        row_is_canonical = False
+                    elif any(w in context_str for w in ("example", "scenario", "case stud", "case study", "sample case")):
                         row_content_role = ContentRole.EXAMPLE
+                        row_is_canonical = False
                     elif any(w in context_str for w in ("procedure", "workflow", "process", "step")):
                         row_content_role = ContentRole.PROCEDURE
                     else:
                         row_content_role = ContentRole.POLICY_RULE
-
-                    table_id_str = f"table_line_{table_start_line}"
 
                     unit = ParsedEvidenceUnit.create(
                         envelope_id=envelope.envelope_id,
                         asset_id=envelope.asset_id,
                         block_type="table_row",
                         content_role=row_content_role,
+                        is_canonical=row_is_canonical,
                         content_text=row_text,
                         structured_data={
                             "columns": row_dict,

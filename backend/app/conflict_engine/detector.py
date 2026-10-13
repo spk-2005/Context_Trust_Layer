@@ -117,7 +117,12 @@ class ConflictDetector:
 
         # Pillar 2: Illustrative sample & non-canonical summary pre-filter
         # Concrete transaction examples and derived summaries never contradict operative canonical policies
-        if is_illustrative_claim(target_claim) or getattr(target_claim, "claim_type", "") in ("derived_summary", "summary_non_canonical", "example", "revision_history"):
+        non_canonical_types = (
+            "derived_summary", "summary_non_canonical", "example", "revision_history",
+            "definition", "form_field_specification", "non_canonical", "faq", "faq_question", "faq_answer", "heading",
+            "contact_information", "contact_info",
+        )
+        if is_illustrative_claim(target_claim) or getattr(target_claim, "claim_type", "") in non_canonical_types:
             return detected_conflicts
 
         # Tier 1: Candidate Ingestion Pruning via FacetSharder (O(N^2) -> O(K))
@@ -136,7 +141,7 @@ class ConflictDetector:
                 continue
 
             # Pillar 2: Skip illustrative candidates and non-canonical summaries
-            if is_illustrative_claim(cand) or getattr(cand, "claim_type", "") in ("derived_summary", "summary_non_canonical", "example", "revision_history"):
+            if is_illustrative_claim(cand) or getattr(cand, "claim_type", "") in non_canonical_types:
                 continue
 
             # Facet compatibility pruning

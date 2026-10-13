@@ -28,6 +28,32 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
+const formatConditionDisplay = (cond) => {
+  if (!cond) return '';
+  if (typeof cond === 'string') return cond;
+  if (typeof cond === 'object') {
+    if (cond.field && cond.value !== undefined) {
+      const valStr = Array.isArray(cond.value) ? cond.value.join(' - ') : String(cond.value);
+      const op = cond.operator ? ` ${cond.operator} ` : ': ';
+      return `${cond.field}${op}${valStr}`;
+    }
+    if (cond.rule) return String(cond.rule);
+    if (cond.description) return String(cond.description);
+    return JSON.stringify(cond);
+  }
+  return String(cond);
+};
+
+const formatValueDisplay = (val) => {
+  if (val === undefined || val === null) return '';
+  if (typeof val === 'object') {
+    if (val.rule) return String(val.rule);
+    if (val.type) return String(val.type);
+    return JSON.stringify(val);
+  }
+  return String(val);
+};
+
 export default function LiveIngestionStudio({ activeOrg, activePersona, onClaimExtracted, showToast }) {
   const { user, token, hasPermission } = useAuth();
   const fileInputRef = useRef(null);
@@ -853,12 +879,12 @@ export default function LiveIngestionStudio({ activeOrg, activePersona, onClaimE
                           })()}
                           {((claimObj.value !== undefined && claimObj.value !== null) || (item.value !== undefined && item.value !== null)) && (
                             <span style={{ fontSize: '0.68rem', fontWeight: 700, background: '#EFF6FF', color: '#1D4ED8', border: '1px solid #BFDBFE', padding: '2px 7px', borderRadius: '4px' }}>
-                              Scalar Value: <strong>{String(claimObj.value ?? item.value)} {claimObj.unit || item.unit || ''}</strong>
+                              Scalar Value: <strong>{formatValueDisplay(claimObj.value ?? item.value)} {claimObj.unit || item.unit || ''}</strong>
                             </span>
                           )}
                           {((claimObj.conditions && claimObj.conditions.length > 0) ? claimObj.conditions : (item.conditions || [])).map((cond, cIdx) => (
                             <span key={cIdx} style={{ fontSize: '0.68rem', fontWeight: 600, background: '#F5F3FF', color: '#6D28D9', border: '1px solid #DDD6FE', padding: '2px 7px', borderRadius: '4px' }}>
-                              Condition: <strong>{cond}</strong>
+                              Condition: <strong>{formatConditionDisplay(cond)}</strong>
                             </span>
                           ))}
                         </div>
@@ -947,7 +973,7 @@ export default function LiveIngestionStudio({ activeOrg, activePersona, onClaimE
                             <strong style={{ color: '#64748B' }}>Conditions:</strong>{' '}
                             {(item.conditions || claimObj.conditions).map((cnd, cIdx) => (
                               <span key={cIdx} style={{ background: '#FFFBEB', color: '#B45309', border: '1px solid #FDE68A', padding: '1px 5px', borderRadius: '3px', fontSize: '0.62rem', fontWeight: 600 }}>
-                                {cnd}
+                                {formatConditionDisplay(cnd)}
                               </span>
                             ))}
                           </div>

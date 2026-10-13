@@ -35,6 +35,7 @@ from app.validation_gate.models import (
 )
 from app.validation_gate.evaluators import CompletenessEvaluator, MeaningEvaluator
 from app.validation_gate.decision_engine import ClaimLifecycleDecisionEngine, ClaimLifecycleDecision
+from app.validation_gate.pipeline import Layer6ValidationGatePipeline
 
 
 @pytest.fixture
@@ -221,3 +222,45 @@ Staff members must log all tickets in the Enterprise Portal within 2 hours.
     assert c60 is not None
     assert c60.unit == "days"
     assert "Confirmed status" in c60.conditions
+
+
+@pytest.mark.asyncio
+async def test_layer_6_gate_evaluation_structured_conditions(org_and_source):
+    """Test Layer 6 Validation Gate cleanly evaluates candidate claims with structured dictionary conditions."""
+    org_id, src_id = org_and_source
+    holiday_content = """# Northwind Return Policy
+## 3.1 Standard Return Policy
+| Tier or Category | Return Window |
+|---|---|
+| Holiday purchases | Until January 31 of the following year |
+"""
+    envelope = EnvelopeFactory.create_from_file_upload(
+        filename="northwind_holiday.md",
+        raw_bytes=holiday_content.encode("utf-8"),
+        parsed_content=holiday_content,
+        organization_id=org_id,
+        source_id=src_id,
+        document_type="policy",
+        source_intent=SourceIntent.GOVERNANCE_POLICY,
+    )
+
+    evidence = await DocumentParser.parse(envelope)
+    l5_result = await global_extraction_pipeline.process_envelope(envelope, evidence)
+
+    assert l5_result.claims_extracted > 0
+    holiday_candidate = next((c for c in l5_result.candidates if "Holiday" in c.subject), None)
+    assert holiday_candidate is not None
+    assert any(isinstance(cond, dict) for cond in holiday_candidate.conditions)
+
+    # Process through Layer 6 Validation Gate without DB persistence
+    gate_pipeline = Layer6ValidationGatePipeline(persist_to_db=False)
+    l6_result = await gate_pipeline.process_extraction_result(envelope, l5_result)
+
+    assert l6_result.total_candidates_evaluated > 0
+    hol_eval = next((e for e in l6_result.evaluations if "Holiday" in e.subject), None)
+    assert hol_eval is not None
+    assert isinstance(hol_eval, CandidateGateEvaluation)
+    assert any(isinstance(c, dict) for c in hol_eval.conditions)
+    assert hol_eval.completeness.passed is True
+    assert hol_eval.lifecycle_decision == ClaimLifecycleDecision.APPROVE
+

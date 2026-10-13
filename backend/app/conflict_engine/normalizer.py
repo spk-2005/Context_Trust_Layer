@@ -24,6 +24,13 @@ class NormalizedClaimKey:
     value_unit: Optional[str] = None
     modality: str = "POLICY_FACT"
     temporal_window: Tuple[Optional[datetime], Optional[datetime]] = (None, None)
+    process_stage: Optional[str] = None
+    payment_method: Optional[str] = None
+    item_condition: Optional[str] = None
+    approval_band: Optional[str] = None
+    risk_band: Optional[str] = None
+    channel: Optional[str] = None
+    policy_domain: Optional[str] = None
 
 
 class ClaimNormalizer:
@@ -140,6 +147,119 @@ class ClaimNormalizer:
         return scope_dict
 
     @classmethod
+    def normalize_process_stage(cls, text: str) -> Optional[str]:
+        t = text.lower()
+        if any(k in t for k in ("rma review", "rma request", "rma issuance", "issuance of rma")):
+            return "rma_issuance"
+        elif any(k in t for k in ("transit", "return transit", "shipping return", "in transit")):
+            return "return_transit"
+        elif any(k in t for k in ("warehouse inspection", "inspection", "receipt and inspection", "receipt/inspection", "inspect")):
+            return "warehouse_inspection"
+        elif any(k in t for k in ("refund issuance", "issuance of refund", "issuing refund")):
+            return "refund_issuance"
+        elif any(k in t for k in ("evidence submission", "submitting evidence")):
+            return "evidence_submission"
+        elif any(k in t for k in ("issuer decision", "bank decision")):
+            return "issuer_decision"
+        return None
+
+    @classmethod
+    def normalize_payment_method(cls, text: str) -> Optional[str]:
+        t = text.lower()
+        if any(k in t for k in ("credit card", "visa", "mastercard", "amex", "credit_card")):
+            return "credit_card"
+        elif "debit card" in t or "debit_card" in t:
+            return "debit_card"
+        elif "paypal" in t:
+            return "paypal"
+        elif "store credit" in t:
+            return "store_credit"
+        elif any(k in t for k in ("check", "cheque")):
+            return "check"
+        elif "cash" in t:
+            return "cash"
+        elif any(k in t for k in ("bnpl", "buy now pay later", "klarna", "afterpay")):
+            return "bnpl"
+        elif "gift card" in t:
+            return "gift_card"
+        elif "split payment" in t or "split" in t:
+            return "split_payment"
+        return None
+
+    @classmethod
+    def normalize_item_condition(cls, text: str) -> Optional[str]:
+        t = text.lower()
+        if "unopened" in t or "factory sealed" in t:
+            return "unopened"
+        elif "opened" in t and ("intact" in t or "packaging intact" in t):
+            return "opened_intact"
+        elif "light wear" in t or "signs of use" in t:
+            return "light_wear"
+        elif "heavy use" in t or "significant wear" in t or "heavily used" in t:
+            return "heavy_use"
+        elif "missing original box" in t or "missing box" in t:
+            return "missing_box"
+        elif "damaged by customer" in t or "customer damaged" in t:
+            return "customer_damaged"
+        elif "defective" in t:
+            return "defective"
+        return None
+
+    @classmethod
+    def normalize_approval_band(cls, text: str) -> Optional[str]:
+        t = text.lower()
+        if re.search(r"\bup\s+to\s+\$?50\b", t):
+            return "up_to_50"
+        elif re.search(r"\b(?:under|less\s+than)\s+\$?50\b", t):
+            return "under_50"
+        elif re.search(r"\b(?:over|more\s+than)\s+\$?50\b", t):
+            return "over_50"
+        elif re.search(r"\b(?:up\s+to|under|<=)\s*\$?100\b", t):
+            return "up_to_100"
+        elif re.search(r"(?:between\s+)?\$?100(?:\.01)?\s*(?:-|to)\s*\$?500", t):
+            return "100_500"
+        elif re.search(r"(?:>|\bover|\bmore\s+than|exceeding)\s*\$?2,?000\b", t):
+            return "over_2000"
+        elif re.search(r"(?:>|\bover|\bmore\s+than|exceeding)\s*\$?500", t):
+            return "over_500"
+        return None
+
+    @classmethod
+    def normalize_risk_band(cls, text: str) -> Optional[str]:
+        t = text.lower()
+        if re.search(r"30\s*(?:-|to)\s*40%", t):
+            return "rate_30_40"
+        elif re.search(r"(?:>|\bover|\bmore\s+than)\s*40%", t):
+            return "rate_over_40"
+        return None
+
+    @classmethod
+    def normalize_channel(cls, text: str) -> Optional[str]:
+        t = text.lower()
+        if "email" in t:
+            return "email"
+        elif "chat" in t:
+            return "chat"
+        elif "phone" in t and any(c in t for c in ("us", "canada", "north america")):
+            return "phone_us_canada"
+        elif "phone" in t and any(c in t for c in ("uk", "united kingdom", "europe")):
+            return "phone_uk"
+        elif "phone" in t:
+            return "phone"
+        elif "in-store" in t or "in store" in t:
+            return "in_store"
+        return None
+
+    @classmethod
+    def normalize_policy_domain(cls, text: str) -> Optional[str]:
+        t = text.lower()
+        if "subscription" in t or "trailhead box" in t or "membership" in t:
+            return "subscription"
+        elif "warranty" in t:
+            return "warranty"
+        return None
+
+    @classmethod
     def build_key(cls, claim: Any) -> NormalizedClaimKey:
         """Constructs a NormalizedClaimKey from a Claim or CandidateClaim object."""
         raw_subj = getattr(claim, "subject", "") or ""
@@ -164,6 +284,18 @@ class ClaimNormalizer:
         # Modality
         modality = getattr(claim, "modality", "POLICY_FACT") or "POLICY_FACT"
 
+        # Multi-dimensional Applicability Dimensions
+        raw_span = getattr(claim, "evidence_text_span", "") or ""
+        cond_strings = [str(c.get("field", "") if isinstance(c, dict) else c) + " " + str(c.get("value", "") if isinstance(c, dict) else "") for c in raw_conds]
+        search_corpus = f"{raw_subj} {raw_pred} {raw_obj} {raw_text} {raw_span} {' '.join(cond_strings)}"
+        p_stage = cls.normalize_process_stage(search_corpus)
+        p_method = cls.normalize_payment_method(search_corpus)
+        i_cond = cls.normalize_item_condition(search_corpus)
+        a_band = cls.normalize_approval_band(search_corpus)
+        r_band = cls.normalize_risk_band(search_corpus)
+        chan = cls.normalize_channel(search_corpus)
+        p_domain = cls.normalize_policy_domain(search_corpus)
+
         return NormalizedClaimKey(
             subject_key=subj_key,
             predicate_key=pred_key,
@@ -172,4 +304,11 @@ class ClaimNormalizer:
             value_scalar=scalar_val,
             value_unit=unit_val,
             modality=modality,
+            process_stage=p_stage,
+            payment_method=p_method,
+            item_condition=i_cond,
+            approval_band=a_band,
+            risk_band=r_band,
+            channel=chan,
+            policy_domain=p_domain,
         )

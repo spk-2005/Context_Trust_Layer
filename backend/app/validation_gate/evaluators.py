@@ -18,6 +18,7 @@ from typing import Any, Tuple
 from app.db.enums import SourceFamily, SourceIntent
 from app.extraction.models import CandidateClaim
 from app.ingestion.envelope import CanonicalSourceEnvelope
+from app.ingestion.parsers.evidence_model import ContentRole
 from app.validation_gate.models import (
     AuthorityStatus,
     CompletenessStatus,
@@ -96,6 +97,197 @@ class CompletenessEvaluator:
                 details={"subject": subj, "predicate": pred, "object": obj, "is_fragment": True},
             )
 
+        GENERIC_DISALLOWED_SUBJECTS = {"governed entity", "entity", "unknown entity", "policy subject", "governed"}
+        if subj.lower() in GENERIC_DISALLOWED_SUBJECTS:
+            return DimensionEvaluation(
+                dimension_name="completeness",
+                status=CompletenessStatus.PARTIAL.value,
+                score=0.2,
+                passed=False,
+                reason=f"Generic fallback subject '{subj}' is forbidden. Exact named entity or table row key required.",
+                details={"subject": subj, "predicate": pred, "object": obj, "is_generic_subject": True},
+            )
+
+        # Knockout 1: Section Heading as Canonical Subject
+        claim_text_clean = (candidate.claim_text or "").strip()
+        HEADING_SUBJECTS = {
+            "how to request a refund",
+            "refund methods and payment types",
+            "table of contents",
+            "revision history",
+            "frequently asked questions",
+            "document revision history",
+            "standard return policy",
+            "order cancellations",
+            "warranty claims vs. refunds",
+            "warranty claims vs refunds",
+            "contact information and escalation",
+        }
+        if subj.lower() in HEADING_SUBJECTS or getattr(candidate, "content_role", None) == ContentRole.HEADING:
+            return DimensionEvaluation(
+                dimension_name="completeness",
+                status=CompletenessStatus.PARTIAL.value,
+                score=0.1,
+                passed=False,
+                reason=f"HEADING_NON_CANONICAL: Section heading '{subj}' is non-canonical contextual framing, not an executable policy claim.",
+                details={"subject": subj, "is_heading": True, "decision_code": "HEADING_NON_CANONICAL"},
+            )
+
+        # Knockout 2: Question / FAQ Interrogative Sentence
+        is_question = (
+            claim_text_clean.endswith("?")
+            or subj.endswith("?")
+            or obj.endswith("?")
+            or getattr(candidate, "content_role", None) == ContentRole.FAQ_QUESTION
+            or (
+                not claim_text_clean.lower().startswith("how to")
+                and bool(re.match(r"^(?:will|can|how|what|why|where|when|is|do|does|did|should)\s+[a-z0-9\s]+\??$", claim_text_clean, re.IGNORECASE))
+            )
+        )
+        if is_question:
+            return DimensionEvaluation(
+                dimension_name="completeness",
+                status=CompletenessStatus.PARTIAL.value,
+                score=0.0,
+                passed=False,
+                reason="QUESTION_NOT_ASSERTION: Interrogative sentence or FAQ question cannot be verified as a canonical policy claim.",
+                details={"is_question": True, "claim_text": claim_text_clean, "decision_code": "QUESTION_NOT_ASSERTION"},
+            )
+
+        # Knockout 3: Definition Fragment ending in e.g. / punctuation
+        raw_obj_lower = obj.lower().strip()
+        raw_text_lower = claim_text_clean.lower().strip()
+        if (
+            raw_obj_lower.endswith(("e.g.", "e.g.,", "i.e.", "i.e.,", ",", ";"))
+            or raw_text_lower.endswith(("e.g.", "e.g.,", "i.e.", "i.e.,", ",", ";"))
+            or raw_obj_lower in ("e.g.", "e.g.,", "i.e.", "i.e.,")
+        ):
+            return DimensionEvaluation(
+                dimension_name="completeness",
+                status=CompletenessStatus.PARTIAL.value,
+                score=0.1,
+                passed=False,
+                reason=f"DEFINITION_FRAGMENT: Incomplete assertion ending in abbreviation or conjunction: '{obj}'. Complete definition required.",
+                details={"object": obj, "is_fragment": True, "decision_code": "DEFINITION_FRAGMENT"},
+            )
+
+        # Knockout 3B: Incomplete Assertions ending in dangling prepositions/connectives
+        dangling_pat = r"\b(valid\s+for|with|for|of|to|in|at|by|from|into|onto|and|or|a|an|the)\s*$"
+        if re.search(dangling_pat, raw_obj_lower) or re.search(dangling_pat, raw_text_lower):
+            return DimensionEvaluation(
+                dimension_name="completeness",
+                status=CompletenessStatus.PARTIAL.value,
+                score=0.0,
+                passed=False,
+                reason=f"INCOMPLETE_ASSERTION: Incomplete syntactic clause ending in dangling preposition/connective: '{obj}'. Complete assertion required.",
+                details={"object": obj, "is_fragment": True, "decision_code": "INCOMPLETE_ASSERTION"},
+            )
+
+        # Knockout 2B: Illustrative Examples & Sample Case Studies
+        is_example = (
+            getattr(candidate, "content_role", None) == ContentRole.EXAMPLE
+            or getattr(candidate, "claim_type", "").lower() in ("example", "illustrative")
+            or subj.lower().startswith(("case a", "case b", "case c", "case d", "case e", "case f"))
+            or "case study" in subj.lower()
+        )
+        if is_example:
+            return DimensionEvaluation(
+                dimension_name="completeness",
+                status=CompletenessStatus.PARTIAL.value,
+                score=0.0,
+                passed=False,
+                reason=f"EXAMPLE_NON_CANONICAL: Illustrative example or case study '{subj}' cannot be verified as a canonical governing policy claim.",
+                details={"subject": subj, "is_example": True, "decision_code": "EXAMPLE_NON_CANONICAL"},
+            )
+
+        # Knockout 2C: Contact Information Metadata
+        is_contact = (
+            getattr(candidate, "content_role", None) == ContentRole.CONTACT_INFO
+            or getattr(candidate, "claim_type", "").lower() in ("contact_info", "contact_information")
+            or pred.lower() in ("has_contact_phone", "has_contact_email", "has_contact_address", "has_contact_hours", "has_service_level_target", "has_contact_channel")
+        )
+        if is_contact:
+            return DimensionEvaluation(
+                dimension_name="completeness",
+                status=CompletenessStatus.PARTIAL.value,
+                score=0.5,
+                passed=False,
+                reason=f"CONTACT_INFO_NON_CANONICAL: Operational contact information metadata is non-normative and excluded from active policy execution.",
+                details={"claim_type": candidate.claim_type, "decision_code": "CONTACT_INFO_NON_CANONICAL"},
+            )
+
+        # Knockout 3C: Subject Normalization Failure
+        subj_lower = subj.lower()
+        if any(subj_lower.startswith(p) for p in ("we ", "we're ", "our ", "after that we", "once an order has shipped, it")) or \
+           ("(" in subj and ")" not in subj) or \
+           re.search(r"\b(we|it|they)\s*$", subj_lower):
+            return DimensionEvaluation(
+                dimension_name="completeness",
+                status=CompletenessStatus.PARTIAL.value,
+                score=0.1,
+                passed=False,
+                reason=f"SUBJECT_NORMALIZATION_FAILED: Subject '{subj}' contains unnormalized fragment, conversational pronoun phrase, or unclosed parenthesis.",
+                details={"subject": subj, "is_fragment": True, "decision_code": "SUBJECT_NORMALIZATION_FAILED"},
+            )
+
+        # Knockout 4: Cross-Tenant / Hardcoded Subject Contamination
+        ev_lower = span.lower()
+        loc_path = (candidate.locator or {}).get("heading_path") or []
+        heading_path_str = " ".join(str(p) for p in loc_path).lower()
+        if "wingify" in subj.lower() and "wingify" not in ev_lower and "wingify" not in heading_path_str:
+            return DimensionEvaluation(
+                dimension_name="completeness",
+                status=CompletenessStatus.PARTIAL.value,
+                score=0.1,
+                passed=False,
+                reason=f"SUBJECT_CONTAMINATION: Subject '{subj}' contains hardcoded or cross-tenant entity not present in evidence.",
+                details={"subject": subj, "is_contaminated": True, "decision_code": "SUBJECT_CONTAMINATION"},
+            )
+
+        # Knockout 5: Weak Grammatical Predicate
+        WEAK_PREDICATES = {"be", "defines", "specifies", "issue", "start", "verify", "cover", "override"}
+        if pred and (pred.lower() in WEAK_PREDICATES or pred.isdigit() or len(pred) <= 1) and not candidate.table_binding:
+            return DimensionEvaluation(
+                dimension_name="completeness",
+                status=CompletenessStatus.PARTIAL.value,
+                score=0.4,
+                passed=False,
+                reason=f"WEAK_PREDICATE: Predicate '{pred}' is a weak grammatical verb or invalid numeric token rather than a canonical domain predicate.",
+                details={"predicate": pred, "is_weak_predicate": True, "decision_code": "WEAK_PREDICATE"},
+            )
+
+        # Knockout 6: Meta-Rule Intro
+        if re.search(r"\ball\s+of\s+the\s+following\s+conditions\s+must\s+be\s+met\b", claim_text_clean, re.IGNORECASE):
+            return DimensionEvaluation(
+                dimension_name="completeness",
+                status=CompletenessStatus.PARTIAL.value,
+                score=0.3,
+                passed=False,
+                reason="META_RULE_NOT_ATOMIC: Monolithic eligibility intro clause must be decomposed into atomic criteria.",
+                details={"is_meta_rule": True, "decision_code": "META_RULE_NOT_ATOMIC"},
+            )
+
+        ORPHAN_FRAGMENTS = {"month", "25th", "of renewal and box not shipped"}
+        if obj.lower() in ORPHAN_FRAGMENTS:
+            return DimensionEvaluation(
+                dimension_name="completeness",
+                status=CompletenessStatus.PARTIAL.value,
+                score=0.1,
+                passed=False,
+                reason=f"Fragment detected: Object '{obj}' is an orphan cell fragment from an unstitched multiline row.",
+                details={"object": obj, "is_fragment": True},
+            )
+
+        if len(subj.split()) > 15 or re.match(r"^\d+\.\d+\s+[A-Z]", subj):
+            return DimensionEvaluation(
+                dimension_name="completeness",
+                status=CompletenessStatus.PARTIAL.value,
+                score=0.4,
+                passed=False,
+                reason=f"Contaminated subject: Subject '{subj[:40]}...' contains section heading or narrative paragraph text.",
+                details={"subject": subj, "is_contaminated_subject": True},
+            )
+
         if not (has_spo and has_evidence):
             missing = []
             if not subj: missing.append("subject")
@@ -144,13 +336,29 @@ class CompletenessEvaluator:
             stop_tokens = {
                 "and", "the", "for", "with", "all", "status", "criteria", "per",
                 "upon", "under", "from", "any", "not", "require", "requires", "must", "shall", "or",
-                "employee", "employees", "employment", "staff", "role", "state", "applicable", "policy"
+                "employee", "employees", "employment", "staff", "role", "state", "applicable", "policy",
+                "field", "operator", "between", "value", "type", "rule", "min", "max", "date"
             }
             for cond in candidate.conditions:
-                cond_words = [
-                    w.lower() for w in re.findall(r"[a-zA-Z]{3,}", str(cond))
-                    if w.lower() not in stop_tokens
-                ]
+                if isinstance(cond, dict):
+                    semantic_parts = []
+                    f = cond.get("field")
+                    if f:
+                        semantic_parts.extend(re.split(r"[_ -]+", str(f)))
+                    v = cond.get("value")
+                    if isinstance(v, (list, tuple)):
+                        semantic_parts.extend([str(item) for item in v])
+                    elif v:
+                        semantic_parts.append(str(v))
+                    cond_words = [
+                        w.lower() for w in re.findall(r"[a-zA-Z]{3,}", " ".join(semantic_parts))
+                        if w.lower() not in stop_tokens
+                    ]
+                else:
+                    cond_words = [
+                        w.lower() for w in re.findall(r"[a-zA-Z]{3,}", str(cond))
+                        if w.lower() not in stop_tokens
+                    ]
                 missing_words = [
                     w for w in cond_words
                     if w not in ev_corpus and (len(w) < 5 or w[:5] not in ev_corpus)

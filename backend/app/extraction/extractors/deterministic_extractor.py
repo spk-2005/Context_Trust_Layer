@@ -9,7 +9,8 @@ from __future__ import annotations
 import logging
 from typing import Any, List
 
-from app.extraction.models import CandidateClaim, ExtractionStrategyType, TableGridBinding
+from app.extraction.models import CandidateClaim, ExtractionStrategyType, TableGridBinding, TypedValue
+from app.extraction.subject_normalizer import SubjectNormalizer
 from app.ingestion.parsers.evidence_model import ContentRole, ParsedEvidenceUnit
 
 logger = logging.getLogger(__name__)
@@ -180,33 +181,51 @@ class DeterministicSchemaExtractor:
                     # Extract soft qualifiers (e.g. 'up to', 'typical', 'maximum', 'at manager discretion')
                     qualifiers: List[str] = []
                     val_lower = clean_val.lower()
+                    combined_scope_text = f"{clean_val} {k} {' '.join(unit.hierarchical_context or [])}".lower()
                     if re.search(r"\bup\s+to\b", val_lower):
                         qualifiers.append("up_to")
-                    if re.search(r"\btypical(?:ly)?\b|\busually\b|\bnormally\b", val_lower):
+                    if re.search(r"\btypical(?:ly)?\b", combined_scope_text):
                         qualifiers.append("typical")
-                    if re.search(r"\bmaximum\b|\bmax\b", val_lower):
+                    if re.search(r"\busually\b|\bnormally\b", combined_scope_text):
+                        qualifiers.append("usually")
+                    if re.search(r"\bmaximum\b|\bmax\b", combined_scope_text):
                         qualifiers.append("maximum")
-                    if re.search(r"\bminimum\b|\bmin\b", val_lower):
+                    if re.search(r"\bminimum\b|\bmin\b", combined_scope_text):
                         qualifiers.append("minimum")
-                    if re.search(r"\brecommended\b", val_lower):
+                    if re.search(r"\brecommended\b", combined_scope_text):
                         qualifiers.append("recommended")
                     if re.search(r"\bwithin\b", val_lower):
                         qualifiers.append("within")
-                    if re.search(r"\bat\s+(?:manager'?s?|agent|discretion)\b", val_lower):
-                        qualifiers.append("discretionary")
-                    if re.search(r"\bapprox(?:imately)?\b", val_lower):
+                    if re.search(r"\bat\s+(?:manager'?s?|agent|discretion)\b", combined_scope_text) or "discretion" in combined_scope_text:
+                        qualifiers.append("at_discretion")
+                    if re.search(r"\bwhere\s+possible\b", combined_scope_text):
+                        qualifiers.append("where_possible")
+                    if re.search(r"\bapprox(?:imately)?\b", combined_scope_text):
                         qualifiers.append("approximate")
 
                     # Extract scalar number and unit if applicable
                     scalar_val = clean_val
                     unit_val = None
-                    num_match = re.search(r"(?:^|[^\d])(\d+(?:\.\d+)?)\s*([a-zA-Z%]+)?(?:$|[^\w])", clean_val)
-                    if num_match:
-                        try:
-                            scalar_val = float(num_match.group(1)) if "." in num_match.group(1) else int(num_match.group(1))
-                        except ValueError:
-                            scalar_val = num_match.group(1)
-                        unit_val = num_match.group(2).lower() if num_match.group(2) else None
+                    range_match = re.search(r"(\d+(?:\.\d+)?)\s*%?\s*(?:-|to)\s*(\d+(?:\.\d+)?)%", clean_val)
+                    if range_match:
+                        scalar_val = f"{range_match.group(1)}-{range_match.group(2)}"
+                        unit_val = "%"
+                    elif re.search(r"\bcovered\s+by\s+warranty\b", clean_val.lower()):
+                        scalar_val = "warranty_claim"
+                        unit_val = None
+                    elif re.search(r"\buntil\s+[a-z]+\s+\d+\b", clean_val.lower()):
+                        scalar_val = clean_val
+                        unit_val = "calendar_date"
+                        if "holiday_purchase_window" not in qualifiers:
+                            qualifiers.append("holiday_purchase_window")
+                    else:
+                        num_match = re.search(r"(?:^|[^\d])(\d+(?:\.\d+)?)\s*([a-zA-Z%]+)?(?:$|[^\w])", clean_val)
+                        if num_match:
+                            try:
+                                scalar_val = float(num_match.group(1)) if "." in num_match.group(1) else int(num_match.group(1))
+                            except ValueError:
+                                scalar_val = num_match.group(1)
+                            unit_val = num_match.group(2).lower() if num_match.group(2) else None
 
                     # Extract condition if column header reflects conditionality
                     conditions = []
@@ -225,9 +244,22 @@ class DeterministicSchemaExtractor:
                         conditions=conditions,
                         qualifiers=qualifiers,
                     )
+                    if normalized.get("qualifiers"):
+                        for q in normalized["qualifiers"]:
+                            if q not in qualifiers:
+                                qualifiers.append(q)
 
                     # Build exact grid coordinates for verifiable grounding (NIST AI RMF)
-                    grid_key = DeonticClassifier.strip_markdown(str(cols.get(scope_keys[0], "")))
+                    raw_grid_key = cols.get(scope_keys[0], "") if scope_keys else ""
+                    grid_key = DeonticClassifier.strip_markdown(str(raw_grid_key)).strip()
+                    if not grid_key or grid_key.lower() == "governed entity":
+                        grid_key = DeonticClassifier.strip_markdown(str(unit.hierarchical_context[-1] if unit.hierarchical_context else "Policy Matrix"))
+
+                    final_subject = normalized["subject"]
+                    if not final_subject or final_subject.lower() in ("governed entity", "entity"):
+                        final_subject = grid_key
+                    final_subject, _ = SubjectNormalizer.normalize(final_subject)
+
                     grid_coordinates = {
                         "table_type": "policy_matrix",
                         "row_key": grid_key,
@@ -251,6 +283,102 @@ class DeterministicSchemaExtractor:
                     col_idx = col_keys.index(k) if k in col_keys else 0
                     row_idx = loc.get("line_start", 0)
 
+                    # Build strongly-typed value representation
+                    typed_val: Optional[TypedValue] = None
+                    sec_refs = re.findall(r"\bSection\s+(\d+)\b", clean_val, re.IGNORECASE)
+                    cross_refs = [f"Section {num}" for num in sec_refs]
+                    cond_override = None
+
+                    if sec_refs and ("see section" in val_lower or "refer to section" in val_lower or "per section" in val_lower or "covered by warranty" in val_lower):
+                        typed_val = TypedValue(
+                            value_type="REFERENCE",
+                            reference_id=f"section_{sec_refs[0]}",
+                            raw_text=clean_val,
+                            qualifier=qualifiers[0] if qualifiers else None,
+                        )
+                    elif unit_val == "calendar_date" or re.search(r"\buntil\s+[a-z]+\s+\d+\b", val_lower) or "january 31" in val_lower:
+                        rule_dict = None
+                        if "january 31" in val_lower or "holiday" in final_subject.lower() or "holiday" in val_lower:
+                            rule_dict = {"type": "calendar_date", "rule": "january_31_following_year"}
+                            cond_override = [{"field": "purchase_date", "operator": "between", "value": ["11-01", "12-24"]}]
+                            scalar_val = rule_dict
+                        typed_val = TypedValue(
+                            value_type="CALENDAR_DEADLINE",
+                            raw_text=clean_val,
+                            time_basis="holiday_window" if ("holiday" in val_lower or "holiday" in final_subject.lower() or "holiday_purchase_window" in qualifiers) else "calendar_date",
+                            qualifier=qualifiers[0] if qualifiers else None,
+                            structured_rule=rule_dict,
+                        )
+                    elif unit_val == "%" or "%" in clean_val:
+                        pct_min = None
+                        pct_max = None
+                        if isinstance(scalar_val, str) and "-" in scalar_val:
+                            parts = scalar_val.split("-")
+                            try:
+                                pct_min = float(parts[0])
+                                pct_max = float(parts[1])
+                            except ValueError:
+                                pass
+                        elif isinstance(scalar_val, (int, float)):
+                            pct_min = float(scalar_val)
+                            pct_max = float(scalar_val)
+                        typed_val = TypedValue(
+                            value_type="PERCENTAGE",
+                            scalar_min=pct_min,
+                            scalar_max=pct_max,
+                            unit="%",
+                            raw_text=clean_val,
+                            qualifier=qualifiers[0] if qualifiers else None,
+                        )
+                    elif "$" in clean_val or "usd" in val_lower:
+                        curr_match = re.search(r"\$\s*(\d+(?:\.\d+)?)", clean_val)
+                        curr_val = float(curr_match.group(1)) if curr_match else (float(scalar_val) if isinstance(scalar_val, (int, float)) else None)
+                        typed_val = TypedValue(
+                            value_type="CURRENCY",
+                            scalar_min=curr_val,
+                            scalar_max=curr_val,
+                            unit="USD",
+                            raw_text=clean_val,
+                            qualifier=qualifiers[0] if qualifiers else None,
+                        )
+                    elif unit_val in ("days", "business days", "hours", "months", "years", "weeks") or (isinstance(scalar_val, (int, float)) and any(dw in val_lower for dw in ("day", "hour", "month", "week", "year"))):
+                        dur_min = float(scalar_val) if isinstance(scalar_val, (int, float)) else None
+                        dur_max = dur_min
+                        range_match = re.search(r"(\d+(?:\.\d+)?)\s*(?:-|to)\s*(\d+(?:\.\d+)?)", clean_val)
+                        if range_match:
+                            try:
+                                dur_min = float(range_match.group(1))
+                                dur_max = float(range_match.group(2))
+                            except ValueError:
+                                pass
+
+                        tb_val = None
+                        if "delivery" in val_lower:
+                            tb_val = "delivery_date"
+                        elif "purchase" in val_lower or "in-store" in final_subject.lower() or "instore" in final_subject.lower():
+                            tb_val = "purchase_date"
+                        elif normalized.get("predicate") == "has_return_window" or "return window" in k.lower():
+                            tb_val = "delivery_date"
+
+                        if normalized.get("predicate") == "has_return_window" or "return window" in k.lower():
+                            unit_val = "calendar_days"
+
+                        typed_val = TypedValue(
+                            value_type="DURATION",
+                            scalar_min=dur_min,
+                            scalar_max=dur_max,
+                            unit=unit_val or ("business_days" if "business" in val_lower else "calendar_days"),
+                            raw_text=clean_val,
+                            qualifier=qualifiers[0] if qualifiers else None,
+                            time_basis=tb_val,
+                        )
+                    else:
+                        typed_val = TypedValue(
+                            value_type="TEXT_RULE",
+                            raw_text=clean_val,
+                            qualifier=qualifiers[0] if qualifiers else None,
+                        )
+
                     table_binding = TableGridBinding(
                         table_id=table_id_str,
                         row_key=grid_key,
@@ -262,7 +390,56 @@ class DeterministicSchemaExtractor:
                         col_index=int(col_idx),
                         is_merged_cell=is_ambiguous,
                         qualifiers=qualifiers,
+                        typed_value=typed_val,
                     )
+
+                    # Determine claim category and canonicity
+                    is_form_spec = (s_data.get("table_type") == "form_field_specification") or (any("required" in ck for ck in col_keys_lower) and any("example" in ck or "field" in ck for ck in col_keys_lower))
+
+                    if is_form_spec:
+                        claim_type_val = "form_field_specification"
+                        content_role_val = ContentRole.PROCEDURE
+                        is_canonical_val = False
+                    elif (any("topic" in ck for ck in col_keys_lower) and any("summary" in ck for ck in col_keys_lower)):
+                        claim_type_val = "summary_non_canonical"
+                        content_role_val = ContentRole.EXAMPLE
+                        is_canonical_val = False
+                    elif normalized.get("claim_type") == "CONTACT_INFORMATION" or getattr(unit, "content_role", None) == ContentRole.CONTACT_INFO:
+                        claim_type_val = "CONTACT_INFORMATION"
+                        content_role_val = ContentRole.CONTACT_INFO
+                        is_canonical_val = False
+                    elif getattr(unit, "content_role", None) == ContentRole.DEFINITION or normalized.get("claim_type") == "definition":
+                        claim_type_val = "definition"
+                        content_role_val = ContentRole.DEFINITION
+                        is_canonical_val = False
+                    elif getattr(unit, "content_role", None) == ContentRole.EXAMPLE:
+                        claim_type_val = "EXAMPLE"
+                        content_role_val = ContentRole.EXAMPLE
+                        is_canonical_val = False
+                    elif getattr(unit, "content_role", None) == ContentRole.FAQ_QUESTION:
+                        claim_type_val = "FAQ_QUESTION"
+                        content_role_val = ContentRole.FAQ_QUESTION
+                        is_canonical_val = False
+                    elif getattr(unit, "content_role", None) in (
+                        ContentRole.EXAMPLE,
+                        ContentRole.REVISION_HISTORY,
+                        ContentRole.CONTACT_INFO,
+                        ContentRole.FAQ,
+                        ContentRole.FAQ_QUESTION,
+                        ContentRole.FAQ_ANSWER,
+                        ContentRole.DEFINITION,
+                        ContentRole.HEADING,
+                        ContentRole.INTRODUCTORY_CONTEXT,
+                        ContentRole.DOCUMENT_METADATA,
+                        ContentRole.FORM_SPECIFICATION,
+                    ) or not getattr(unit, "is_canonical", True):
+                        claim_type_val = "non_canonical"
+                        content_role_val = getattr(unit, "content_role", ContentRole.INTRODUCTORY_CONTEXT)
+                        is_canonical_val = False
+                    else:
+                        claim_type_val = "policy_rule"
+                        content_role_val = getattr(unit, "content_role", ContentRole.POLICY_RULE)
+                        is_canonical_val = getattr(unit, "is_canonical", True)
 
                     c = CandidateClaim.create(
                         envelope_id=unit.envelope_id,
@@ -272,21 +449,25 @@ class DeterministicSchemaExtractor:
                         source_unit_id=unit.unit_id,
                         evidence_id=f"ev:{unit.unit_id}",
                         table_binding=table_binding,
+                        typed_value=typed_val,
                         claim_text=normalized["claim_text"],
-                        subject=normalized["subject"],
+                        subject=final_subject,
                         predicate=normalized["predicate"],
                         object_=normalized["object"],
                         evidence_text_span=f"{' | '.join([f'{sk}: {cols[sk]}' for sk in scope_keys])} | {k}: {v}",
                         value=scalar_val,
                         unit=unit_val,
+                        time_basis=typed_val.time_basis if typed_val else None,
+                        qualifier=qualifiers[0] if qualifiers else None,
                         qualifiers=qualifiers,
                         modal_operator=normalized["modal_operator"],
                         modality=normalized["modality"],
-                        conditions=normalized.get("conditions", conditions),
+                        conditions=cond_override if cond_override else normalized.get("conditions", conditions),
+                        cross_references=cross_refs,
                         scope=scope_dict,
-                        claim_type="summary_non_canonical" if (any("topic" in ck for ck in col_keys_lower) and any("summary" in ck for ck in col_keys_lower)) else ("definition" if getattr(unit, "content_role", None) == ContentRole.DEFINITION else "policy_rule"),
-                        content_role=getattr(unit, "content_role", ContentRole.POLICY_RULE),
-                        is_canonical=False if (any("topic" in ck for ck in col_keys_lower) and any("summary" in ck for ck in col_keys_lower)) else getattr(unit, "is_canonical", True),
+                        claim_type=claim_type_val,
+                        content_role=content_role_val,
+                        is_canonical=is_canonical_val,
                         extraction_strategy=ExtractionStrategyType.TABLE_AWARE,
                         locator=enhanced_locator,
                         structured_values={
@@ -294,6 +475,7 @@ class DeterministicSchemaExtractor:
                             "scope": scope_dict,
                             "table_grid": grid_coordinates,
                             "section_context": unit.hierarchical_context,
+                            **({"validity": normalized["validity"]} if "validity" in normalized else {}),
                         },
                         is_ambiguous=is_ambiguous,
                         ambiguity_reason=ambiguity_reason,

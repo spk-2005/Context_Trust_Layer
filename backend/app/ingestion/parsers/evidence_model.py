@@ -24,10 +24,15 @@ class ContentRole(str, Enum):
     DEFINITION = "definition"             # Glossary term, lexical definition, "means", "refers to"
     PROCEDURE = "procedure"               # Step-by-step workflow, administrative process, submission instruction
     FAQ = "faq"                           # Frequently asked questions & answers (Q&A pair)
+    FAQ_QUESTION = "faq_question"         # Frequently asked question prompt (non-canonical)
+    FAQ_ANSWER = "faq_answer"             # Answer to FAQ question
     EXAMPLE = "example"                   # Illustrative worked scenario, hypothetical calculation
     REVISION_HISTORY = "revision_history" # Version changelog, approval metadata, revision table, sign-off block
     HEADING = "heading"                   # Document header, section title, structural outline divider
     CONTACT_INFO = "contact_info"         # Support desk, HR email, contact phone number, address
+    INTRODUCTORY_CONTEXT = "introductory_context" # Descriptive preface, non-normative framing
+    DOCUMENT_METADATA = "document_metadata" # Document title, author, scope metadata
+    FORM_SPECIFICATION = "form_specification" # Form field requirements
 
 
 class ParsedEvidenceUnit(BaseModel):
@@ -77,7 +82,7 @@ class ParsedEvidenceUnit(BaseModel):
         elif block_type == "heading":
             resolved_role = ContentRole.HEADING
 
-        # Resolve canonicity: definitions, examples, history, headings, FAQs, and contact info are non-canonical
+        # Resolve canonicity: definitions, examples, history, headings, FAQs, intro context are non-canonical
         if is_canonical is None:
             if resolved_role in (
                 ContentRole.DEFINITION,
@@ -86,6 +91,10 @@ class ParsedEvidenceUnit(BaseModel):
                 ContentRole.HEADING,
                 ContentRole.CONTACT_INFO,
                 ContentRole.FAQ,
+                ContentRole.FAQ_QUESTION,
+                ContentRole.INTRODUCTORY_CONTEXT,
+                ContentRole.DOCUMENT_METADATA,
+                ContentRole.FORM_SPECIFICATION,
             ):
                 resolved_canonical = False
             else:

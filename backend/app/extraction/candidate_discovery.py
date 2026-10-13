@@ -110,6 +110,13 @@ class CandidateDiscoveryEngine:
         # 6. Document Clauses & Paragraphs
         if b_type in ("clause", "paragraph"):
             from app.extraction.deontic_classifier import DeonticClassifier
+            from app.ingestion.parsers.evidence_model import ContentRole
+
+            # Filter out FAQ questions and introductory context upfront
+            unit_role = getattr(unit, "content_role", None)
+            if unit_role in (ContentRole.FAQ_QUESTION, ContentRole.INTRODUCTORY_CONTEXT, ContentRole.DOCUMENT_METADATA) or text.strip().endswith("?"):
+                return False, ExtractionStrategyType.DOMAIN_RULES, "Inquiry question or introductory context; non-canonical context."
+
             modality, _, is_decision_eligible = DeonticClassifier.classify_text(text)
 
             # Filter out purely descriptive statements (e.g. "The primary goal is to provide clear guidance...")

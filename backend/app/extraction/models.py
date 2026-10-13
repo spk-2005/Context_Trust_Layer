@@ -52,6 +52,22 @@ class UnitOutcome(str, Enum):
     FAILED_TERMINAL       = "failed_terminal"        # Unrecoverable parsing error (e.g. corrupted binary encoding)
 
 
+class TypedValue(BaseModel):
+    """
+    Strongly-typed representation of an extracted policy constraint, duration, percentage,
+    or reference value. Preserves soft qualifiers and dimensional units without semantic loss.
+    """
+    value_type: str = Field(..., description="Semantic type: DURATION, PERCENTAGE, CURRENCY, CALENDAR_DEADLINE, BOOLEAN, TEXT_RULE, REFERENCE")
+    scalar_min: Optional[float] = Field(default=None, description="Minimum numeric boundary or scalar value")
+    scalar_max: Optional[float] = Field(default=None, description="Maximum numeric boundary (if range)")
+    unit: Optional[str] = Field(default=None, description="Standardized measurement unit (e.g. days, hours, %, USD)")
+    qualifier: Optional[str] = Field(default=None, description="Primary soft qualifier (e.g. up_to, typical, usually)")
+    time_basis: Optional[str] = Field(default=None, description="Reference baseline (e.g. delivery_date, purchase_date, holiday_window)")
+    reference_id: Optional[str] = Field(default=None, description="Target section or identifier for REFERENCE values")
+    raw_text: str = Field(..., description="Verbatim raw string from which this value was parsed")
+    structured_rule: Optional[dict[str, Any]] = Field(default=None, description="Structured rule definition (e.g. calendar date rule)")
+
+
 class TableGridBinding(BaseModel):
     """
     Cryptographic and spatial proof binding an extracted claim to a 2D table matrix.
@@ -67,6 +83,7 @@ class TableGridBinding(BaseModel):
     col_index: int = Field(default=0, description="0-indexed column position in grid")
     is_merged_cell: bool = Field(default=False, description="Flagged true if cell spans multiple rows/cols")
     qualifiers: List[str] = Field(default_factory=list, description="Extracted soft qualifiers (e.g. ['up_to', 'typical'])")
+    typed_value: Optional[TypedValue] = Field(default=None, description="Structured typed representation of cell value")
 
 
 class CandidateClaim(BaseModel):
@@ -85,6 +102,7 @@ class CandidateClaim(BaseModel):
     source_unit_id: Optional[str] = Field(default=None, description="Layer 4 ParsedEvidenceUnit identifier")
     evidence_id: Optional[str] = Field(default=None, description="Cryptographic evidence locator identifier")
     table_binding: Optional[TableGridBinding] = Field(default=None, description="2D table grid binding coordinates")
+    typed_value: Optional[TypedValue] = Field(default=None, description="Structured typed representation of claim value")
     
     # Semantic Representation
     claim_text: str = Field(..., description="Normalized claim statement")
@@ -93,10 +111,12 @@ class CandidateClaim(BaseModel):
     object: str = Field(..., description="Constraint, target value, or property")
     value: Optional[Any] = Field(default=None, description="Extracted numerical or quantitative scalar value (e.g. 60)")
     unit: Optional[str] = Field(default=None, description="Unit of measurement (e.g. days, hours, %)")
+    time_basis: Optional[str] = Field(default=None, description="Reference baseline date (delivery_date, purchase_date, ship_date, holiday_window)")
+    qualifier: Optional[str] = Field(default=None, description="Primary soft qualifier (typical, usually, may, recommended, at_discretion, where_possible)")
     qualifiers: List[str] = Field(default_factory=list, description="Soft qualifiers such as 'typical', 'recommended', 'up to', 'approximate'")
     modal_operator: Optional[str] = Field(default=None, description="Normative modal operator (must, shall, prohibited, required)")
     modality: str = Field(default="REQUIRED", description="Standardized normative modality: REQUIRED, PROHIBITED, PERMITTED, RECOMMENDED")
-    conditions: List[str] = Field(default_factory=list, description="Explicit contextual preconditions, triggers, or activation requirements")
+    conditions: List[Any] = Field(default_factory=list, description="Explicit contextual preconditions, triggers, or activation requirements")
     exceptions: List[str] = Field(default_factory=list, description="Explicit permitted exemptions or negative preconditions (e.g. Customer internal business use)")
     scope: dict[str, Any] = Field(default_factory=dict, description="Target population, grade, jurisdiction, or scope constraints")
     claim_type: str = Field(default="policy", description="Semantic category (policy, invariant, metric, decision)")
@@ -132,10 +152,12 @@ class CandidateClaim(BaseModel):
         evidence_text_span: str,
         value: Optional[Any] = None,
         unit: Optional[str] = None,
+        time_basis: Optional[str] = None,
+        qualifier: Optional[str] = None,
         qualifiers: Optional[List[str]] = None,
         modal_operator: Optional[str] = None,
         modality: str = "REQUIRED",
-        conditions: Optional[List[str]] = None,
+        conditions: Optional[List[Any]] = None,
         exceptions: Optional[List[str]] = None,
         scope: Optional[dict[str, Any]] = None,
         claim_type: str = "policy",
@@ -151,6 +173,7 @@ class CandidateClaim(BaseModel):
         source_unit_id: Optional[str] = None,
         evidence_id: Optional[str] = None,
         table_binding: Optional[TableGridBinding] = None,
+        typed_value: Optional[TypedValue] = None,
         content_role: ContentRole | str | None = None,
     ) -> CandidateClaim:
         text_clean = claim_text.strip()
@@ -166,7 +189,7 @@ class CandidateClaim(BaseModel):
             except ValueError:
                 resolved_role = ContentRole.POLICY_RULE
 
-        # Resolve canonicity: definitions, examples, history, headings, FAQs, and contact info are non-canonical
+        # Resolve canonicity: definitions, examples, history, headings, FAQs, intro context are non-canonical
         if is_canonical is None:
             if resolved_role in (
                 ContentRole.DEFINITION,
@@ -175,12 +198,24 @@ class CandidateClaim(BaseModel):
                 ContentRole.HEADING,
                 ContentRole.CONTACT_INFO,
                 ContentRole.FAQ,
+                ContentRole.FAQ_QUESTION,
+                ContentRole.INTRODUCTORY_CONTEXT,
+                ContentRole.DOCUMENT_METADATA,
+                ContentRole.FORM_SPECIFICATION,
             ):
                 resolved_canonical = False
             else:
                 resolved_canonical = True
         else:
             resolved_canonical = is_canonical
+
+        # Resolve qualifier and time_basis
+        resolved_qualifier = qualifier or (qualifiers[0] if qualifiers else None)
+        resolved_time_basis = time_basis
+        if not resolved_time_basis and typed_value and typed_value.time_basis:
+            resolved_time_basis = typed_value.time_basis
+        elif not resolved_time_basis and structured_values and structured_values.get("time_basis"):
+            resolved_time_basis = structured_values.get("time_basis")
 
         return cls(
             candidate_id=cand_id,
@@ -192,13 +227,16 @@ class CandidateClaim(BaseModel):
             source_unit_id=source_unit_id or unit_id,
             evidence_id=evidence_id or f"ev:{unit_id}",
             table_binding=table_binding,
+            typed_value=typed_value,
             claim_text=text_clean,
             subject=subject.strip(),
             predicate=predicate.strip(),
             object=object_.strip(),
             value=value,
             unit=unit,
-            qualifiers=qualifiers or [],
+            time_basis=resolved_time_basis,
+            qualifier=resolved_qualifier,
+            qualifiers=qualifiers or ([resolved_qualifier] if resolved_qualifier else []),
             modal_operator=modal_operator,
             modality=modality,
             conditions=conditions or [],

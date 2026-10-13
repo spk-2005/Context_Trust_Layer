@@ -1,4 +1,5 @@
 import io
+import logging
 import os
 import re
 import textwrap
@@ -32,6 +33,8 @@ from app.schemas.document import (
     DocumentVersionResponse,
 )
 from app.services.activity_service import ActivityService
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/documents", tags=["documents"])
 

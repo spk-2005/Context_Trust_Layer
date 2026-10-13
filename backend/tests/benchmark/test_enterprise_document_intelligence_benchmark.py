@@ -204,21 +204,21 @@ async def test_northwind_multi_matrix_and_qualifier_benchmark(sample_northwind_p
 
     std_claim = next(c for c in return_window_claims if "Standard merchandise" in c.subject)
     assert std_claim.value == 30
-    assert std_claim.unit == "days"
+    assert std_claim.unit in ("days", "calendar_days")
 
     gold_claim = next(c for c in return_window_claims if "Gold members" in c.subject)
     assert gold_claim.value == 60
-    assert gold_claim.unit == "days"
+    assert gold_claim.unit in ("days", "calendar_days")
 
     # 2. Soft Qualifiers Retention
     # Debit card has 'Up to 10 business days'
-    debit_claim = next((c for c in claims if "Debit card" in c.subject and ("notes" in c.predicate or "timeline" in c.predicate)), None)
+    debit_claim = next((c for c in claims if "Debit card" in c.subject and ("notes" in c.predicate or "timeline" in c.predicate or "posting" in c.predicate or "duration" in c.predicate)), None)
     assert debit_claim is not None, "Debit card notes/timeline claim not found"
     assert "up_to" in debit_claim.qualifiers
     assert debit_claim.table_binding.qualifiers == ["up_to"]
 
     # PayPal has 'Usually within 24 hours'
-    paypal_claim = next((c for c in claims if "PayPal" in c.subject and ("notes" in c.predicate or "timeline" in c.predicate)), None)
+    paypal_claim = next((c for c in claims if "PayPal" in c.subject and ("notes" in c.predicate or "timeline" in c.predicate or "posting" in c.predicate or "duration" in c.predicate)), None)
     assert paypal_claim is not None, "PayPal notes/timeline claim not found"
     assert "typical" in paypal_claim.qualifiers or "within" in paypal_claim.qualifiers
 

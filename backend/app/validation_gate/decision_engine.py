@@ -166,15 +166,47 @@ class ClaimLifecycleDecisionEngine:
             decision = ClaimLifecycleDecision.REJECT
             decision_code = DecisionCode.REJECT_DESCRIPTIVE_PURPOSE
             reason = "REJECTED: Descriptive purpose/preamble statement; non-normative context cannot be enforced as an operative constraint."
-        elif claim_type in ("derived_summary", "SUMMARY_NON_CANONICAL") or not getattr(candidate, "is_canonical", True):
-            decision = ClaimLifecycleDecision.REVIEW
-            decision_code = DecisionCode.SUMMARY_NON_CANONICAL if (claim_type == "SUMMARY_NON_CANONICAL" or not getattr(candidate, "is_canonical", True)) else DecisionCode.REVIEW_DERIVED_SUMMARY
-            reason = "DERIVED SUMMARY: Retained for overview display; excluded from active decision gate to prevent duplicate evaluation against atomic row claims."
         # Fatal rules -> Hard REJECT
+        elif not completeness.passed and completeness.details.get("decision_code") == "QUESTION_NOT_ASSERTION":
+            decision = ClaimLifecycleDecision.REJECT
+            decision_code = DecisionCode.QUESTION_NOT_ASSERTION
+            reason = f"REJECTED: {completeness.reason}"
+        elif not completeness.passed and completeness.details.get("decision_code") == "EXAMPLE_NON_CANONICAL":
+            decision = ClaimLifecycleDecision.REJECT
+            decision_code = DecisionCode.EXAMPLE_NON_CANONICAL
+            reason = f"REJECTED: {completeness.reason}"
+        elif not completeness.passed and completeness.details.get("decision_code") == "DEFINITION_FRAGMENT":
+            decision = ClaimLifecycleDecision.REJECT
+            decision_code = DecisionCode.DEFINITION_FRAGMENT
+            reason = f"REJECTED: {completeness.reason}"
+        elif not completeness.passed and completeness.details.get("decision_code") == "HEADING_NON_CANONICAL":
+            decision = ClaimLifecycleDecision.REJECT
+            decision_code = DecisionCode.HEADING_NON_CANONICAL
+            reason = f"REJECTED: {completeness.reason}"
+        elif not completeness.passed and completeness.details.get("decision_code") == "SUBJECT_CONTAMINATION":
+            decision = ClaimLifecycleDecision.REJECT
+            decision_code = DecisionCode.SUBJECT_CONTAMINATION
+            reason = f"REJECTED: {completeness.reason}"
+        elif not completeness.passed and completeness.details.get("decision_code") == "INCOMPLETE_ASSERTION":
+            decision = ClaimLifecycleDecision.REJECT
+            decision_code = DecisionCode.INCOMPLETE_ASSERTION
+            reason = f"REJECTED: {completeness.reason}"
+        elif not completeness.passed and completeness.details.get("decision_code") == "SUBJECT_NORMALIZATION_FAILED":
+            decision = ClaimLifecycleDecision.REVIEW
+            decision_code = DecisionCode.SUBJECT_NORMALIZATION_FAILED
+            reason = f"REVIEW: {completeness.reason}"
+        elif not completeness.passed and completeness.details.get("decision_code") == "CONTACT_INFO_NON_CANONICAL":
+            decision = ClaimLifecycleDecision.REVIEW
+            decision_code = DecisionCode.CONTACT_INFO_NON_CANONICAL
+            reason = f"REVIEW: {completeness.reason}"
         elif not completeness.passed and "fragment detected" in str(completeness.reason).lower():
             decision = ClaimLifecycleDecision.REJECT
             decision_code = DecisionCode.FRAGMENT_ASSERTION_DISCARDED
             reason = f"REJECTED: Fragment discarded. {completeness.reason}"
+        elif claim_type in ("derived_summary", "SUMMARY_NON_CANONICAL", "EXAMPLE", "example", "CONTACT_INFORMATION", "contact_info") or not getattr(candidate, "is_canonical", True):
+            decision = ClaimLifecycleDecision.REVIEW
+            decision_code = DecisionCode.SUMMARY_NON_CANONICAL if (claim_type in ("SUMMARY_NON_CANONICAL", "derived_summary") or not getattr(candidate, "is_canonical", True)) else DecisionCode.REVIEW_DERIVED_SUMMARY
+            reason = "NON-CANONICAL CONTEXT: Retained for overview display; excluded from active decision gate to prevent duplicate evaluation against atomic row claims."
         elif not source_match.passed:
             decision = ClaimLifecycleDecision.REJECT
             decision_code = DecisionCode.REJECT_GROUNDING_FAILED
@@ -190,7 +222,11 @@ class ClaimLifecycleDecisionEngine:
         # HITL rules -> REVIEW
         elif needs_review or composite_score < cls.AUTO_APPROVE_THRESHOLD:
             decision = ClaimLifecycleDecision.REVIEW
-            if completeness.details.get("unsupported_conditions"):
+            if completeness.details.get("decision_code") == "WEAK_PREDICATE":
+                decision_code = DecisionCode.WEAK_PREDICATE
+            elif completeness.details.get("decision_code") == "META_RULE_NOT_ATOMIC":
+                decision_code = DecisionCode.META_RULE_NOT_ATOMIC
+            elif completeness.details.get("unsupported_conditions"):
                 decision_code = DecisionCode.UNSUPPORTED_CONDITION
             elif getattr(candidate, "is_ambiguous", False) or (tb and tb.is_merged_cell):
                 decision_code = DecisionCode.TABLE_CELL_AMBIGUITY if (tb and tb.is_merged_cell) else DecisionCode.REVIEW_AMBIGUITY_FLAGGED

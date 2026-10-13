@@ -42,7 +42,11 @@ class DocumentSemanticRestructurer:
         stripped = line.strip()
         if not stripped:
             return False
-        if re.match(r"^\d+(?:\.\d+)*\s+[A-Za-z]", stripped):
+        # If line has multiple columns separated by gutter whitespace, it's a table row
+        if len(re.split(r"\s{3,}|\t+", stripped)) >= 2:
+            return False
+        # Numbered headings must have a dot (e.g., '1.' or '1.1') before text, preventing '5 years.' from matching
+        if re.match(r"^(?:\d+(?:\.\d+)+|\d+\.)\s+[A-Za-z]", stripped):
             return True
         if stripped.startswith(("- ", "* ", "• ", "● ", "❖ ", "#", ">", "---", "|")):
             return True
@@ -111,9 +115,19 @@ class DocumentSemanticRestructurer:
                 cells.append(cell)
 
             if any(cells):
-                if sum(1 for c in cells if c) == 1 and rows:
+                # Multiline row continuation: if primary entity column (col 0) is empty and we have a preceding row,
+                # all non-empty cells in this line are continuations of the corresponding cells in rows[-1]
+                if rows and not cells[0]:
+                    for idx, c in enumerate(cells):
+                        if c:
+                            if idx < len(rows[-1]):
+                                rows[-1][idx] = (rows[-1][idx] + " " + c).strip()
+                            else:
+                                rows[-1].append(c)
+                elif sum(1 for c in cells if c) == 1 and rows:
                     non_empty_idx = [i for i, c in enumerate(cells) if c][0]
-                    rows[-1][non_empty_idx] += " " + cells[non_empty_idx]
+                    if non_empty_idx < len(rows[-1]):
+                        rows[-1][non_empty_idx] = (rows[-1][non_empty_idx] + " " + cells[non_empty_idx]).strip()
                 else:
                     rows.append(cells)
 
