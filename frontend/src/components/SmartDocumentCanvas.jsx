@@ -14,7 +14,8 @@ import {
   Layers,
   BookOpen,
   FileText,
-  GripVertical
+  GripVertical,
+  Download
 } from 'lucide-react';
 
 /**
@@ -1248,6 +1249,41 @@ export default function SmartDocumentCanvas({
               {!isUltraCompact && <span>Clean</span>}
             </button>
           </div>
+
+          {/* Download Extracted Data PDF Button */}
+          <a
+            href={`/v1/documents/${String(documentId || documentNode?.data?.doc_id || documentNode?.id || '').replace(/^doc_/, '')}/extracted-pdf`}
+            download={`${documentNode?.label || 'document'}_extracted_data.pdf`}
+            onClick={() => showToast?.('Downloading Extracted Verification Dossier (PDF)...')}
+            title="Download Extracted Data as PDF for testing & comparison with original"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: isCompact ? '3px' : '5px',
+              padding: isUltraCompact ? '3px 6px' : (isCompact ? '3px 8px' : '4px 10px'),
+              borderRadius: '5px',
+              border: '1px solid rgba(199, 210, 254, 0.4)',
+              background: 'rgba(99, 102, 241, 0.20)',
+              color: '#EEF2FF',
+              fontSize: isCompact ? '0.66rem' : '0.73rem',
+              fontWeight: 700,
+              textDecoration: 'none',
+              cursor: 'pointer',
+              boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
+              transition: 'all 0.15s ease'
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.background = 'rgba(99, 102, 241, 0.40)';
+              e.currentTarget.style.color = '#FFFFFF';
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.background = 'rgba(99, 102, 241, 0.20)';
+              e.currentTarget.style.color = '#EEF2FF';
+            }}
+          >
+            <Download size={isCompact ? 11 : 12} strokeWidth={2.4} color="#C7D2FE" />
+            {!isUltraCompact && <span>Extracted PDF</span>}
+          </a>
 
           {onMinimize && (
             <button

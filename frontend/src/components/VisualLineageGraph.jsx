@@ -151,6 +151,67 @@ export default function VisualLineageGraph({
   const isResizingSplit = Boolean(resizingDivider);
   const splitContainerRef = useRef(null);
 
+  // Download Extracted Data Dropdown State & Handler
+  const [downloadMenuOpen, setDownloadMenuOpen] = useState(false);
+  const downloadMenuRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (downloadMenuRef.current && !downloadMenuRef.current.contains(event.target)) {
+        setDownloadMenuOpen(false);
+      }
+    }
+    if (downloadMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [downloadMenuOpen]);
+
+  const handleDownloadExtractedData = (docId, docTitle, format = 'pdf') => {
+    const cleanDocId = String(docId || '').replace(/^doc_/, '');
+    const safeName = (docTitle || 'document').replace(/[^a-zA-Z0-9_\-]/g, '_');
+
+    if (format === 'json') {
+      showToast?.(`Downloading extracted JSON test data for "${docTitle}"...`);
+      const link = document.createElement('a');
+      link.href = `/v1/documents/${cleanDocId}/extracted-data`;
+      link.download = `${safeName}_extracted_data.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } else if (format === 'markdown') {
+      showToast?.(`Fetching extracted markdown content for "${docTitle}"...`);
+      fetch(`/v1/documents/${cleanDocId}/extracted-data`)
+        .then(res => res.json())
+        .then(data => {
+          const text = data.highlighted_markdown || data.full_extracted_text || '';
+          const blob = new Blob([text], { type: 'text/markdown;charset=utf-8' });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `${safeName}_extracted_content.md`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(url);
+          showToast?.(`Extracted markdown downloaded!`);
+        })
+        .catch(() => {
+          showToast?.('Failed to download markdown content', 'error');
+        });
+    } else {
+      showToast?.(`Downloading Extracted Verification Dossier (PDF) for "${docTitle}"...`);
+      const link = document.createElement('a');
+      link.href = `/v1/documents/${cleanDocId}/extracted-pdf`;
+      link.download = `${safeName}_extracted_data.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  };
+
   // Flexible Pane Order and Drag-Shuffle State (Doc, Details/Desc, DAG)
   const [paneOrder, setPaneOrder] = useState(['doc', 'details', 'dag']);
   const [draggedPane, setDraggedPane] = useState(null);
@@ -2427,6 +2488,38 @@ export default function VisualLineageGraph({
 
                           <td style={{ padding: '10px 14px', textAlign: 'right' }}>
                             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                              {item.type === 'document' && (
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    const docId = item.data?.doc_id || String(item.id || '').replace(/^doc_/, '');
+                                    handleDownloadExtractedData(docId, item.label, 'pdf');
+                                  }}
+                                  title={`Download Extracted Data PDF for ${item.label}`}
+                                  style={{
+                                    padding: '4px 9px',
+                                    borderRadius: '6px',
+                                    border: '1px solid #C7D2FE',
+                                    background: '#EEF2FF',
+                                    color: '#4338CA',
+                                    fontSize: '0.72rem',
+                                    fontWeight: 700,
+                                    cursor: 'pointer',
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '4px',
+                                    boxShadow: '0 1px 2px rgba(67, 56, 202, 0.05)',
+                                    transition: 'all 0.15s ease'
+                                  }}
+                                  onMouseEnter={e => { e.currentTarget.style.background = '#E0E7FF'; }}
+                                  onMouseLeave={e => { e.currentTarget.style.background = '#EEF2FF'; }}
+                                >
+                                  <Download size={12} strokeWidth={2.4} />
+                                  <span>Extracted Data</span>
+                                </button>
+                              )}
+
                               <button
                                 type="button"
                                 className="trulin-inspect-btn"
@@ -2929,6 +3022,183 @@ export default function VisualLineageGraph({
                         <ExternalLink size={12} />
                         <span>Open File ↗</span>
                       </a>
+                    )}
+
+                    {/* Download Extracted Data Action Button Group */}
+                    {selectedAsset360.mode === 'document' && (
+                      <div ref={downloadMenuRef} style={{ position: 'relative', display: 'inline-flex', alignItems: 'center' }}>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const docId = selectedAsset360.node.data?.doc_id || String(selectedAsset360.node.id || '').replace(/^doc_/, '');
+                            handleDownloadExtractedData(docId, selectedAsset360.node.label, 'pdf');
+                          }}
+                          title="Download Extracted Data as PDF for testing & comparison against original document"
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '5px',
+                            padding: '4px 9px',
+                            borderRadius: '6px 0 0 6px',
+                            border: '1px solid #C7D2FE',
+                            background: '#EEF2FF',
+                            color: '#4338CA',
+                            fontSize: '0.74rem',
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            boxShadow: '0 1px 2px rgba(67,56,202,0.06)',
+                            transition: 'all 0.15s ease'
+                          }}
+                          onMouseEnter={e => { e.currentTarget.style.background = '#E0E7FF'; }}
+                          onMouseLeave={e => { e.currentTarget.style.background = '#EEF2FF'; }}
+                        >
+                          <Download size={13} strokeWidth={2.4} />
+                          <span>Download Extracted PDF</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setDownloadMenuOpen(prev => !prev);
+                          }}
+                          title="Choose extracted data format (PDF, JSON, Markdown)"
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            padding: '4px 6px',
+                            borderRadius: '0 6px 6px 0',
+                            border: '1px solid #C7D2FE',
+                            borderLeft: 'none',
+                            background: downloadMenuOpen ? '#E0E7FF' : '#EEF2FF',
+                            color: '#4338CA',
+                            cursor: 'pointer',
+                            boxShadow: '0 1px 2px rgba(67,56,202,0.06)',
+                            transition: 'all 0.15s ease'
+                          }}
+                        >
+                          <ChevronDown size={12} strokeWidth={2.4} style={{ transform: downloadMenuOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s ease' }} />
+                        </button>
+
+                        {downloadMenuOpen && (
+                          <div
+                            style={{
+                              position: 'absolute',
+                              top: 'calc(100% + 5px)',
+                              left: 0,
+                              background: '#FFFFFF',
+                              border: '1px solid #E2E8F0',
+                              borderRadius: '8px',
+                              boxShadow: '0 10px 25px -5px rgba(0,0,0,0.14), 0 8px 10px -6px rgba(0,0,0,0.08)',
+                              padding: '5px',
+                              zIndex: 100,
+                              minWidth: '235px',
+                              display: 'flex',
+                              flexDirection: 'column',
+                              gap: '3px'
+                            }}
+                          >
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setDownloadMenuOpen(false);
+                                const docId = selectedAsset360.node.data?.doc_id || String(selectedAsset360.node.id || '').replace(/^doc_/, '');
+                                handleDownloadExtractedData(docId, selectedAsset360.node.label, 'pdf');
+                              }}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '9px',
+                                padding: '7px 10px',
+                                borderRadius: '6px',
+                                border: 'none',
+                                background: 'transparent',
+                                color: '#1E293B',
+                                fontSize: '0.74rem',
+                                fontWeight: 600,
+                                cursor: 'pointer',
+                                textAlign: 'left',
+                                width: '100%',
+                                transition: 'all 0.12s ease'
+                              }}
+                              onMouseEnter={e => { e.currentTarget.style.background = '#EEF2FF'; e.currentTarget.style.color = '#4338CA'; }}
+                              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#1E293B'; }}
+                            >
+                              <FileText size={14} color="#4338CA" />
+                              <div>
+                                <div style={{ fontWeight: 700 }}>Verification Dossier (PDF)</div>
+                                <div style={{ fontSize: '0.64rem', color: '#64748B' }}>Tables catalog & multi-modal scorecard</div>
+                              </div>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setDownloadMenuOpen(false);
+                                const docId = selectedAsset360.node.data?.doc_id || String(selectedAsset360.node.id || '').replace(/^doc_/, '');
+                                handleDownloadExtractedData(docId, selectedAsset360.node.label, 'json');
+                              }}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '9px',
+                                padding: '7px 10px',
+                                borderRadius: '6px',
+                                border: 'none',
+                                background: 'transparent',
+                                color: '#1E293B',
+                                fontSize: '0.74rem',
+                                fontWeight: 600,
+                                cursor: 'pointer',
+                                textAlign: 'left',
+                                width: '100%',
+                                transition: 'all 0.12s ease'
+                              }}
+                              onMouseEnter={e => { e.currentTarget.style.background = '#EEF2FF'; e.currentTarget.style.color = '#4338CA'; }}
+                              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#1E293B'; }}
+                            >
+                              <Database size={14} color="#059669" />
+                              <div>
+                                <div style={{ fontWeight: 700 }}>Structured Test Data (JSON)</div>
+                                <div style={{ fontSize: '0.64rem', color: '#64748B' }}>Raw parsed tables, claims & entities</div>
+                              </div>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setDownloadMenuOpen(false);
+                                const docId = selectedAsset360.node.data?.doc_id || String(selectedAsset360.node.id || '').replace(/^doc_/, '');
+                                handleDownloadExtractedData(docId, selectedAsset360.node.label, 'markdown');
+                              }}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '9px',
+                                padding: '7px 10px',
+                                borderRadius: '6px',
+                                border: 'none',
+                                background: 'transparent',
+                                color: '#1E293B',
+                                fontSize: '0.74rem',
+                                fontWeight: 600,
+                                cursor: 'pointer',
+                                textAlign: 'left',
+                                width: '100%',
+                                transition: 'all 0.12s ease'
+                              }}
+                              onMouseEnter={e => { e.currentTarget.style.background = '#EEF2FF'; e.currentTarget.style.color = '#4338CA'; }}
+                              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#1E293B'; }}
+                            >
+                              <Layers size={14} color="#EA580C" />
+                              <div>
+                                <div style={{ fontWeight: 700 }}>Extracted Content (.md)</div>
+                                <div style={{ fontSize: '0.64rem', color: '#64748B' }}>Raw markdown formatted text</div>
+                              </div>
+                            </button>
+                          </div>
+                        )}
+                      </div>
                     )}
 
                     {/* Details Symbol Toggle Button (Placed at top of filename, right after Open File) */}
