@@ -10,7 +10,7 @@ import logging
 from typing import Any, List
 
 from app.extraction.models import CandidateClaim, ExtractionStrategyType, TableGridBinding
-from app.ingestion.parsers.evidence_model import ParsedEvidenceUnit
+from app.ingestion.parsers.evidence_model import ContentRole, ParsedEvidenceUnit
 
 logger = logging.getLogger(__name__)
 
@@ -136,12 +136,18 @@ class DeterministicSchemaExtractor:
                 col_keys = list(cols.keys())
                 col_keys_lower = [str(k).lower().strip() for k in col_keys]
 
-                # Safety check: skip metadata tables if they reached here
+                from app.normalization.normalizer import DocumentNormalizer
+
+                # Safety check: skip metadata & navigation tables if they reached here
                 if (any("ver" in k or "revision" in k for k in col_keys_lower) and any("date" in k or "description" in k for k in col_keys_lower)):
                     return claims
                 if (any("section" in k for k in col_keys_lower) and any("title" in k for k in col_keys_lower)):
                     return claims
                 if (any("role" in k or "sign" in k for k in col_keys_lower) and any("name" in k or "designation" in k for k in col_keys_lower)):
+                    return claims
+                if DocumentNormalizer.is_table_of_contents_block(unit.content_text) or any("table of contents" in str(ctx).lower() for ctx in unit.hierarchical_context):
+                    return claims
+                if s_data.get("table_type") in ("table_of_contents", "revision_history", "approver_signoff"):
                     return claims
 
                 from app.extraction.deontic_classifier import DeonticClassifier
@@ -168,17 +174,39 @@ class DeterministicSchemaExtractor:
                     v = cols[k]
                     val_str = str(v).strip()
                     clean_val = DeonticClassifier.strip_markdown(val_str)
-                    
+                    if not clean_val:
+                        continue
+
+                    # Extract soft qualifiers (e.g. 'up to', 'typical', 'maximum', 'at manager discretion')
+                    qualifiers: List[str] = []
+                    val_lower = clean_val.lower()
+                    if re.search(r"\bup\s+to\b", val_lower):
+                        qualifiers.append("up_to")
+                    if re.search(r"\btypical(?:ly)?\b|\busually\b|\bnormally\b", val_lower):
+                        qualifiers.append("typical")
+                    if re.search(r"\bmaximum\b|\bmax\b", val_lower):
+                        qualifiers.append("maximum")
+                    if re.search(r"\bminimum\b|\bmin\b", val_lower):
+                        qualifiers.append("minimum")
+                    if re.search(r"\brecommended\b", val_lower):
+                        qualifiers.append("recommended")
+                    if re.search(r"\bwithin\b", val_lower):
+                        qualifiers.append("within")
+                    if re.search(r"\bat\s+(?:manager'?s?|agent|discretion)\b", val_lower):
+                        qualifiers.append("discretionary")
+                    if re.search(r"\bapprox(?:imately)?\b", val_lower):
+                        qualifiers.append("approximate")
+
                     # Extract scalar number and unit if applicable
                     scalar_val = clean_val
                     unit_val = None
-                    num_match = re.search(r"^(\d+(?:\.\d+)?)\s*([a-zA-Z%]+)?$", clean_val)
+                    num_match = re.search(r"(?:^|[^\d])(\d+(?:\.\d+)?)\s*([a-zA-Z%]+)?(?:$|[^\w])", clean_val)
                     if num_match:
                         try:
                             scalar_val = float(num_match.group(1)) if "." in num_match.group(1) else int(num_match.group(1))
                         except ValueError:
                             scalar_val = num_match.group(1)
-                        unit_val = num_match.group(2)
+                        unit_val = num_match.group(2).lower() if num_match.group(2) else None
 
                     # Extract condition if column header reflects conditionality
                     conditions = []
@@ -195,6 +223,7 @@ class DeterministicSchemaExtractor:
                         rule_key=k,
                         rule_value=val_str,
                         conditions=conditions,
+                        qualifiers=qualifiers,
                     )
 
                     # Build exact grid coordinates for verifiable grounding (NIST AI RMF)
@@ -206,6 +235,7 @@ class DeterministicSchemaExtractor:
                         "col_header": k,
                         "cell_value": clean_val,
                         "unit": unit_val,
+                        "qualifiers": qualifiers,
                         "table_start_line": loc.get("table_start_line"),
                         "row_line": loc.get("line_start"),
                     }
@@ -213,6 +243,8 @@ class DeterministicSchemaExtractor:
                         **loc,
                         "table_grid": grid_coordinates,
                         "grid_label": f"Row '{grid_key}' • Col '{k}' • Cell '{clean_val}'",
+                        "heading_path": unit.hierarchical_context,
+                        "section_context": unit.hierarchical_context,
                     }
 
                     table_id_str = str(loc.get("table_id") or f"tbl_{loc.get('table_start_line', 0)}")
@@ -229,6 +261,7 @@ class DeterministicSchemaExtractor:
                         row_index=int(row_idx) if isinstance(row_idx, int) else 0,
                         col_index=int(col_idx),
                         is_merged_cell=is_ambiguous,
+                        qualifiers=qualifiers,
                     )
 
                     c = CandidateClaim.create(
@@ -246,14 +279,22 @@ class DeterministicSchemaExtractor:
                         evidence_text_span=f"{' | '.join([f'{sk}: {cols[sk]}' for sk in scope_keys])} | {k}: {v}",
                         value=scalar_val,
                         unit=unit_val,
+                        qualifiers=qualifiers,
                         modal_operator=normalized["modal_operator"],
                         modality=normalized["modality"],
                         conditions=normalized.get("conditions", conditions),
                         scope=scope_dict,
-                        claim_type="policy_rule",
+                        claim_type="summary_non_canonical" if (any("topic" in ck for ck in col_keys_lower) and any("summary" in ck for ck in col_keys_lower)) else ("definition" if getattr(unit, "content_role", None) == ContentRole.DEFINITION else "policy_rule"),
+                        content_role=getattr(unit, "content_role", ContentRole.POLICY_RULE),
+                        is_canonical=False if (any("topic" in ck for ck in col_keys_lower) and any("summary" in ck for ck in col_keys_lower)) else getattr(unit, "is_canonical", True),
                         extraction_strategy=ExtractionStrategyType.TABLE_AWARE,
                         locator=enhanced_locator,
-                        structured_values={"columns": cols, "scope": scope_dict, "table_grid": grid_coordinates},
+                        structured_values={
+                            "columns": cols,
+                            "scope": scope_dict,
+                            "table_grid": grid_coordinates,
+                            "section_context": unit.hierarchical_context,
+                        },
                         is_ambiguous=is_ambiguous,
                         ambiguity_reason=ambiguity_reason,
                         confidence=0.70 if is_ambiguous else 0.98,

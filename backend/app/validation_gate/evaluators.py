@@ -85,76 +85,97 @@ class CompletenessEvaluator:
                 details={"subject": subj, "predicate": pred, "object": obj, "is_ambiguous": True},
             )
 
-        if has_spo and has_evidence:
-            details_dict: dict[str, Any] = {"subject": subj, "predicate": pred, "object": obj}
-            if getattr(candidate, "conditions", None):
-                details_dict["conditions"] = candidate.conditions
-            if getattr(candidate, "value", None) is not None:
-                details_dict["value"] = candidate.value
-                details_dict["unit"] = getattr(candidate, "unit", None)
-            if getattr(candidate, "scope", None):
-                details_dict["scope"] = candidate.scope
-
-            # Grounding check for contextual preconditions / exceptions
-            unsupported_conditions = []
-            if getattr(candidate, "conditions", None):
-                import json
-                ev_corpus = (
-                    span + " " +
-                    str(getattr(candidate, "claim_text", "") or "") + " " +
-                    json.dumps(getattr(candidate, "structured_values", {}) or {}, default=str) + " " +
-                    json.dumps(getattr(candidate, "locator", {}) or {}, default=str)
-                ).lower()
-                stop_tokens = {
-                    "and", "the", "for", "with", "all", "status", "criteria", "per",
-                    "upon", "under", "from", "any", "not", "require", "requires", "must", "shall", "or",
-                    "employee", "employees", "employment", "staff", "role", "state", "applicable", "policy"
-                }
-                for cond in candidate.conditions:
-                    cond_words = [
-                        w.lower() for w in re.findall(r"[a-zA-Z]{3,}", str(cond))
-                        if w.lower() not in stop_tokens
-                    ]
-                    missing_words = [
-                        w for w in cond_words
-                        if w not in ev_corpus and (len(w) < 5 or w[:5] not in ev_corpus)
-                    ]
-                    if missing_words:
-                        unsupported_conditions.append(f"Condition '{cond}' has ungrounded terms: {', '.join(missing_words)}")
-
-            if unsupported_conditions:
-                return DimensionEvaluation(
-                    dimension_name="completeness",
-                    status=CompletenessStatus.PARTIAL.value,
-                    score=0.65,
-                    passed=False,
-                    reason=f"Unsupported conditions detected: {'; '.join(unsupported_conditions)}.",
-                    details={"unsupported_conditions": unsupported_conditions, **details_dict},
-                )
-
+        PRONOUN_SUBJECTS = {"it", "they", "this", "that", "these", "those", "which", "he", "she", "there", "someone"}
+        if subj.lower() in PRONOUN_SUBJECTS:
             return DimensionEvaluation(
                 dimension_name="completeness",
-                status=CompletenessStatus.COMPLETE.value,
-                score=1.0,
-                passed=True,
-                reason="Subject-Predicate-Object semantics, conditions, and evidence coordinates are 100% complete.",
-                details=details_dict,
+                status=CompletenessStatus.PARTIAL.value,
+                score=0.2,
+                passed=False,
+                reason=f"Fragment detected: Subject is an ungrounded pronoun ('{subj}'). Complete assertion with named entity required.",
+                details={"subject": subj, "predicate": pred, "object": obj, "is_fragment": True},
             )
-        else:
+
+        if not (has_spo and has_evidence):
             missing = []
             if not subj: missing.append("subject")
             if not pred: missing.append("predicate")
             if not obj: missing.append("object")
-            if not has_evidence: missing.append("evidence_span")
+            if not has_evidence: missing.append("evidence_text_span")
 
             return DimensionEvaluation(
                 dimension_name="completeness",
                 status=CompletenessStatus.PARTIAL.value,
                 score=0.6,
                 passed=False,
-                reason=f"Incomplete claim structure. Missing elements: {', '.join(missing)}.",
-                details={"missing_fields": missing},
+                reason=f"Fragment detected: Claim is missing mandatory attributes: {', '.join(missing)}.",
+                details={"missing_attributes": missing, "is_fragment": True},
             )
+
+        if pred.lower() in ("is", "has", "are", "have", "the", "a", "an"):
+            return DimensionEvaluation(
+                dimension_name="completeness",
+                status=CompletenessStatus.PARTIAL.value,
+                score=0.3,
+                passed=False,
+                reason=f"Fragment detected: Predicate '{pred}' lacks normative relation or semantic action.",
+                details={"predicate": pred, "is_fragment": True},
+            )
+
+        details_dict: dict[str, Any] = {"subject": subj, "predicate": pred, "object": obj}
+        if getattr(candidate, "conditions", None):
+            details_dict["conditions"] = candidate.conditions
+        if getattr(candidate, "value", None) is not None:
+            details_dict["value"] = candidate.value
+            details_dict["unit"] = getattr(candidate, "unit", None)
+        if getattr(candidate, "scope", None):
+            details_dict["scope"] = candidate.scope
+
+        # Grounding check for contextual preconditions / exceptions
+        unsupported_conditions = []
+        if getattr(candidate, "conditions", None):
+            import json
+            ev_corpus = (
+                span + " " +
+                str(getattr(candidate, "claim_text", "") or "") + " " +
+                json.dumps(getattr(candidate, "structured_values", {}) or {}, default=str) + " " +
+                json.dumps(getattr(candidate, "locator", {}) or {}, default=str)
+            ).lower()
+            stop_tokens = {
+                "and", "the", "for", "with", "all", "status", "criteria", "per",
+                "upon", "under", "from", "any", "not", "require", "requires", "must", "shall", "or",
+                "employee", "employees", "employment", "staff", "role", "state", "applicable", "policy"
+            }
+            for cond in candidate.conditions:
+                cond_words = [
+                    w.lower() for w in re.findall(r"[a-zA-Z]{3,}", str(cond))
+                    if w.lower() not in stop_tokens
+                ]
+                missing_words = [
+                    w for w in cond_words
+                    if w not in ev_corpus and (len(w) < 5 or w[:5] not in ev_corpus)
+                ]
+                if missing_words:
+                    unsupported_conditions.append(f"Condition '{cond}' has ungrounded terms: {', '.join(missing_words)}")
+
+        if unsupported_conditions:
+            return DimensionEvaluation(
+                dimension_name="completeness",
+                status=CompletenessStatus.PARTIAL.value,
+                score=0.65,
+                passed=False,
+                reason=f"Unsupported conditions detected: {'; '.join(unsupported_conditions)}.",
+                details={"unsupported_conditions": unsupported_conditions, **details_dict},
+            )
+
+        return DimensionEvaluation(
+            dimension_name="completeness",
+            status=CompletenessStatus.COMPLETE.value,
+            score=1.0,
+            passed=True,
+            reason="Subject-Predicate-Object semantics, conditions, and evidence coordinates are 100% complete.",
+            details=details_dict,
+        )
 
 
 class MeaningEvaluator:

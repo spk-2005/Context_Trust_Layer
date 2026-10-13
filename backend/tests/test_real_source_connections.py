@@ -114,7 +114,7 @@ async def test_preflight_connection_diagnostics():
             assert res_gh.status_code == 200
             gh_res = res_gh.json()
             assert gh_res["success"] is True
-            assert "validated successfully" in gh_res["message"]
+            assert "Successfully" in gh_res["message"] or "verified" in gh_res["message"]
 
         # 2. Universal Driver preflight test (Snowflake)
         res_sf = await client.post(

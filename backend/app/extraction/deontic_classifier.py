@@ -227,14 +227,16 @@ class DeonticClassifier:
         rule_key: str,
         rule_value: Any,
         conditions: List[str],
+        qualifiers: Optional[List[str]] = None,
     ) -> Dict[str, Any]:
         """
         Translates a table matrix row cell into a clean, human-readable policy assertion with structured S-P-O.
+        Generalizes across HR notice periods, refund/return policies, SLA matrices, and pricing tables.
         """
         clean_rule_key = cls.strip_markdown(rule_key)
         clean_val = cls.strip_markdown(str(rule_value))
 
-        # Extract grade/level and group from scope
+        # 1. Resolve domain-specific or universal entity subject
         level_val = ""
         category_val = ""
         for k, v in scope_dict.items():
@@ -242,34 +244,77 @@ class DeonticClassifier:
             v_clean = cls.strip_markdown(str(v))
             if "level" in k_clean or "grade" in k_clean:
                 level_val = v_clean
-            elif "category" in k_clean or "group" in k_clean or "role" in k_clean:
+            elif "category" in k_clean or "group" in k_clean or "role" in k_clean or "tier" in k_clean:
                 category_val = v_clean
 
-        # Clean subject
         if level_val and category_val:
             subject = f"Employees in Grade {level_val} ({category_val})"
         elif level_val:
             subject = f"Employees in Grade {level_val}"
+        elif len(scope_dict) == 1:
+            # Single primary key (e.g. "Standard merchandise", "Debit card", "Tents and shelters")
+            only_val = list(scope_dict.values())[0]
+            clean_only_val = cls.strip_markdown(str(only_val))
+            subject = clean_only_val if clean_only_val else "Governed Entity"
         else:
             subject_parts = [f"{cls.strip_markdown(k)}: {cls.strip_markdown(str(v))}" for k, v in scope_dict.items()]
-            subject = ", ".join(subject_parts) or "Governed Employees"
+            subject = ", ".join(subject_parts) or "Governed Entity"
 
-        # Determine predicate and modality based on column
+        # 2. Determine predicate and condition semantics across domains
         key_lower = clean_rule_key.lower()
+        active_qualifiers = list(qualifiers or [])
+
         if "probation" in key_lower:
             predicate = "has_probationary_notice_duration"
             cond_list = ["Probationary status", "Employment Status: During Probation", f"Table Column: {clean_rule_key}"]
             modality = "POLICY_FACT"
             modal_op = "specifies"
             claim_text = f"{subject} have a notice period of {clean_val} during probation."
-        elif "confirmed" in key_lower or "duration" in key_lower or "maximum" in key_lower:
+        elif "confirmed" in key_lower or ("notice" in key_lower and "duration" in key_lower):
             predicate = "has_confirmed_notice_duration"
             cond_list = ["Confirmed status", "Employment Status: Upon Confirmation", f"Table Column: {clean_rule_key}"]
             modality = "POLICY_FACT"
             modal_op = "specifies"
             claim_text = f"{subject} have a maximum notice period of {clean_val} upon confirmation."
+        elif "return window" in key_lower:
+            predicate = "has_return_window"
+            cond_list = [f"Table Column: {clean_rule_key}"] + list(conditions or [])
+            modality = "POLICY_FACT"
+            modal_op = "specifies"
+            claim_text = f"{subject} has a return window of {clean_val}."
+        elif "refund method" in key_lower:
+            predicate = "has_refund_method"
+            cond_list = [f"Table Column: {clean_rule_key}"] + list(conditions or [])
+            modality = "POLICY_FACT"
+            modal_op = "specifies"
+            claim_text = f"{subject} refund method is {clean_val}."
+        elif "warranty" in key_lower and ("period" in key_lower or "duration" in key_lower):
+            predicate = "has_warranty_period"
+            cond_list = [f"Table Column: {clean_rule_key}"] + list(conditions or [])
+            modality = "POLICY_FACT"
+            modal_op = "specifies"
+            claim_text = f"{subject} has a warranty period of {clean_val}."
+        elif "remedy" in key_lower:
+            predicate = "has_warranty_remedy"
+            cond_list = [f"Table Column: {clean_rule_key}"] + list(conditions or [])
+            modality = "POLICY_FACT"
+            modal_op = "specifies"
+            claim_text = f"{subject} warranty remedy is {clean_val}."
+        elif "timeline" in key_lower or "duration" in key_lower or "speed" in key_lower:
+            predicate = "has_processing_timeline"
+            cond_list = [f"Table Column: {clean_rule_key}"] + list(conditions or [])
+            modality = "POLICY_FACT"
+            modal_op = "specifies"
+            claim_text = f"{subject} processing timeline is {clean_val}."
+        elif "refund amount" in key_lower or "refund rule" in key_lower:
+            predicate = "has_refund_rule"
+            cond_list = [f"Table Column: {clean_rule_key}"] + list(conditions or [])
+            modality = "POLICY_FACT"
+            modal_op = "specifies"
+            claim_text = f"{subject} refund rule is {clean_val}."
         else:
-            predicate = f"has_{key_lower.replace(' ', '_')}"
+            slug = re.sub(r"[^a-zA-Z0-9]+", "_", key_lower).strip("_")
+            predicate = f"has_{slug}" if slug else "has_table_attribute"
             cond_list = [f"Table Column: {clean_rule_key}"] + list(conditions or [])
             modality = "POLICY_FACT"
             modal_op = "specifies"
@@ -283,4 +328,5 @@ class DeonticClassifier:
             "modality": modality,
             "modal_operator": modal_op,
             "conditions": cond_list,
+            "qualifiers": active_qualifiers,
         }

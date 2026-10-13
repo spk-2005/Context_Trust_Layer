@@ -111,12 +111,24 @@ class DocumentNormalizer:
                 or line.startswith("---")
                 or line.startswith("- ")
                 or line.startswith("* ")
-                or re.match(r"^\d+\.\s", line)
+                or bool(re.match(r"^\d+\.\s", line))
             ):
                 if buffer:
                     reflowed.append(" ".join(buffer))
                     buffer = []
-                reflowed.append(line)
+
+                # Group consecutive table rows into a single table block
+                if line.startswith("|") and reflowed and reflowed[-1].split("\n")[-1].startswith("|"):
+                    reflowed[-1] = f"{reflowed[-1]}\n{line}"
+                # Group consecutive list items into a single list block
+                elif (line.startswith("- ") or line.startswith("* ") or re.match(r"^\d+\.\s", line)) and reflowed and (
+                    reflowed[-1].split("\n")[-1].startswith("- ")
+                    or reflowed[-1].split("\n")[-1].startswith("* ")
+                    or bool(re.match(r"^\d+\.\s", reflowed[-1].split("\n")[-1]))
+                ):
+                    reflowed[-1] = f"{reflowed[-1]}\n{line}"
+                else:
+                    reflowed.append(line)
                 continue
 
             words = line.split()

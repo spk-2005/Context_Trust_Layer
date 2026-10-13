@@ -171,6 +171,10 @@ class ClaimLifecycleDecisionEngine:
             decision_code = DecisionCode.SUMMARY_NON_CANONICAL if (claim_type == "SUMMARY_NON_CANONICAL" or not getattr(candidate, "is_canonical", True)) else DecisionCode.REVIEW_DERIVED_SUMMARY
             reason = "DERIVED SUMMARY: Retained for overview display; excluded from active decision gate to prevent duplicate evaluation against atomic row claims."
         # Fatal rules -> Hard REJECT
+        elif not completeness.passed and "fragment detected" in str(completeness.reason).lower():
+            decision = ClaimLifecycleDecision.REJECT
+            decision_code = DecisionCode.FRAGMENT_ASSERTION_DISCARDED
+            reason = f"REJECTED: Fragment discarded. {completeness.reason}"
         elif not source_match.passed:
             decision = ClaimLifecycleDecision.REJECT
             decision_code = DecisionCode.REJECT_GROUNDING_FAILED

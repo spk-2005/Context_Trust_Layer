@@ -15,6 +15,7 @@ from app.conflict_engine.precedence_engine import PrecedenceEngine
 from app.db.enums import ClaimStatus, ConflictStatus
 from app.db.models.claim import Claim
 from app.db.models.claim_conflict import ClaimConflict
+from app.ingestion.parsers.evidence_model import ContentRole
 from app.llm.base import BaseLLMProvider
 from app.llm.factory import get_llm_provider
 from app.llm.schemas import ContradictionResult
@@ -106,9 +107,17 @@ class ConflictDetector:
         """Compare target_claim against all topically related active claims in the same organization."""
         detected_conflicts: list[ClaimConflict] = []
 
+        # Policy-Eligible Filtering: Only active, canonical POLICY_RULE claims can enter governing conflict detection
+        target_role = getattr(target_claim, "content_role", ContentRole.POLICY_RULE)
+        if target_role != ContentRole.POLICY_RULE:
+            return detected_conflicts
+
+        if not getattr(target_claim, "is_canonical", True):
+            return detected_conflicts
+
         # Pillar 2: Illustrative sample & non-canonical summary pre-filter
         # Concrete transaction examples and derived summaries never contradict operative canonical policies
-        if is_illustrative_claim(target_claim) or getattr(target_claim, "claim_type", "") in ("derived_summary", "summary_non_canonical"):
+        if is_illustrative_claim(target_claim) or getattr(target_claim, "claim_type", "") in ("derived_summary", "summary_non_canonical", "example", "revision_history"):
             return detected_conflicts
 
         # Tier 1: Candidate Ingestion Pruning via FacetSharder (O(N^2) -> O(K))
@@ -118,8 +127,16 @@ class ConflictDetector:
 
         unprocessed_candidates = []
         for cand in candidates:
+            # Policy-Eligible Filtering on Candidate
+            cand_role = getattr(cand, "content_role", ContentRole.POLICY_RULE)
+            if cand_role != ContentRole.POLICY_RULE:
+                continue
+
+            if not getattr(cand, "is_canonical", True):
+                continue
+
             # Pillar 2: Skip illustrative candidates and non-canonical summaries
-            if is_illustrative_claim(cand) or getattr(cand, "claim_type", "") in ("derived_summary", "summary_non_canonical"):
+            if is_illustrative_claim(cand) or getattr(cand, "claim_type", "") in ("derived_summary", "summary_non_canonical", "example", "revision_history"):
                 continue
 
             # Facet compatibility pruning

@@ -295,7 +295,11 @@ class UniversalFileParser:
             from app.normalization.normalizer import DocumentNormalizer
 
             for page_num, page in enumerate(reader.pages, start=1):
-                page_text = page.extract_text() or ""
+                try:
+                    page_text = page.extract_text(extraction_mode="layout") or ""
+                except Exception:
+                    page_text = page.extract_text() or ""
+
                 clean_page_text = page_text.strip()
                 char_count = len(clean_page_text)
                 total_chars += char_count
@@ -307,22 +311,41 @@ class UniversalFileParser:
 
                 page_blocks: List[ContentBlock] = []
                 if clean_page_text:
-                    reflowed_page = DocumentNormalizer.reflow_fragmented_lines(clean_page_text)
+                    from app.normalization.document_restructurer import DocumentSemanticRestructurer
+
+                    # 1. Convert spatial layout tables to Markdown pipe tables first
+                    page_with_tables = DocumentSemanticRestructurer.extract_tables_from_layout(clean_page_text)
+
+                    # 2. Reflow prose lines while strictly preserving Markdown table rows
+                    reflowed_page = DocumentNormalizer.reflow_fragmented_lines(page_with_tables)
                     pages_text.append(f"## Page {page_num}\n{reflowed_page}")
 
-                    # Extract paragraphs and headings
+                    # Extract paragraphs, tables, and headings into ContentBlocks
                     lines = reflowed_page.split("\n\n")
                     for b_idx, chunk in enumerate(lines):
                         chk = chunk.strip()
                         if not chk:
                             continue
-                        is_hdg = bool(re.match(r"^(#+|Section\s+\d+|Chapter\s+\d+|Article\s+\d+|Rule\s+\d+)", chk, re.IGNORECASE))
+                        is_table = bool(chk.startswith("|") and "\n|" in chk)
+                        is_hdg = bool(re.match(r"^(#+|Section\s+\d+|Chapter\s+\d+|Article\s+\d+|Rule\s+\d+|\d+\.\d*\s+[A-Z])", chk, re.IGNORECASE))
+                        b_type = ContentBlockType.TABLE if is_table else (ContentBlockType.HEADING if is_hdg else ContentBlockType.PARAGRAPH)
+
+                        table_meta = None
+                        if is_table:
+                            tbl_lines = [l for l in chk.split("\n") if l.strip().startswith("|")]
+                            if len(tbl_lines) >= 2:
+                                hdrs = [c.strip() for c in tbl_lines[0].split("|") if c.strip()]
+                                data_r = [[c.strip() for c in l.split("|") if c.strip()] for l in tbl_lines[2:]]
+                                table_meta = {"headers": hdrs, "rows": data_r, "page_number": page_num}
+                                tables.append(table_meta)
+
                         blk = ContentBlock(
                             id=f"blk_p{page_num}_{b_idx+1}",
-                            block_type=ContentBlockType.HEADING if is_hdg else ContentBlockType.PARAGRAPH,
+                            block_type=b_type,
                             text=chk,
                             raw_text=chk,
                             page_number=page_num,
+                            table_data=table_meta,
                         )
                         page_blocks.append(blk)
                         blocks.append(blk)
@@ -348,8 +371,8 @@ class UniversalFileParser:
                 try:
                     from app.normalization.document_restructurer import DocumentSemanticRestructurer
                     full_text = DocumentSemanticRestructurer.restructure(full_text)
-                except Exception:
-                    pass
+                except Exception as restruct_err:
+                    logger.warning("DocumentSemanticRestructurer failed: %s", restruct_err)
             else:
                 full_text = f"# {title}\n\nIngested PDF document {filename} ({len(reader.pages)} pages)."
 

@@ -15,6 +15,8 @@ from typing import Any, List, Optional
 
 from pydantic import BaseModel, Field
 
+from app.ingestion.parsers.evidence_model import ContentRole
+
 
 class ExtractionStrategyType(str, Enum):
     """Extraction strategy assigned to candidate evidence units."""
@@ -36,6 +38,8 @@ class ClaimType(str, Enum):
     INVARIANT = "INVARIANT"
     METRIC_RULE = "METRIC_RULE"
     DECISION = "DECISION"
+    EXAMPLE = "EXAMPLE"
+    REVISION_HISTORY = "REVISION_HISTORY"
 
 
 class UnitOutcome(str, Enum):
@@ -62,6 +66,7 @@ class TableGridBinding(BaseModel):
     row_index: int = Field(default=0, description="0-indexed row position in grid")
     col_index: int = Field(default=0, description="0-indexed column position in grid")
     is_merged_cell: bool = Field(default=False, description="Flagged true if cell spans multiple rows/cols")
+    qualifiers: List[str] = Field(default_factory=list, description="Extracted soft qualifiers (e.g. ['up_to', 'typical'])")
 
 
 class CandidateClaim(BaseModel):
@@ -73,6 +78,7 @@ class CandidateClaim(BaseModel):
     envelope_id: uuid.UUID = Field(..., description="Parent Layer 3 CanonicalSourceEnvelope identifier")
     unit_id: str = Field(..., description="Parent Layer 4 ParsedEvidenceUnit identifier")
     asset_id: str = Field(..., description="Native external asset identifier")
+    content_role: ContentRole = Field(default=ContentRole.POLICY_RULE, description="Classified semantic role of parent content")
     
     # Stable Identity & Association (Anti-Cross-Wiring)
     run_id: Optional[uuid.UUID] = Field(default=None, description="Ingestion pipeline run identifier")
@@ -87,6 +93,7 @@ class CandidateClaim(BaseModel):
     object: str = Field(..., description="Constraint, target value, or property")
     value: Optional[Any] = Field(default=None, description="Extracted numerical or quantitative scalar value (e.g. 60)")
     unit: Optional[str] = Field(default=None, description="Unit of measurement (e.g. days, hours, %)")
+    qualifiers: List[str] = Field(default_factory=list, description="Soft qualifiers such as 'typical', 'recommended', 'up to', 'approximate'")
     modal_operator: Optional[str] = Field(default=None, description="Normative modal operator (must, shall, prohibited, required)")
     modality: str = Field(default="REQUIRED", description="Standardized normative modality: REQUIRED, PROHIBITED, PERMITTED, RECOMMENDED")
     conditions: List[str] = Field(default_factory=list, description="Explicit contextual preconditions, triggers, or activation requirements")
@@ -101,7 +108,7 @@ class CandidateClaim(BaseModel):
     structured_values: dict[str, Any] = Field(default_factory=dict, description="Preserved native typed values or field paths")
     
     # Verification & Quality
-    is_canonical: bool = Field(default=True, description="False if macro summary or non-canonical context")
+    is_canonical: bool = Field(default=True, description="False if macro summary, example, revision history, or non-canonical context")
     cross_references: List[str] = Field(default_factory=list, description="External policies, instruments or documents referenced")
     status: str = Field(default="candidate", description="Validation status (candidate, verified, unverified, rejected)")
     confidence: float = Field(ge=0.0, le=1.0, default=1.0, description="Extraction and verification confidence score")
@@ -125,13 +132,14 @@ class CandidateClaim(BaseModel):
         evidence_text_span: str,
         value: Optional[Any] = None,
         unit: Optional[str] = None,
+        qualifiers: Optional[List[str]] = None,
         modal_operator: Optional[str] = None,
         modality: str = "REQUIRED",
         conditions: Optional[List[str]] = None,
         exceptions: Optional[List[str]] = None,
         scope: Optional[dict[str, Any]] = None,
         claim_type: str = "policy",
-        is_canonical: bool = True,
+        is_canonical: Optional[bool] = None,
         cross_references: Optional[List[str]] = None,
         extraction_strategy: ExtractionStrategyType = ExtractionStrategyType.DETERMINISTIC_SCHEMA,
         locator: dict[str, Any] | None = None,
@@ -143,17 +151,43 @@ class CandidateClaim(BaseModel):
         source_unit_id: Optional[str] = None,
         evidence_id: Optional[str] = None,
         table_binding: Optional[TableGridBinding] = None,
+        content_role: ContentRole | str | None = None,
     ) -> CandidateClaim:
         text_clean = claim_text.strip()
         hash_input = f"{asset_id}:{subject}:{predicate}:{object_}:{value}:{unit}:{evidence_text_span}:{json.dumps(structured_values or {}, sort_keys=True, default=str)}"
         claim_hash = hashlib.sha256(hash_input.encode("utf-8")).hexdigest()
         cand_id = f"cand:{unit_id}:{claim_hash[:10]}"
 
+        # Resolve ContentRole
+        resolved_role = ContentRole.POLICY_RULE
+        if content_role:
+            try:
+                resolved_role = ContentRole(content_role) if isinstance(content_role, str) else content_role
+            except ValueError:
+                resolved_role = ContentRole.POLICY_RULE
+
+        # Resolve canonicity: definitions, examples, history, headings, FAQs, and contact info are non-canonical
+        if is_canonical is None:
+            if resolved_role in (
+                ContentRole.DEFINITION,
+                ContentRole.EXAMPLE,
+                ContentRole.REVISION_HISTORY,
+                ContentRole.HEADING,
+                ContentRole.CONTACT_INFO,
+                ContentRole.FAQ,
+            ):
+                resolved_canonical = False
+            else:
+                resolved_canonical = True
+        else:
+            resolved_canonical = is_canonical
+
         return cls(
             candidate_id=cand_id,
             envelope_id=envelope_id,
             unit_id=unit_id,
             asset_id=asset_id,
+            content_role=resolved_role,
             run_id=run_id,
             source_unit_id=source_unit_id or unit_id,
             evidence_id=evidence_id or f"ev:{unit_id}",
@@ -164,13 +198,14 @@ class CandidateClaim(BaseModel):
             object=object_.strip(),
             value=value,
             unit=unit,
+            qualifiers=qualifiers or [],
             modal_operator=modal_operator,
             modality=modality,
             conditions=conditions or [],
             exceptions=exceptions or [],
             scope=scope or {},
             claim_type=claim_type,
-            is_canonical=is_canonical,
+            is_canonical=resolved_canonical,
             cross_references=cross_references or [],
             extraction_strategy=extraction_strategy,
             evidence_text_span=evidence_text_span.strip(),
