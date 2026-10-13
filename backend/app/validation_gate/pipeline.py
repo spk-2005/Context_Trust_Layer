@@ -35,6 +35,7 @@ class Layer6ValidationGatePipeline:
         envelope: CanonicalSourceEnvelope,
         extraction_result: Layer5ExtractionResult,
         session: Optional[AsyncSession] = None,
+        document_version_id: Optional[uuid.UUID] = None,
     ) -> Layer6ValidationResult:
         """
         Takes candidate claims from Layer 5, evaluates them through the 6-dimensional
@@ -77,6 +78,7 @@ class Layer6ValidationGatePipeline:
                     candidates_map=candidates_map,
                     envelope=envelope,
                     session=session,
+                    document_version_id=document_version_id,
                 )
             except Exception as e:
                 logger.error("Failed to persist evaluated claims to Enterprise Claim Store: %s", str(e), exc_info=True)

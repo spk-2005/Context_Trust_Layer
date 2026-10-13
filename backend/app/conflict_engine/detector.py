@@ -8,6 +8,7 @@ from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from app.conflict_engine.compatibility_gate import CompatibilityGate
 from app.conflict_engine.facet_sharder import FacetSharder
 from app.conflict_engine.multi_agent_arbiter import MultiAgentArbiter
 from app.conflict_engine.precedence_engine import PrecedenceEngine
@@ -16,6 +17,7 @@ from app.db.models.claim import Claim
 from app.db.models.claim_conflict import ClaimConflict
 from app.llm.base import BaseLLMProvider
 from app.llm.factory import get_llm_provider
+from app.llm.schemas import ContradictionResult
 
 
 STOPWORDS = {
@@ -129,6 +131,13 @@ class ConflictDetector:
             if not are_claims_topically_related(target_claim, cand):
                 continue
 
+            # Deterministic Pre-LLM Compatibility Gate:
+            # Check if decision keys actively compete (predicates, conditions, scopes)
+            compat = CompatibilityGate.evaluate_compatibility(target_claim, cand)
+            if not compat.is_comparable:
+                # Complementary rules, orthogonal predicates, or non-overlapping conditional scopes do NOT contradict
+                continue
+
             # Check if conflict already logged for this pair
             pair_stmt = select(ClaimConflict).where(
                 or_(
@@ -145,6 +154,28 @@ class ConflictDetector:
 
         # Evaluate candidate pairs in PARALLEL via asyncio.gather
         async def _eval_pair(cand):
+            # Fast-path: Check deterministic scalar/unit contradiction before calling LLM
+            is_val_conflict, val_conflict_type = CompatibilityGate.evaluate_value_conflict(target_claim, cand)
+            if is_val_conflict:
+                eval_res = ContradictionResult(
+                    is_contradiction=True,
+                    conflict_type=val_conflict_type,
+                    severity="high",
+                    confidence=0.98,
+                    reasoning="Deterministic numeric or deontic contradiction on competing decision keys.",
+                )
+                return cand, eval_res
+            elif val_conflict_type == "MATCHING_VALUES":
+                eval_res = ContradictionResult(
+                    is_contradiction=False,
+                    conflict_type="compatible_values",
+                    severity="low",
+                    confidence=0.99,
+                    reasoning="Identical scalar values and units on competing decision keys.",
+                )
+                return cand, eval_res
+
+            # Ambiguous or natural-language conditions: Delegate to LLM
             eval_res = await self.llm.evaluate_contradiction(
                 claim_a_text=target_claim.claim_text,
                 claim_b_text=cand.claim_text,

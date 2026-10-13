@@ -4,6 +4,7 @@ from typing import Optional, Sequence, Set
 from sqlalchemy import or_, select
 from sqlalchemy.orm import selectinload
 
+from app.conflict_engine.facet_registry import ENTERPRISE_FACET_REGISTRY
 from app.db.models.claim import Claim
 
 # Operational facets for sharding enterprise governance policies
@@ -108,8 +109,14 @@ class FacetSharder:
 
     @classmethod
     def detect_facet(cls, text: str) -> str:
-        """Categorize claim text into an operational facet."""
+        """Categorize claim text into an operational facet using enterprise registry and retail patterns."""
         t_lower = text.lower()
+        # 1. Check enterprise governance & HR domain facets
+        for facet_name, defn in ENTERPRISE_FACET_REGISTRY.items():
+            if any(re.search(p, t_lower) for p in defn.patterns):
+                return facet_name
+
+        # 2. Check operational retail & customer support patterns
         for facet, patterns in FACET_PATTERNS.items():
             if any(re.search(p, t_lower) for p in patterns):
                 return facet

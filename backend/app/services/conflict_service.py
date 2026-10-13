@@ -15,6 +15,7 @@ from app.conflict_engine.detector import (
     are_claims_topically_related,
     is_illustrative_claim,
 )
+from app.conflict_engine.compatibility_gate import CompatibilityGate
 from app.conflict_engine.multi_agent_arbiter import MultiAgentArbiter
 from app.conflict_engine.precedence_engine import PrecedenceDecision, PrecedenceEngine
 from app.db.enums import ClaimStatus, ConflictStatus, ReviewDecision
@@ -41,6 +42,9 @@ class ConflictService:
         self,
         document_version_id: uuid.UUID,
     ) -> Sequence[ClaimConflict]:
+        # First reconcile and purge any stale false-positive conflicts
+        await self.reconcile_existing_conflicts_for_version(document_version_id)
+
         stmt = select(Claim).where(Claim.document_version_id == document_version_id)
         res = await self.session.execute(stmt)
         claims = res.scalars().all()
@@ -51,6 +55,91 @@ class ConflictService:
             conflicts.extend(found)
 
         return conflicts
+
+    async def reconcile_existing_conflicts_for_version(
+        self,
+        document_version_id: uuid.UUID,
+    ) -> int:
+        """
+        Re-evaluates existing conflicts involving claims in this version against CompatibilityGate.
+        Purges false-positive conflicts where claims are orthogonal, complementary, or have
+        non-overlapping scopes, and restores the affected claims back to VERIFIED.
+        """
+        stmt = select(Claim).where(Claim.document_version_id == document_version_id)
+        claims = (await self.session.execute(stmt)).scalars().all()
+        claim_ids = [c.id for c in claims]
+        if not claim_ids:
+            return 0
+
+        conflict_stmt = select(ClaimConflict).where(
+            or_(
+                ClaimConflict.claim_a_id.in_(claim_ids),
+                ClaimConflict.claim_b_id.in_(claim_ids),
+            )
+        )
+        conflicts = (await self.session.execute(conflict_stmt)).scalars().all()
+        return await self._purge_incompatible_conflicts(conflicts)
+
+    async def reconcile_all_conflicts(
+        self,
+        organization_id: uuid.UUID | None = None,
+    ) -> int:
+        """Reconciles all conflicts across an organization (or database) against the CompatibilityGate."""
+        if organization_id:
+            claim_subq = select(Claim.id).where(Claim.organization_id == organization_id)
+            stmt = select(ClaimConflict).where(
+                or_(
+                    ClaimConflict.claim_a_id.in_(claim_subq),
+                    ClaimConflict.claim_b_id.in_(claim_subq),
+                )
+            )
+        else:
+            stmt = select(ClaimConflict)
+
+        conflicts = (await self.session.execute(stmt)).scalars().all()
+        return await self._purge_incompatible_conflicts(conflicts)
+
+    async def _purge_incompatible_conflicts(
+        self,
+        conflicts: Sequence[ClaimConflict],
+    ) -> int:
+        purged = 0
+        claims_to_check: set[uuid.UUID] = set()
+
+        for conf in conflicts:
+            ca = await self.session.get(Claim, conf.claim_a_id)
+            cb = await self.session.get(Claim, conf.claim_b_id)
+            if not ca or not cb:
+                await self.session.delete(conf)
+                purged += 1
+                continue
+
+            compat = CompatibilityGate.evaluate_compatibility(ca, cb)
+            if not compat.is_comparable:
+                await self.session.delete(conf)
+                claims_to_check.add(ca.id)
+                claims_to_check.add(cb.id)
+                purged += 1
+
+        if purged > 0:
+            await self.session.flush()
+            # For each affected claim, check if it is part of any other remaining conflicts
+            for cid in claims_to_check:
+                other_conf = await self.session.execute(
+                    select(ClaimConflict.id).where(
+                        or_(
+                            ClaimConflict.claim_a_id == cid,
+                            ClaimConflict.claim_b_id == cid,
+                        )
+                    ).limit(1)
+                )
+                if not other_conf.scalar_one_or_none():
+                    claim = await self.session.get(Claim, cid)
+                    if claim and claim.status == ClaimStatus.CONFLICTED:
+                        claim.status = ClaimStatus.VERIFIED
+            await self.session.flush()
+
+        return purged
 
     async def _ensure_valid_reviewer(
         self,

@@ -187,7 +187,7 @@ class PrecedenceEngine:
             "gold", "rewards gold", "footwear", "holiday", "tents", "camping",
             "sleeping bags", "cooling-off", "statutory", "receipt-less", "keep it",
             "vip", "platinum", "custom contract", "case studies", "revision history",
-            "summary at a glance", "policy summary"
+            "summary at a glance", "policy summary", "written approval", "prior approval"
         ]
         baseline_keywords = [
             "standard", "standard automated", "general tier", "baseline",
@@ -199,12 +199,19 @@ class PrecedenceEngine:
         is_standard_a = any(k in text_a_clean for k in baseline_keywords) or (claim_a.subject and any(k in claim_a.subject.lower() for k in baseline_keywords))
         is_standard_b = any(k in text_b_clean for k in baseline_keywords) or (claim_b.subject and any(k in claim_b.subject.lower() for k in baseline_keywords))
 
-        if (is_exception_a and is_standard_b) or (is_exception_b and is_standard_a):
+        # Check condition specificity using normalized claim keys
+        from app.conflict_engine.normalizer import ClaimNormalizer
+        key_a = ClaimNormalizer.build_key(claim_a)
+        key_b = ClaimNormalizer.build_key(claim_b)
+        has_cond_a = bool(key_a.condition_key)
+        has_cond_b = bool(key_b.condition_key)
+
+        if (is_exception_a and is_standard_b) or (is_exception_b and is_standard_a) or ((has_cond_a != has_cond_b) and (is_standard_a or is_standard_b)):
             return PrecedenceDecision(
                 is_auto_resolved=True,
                 is_compatible_exception=True,
                 precedence_rule="LEX_SPECIALIS_EXCEPTION",
-                reasoning="Rules govern distinct tiers: specific exception or loyalty tier is compatible with baseline policy.",
+                reasoning="Rules govern distinct tiers: specific conditional exception or qualified policy co-exists with general baseline policy (Lex Specialis).",
             )
 
         # Default: Genuinely ambiguous contradiction requiring human/consensus arbitration

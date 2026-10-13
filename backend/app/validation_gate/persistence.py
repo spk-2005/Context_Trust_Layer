@@ -45,18 +45,21 @@ class EnterpriseClaimStore:
         candidates_map: dict[str, CandidateClaim],
         envelope: CanonicalSourceEnvelope,
         session: Optional[AsyncSession] = None,
+        document_version_id: Optional[uuid.UUID] = None,
     ) -> List[uuid.UUID]:
         """
         Persists a batch of gate-evaluated claims into PostgreSQL.
         Returns the list of persisted claim UUIDs.
         """
         if session is not None:
-            return await cls._persist_with_session(evaluations, candidates_map, envelope, session)
+            return await cls._persist_with_session(
+                evaluations, candidates_map, envelope, session, document_version_id=document_version_id
+            )
 
         async with AsyncSessionLocal() as new_session:
             async with new_session.begin():
                 persisted_ids = await cls._persist_with_session(
-                    evaluations, candidates_map, envelope, new_session
+                    evaluations, candidates_map, envelope, new_session, document_version_id=document_version_id
                 )
             return persisted_ids
 
@@ -67,17 +70,28 @@ class EnterpriseClaimStore:
         candidates_map: dict[str, CandidateClaim],
         envelope: CanonicalSourceEnvelope,
         session: AsyncSession,
+        document_version_id: Optional[uuid.UUID] = None,
     ) -> List[uuid.UUID]:
         persisted_ids: List[uuid.UUID] = []
 
-        # 1. Ensure Canonical Document and DocumentVersion exist
-        doc_stmt = select(Document).where(
-            Document.organization_id == envelope.organization_id,
-            Document.source_id == envelope.source_id,
-            Document.external_id == envelope.asset_id,
-        )
-        doc_res = await session.execute(doc_stmt)
-        document = doc_res.scalar_one_or_none()
+        document = None
+        doc_version = None
+
+        # If document_version_id is explicitly supplied, look it up first
+        if document_version_id:
+            doc_version = await session.get(DocumentVersion, document_version_id)
+            if doc_version:
+                document = await session.get(Document, doc_version.document_id)
+
+        # 1. Ensure Canonical Document and DocumentVersion exist if not resolved
+        if not document:
+            doc_stmt = select(Document).where(
+                Document.organization_id == envelope.organization_id,
+                Document.source_id == envelope.source_id,
+                Document.external_id == envelope.asset_id,
+            )
+            doc_res = await session.execute(doc_stmt)
+            document = doc_res.scalar_one_or_none()
 
         if not document:
             title = envelope.asset_id.split("/")[-1].split("#")[0] or "Untitled Document"
@@ -96,12 +110,13 @@ class EnterpriseClaimStore:
             await session.flush()
 
         # Find or create DocumentVersion
-        ver_stmt = select(DocumentVersion).where(
-            DocumentVersion.document_id == document.id,
-            DocumentVersion.is_current.is_(True),
-        )
-        ver_res = await session.execute(ver_stmt)
-        doc_version = ver_res.scalar_one_or_none()
+        if not doc_version:
+            ver_stmt = select(DocumentVersion).where(
+                DocumentVersion.document_id == document.id,
+                DocumentVersion.is_current.is_(True),
+            )
+            ver_res = await session.execute(ver_stmt)
+            doc_version = ver_res.scalar_one_or_none()
 
         if not doc_version:
             doc_version = DocumentVersion(

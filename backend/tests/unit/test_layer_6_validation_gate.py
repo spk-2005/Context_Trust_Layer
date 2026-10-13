@@ -295,17 +295,27 @@ async def test_layer_6_pipeline_processing():
 @pytest.mark.asyncio
 async def test_enterprise_claim_store_persistence():
     """Verifies that EnterpriseClaimStore saves claims, evidence, and trust scores to PostgreSQL."""
+    from unittest.mock import AsyncMock, MagicMock
+
     envelope = _create_test_envelope()
     c = _create_test_candidate(envelope, is_verified=True)
 
     gate_eval = ClaimLifecycleDecisionEngine.evaluate_candidate(c, envelope)
     assert gate_eval.lifecycle_decision == ClaimLifecycleDecision.APPROVE
 
+    mock_session = AsyncMock()
+    mock_session.add = MagicMock()
+    mock_res = MagicMock()
+    mock_res.scalar_one_or_none.return_value = None
+    mock_session.execute.return_value = mock_res
+
     persisted_ids = await EnterpriseClaimStore.persist_evaluations(
         evaluations=[gate_eval],
         candidates_map={c.candidate_id: c},
         envelope=envelope,
+        session=mock_session,
     )
 
     assert len(persisted_ids) == 1
     assert gate_eval.persisted_claim_id == persisted_ids[0]
+    assert mock_session.add.call_count >= 1

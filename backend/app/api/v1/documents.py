@@ -490,7 +490,7 @@ async def upload_and_extract_document(
 
         # Layer 6: Multi-Dimensional Validation Gate & Claim Store Persistence
         l6_validation_result = await global_validation_gate.process_extraction_result(
-            canonical_env, l5_extraction_result, session=db
+            canonical_env, l5_extraction_result, session=db, document_version_id=version.id
         )
         await db.commit()
 
