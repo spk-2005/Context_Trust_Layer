@@ -16,9 +16,10 @@ from datetime import datetime, timezone
 from typing import Any, Tuple
 
 from app.db.enums import SourceFamily, SourceIntent
-from app.extraction.models import CandidateClaim
+from app.extraction.models import CandidateClaim, ExtractionStrategyType
+from app.extraction.predicate_registry import PredicateRegistry
 from app.ingestion.envelope import CanonicalSourceEnvelope
-from app.ingestion.parsers.evidence_model import ContentRole
+from app.ingestion.parsers.evidence_model import ContentRole, ParsedEvidenceUnit
 from app.validation_gate.models import (
     AuthorityStatus,
     CompletenessStatus,
@@ -244,9 +245,19 @@ class CompletenessEvaluator:
                 details={"subject": subj, "is_contaminated": True, "decision_code": "SUBJECT_CONTAMINATION"},
             )
 
+        # Knockout 4b: Bare Copula / Auxiliary Predicate Fragment
+        if pred and pred.lower() in ("is", "has", "are", "have", "the", "a", "an") and not candidate.table_binding:
+            return DimensionEvaluation(
+                dimension_name="completeness",
+                status=CompletenessStatus.PARTIAL.value,
+                score=0.3,
+                passed=False,
+                reason=f"Fragment detected: Predicate '{pred}' lacks normative relation or semantic action.",
+                details={"predicate": pred, "is_fragment": True, "decision_code": "FRAGMENT_ASSERTION_DISCARDED"},
+            )
+
         # Knockout 5: Weak Grammatical Predicate
-        WEAK_PREDICATES = {"be", "defines", "specifies", "issue", "start", "verify", "cover", "override"}
-        if pred and (pred.lower() in WEAK_PREDICATES or pred.isdigit() or len(pred) <= 1) and not candidate.table_binding:
+        if pred and PredicateRegistry.is_disallowed_generic(pred) and not candidate.table_binding:
             return DimensionEvaluation(
                 dimension_name="completeness",
                 status=CompletenessStatus.PARTIAL.value,
@@ -576,3 +587,120 @@ class AuthorityEvaluator:
                 reason=f"Informational / non-authoritative discussion ({intent.value}).",
                 details={"intent": intent.value, "tier": 3},
             )
+
+
+class TableCellCoverageAuditor:
+    """
+    NIST AI RMF Table-Cell Coverage Auditor.
+    Guarantees table-cell completeness across all table_row evidence units.
+    Enforces that every policy-relevant table cell produces either:
+    1. A canonical policy claim
+    2. A typed non-canonical metadata record (e.g. note, fee, example)
+    3. An explicit REVIEW disposition record with an audit reason (CELL_DROPPED_WITHOUT_DISPOSITION).
+    Guarantees zero silent cell dropping across all table rows.
+    """
+
+    @classmethod
+    def audit_row_coverage(cls, unit: ParsedEvidenceUnit, claims: list[CandidateClaim]) -> dict[str, Any]:
+        """
+        Audits that every column cell in unit.structured_data['columns'] has been accounted for.
+        """
+        s_data = unit.structured_data or {}
+        cols = s_data.get("columns", {})
+        if not cols:
+            return {"status": "SKIPPED", "missing_columns": [], "total_cells": 0, "covered_cells": 0, "is_complete": True}
+
+        col_keys = list(cols.keys())
+        scope_keywords = ("level", "grade", "group", "role", "tier", "department", "category", "scope")
+        scope_keys = [k for k in col_keys if any(sk in k.lower() for sk in scope_keywords)]
+        if not scope_keys and col_keys:
+            scope_keys = [col_keys[0]]
+
+        rule_keys = [k for k in col_keys if k not in scope_keys]
+        if not rule_keys and len(col_keys) > 1:
+            rule_keys = [col_keys[-1]]
+            scope_keys = col_keys[:-1]
+
+        covered_columns = set()
+        for c in claims:
+            if c.table_binding and c.table_binding.column_header:
+                covered_columns.add(c.table_binding.column_header)
+
+        missing_columns = [k for k in rule_keys if k not in covered_columns]
+        is_complete = len(missing_columns) == 0
+
+        return {
+            "status": "COMPLETE" if is_complete else "INCOMPLETE",
+            "is_complete": is_complete,
+            "scope_columns": scope_keys,
+            "rule_columns": rule_keys,
+            "covered_columns": list(covered_columns),
+            "missing_columns": missing_columns,
+            "total_rule_cells": len(rule_keys),
+            "covered_rule_cells": len(rule_keys) - len(missing_columns),
+        }
+
+    @classmethod
+    def audit_and_reconcile(cls, unit: ParsedEvidenceUnit, claims: list[CandidateClaim]) -> list[CandidateClaim]:
+        """
+        Audits unit coverage and synthesizes explicit REVIEW or typed records for any unaccounted cells.
+        Guarantees zero silent cell dropping.
+        """
+        audit_res = cls.audit_row_coverage(unit, claims)
+        missing_cols = audit_res.get("missing_columns", [])
+        if not missing_cols:
+            return claims
+
+        s_data = unit.structured_data or {}
+        cols = s_data.get("columns", {})
+        loc = unit.locator or {}
+
+        reconciled = list(claims)
+        for col_name in missing_cols:
+            cell_val = str(cols.get(col_name, "")).strip()
+            # If the cell is explicitly empty/dash, emit a typed empty cell record
+            if cell_val in ("", "-", "—", "N/A", "n/a", "None", "none", "nil"):
+                disposition = "EMPTY_OR_NOT_APPLICABLE"
+                ambig_reason = "CELL_EXPLICITLY_EMPTY"
+                is_canonical = False
+            else:
+                disposition = "REVIEW"
+                ambig_reason = "CELL_DROPPED_WITHOUT_DISPOSITION"
+                is_canonical = False
+
+            review_claim = CandidateClaim.create(
+                envelope_id=unit.envelope_id,
+                unit_id=unit.unit_id,
+                asset_id=unit.asset_id,
+                run_id=getattr(unit, "run_id", None),
+                source_unit_id=unit.unit_id,
+                evidence_id=f"ev:{unit.unit_id}:{col_name}",
+                claim_text=f"Table cell for row '{unit.hierarchical_context[-1] if unit.hierarchical_context else 'Table'}' col '{col_name}' value '{cell_val}' disposition: {disposition}.",
+                subject=str(unit.hierarchical_context[-1] if unit.hierarchical_context else "Table Policy"),
+                predicate="has_unmapped_table_cell",
+                object_=cell_val or "empty",
+                evidence_text_span=f"Column: {col_name} | Value: {cell_val}",
+                value=cell_val,
+                claim_type="non_canonical",
+                content_role=ContentRole.POLICY_RULE,
+                is_canonical=is_canonical,
+                is_ambiguous=True,
+                ambiguity_reason=ambig_reason,
+                confidence=0.5,
+                extraction_strategy=ExtractionStrategyType.TABLE_AWARE,
+                locator={
+                    **loc,
+                    "table_grid": {
+                        "col_header": col_name,
+                        "cell_value": cell_val,
+                        "disposition": disposition,
+                    },
+                },
+                structured_values={
+                    "audit_disposition": disposition,
+                    "dropped_column": col_name,
+                    "cell_value": cell_val,
+                },
+            )
+            reconciled.append(review_claim)
+        return reconciled

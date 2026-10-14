@@ -115,6 +115,14 @@ class ConflictDetector:
         if not getattr(target_claim, "is_canonical", True):
             return detected_conflicts
 
+        # Stage 10: Lifecycle & Status Check - Exclude rejected, superseded, and outdated claims
+        if getattr(target_claim, "status", None) in (ClaimStatus.REJECTED, ClaimStatus.SUPERSEDED, ClaimStatus.OUTDATED):
+            return detected_conflicts
+
+        if getattr(target_claim, "validity_records", None):
+            if not any(v.is_current for v in target_claim.validity_records):
+                return detected_conflicts
+
         # Pillar 2: Illustrative sample & non-canonical summary pre-filter
         # Concrete transaction examples and derived summaries never contradict operative canonical policies
         non_canonical_types = (
@@ -139,6 +147,14 @@ class ConflictDetector:
 
             if not getattr(cand, "is_canonical", True):
                 continue
+
+            # Stage 10: Lifecycle & Status Check on Candidate
+            if getattr(cand, "status", None) in (ClaimStatus.REJECTED, ClaimStatus.SUPERSEDED, ClaimStatus.OUTDATED):
+                continue
+
+            if getattr(cand, "validity_records", None):
+                if not any(v.is_current for v in cand.validity_records):
+                    continue
 
             # Pillar 2: Skip illustrative candidates and non-canonical summaries
             if is_illustrative_claim(cand) or getattr(cand, "claim_type", "") in non_canonical_types:

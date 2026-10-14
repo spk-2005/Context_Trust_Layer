@@ -161,6 +161,11 @@ class DocumentRepository(BaseRepository[Document]):
         await self.session.flush()
         await self.session.refresh(new_version)
 
+        # Supersede claims from prior versions of this document
+        from app.db.repositories.claim_repository import ClaimRepository
+        claim_repo = ClaimRepository(self.session)
+        await claim_repo.supersede_claims_for_document(document.id, new_version.id)
+
         return document, new_version, True
 
     async def create_document_with_version(

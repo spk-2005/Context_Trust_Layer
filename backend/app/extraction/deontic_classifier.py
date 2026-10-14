@@ -317,25 +317,44 @@ class DeonticClassifier:
             modality = "POLICY_FACT"
             modal_op = "specifies"
             claim_text = f"{subject} has billing schedule of {clean_val}."
+        # Cancellation Eligibility Column (e.g. "Can it be cancelled?", "Can it be canceled?", "Cancellation Eligibility")
+        elif (
+            re.search(r"\bcan\s+(?:it\s+)?be\s+cancel(?:l?ed)?\b", key_lower)
+            or "cancellation eligibility" in key_lower
+            or (("cancel" in key_lower or "cancellation" in key_lower) and val_lower.startswith(("yes", "no", "attempted")))
+        ):
+            predicate = "has_cancellation_eligibility"
+            cond_list = [f"Table Column: {clean_rule_key}"] + list(conditions or [])
+            modality = "POLICY_FACT"
+            modal_op = "specifies"
+            claim_text = f"{subject} cancellation eligibility is {clean_val}."
         elif "cancellation" in key_lower or "cancel" in key_lower or (
-            key_lower in ("refund", "refunds") and any(
+            key_lower in ("refund", "refunds", "refund outcome", "resolution", "cancellation outcome") and any(
                 cs in subj_lower for cs in ("pending", "processing", "packed", "shipped", "delivered", "pre-order", "preorder", "backordered", "backorder")
             )
         ):
             cond_list = [f"Table Column: {clean_rule_key}"] + list(conditions or [])
             modality = "POLICY_FACT"
             modal_op = "specifies"
-            if re.search(r"\brefuse\s+delivery\b", val_lower) or ("shipped" in subj_lower and "return" in val_lower):
+            if (
+                re.search(r"\brefuse\s+delivery\b", val_lower)
+                or "if stopped, else return" in val_lower
+                or ("if stopped" in val_lower and "return" in val_lower)
+                or ("shipped" in subj_lower and "return" in val_lower)
+                or ("packed" in subj_lower and ("return" in val_lower or "stopped" in val_lower))
+            ):
                 predicate = "has_post_shipment_resolution_path"
                 claim_text = f"{subject} post-shipment resolution path: {clean_val}."
             elif re.search(r"\bstandard\s+return\s+policy\b", val_lower) or ("delivered" in subj_lower and "return" in val_lower):
                 predicate = "has_post_delivery_resolution_path"
                 claim_text = f"{subject} post-delivery resolution path: {clean_val}."
-            elif re.search(r"\bwithin\s+\d+.*(?:hours?|days?)\b", val_lower) or ("processing" in subj_lower and re.search(r"\b\d+\s*-\s*\d+\s+days\b", val_lower)):
+            elif re.search(r"\bwithin\s+\d+.*(?:hours?|days?)\b", val_lower) or ("processing" in subj_lower and re.search(r"\b\d+\s*[-–]\s*\d+\s+days\b", val_lower)):
                 predicate = "has_cancellation_refund_timing"
                 claim_text = f"{subject} cancellation refund timing is {clean_val}."
-            elif re.search(r"\b(?:immediate\s+release|full\s+refund|no\s+refund|if\s+stopped)\b", val_lower) or any(
-                cs in subj_lower for cs in ("pending", "packed", "pre-order", "preorder", "backordered", "backorder")
+            elif re.search(r"\b(?:immediate\s+release|full\s+refund|no\s+refund)\b", val_lower) or (
+                key_lower in ("refund", "refunds", "refund outcome", "cancellation outcome") and any(
+                    cs in subj_lower for cs in ("pending", "processing", "pre-order", "preorder", "backordered", "backorder")
+                )
             ):
                 predicate = "has_cancellation_refund_outcome"
                 claim_text = f"{subject} cancellation refund outcome is {clean_val}."

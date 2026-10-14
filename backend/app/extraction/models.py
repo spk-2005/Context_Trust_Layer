@@ -62,6 +62,7 @@ class TypedValue(BaseModel):
     scalar_max: Optional[float] = Field(default=None, description="Maximum numeric boundary (if range)")
     unit: Optional[str] = Field(default=None, description="Standardized measurement unit (e.g. days, hours, %, USD)")
     qualifier: Optional[str] = Field(default=None, description="Primary soft qualifier (e.g. up_to, typical, usually)")
+    duration_type: Optional[str] = Field(default=None, description="Semantic classification: typical, maximum, minimum, target, provider_governed")
     time_basis: Optional[str] = Field(default=None, description="Reference baseline (e.g. delivery_date, purchase_date, holiday_window)")
     reference_id: Optional[str] = Field(default=None, description="Target section or identifier for REFERENCE values")
     raw_text: str = Field(..., description="Verbatim raw string from which this value was parsed")
@@ -112,6 +113,7 @@ class CandidateClaim(BaseModel):
     value: Optional[Any] = Field(default=None, description="Extracted numerical or quantitative scalar value (e.g. 60)")
     unit: Optional[str] = Field(default=None, description="Unit of measurement (e.g. days, hours, %)")
     time_basis: Optional[str] = Field(default=None, description="Reference baseline date (delivery_date, purchase_date, ship_date, holiday_window)")
+    deadline: Optional[dict[str, Any]] = Field(default=None, description="Structured deadline specification if applicable")
     qualifier: Optional[str] = Field(default=None, description="Primary soft qualifier (typical, usually, may, recommended, at_discretion, where_possible)")
     qualifiers: List[str] = Field(default_factory=list, description="Soft qualifiers such as 'typical', 'recommended', 'up to', 'approximate'")
     modal_operator: Optional[str] = Field(default=None, description="Normative modal operator (must, shall, prohibited, required)")
@@ -174,6 +176,7 @@ class CandidateClaim(BaseModel):
         evidence_id: Optional[str] = None,
         table_binding: Optional[TableGridBinding] = None,
         typed_value: Optional[TypedValue] = None,
+        deadline: Optional[dict[str, Any]] = None,
         content_role: ContentRole | str | None = None,
     ) -> CandidateClaim:
         text_clean = claim_text.strip()
@@ -235,6 +238,7 @@ class CandidateClaim(BaseModel):
             value=value,
             unit=unit,
             time_basis=resolved_time_basis,
+            deadline=deadline or (structured_values.get("deadline") if structured_values else None),
             qualifier=resolved_qualifier,
             qualifiers=qualifiers or ([resolved_qualifier] if resolved_qualifier else []),
             modal_operator=modal_operator,

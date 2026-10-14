@@ -288,6 +288,30 @@ class DeterministicSchemaExtractor:
                     sec_refs = re.findall(r"\bSection\s+(\d+)\b", clean_val, re.IGNORECASE)
                     cross_refs = [f"Section {num}" for num in sec_refs]
                     cond_override = None
+                    deadline_rule = None
+
+                    # Structured conditions for Trailhead Box / subscription refund rules
+                    if ("48 hours" in val_lower or "48h" in val_lower) and ("renewal" in val_lower or "not shipped" in val_lower or "box" in val_lower):
+                        cond_override = [
+                            {"field": "cancellation_time", "operator": "<=", "value": 48, "unit": "hours_after_renewal"},
+                            {"field": "box_status", "operator": "!=", "value": "shipped"},
+                        ]
+
+                    # Structured conditions and qualifiers for cancellation eligibility
+                    if normalized.get("predicate") == "has_cancellation_eligibility":
+                        release_m = re.search(r"(\d+)\s+days\s+before\s+release", val_lower)
+                        if release_m:
+                            days = int(release_m.group(1))
+                            deadline_rule = {"rule": f"{days}_days_before_release", "days": days, "relative_to": "release_date"}
+                            cond_override = [{"field": "cancellation_deadline", "operator": "<=", "value": days, "unit": "days_before_release"}]
+                            if "until_release_cutoff" not in qualifiers:
+                                qualifiers.append("until_release_cutoff")
+                        if "not guaranteed" in val_lower or "attempted" in val_lower:
+                            if "not_guaranteed" not in qualifiers:
+                                qualifiers.append("not_guaranteed")
+                        if "anytime" in val_lower:
+                            if "anytime" not in qualifiers:
+                                qualifiers.append("anytime")
 
                     if sec_refs and ("see section" in val_lower or "refer to section" in val_lower or "per section" in val_lower or "covered by warranty" in val_lower):
                         typed_val = TypedValue(
@@ -308,6 +332,14 @@ class DeterministicSchemaExtractor:
                             time_basis="holiday_window" if ("holiday" in val_lower or "holiday" in final_subject.lower() or "holiday_purchase_window" in qualifiers) else "calendar_date",
                             qualifier=qualifiers[0] if qualifiers else None,
                             structured_rule=rule_dict,
+                        )
+                    elif normalized.get("predicate") == "has_cancellation_eligibility" and (val_lower.startswith(("yes", "no", "attempted"))):
+                        bool_val = not val_lower.startswith("no")
+                        scalar_val = bool_val
+                        typed_val = TypedValue(
+                            value_type="BOOLEAN",
+                            raw_text=clean_val,
+                            qualifier=qualifiers[0] if qualifiers else None,
                         )
                     elif unit_val == "%" or "%" in clean_val:
                         pct_min = None
@@ -363,6 +395,18 @@ class DeterministicSchemaExtractor:
                         if normalized.get("predicate") == "has_return_window" or "return window" in k.lower():
                             unit_val = "calendar_days"
 
+                        dur_type = None
+                        if "typical" in qualifiers:
+                            dur_type = "typical"
+                        elif "up_to" in qualifiers or "maximum" in qualifiers:
+                            dur_type = "maximum"
+                        elif "minimum" in qualifiers:
+                            dur_type = "minimum"
+                        elif "recommended" in qualifiers:
+                            dur_type = "target"
+                        elif "bank" in combined_scope_text or "provider" in combined_scope_text:
+                            dur_type = "provider_governed"
+
                         typed_val = TypedValue(
                             value_type="DURATION",
                             scalar_min=dur_min,
@@ -370,6 +414,7 @@ class DeterministicSchemaExtractor:
                             unit=unit_val or ("business_days" if "business" in val_lower else "calendar_days"),
                             raw_text=clean_val,
                             qualifier=qualifiers[0] if qualifiers else None,
+                            duration_type=dur_type,
                             time_basis=tb_val,
                         )
                     else:
@@ -470,18 +515,23 @@ class DeterministicSchemaExtractor:
                         is_canonical=is_canonical_val,
                         extraction_strategy=ExtractionStrategyType.TABLE_AWARE,
                         locator=enhanced_locator,
+                        deadline=deadline_rule,
                         structured_values={
                             "columns": cols,
                             "scope": scope_dict,
                             "table_grid": grid_coordinates,
                             "section_context": unit.hierarchical_context,
                             **({"validity": normalized["validity"]} if "validity" in normalized else {}),
+                            **({"deadline": deadline_rule} if deadline_rule else {}),
                         },
                         is_ambiguous=is_ambiguous,
                         ambiguity_reason=ambiguity_reason,
                         confidence=0.70 if is_ambiguous else 0.98,
                     )
                     claims.append(c)
+
+                from app.validation_gate.evaluators import TableCellCoverageAuditor
+                claims = TableCellCoverageAuditor.audit_and_reconcile(unit, claims)
 
         # 4. BI Metric Rule
         elif b_type == "metric_definition":

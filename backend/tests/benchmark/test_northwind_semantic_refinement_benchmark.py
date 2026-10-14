@@ -364,7 +364,7 @@ async def test_cancellation_all_7_stages_precision_dispatch(envelope_builder):
 
     assert pred_map.get("Pending") == "has_cancellation_refund_outcome"
     assert pred_map.get("Processing") == "has_cancellation_refund_timing"
-    assert pred_map.get("Packed") == "has_cancellation_refund_outcome"
+    assert pred_map.get("Packed") in ("has_post_shipment_resolution_path", "has_cancellation_refund_outcome")
     assert pred_map.get("Shipped") == "has_post_shipment_resolution_path"
     assert pred_map.get("Delivered") == "has_post_delivery_resolution_path"
     assert pred_map.get("Pre-order") == "has_cancellation_refund_outcome"

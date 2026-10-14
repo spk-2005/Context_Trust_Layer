@@ -7,7 +7,22 @@ and bullet artifacts into normalized, stable enterprise entities.
 from __future__ import annotations
 
 import re
+from enum import Enum
 from typing import Optional, Tuple
+
+from app.schemas.claim import SubjectObject
+
+
+class EntityType(str, Enum):
+    """Controlled entity type classifications for enterprise subjects."""
+    PRODUCT_SCOPE = "PRODUCT_SCOPE"
+    CUSTOMER_TIER = "CUSTOMER_TIER"
+    ORDER_STATE = "ORDER_STATE"
+    PAYMENT_METHOD = "PAYMENT_METHOD"
+    PROCESS_STAGE = "PROCESS_STAGE"
+    AUTHORIZATION_TIER = "AUTHORIZATION_TIER"
+    ORGANIZATIONAL_ROLE = "ORGANIZATIONAL_ROLE"
+    POLICY_DOMAIN = "POLICY_DOMAIN"
 
 
 class SubjectNormalizer:
@@ -114,3 +129,52 @@ class SubjectNormalizer:
             return cleaned, False
 
         return cleaned, True
+
+    @classmethod
+    def classify_entity_type(cls, entity_str: str) -> str:
+        """Classifies a normalized entity string into its enterprise EntityType."""
+        if not entity_str:
+            return EntityType.PRODUCT_SCOPE.value
+
+        t = entity_str.lower()
+
+        # 1. Process Stage (takes precedence when operational stage/duration keywords are present)
+        if any(w in t for w in ("warehouse transit", "warehouse inspection", "bank transfer processing", "posting duration", "stage duration", "transit", "inspection", "processing")):
+            return EntityType.PROCESS_STAGE.value
+
+        # 2. Authorization Tier / Role
+        if any(w in t for w in ("refund approval", "lead", "agent", "manager", "director", "finance")):
+            return EntityType.AUTHORIZATION_TIER.value
+
+        # 3. Customer Tier
+        if any(w in t for w in ("member", "gold", "customer", "account", "vip", "tier", "corporate", "shopper")):
+            if not any(w in t for w in ("damaged", "item", "refund approval", "stage")):
+                return EntityType.CUSTOMER_TIER.value
+
+        # 4. Payment Method
+        if any(w in t for w in ("debit card", "credit card", "store credit", "cash", "bank transfer", "paypal", "split payment", "payment method")):
+            return EntityType.PAYMENT_METHOD.value
+
+        # 5. Order State
+        if any(w in t for w in ("order", "shipped", "refund request", "proof of purchase", "cancellation", "in-transit", "delivered")):
+            return EntityType.ORDER_STATE.value
+
+        # 6. Policy Domain
+        if any(w in t for w in ("subscription", "warranty", "trailhead")):
+            return EntityType.POLICY_DOMAIN.value
+
+        # Default fallback: Product Scope
+        return EntityType.PRODUCT_SCOPE.value
+
+    @classmethod
+    def normalize_to_object(cls, raw_subject: str, context: Optional[str] = None) -> SubjectObject:
+        """
+        Normalizes a raw subject into a typed, validated SubjectObject.
+        """
+        normalized_str, is_valid = cls.normalize(raw_subject, context)
+        entity_type = cls.classify_entity_type(normalized_str)
+        return SubjectObject(
+            entity=normalized_str,
+            entity_type=entity_type,
+            normalized=is_valid,
+        )

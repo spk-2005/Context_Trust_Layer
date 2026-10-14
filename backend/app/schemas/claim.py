@@ -71,3 +71,55 @@ class ClaimResponse(BaseModel):
     trust_scores: list[ClaimTrustScoreResponse] = []
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class SubjectObject(BaseModel):
+    entity: str
+    entity_type: str = "PRODUCT_SCOPE"
+    normalized: bool = True
+
+
+class ValueObject(BaseModel):
+    type: str = "TEXT_RULE"  # DURATION, PERCENTAGE, CURRENCY, CALENDAR_DEADLINE, BOOLEAN, ENUM, REFERENCE, TEXT_RULE
+    minimum: float | None = None
+    maximum: float | None = None
+    unit: str | None = None
+    raw: str | None = None
+    enum_value: str | None = None
+    reference: str | None = None
+    duration_type: str | None = None  # typical, maximum, minimum, target, provider_governed
+
+
+class EvidenceCitation(BaseModel):
+    evidence_id: str
+    document_id: str
+    document_version: str | None = None
+    version: str | None = None
+    page: int | None = None
+    section: str | None = None
+    table_id: str | None = None
+    row_id: str | None = None
+    column_id: str | None = None
+    char_start: int | None = None
+    char_end: int | None = None
+    quote: str
+    content_hash: str | None = None
+    extraction_method: str | None = "table_aware"
+
+
+class ProductionClaim(BaseModel):
+    claim_id: str
+    claim_type: str = "POLICY_RULE"
+    subject: SubjectObject
+    predicate: str
+    value: ValueObject
+    time_basis: str | None = None
+    deadline: dict | None = None
+    conditions: list[dict] = []
+    qualifiers: list[str] = []
+    modality: str = "PERMISSION"
+    canonical: bool = True
+    validation_status: str = "APPROVED"
+    trust: dict = {}
+    evidence: list[EvidenceCitation] = []
+

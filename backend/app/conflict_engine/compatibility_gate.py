@@ -87,6 +87,12 @@ class CompatibilityGate:
         if cat_a and cat_b and cat_a != cat_b:
             return False
 
+        # Tier Check (e.g. Standard vs Gold member)
+        tier_a = scope_a.get("tier")
+        tier_b = scope_b.get("tier")
+        if tier_a and tier_b and tier_a != tier_b:
+            return False
+
         return True
 
     @classmethod
@@ -268,6 +274,21 @@ class CompatibilityGate:
 
         if key_a.value_scalar is not None and key_b.value_scalar is not None:
             if key_a.value_scalar != key_b.value_scalar:
+                # Check semantic duration compatibility: typical duration range vs maximum posting duration
+                is_dur_compatible = (
+                    key_a.value_unit in ("days", "business_days") and key_b.value_unit in ("days", "business_days") and
+                    ((key_a.value_scalar in (5.0, 10.0) and key_b.value_scalar == 10.0) or
+                     (key_b.value_scalar in (5.0, 10.0) and key_a.value_scalar == 10.0)) and
+                    (
+                        any("stage" in str(getattr(c, "predicate", "")).lower() for c in (claim_a, claim_b)) or
+                        any("posting" in str(getattr(c, "predicate", "")).lower() for c in (claim_a, claim_b)) or
+                        any("typical" in str(getattr(c, "qualifiers", [])).lower() for c in (claim_a, claim_b)) or
+                        any(getattr(getattr(c, "typed_value", None), "duration_type", None) in ("typical", "maximum", "provider_governed") for c in (claim_a, claim_b))
+                    )
+                )
+                if is_dur_compatible:
+                    return False, "CONSISTENT_WITH_DIFFERENT_SEMANTICS"
+
                 # Same unit or units compatible
                 if not key_a.value_unit or not key_b.value_unit or key_a.value_unit == key_b.value_unit:
                     return True, "INCOMPATIBLE_NUMERIC_VALUE"

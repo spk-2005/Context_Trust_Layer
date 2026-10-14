@@ -68,7 +68,7 @@ class ClaimNormalizer:
     def extract_scalar_and_unit(cls, object_text: str, claim_text: str) -> Tuple[Optional[float], Optional[str]]:
         """Extracts numerical scalar and normalized measurement unit."""
         search_corpus = f"{object_text} {claim_text}".lower()
-        match = re.search(r"\b(\d+(?:\.\d+)?)\s*([a-zA-Z%]+)?\b", search_corpus)
+        match = re.search(r"\b(\d+(?:\.\d+)?)\s*(business\s+days?|business_days?|[a-zA-Z%]+)?\b", search_corpus)
         if match:
             try:
                 num = float(match.group(1))
@@ -78,7 +78,9 @@ class ClaimNormalizer:
             unit = None
             if raw_unit:
                 u_clean = raw_unit.lower().strip()
-                if u_clean in ("day", "days"):
+                if "business" in u_clean or "business" in search_corpus:
+                    unit = "business_days"
+                elif u_clean in ("day", "days"):
                     unit = "days"
                 elif u_clean in ("month", "months"):
                     unit = "months"
@@ -144,6 +146,11 @@ class ClaimNormalizer:
         elif "fellow" in combined:
             scope_dict["category"] = "fellow"
 
+        # Match Tier (e.g. Standard, Gold, Silver, Bronze, VIP)
+        tier_match = re.search(r"\b(gold|silver|bronze|platinum|standard|vip)\b", combined)
+        if tier_match:
+            scope_dict["tier"] = tier_match.group(1).lower()
+
         return scope_dict
 
     @classmethod
@@ -161,6 +168,10 @@ class ClaimNormalizer:
             return "evidence_submission"
         elif any(k in t for k in ("issuer decision", "bank decision")):
             return "issuer_decision"
+        elif "bank transfer" in t or "stage: debit card" in t:
+            return "bank_transfer_processing"
+        elif any(k in t for k in ("posting", "post by bank", "posted by bank", "days to post")):
+            return "bank_posting_duration"
         return None
 
     @classmethod
@@ -261,7 +272,9 @@ class ClaimNormalizer:
 
     @classmethod
     def build_key(cls, claim: Any) -> NormalizedClaimKey:
-        """Constructs a NormalizedClaimKey from a Claim or CandidateClaim object."""
+        """Constructs a NormalizedClaimKey from a Claim, CandidateClaim, or NormalizedClaimKey object."""
+        if isinstance(claim, NormalizedClaimKey):
+            return claim
         raw_subj = getattr(claim, "subject", "") or ""
         raw_pred = getattr(claim, "predicate", "") or ""
         raw_obj = getattr(claim, "object", "") or getattr(claim, "object_value", "") or ""
