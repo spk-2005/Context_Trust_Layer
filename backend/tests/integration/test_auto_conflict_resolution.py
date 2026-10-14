@@ -33,12 +33,28 @@ async def test_auto_resolve_conflicts_end_to_end():
             authority_level=85,
         )
 
-        doc = Document(organization_id=org.id, source_id=ds.id, title="Enterprise Governance Policy")
+        doc = Document(
+            organization_id=org.id,
+            source_id=ds.id,
+            title="Enterprise Governance Policy",
+            document_type="policy",
+            content_hash=f"hash-{uid}-0",
+        )
         db_session.add(doc)
         await db_session.flush()
 
-        v1 = DocumentVersion(document_id=doc.id, version_number=1, is_current=False)
-        v2 = DocumentVersion(document_id=doc.id, version_number=2, is_current=True)
+        v1 = DocumentVersion(
+            document_id=doc.id,
+            version_number=1,
+            is_current=False,
+            content_hash=f"hash-{uid}-1",
+        )
+        v2 = DocumentVersion(
+            document_id=doc.id,
+            version_number=2,
+            is_current=True,
+            content_hash=f"hash-{uid}-2",
+        )
         db_session.add_all([v1, v2])
         await db_session.flush()
 
@@ -47,6 +63,7 @@ async def test_auto_resolve_conflicts_end_to_end():
             document_version_id=v1.id,
             claim_text="Legacy refund policy allows 14 days.",
             subject="Refund Policy",
+            claim_type="policy",
             status=ClaimStatus.CONFLICTED,
         )
         claim_v2 = Claim(
@@ -54,6 +71,7 @@ async def test_auto_resolve_conflicts_end_to_end():
             document_version_id=v2.id,
             claim_text="Current refund policy allows 30 days under active governance.",
             subject="Refund Policy",
+            claim_type="policy",
             status=ClaimStatus.CONFLICTED,
         )
         db_session.add_all([claim_v1, claim_v2])

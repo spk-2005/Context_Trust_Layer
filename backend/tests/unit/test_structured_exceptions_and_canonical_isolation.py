@@ -125,6 +125,7 @@ async def test_canonical_isolation_excludes_summaries():
     filters SQL queries to exclude Claim.claim_type == 'derived_summary'.
     """
     mock_session = AsyncMock()
+    mock_session.add = MagicMock()
     mock_result = MagicMock()
     
     # 1 canonical claim, 1 summary claim

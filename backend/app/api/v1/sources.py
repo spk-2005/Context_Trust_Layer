@@ -478,7 +478,8 @@ async def create_data_source(
     if not ext_id:
         stype = (data.source_type or "").lower().strip()
         if stype in ("github", "repo", "git"):
-            ext_id = f"github://{persisted_config.get('repo', 'unknown')}"
+            repo_val = persisted_config.get("repository") or persisted_config.get("repo") or "repo"
+            ext_id = f"github://{repo_val}/{uuid.uuid4().hex[:6]}"
         elif stype in ("mongodb", "mongodb_atlas", "mongo"):
             ext_id = f"mongodb://{persisted_config.get('database', 'db')}/{uuid.uuid4().hex[:6]}"
         elif stype in ("jira", "jira_issues"):

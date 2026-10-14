@@ -77,6 +77,8 @@ class Document(Base):
     document_type: Mapped[str | None] = mapped_column(
         String(50),
         nullable=True,
+        default="policy",
+        server_default=text("'policy'"),
     )
 
     domain: Mapped[str] = mapped_column(

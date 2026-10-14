@@ -1224,6 +1224,7 @@ async def test_audit_scenario_15_synthetic_contradictory_claims_produce_conflict
 
     # 2. ConflictDetector execution: must log ClaimConflict with resolution_status = HUMAN_REVIEW_REQUIRED
     mock_session = AsyncMock()
+    mock_session.add = MagicMock()
     mock_scalars = MagicMock()
     mock_scalars.all.return_value = [claim_a]
     mock_result = MagicMock()

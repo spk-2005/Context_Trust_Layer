@@ -1,14 +1,17 @@
 import pytest
 import httpx
+from app.main import app
 
 
-BASE_URL = "http://127.0.0.1:8000"
+def get_client() -> httpx.AsyncClient:
+    transport = httpx.ASGITransport(app=app)
+    return httpx.AsyncClient(transport=transport, base_url="http://test", timeout=15.0)
 
 
 @pytest.mark.asyncio
 async def test_sso_providers_list():
     """Verify that all enterprise identity providers are exposed with protocol info."""
-    async with httpx.AsyncClient(base_url=BASE_URL, timeout=10.0) as client:
+    async with get_client() as client:
         resp = await client.get("/v1/auth/sso/providers")
         assert resp.status_code == 200, f"Failed: {resp.text}"
         providers = resp.json()
@@ -23,7 +26,7 @@ async def test_sso_providers_list():
 @pytest.mark.asyncio
 async def test_sso_authorize_urls():
     """Verify authorization URL generation for Google and Microsoft Entra ID."""
-    async with httpx.AsyncClient(base_url=BASE_URL, timeout=10.0) as client:
+    async with get_client() as client:
         # Google
         res_g = await client.get("/v1/auth/sso/authorize/google")
         assert res_g.status_code == 200
@@ -44,7 +47,7 @@ async def test_sso_authorize_urls():
 @pytest.mark.asyncio
 async def test_sso_callback_and_provisioning():
     """Verify OIDC callback creates/provisions user and returns signed JWT."""
-    async with httpx.AsyncClient(base_url=BASE_URL, timeout=10.0) as client:
+    async with get_client() as client:
         payload = {
             "provider": "google",
             "mock_email": "google_test_sso@google.com",
@@ -68,7 +71,7 @@ async def test_corporate_domain_auto_routing():
         ("auditor@audit.internal", "Audit & Compliance Gateway"),
         ("governance@enterprise.org", "Enterprise AI Governance"),
     ]
-    async with httpx.AsyncClient(base_url=BASE_URL, timeout=10.0) as client:
+    async with get_client() as client:
         for email, expected_org in domains_to_test:
             payload = {
                 "provider": "sso",

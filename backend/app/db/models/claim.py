@@ -84,6 +84,8 @@ class Claim(Base):
     claim_type: Mapped[str | None] = mapped_column(
         String(50),
         nullable=True,
+        default="policy",
+        server_default=text("'policy'"),
     )
 
     extraction_method: Mapped[str | None] = mapped_column(
