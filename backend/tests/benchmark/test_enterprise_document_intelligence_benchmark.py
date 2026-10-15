@@ -140,9 +140,9 @@ async def test_notice_period_matrix_golden_benchmark(sample_notice_policy_markdo
     zero_token_claims = [c for c in claims if c.extraction_strategy.value in ("deterministic_schema", "table_aware")]
     assert len(zero_token_claims) == len(claims)
 
-    # 2. Extract governing policy rules
+    # 2. Extract governing policy rules (5 Confirmed + 5 Probationary due to merged-cell propagation)
     policy_rules = [c for c in claims if c.content_role == ContentRole.POLICY_RULE and c.is_canonical]
-    assert len(policy_rules) == 6, f"Expected 6 notice policy claims, got {len(policy_rules)}"
+    assert len(policy_rules) == 10, f"Expected 10 notice policy claims (5 confirmed + 5 probationary), got {len(policy_rules)}"
 
     # 3. Verify TableGridBinding fidelity
     for c in policy_rules:
@@ -154,10 +154,17 @@ async def test_notice_period_matrix_golden_benchmark(sample_notice_policy_markdo
         assert c.table_binding.normalized_value in (90, 60, 30, 15)
         assert c.table_binding.normalized_unit == "days"
 
-    # 4. Verify Grade C Ground Truth
-    grade_c_claims = [c for c in policy_rules if "Grade C" in c.subject]
-    assert len(grade_c_claims) == 2, "Grade C should have exactly 2 claims (confirmed & probationary)"
+    # 4. Verify All Grades A-E have 15-day probationary claims
+    for grade_letter in ("Grade A", "Grade B", "Grade C", "Grade D", "Grade E"):
+        grade_claims = [c for c in policy_rules if grade_letter in c.subject]
+        assert len(grade_claims) == 2, f"{grade_letter} should have exactly 2 claims (confirmed & probationary)"
+        prob_claim = next(c for c in grade_claims if c.predicate == "has_probationary_notice_duration")
+        assert prob_claim.value == 15
+        assert prob_claim.table_binding.normalized_value == 15
+        assert "Probationary status" in prob_claim.conditions
 
+    # 5. Verify Grade C Ground Truth
+    grade_c_claims = [c for c in policy_rules if "Grade C" in c.subject]
     confirmed_c = next(c for c in grade_c_claims if c.predicate == "has_confirmed_notice_duration")
     probation_c = next(c for c in grade_c_claims if c.predicate == "has_probationary_notice_duration")
 
@@ -166,13 +173,127 @@ async def test_notice_period_matrix_golden_benchmark(sample_notice_policy_markdo
     assert "Confirmed status" in confirmed_c.conditions
     assert "Probationary status" in probation_c.conditions
 
-    # 5. Verify Pre-LLM Compatibility Gate on Grade C
-    # Comparing confirmed_c against probation_c must yield is_comparable=False
-    # because their predicates and conditions are mutually exclusive!
+    # 6. Verify Pre-LLM Compatibility Gate on Grade C
     outcome = CompatibilityGate.evaluate_compatibility(confirmed_c, probation_c)
     assert outcome.is_comparable is False, f"Expected is_comparable=False, got {outcome}"
     assert outcome.reason in ("NON_OVERLAPPING_CONDITIONAL_SCOPE", "ORTHOGONAL_PREDICATES", "DISJOINT_APPLICABILITY_SCOPE")
     assert outcome.relationship in ("COMPLEMENTARY_CONDITIONAL_RULES", "INDEPENDENT_PREDICATES")
+
+
+@pytest.mark.asyncio
+async def test_wingify_universal_governance_prose_and_conflicts():
+    """
+    Benchmark 1B: Universal Workforce Governance Prose Rules & Cross-Section Conflict.
+    Verifies:
+    - #7: Property Return -> must_return_company_property (Employees (Company Property))
+    - #19: Shipping Costs -> covers_shipping_costs (unbroken reflow)
+    - #20: Short Notice Recovery -> may_recover_short_notice_amount (Company, PERMISSION, canonical)
+    - Substantive Policy: Pay in lieu of notice and gross misconduct exclusion.
+    - Scope Conflict: Section 2 vs Summary applicability scope discrepancy.
+    - Header Decontamination: Version trailing section number stripped.
+    """
+    from app.extraction.extractors.domain_rule_extractor import DomainRuleExtractor
+    from app.ingestion.parsers.evidence_model import ParsedEvidenceUnit
+
+    sample_prose = """
+Employee Notice Period Policy Doc ID: WIN-HR-POL-007 | Version: 1.5 3.2.
+
+3.2. Points to Remember
+● Holiday or Leave during Notice Period: Employees may request leave during the notice
+period as an exception with prior approval from their reporting manager.
+● Return of Company Property: Employees must return all Wingify property upon offboarding. Shipping costs will be covered by Wingify through a mutually agreed-upon method.
+● Pay in place of Notice Period: In cases of involuntary exits where an employee is released immediately without serving the notice period, payment for the notice period will be made after a discussion with the Manager, HR, and Department Head, with the CEO being informed of the decision.
+● Exception: Pay instead of notice will not be granted in cases of dismissal due to misconduct, insubordination, fraud, or other severe reasons warranting penal action as determined by Wingify.
+● Rights and Responsibilities During Notice Period: During the notice period, employees are expected to complete offboarding tasks such as transferring knowledge, handing over documents, and completing ongoing work.
+
+3.3. Deduction from Full & Final Salary
+● If the employee does not serve the full notice period, the company holds the right to recover the amount equivalent to the short notice period.
+● Any outstanding loans or advances the employee takes will be fully adjusted from their Full and Final Salary.
+● If investment proofs, as declared on the HR Portal, are not provided during exit, taxes will be deducted accordingly.
+● WFH Allowance will be recovered based on the Home Office Allowance Policy if the exit is within a year of joining.
+● Recovery will be made for any excess leaves taken beyond the allotted quota.
+● Joining Bonus recovery will be as per the terms mentioned in the offer letter.
+● EPF (Employee Provident Fund) and VPF (Voluntary Provident Fund) deductions will be made and deposited into the employee's account.
+
+4. Reference and/or Documentation
+❖ Disciplinary Policy
+❖ Asset Management Policy
+❖ Home Office Allowance Policy
+❖ Wingify levels and grades framework
+"""
+    env = EnvelopeFactory.create_from_file_upload(
+        filename="wingify_prose.md",
+        raw_bytes=sample_prose.encode("utf-8"),
+        parsed_content=sample_prose,
+        organization_id=uuid.uuid4(),
+        source_id=uuid.uuid4(),
+        document_type="policy",
+    )
+
+    parsed = await DocumentParser.parse(env)
+    assert len(parsed.units) > 0
+
+    all_claims: List[CandidateClaim] = []
+    for u in parsed.units:
+        all_claims.extend(DomainRuleExtractor.extract_from_unit(u))
+
+    # 1. Short notice recovery re-admitted (#20)
+    sn_claims = [c for c in all_claims if c.predicate == "may_recover_short_notice_amount"]
+    assert len(sn_claims) == 1
+    assert sn_claims[0].subject == "Company"
+    assert sn_claims[0].modality == "PERMISSION"
+    assert sn_claims[0].is_canonical is True
+
+    # 2. Return of property (#7)
+    prop_claims = [c for c in all_claims if c.predicate == "must_return_company_property"]
+    assert len(prop_claims) == 1
+    assert prop_claims[0].subject == "Employees"
+
+    # 3. Shipping costs coverage (#19)
+    ship_claims = [c for c in all_claims if c.predicate == "covers_shipping_costs"]
+    assert len(ship_claims) == 1
+    assert "mutually agreed-upon method" in ship_claims[0].object
+
+    # 4. Involuntary pay in lieu and gross misconduct exclusion
+    pil_claims = [c for c in all_claims if c.predicate == "issues_pay_in_lieu_of_notice"]
+    assert len(pil_claims) == 1
+    assert pil_claims[0].modality == "OBLIGATION"
+
+    disc_claims = [c for c in all_claims if c.predicate == "prohibits_pay_in_lieu_of_notice"]
+    assert len(disc_claims) == 1
+    assert disc_claims[0].modality == "PROHIBITION"
+
+    # 5. External policy references safely isolated without leaking refund predicates
+    ref_claims = [c for c in all_claims if c.predicate == "references_governing_policies"]
+    assert len(ref_claims) >= 1
+    assert all(c.is_canonical is False for c in ref_claims)
+
+    # 6. Cross-Section Scope Conflict Detection
+    claim_sec2 = CandidateClaim.create(
+        envelope_id=env.envelope_id,
+        unit_id="u:sec2",
+        asset_id=env.asset_id,
+        claim_text="The policy applies to all Permanent Employees, Interns & Contractors.",
+        subject="Notice Policy Applicability",
+        predicate="applies_to_employment_types",
+        object_="Permanent Employees, Interns & Contractors",
+        evidence_text_span="The policy applies to all Permanent Employees, Interns & Contractors.",
+        modality="POLICY_FACT",
+    )
+    claim_summary = CandidateClaim.create(
+        envelope_id=env.envelope_id,
+        unit_id="u:summ",
+        asset_id=env.asset_id,
+        claim_text="Applies to all current and future full-time employees.",
+        subject="Notice Policy Applicability",
+        predicate="applies_to_employment_types",
+        object_="all current and future full-time employees",
+        evidence_text_span="Applies to all current and future full-time employees.",
+        modality="POLICY_FACT",
+    )
+    is_conf, conf_reason = CompatibilityGate.evaluate_value_conflict(claim_sec2, claim_summary)
+    assert is_conf is True
+    assert conf_reason == "APPLICABILITY_SCOPE_DISCREPANCY"
 
 
 @pytest.mark.asyncio

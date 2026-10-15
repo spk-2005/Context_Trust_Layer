@@ -51,6 +51,7 @@ class CanonicalPredicate(str, Enum):
     # Definitions, References & Structured Options
     HAS_INTERNAL_POLICY_REFERENCE = "has_internal_policy_reference"
     HAS_DEFINITION = "has_definition"
+    HAS_VALIDITY_RULE = "has_validity_rule"
     HAS_RESOLUTION_OPTION_DETAILS = "has_resolution_option_details"
     HAS_RESOLUTION_PATH = "has_resolution_path"
     HAS_BILLING_SCHEDULE = "has_billing_schedule"
@@ -58,6 +59,7 @@ class CanonicalPredicate(str, Enum):
     HAS_RETURN_LABEL_COST = "has_return_label_cost"
     HAS_DUTIES_AND_TAXES_RULE = "has_duties_and_taxes_rule"
     HAS_REFUND_ALLOCATION_RULE = "has_refund_allocation_rule"
+    HAS_DISPUTE_RESOLUTION_RULE = "has_dispute_resolution_rule"
     HAS_IDENTITY_VERIFICATION_REQUIREMENT = "has_identity_verification_requirement"
     HAS_PROVIDER_GOVERNED_TIMELINE = "has_provider_governed_timeline"
     HAS_EXAMPLE_VALUE = "has_example_value"
@@ -67,10 +69,46 @@ class CanonicalPredicate(str, Enum):
     COVERS_SHIPPING_COSTS = "covers_shipping_costs"
     MAY_OVERRIDE_STANDARD_TERMS = "may_override_standard_terms"
     CAN_INITIATE_RETURN = "can_initiate_return"
+    CAN_CANCEL_BEFORE_SHIPMENT = "can_cancel_before_shipment"
+    MUST_BE_HANDLED_AS_RETURN = "must_be_handled_as_return"
+    MAY_RECEIVE_GOODWILL_DISCOUNT = "may_receive_goodwill_discount"
+    MAY_APPLY_ADMINISTRATION_FEE = "may_apply_administration_fee"
+    MAY_RECEIVE_STORE_CREDIT = "may_receive_store_credit"
     MUST_VERIFY_REFUND_CONDITIONS = "must_verify_refund_conditions"
     REQUIRES_RETURN_WITHIN_APPLICABLE_WINDOW = "requires_return_within_applicable_window"
     MUST_BE_IN_ORIGINAL_CONDITION = "must_be_in_original_condition"
     REQUIRES_VERIFIABLE_ORDER_OR_PURCHASE_PROOF = "requires_verifiable_order_or_purchase_proof"
+    HAS_REPLACEMENT_ELIGIBILITY = "has_replacement_eligibility"
+    HAS_DISPUTE_RESOLUTION_PREFERENCE = "has_dispute_resolution_preference"
+    HAS_EVIDENCE_SUBMISSION_DEADLINE = "has_evidence_submission_deadline"
+    HAS_DISPUTE_DECISION_TIMELINE = "has_dispute_decision_timeline"
+    HAS_RMA_GENERATION_BEHAVIOR = "has_rma_generation_behavior"
+    HAS_DEFAULT_REFUND_DESTINATION = "has_default_refund_destination"
+    HAS_EXPIRATION_RULE = "has_expiration_rule"
+    HAS_RETURN_CHANNEL_ELIGIBILITY = "has_return_channel_eligibility"
+    HAS_PURCHASE_VERIFICATION_REQUIREMENT = "has_purchase_verification_requirement"
+    HAS_EXPIRATION_AND_FEE_RULE = "has_expiration_and_fee_rule"
+    HAS_REFUND_WINDOW = "has_refund_window"
+    HAS_CURRENCY_CONVERSION_RULE = "has_currency_conversion_rule"
+    HAS_USAGE_LIMIT = "has_usage_limit"
+    HAS_IMPLEMENTATION_RATIONALE = "has_implementation_rationale"
+    HAS_REPORTING_REQUIREMENT = "has_reporting_requirement"
+    HAS_COURTESY_REPLACEMENT_RULE = "has_courtesy_replacement_rule"
+    MAY_ISSUE_REFUND_WITHOUT_RETURN = "may_issue_refund_without_return"
+    HAS_FUNDS_DEBIT_OUTCOME = "has_funds_debit_outcome"
+
+    # Enterprise Workforce & Policy Governance
+    HAS_CONFIRMED_NOTICE_DURATION = "has_confirmed_notice_duration"
+    HAS_PROBATIONARY_NOTICE_DURATION = "has_probationary_notice_duration"
+    MUST_RETURN_COMPANY_PROPERTY = "must_return_company_property"
+    MAY_RECOVER_SHORT_NOTICE_AMOUNT = "may_recover_short_notice_amount"
+    ISSUES_PAY_IN_LIEU_OF_NOTICE = "issues_pay_in_lieu_of_notice"
+    PROHIBITS_PAY_IN_LIEU_OF_NOTICE = "prohibits_pay_in_lieu_of_notice"
+    APPLIES_TO_EMPLOYMENT_TYPES = "applies_to_employment_types"
+    REQUIRES_OFFBOARDING_HANDOVER_TASKS = "requires_offboarding_handover_tasks"
+    REFERENCES_GOVERNING_POLICIES = "references_governing_policies"
+    HAS_DOCUMENT_METADATA = "has_document_metadata"
+    HAS_INTELLECTUAL_PROPERTY_OWNERSHIP = "has_intellectual_property_ownership"
 
 
 class PredicateRegistry:
@@ -81,8 +119,9 @@ class PredicateRegistry:
     CANONICAL_PREDICATES: Set[str] = {p.value for p in CanonicalPredicate}
 
     DISALLOWED_GENERIC_VERBS: Set[str] = {
-        "be", "is", "are", "defines", "specifies", "cover", "covers",
+        "be", "is", "are", "defines", "specifies", "cover", "covers", "return", "returns",
         "issue", "start", "verify", "override", "has_refund", "have", "has",
+        "must_satisfy_requirement", "apply", "offer", "specifies_governing_rule",
     }
 
     RAW_PHRASE_MAPPINGS = {
@@ -102,11 +141,82 @@ class PredicateRegistry:
         "secondary fraud review": CanonicalPredicate.REQUIRES_FRAUD_REVIEW.value,
         "can be cancelled": CanonicalPredicate.HAS_CANCELLATION_ELIGIBILITY.value,
         "can it be cancelled": CanonicalPredicate.HAS_CANCELLATION_ELIGIBILITY.value,
+        "cancel before shipment": CanonicalPredicate.CAN_CANCEL_BEFORE_SHIPMENT.value,
+        "can cancel before shipment": CanonicalPredicate.CAN_CANCEL_BEFORE_SHIPMENT.value,
+        "must be handled as return": CanonicalPredicate.MUST_BE_HANDLED_AS_RETURN.value,
+        "shipped order must be handled as return": CanonicalPredicate.HAS_POST_SHIPMENT_RESOLUTION_PATH.value,
+        "goodwill discount": CanonicalPredicate.MAY_RECEIVE_GOODWILL_DISCOUNT.value,
+        "administration fee": CanonicalPredicate.MAY_APPLY_ADMINISTRATION_FEE.value,
+        "apply administration fee": CanonicalPredicate.MAY_APPLY_ADMINISTRATION_FEE.value,
+        "store credit": CanonicalPredicate.MAY_RECEIVE_STORE_CREDIT.value,
+        "offer store credit": CanonicalPredicate.MAY_RECEIVE_STORE_CREDIT.value,
+        "receive store credit": CanonicalPredicate.MAY_RECEIVE_STORE_CREDIT.value,
         "full refund within 3–5 days": CanonicalPredicate.HAS_CANCELLATION_REFUND_TIMING.value,
         "full refund within 3-5 days": CanonicalPredicate.HAS_CANCELLATION_REFUND_TIMING.value,
         "see section 9": CanonicalPredicate.HAS_INTERNAL_POLICY_REFERENCE.value,
         "see section 14": CanonicalPredicate.HAS_INTERNAL_POLICY_REFERENCE.value,
         "covered by warranty": CanonicalPredicate.HAS_RESOLUTION_PATH.value,
+        "governing rule": CanonicalPredicate.HAS_VALIDITY_RULE.value,
+        "specifies governing rule": CanonicalPredicate.HAS_VALIDITY_RULE.value,
+        "lost or stolen gift cards": CanonicalPredicate.HAS_REPLACEMENT_ELIGIBILITY.value,
+        "lost or stolen gift card": CanonicalPredicate.HAS_REPLACEMENT_ELIGIBILITY.value,
+        "gift card replacement": CanonicalPredicate.HAS_REPLACEMENT_ELIGIBILITY.value,
+        "resolve directly": CanonicalPredicate.HAS_DISPUTE_RESOLUTION_PREFERENCE.value,
+        "contact us before filing a dispute": CanonicalPredicate.HAS_DISPUTE_RESOLUTION_PREFERENCE.value,
+        "dispute resolution preference": CanonicalPredicate.HAS_DISPUTE_RESOLUTION_PREFERENCE.value,
+        "submit evidence within 7 days": CanonicalPredicate.HAS_EVIDENCE_SUBMISSION_DEADLINE.value,
+        "evidence submission within 7 days": CanonicalPredicate.HAS_EVIDENCE_SUBMISSION_DEADLINE.value,
+        "evidence submission deadline": CanonicalPredicate.HAS_EVIDENCE_SUBMISSION_DEADLINE.value,
+        "issuer decides within 30–90 days": CanonicalPredicate.HAS_DISPUTE_DECISION_TIMELINE.value,
+        "issuer decides within 30-90 days": CanonicalPredicate.HAS_DISPUTE_DECISION_TIMELINE.value,
+        "dispute decision timeline": CanonicalPredicate.HAS_DISPUTE_DECISION_TIMELINE.value,
+        "portal returns generate rma": CanonicalPredicate.HAS_RMA_GENERATION_BEHAVIOR.value,
+        "online requests generate rma": CanonicalPredicate.HAS_RMA_GENERATION_BEHAVIOR.value,
+        "rma generation behavior": CanonicalPredicate.HAS_RMA_GENERATION_BEHAVIOR.value,
+        "original payment method": CanonicalPredicate.HAS_DEFAULT_REFUND_DESTINATION.value,
+        "refunded to original payment method": CanonicalPredicate.HAS_DEFAULT_REFUND_DESTINATION.value,
+        "default refund destination": CanonicalPredicate.HAS_DEFAULT_REFUND_DESTINATION.value,
+        "never expire": CanonicalPredicate.HAS_EXPIRATION_RULE.value,
+        "no expiration": CanonicalPredicate.HAS_EXPIRATION_RULE.value,
+        "carry no fees": CanonicalPredicate.HAS_EXPIRATION_RULE.value,
+        "gift cards never expire": CanonicalPredicate.HAS_EXPIRATION_AND_FEE_RULE.value,
+        "has expiration rule": CanonicalPredicate.HAS_EXPIRATION_RULE.value,
+        "gift cards never expire and carry no fees": CanonicalPredicate.HAS_EXPIRATION_AND_FEE_RULE.value,
+        "never expire and carry no fees": CanonicalPredicate.HAS_EXPIRATION_AND_FEE_RULE.value,
+        "has expiration and fee rule": CanonicalPredicate.HAS_EXPIRATION_AND_FEE_RULE.value,
+        "items bought in-store": CanonicalPredicate.HAS_RETURN_CHANNEL_ELIGIBILITY.value,
+        "bought in-store": CanonicalPredicate.HAS_RETURN_CHANNEL_ELIGIBILITY.value,
+        "return channel eligibility": CanonicalPredicate.HAS_RETURN_CHANNEL_ELIGIBILITY.value,
+        "has return channel eligibility": CanonicalPredicate.HAS_RETURN_CHANNEL_ELIGIBILITY.value,
+        "order number or proof of purchase": CanonicalPredicate.HAS_PURCHASE_VERIFICATION_REQUIREMENT.value,
+        "proof of purchase can be verified": CanonicalPredicate.HAS_PURCHASE_VERIFICATION_REQUIREMENT.value,
+        "purchase verification requirement": CanonicalPredicate.HAS_PURCHASE_VERIFICATION_REQUIREMENT.value,
+        "has purchase verification requirement": CanonicalPredicate.HAS_PURCHASE_VERIFICATION_REQUIREMENT.value,
+        "encourage customers to contact us": CanonicalPredicate.HAS_DISPUTE_RESOLUTION_PREFERENCE.value,
+        "video course refund": CanonicalPredicate.HAS_REFUND_WINDOW.value,
+        "currency conversion": CanonicalPredicate.HAS_CURRENCY_CONVERSION_RULE.value,
+        "has currency conversion rule": CanonicalPredicate.HAS_CURRENCY_CONVERSION_RULE.value,
+        "exchange differences are not compensated": CanonicalPredicate.HAS_CURRENCY_CONVERSION_RULE.value,
+        "keep it limit": CanonicalPredicate.HAS_USAGE_LIMIT.value,
+        "has usage limit": CanonicalPredicate.HAS_USAGE_LIMIT.value,
+        "fraud-prevention rationale": CanonicalPredicate.HAS_IMPLEMENTATION_RATIONALE.value,
+        "has implementation rationale": CanonicalPredicate.HAS_IMPLEMENTATION_RATIONALE.value,
+        "stolen package reporting": CanonicalPredicate.HAS_REPORTING_REQUIREMENT.value,
+        "has reporting requirement": CanonicalPredicate.HAS_REPORTING_REQUIREMENT.value,
+        "courtesy replacement": CanonicalPredicate.HAS_COURTESY_REPLACEMENT_RULE.value,
+        "has courtesy replacement rule": CanonicalPredicate.HAS_COURTESY_REPLACEMENT_RULE.value,
+        "chargeback resolution preference": CanonicalPredicate.HAS_DISPUTE_RESOLUTION_PREFERENCE.value,
+        "has dispute resolution preference": CanonicalPredicate.HAS_DISPUTE_RESOLUTION_PREFERENCE.value,
+        "items returned after 90 days": CanonicalPredicate.HAS_REFUND_ELIGIBILITY.value,
+        "returned after 90 days": CanonicalPredicate.HAS_REFUND_ELIGIBILITY.value,
+        "after 90 days": CanonicalPredicate.HAS_REFUND_ELIGIBILITY.value,
+        "perishable goods past 14 days": CanonicalPredicate.HAS_REFUND_ELIGIBILITY.value,
+        "corrupt or inaccessible digital files": CanonicalPredicate.HAS_REFUND_WINDOW.value,
+        "corrupt or inaccessible digital product": CanonicalPredicate.HAS_REFUND_WINDOW.value,
+        "damaged items under $40": CanonicalPredicate.MAY_ISSUE_REFUND_WITHOUT_RETURN.value,
+        "damaged item valued under $40": CanonicalPredicate.MAY_ISSUE_REFUND_WITHOUT_RETURN.value,
+        "funds are debited": CanonicalPredicate.HAS_FUNDS_DEBIT_OUTCOME.value,
+        "has funds debit outcome": CanonicalPredicate.HAS_FUNDS_DEBIT_OUTCOME.value,
     }
 
     @classmethod

@@ -85,7 +85,7 @@ Deductions from Full & Final Salary may include laptop and asset values, loan ad
     c11 = next((c for c in extracted_claims if "return all wingify property" in c.claim_text.lower()), None)
     assert c11 is not None, "Claim #11 property return not found"
     assert c11.subject == "Employees"
-    assert c11.predicate == "return"
+    assert c11.predicate in ("return", "must_return_company_property")
     assert c11.object == "All Wingify property"
     assert "upon offboarding" not in c11.object.lower(), "Object must not contain the condition"
     assert any("upon offboarding" in cond.lower() for cond in c11.conditions)

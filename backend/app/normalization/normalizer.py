@@ -103,16 +103,16 @@ class DocumentNormalizer:
                     buffer = []
                 continue
 
-            # Markdown structural elements should never be merged
-            if (
-                line.startswith("#")
-                or line.startswith("|")
-                or line.startswith(">")
-                or line.startswith("---")
-                or line.startswith("- ")
-                or line.startswith("* ")
-                or bool(re.match(r"^\d+\.\s", line))
-            ):
+            # Universal structural elements: Markdown headers, tables, quotes, dividers,
+            # multi-level numbered sections (e.g. "3.2. Points to Remember"), and list bullets
+            is_bullet = any(line.startswith(f"{b} ") for b in ("-", "*", "+", "•", "●", "❖", "■", "▪", "►", "○", "◆", "–", "—"))
+            is_numbered = bool(re.match(r"^(?:\d+(?:\.\d+)*\.?|[A-Za-z][\.\)])\s+", line))
+            is_heading_or_table = (
+                line.startswith(("#", "|", ">", "---"))
+                or bool(re.match(r"^\d+(?:\.\d+)+\.?\s+[A-Z]", line))
+            )
+
+            if is_heading_or_table or is_bullet or is_numbered:
                 if buffer:
                     reflowed.append(" ".join(buffer))
                     buffer = []
@@ -121,10 +121,9 @@ class DocumentNormalizer:
                 if line.startswith("|") and reflowed and reflowed[-1].split("\n")[-1].startswith("|"):
                     reflowed[-1] = f"{reflowed[-1]}\n{line}"
                 # Group consecutive list items into a single list block
-                elif (line.startswith("- ") or line.startswith("* ") or re.match(r"^\d+\.\s", line)) and reflowed and (
-                    reflowed[-1].split("\n")[-1].startswith("- ")
-                    or reflowed[-1].split("\n")[-1].startswith("* ")
-                    or bool(re.match(r"^\d+\.\s", reflowed[-1].split("\n")[-1]))
+                elif (is_bullet or is_numbered) and reflowed and (
+                    any(reflowed[-1].split("\n")[-1].startswith(f"{b} ") for b in ("-", "*", "+", "•", "●", "❖", "■", "▪", "►", "○", "◆", "–", "—"))
+                    or bool(re.match(r"^(?:\d+(?:\.\d+)*\.?|[A-Za-z][\.\)])\s+", reflowed[-1].split("\n")[-1]))
                 ):
                     reflowed[-1] = f"{reflowed[-1]}\n{line}"
                 else:
@@ -132,14 +131,13 @@ class DocumentNormalizer:
                 continue
 
             words = line.split()
-            # If line is short and does not terminate a sentence
-            if len(words) <= 4 and not re.search(r"[.!?:]$", line):
-                buffer.append(line)
-            else:
-                buffer.append(line)
-                if re.search(r"[.!?]$", line) or len(" ".join(buffer)) > 140:
-                    reflowed.append(" ".join(buffer))
-                    buffer = []
+            # If line ends with terminal punctuation and is not an abbreviation
+            is_terminal = bool(re.search(r"[.!?:]$", line)) and not bool(re.search(r"\b(?:e\.g|i\.e|vs|no|ver|vol|dr|mr|mrs|prof)\.$", line, re.IGNORECASE))
+
+            buffer.append(line)
+            if is_terminal:
+                reflowed.append(" ".join(buffer))
+                buffer = []
 
         if buffer:
             reflowed.append(" ".join(buffer))

@@ -24,6 +24,7 @@ class EnterpriseDomainFacet(str, Enum):
     RETAIL_RETURNS = "return_window"
     SUPPORT_CHANNELS = "support_channels"
     PRODUCT_WARRANTY = "product_warranty"
+    POLICY_APPLICABILITY = "policy_applicability"
     GENERAL = "general"
 
 
@@ -55,6 +56,7 @@ ENTERPRISE_FACET_REGISTRY: Dict[str, DomainFacetDefinition] = {
             "has_probationary_notice_duration",
             "has_confirmed_notice_duration",
             "holds_right_to_recover_short_notice",
+            "may_recover_short_notice_amount",
         },
         condition_dimensions={"employment_status", "service_tenure", "resignation_type"},
         compatible_units={"days", "weeks", "months"},
@@ -111,7 +113,13 @@ ENTERPRISE_FACET_REGISTRY: Dict[str, DomainFacetDefinition] = {
             r"\breturn\s+all\s+wingify\b",
             r"\bshipping\s+costs?\b",
         ],
-        predicates={"return", "cover", "deducted_per_asset_management_policy"},
+        predicates={
+            "return",
+            "must_return_company_property",
+            "cover",
+            "covers_shipping_costs",
+            "deducted_per_asset_management_policy",
+        },
         condition_dimensions={"lifecycle_phase"},
         compatible_units=set(),
     ),
@@ -130,8 +138,26 @@ ENTERPRISE_FACET_REGISTRY: Dict[str, DomainFacetDefinition] = {
         predicates={
             "prohibited_in_any_media",
             "prohibited_except_internal_confidential_use",
+            "has_intellectual_property_ownership",
         },
         condition_dimensions={"purpose", "authorization"},
+        compatible_units=set(),
+    ),
+    "policy_applicability": DomainFacetDefinition(
+        facet_name=EnterpriseDomainFacet.POLICY_APPLICABILITY,
+        description="Applicability scope across employment types (permanent, full-time, interns, contractors).",
+        patterns=[
+            r"\bapplies\s+to\b",
+            r"\bpermanent\s+employees\b",
+            r"\bfull-time\s+employees\b",
+            r"\binterns?\b",
+            r"\bcontractors?\b",
+        ],
+        predicates={
+            "applies_to_employment_types",
+            "governs_employment_categories",
+        },
+        condition_dimensions={"employment_type"},
         compatible_units=set(),
     ),
 }

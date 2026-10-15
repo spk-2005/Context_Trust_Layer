@@ -53,6 +53,14 @@ class ClaimNormalizer:
         "adjusted_from_full_and_final_salary": "deduction.loan_advance",
         "recovered_upon_early_exit": "deduction.wfh_allowance",
         "holds_right_to_recover_short_notice": "discretionary.short_notice_recovery",
+        "may_recover_short_notice_amount": "discretionary.short_notice_recovery",
+        "must_return_company_property": "asset.return_property",
+        "covers_shipping_costs": "expense.shipping_coverage",
+        "issues_pay_in_lieu_of_notice": "severance.pay_in_lieu",
+        "prohibits_pay_in_lieu_of_notice": "severance.pay_in_lieu_prohibition",
+        "applies_to_employment_types": "policy.applicability_scope",
+        "governs_employment_categories": "policy.applicability_scope",
+        "requires_offboarding_handover_tasks": "offboarding.handover_tasks",
         "prohibited_in_any_media": "confidentiality.public_disclosure",
         "prohibited_except_internal_confidential_use": "confidentiality.reproduction",
     }
@@ -160,8 +168,10 @@ class ClaimNormalizer:
             return "rma_issuance"
         elif any(k in t for k in ("transit", "return transit", "shipping return", "in transit")):
             return "return_transit"
-        elif any(k in t for k in ("warehouse inspection", "inspection", "receipt and inspection", "receipt/inspection", "inspect")):
-            return "warehouse_inspection"
+        elif any(k in t for k in ("warehouse inspection", "receipt and inspection", "receipt/inspection", "inspect", "within 1 business day of inspection", "approved and issued")):
+            return "inspection_approval_issuance"
+        elif any(k in t for k in ("resolution option", "resolution timeline", "full refund timeline", "full refund")):
+            return "resolution_option_timeline"
         elif any(k in t for k in ("refund issuance", "issuance of refund", "issuing refund")):
             return "refund_issuance"
         elif any(k in t for k in ("evidence submission", "submitting evidence")):
@@ -247,7 +257,11 @@ class ClaimNormalizer:
     @classmethod
     def normalize_channel(cls, text: str) -> Optional[str]:
         t = text.lower()
-        if "email" in t:
+        if "escalated" in t or "escalation" in t or "complaint" in t:
+            return "escalated_complaint"
+        elif "standard refund query" in t or "standard query" in t:
+            return "standard_refund_query"
+        elif "email" in t:
             return "email"
         elif "chat" in t:
             return "chat"
@@ -264,7 +278,7 @@ class ClaimNormalizer:
     @classmethod
     def normalize_policy_domain(cls, text: str) -> Optional[str]:
         t = text.lower()
-        if "subscription" in t or "trailhead box" in t or "membership" in t:
+        if "subscription" in t or "trailhead box" in t or "membership" in t or "rewards plus" in t:
             return "subscription"
         elif "warranty" in t:
             return "warranty"

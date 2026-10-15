@@ -36,6 +36,14 @@ class CompatibilityGate:
         ("return", "request_leave_during_notice_period"),
         ("asset.return_property", "leave.notice_period_request"),
         ("expense.shipping_coverage", "asset.return_property"),
+        ("must_return_company_property", "request_leave_during_notice_period"),
+        ("covers_shipping_costs", "must_return_company_property"),
+    }
+
+    GENERIC_PRODUCT_CLASS_NOUNS = {
+        "subscription", "subscriptions", "membership", "memberships",
+        "plan", "plans", "policy", "policies", "rule", "rules", "handbook",
+        "service", "services", "option", "options", "tier", "tiers",
     }
 
     @classmethod
@@ -145,12 +153,13 @@ class CompatibilityGate:
                 details={"cond_a": key_a.item_condition, "cond_b": key_b.item_condition},
             )
 
-        # Gate 5: Service / Contact Channel Check (SLA depends on channel)
+        # Gate 5: Service / Contact Channel Check (SLA depends on channel or service level)
         if key_a.channel and key_b.channel and key_a.channel != key_b.channel:
+            reason_str = "DIFFERENT_SERVICE_LEVEL_SCOPE" if any(w in (key_a.channel + key_b.channel) for w in ("escalated", "standard")) else "DIFFERENT_SERVICE_CHANNEL"
             return CompatibilityOutcome(
                 is_comparable=False,
-                reason="DIFFERENT_SERVICE_CHANNEL",
-                relationship="DISTINCT_CHANNELS",
+                reason=reason_str,
+                relationship="DISTINCT_SERVICE_LEVELS" if "SERVICE_LEVEL" in reason_str else "DISTINCT_CHANNELS",
                 details={"channel_a": key_a.channel, "channel_b": key_b.channel},
             )
 
@@ -236,15 +245,17 @@ class CompatibilityGate:
 
         # 4. Subject Overlap Check
         if key_a.subject_key != key_b.subject_key:
-            # Check token overlap
             tokens_a = set(key_a.subject_key.split("_"))
             tokens_b = set(key_b.subject_key.split("_"))
-            if not tokens_a.intersection(tokens_b):
+            core_a = {t for t in tokens_a if t not in cls.GENERIC_PRODUCT_CLASS_NOUNS and len(t) > 1}
+            core_b = {t for t in tokens_b if t not in cls.GENERIC_PRODUCT_CLASS_NOUNS and len(t) > 1}
+            has_overlap = bool(core_a.intersection(core_b)) if (core_a and core_b) else bool(tokens_a.intersection(tokens_b))
+            if not has_overlap:
                 return CompatibilityOutcome(
                     is_comparable=False,
-                    reason="DISTINCT_SUBJECT_ENTITIES",
+                    reason="DIFFERENT_SUBJECT_ENTITY",
                     relationship="DISTINCT_ENTITIES",
-                    details={"subj_a": key_a.subject_key, "subj_b": key_b.subject_key},
+                    details={"subj_a": key_a.subject_key, "subj_b": key_b.subject_key, "overlap": "DISJOINT"},
                 )
 
         # All filters passed: Decision keys actively compete!
@@ -299,5 +310,14 @@ class CompatibilityGate:
         mods = {key_a.modality, key_b.modality}
         if "OBLIGATION" in mods and "PROHIBITION" in mods:
             return True, "DEONTIC_OPPOSITION"
+
+        # Check applicability scope discrepancy
+        if key_a.predicate_key == "policy.applicability_scope" and key_b.predicate_key == "policy.applicability_scope":
+            txt_a = str(getattr(claim_a, "claim_text", "") or getattr(claim_a, "object", "")).lower()
+            txt_b = str(getattr(claim_b, "claim_text", "") or getattr(claim_b, "object", "")).lower()
+            has_contractors_a = "contractor" in txt_a or "intern" in txt_a
+            has_contractors_b = "contractor" in txt_b or "intern" in txt_b
+            if has_contractors_a != has_contractors_b:
+                return True, "APPLICABILITY_SCOPE_DISCREPANCY"
 
         return False, "COMPATIBLE"

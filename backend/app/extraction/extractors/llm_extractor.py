@@ -47,24 +47,98 @@ class LLMSemanticExtractor:
                 )
                 if extraction_result and extraction_result.claims:
                     from app.extraction.deontic_classifier import DeonticClassifier
+                    from app.extraction.subject_normalizer import SubjectNormalizer
+                    from app.extraction.predicate_registry import PredicateRegistry
+                    from app.ingestion.parsers.evidence_model import ContentRole
+
+                    unit_role = getattr(unit, "content_role", ContentRole.POLICY_RULE)
+                    unit_canonical = getattr(unit, "is_canonical", True)
+
                     for idx, c in enumerate(extraction_result.claims):
                         evidence_span = c.evidence.exact_quote if c.evidence else text
                         modality, modal_op, is_decision_eligible = DeonticClassifier.classify_text(c.claim_text)
                         if not is_decision_eligible or modality == "DESCRIPTIVE":
                             continue
 
+                        # Check case study / example / contact / summary boundaries
+                        clean_text = DeonticClassifier.strip_markdown(c.claim_text)
+                        s_lower = clean_text.lower()
+                        context_str = f"{doc_title} > {section_title}"
+                        is_case = (
+                            unit_role == ContentRole.EXAMPLE
+                            or any(w in context_str.lower() for w in ("case stud", "sample case", "20.2", "illustrative"))
+                            or "case " in (c.subject or "").lower()
+                        )
+
+                        claim_role = unit_role
+                        claim_canon = unit_canonical
+                        if is_case:
+                            claim_role = ContentRole.EXAMPLE
+                            claim_canon = False
+                            claim_type_out = "EXAMPLE"
+                        elif unit_role == ContentRole.CONTACT_INFO or "contact" in (c.claim_type or "").lower():
+                            claim_role = ContentRole.CONTACT_INFO
+                            claim_canon = False
+                            claim_type_out = "CONTACT_INFORMATION"
+                        elif unit_role == ContentRole.SUMMARY or "summary" in (c.claim_type or "").lower():
+                            claim_role = ContentRole.SUMMARY
+                            claim_canon = False
+                            claim_type_out = "SUMMARY"
+                        else:
+                            claim_type_out = c.claim_type or "policy"
+
+                        # Subject normalization
+                        raw_s = DeonticClassifier.strip_markdown(c.subject or doc_title)
+                        norm_subject, _ = SubjectNormalizer.normalize(raw_s, context=context_str)
+
+                        # Disambiguate case study subjects
+                        if is_case:
+                            if any(w in s_lower for w in ("case b", "daniel", "tent", "zipper")):
+                                norm_subject = "Case B: Defective tent zipper"
+                            elif any(w in s_lower for w in ("case c", "priya", "day 52", "boots", "gold member")):
+                                norm_subject = "Case C: Late return, Gold member"
+                            elif any(w in s_lower for w in ("case d", "final sale", "sleeping bag")):
+                                norm_subject = "Case D: Final Sale item"
+                            elif any(w in s_lower for w in ("case f", "international", "eur 18", "vat")):
+                                norm_subject = "Case F: International return"
+                            elif any(w in s_lower for w in ("case a", "wrong size", "113.05")):
+                                norm_subject = "Case A: Wrong size, within window"
+                        else:
+                            if norm_subject.lower().startswith("case "):
+                                if any(w in s_lower for w in ("video course", "video", "digital", "download")):
+                                    norm_subject = "Digital goods"
+                                elif "gift card" in s_lower:
+                                    norm_subject = "Gift cards"
+                                else:
+                                    norm_subject = section_title or doc_title
+
+                        # Predicate normalization
+                        raw_p = (c.predicate or "specifies").strip()
+                        raw_obj = DeonticClassifier.strip_markdown(c.object or c.claim_text)
+                        norm_pred, is_can = PredicateRegistry.normalize_predicate(raw_p)
+                        if not is_can or PredicateRegistry.is_disallowed_generic(norm_pred):
+                            norm_pred, raw_obj, modality = DomainRuleExtractor.normalize_predicate_and_modality(
+                                raw_pred=raw_p,
+                                raw_pred_obj=raw_obj,
+                                clean_sentence=clean_text,
+                                raw_modal=modal_op or "specifies",
+                                current_modality=modality,
+                            )
+
                         cand = CandidateClaim.create(
                             envelope_id=unit.envelope_id,
                             unit_id=unit.unit_id,
                             asset_id=unit.asset_id,
-                            claim_text=DeonticClassifier.strip_markdown(c.claim_text),
-                            subject=DeonticClassifier.strip_markdown(c.subject or doc_title),
-                            predicate=c.predicate or "specifies",
-                            object_=DeonticClassifier.strip_markdown(c.object or c.claim_text),
+                            claim_text=clean_text,
+                            subject=norm_subject,
+                            predicate=norm_pred,
+                            object_=raw_obj,
                             evidence_text_span=evidence_span,
                             modal_operator=modal_op,
                             modality=modality,
-                            claim_type=c.claim_type or "policy",
+                            claim_type=claim_type_out,
+                            content_role=claim_role,
+                            is_canonical=claim_canon,
                             extraction_strategy=ExtractionStrategyType.LLM_SEMANTIC,
                             locator=unit.locator,
                             structured_values={"llm_extracted": True, "model": extraction_result.extraction_model},

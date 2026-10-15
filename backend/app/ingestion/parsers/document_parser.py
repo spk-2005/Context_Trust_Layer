@@ -329,8 +329,14 @@ class DocumentParser:
             context = [h[1] for h in breadcrumb_stack]
             clause_match = cls.CLAUSE_PATTERN.match(line_str)
             
-            block_type = "clause" if clause_match or line_str.startswith(("-", "*", "•")) else "paragraph"
-            clean_text = line_str.lstrip("-*• ").strip()
+            bullet_prefixes = ("-", "*", "+", "•", "●", "❖", "■", "▪", "►", "○", "◆", "–", "—")
+            is_bullet_line = any(line_str.startswith(b) for b in bullet_prefixes)
+            block_type = "clause" if (clause_match or is_bullet_line) else "paragraph"
+            clean_text = line_str
+            for b in bullet_prefixes:
+                if clean_text.startswith(b):
+                    clean_text = clean_text[len(b):].strip()
+                    break
 
             unit_role = cls._classify_content_role(clean_text, context, block_type)
 
@@ -360,6 +366,9 @@ class DocumentParser:
             char_cursor = line_end_char
             line_num += 1
 
+        # Post-process table units to propagate vertically merged cells
+        cls._propagate_table_merged_cells(units)
+
         completeness = 1.0 if total_lines > 0 else 1.0
         quality_metrics = {
             "total_lines": total_lines,
@@ -379,3 +388,45 @@ class DocumentParser:
             completeness_score=completeness,
             quality_metrics=quality_metrics,
         )
+
+    @classmethod
+    def _propagate_table_merged_cells(cls, units: list[ParsedEvidenceUnit]) -> None:
+        """
+        Universal Table Normalization: Detects and propagates vertically merged cells across table rows.
+        Handles:
+        1. Single-value columns spanning multiple rows (e.g. uniform probationary duration '15 days').
+        2. Downward ditto or merge indicators ('^', '""', '"', 'same as', 'ditto').
+        """
+        from collections import defaultdict
+        tables = defaultdict(list)
+        for u in units:
+            if u.block_type == "table_row":
+                tid = u.structured_data.get("table_id")
+                if tid:
+                    tables[tid].append(u)
+
+        for tid, table_units in tables.items():
+            if len(table_units) < 2:
+                continue
+
+            headers = table_units[0].structured_data.get("table_headers", [])
+            for col_name in headers:
+                col_vals = [
+                    u.structured_data.get("columns", {}).get(col_name, "").strip()
+                    for u in table_units
+                ]
+                non_empty = [v for v in col_vals if v and v not in ("-", "—", "N/A", "n/a", "None", "nil", "^", '""', '"')]
+                unique_vals = set(non_empty)
+
+                # Case 1: Uniform vertical span (single non-empty value across multiple rows where other cells are empty)
+                if len(unique_vals) == 1 and len(non_empty) < len(table_units):
+                    span_val = non_empty[0]
+                    clean_span = span_val.lower().strip("[]() ")
+                    if not any(kw in clean_span for kw in ("merged", "spanned", "ditto", "as above", "same as")):
+                        for u in table_units:
+                            cols = u.structured_data.get("columns", {})
+                            cur_v = cols.get(col_name, "").strip()
+                            if not cur_v or cur_v in ("-", "—", "N/A", "n/a", "None", "nil"):
+                                cols[col_name] = span_val
+                                u.structured_data["columns"] = cols
+                                u.content_text = " | ".join(f"{k}: {v}" for k, v in cols.items())

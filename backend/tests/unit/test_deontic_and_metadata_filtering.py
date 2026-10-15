@@ -269,7 +269,7 @@ EPF (Employee Provident Fund) and VPF (Voluntary Provident Fund) deductions will
     prop_claim = next((c for c in extracted_claims if "return all wingify property" in c.claim_text.lower()), None)
     assert prop_claim is not None, "Property return claim must be extracted"
     assert prop_claim.subject == "Employees"
-    assert prop_claim.predicate == "return"
+    assert prop_claim.predicate in ("return", "must_return_company_property")
     assert prop_claim.modal_operator == "must"
     assert prop_claim.modality == "OBLIGATION"
     assert "Employeesmust" not in prop_claim.subject and "Employeesmust" not in prop_claim.predicate
@@ -279,7 +279,7 @@ EPF (Employee Provident Fund) and VPF (Voluntary Provident Fund) deductions will
     assert shipping_claim is not None, "Shipping costs claim must be extracted"
     assert shipping_claim.modality == "POLICY_FACT"
     assert shipping_claim.claim_type == "company_benefit"
-    assert shipping_claim.predicate == "cover"
+    assert shipping_claim.predicate in ("cover", "covers_shipping_costs")
 
     # 6. Confidentiality prohibition subject
     conf_claim = next((c for c in extracted_claims if "unauthorized use or disclosure" in c.claim_text.lower()), None)

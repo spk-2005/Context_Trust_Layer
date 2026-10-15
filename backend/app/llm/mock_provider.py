@@ -162,12 +162,24 @@ class MockLLMProvider(BaseLLMProvider):
                     obj = parts[1].strip()
                     break
 
+            claim_type_val = "policy"
+            if any(w in section_title.lower() or w in document_title.lower() or w in s_lower for w in ("case study", "case studies", "sample case", "20.2")):
+                claim_type_val = "EXAMPLE"
+            elif any(w in section_title.lower() or w in s_lower for w in ("contact", "support channel", "phone", "email", "support hours")):
+                claim_type_val = "CONTACT_INFORMATION"
+            elif any(w in section_title.lower() or w in s_lower for w in ("summary", "overview", "executive summary")):
+                claim_type_val = "SUMMARY"
+            elif ("policy" in document_title.lower() or "leave" in s_lower or "refund" in s_lower or "allowance" in s_lower):
+                claim_type_val = "policy"
+            else:
+                claim_type_val = "statement"
+
             claim = ExtractedClaim(
                 claim_text=s,
                 subject=subject[:250],
                 predicate=predicate[:250],
                 object=obj,
-                claim_type="policy" if ("policy" in document_title.lower() or "leave" in s_lower or "refund" in s_lower or "allowance" in s_lower) else "statement",
+                claim_type=claim_type_val,
                 modality=modality,
                 numeric_value=numeric_val,
                 numeric_unit=numeric_unit,

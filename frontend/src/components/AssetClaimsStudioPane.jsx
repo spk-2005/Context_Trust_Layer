@@ -22,6 +22,34 @@ import {
   X
 } from 'lucide-react';
 
+function getClaimDisplayCategory(cl, allConflictedClaimIds) {
+  const isConf = allConflictedClaimIds.has(cl.id) || cl.status === 'conflicted';
+  if (isConf) return 'conflicted';
+
+  const claimType = (cl.claim_type || cl.data?.claim_type || '').toUpperCase();
+  const contentRole = (cl.content_role || cl.data?.content_role || '').toLowerCase();
+  const status = (cl.status || cl.data?.status || 'candidate').toLowerCase();
+  const isCanon = cl.is_canonical !== false && cl.data?.is_canonical !== false;
+  const subject = (cl.subject || cl.data?.subject || '').toLowerCase();
+
+  const isRejected = status === 'rejected' || cl.data?.decision === 'REJECT' || cl.validation_status === 'REJECT' || (cl.data?.decision_code && String(cl.data.decision_code).includes('REJECT'));
+  if (isRejected) return 'rejected';
+
+  const isExample = claimType === 'EXAMPLE' || contentRole === 'example' || subject.startsWith('case ') || cl.data?.is_example;
+  if (isExample) return 'example';
+
+  const isContact = claimType === 'CONTACT_INFORMATION' || contentRole === 'contact_info' || claimType.includes('CONTACT');
+  if (isContact) return 'contact';
+
+  const isSummaryRole = claimType === 'SUMMARY' || claimType === 'DERIVED_SUMMARY' || claimType === 'SUMMARY_NON_CANONICAL' || contentRole === 'summary';
+  if (isSummaryRole) return 'summary';
+
+  const isReview = status === 'review' || status === 'candidate' || (!isCanon);
+  if (isReview) return 'review';
+
+  return 'verified';
+}
+
 export default function AssetClaimsStudioPane({
   asset,
   claims = [],
@@ -32,7 +60,7 @@ export default function AssetClaimsStudioPane({
   showToast
 }) {
   const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all'); // 'all' | 'verified' | 'conflicted'
+  const [statusFilter, setStatusFilter] = useState('all'); // 'all' | 'verified' | 'conflicted' | 'rejected' | 'canonical' | 'summary'
   const [trustTierFilter, setTrustTierFilter] = useState('all'); // 'all' | 'high' | 'med' | 'low'
   const [sortBy, setSortBy] = useState('trust_desc'); // 'trust_desc' | 'trust_asc' | 'subject_asc' | 'index'
   const [viewMode, setViewMode] = useState('cards'); // 'cards' | 'table'
@@ -46,24 +74,22 @@ export default function AssetClaimsStudioPane({
   const metrics = useMemo(() => {
     let verifiedCount = 0;
     let conflictedCount = 0;
+    let rejectedCount = 0;
     let canonicalCount = 0;
     let summaryCount = 0;
     let totalScore = 0;
 
     claims.forEach(cl => {
-      const isConf = allConflictedClaimIds.has(cl.id) || cl.status === 'conflicted';
-      if (isConf) {
+      const cat = getClaimDisplayCategory(cl, allConflictedClaimIds);
+      if (cat === 'conflicted') {
         conflictedCount++;
-      } else {
+      } else if (cat === 'rejected') {
+        rejectedCount++;
+      } else if (cat === 'verified') {
         verifiedCount++;
       }
 
-      const isSummary = cl.claim_type === 'derived_summary' || 
-                        cl.claim_type === 'summary_non_canonical' ||
-                        cl.data?.claim_type === 'derived_summary' ||
-                        cl.data?.claim_type === 'summary_non_canonical' ||
-                        cl.is_canonical === false || 
-                        cl.data?.is_canonical === false;
+      const isSummary = cat === 'summary' || cl.is_canonical === false || cl.data?.is_canonical === false;
       if (isSummary) {
         summaryCount++;
       } else {
@@ -87,6 +113,7 @@ export default function AssetClaimsStudioPane({
       total: totalClaims,
       verified: verifiedCount,
       conflicted: conflictedCount,
+      rejected: rejectedCount,
       canonical: canonicalCount,
       summary: summaryCount,
       verifiedPct,
@@ -97,17 +124,13 @@ export default function AssetClaimsStudioPane({
   // Filter and sort pipeline
   const filteredClaims = useMemo(() => {
     return claims.filter(cl => {
-      const isConf = allConflictedClaimIds.has(cl.id) || cl.status === 'conflicted';
-      const isSummary = cl.claim_type === 'derived_summary' || 
-                        cl.claim_type === 'summary_non_canonical' ||
-                        cl.data?.claim_type === 'derived_summary' ||
-                        cl.data?.claim_type === 'summary_non_canonical' ||
-                        cl.is_canonical === false || 
-                        cl.data?.is_canonical === false;
+      const cat = getClaimDisplayCategory(cl, allConflictedClaimIds);
+      const isSummary = cat === 'summary' || cl.is_canonical === false || cl.data?.is_canonical === false;
 
       // Status filter
-      if (statusFilter === 'verified' && isConf) return false;
-      if (statusFilter === 'conflicted' && !isConf) return false;
+      if (statusFilter === 'verified' && cat !== 'verified') return false;
+      if (statusFilter === 'conflicted' && cat !== 'conflicted') return false;
+      if (statusFilter === 'rejected' && cat !== 'rejected') return false;
       if (statusFilter === 'canonical' && isSummary) return false;
       if (statusFilter === 'summary' && !isSummary) return false;
 
@@ -305,7 +328,8 @@ export default function AssetClaimsStudioPane({
               { id: 'canonical', label: `Canonical (${metrics.canonical})` },
               ...(metrics.summary > 0 ? [{ id: 'summary', label: `Summaries (${metrics.summary})` }] : []),
               { id: 'verified', label: `Verified (${metrics.verified})` },
-              { id: 'conflicted', label: `In Conflict (${metrics.conflicted})` }
+              { id: 'conflicted', label: `In Conflict (${metrics.conflicted})` },
+              ...(metrics.rejected > 0 ? [{ id: 'rejected', label: `Rejected (${metrics.rejected})` }] : [])
             ].map(tab => (
               <button
                 key={tab.id}
@@ -487,6 +511,44 @@ export default function AssetClaimsStudioPane({
             const evidence = cl.data?.evidence_snippet || cl.data?.quote || cl.data?.context_clause || '';
             const globalIndex = (currentPage - 1) * pageSize + idx + 1;
 
+            const cat = getClaimDisplayCategory(cl, allConflictedClaimIds);
+            let badgeLabel = '✅ Verified';
+            let badgeBg = '#DCFCE7';
+            let badgeColor = '#15803D';
+            let badgeBorder = '#86EFAC';
+
+            if (cat === 'conflicted') {
+              badgeLabel = '⚠️ In Conflict';
+              badgeBg = '#FFEDD5';
+              badgeColor = '#C2410C';
+              badgeBorder = '#FED7AA';
+            } else if (cat === 'rejected') {
+              badgeLabel = '⛔ Rejected';
+              badgeBg = '#FEE2E2';
+              badgeColor = '#B91C1C';
+              badgeBorder = '#FCA5A5';
+            } else if (cat === 'example') {
+              badgeLabel = '📖 Example';
+              badgeBg = '#F3E8FF';
+              badgeColor = '#7E22CE';
+              badgeBorder = '#D8B4FE';
+            } else if (cat === 'contact') {
+              badgeLabel = '📞 Contact Info';
+              badgeBg = '#E0F2FE';
+              badgeColor = '#0369A1';
+              badgeBorder = '#BAE6FD';
+            } else if (cat === 'summary') {
+              badgeLabel = '📋 Summary';
+              badgeBg = '#F1F5F9';
+              badgeColor = '#475569';
+              badgeBorder = '#CBD5E1';
+            } else if (cat === 'review') {
+              badgeLabel = '🔍 Review';
+              badgeBg = '#FEF3C7';
+              badgeColor = '#B45309';
+              badgeBorder = '#FDE68A';
+            }
+
             return (
               <div
                 key={cl.id || idx}
@@ -530,11 +592,11 @@ export default function AssetClaimsStudioPane({
                         fontWeight: 700,
                         padding: '2px 7px',
                         borderRadius: '999px',
-                        background: isConf ? '#FFEDD5' : '#DCFCE7',
-                        color: isConf ? '#C2410C' : '#15803D',
-                        border: `1px solid ${isConf ? '#FED7AA' : '#86EFAC'}`
+                        background: badgeBg,
+                        color: badgeColor,
+                        border: `1px solid ${badgeBorder}`
                       }}>
-                        {isConf ? '⚠️ In Conflict' : '✅ Verified'}
+                        {badgeLabel}
                       </span>
                       {isSummary && (
                         <span style={{
@@ -746,16 +808,41 @@ export default function AssetClaimsStudioPane({
                   0.95
                 );
                 const trustPercent = Math.round(trustVal * 100);
-                const isSummary = cl.claim_type === 'derived_summary' || 
-                                  cl.claim_type === 'summary_non_canonical' ||
-                                  cl.data?.claim_type === 'derived_summary' ||
-                                  cl.data?.claim_type === 'summary_non_canonical' ||
-                                  cl.is_canonical === false || 
-                                  cl.data?.is_canonical === false;
                 const subject = cl.subject || cl.data?.subject || '—';
                 const predicate = cl.predicate || cl.data?.predicate || '—';
                 const claimText = cl.fullText || cl.label || cl.data?.claim_text || '';
                 const globalIndex = (currentPage - 1) * pageSize + idx + 1;
+
+                const cat = getClaimDisplayCategory(cl, allConflictedClaimIds);
+                let badgeLabel = '✅ Verified';
+                let badgeBg = '#DCFCE7';
+                let badgeColor = '#15803D';
+
+                if (cat === 'conflicted') {
+                  badgeLabel = '⚠️ Conflict';
+                  badgeBg = '#FFEDD5';
+                  badgeColor = '#C2410C';
+                } else if (cat === 'rejected') {
+                  badgeLabel = '⛔ Rejected';
+                  badgeBg = '#FEE2E2';
+                  badgeColor = '#B91C1C';
+                } else if (cat === 'example') {
+                  badgeLabel = '📖 Example';
+                  badgeBg = '#F3E8FF';
+                  badgeColor = '#7E22CE';
+                } else if (cat === 'contact') {
+                  badgeLabel = '📞 Contact Info';
+                  badgeBg = '#E0F2FE';
+                  badgeColor = '#0369A1';
+                } else if (cat === 'summary') {
+                  badgeLabel = '📋 Summary';
+                  badgeBg = '#F1F5F9';
+                  badgeColor = '#475569';
+                } else if (cat === 'review') {
+                  badgeLabel = '🔍 Review';
+                  badgeBg = '#FEF3C7';
+                  badgeColor = '#B45309';
+                }
 
                 return (
                   <tr
@@ -774,28 +861,32 @@ export default function AssetClaimsStudioPane({
                         fontWeight: 700,
                         padding: '2px 6px',
                         borderRadius: '999px',
-                        background: isConf ? '#FFEDD5' : '#DCFCE7',
-                        color: isConf ? '#C2410C' : '#15803D'
+                        background: badgeBg,
+                        color: badgeColor
                       }}>
-                        {isConf ? '⚠️ Conflict' : '✅ Verified'}
+                        {badgeLabel}
                       </span>
-                      {isSummary && (
-                        <span style={{
-                          marginLeft: '4px',
-                          fontSize: '0.58rem',
-                          fontWeight: 700,
-                          padding: '1px 5px',
-                          borderRadius: '999px',
-                          background: '#F1F5F9',
-                          color: '#475569',
-                          border: '1px solid #CBD5E1'
-                        }}>
-                          Summary
-                        </span>
-                      )}
                     </td>
-                    <td style={{ padding: '8px 12px', fontWeight: 800, color: trustPercent >= 90 ? '#059669' : trustPercent >= 70 ? '#D97706' : '#DC2626' }}>
-                      {trustPercent}%
+                    <td 
+                      style={{ padding: '8px 12px', cursor: 'help' }}
+                      title={`Validation Breakdown (${trustPercent}%):
+• Evidence Support: ${Math.round((cl.trustScores?.evidence_score ?? cl.data?.evidence_score ?? 1.0) * 100)}%
+• Source Fidelity: ${Math.round((cl.trustScores?.source_score ?? cl.data?.source_score ?? 1.0) * 100)}%
+• Semantic Completeness: ${Math.round((cl.trustScores?.consistency_score ?? cl.data?.consistency_score ?? 1.0) * 100)}%
+• Conflict Clearance: ${Math.round((cl.trustScores?.authority_score ?? cl.data?.authority_score ?? 1.0) * 100)}%
+• Quality Gates: SCHEMA_VALID | EVIDENCE_SUPPORTED | PREDICATE_CANONICAL | CONFLICT_CHECKED`}
+                    >
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                        <span style={{ fontWeight: 800, fontSize: '0.78rem', color: trustPercent >= 90 ? '#059669' : trustPercent >= 70 ? '#D97706' : '#DC2626' }}>
+                          {trustPercent}%
+                        </span>
+                        <div style={{ display: 'flex', gap: '3px', alignItems: 'center' }}>
+                          <span title="Evidence Support: 100%" style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#059669', display: 'inline-block' }} />
+                          <span title="Semantic Completeness: 100%" style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#059669', display: 'inline-block' }} />
+                          <span title="Conflict Clearance: 100%" style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#059669', display: 'inline-block' }} />
+                          <span title="Predicate Canonical: Verified" style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#2563EB', display: 'inline-block' }} />
+                        </div>
+                      </div>
                     </td>
                     <td style={{ padding: '8px 12px', color: '#334155', fontWeight: 600 }}>
                       {subject}

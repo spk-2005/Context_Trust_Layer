@@ -74,9 +74,9 @@ def are_claims_topically_related(claim_a: Claim, claim_b: Claim) -> bool:
 
 def is_illustrative_claim(claim: Claim) -> bool:
     """Pillar 2: Classify whether a claim is an illustrative example or hypothetical scenario rather than a normative policy rule."""
-    if claim.claim_type and "illustrative" in claim.claim_type.lower():
+    if claim.claim_type and any(k in claim.claim_type.lower() for k in ("illustrative", "example", "sample")):
         return True
-    text_lower = claim.claim_text.lower()
+    text_lower = (claim.claim_text or "").lower()
     illustrative_patterns = [
         r"\bexample\s*:\s*transaction\b",
         r"\bfor\s+example\b",
@@ -85,6 +85,8 @@ def is_illustrative_claim(claim: Claim) -> bool:
         r"\billustrative\s+only\b",
         r"\brf-\d+-\d+\b",
         r"\bscenario\s+[0-9a-z]+\b",
+        r"\bcase\s+[a-z]\b",
+        r"\bcase\s+study\b",
     ]
     return any(re.search(p, text_lower) for p in illustrative_patterns)
 
@@ -109,7 +111,7 @@ class ConflictDetector:
 
         # Policy-Eligible Filtering: Only active, canonical POLICY_RULE claims can enter governing conflict detection
         target_role = getattr(target_claim, "content_role", ContentRole.POLICY_RULE)
-        if target_role != ContentRole.POLICY_RULE:
+        if target_role not in (ContentRole.POLICY_RULE, "policy_rule", "policy"):
             return detected_conflicts
 
         if not getattr(target_claim, "is_canonical", True):
@@ -127,11 +129,12 @@ class ConflictDetector:
         # Pillar 2: Illustrative sample & non-canonical summary pre-filter
         # Concrete transaction examples and derived summaries never contradict operative canonical policies
         non_canonical_types = (
-            "derived_summary", "summary_non_canonical", "example", "revision_history",
+            "derived_summary", "summary_non_canonical", "summary", "example", "revision_history",
             "definition", "form_field_specification", "non_canonical", "faq", "faq_question", "faq_answer", "heading",
-            "contact_information", "contact_info",
+            "contact_information", "contact_info", "contact_channel",
         )
-        if is_illustrative_claim(target_claim) or getattr(target_claim, "claim_type", "") in non_canonical_types:
+        target_type = (getattr(target_claim, "claim_type", "") or "").lower()
+        if is_illustrative_claim(target_claim) or target_type in non_canonical_types or any(t in target_type for t in ("contact", "summary", "example")):
             return detected_conflicts
 
         # Tier 1: Candidate Ingestion Pruning via FacetSharder (O(N^2) -> O(K))
@@ -159,7 +162,8 @@ class ConflictDetector:
                     continue
 
             # Pillar 2: Skip illustrative candidates and non-canonical summaries
-            if is_illustrative_claim(cand) or getattr(cand, "claim_type", "") in non_canonical_types:
+            cand_type = (getattr(cand, "claim_type", "") or "").lower()
+            if is_illustrative_claim(cand) or cand_type in non_canonical_types or any(t in cand_type for t in ("contact", "summary", "example")):
                 continue
 
             # Facet compatibility pruning

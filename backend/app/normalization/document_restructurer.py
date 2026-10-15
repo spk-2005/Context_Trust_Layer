@@ -183,6 +183,19 @@ class DocumentSemanticRestructurer:
                             header = [f"{h} {r1[idx]}".strip() if idx < len(r1) and r1[idx] else h for idx, h in enumerate(header)]
                             data_rows = data_rows[1:]
 
+                    # Propagate vertically merged single-value columns across data rows
+                    if len(data_rows) >= 2:
+                        for c_idx in range(len(header)):
+                            col_vals = [r[c_idx].strip() for r in data_rows if c_idx < len(r) and r[c_idx].strip()]
+                            non_empty = [v for v in col_vals if v not in ("-", "—", "N/A", "n/a", "None", "nil")]
+                            if len(non_empty) > 0 and len(set(non_empty)) == 1 and len(non_empty) < len(data_rows):
+                                fill_val = non_empty[0]
+                                for r in data_rows:
+                                    while len(r) <= c_idx:
+                                        r.append("")
+                                    if not r[c_idx].strip():
+                                        r[c_idx] = fill_val
+
                     header = [h if h else f"Col_{idx+1}" for idx, h in enumerate(header)]
                     output.append("")
                     output.append("| " + " | ".join(header) + " |")
