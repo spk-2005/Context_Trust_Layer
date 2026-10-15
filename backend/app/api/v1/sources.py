@@ -103,7 +103,9 @@ def _secure_and_validate_config(source_type: str, raw_config: dict[str, Any], te
         database = clean_cfg.get("database") or ""
         if not uri.strip() or not database.strip():
             raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail="MongoDB connection string and database name are required.")
-        secret_payload["connection_string"] = uri
+        clean_uri = MongoDbConnector._sanitize_uri(uri.strip())
+        clean_cfg["connection_string"] = clean_uri
+        secret_payload["connection_string"] = clean_uri
         if clean_cfg.get("password"):
             secret_payload["password"] = clean_cfg["password"]
 

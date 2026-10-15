@@ -119,8 +119,9 @@ class ConflictDetector:
         if getattr(target_claim, "status", None) in (ClaimStatus.REJECTED, ClaimStatus.SUPERSEDED, ClaimStatus.OUTDATED):
             return detected_conflicts
 
-        if getattr(target_claim, "validity_records", None):
-            if not any(v.is_current for v in target_claim.validity_records):
+        val_recs = getattr(target_claim, "__dict__", {}).get("validity_records")
+        if val_recs is not None and len(val_recs) > 0:
+            if not any(getattr(v, "is_current", True) for v in val_recs):
                 return detected_conflicts
 
         # Pillar 2: Illustrative sample & non-canonical summary pre-filter
@@ -152,8 +153,9 @@ class ConflictDetector:
             if getattr(cand, "status", None) in (ClaimStatus.REJECTED, ClaimStatus.SUPERSEDED, ClaimStatus.OUTDATED):
                 continue
 
-            if getattr(cand, "validity_records", None):
-                if not any(v.is_current for v in cand.validity_records):
+            cand_val_recs = getattr(cand, "__dict__", {}).get("validity_records")
+            if cand_val_recs is not None and len(cand_val_recs) > 0:
+                if not any(getattr(v, "is_current", True) for v in cand_val_recs):
                     continue
 
             # Pillar 2: Skip illustrative candidates and non-canonical summaries

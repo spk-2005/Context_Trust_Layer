@@ -86,6 +86,16 @@ class JiraConnector(BaseConnector):
                 # 2. Verify project existence and access
                 proj_resp = await client.get(f"{valid_url}/rest/api/3/project/{self.project_key}", auth=auth, headers=headers)
                 if proj_resp.status_code == 404:
+                    # Attempt fallback: resolve project key from name/alias (e.g. name 'ops' has key 'KAN')
+                    all_p_resp = await client.get(f"{valid_url}/rest/api/3/project", auth=auth, headers=headers)
+                    if all_p_resp.status_code == 200:
+                        for p in all_p_resp.json():
+                            if p.get("name", "").strip().lower() == self.project_key.lower() or p.get("key", "").strip().upper() == self.project_key.upper():
+                                self.project_key = p.get("key")
+                                proj_resp = await client.get(f"{valid_url}/rest/api/3/project/{self.project_key}", auth=auth, headers=headers)
+                                break
+
+                if proj_resp.status_code == 404:
                     return {
                         "success": False,
                         "status": "error",
@@ -195,12 +205,21 @@ class JiraConnector(BaseConnector):
     async def _sync_live_jira(self) -> list[tuple[Document, DocumentVersion]]:
         synced = []
         valid_url = EncryptionService.validate_external_url(self.base_url)
-        jql = f"project = \"{self.project_key}\" ORDER BY updated DESC"
-        url = f"{valid_url}/rest/api/3/search?jql={jql}&maxResults=50"
         auth = (self.user_email.strip(), self.api_token.strip())
         headers = {"Accept": "application/json", "User-Agent": "Context-Trust-Layer-Ingestion"}
 
         async with httpx.AsyncClient(timeout=25.0) as client:
+            chk = await client.get(f"{valid_url}/rest/api/3/project/{self.project_key}", auth=auth, headers=headers)
+            if chk.status_code == 404:
+                all_p_resp = await client.get(f"{valid_url}/rest/api/3/project", auth=auth, headers=headers)
+                if all_p_resp.status_code == 200:
+                    for p in all_p_resp.json():
+                        if p.get("name", "").strip().lower() == self.project_key.lower() or p.get("key", "").strip().upper() == self.project_key.upper():
+                            self.project_key = p.get("key")
+                            break
+
+            jql = f"project = '{self.project_key}' ORDER BY updated DESC"
+            url = f"{valid_url}/rest/api/3/search/jql?jql={jql}&maxResults=50&fields=summary,description,status,creator,updated"
             resp = await client.get(url, auth=auth, headers=headers)
             if resp.status_code != 200:
                 raise RuntimeError(f"Jira API returned HTTP {resp.status_code}: {resp.text[:200]}")
@@ -286,7 +305,7 @@ class JiraConnector(BaseConnector):
             return native_assets
 
         jql = f"project = '{self.project_key}' ORDER BY updated DESC"
-        url = f"{self.base_url}/rest/api/3/search?jql={httpx.URL('', params={'q': jql}).query.decode()[2:]}&maxResults=50"
+        url = f"{self.base_url}/rest/api/3/search/jql?jql={httpx.URL('', params={'q': jql}).query.decode()[2:]}&maxResults=50&fields=summary,description,status,creator,updated"
         auth = (self.user_email, self.api_token)
         headers = {"Accept": "application/json", "User-Agent": "Context-Trust-Layer-Ingestion"}
 

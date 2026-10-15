@@ -205,15 +205,16 @@ class SyncEngine:
             if user_id and not source.owner_id:
                 source.owner_id = user_id
 
+            connector = self.get_connector_for_source(source, owner_id=effective_owner)
             cfg = dict(source.connection_config or {})
             cfg["connection_status"] = "syncing"
             cfg["last_attempt_at"] = datetime.now(timezone.utc).isoformat()
             source.connection_config = cfg
             await self.session.flush()
             await self.session.commit()
+            await self.session.refresh(source)
 
             try:
-                connector = self.get_connector_for_source(source, owner_id=effective_owner)
                 synced_docs = await connector.sync()
                 documents_synced_count = len(synced_docs)
 
@@ -307,17 +308,21 @@ class SyncEngine:
                     message=msg,
                 )
             except Exception as err:
+                import traceback
+                traceback.print_exc()
                 await self.session.rollback()
                 exec_ms = max(1, int((time.perf_counter() - start_time) * 1000))
                 error_msg = str(err)
 
                 # Persist failed status and error message
                 try:
-                    cfg = dict(source.connection_config or {})
-                    cfg["connection_status"] = "failed"
-                    cfg["last_error"] = error_msg
-                    source.connection_config = cfg
-                    await self.session.commit()
+                    fresh_source = await self.source_repo.get_by_id(source_id_val)
+                    if fresh_source:
+                        cfg = dict(fresh_source.connection_config or {})
+                        cfg["connection_status"] = "failed"
+                        cfg["last_error"] = error_msg
+                        fresh_source.connection_config = cfg
+                        await self.session.commit()
                 except Exception:
                     pass
 

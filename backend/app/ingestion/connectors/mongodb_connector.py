@@ -67,7 +67,7 @@ class MongoDbConnector(BaseConnector):
             or kwargs.get("uri")
             or connection_string
         )
-        self.connection_string = raw_uri
+        self.connection_string = self._sanitize_uri(raw_uri)
         self.database = config.get("database") or config.get("mongoDatabase") or database
         self.collections = config.get("collections", collections or ["*"])
         self.auth_database = config.get("auth_database", auth_database)
@@ -187,6 +187,13 @@ class MongoDbConnector(BaseConnector):
                 },
             }
 
+    @staticmethod
+    def _sanitize_uri(uri: str) -> str:
+        """Strips placeholder angle brackets from password in MongoDB connection URI if present (e.g. <spk> -> spk)."""
+        if not uri:
+            return uri
+        return re.sub(r"://([^:@\s]+):<([^>@\s]+)>@", r"://\1:\2@", uri)
+
     def _mask_uri(self, uri: str) -> str:
         try:
             if "@" in uri:
@@ -209,8 +216,9 @@ class MongoDbConnector(BaseConnector):
         """Discovers accessible databases on MongoDB cluster."""
         if motor is None:
             raise RuntimeError("MongoDB driver 'motor' is not installed in this environment.")
+        clean_conn = MongoDbConnector._sanitize_uri(connection_string)
         client = motor.motor_asyncio.AsyncIOMotorClient(
-            connection_string,
+            clean_conn,
             serverSelectionTimeoutMS=5000,
             connectTimeoutMS=5000,
         )
@@ -230,8 +238,9 @@ class MongoDbConnector(BaseConnector):
         """Discovers accessible collections in target MongoDB database."""
         if motor is None:
             raise RuntimeError("MongoDB driver 'motor' is not installed in this environment.")
+        clean_conn = MongoDbConnector._sanitize_uri(connection_string)
         client = motor.motor_asyncio.AsyncIOMotorClient(
-            connection_string,
+            clean_conn,
             serverSelectionTimeoutMS=5000,
             connectTimeoutMS=5000,
         )
@@ -294,10 +303,16 @@ class MongoDbConnector(BaseConnector):
                 doc, ver, _, is_changed = await self.ingestion_service.ingest_document_with_dedup(doc_in)
                 synced.append((doc, ver))
 
-                # 2. Ingest individual records (bounded batch) for Stored Documents visibility
-                for doc_record in sample_docs[:20]:
+                # 2. Ingest individual records (bounded batch: up to 2 representative records) for Stored Documents visibility
+                for doc_record in sample_docs[:2]:
                     doc_id_val = str(doc_record.get("_id", "unknown"))
-                    rec_json = json.dumps(doc_record, default=str, indent=2)
+                    clean_record = {}
+                    for k, v in doc_record.items():
+                        if isinstance(v, str) and (len(v) > 200 or v.startswith("data:") or "base64" in v.lower()):
+                            clean_record[k] = f"{v[:60]}... [binary/base64 payload: {len(v)} chars]"
+                        else:
+                            clean_record[k] = v
+                    rec_json = json.dumps(clean_record, default=str, indent=2)
                     rec_content = (
                         f"# MongoDB Record: {self.database}.{col_name} [{doc_id_val}]\n\n"
                         f"**Database**: `{self.database}` | **Collection**: `{col_name}` | **ID**: `{doc_id_val}`\n\n"

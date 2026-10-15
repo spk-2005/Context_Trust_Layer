@@ -45,7 +45,11 @@ class ConflictService:
         # First reconcile and purge any stale false-positive conflicts
         await self.reconcile_existing_conflicts_for_version(document_version_id)
 
-        stmt = select(Claim).where(Claim.document_version_id == document_version_id)
+        stmt = (
+            select(Claim)
+            .options(selectinload(Claim.validity_records))
+            .where(Claim.document_version_id == document_version_id)
+        )
         res = await self.session.execute(stmt)
         claims = res.scalars().all()
 

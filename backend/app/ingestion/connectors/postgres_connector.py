@@ -124,19 +124,40 @@ class PostgresConnector(BaseConnector):
             "native_identifier_field": "primary_key",
         }
 
+    async def _get_connection(self, timeout: float = 8.0) -> asyncpg.Connection:
+        """Establishes connection to PostgreSQL with Docker-host port fallback."""
+        ssl_val = None if self.ssl_mode in ("disable", "prefer") else self.ssl_mode
+        candidates = [(self.host, self.port)]
+        if self.host in ("localhost", "127.0.0.1") and self.port == 5433:
+            candidates.append(("postgres", 5432))
+        elif self.host == "postgres" and self.port == 5432:
+            candidates.append(("localhost", 5433))
+
+        last_err = None
+        for h, p in candidates:
+            try:
+                conn = await asyncpg.connect(
+                    host=h,
+                    port=p,
+                    database=self.database,
+                    user=self.username,
+                    password=self.password,
+                    ssl=ssl_val,
+                    timeout=timeout,
+                )
+                self.host = h
+                self.port = p
+                return conn
+            except Exception as e:
+                last_err = e
+        if last_err:
+            raise last_err
+        raise RuntimeError("No valid PostgreSQL connection candidates available.")
+
     async def test_connection(self) -> dict[str, Any]:
         """Verify connectivity, credentials, and schema access against live PostgreSQL cluster."""
         try:
-            ssl_val = None if self.ssl_mode in ("disable", "prefer") else self.ssl_mode
-            conn = await asyncpg.connect(
-                host=self.host,
-                port=self.port,
-                database=self.database,
-                user=self.username,
-                password=self.password,
-                ssl=ssl_val,
-                timeout=8.0,
-            )
+            conn = await self._get_connection(timeout=8.0)
             try:
                 version_row = await conn.fetchval("SELECT version();")
                 schemas_res = await conn.fetch(
@@ -239,16 +260,7 @@ class PostgresConnector(BaseConnector):
             await conn.close()
 
     async def _sync_live_postgres(self) -> list[tuple[Document, DocumentVersion]]:
-        ssl_val = None if self.ssl_mode in ("disable", "prefer") else self.ssl_mode
-        conn = await asyncpg.connect(
-            host=self.host,
-            port=self.port,
-            database=self.database,
-            user=self.username,
-            password=self.password,
-            ssl=ssl_val,
-            timeout=15.0,
-        )
+        conn = await self._get_connection(timeout=15.0)
         synced = []
         try:
             for schema in self.schemas:
@@ -314,12 +326,12 @@ class PostgresConnector(BaseConnector):
                     doc, ver, _, is_changed = await self.ingestion_service.ingest_document_with_dedup(doc_in)
                     synced.append((doc, ver))
 
-                    # 2. Ingest sample records for Stored Documents visibility (read-only query)
+                    # 2. Ingest sample records for Stored Documents visibility (read-only query: up to 2 representative rows)
                     # Sanitize schema and table identifiers to prevent injection
                     clean_s = schema.replace('"', '').replace("'", "")
                     clean_t = t_name.replace('"', '').replace("'", "")
                     try:
-                        record_rows = await conn.fetch(f'SELECT * FROM "{clean_s}"."{clean_t}" LIMIT 20;')
+                        record_rows = await conn.fetch(f'SELECT * FROM "{clean_s}"."{clean_t}" LIMIT 2;')
                         for r_idx, r_val in enumerate(record_rows):
                             row_dict = dict(r_val)
                             # Find primary key or stable identifier
