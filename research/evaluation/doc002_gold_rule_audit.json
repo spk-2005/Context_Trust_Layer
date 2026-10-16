@@ -1,0 +1,205 @@
+[
+  {
+    "gold_claim_id": "DOC002-C01",
+    "gold_subject": "All Administrative Departments and Heads of Departments",
+    "gold_predicate": "scrupulously",
+    "gold_object": {
+      "value": "follow the following terms and conditions while making engagements on contract basis",
+      "modality": "MUST"
+    },
+    "gold_conditions": [],
+    "matched_candidate_id": "e5db8cbe-27b7-4f15-a8c8-1e21e6733d38",
+    "candidate_status": "verified",
+    "match_tier": "FULL_MATCH",
+    "subject_match": true,
+    "predicate_match": true,
+    "object_match": true,
+    "condition_match": true,
+    "modality_match": true,
+    "evidence_span": "All    Administrative    Departments    and    Heads    of    Departments    should scrupulously  follow  the  following  terms  and  conditions  while  making  engagements  on contract basis :",
+    "match_rationale": "Candidate admitted into canonical approved claims with 100% semantic and evidence alignment."
+  },
+  {
+    "gold_claim_id": "DOC002-C02",
+    "gold_subject": "engagement on contract basis",
+    "gold_predicate": "has_validity_rule",
+    "gold_object": {
+      "value": "be made except with prior approval of DP&AR and Finance Department",
+      "modality": "MUST"
+    },
+    "gold_conditions": [],
+    "matched_candidate_id": "77bca732-c8b8-40d0-a01f-fd54d050d524",
+    "candidate_status": "verified",
+    "match_tier": "FULL_MATCH",
+    "subject_match": true,
+    "predicate_match": true,
+    "object_match": true,
+    "condition_match": true,
+    "modality_match": true,
+    "evidence_span": "No engagement on contract basis shall be made except with prior approval of DP&AR  and  Finance  Department,  Government  of  Mizoram.",
+    "match_rationale": "Candidate admitted into canonical approved claims with 100% semantic and evidence alignment."
+  },
+  {
+    "gold_claim_id": "DOC002-C03",
+    "gold_subject": "Period of engagement on contract basis",
+    "gold_predicate": "has_duration_limit",
+    "gold_object": {
+      "value": "one year at the initial stage",
+      "unit": "year",
+      "modality": "MUST"
+    },
+    "gold_conditions": [],
+    "matched_candidate_id": "5a774d21-10a7-46b7-b8c3-601f337bd634",
+    "candidate_status": "verified",
+    "match_tier": "FULL_MATCH",
+    "subject_match": true,
+    "predicate_match": true,
+    "object_match": true,
+    "condition_match": true,
+    "modality_match": true,
+    "evidence_span": "Period of engagement on contract basis shall be for one year at the initial stage.",
+    "match_rationale": "Candidate admitted into canonical approved claims with 100% semantic and evidence alignment."
+  },
+  {
+    "gold_claim_id": "DOC002-C04",
+    "gold_subject": "Retired Officers",
+    "gold_predicate": "has_age_restriction",
+    "gold_object": {
+      "value": "63 years of age",
+      "unit": "year",
+      "modality": "MUST_NOT"
+    },
+    "gold_conditions": [],
+    "matched_candidate_id": "be7c596c-408d-4747-bb27-7c94223782f8",
+    "candidate_status": "verified",
+    "match_tier": "FULL_MATCH",
+    "subject_match": true,
+    "predicate_match": true,
+    "object_match": true,
+    "condition_match": true,
+    "modality_match": true,
+    "evidence_span": "Retired  Officers  should  not  normally  be  engaged  on  contract  basis  beyond attainment of 63 years of age unless there are overriding considerations in the public interest justifying the terms of engagement for a longer period.",
+    "match_rationale": "Candidate admitted into canonical approved claims with 100% semantic and evidence alignment."
+  },
+  {
+    "gold_claim_id": "DOC002-C05",
+    "gold_subject": "contract employee",
+    "gold_predicate": "has_financial_power_restriction",
+    "gold_object": {
+      "value": "neither be delegated with financial powers nor assigned the work of DDO",
+      "modality": "MUST_NOT"
+    },
+    "gold_conditions": [],
+    "matched_candidate_id": "91591f71-9213-4e19-99b9-4793805bc310",
+    "candidate_status": "verified",
+    "match_tier": "FULL_MATCH",
+    "subject_match": true,
+    "predicate_match": true,
+    "object_match": true,
+    "condition_match": true,
+    "modality_match": true,
+    "evidence_span": "No engagement on contract basis should be made against such post(s) having financial  powers  and  a  contract  employee  should  neither  be  delegated  with financial  powers  nor  assigned  the  work  of  DDO  unless  there  are  overriding considerations in the public interest justifying such assignment.",
+    "match_rationale": "Candidate admitted into canonical approved claims with 100% semantic and evidence alignment."
+  },
+  {
+    "gold_claim_id": "DOC002-C06",
+    "gold_subject": "rate of monthly remuneration of contract employee",
+    "gold_predicate": "has_compensation_rate",
+    "gold_object": {
+      "value": "minimum scale of pay attached to the post plus 50%",
+      "modality": "MUST"
+    },
+    "gold_conditions": [],
+    "matched_candidate_id": "95a6451a-737e-42fc-a43e-6fc2554e40cf",
+    "candidate_status": "verified",
+    "match_tier": "FULL_MATCH",
+    "subject_match": true,
+    "predicate_match": true,
+    "object_match": true,
+    "condition_match": true,
+    "modality_match": true,
+    "evidence_span": "The rate of monthly remuneration of contract employee shall be equal to the minimum  scale  of  pay  attached  to  the  post  in  which  he/she  in  engaged  plus 50% of that amount.",
+    "match_rationale": "Candidate admitted into canonical approved claims with 100% semantic and evidence alignment."
+  },
+  {
+    "gold_claim_id": "DOC002-C07",
+    "gold_subject": "Contract employees",
+    "gold_predicate": "has_medical_reimbursement",
+    "gold_object": {
+      "value": "at par with other regular government servants",
+      "modality": "MUST"
+    },
+    "gold_conditions": [],
+    "matched_candidate_id": "12c87ac6-151c-4281-8ed3-42c419b00668",
+    "candidate_status": "verified",
+    "match_tier": "FULL_MATCH",
+    "subject_match": true,
+    "predicate_match": true,
+    "object_match": true,
+    "condition_match": true,
+    "modality_match": true,
+    "evidence_span": "All  Contract  employees  shall  be  entitled  to  Medical  Re-imbursement  at  par with other regular government servants.",
+    "match_rationale": "Candidate admitted into canonical approved claims with 100% semantic and evidence alignment."
+  },
+  {
+    "gold_claim_id": "DOC002-C08",
+    "gold_subject": "gratuity",
+    "gold_predicate": "has_validity_rule",
+    "gold_object": {
+      "value": "be permissible if he had completed not less than five years continuous engagement",
+      "modality": "MAY"
+    },
+    "gold_conditions": [],
+    "matched_candidate_id": "0a4b310b-f48f-458d-a4cc-28e7f93b5821",
+    "candidate_status": "verified",
+    "match_tier": "FULL_MATCH",
+    "subject_match": true,
+    "predicate_match": true,
+    "object_match": true,
+    "condition_match": true,
+    "modality_match": true,
+    "evidence_span": "In the event of death or discharge from service of a contract employee within the contract period, gratuity at the rate of one-half of a months remuneration for  each  completed  year  of  engagement  shall  be  permissible  if  he  had completed not less than five years continuous engagement at the time of death or discharge from service.",
+    "match_rationale": "Candidate admitted into canonical approved claims with 100% semantic and evidence alignment."
+  },
+  {
+    "gold_claim_id": "DOC002-C09",
+    "gold_subject": "Earned leave",
+    "gold_predicate": "has_encashment_limit",
+    "gold_object": {
+      "value": "subject to a maximum of 150 days",
+      "unit": "day",
+      "modality": "MAY"
+    },
+    "gold_conditions": [],
+    "matched_candidate_id": "47f7188f-5a14-4402-a4f6-cb226ce35561",
+    "candidate_status": "verified",
+    "match_tier": "ACCEPTED_PARTIAL_MATCH",
+    "subject_match": true,
+    "predicate_match": true,
+    "object_match": false,
+    "condition_match": true,
+    "modality_match": true,
+    "evidence_span": "In the event of death or discharge from service of a contract employee, 1/                         of 2 Earned leave at his credit subject to a maximum of 150 days shall be encashed.",
+    "match_rationale": "Candidate admitted into canonical approved claims; partial discrepancy in object: extracted 'be encashed' without numerical limit parameter '150 days'."
+  },
+  {
+    "gold_claim_id": "DOC002-C10",
+    "gold_subject": "Service book",
+    "gold_predicate": "has_governing_rule",
+    "gold_object": {
+      "value": "shall be maintained for each contract employee",
+      "modality": "MUST"
+    },
+    "gold_conditions": [],
+    "matched_candidate_id": "8de7d7f6-e88a-4db0-9dee-a507da7d3a84",
+    "candidate_status": "verified",
+    "match_tier": "FULL_MATCH",
+    "subject_match": true,
+    "predicate_match": true,
+    "object_match": true,
+    "condition_match": true,
+    "modality_match": true,
+    "evidence_span": "Service book shall be maintained for each contract employee.",
+    "match_rationale": "Candidate admitted into canonical approved claims with 100% semantic and evidence alignment."
+  }
+]

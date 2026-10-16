@@ -1,0 +1,103 @@
+{
+  "document_id": "DOC-004",
+  "document_type": "refund_policy",
+  "organization": "TermsFeed E-Commerce Standard",
+  "layout_type": "policy_template",
+  "layout_truth": {
+    "total_pages": 3,
+    "has_selectable_text": true,
+    "expected_sections": [
+      "Interpretation and Definitions",
+      "Your Order Cancellation Rights",
+      "Conditions for Returns",
+      "Returning Goods",
+      "Gifts",
+      "Contact Us"
+    ],
+    "multi_column_fragments": []
+  },
+  "table_truth": [],
+  "claim_truth": [
+    {
+      "claim_id": "DOC004-C01",
+      "subject": "Your Order Cancellation Rights",
+      "predicate": "has_return_window",
+      "object": {
+        "value": "14 days without giving any reason",
+        "unit": "day",
+        "modality": "MAY"
+      },
+      "claim_type": "CANCELLATION_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "You are entitled to cancel Your Order within 14 days without giving any reason for doing so."
+    },
+    {
+      "claim_id": "DOC004-C02",
+      "subject": "deadline for cancelling an Order",
+      "predicate": "has_return_window",
+      "object": {
+        "value": "14 days from the date on which You received the Goods",
+        "unit": "day",
+        "modality": "MUST"
+      },
+      "claim_type": "CANCELLATION_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "The deadline for cancelling an Order is 14 days from the date on which You received the Goods"
+    },
+    {
+      "claim_id": "DOC004-C03",
+      "subject": "Company",
+      "predicate": "has_refund_reimbursement_window",
+      "object": {
+        "value": "no later than 14 days from the day on which We receive the returned Goods",
+        "unit": "day",
+        "modality": "MUST"
+      },
+      "claim_type": "REFUND_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "We will reimburse You no later than 14 days from the day on which We receive the returned Goods."
+    },
+    {
+      "claim_id": "DOC004-C04",
+      "subject": "Goods",
+      "predicate": "has_eligibility_condition",
+      "object": {
+        "value": "purchased in the last 14 days and in original packaging",
+        "modality": "MUST"
+      },
+      "claim_type": "ELIGIBILITY_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "The Goods were purchased in the last 14 days"
+    },
+    {
+      "claim_id": "DOC004-C05",
+      "subject": "personalized Goods",
+      "predicate": "cannot_be_returned",
+      "object": {
+        "value": "The supply of Goods made to Your specifications or clearly personalized cannot be returned",
+        "modality": "MUST_NOT"
+      },
+      "claim_type": "EXCLUSION_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "The supply of Goods made to Your specifications or clearly personalized."
+    },
+    {
+      "claim_id": "DOC004-C06",
+      "subject": "Returning Goods",
+      "predicate": "has_shipping_cost_rule",
+      "object": {
+        "value": "responsible for the cost and risk of returning the Goods to Us",
+        "modality": "MUST"
+      },
+      "claim_type": "SHIPPING_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "You are responsible for the cost and risk of returning the Goods to Us."
+    }
+  ]
+}

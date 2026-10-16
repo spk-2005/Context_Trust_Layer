@@ -1,0 +1,15 @@
+[
+  {
+    "adjudication_id": "ADJ-20261016-DOC002-C09",
+    "document_id": "DOC-002",
+    "gold_claim_id": "DOC002-C09",
+    "candidate_id": "47f7188f-5a14-4402-a4f6-cb226ce35561",
+    "reviewer": "Automated Benchmark Matcher Engine v3.2 & Quality Adjudicator",
+    "reviewed_at": "2026-10-16T15:05:00Z",
+    "prior_tier": "ACCEPTED_PARTIAL_MATCH",
+    "final_tier": "ACCEPTED_PARTIAL_MATCH",
+    "evidence_span": "In the event of death or discharge from service of a contract employee, 1/ of 2 Earned leave at his credit subject to a maximum of 150 days shall be encashed.",
+    "rationale": "Reverted manual tier overwrite. Re-adjudicated deterministically via matcher object-numeric guard: candidate captured subject 'Earned leave', predicate 'has_encashment_limit', and verified evidence span, but extracted object 'be encashed' omitted the numeric threshold '150 days'. Certified as ACCEPTED_PARTIAL_MATCH.",
+    "source_commit": "4ee140ef169da0b4f7d6420a95586e1d2f628fcb"
+  }
+]

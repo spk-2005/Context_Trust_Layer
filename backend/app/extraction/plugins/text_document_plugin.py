@@ -1,7 +1,7 @@
 """
 Layer 5: Text / Document Evidence Verification Plugin.
 Verifies that claims from narrative documents, policies, and files are 100% grounded in source text.
-Checks exact quote spans, character offsets, and numerical fidelity.
+Checks exact quote spans, character offsets, and numerical fidelity (including word-form numbers).
 """
 
 from __future__ import annotations
@@ -12,6 +12,16 @@ from typing import Any, Tuple
 from app.extraction.models import CandidateClaim
 from app.extraction.plugins.base_plugin import EvidenceVerificationPlugin
 from app.ingestion.parsers.evidence_model import ParsedEvidenceUnit
+
+WORD_TO_DIGIT = {
+    "zero": "0", "one": "1", "two": "2", "three": "3", "four": "4",
+    "five": "5", "six": "6", "seven": "7", "eight": "8", "nine": "9",
+    "ten": "10", "eleven": "11", "twelve": "12", "thirteen": "13",
+    "fourteen": "14", "fifteen": "15", "sixteen": "16", "seventeen": "17",
+    "eighteen": "18", "nineteen": "19", "twenty": "20", "thirty": "30",
+    "forty": "40", "fifty": "50", "sixty": "60", "seventy": "70",
+    "eighty": "80", "ninety": "90", "hundred": "100",
+}
 
 
 class TextDocumentVerificationPlugin(EvidenceVerificationPlugin):
@@ -53,9 +63,12 @@ class TextDocumentVerificationPlugin(EvidenceVerificationPlugin):
                     "expected_in_source": evidence_quote[:100],
                 }
 
-        # 2. Numerical / Quantitative Fidelity Check
+        # 2. Numerical / Quantitative Fidelity Check (with word number support)
         quote_numbers = set(re.findall(r"\b\d+(?:\.\d+)?\b", candidate.object))
         source_numbers = set(re.findall(r"\b\d+(?:\.\d+)?\b", source_text))
+        for word, digit in WORD_TO_DIGIT.items():
+            if re.search(rf"\b{word}\b", source_text, re.IGNORECASE):
+                source_numbers.add(digit)
         
         missing_numbers = quote_numbers - source_numbers
         if missing_numbers:

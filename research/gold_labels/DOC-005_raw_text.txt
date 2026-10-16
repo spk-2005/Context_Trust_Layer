@@ -1,0 +1,851 @@
+# Vendor Agreement Template 02.2021 2
+
+## Page 1
+
+VENDOR AGREEMENT THIS AGREEMENT is effective as of the _______day of ___________________, 20____.
+
+BETWEEN:
+
+___________________________________________________ [Print the full and exact legal name of the Vendor] ("Vendor") ___________________________________________________ [Print full address of the Vendor for notice purposes] AND:
+
+TARION WARRANTY CORPORATION ("Tarion") RECITALS:
+
+A.    Tarion is a private, not-for-profit corporation designated by regulation to administer the                          Ontario
+
+New Home Warranties Plan Act.
+
+B.    The Vendor proposes to offer to sell, agree to sell or sell one or more new homes.
+C.    The Vendor acknowledges that in order to offer to sell, agree to sell or sell new homes the
+
+Vendor must: be licensed under the              New Home Construction Licensing Act, 2017                   ; and must ensure that any such homes are qualified to be enrolled and/or enrolled  in the Ontario New Home Warranties and Protection Plan.
+
+D.    This Agreement sets out requirements in addition to regulatory conditions and provisions that
+
+govern the qualification for enrolment or enrolment for applicable homes.
+
+NOW  THEREFORE                in  consideration  of  the  sum  of  $1.00  and  for  other  good  and  valuable consideration (the receipt and sufficiency of which are hereby acknowledged), the Vendor agrees with Tarion as follows:
+
+ARTICLE 1 INTERPRETATION
+
+### 1.1 Recitals
+#### 1.1.1 The  recitals  to  this  Agreement  form  part  of  the  Agreement  and  are  incorporated  by
+
+reference herein.
+
+Vendor Agreement February 2021                                                                                                             Page 1 of 20
+
+## Page 2
+
+### 1.2 Definitions
+#### 1.2.1 Any term used in this Agreement that is defined in the ONHWP Act or its regulations, and
+
+that is not otherwise defined in this Agreement, has the meaning given to the term in the ONHWP Act or its regulations.
+
+#### 1.2.2 In this Agreement:
+1.2.2.1       "builder agreement"             means a builder agreement as defined in Ontario
+
+Regulation 637/20 under the ONHWP Act (Builder Agreements and Vendor Agreements);
+
+1.2.2.2      "Construction Contract"              means a contract between a builder and an owner,
+
+under which the builder undertakes the construction of a new home that is subject to the ONHWP Act;
+
+1.2.2.3      "Effective Date" means the date first written above;
+1.2.2.4      "Enrolment Confirmation"                means an enrolment  of  a  home  in the Plan  as
+
+provided for under subsection 10.3(8) of the ONHWP Act;
+
+1.2.2.5      "Homes"        any and all "homes" for which the Vendor is a "vendor" (including
+
+homes it offers to sell or agrees to sell) from and after the Effective Date until the Vendor Obligations are exhausted as referenced in  Section 8.1;
+
+1.2.2.6      "Indemnified Amounts"               means the amounts to be paid by the Vendor under
+
+Section 4.1;
+
+1.2.2.7      "Insolvency  Proceeding"               means  any  receivership,  insolvency,  proposal,
+
+bankruptcy, compromise, arrangement, reorganization, winding-up, dissolution or other similar proceeding, whether or not judicial in nature;
+
+1.2.2.8      "Material Change"           means a significant proposed, imminent, or implemented
+
+change in the business, operations, personnel, assets, liabilities or affairs of the Vendor including:
+
+(a)   a significant change in matters relating to sales or transfers, construction financing or the prospects for completion of construction and sales or transfers of the Homes, (b)   a significant change in information about the proposed construction plans in relation to the Homes, (c)   a significant change in information concerning the servicing of warranties or protections for the Homes, and (d)   the commencement of an Insolvency Proceeding or receipt of knowledge of an imminent Insolvency Proceeding.
+
+1.2.2.9      "NHCL  Act"         means  the      New  Home  Construction  Licensing  Act,  2017                  and
+
+regulations thereunder, as amended from time to time;
+
+1.2.2.10     "ONHWP  Act"            means  the      Ontario  New  Home  Warranties  Plan  Act                   and
+
+regulations thereunder, as amended from time to time; Vendor Agreement February 2021                                                                                                        Page 2 of 20
+
+## Page 3
+
+1.2.2.11       "QFE Confirmation"             means a written confirmation by Tarion under subsection
+
+10.3(7) of the ONHWP Act that a home qualifies for enrolment in the Plan;
+
+1.2.2.12       "Security"      has the meaning given to it in Section 3.8.1;
+1.2.2.13       "Specified  Terms  and  Conditions"                     means  those  terms,  conditions  and
+
+provisions referred to in Section 3.5.1;
+
+1.2.2.14       "Vendor"        means  the  Vendor  noted  on  the  title  page  of  this  Agreement,
+
+including any successors and assigns, whether or not licensed under the NHCL Act;
+
+1.2.2.15       "Vendor Obligations"              means the Vendor's vendor obligations as defined in
+
+Ontario Regulation  637/20  under the ONHWP Act  and  includes, for greater certainty,  all  obligations,  liabilities  and  indebtedness  of  a  vendor  to  Tarion under the ONHWP Act, under an agreement with Tarion (including this Vendor Agreement),  under  Specified  Terms  and  Conditions,  a  Registrar  Bulletin  or Registrar Directive or otherwise, including without being limited to, obligations, liabilities and indebtedness for:
+
+1.2.2.15.1     all payments made by Tarion in respect of a claim or potential claim,
+1.2.2.15.2     the value of services provided by Tarion in respect of a claim or
+
+potential claim,
+
+1.2.2.15.3     costs  incurred  by  Tarion  relating  to  a  claim  or  potential  claim,
+
+including legal fees, expert fees and other consultant fees on a full indemnity basis,
+
+1.2.2.15.4     damages suffered by Tarion in respect of a claim or potential claim,
+1.2.2.15.5     all costs incurred by Tarion in enforcing the obligations, liabilities
+
+and indebtedness of a vendor to Tarion, and
+
+1.2.2.15.6     applicable administration fees, penalties, taxes and interest on the
+
+above.
+
+#### 1.2.3 In this Agreement, unless the contrary intention appears, a reference to:
+1.2.3.1        "this Agreement", "hereto", "herein", "hereof", "hereby", "hereunder" and any
+
+similar expressions refer to this Vendor Agreement as it may be supplemented, amended or restated from time to time, and not to any particular Article, section or other portion hereof;
+
+1.2.3.2        an   "amendment"   includes   an   amendment,   supplement,   novation,   re-
+
+enactment,   replacement,   restatement   or   variation   and   "amend"   will   be construed accordingly;
+
+1.2.3.3        any  person  includes  its  successors  and  assigns,  replacements,  transferees
+
+and substitutes from time to time; and
+
+1.2.3.4        any document includes (without prejudice to any prohibition on amendments)
+
+all  amendments  (however  fundamental)  to  that  document,  including  any amendment providing for any increase (however great) in the amount or the provision of any facility.
+
+Vendor Agreement February 2021                                                                                                        Page 3 of 20
+
+## Page 4
+
+### 1.3 Headings
+#### 1.3.1 The inclusion of headings in this Agreement is for convenience of reference only and shall
+
+not affect the construction or interpretation hereof.
+
+### 1.4 References to Articles and Sections
+#### 1.4.1 Whenever in this Agreement a particular Article, section or other portion thereof is referred
+
+to, such reference pertains to the particular Article, section or portion thereof contained herein, unless otherwise indicated.
+
+### 1.5 References to Agreements and Enactments
+#### 1.5.1 Except as otherwise specifically provided:
+1.5.1.1        reference in this Agreement to any contract, agreement or any other document
+
+shall  be  deemed  to  include  (i)  reference  to  the  same  as  supplemented, amended  or  restated  from  time  to  time  and  (ii)  reference  to  any  contract, agreement or any other document which substitutes, in whole or in part, for the same from time to time; and
+
+1.5.1.2        reference in this Agreement to any enactment, including, without limitation, any
+
+statute, law, by-law, regulation, rule, ordinance or order, shall be deemed to include reference to such enactment as re-enacted or amended from time to time and to any enactment in substitution therefor.
+
+### 1.6 Currency
+#### 1.6.1 Except where otherwise expressly provided, all amounts in this Agreement are stated and
+
+shall be paid in Canadian currency.
+
+### 1.7 Gender and Number
+#### 1.7.1 In this Agreement, unless the context otherwise requires, words importing the singular
+
+include the plural and vice versa and words importing gender include all genders.
+
+### 1.8 Invalidity of Provisions
+#### 1.8.1 Each  of  the  provisions  contained  in  this  Agreement  is  distinct  and  severable  and  a
+
+declaration of invalidity or unenforceability of any provision or part thereof by a court of competent jurisdiction shall not affect the validity or enforceability of any other provision or part hereof. To the extent  permitted  by  applicable  law,  the  parties  waive  any  provision  of  law  which  renders  any provision of this Agreement invalid or unenforceable in any respect.
+
+### 1.9 No Conditions Precedent
+#### 1.9.1 This Agreement is effective on the Effective Date.
+### 1.10 Amendment, Waiver
+#### 1.10.1 No amendment or waiver of this Agreement shall be binding unless executed in writing by
+
+the party to be bound thereby. No waiver of any provision of this Agreement shall constitute a waiver of any other provision nor shall any waiver of any provision of this Agreement constitute a continuing waiver unless otherwise expressly provided.
+
+Vendor Agreement February 2021                                                                                                        Page 4 of 20
+
+## Page 5
+
+### 1.11 Governing Law, Attornment
+#### 1.11.1 This Agreement shall be governed by and construed in accordance with the laws of the
+
+Province of Ontario and the laws of Canada applicable therein and the Vendor hereby irrevocably attorns to the non-exclusive jurisdiction of the courts of Ontario.
+
+ARTICLE 2 REPRESENTATIONS AND WARRANTIES
+
+### 2.1 Representations and Warranties
+#### 2.1.1 The Vendor represents and warrants to Tarion as follows:
+2.1.1.1       the Vendor has authority to enter into this Agreement;
+2.1.1.2       if the Vendor is other than a natural person, it has been duly formed and is
+
+existing  and  correspondingly  licensed  or  otherwise  authorized  to  carry  on business under the laws of the Province of Ontario.
+
+2.1.1.3       this Agreement has been duly executed and delivered by and on behalf of the
+
+Vendor;
+
+2.1.1.4       this Agreement constitutes a legal, valid and binding obligation of the Vendor,
+
+enforceable  against  it  in  accordance  with  its terms  subject  however  to  the application of general equitable principles and/or any discretionary remedies and equitable relief that may be invoked by a court of competent jurisdiction, and  also  subject  to  bankruptcy,  insolvency,  reorganization,  arrangement, winding-up,  moratorium  and  other  similar  laws  of  general  application  which may limit the enforcement of creditors' rights generally;
+
+2.1.1.5       the entering into of this Agreement and the performance by the Vendor of its
+
+obligations hereunder does not and will not contravene, breach or result in any default under the constating documents or other organizational documents of the Vendor or any applicable law;
+
+2.1.1.6       no authorization, consent or approval of, or filing with or notice to, any person
+
+or official body is required in connection with the execution and delivery of this Agreement by the Vendor or the performance of this Agreement by the Vendor;
+
+2.1.1.7       except  as  disclosed  in  writing  to  Tarion,  there  is  no  court,  administrative,
+
+regulatory   or   similar   action   (whether   civil,   quasi-criminal,   or   criminal), arbitration or other dispute settlement procedure, investigation or inquiry, or any  similar  matter  or  action  against  or  involving  the  Vendor,  whether  in progress or threatened, which, if determined adversely to the Vendor, would materially adversely affect its ability to perform any of the provisions of this Agreement;
+
+2.1.1.8       the Vendor holds all licences, permits and government approvals needed in
+
+order to sell the Homes; and
+
+2.1.1.9       the Vendor has  not  omitted to disclose  anything that  could have  a material
+
+adverse   impact   upon   the   risk   assessment   associated   with   the   QFE Confirmation or Enrolment Confirmation.
+
+Vendor Agreement February 2021                                                                                                        Page 5 of 20
+
+## Page 6
+
+### 2.2 Survival of Representations and Warranties
+
+The  representations  and  warranties of the Vendor  set forth  in Section 2.1 may be relied upon  by Tarion,  and  shall  continue  in  full  force  and  effect,  so  long  as  any  Vendor  Obligations  remain outstanding.
+
+ARTICLE 3 AGREEMENTS OF VENDOR
+
+### 3.1 Vendor to Preserve Status
+#### 3.1.1 The Vendor acknowledges, consents and agrees:
+3.1.1.1        if it is an entity other than a natural person that it shall at all times maintain and
+
+preserve its existence as such entity; and
+
+3.1.1.2        if it is an entity other than a natural person, that it shall not change its name or
+
+change the jurisdiction of its chief executive office or principal place of business (as such terms are used in the PPSA from time to time) without written notice to Tarion at least fifteen (15) days prior to such change.
+
+### 3.2 Vendor to Furnish Information to Tarion
+#### 3.2.1 The Vendor represents and warrants that the information set forth in its application(s) for
+
+QFE  or  Enrolment,  and in  other  documents  furnished  by the  Vendor  or  its  representatives  to Tarion in connection with such application or otherwise, is true and correct in all material respects and does not omit to communicate any fact, circumstance or information that could reasonably affect Tarion's assessment and determination of the QFE or Enrolment, the ability of the Vendor to  fulfill  its  obligations  under  this  Agreement  and  the  ONHWP  Act,  or  the  risk  assessment undertaken (or to be undertaken) in connection with the granting of the QFE or Enrolment.
+
+#### 3.2.2 The Vendor shall, upon request of Tarion and at the expense of the Vendor, within such
+
+time as Tarion specifies, furnish Tarion with the following information and/or documentation, and Tarion shall safeguard said documentation and/or information in accordance with Tarion's  Access to Information and Privacy Policy:
+
+3.2.2.1        financial  information  or  documents,  including  without  limitation:  financial
+
+statements, statements of net worth, bank statements, driver's licenses, birth certificates, articles of incorporation, corporate bylaws, other constating and organizational   documents,   sample   signatures,   and   such   other   financial information   or   documents   including   electronic   records   as   Tarion   may reasonably require for the purpose of processing the QFE or Enrolment.
+
+3.2.2.2        copies of purchase agreements, construction contracts, insurance contracts,
+
+budgets, workplans, business plans, project schedules, construction reports, or any other records (electronic or otherwise) relating to the Homes.
+
+3.2.2.3        information  and  documents,  including  updates  and  supplements  to  that
+
+referred  to  above,  for  the  purpose  of  reviewing  the  status  of  the  QFE  or Enrolment,  and  consideration  of  risk  for  Tarion  and  the  guarantee  fund provided for under the ONHWP Act in respect of the Homes.
+
+3.2.2.4        any other information or documents Tarion may reasonably require from time
+
+Vendor Agreement February 2021                                                                                                        Page 6 of 20
+
+## Page 7
+
+to  time,  including  updates  and  supplements  to  any  information  previously provided to Tarion.
+
+#### 3.2.3 The Vendor shall provide Tarion with information satisfactory to Tarion that the Vendor
+
+and the builder (if the builder is not the Vendor) and any other interested persons are qualified and suited for the work they will do in connection with the Homes having regard to prior conduct, including history of claims made, claims resolved, claims paid by Tarion, chargeable conciliations and after-sales service.
+
+#### 3.2.4 The Vendor shall, upon request of Tarion, at any time or times provide a written update
+
+confirming the identity of interested persons, principals, officers, directors, employees, persons providing financial contribution and persons providing guarantees of the Vendor's obligations and promptly advise Tarion when any of those persons who are significant to the Vendor's operations are no longer employed or associated with the Vendor or builder.
+
+#### 3.2.5 The Vendor shall make representatives of the Vendor available to Tarion for interviews
+
+during normal business hours, and provide reasonable access to information, documents, things, books,  records  (including  electronic  records),  plans  and  other  materials,  for  the  purpose  of confirming matters relating to the Vendor Obligations.
+
+#### 3.2.6 The  Vendor  shall,  from  time  to  time,  at  the  Vendor's  expense,  furnish  to  Tarion  any
+
+information, documents, things, and records relating to the eligibility of the Homes for warranty coverage, work done or other steps taken to resolve warranted claims and otherwise the status of warranty coverage of the Homes and authorizes Tarion to share such information with:
+
+3.2.6.1       The purchasers of such Homes who have entered into a purchase agreement
+
+with the Vendor.
+
+3.2.6.2       The owners of such Homes who have entered into a Construction Contract
+
+with the Vendor.
+
+3.2.6.3       The owners of such Homes to whom the Vendor has transferred title to the
+
+Home.
+
+#### 3.2.7 The Vendor shall permit representatives of Tarion to inspect a Home that is the subject of
+
+an application for QFE or Enrolment at any time after a builder has commenced construction.
+
+### 3.3 Change in Circumstance
+#### 3.3.1 The  Vendor  shall,  on  request,  advise  Tarion  of  any  incident  involving  the  Vendor  that
+
+involves fraud or misappropriation of funds.
+
+#### 3.3.2 The Vendor shall provide prompt written notice to Tarion if there is a Material Change.
+#### 3.3.3 The Vendor shall provide prompt written notice to Tarion of any proposal: (i) to reorganize,
+
+amalgamate, merge, consolidate or otherwise enter into any form of business combination with any  person;  and/or  (ii)  to  liquidate,  dissolve  or  wind  up  or  take  any  steps  or  proceedings  in connection therewith.
+
+### 3.4 Consent and Authorization Regarding Credit Checks
+#### 3.4.1 The Vendor hereby authorizes and consents to Tarion procuring and utilizing, from time to
+
+time, credit information in respect of the Vendor, its affiliates and guarantors.
+
+Vendor Agreement February 2021                                                                                                        Page 7 of 20
+
+## Page 8
+
+### 3.5 Conditions; Specified Terms and Conditions
+#### 3.5.1 If Tarion's notice of proposal to approve a QFE Confirmation or Enrolment Confirmation
+
+includes from time to time any terms, conditions or provisions with which the Vendor must comply ("Specified  Terms  and  Conditions")  then,  unless  the  Specified  Terms  of  Conditions  are successfully  appealed  under  section  10.6  of  the  ONHWP  Act   the Vendor acknowledges and agrees that the Specified Terms and Conditions are incorporated by reference herein and are binding as if set out in full in this Agreement.
+
+#### 3.5.2 The Vendor agrees to duly and diligently perform and/or comply with the Specified Terms
+
+and Conditions.
+
+#### 3.5.3 The Vendor agrees to use reasonable commercial efforts to satisfy any conditions set out
+
+in  a  QFE  Confirmation  and  included  pursuant  to  paragraphs  10.3(5)(b)  and  10.3(6)(b)  of  the ONHWP Act.
+
+### 3.6 Due Performance of Obligations
+#### 3.6.1 The Vendor shall duly and diligently perform:
+3.6.1.1       all of the Vendor Obligations,
+3.6.1.2       its  obligations  to  purchasers  and  owners  under  purchase  agreements  or
+
+Construction Contracts for the Homes,
+
+3.6.1.3       Its obligations under any construction contract with a builder of new homes
+3.6.1.4       its obligations to purchasers and owners under the ONHWP Act and NHCL
+
+Act, including obligations to attach an Addendum (see Regulation 165/08) (the "Addendum") and Warranty Information Sheet or other required supplement to purchase  agreements,  conduct  proper   pre-delivery   inspections,   address deposit monies, address matters of delay and delay compensation, and service and   attend   to   statutory   warranties   and   protections   in   accordance   with applicable law and relevant contractual provisions,
+
+3.6.1.5       all obligations under the NHCL Act, Condominium Act and Building Code Act,
+
+and all regulations under those Acts, insofar as such obligations relate in any way to Tarion, and
+
+3.6.1.6       all obligations under other applicable law insofar as such obligations relate in
+
+any way to Tarion.
+
+#### 3.6.2 Following a risk-based inspection by Tarion of a Home, Tarion may issue to the Vendor a
+
+list of deficiencies in the construction of a Home that must be resolved to bring the Home into compliance with the ONHWP Act. The Vendor upon receipt shall resolve the deficiencies according to its obligations under the ONHWP Act within a reasonable period of time, failing which the unresolved items  will  be  treated  as  warranty  claims  and  any  rights  to  challenge  the  assessment  of  the deficiencies as determined by Tarion (e.g. Builder Arbitration Forum) and possible sanctions for the Vendor (e.g. chargeable conciliation) will apply.
+
+#### 3.6.3 The  Vendor  shall  comply  with  all  conditions  applicable  to  the  Homes  including  the
+
+requirement that the Vendor or builder, as the case may be,
+
+3.6.3.1       shall not commence to construct Homes in excess of the maximum number
+
+permitted to be constructed, Vendor Agreement February 2021                                                                                                        Page 8 of 20
+
+## Page 9
+
+3.6.3.2       shall not commence to construct homes of any class for which the construction
+
+is restricted,
+
+3.6.3.3       shall replace one form of Security previously provided to Tarion with another,
+
+as required,
+
+3.6.3.4       shall  provide  Security  to  Tarion  in  addition  to  that  already  provided,  in  the
+
+amount and in the form determined by Tarion, and
+
+3.6.3.5       shall promptly fulfil any term and condition imposed upon the Vendor by Tarion
+
+in connection with the release by Tarion of the whole or any part of any Security provided to Tarion by the Vendor.
+
+#### 3.6.4 If the Vendor does not build homes in the ordinary course of the Vendor's business and/or
+
+is not a licensed builder then the Vendor shall;
+
+3.6.4.1       at  all  times  during the construction  of  any Homes maintain  in full  force and
+
+effect  an  agreement  or  agreements  with  a  builder  duly  licensed  under  the NHCL Act that: (a) does build homes in the ordinary course of its business, (b) is qualified to build the Homes, and (c) has entered into a builder agreement with Tarion.
+
+3.6.4.2       provide Tarion with a true copy of such agreement or agreements between the
+
+Vendor and builder when applying for QFE or Enrolment under the ONHWP Act,   and   shall   forthwith   advise   and   provide   appropriate   replacement agreement(s)  to  Tarion  should  such  agreement  be  terminated,  modified  or replaced   with   a   similar   agreement   with   another   licensed   builder.   The agreement(s)  shall  provide  for  the  builder  to  complete  the  Homes,  and  to perform the work required to meet the warranty and protection obligations of the Vendor under the ONHWP Act.
+
+3.6.4.3       furnish to Tarion such information about the builder and its interested persons
+
+as Tarion determines is relevant to the application.
+
+#### 3.6.5 The Vendor agrees to have the appropriate persons who are associated persons of the
+
+Vendor complete written or oral interviews, tests or exams with respect to any matters that are relevant to the Homes and the sale, transfer, construction, financing, completion and after- sales service of the Homes.
+
+#### 3.6.6 The Vendor shall, on request, furnish to Tarion proof that it has complied with its obligation
+
+to attach an Addendum to purchase agreements, attach Warranty Information Sheet to purchase agreements and to collect and furnish Tarion with owner contact information all  in accordance with Ontario Regulation 892
+
+#### 3.6.7 The  Vendor  shall  preserve  all  assignable  rights  and  claims  that  the  Vendor  may  have
+
+against  manufacturers,  suppliers,  vendors,  builders,  contractors,  sub-contractors  and  others  in respect of any breach of warranty or other defect in respect of the Homes, and shall, forthwith upon the request of Tarion, assign and transfer all such rights and claims to and in favour of Tarion, or as it may direct, and shall execute and deliver such assignments and other instruments and do such acts and things as Tarion may reasonably require in order to enable Tarion or its designate to prosecute  and  enforce  such  rights  and  claims  as  fully  and  effectually  as  the  same  could  be prosecuted  and  enforced  by  the Vendor  subject  however  to  the  overriding  provisions  of  any assignment of such rights, claims and/or interests involving any manufacturers, suppliers, builders, contractors and/or sub-contractors heretofore or hereafter made by the Vendor to and in favour of Vendor Agreement February 2021                                                                                                        Page 9 of 20
+
+## Page 10
+
+the  lender(s)  providing  construction  financing  for  the  Homes,  and  which  assignment  to  the construction lender(s) shall take priority over any such assignment by the Vendor to and in favour of Tarion, regardless of when same have been respectively created [and Tarion shall correspondingly execute a financing change statement under the PPSA to evidence and confirm said postponement and subordination to and in favour of the construction lender(s)], and following any such assignment to the construction lender Tarion shall not pursue nor enforce any rights and/or claims under or pursuant to any such assignment so granted by the Vendor to Tarion whatsoever.
+
+#### 3.6.8 The Vendor shall co-operate with Tarion in connection with requests for sales status reports,
+
+requests for construction status, and inspections under the ONHWP Act. The Vendor shall upon request pay all such fees as are permitted under the ONHWP Act and communicated in writing to the Vendor in any manner, including in a Registrar Bulletin or other advisory.
+
+#### 3.6.9 The Vendor shall pay to Tarion an administration fee equivalent to fifteen per cent (15%)
+
+(or such other per cent as may be stipulated from time to time by regulation under the ONHWP Act)  of  each  amount  paid  out  by  Tarion  to  any  purchaser(s),  homeowner(s)  or  third  party contractor(s)/consultant(s) in respect of the Vendor Obligations.
+
+#### 3.6.10 The Vendor shall pay to Tarion interest on any amounts owed to Tarion by the Vendor,
+
+due to any non-compliance with the Vendor Obligations, which interest shall accrue at the rate of
+
+1.5 per cent (1.5%) per month, calculated daily (or such other interest rate as may be stipulated
+
+from  time  to  time  by  regulation  under  the  ONHWP  Act).  The  Vendor  shall  make  the  interest payment referenced above on the first day of each month following the date of default in repaying the amounts owed until the amounts owed are repaid in full.
+
+#### 3.6.11 The Vendor covenants and agrees that it shall not advertise or publish a QFE Confirmation
+
+or Enrolment Confirmation that the Vendor does not have (or that does not exist). The Vendor acknowledges and agrees that a breach of this provision shall entitle the Registrar to obtain and enforce a court order to enjoin and/or restrain such activities.
+
+#### 3.6.12 The  Vendor  acknowledges  and  agrees  that  any  QFE  Confirmation  or  Enrolment
+
+Confirmation given to the Vendor is not assignable or transferable in whole or in part, whether by way of power of attorney, declaration of trust, sale, assignment, or otherwise. Any amalgamation or other corporate reorganization that would vest the Vendor's assets in a new or successor entity by operation of law shall be subject to the prior written consent of Tarion, such consent not to be unreasonably  withheld  or  delayed.  Such  consent  may  require  an  assumption  agreement acceptable to the parties each acting reasonable. The Vendor shall not state or hold out that a home has QFE Confirmation or Enrolment Confirmation if it does not.
+
+### 3.7 Use of Information
+#### 3.7.1 The Vendor authorizes Tarion to: (a) report on the Vendor's performance and/or compliance
+
+status relating to homes in respect of which the Vendor acted as Vendor (or that were enrolled by the Vendor) in any publication whether print, electronic or otherwise; (b) disclose information to the general public concerning the Vendor's ability to sell homes and carry out any requisite after sales service and warranty work, where Tarion believes it advisable to do so in furtherance of the ONHWP Act; and (c) disclose as necessary any information  required by law and in particular required to support the Ontario Builder Directory (or any successor directory) maintained under NHCL Act.
+
+#### 3.7.2 The Vendor authorizes Tarion to provide the name and contact information of the Vendor
+
+from time to time, and to anyone desiring to contact the Vendor.
+
+#### 3.7.3 The  Vendor  acknowledges  that  Tarion  will  collect,  use,  disclose  and  retain  information
+
+obtained from the Vendor in accordance with Tarion's Access to Information and Privacy Policy Vendor Agreement February 2021                                                                                                        Page 10 of 20
+
+## Page 11
+
+published on tarion.com.
+
+### 3.8 Security
+#### 3.8.1 The Vendor shall, upon request of Tarion at any time and from time to time, and at the
+
+expense of the Vendor:
+
+3.8.1.1       furnish Tarion with such cash collateral, letters of credit, surety bonds, deposit
+
+trust  agreements,  guarantees,  indemnities,  covenants  not  to  encumber, undertakings, declarations, collateral charges, and/or other security or other assurances as Tarion may require to secure and assure the performance of the Vendor Obligations, and to address risk for Tarion and the guarantee fund under the ONHWP Act ("             Security"): (a) in respect of the Homes; and (b) in the aggregate having regard to the obligations owed to Tarion and purchasers and owners  in  respect  of  all  homes  of  the  Vendor  and  its  affiliates  sold  or constructed under the ONHWP Act; and
+
+3.8.1.2       supplement,   increase,   modify,   and/or   update   the   said   Security   and
+
+assurances.
+
+#### 3.8.2 If  the  results  of  an  examination  or  interview  by  Tarion  or  an  inspection  by  Tarion
+
+demonstrate  that  the  Vendor  or  builder  does  not  have  the  necessary  skills,  qualifications, technical expertise or experience to sell or transfer and build the Homes that are the subject of the application for QFE or Enrolment to which this Agreement relates, Tarion may require the Vendor or builder to,
+
+3.8.2.1       post additional Security or assurances with Tarion, or
+3.8.2.2       successfully complete a course of study that Tarion specifies.
+#### 3.8.3 The Vendor agrees that unless the Security instrument or other written statement from
+
+Tarion  states  otherwise  (e.g.  project  specific  or  limited  to  defined  Homes)  then  any  Security provided to Tarion by or on behalf of the Vendor shall secure Vendor Obligations of the Vendor in respect of the: (i) Homes; and (ii) any other homes hereafter sold or constructed by the Vendor unless  specifically  released  by  Tarion  in writing.  Despite  the  foregoing,  in  connection  with  an Application for QFE Confirmation in respect of a condominium project, the Security provided in connection  with  the  condominium  project  shall  be  limited  to  the  such  condominium  project (including both residential units and common elements) unless the Security instrument provides otherwise.
+
+#### 3.8.4 For  clarity,  the  Vendor  agrees  that  unless  the  Security  instrument  or  other  written
+
+statement from Tarion states otherwise then any Security provided to Tarion by or on behalf of the Vendor and expressly described as                    blanket security       (as opposed to expressly described as project-specific security        ) shall secure the Vendor Obligations of: (i) the Vendor in respect of the Homes; and (ii) any other associated persons of the Vendor unless and until specifically released by Tarion in writing.
+
+#### 3.8.5 The Vendor agrees that if the Security is in the form of cash collateral then any monies
+
+paid to Tarion may be held in the name and on account of Tarion as Security according to Section
+
+3.8 and the Vendor hereby assigns, transfers and sets over a security interest in such sums to
+
+and in favour of Tarion as general and continuing collateral security for the Vendor Obligations in accordance with subsections 3.8.3 and 3.8.4. The Vendor consents to Tarion taking any steps it deems necessary to better assure such security interest. If the Security so provided by the Vendor is not expressly described as blanket security, then any financing statement so registered by or Vendor Agreement February 2021                                                                                                        Page 11 of 20
+
+## Page 12
+
+on behalf of Tarion in connection therewith shall specifically confirm that the Security (and any and all proceeds derived therefrom) are related to the specific project or the specific Homes for which the Security was originally provided by the Vendor.
+
+#### 3.8.6 The Vendor agrees not to seek injunctive or other relief to prevent Tarion from drawing
+
+upon, using, demanding upon or otherwise realizing upon the Security or assurances provided.
+
+In  the  event  the  Vendor  seeks  such  relief,  this  provision  may  be  relied  upon  by  Tarion  as  a complete defence or response in order to defeat the seeking of such relief.
+
+#### 3.8.7 The Vendor has no right to assert set-off as a basis to prevent Tarion from drawing upon,
+
+using, demanding upon or otherwise realizing upon the Security or assurances provided. Any claim by the Vendor against Tarion shall be asserted as a claim for damages only.
+
+### 3.9 Use of Tarion Forms
+#### 3.9.1 The Warranty Information Sheet referred to in Regulation 892 shall be attached to every
+
+agreement of purchase and sale or construction contract with an owner entered into on or after February 1, 2021.
+
+#### 3.9.2 Every agreement of purchase and sale shall have the appropriate Addendum attached to
+
+it in accordance with the requirements set out in Regulation 892.
+
+#### 3.9.3 The Vendor's use of the Warranty Information Sheet form and Addenda forms shall be
+
+subject to the following requirements and terms of use. Howsoever the vendor obtains such forms or  in  the  case  of  the  Addenda  completes  the  forms  the  vendor  shall  be  responsible  for  the following requirements and terms of use:
+
+3.9.3.1       The source document shall be in the forms supplied by Tarion on its website -
+
+tarion.com.
+
+3.9.3.2       The Vendor shall  not amend or alter the format, logos or text of the Warranty
+
+Information Sheet or Addendum other than, in the case of the Addendum filling in  blanks  or  fields,  checkmarks,  dates,  addresses,  names  or  other  text  or additions contemplated by such blanks or fields with accurate information.
+
+3.9.3.3       The Warranty Information Sheet and Addendum are each to be retained as
+
+separately  identifiable  documents.  The  Addendum  shall  be  attached  to  and forms part of the agreement of purchase and sale. For example, the Addendum cannot be split up and provisions shall not be distributed in other parts of the agreement of purchase and sale.
+
+3.9.3.4       Except as noted in paragraphs 3.9.3.2 and 3.9.3.3 above, the Vendor shall not
+
+modify or amend the Addendum in any way and shall not create any derivative works  that  incorporate  or  make  use  of  the  Addendum,  in  whole  or  in  part, without the express prior written consent of Tarion.
+
+3.9.3.5       The Vendor shall be responsible for any improper changes whatsoever made
+
+to  the  Addendum  or  Warranty  Information  Sheet  and  the  accuracy  and sufficiency of the information inserted in the Addendum.
+
+3.9.3.6       The Warranty Information Sheet and Addendum templates may be changed
+
+from  time  to  time  by  governmental  directive  or  by  Tarion.  Tarion's  sole obligation to advise the Vendor is to send an advisory to the new home building industry and post the new forms on its website. Tarion will use best efforts to Vendor Agreement February 2021                                                                                                        Page 12 of 20
+
+## Page 13
+
+provide  at  least  90  days  prior  notice  of  the  introduction  of  a  new template, recognizing that the time may be less in extraordinary circumstances but in no event (other than in circumstances beyond Tarion's reasonable control) shall there be less than 30 days prior notice.
+
+ARTICLE 4 INDEMNITY
+
+### 4.1 Indemnity
+#### 4.1.1 The Vendor shall fully indemnify and save Tarion harmless from and against any losses,
+
+costs, claims, damages and/or liabilities which may arise resulting from or by virtue of:
+
+4.1.1.1       the failure of the Vendor to perform or fulfill any of the Vendor Obligations;
+4.1.1.2       the  performance  or fulfillment,  by  Tarion  in  its sole  judgment,  of  any  of  the
+
+Vendor Obligations; and/or
+
+4.1.1.3       the payment or satisfaction, by Tarion in its sole judgment, in whole or in part
+
+of any claim asserted by any party pursuant to the ONHWP Act in respect of, or otherwise related in any manner to, any Home which the Vendor offered to sell, agreed to sell or sold.
+
+Provided that the Vendor shall have no obligation under this Agreement to indemnify Tarion for any losses or costs incurred related to matters that are not warranted or compensable by the Vendor under the ONHWP Act, but this exclusion does not affect Tarion's subrogation rights, or rights under an assignment of any cause of action from another person.
+
+(all of the foregoing collectively, the "          Indemnified Amounts").
+
+### 4.2 Continuing Indemnity
+#### 4.2.1 The indemnity herein shall be a continuing indemnity for the payment of all Indemnified
+
+Amounts and shall apply to and secure any ultimate balance thereof due or remaining unpaid to Tarion.  The  indemnity  herein  shall  not  be  considered  as  wholly  or  partially  satisfied  by  the intermediate payment or satisfaction at any time of all or any part of the Indemnified Amounts. All payments received by Tarion from the Vendor or any other person in respect of the Indemnified Amounts shall be applied as payments in gross without any right on the part of the Vendor to claim the benefit of any such payments until payment in full of all Indemnified Amounts.
+
+### 4.3 Reinstatement
+#### 4.3.1 The indemnity herein shall be reinstated if at any time any payment of any Indemnified
+
+Amounts is rescinded or must otherwise be returned by Tarion upon any Insolvency Proceeding of or affecting the Vendor or for any other reason whatsoever, all as though such payment had not been made. Tarion may concede or compromise any claim that such payment ought to be rescinded  or  otherwise  returned,  without  discharging,  diminishing  or  in  any  way  affecting  the liability of the Vendor hereunder or the effect of this Section.
+
+Vendor Agreement February 2021                                                                                                        Page 13 of 20
+
+## Page 14
+
+ARTICLE 5 ENFORCEMENT
+
+### 5.1 Demand
+#### 5.1.1 Upon  the  occurrence  and  during  the  continuance  of  a  breach  of  this  Agreement,  the
+
+Vendor shall, on demand being made by Tarion, forthwith pay to Tarion or perform or cause the performance  of  all  Vendor  Obligations  for  which  such  demand  was  made.  All  Indemnified Amounts shall be payable by the Vendor to Tarion, forthwith upon demand being made by Tarion.
+
+### 5.2 Right to Immediate Payment or Performance
+#### 5.2.1 Tarion shall not be bound to make any demand on or to seek or exhaust its recourse
+
+against the Vendor or any other person or to realize on any Security or assurances held by Tarion in  respect  of  the  Indemnified  Amounts  before  being  entitled  to  demand  payment  from  or performance by the Vendor and enforce its rights under this Agreement and the Vendor hereby renounces all benefits of discussion and division.
+
+### 5.3 Tarion's Statement
+#### 5.3.1 A  statement  in  writing  of  Tarion  as  to  the  amount  of  the  Vendor  Obligations,  the
+
+Indemnified Amounts and all other amounts payable hereunder shall be binding upon the Vendor and conclusive against it in the absence of manifest error.
+
+ARTICLE 6 APPROPRIATION AND SET-OFF
+
+### 6.1 Appropriation by Tarion
+#### 6.1.1 Tarion shall  be at liberty  to  appropriate or to refrain  from appropriating  any payment
+
+made  by,  or  monies  received  by  Tarion  from,  the  Vendor  or  others  to  any  portion  of  the Indemnified Amounts and from time to time to revoke or alter any such appropriation, all as Tarion may from time to time in its sole and sole and absolute discretion determine but excluding for greater certainty the HCRA Licensee fees if collected by Tarion.
+
+### 6.2 Set-Off by Tarion
+#### 6.2.1 Tarion may, at any time and from time to time, upon prior notice where practicable, set off,
+
+appropriate and apply:
+
+6.2.1.1       any and all Security or monies furnished by the Vendor and held by Tarion in
+
+any capacity, general or special, matured or unmatured, and/or
+
+6.2.1.2       any indebtedness or liability of Tarion to the Vendor, matured or unmatured,
+
+against and on account of the Vendor's liability hereunder in such order of application as Tarion may from time to time elect in its sole and absolute discretion. If the amounts being set-off are not payable in the same currency, Tarion may convert either amount into the other currency on the day as of which that set-off is being effected, or if that day is not a business day then on the business day preceding the day as of which that set-off is being effected.
+
+Vendor Agreement February 2021                                                                                                        Page 14 of 20
+
+## Page 15
+
+### 6.3 No Set-Off by Vendor
+#### 6.3.1 All amounts payable by the Vendor under this Agreement shall be paid without set-off or
+
+counterclaim and without any deduction or withholding whatsoever unless and to the extent that the Vendor shall be prohibited by law from doing so, in which case the Vendor shall pay to Tarion such additional amount as shall be necessary to ensure that Tarion receives the full amount it would have received if no such deduction or withholding had been made.
+
+ARTICLE 7 PROTECTION OF TARION
+
+### 7.1 Defects in Creation of Vendor Obligations do Not Undermine the Indemnity
+#### 7.1.1 Tarion shall not be concerned to see or required to enquire into the capacity and powers
+
+of the Vendor or, as applicable, its directors, officers, partners, employees, or agents acting or purporting to act on its behalf. All obligations, liabilities and indebtedness purporting to be incurred by the Vendor in favour of Tarion shall be deemed to form part of the Vendor Obligations and/or Indemnified Amounts even though the Vendor may not be a legal entity or the incurring of such obligations,  liabilities  or  indebtedness  was  irregularly,  defectively  or  informally  effected  or  in excess of the capacity or powers of the Vendor or its directors, officers, partners, employees or agents  and  notwithstanding  that  Tarion  has  specific  notice  of  the  capacity  and  powers  of  the Vendor or its directors, officers, partners, employees or agents.
+
+### 7.2 Liability of the Vendor is Absolute
+#### 7.2.1 The liability of the Vendor hereunder shall be absolute and unconditional and shall not be
+
+discharged, diminished or in any way affected by:
+
+7.2.1.1       any amalgamation, merger, consolidation or reorganization of the Vendor;
+7.2.1.2       any  change  in  the  name,  business,  objects,  capital  structure,  ownership,
+
+constating documents, by-laws, resolutions, licensing status or licence number of the Vendor, including without limitation any transaction (whether by way of transfer, sale or otherwise) whereby all or any part of the undertaking, property and assets of the Vendor becomes the property of any other person;
+
+7.2.1.3       if applicable, any change in the membership of the Vendor due to the removal
+
+or introduction of one or more partners;
+
+7.2.1.4       any Insolvency Proceeding of or affecting the Vendor or any other person and
+
+any court orders made or action taken by the Vendor or any other person under or in connection with those Insolvency Proceeding;
+
+7.2.1.5       any defence, counterclaim or right of set-off available to the Vendor;
+7.2.1.6       by  Tarion's  actions  or  omissions,  including:  non-compliance  with  any  of  its
+
+agreements, with requirements of the ONHWP Act, or failure to give notice; and/or
+
+7.2.1.7       any other circumstance which might otherwise constitute in whole or in part a
+
+defence  available  to,  or  a  discharge  of,  the  Vendor  or  any  other  person  in respect of the Indemnified Amounts (otherwise than by reason of the payment of those Indemnified Amounts to Tarion).
+
+Vendor Agreement February 2021                                                                                                        Page 15 of 20
+
+## Page 16
+
+### 7.3 Dealings by Tarion do Not Change the Indemnity
+#### 7.3.1 Tarion  may  from  time  to  time  in  its  sole  and  absolute  discretion  without  discharging,
+
+diminishing or in any way affecting the liability of the Vendor hereunder:
+
+7.3.1.1        make  or  continue  to  make  any  accommodation  available  to  the  Vendor
+
+constituting or relating to the Vendor Obligations or the Indemnified Amounts;
+
+7.3.1.2        permit   any   increase   or   decrease,   however   significant,   of   the   Vendor
+
+Obligations or otherwise supplement, amend, restate or substitute, in whole or in part, however significant, the Vendor Obligations or any other agreement relating to any of the foregoing or, in whole or in part, terminate the availability of any agreement relating to, or demand repayment of any Vendor Obligations;
+
+7.3.1.3        enforce or take action under or abstain from enforcing or taking action under
+
+the ONHWP Act, this Agreement or any other agreement;
+
+7.3.1.4        receive, give up, subordinate, release or discharge any Security; supplement,
+
+amend, restate, substitute, renew, abstain from renewing, perfect or abstain from  perfecting  or  maintaining  the  perfection  of  any  Security;  enforce,  take action under or realize in any manner or abstain from enforcing, taking action under or realizing any Security; deal with or abstain from dealing with all or any part of the undertaking, property and assets covered by any Security or allow or abstain from allowing the Vendor or other persons to deal with all or any part of such undertaking, property and assets;
+
+7.3.1.5        renew all or any part of the Vendor Obligations or grant extensions of time or
+
+any other indulgences to the Vendor or to any other person liable directly or as surety for all or any part of the Vendor Obligations;
+
+7.3.1.6        accept or make any compositions or arrangements with or release, discharge
+
+or otherwise deal with or abstain from dealing with the Vendor or any other person liable directly or as surety for all or any part of the Vendor Obligations;
+
+7.3.1.7        in  whole  or  in  part  prove  or  abstain  from  proving  a  claim  of  Tarion  in  any
+
+Insolvency Proceeding of or affecting the Vendor; and
+
+7.3.1.8        agree with the Vendor or any other person liable directly or as surety for all or
+
+any part of the Vendor Obligations and/or Indemnified Amounts to do anything described in this Section 7.3; whether or not any of the matters described in this Section 7.3 occur alone or in connection with one or more other such matters.
+
+#### 7.3.2 No loss of  or in  respect  of any  Security or  additional covenant  relating to the Vendor
+
+Obligations, the Indemnified Amounts, or any part thereof, whether occasioned through the fault of Tarion or otherwise, shall discharge, diminish or in any way affect the liability of the Vendor hereunder. Neither Tarion nor any of its directors, officers, employees or agents, or any receiver or receiver-manager appointed by it or by a court, shall have any liability, whether in tort, contract or otherwise, for any neglect or any act taken or omitted to be taken by Tarion or by any of such other persons (other than its own   negligence or willful misconduct) in connection with the Vendor Obligations and/or Indemnified Amounts or any part thereof, or any Security or other covenant relating to the Vendor Obligations or any part thereof including without limitation any of the matters described above in this Section 7.3.
+
+Vendor Agreement February 2021                                                                                                        Page 16 of 20
+
+## Page 17
+
+### 7.4 No Waiver
+#### 7.4.1 No delay on the part of Tarion in the exercise of any right, power or remedy hereunder or
+
+otherwise shall operate as a waiver thereof, and no single or partial exercise by Tarion of any right, power or remedy shall preclude other or further exercise thereof or the exercise of any other right, power or remedy. No action of Tarion permitted hereunder shall in any way impair or affect its rights, powers or remedies under this Agreement.
+
+### 7.5 No Personal Liability
+
+The protections against personal liability set out in section 2.10 of the ONHWP Act are incorporated by reference and apply with necessary modifications to any matters in connection with this Agreement.
+
+ARTICLE 8 TERM AND TERMINATION
+
+### 8.1 Term
+#### 8.1.1 This Agreement shall be in full force and effect from the Effective Date until all Vendor
+
+Obligations have been duly discharged and all Indemnified Amounts have been paid to Tarion.
+
+None of the expiry, suspension or revocation of a licence in respect of the vendor or builder nor the refusal, suspension or revocation of a QFE Confirmation or Enrolment Confirmation will affect the validity or enforceability of the Agreement.
+
+ARTICLE 9 MISCELLANEOUS
+
+### 9.1 Payment of Costs and Expenses
+#### 9.1.1 The Vendor shall pay to Tarion on demand all reasonable costs and expenses (on a full
+
+indemnity  basis)  of  Tarion,  its  officers,  employees  and  agents  and  any  receiver  or  receiver- manager  appointed  by  it  or  by  a  court  in  connection  with  this  Agreement,  including,  without limitation, in connection with:
+
+9.1.1.1       any  actual  or  proposed  amendment  or  modification  hereof  or  any  waiver
+
+hereunder and all instruments supplemental or ancillary thereto; and
+
+9.1.1.2       the defence, establishment, protection or enforcement of any of the rights or
+
+remedies of Tarion under this Agreement including, without limitation, all costs and expenses of establishing the validity and enforceability of, or of collection of amounts owing under this Agreement; and further including, without limitation, all of the reasonable fees, expenses and disbursements of Tarion's lawyers, on a full indemnity basis, incurred in connection therewith and all sales or Vendor Agreement February 2021                                                                                                        Page 17 of 20
+
+## Page 18
+
+value-added taxes payable by Tarion (whether refundable or not) on all such costs and expenses.
+
+### 9.2 Additional Security
+#### 9.2.1 This Agreement shall be in addition to, shall not in any way be prejudiced by, and shall
+
+not prejudice: (i) any other Security now or hereafter held by Tarion; and (ii) the endorsement by the Vendor of any notes or other documents, and Tarion's rights under this Agreement shall not be merged in any such other Security or endorsement.
+
+### 9.3 Entire Agreement
+#### 9.3.1 This  Agreement  cancels  and  supersedes  any  prior  understandings  and  agreements
+
+between the parties hereto with respect thereto. There are no representations, warranties, terms, conditions, undertakings or collateral agreements, express, implied or statutory, between Tarion and the Vendor with respect to the subject matter hereof except as expressly set forth herein and in the legislation, agreements and other documents that set out the Vendor Obligations.
+
+### 9.4 Successors and Assigns
+#### 9.4.1 This Agreement shall be binding on the Vendor and its successors and shall enure to the
+
+benefit of Tarion and its successors and assigns. This Agreement may be assignable by Tarion but the Vendor may assert as against a successor or assign any set-off, counter-claim or equities between the Vendor and Tarion, and any claim or defence that the Vendor has against Tarion. The Vendor may not assign its obligations under this Agreement.
+
+### 9.5 Notices
+#### 9.5.1 All notices and other communications under this Agreement are to be in writing; are to be
+
+delivered by hand, by courier, registered mail or email; will be deemed to have been received on the business day following the date of delivery; and are to be addressed to the party at the address as set forth on the title page of this Agreement. Each party may establish a new address including email  address  from  time  to  time  by  written  notice  to  the  other  given  in  accordance  with  this Section, provided however, that no such change of address will be effective until written notice thereof is actually received by the party to whom such change of address is sent.
+
+#### 9.5.2 The Vendor hereby consents and reaffirms its agreement to receive and accept service of
+
+all Notices of Proposal of conditions of Qualification for Enrolment, and all Notices of Proposal of conditions of Enrolment that are issued by Tarion pursuant to section 10.6 of the ONHWP Act, in an electronic document format via BuilderLink™ or any successor portal maintained by Tarion.
+
+### 9.6 Further Assurances
+#### 9.6.1 The Vendor must at its own expense from time to time do, execute and deliver, or cause
+
+to  be  done,  executed  and  delivered,  all  such  financing  statements,  further  assignments, documents, acts, matters and things as may be reasonably requested by Tarion for the purpose of  giving  effect  to  this  Agreement  or  for  the  purpose  of  establishing  compliance  with  the representations, warranties and covenants herein contained.
+
+### 9.7 Electronic Signing and Delivery
+#### 9.7.1 This document may be executed by any of the parties in an electronic format, by way of
+
+an electronic signature in accordance with the provisions of the                        Electronic Commerce Act, 2000, S.O. 2000, as amended, including an electronic signature manifested or undertaken by or through Vendor Agreement February 2021                                                                                                        Page 18 of 20
+
+## Page 19
+
+DocuSign,   E-Sign   or   other   electronic   signing   platform   or   application,   on   the   express understanding and agreement that: (a) as and when this document is so executed by way of an electronic signature, it shall thereupon be deemed to be valid, binding and enforceable upon the party or parties so executing the document electronically; and (b) if and when any of the parties execute this document by or through an electronic signing format or application, then such party or  parties  shall  be  obliged  to  forthwith  provide  the  other  party  or  parties  with  a  certificate  of completion produced or issued by the signing platform or application or any similar certificate issued by other secure electronic platform or application which confirms, verifies and/or validates the electronic signature of the party or parties so executing this document electronically.
+
+#### 9.7.2 A photocopy or a scanned and e-mail copy of this executed document may be relied upon
+
+(and correspondingly enforced) to the same extent as if it were an original hard copy executed version.
+
+### 9.8 Electronic Delivery
+#### 9.8.1 Delivery of the executed Agreement by electronic medium shall be as effective as delivery
+
+of a manually executed copy of this Agreement.
+
+ARTICLE 10 UNDERSTANDING OF OBLIGATIONS
+
+### 10.1 Independent Legal Advice
+#### 10.1.1 The Vendor acknowledges having received independent legal advice with respect to this
+
+Agreement or having expressly chosen not to do so.
+
+### 10.2 Review of Materials
+#### 10.2.1 The Vendor acknowledges and confirms that the Vendor and its legal counsel have been
+
+given an opportunity by Tarion to review the ONHWP Act and the Registrar Bulletins issued by Tarion  to  the  date  hereof  (as  well  as  any  agreement(s)  between  the  Vendor  and  Tarion  in existence as of the date hereof).
+
+### 10.3 Review and Understand the Agreement
+#### 10.3.1 The  Vendor  acknowledges  and  confirms  having  read  and  understood  the  terms  and
+
+provisions hereof before having executed this Agreement.
+
+### 10.4 Tarion Bound
+#### 10.4.1 Tarion is bound by the terms of this Agreement as of the Effective Date provided there
+
+have been no changes to the form and content of this Agreement as evidenced by Tarion's Vendor Agreement February 2021                                                                                                        Page 19 of 20
+
+## Page 20
+
+execution below.
+
+IN WITNESS WHEREOF the Vendor has duly executed this Agreement.
+
+Vendor Name:
+
+__________________________________ Per:
+
+Name:
+
+Title:
+
+Per:
+
+Name:
+
+Title:
+
+I/We have authority to bind the entity.
+
+IN WITNESS WHEREOF Tarion has duly executed this Agreement.
+
+TARION WARRANTY CORPORATION Per:  "Peter Balasubramanian" Name: Peter Balasubramanian Title: President and Chief Executive Officer .
+
+Vendor Agreement February 2021                                                                                                        Page 20 of 20

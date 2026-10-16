@@ -20,6 +20,7 @@ class DeonticClassifier:
     PROHIBITION_PATTERNS = [
         re.compile(r"\b(prohibited|shall not|must not|forbidden|strictly prohibited|is not permitted|are not permitted|under no circumstances)\b", re.IGNORECASE),
         re.compile(r"\bunauthorized\s+.*?\s+(?:is|are)\s+prohibited\b", re.IGNORECASE),
+        re.compile(r"\b(will not be granted|not be granted|will not grant|may not|cannot|no .* should be made)\b", re.IGNORECASE),
     ]
 
     OBLIGATION_PATTERNS = [

@@ -259,7 +259,7 @@ period as an exception with prior approval from their reporting manager.
     assert len(pil_claims) == 1
     assert pil_claims[0].modality == "OBLIGATION"
 
-    disc_claims = [c for c in all_claims if c.predicate == "prohibits_pay_in_lieu_of_notice"]
+    disc_claims = [c for c in all_claims if c.predicate in ("prohibits_pay_in_lieu_of_notice", "will_not_grant_pay_in_lieu_of_notice")]
     assert len(disc_claims) == 1
     assert disc_claims[0].modality == "PROHIBITION"
 

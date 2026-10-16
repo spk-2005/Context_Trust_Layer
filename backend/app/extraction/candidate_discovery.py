@@ -18,7 +18,7 @@ class CandidateDiscoveryEngine:
 
     # Modal verbs and normative policy markers
     MODAL_PATTERN = re.compile(
-        r"\b(must|shall|required|requires|mandates?|prohibited|forbidden|should|enforces?|restricted to|always|never|guarantees?|holds the right|reserves the right|permitted|may)\b",
+        r"\b(must|shall|required|requires|mandates?|prohibited|forbidden|should|enforces?|restricted to|always|never|guarantees?|holds the right|reserves the right|permitted|may|will not be granted|not be granted|will not grant|will be made|cannot)\b",
         re.IGNORECASE,
     )
     # Thresholds, numerical values, and standard time windows
@@ -135,9 +135,21 @@ class CandidateDiscoveryEngine:
             if cls.DEDUCTION_RECOVERY_PATTERN.search(text) and len(text.split()) > 4:
                 return True, ExtractionStrategyType.DOMAIN_RULES, "Payroll deduction or financial recovery policy clause."
 
+            # Eligible: HR termination, severance, or notice policy clauses
+            if re.search(r"\b(?:minimum of two weeks|written notice|resignation|final paycheck|position elimination|severance pay|pay instead of notice|pay in (?:lieu|place) of notice)\b", text, re.IGNORECASE):
+                return True, ExtractionStrategyType.DOMAIN_RULES, "HR termination, notice, or severance policy clause."
+
+            # Eligible: Policy Effective Date specification
+            if re.search(r"\bEffective\s+([A-Za-z]+\s+\d{1,2},\s+\d{4}|\d{4}-\d{2}-\d{2})\b|\beffective\s+date\b", text, re.IGNORECASE):
+                return True, ExtractionStrategyType.DOMAIN_RULES, "Policy effective date specification."
+
             # Eligible: Company benefit or expense coverage (e.g. shipping costs covered)
             if cls.BENEFIT_OR_EXPENSE_PATTERN.search(text) and len(text.split()) > 4:
                 return True, ExtractionStrategyType.DOMAIN_RULES, "Company expense or benefit policy clause."
+
+            # Eligible: Product return exclusions and specifications
+            if any(w in text.lower() for w in ("clearly personalized", "made to your specifications", "custom-made", "cannot be returned", "inseparably mixed", "unsealed after delivery")):
+                return True, ExtractionStrategyType.DOMAIN_RULES, "Product return exclusion or specification restriction."
 
             has_modal = bool(cls.MODAL_PATTERN.search(text))
             has_threshold = bool(cls.THRESHOLD_PATTERN.search(text))
@@ -154,6 +166,8 @@ class CandidateDiscoveryEngine:
 
         # 7. Headings (context providers, generally not standalone claims)
         if b_type == "heading":
+            if cls.MODAL_PATTERN.search(text) or (len(text.split()) > 6 and any(w in text.lower() for w in ("resignation", "notice", "elimination", "severance", "policy", "employees", "contract", "remuneration", "entitled", "maintained"))):
+                return True, ExtractionStrategyType.DOMAIN_RULES, "Composite heading with actionable policy prose."
             return False, ExtractionStrategyType.DOMAIN_RULES, "Structural heading without standalone claim."
 
         return False, ExtractionStrategyType.DOMAIN_RULES, "Unrecognized block type."

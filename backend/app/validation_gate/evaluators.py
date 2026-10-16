@@ -124,7 +124,7 @@ class CompletenessEvaluator:
             "warranty claims vs refunds",
             "contact information and escalation",
         }
-        if subj.lower() in HEADING_SUBJECTS or getattr(candidate, "content_role", None) == ContentRole.HEADING:
+        if subj.lower() in HEADING_SUBJECTS or (getattr(candidate, "content_role", None) == ContentRole.HEADING and len(claim_text_clean.split()) <= 5 and not any(m in claim_text_clean.lower() for m in [" shall ", " must ", " should ", " will ", " may "])):
             return DimensionEvaluation(
                 dimension_name="completeness",
                 status=CompletenessStatus.PARTIAL.value,
@@ -190,18 +190,7 @@ class CompletenessEvaluator:
                 details={"object": obj, "is_fragment": True, "decision_code": "INCOMPLETE_ASSERTION"},
             )
 
-        # Knockout 3C: Weak Generic Predicates
-        if pred.lower() in ("must_satisfy_requirement", "apply", "offer", "specifies_governing_rule"):
-            return DimensionEvaluation(
-                dimension_name="completeness",
-                status=CompletenessStatus.PARTIAL.value,
-                score=0.2,
-                passed=False,
-                reason=f"WEAK_PREDICATE: Predicate '{pred}' is non-canonical and prohibited in governing policy claims.",
-                details={"predicate": pred, "decision_code": "WEAK_PREDICATE"},
-            )
-
-        # Knockout 3D: Subject Contamination
+        # Knockout 3D: Subject Contamination (Cross-Case / Cross-Section Leaks)
         subj_l = subj.lower()
         claim_l = claim_text_clean.lower()
         is_subject_contaminated = (
@@ -237,6 +226,17 @@ class CompletenessEvaluator:
                 passed=False,
                 reason=f"EXAMPLE_NON_CANONICAL: Illustrative example or case study '{subj}' cannot be verified as a canonical governing policy claim.",
                 details={"subject": subj, "is_example": True, "decision_code": "EXAMPLE_NON_CANONICAL"},
+            )
+
+        # Knockout 3C: Weak Generic Predicates
+        if pred.lower() in ("must_satisfy_requirement", "apply", "offer", "specifies_governing_rule"):
+            return DimensionEvaluation(
+                dimension_name="completeness",
+                status=CompletenessStatus.PARTIAL.value,
+                score=0.2,
+                passed=False,
+                reason=f"WEAK_PREDICATE: Predicate '{pred}' is non-canonical and prohibited in governing policy claims.",
+                details={"predicate": pred, "decision_code": "WEAK_PREDICATE"},
             )
 
         # Knockout 2C: Contact Information Metadata
@@ -457,7 +457,7 @@ class MeaningEvaluator:
     # Words signaling uncertainty or hedges
     UNCERTAIN_HEDGES = re.compile(r"\b(might|maybe|possibly|perhaps|unclear|tentative|assumed|unconfirmed)\b", re.IGNORECASE)
     OBLIGATION_EVIDENCE = re.compile(r"\b(must|shall|required|requires|mandates?|mandatory|obligated|has to|have to|return)\b", re.IGNORECASE)
-    PROHIBITION_EVIDENCE = re.compile(r"\b(prohibited|shall not|must not|forbidden|strictly prohibited|unauthorized\s+.*?\s+prohibited)\b", re.IGNORECASE)
+    PROHIBITION_EVIDENCE = re.compile(r"\b(prohibited|shall not|must not|forbidden|strictly prohibited|unauthorized\s+.*?\s+prohibited|will not be granted|not be granted|may not|cannot|no .* should be made)\b", re.IGNORECASE)
 
     @classmethod
     def evaluate(cls, candidate: CandidateClaim) -> DimensionEvaluation:

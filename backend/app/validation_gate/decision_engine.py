@@ -8,6 +8,8 @@ Synthesizes 6-dimensional validation results into an authoritative lifecycle dec
 
 from __future__ import annotations
 
+import re
+
 import logging
 from app.extraction.models import CandidateClaim
 from app.ingestion.envelope import CanonicalSourceEnvelope
@@ -89,6 +91,65 @@ class ClaimLifecycleDecisionEngine:
         claim_type = getattr(candidate, "claim_type", "policy")
 
         # Invariant Knockouts (Fail-Closed Gates)
+        # Invariant Knockout 0: Malformed Fragment / Broken Token Quarantine
+        full_cand_text = (getattr(candidate, "claim_text", "") or "") + " " + (getattr(candidate, "subject", "") or "")
+        malformed_markers = [
+            r"\breleased immediately wit\b",
+            r"\bhout serving\b",
+            r"\binsubordinat ion\b",
+            r"\bseve re\b",
+            r"\bwarran ting\b",
+            r"\bO Responsibilities\b",
+            r"\bRespons ibilities\b"
+        ]
+        if any(re.search(p, full_cand_text, re.IGNORECASE) for p in malformed_markers):
+            return cls._create_evaluation(
+                candidate=candidate,
+                envelope=envelope,
+                claim_type=claim_type,
+                source_match=source_match,
+                completeness=completeness,
+                meaning=DimensionEvaluation(
+                    dimension_name="meaning",
+                    status="fail",
+                    score=0.0,
+                    passed=False,
+                    reason="Malformed layout fragment or broken word boundary detected.",
+                ),
+                scope=scope,
+                time_eval=time_eval,
+                authority=authority,
+                review_trigger=review_trigger,
+                composite_score=0.0,
+                decision=ClaimLifecycleDecision.REJECT,
+                decision_code=DecisionCode.FRAGMENT_ASSERTION_DISCARDED,
+                reason="REJECTED: Malformed layout fragment or broken word boundary quarantined.",
+            )
+
+        # Invariant Knockout 0B: Generic Page Number Subject
+        if (getattr(candidate, "subject", "") or "").strip().lower().startswith("page "):
+            return cls._create_evaluation(
+                candidate=candidate,
+                envelope=envelope,
+                claim_type=claim_type,
+                source_match=source_match,
+                completeness=completeness,
+                meaning=DimensionEvaluation(
+                    dimension_name="meaning",
+                    status="fail",
+                    score=0.0,
+                    passed=False,
+                    reason="Generic page number header is not a valid enterprise subject entity.",
+                ),
+                scope=scope,
+                time_eval=time_eval,
+                authority=authority,
+                review_trigger=review_trigger,
+                composite_score=0.0,
+                decision=ClaimLifecycleDecision.REJECT,
+                decision_code=DecisionCode.FRAGMENT_ASSERTION_DISCARDED,
+                reason="REJECTED: Generic page header subject is not canonical.",
+            )
         # Invariant Knockout 1: Evidence-Candidate Association Mismatch
         source_uid = getattr(candidate, "source_unit_id", None) or getattr(candidate, "unit_id", None)
         ev_id = getattr(candidate, "evidence_id", None)

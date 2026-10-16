@@ -17,7 +17,9 @@ class DocumentSemanticRestructurer:
 
     DISALLOWED_HEADER_WORDS = {
         "the", "our", "this", "these", "effective", "applies", "defined",
-        "defines", "ensures", "provides", "designed", "whether", "within", "during", "all"
+        "defines", "ensures", "provides", "designed", "whether", "within", "during", "all",
+        "is", "was", "are", "were", "will", "would", "shall", "can", "could", "may", "must",
+        "released", "serving", "expected", "in", "of", "at", "by", "for", "with", "hout"
     }
 
     @classmethod
@@ -29,10 +31,19 @@ class DocumentSemanticRestructurer:
             c = cell.strip()
             if not c:
                 continue
+            # Disallow bullet markers or list numbers in table headers
+            if c.startswith(("-", "*", "•", "• ", "1.", "2.", "3.", "-?", "?-", "? ", "-? ", "?- ")):
+                return False
+            # Disallow mid-phrase colons
+            if ":" in c:
+                return False
             words = [w.lower() for w in re.findall(r"\b[a-zA-Z]+\b", c)]
             if any(w in cls.DISALLOWED_HEADER_WORDS for w in words):
                 return False
-            if len(c) > 40 or c.endswith((".", ",", ";", ":")):
+            # Disallow 1-2 letter fragments in headers (wh, ere, wil, l)
+            if any(len(w) <= 2 and w not in ("id", "no", "hr", "to") for w in words):
+                return False
+            if len(c) > 35 or c.endswith((".", ",", ";", ":")):
                 return False
         return True
 
@@ -42,9 +53,7 @@ class DocumentSemanticRestructurer:
         stripped = line.strip()
         if not stripped:
             return False
-        # If line has multiple columns separated by gutter whitespace, it's a table row
-        if len(re.split(r"\s{3,}|\t+", stripped)) >= 2:
-            return False
+
         # Numbered headings must have a dot (e.g., '1.' or '1.1') before text, preventing '5 years.' from matching
         if re.match(r"^(?:\d+(?:\.\d+)+|\d+\.)\s+[A-Za-z]", stripped):
             return True
@@ -57,6 +66,8 @@ class DocumentSemanticRestructurer:
         }
         if len(words) >= 6 and any(w in prose_markers for w in words[:3]):
             return True
+        if len(re.split(r'\s{3,}|\t+', stripped)) >= 2:
+            return False
         return False
 
     @classmethod

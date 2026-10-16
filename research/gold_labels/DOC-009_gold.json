@@ -1,0 +1,347 @@
+{
+  "document_id": "DOC-009",
+  "document_type": "refund_handbook",
+  "organization": "Northwind Traders",
+  "layout_type": "policy_handbook_tables",
+  "layout_truth": {
+    "total_pages": 3,
+    "has_selectable_text": true,
+    "expected_sections": [
+      "Refund & Return Eligibility Matrix",
+      "Category Specific Rules",
+      "Shipping and Label Costs",
+      "Warranty Exceptions"
+    ],
+    "multi_column_fragments": []
+  },
+  "table_truth": [],
+  "claim_truth": [
+    {
+      "claim_id": "DOC009-C01",
+      "subject": "Changed mind / wrong size",
+      "predicate": "has_return_shipping_rule",
+      "object": {
+        "value": "No",
+        "modality": "MUST_NOT"
+      },
+      "claim_type": "POLICY_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "Changed mind / wrong size return shipping rule is No"
+    },
+    {
+      "claim_id": "DOC009-C02",
+      "subject": "Changed mind / wrong size",
+      "predicate": "has_return_label_cost",
+      "object": {
+        "value": "$6.95 deducted from refund",
+        "modality": "MUST"
+      },
+      "claim_type": "FEE_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "$6.95 deducted from refund"
+    },
+    {
+      "claim_id": "DOC009-C03",
+      "canonical": true,
+      "subject": "Gold member, any reason",
+      "predicate": "has_return_shipping_rule",
+      "object": {
+        "value": "No",
+        "modality": "MUST_NOT"
+      },
+      "evidence_quote": "Gold member, any reason return shipping rule is No."
+    },
+    {
+      "claim_id": "DOC009-C04",
+      "canonical": true,
+      "subject": "Gold member, any reason",
+      "predicate": "has_return_label_cost",
+      "object": {
+        "value": "Free",
+        "modality": "MUST"
+      },
+      "evidence_quote": "Gold member, any reason specifies Return label cost as Free."
+    },
+    {
+      "claim_id": "DOC009-C05",
+      "canonical": true,
+      "subject": "Exchange",
+      "predicate": "has_return_shipping_rule",
+      "object": {
+        "value": "N/A",
+        "modality": "N_A"
+      },
+      "evidence_quote": "Exchange return shipping rule is N/A."
+    },
+    {
+      "claim_id": "DOC009-C06",
+      "canonical": true,
+      "subject": "Exchange",
+      "predicate": "has_return_label_cost",
+      "object": {
+        "value": "Free both ways",
+        "modality": "MUST"
+      },
+      "evidence_quote": "Exchange specifies Return label cost as Free both ways."
+    },
+    {
+      "claim_id": "DOC009-C07",
+      "canonical": true,
+      "subject": "Order over $150, any reason",
+      "predicate": "has_return_shipping_rule",
+      "object": {
+        "value": "No",
+        "modality": "MUST_NOT"
+      },
+      "evidence_quote": "Order over $150, any reason return shipping rule is No."
+    },
+    {
+      "claim_id": "DOC009-C08",
+      "canonical": true,
+      "subject": "Return window",
+      "predicate": "has_summary",
+      "object": {
+        "value": "30 days from delivery (60 days for Northwind Rewards Gold members)",
+        "modality": "MUST"
+      },
+      "evidence_quote": "Return window specifies Summary as 30 days from delivery (60 days for Northwind Rewards Gold members)."
+    },
+    {
+      "claim_id": "DOC009-C09",
+      "canonical": true,
+      "subject": "Refund speed",
+      "predicate": "has_summary",
+      "object": {
+        "value": "3-5 business days after we receive and inspect the return",
+        "modality": "MUST"
+      },
+      "evidence_quote": "Refund speed specifies Summary as 3-5 business days after we receive and inspect the return."
+    },
+    {
+      "claim_id": "DOC009-C10",
+      "canonical": true,
+      "subject": "Return shipping",
+      "predicate": "has_summary",
+      "object": {
+        "value": "Free for defective or incorrect items; $6.95 deducted otherwise",
+        "modality": "MUST"
+      },
+      "evidence_quote": "Return shipping specifies Summary as Free for defective or incorrect items; $6.95 deducted otherwise."
+    },
+    {
+      "claim_id": "DOC009-C11",
+      "canonical": true,
+      "subject": "Restocking fee",
+      "predicate": "has_summary",
+      "object": {
+        "value": "None on most items; 15% on special-order and bulk items",
+        "modality": "MUST"
+      },
+      "evidence_quote": "Restocking fee specifies Summary as None on most items; 15% on special-order and bulk items."
+    },
+    {
+      "claim_id": "DOC009-C12",
+      "canonical": true,
+      "subject": "Final sale items",
+      "predicate": "has_summary",
+      "object": {
+        "value": "Not eligible for refund or exchange",
+        "modality": "MUST_NOT"
+      },
+      "evidence_quote": "Final sale items specifies Summary as Not eligible for refund or exchange."
+    },
+    {
+      "claim_id": "DOC009-C13",
+      "canonical": true,
+      "subject": "Standard merchandise",
+      "predicate": "has_return_window",
+      "object": {
+        "value": "30 days",
+        "unit": "day",
+        "modality": "MUST"
+      },
+      "evidence_quote": "Standard merchandise has a return window of 30 days."
+    },
+    {
+      "claim_id": "DOC009-C14",
+      "canonical": true,
+      "subject": "Northwind Rewards Gold members",
+      "predicate": "has_return_window",
+      "object": {
+        "value": "60 days",
+        "unit": "day",
+        "modality": "MUST"
+      },
+      "evidence_quote": "Northwind Rewards Gold members has a return window of 60 days."
+    },
+    {
+      "claim_id": "DOC009-C15",
+      "canonical": true,
+      "subject": "Holiday purchases (Nov 1 - Dec 24)",
+      "predicate": "has_return_deadline",
+      "object": {
+        "value": "Until January 31 of the following year",
+        "modality": "MUST"
+      },
+      "evidence_quote": "Holiday purchases (Nov 1 - Dec 24) return deadline is Until January 31 of the following year."
+    },
+    {
+      "claim_id": "DOC009-C16",
+      "canonical": true,
+      "subject": "Footwear (worn indoors only)",
+      "predicate": "has_return_window",
+      "object": {
+        "value": "45 days",
+        "unit": "day",
+        "modality": "MUST"
+      },
+      "evidence_quote": "Footwear (worn indoors only) has a return window of 45 days."
+    },
+    {
+      "claim_id": "DOC009-C17",
+      "canonical": true,
+      "subject": "Camping tents and sleeping bags (unused)",
+      "predicate": "has_return_window",
+      "object": {
+        "value": "60 days",
+        "unit": "day",
+        "modality": "MUST"
+      },
+      "evidence_quote": "Camping tents and sleeping bags (unused) has a return window of 60 days."
+    },
+    {
+      "claim_id": "DOC009-C18",
+      "canonical": true,
+      "subject": "Returns without a receipt",
+      "predicate": "has_return_channel_eligibility",
+      "object": {
+        "value": "Returns without proof of purchase are accepted in-store only, for store credit at the lowest price the item was sold in the last 90 days.",
+        "modality": "MUST"
+      },
+      "evidence_quote": "Returns without proof of purchase are accepted in-store only, for store credit at the lowest price the item was sold in the last 90 days."
+    },
+    {
+      "claim_id": "DOC009-C19",
+      "canonical": true,
+      "subject": "Returns without a receipt",
+      "predicate": "specifies_governing_rule",
+      "object": {
+        "value": "A government-issued photo ID is required and scanned.",
+        "modality": "MUST"
+      },
+      "evidence_quote": "A government-issued photo ID is required and scanned."
+    },
+    {
+      "claim_id": "DOC009-C20",
+      "canonical": true,
+      "subject": "Returns without a receipt",
+      "predicate": "has_refund_eligibility",
+      "object": {
+        "value": "A limit of three receipt-less returns per customer per 12-month period applies.",
+        "modality": "MUST"
+      },
+      "evidence_quote": "A limit of three receipt-less returns per customer per 12-month period applies."
+    },
+    {
+      "claim_id": "DOC009-C21",
+      "canonical": true,
+      "subject": "Like new, tags attached",
+      "predicate": "has_refund_percentage",
+      "object": {
+        "value": "100%",
+        "modality": "MUST"
+      },
+      "evidence_quote": "Like new, tags attached refund percentage is 100%."
+    },
+    {
+      "claim_id": "DOC009-C22",
+      "canonical": true,
+      "subject": "Opened packaging, item unused",
+      "predicate": "has_refund_percentage",
+      "object": {
+        "value": "100%",
+        "modality": "MUST"
+      },
+      "evidence_quote": "Opened packaging, item unused refund percentage is 100%."
+    },
+    {
+      "claim_id": "DOC009-C23",
+      "canonical": true,
+      "subject": "Missing original box (non-fragile)",
+      "predicate": "has_refund_percentage",
+      "object": {
+        "value": "90%",
+        "modality": "MUST"
+      },
+      "evidence_quote": "Missing original box (non-fragile) refund percentage is 90%."
+    },
+    {
+      "claim_id": "DOC009-C24",
+      "canonical": true,
+      "subject": "Missing accessories or free gift",
+      "predicate": "has_refund_rule",
+      "object": {
+        "value": "Refund minus gift value",
+        "modality": "MUST"
+      },
+      "evidence_quote": "Missing accessories or free gift refund rule is Refund minus gift value."
+    },
+    {
+      "claim_id": "DOC009-C25",
+      "canonical": true,
+      "subject": "Light wear or signs of use",
+      "predicate": "has_refund_percentage",
+      "object": {
+        "value": "50% - 75%",
+        "modality": "MUST"
+      },
+      "evidence_quote": "Light wear or signs of use refund percentage is 50% - 75%."
+    },
+    {
+      "claim_id": "DOC009-C26",
+      "canonical": true,
+      "subject": "Damaged by customer / heavy use",
+      "predicate": "has_refund_percentage",
+      "object": {
+        "value": "0% - 25% (agent discretion, manager approval)",
+        "modality": "MUST"
+      },
+      "evidence_quote": "Damaged by customer / heavy use refund percentage is 0% - 25% (agent discretion, manager approval)."
+    },
+    {
+      "claim_id": "DOC009-C27",
+      "canonical": true,
+      "subject": "Washed, altered or stained",
+      "predicate": "has_refund_eligibility",
+      "object": {
+        "value": "Not eligible",
+        "modality": "MUST_NOT"
+      },
+      "evidence_quote": "Washed, altered or stained refund eligibility is Not eligible."
+    },
+    {
+      "claim_id": "DOC009-C28",
+      "canonical": true,
+      "subject": "Refund approval",
+      "predicate": "requires_approval_role",
+      "object": {
+        "value": "Tier 1 Customer Support Agent",
+        "modality": "MUST"
+      },
+      "evidence_quote": "Up to $100: Tier 1 agent may approve."
+    },
+    {
+      "claim_id": "DOC009-C29",
+      "canonical": true,
+      "subject": "Refund approval",
+      "predicate": "requires_approval_role",
+      "object": {
+        "value": "Tier 2 Support Lead",
+        "modality": "MUST"
+      },
+      "evidence_quote": "$100.01 - $500: Tier 2 agent or team lead approval required."
+    }
+  ]
+}

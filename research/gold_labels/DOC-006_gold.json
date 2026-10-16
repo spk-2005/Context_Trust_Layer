@@ -1,0 +1,110 @@
+{
+  "document_id": "DOC-006",
+  "document_type": "invoice",
+  "organization": "DEMO - Sliced Invoices",
+  "layout_type": "invoice_table",
+  "layout_truth": {
+    "total_pages": 1,
+    "has_selectable_text": true,
+    "expected_sections": [
+      "Invoice Details",
+      "Line Items",
+      "Totals & Taxes",
+      "Payment Terms"
+    ],
+    "multi_column_fragments": []
+  },
+  "table_truth": [
+    {
+      "table_id": "T1_HEADER",
+      "page": 1,
+      "headers": [
+        "DEMO - Sliced Invoices",
+        "Order Number",
+        "12345"
+      ],
+      "expected_row_count": 4
+    },
+    {
+      "table_id": "T2_TOTALS",
+      "page": 1,
+      "headers": [
+        "Total",
+        "$85.00"
+      ],
+      "expected_row_count": 3
+    }
+  ],
+  "claim_truth": [
+    {
+      "claim_id": "DOC006-C01",
+      "subject": "Total",
+      "predicate": "has_sub_total",
+      "object": {
+        "value": 85.0,
+        "currency": "USD",
+        "modality": "MUST"
+      },
+      "claim_type": "INVOICE_SUBTOTAL",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "Total $85.00"
+    },
+    {
+      "claim_id": "DOC006-C02",
+      "subject": "Total",
+      "predicate": "has_total_due",
+      "object": {
+        "value": 93.5,
+        "currency": "USD",
+        "modality": "MUST"
+      },
+      "claim_type": "INVOICE_TOTAL",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "Total Due $93.50"
+    },
+    {
+      "claim_id": "DOC006-C03",
+      "subject": "Tax",
+      "predicate": "has_tax_amount",
+      "object": {
+        "value": 8.5,
+        "currency": "USD",
+        "modality": "MUST"
+      },
+      "claim_type": "INVOICE_TAX",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "Tax $8.50"
+    },
+    {
+      "claim_id": "DOC006-C04",
+      "subject": "Payment",
+      "predicate": "has_due_date_period",
+      "object": {
+        "value": "due within 30 days from date of invoice",
+        "unit": "day",
+        "modality": "MUST"
+      },
+      "claim_type": "PAYMENT_TERM",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "Payment is due within 30 days from date of invoice."
+    },
+    {
+      "claim_id": "DOC006-C05",
+      "subject": "Late payment",
+      "predicate": "may_apply_administration_fee",
+      "object": {
+        "value": "fees of 5% per month",
+        "unit": "percent",
+        "modality": "MAY"
+      },
+      "claim_type": "LATE_FEE_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "Late payment is subject to fees of 5% per month."
+    }
+  ]
+}

@@ -12,6 +12,93 @@ from pydantic import BaseModel, Field
 
 logger = logging.getLogger(__name__)
 
+def repair_ocr_text(raw_text: str) -> str:
+    """Repairs OCR-induced token concatenation, missing punctuation spacing, and run-together words."""
+    if not raw_text:
+        return ""
+
+    try:
+        import wordsegment
+        wordsegment.load()
+    except Exception:
+        wordsegment = None
+
+    lines = raw_text.splitlines()
+    repaired_lines = []
+    for line in lines:
+        if not line.strip():
+            repaired_lines.append(line)
+            continue
+
+        # Clean special quote / bracket artifacts
+        line = line.replace("《", " ").replace("》", " ").replace("“", '"').replace("”", '"').replace("’", "'")
+        line = re.sub(r"([a-zA-Z])'s([a-zA-Z])", r"\1's \2", line)
+
+        # 1. Punctuation spacing: comma, period, parens, colon, semicolon
+        line = re.sub(r'([a-zA-Z])\(', r'\1 (', line)
+        line = re.sub(r'\)([a-zA-Z])', r') \1', line)
+        line = re.sub(r',([a-zA-Z])', r', \1', line)
+        line = re.sub(r':([a-zA-Z])', r': \1', line)
+        line = re.sub(r';([a-zA-Z])', r'; \1', line)
+        line = re.sub(r'\.([A-Za-z])', r'. \1', line)
+
+        # 2. Letter to digit / digit to letter transitions (e.g. next30days -> next 30 days)
+        line = re.sub(r'([a-zA-Z])(\d+)', r'\1 \2', line)
+        line = re.sub(r'(\d+)([a-zA-Z])', r'\1 \2', line)
+
+        tokens = line.split()
+        repaired_tokens = []
+        for token in tokens:
+            if "@" in token or token.startswith(("http://", "https://", "www.")):
+                repaired_tokens.append(token)
+                continue
+
+            match = re.match(r"^([^\w]*)([\w]+)([^\w]*)$", token)
+            if not match:
+                repaired_tokens.append(token)
+                continue
+
+            prefix, word, suffix = match.groups()
+            if len(word) <= 3 or word.isdigit():
+                repaired_tokens.append(token)
+                continue
+
+            # CamelCase splitting (e.g. SafeDrinkingWaterAct -> Safe Drinking Water Act)
+            camel_parts = re.findall(r'[A-Z]+(?=[A-Z][a-z]|\d|\W|$)|[A-Z]?[a-z]+|\d+', word)
+            if len(camel_parts) > 1 and all(len(p) >= 2 for p in camel_parts):
+                repaired_tokens.append(prefix + " ".join(camel_parts) + suffix)
+            elif len(word) >= 5 and wordsegment is not None and not any(c.isdigit() for c in word):
+                try:
+                    segs = wordsegment.segment(word.lower())
+                    if len(segs) > 1 and all(len(s) >= 2 for s in segs):
+                        if word[0].isupper():
+                            segs[0] = segs[0].capitalize()
+                        repaired_tokens.append(prefix + " ".join(segs) + suffix)
+                    else:
+                        repaired_tokens.append(token)
+                except Exception:
+                    repaired_tokens.append(token)
+            else:
+                repaired_tokens.append(token)
+
+        repaired_lines.append(" ".join(repaired_tokens))
+
+    return "\n".join(repaired_lines)
+
+_OCR_ENGINE = None
+
+def get_ocr_engine():
+    global _OCR_ENGINE
+    if _OCR_ENGINE is None:
+        try:
+            from rapidocr_onnxruntime import RapidOCR
+            _OCR_ENGINE = RapidOCR()
+            logger.info("RapidOCR engine initialized successfully")
+        except Exception as e:
+            logger.warning("RapidOCR could not be initialized: %s", e)
+            _OCR_ENGINE = False
+    return _OCR_ENGINE if _OCR_ENGINE is not False else None
+
 
 class ContentBlockType(str, Enum):
     PARAGRAPH = "paragraph"
@@ -123,6 +210,10 @@ class _HTMLToTextExtractor(HTMLParser):
 
 
 class UniversalFileParser:
+    @classmethod
+    def _get_ocr_engine(cls):
+        return get_ocr_engine()
+
     """Universal parser capable of extracting structured text and canonical blocks from any document format."""
 
     @classmethod
@@ -304,9 +395,38 @@ class UniversalFileParser:
                 char_count = len(clean_page_text)
                 total_chars += char_count
 
-                # Scanned image detection threshold (< 50 chars per page on average)
+                # Scanned image detection threshold (< 40 chars per page on average)
                 page_is_scanned = char_count < 40
+                ocr_recovered = False
                 if page_is_scanned:
+                    try:
+                        images = getattr(page, "images", [])
+                        if images and len(images) > 0:
+                            ocr_engine = cls._get_ocr_engine()
+                            if ocr_engine is not None:
+                                page_ocr_lines = []
+                                for img in images:
+                                    try:
+                                        result, _ = ocr_engine(img.data)
+                                        if result:
+                                            lines = [line[1] for line in result if line[2] > 0.4]
+                                            page_ocr_lines.extend(lines)
+                                    except Exception as img_err:
+                                        logger.warning("OCR image extraction error on page %d: %s", page_num, img_err)
+
+                                if page_ocr_lines:
+                                    ocr_text = repair_ocr_text("\n".join(page_ocr_lines)).strip()
+                                    if len(ocr_text) > char_count:
+                                        clean_page_text = ocr_text
+                                        total_chars = total_chars - char_count + len(clean_page_text)
+                                        char_count = len(clean_page_text)
+                                        ocr_recovered = True
+                                        is_scanned = True
+                                        warnings.append(f"Page {page_num}: text recovered via OCR ({char_count} chars).")
+                    except Exception as ocr_err:
+                        logger.warning("OCR processing error on page %d: %s", page_num, ocr_err)
+
+                if char_count < 40:
                     empty_pages += 1
 
                 page_blocks: List[ContentBlock] = []
@@ -327,8 +447,12 @@ class UniversalFileParser:
                         if not chk:
                             continue
                         is_table = bool(chk.startswith("|") and "\n|" in chk)
-                        is_hdg = bool(re.match(r"^(#+|Section\s+\d+|Chapter\s+\d+|Article\s+\d+|Rule\s+\d+|\d+\.\d*\s+[A-Z])", chk, re.IGNORECASE))
-                        b_type = ContentBlockType.TABLE if is_table else (ContentBlockType.HEADING if is_hdg else ContentBlockType.PARAGRAPH)
+                        is_hdg = bool(re.match(r"^(#+|Section\s+\d+|Chapter\s+\d+|Article\s+\d+|Rule\s+\d+)", chk, re.IGNORECASE))
+                        if not is_hdg and re.match(r"^\d+\.\d*\s+[A-Z]", chk):
+                            first_line = chk.split("\n")[0].strip()
+                            if len(first_line.split()) <= 8 and not first_line.endswith((".", ";")) and not any(m in first_line.lower() for m in [" shall ", " must ", " should ", " will ", " may "]):
+                                is_hdg = True
+                        b_type = ContentBlockType.TABLE if is_table else (ContentBlockType.HEADING if is_hdg else (ContentBlockType.IMAGE_OCR if ocr_recovered else ContentBlockType.PARAGRAPH))
 
                         table_meta = None
                         if is_table:
@@ -364,7 +488,10 @@ class UniversalFileParser:
                 warnings.append("Document appears to be a scanned image-based PDF. Text density is low.")
                 extraction_quality = 0.4
             else:
-                extraction_quality = max(0.6, min(1.0, 1.0 - (empty_pages / total_pages) * 0.5))
+                if is_scanned:
+                    extraction_quality = max(0.75, min(0.95, 1.0 - (empty_pages / total_pages) * 0.4))
+                else:
+                    extraction_quality = max(0.6, min(1.0, 1.0 - (empty_pages / total_pages) * 0.5))
 
             if pages_text:
                 full_text = f"# {title}\n\n" + "\n\n".join(pages_text)

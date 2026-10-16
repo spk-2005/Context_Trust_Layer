@@ -1,0 +1,4322 @@
+{
+  "metadata": {
+    "document_code": "DOC-006",
+    "title": "WordPress PDF Invoice Plugin Sample",
+    "organization": "DEMO - Sliced Invoices",
+    "document_type": "invoice",
+    "filename": "wordpress-pdf-invoice-plugin-sample.pdf",
+    "file_size_bytes": 43627,
+    "source_sha256": "c2de358a0974f9b047aed8e457def7d4b1b39170f44819ec3152b42db787d72e",
+    "document_id": "21d48e17-0769-4ae8-96e5-0526a83251bf",
+    "duration_ms": 2452.57,
+    "extracted_at": "2026-10-16T13:13:49Z"
+  },
+  "extraction_response": {
+    "success": true,
+    "document": {
+      "id": "21d48e17-0769-4ae8-96e5-0526a83251bf",
+      "organization_id": "11111111-1111-1111-1111-111111111111",
+      "source_id": "44444444-4444-4444-4444-444444444444",
+      "owner_id": null,
+      "external_id": "urn:benchmark:DOC-006:1792156427",
+      "title": "WordPress PDF Invoice Plugin Sample",
+      "document_type": "invoice",
+      "content_uri": "# WordPress PDF Invoice Plugin Sample\n\n## Page 1\n\nInvoice From: Invoice Number INV-3337\n\n| DEMO - Sliced Invoices | Order Number | 12345 |\n| --- | --- | --- |\n| Suite 5A-1204 | Invoice Date | January 25, 2016 |\n| 123 Somewhere Street | Due Date | January 31, 2016 |\n| Your City AZ 12345 admin@slicedinvoices.com | Total Due | $93.50 |\n\nTo:\n\nTest Business\n\n123 Somewhere St Melbourne, VIC 3000 test@test.com Hrs/Qty Service Rate/Price Adjust Sub Total\n\n### 1.00 Web Design $85.00 0.00% $85.00 This is a sample description...\n\n| Total | $85.00 |\n| --- | --- |\n| Tax | $8.50 |\n| Total | $93.50 |\n\nANZ Bank ACC # 1234 1234 BSB # 4321 432 Paid Payment is due within 30 days from date of invoice. Late payment is subject to fees of 5% per month.\n\nThanks for choosing DEMO - Sliced Invoices | admin@slicedinvoices.com Page 1/1",
+      "content_hash": "4e374c2f5c64252f711cd529fea4d1477a758725843e04d6bfc142086046e237",
+      "status": "active",
+      "created_at": "2026-10-16T13:13:47.420531+00:00",
+      "updated_at": "2026-10-16T13:13:47.420531+00:00",
+      "versions": [
+        {
+          "id": "c8e3a137-79cb-4b24-94ba-6027c5ac7e63",
+          "document_id": "21d48e17-0769-4ae8-96e5-0526a83251bf",
+          "version_number": 1,
+          "content_uri": "# WordPress PDF Invoice Plugin Sample\n\n## Page 1\n\nInvoice From: Invoice Number INV-3337\n\n| DEMO - Sliced Invoices | Order Number | 12345 |\n| --- | --- | --- |\n| Suite 5A-1204 | Invoice Date | January 25, 2016 |\n| 123 Somewhere Street | Due Date | January 31, 2016 |\n| Your City AZ 12345 admin@slicedinvoices.com | Total Due | $93.50 |\n\nTo:\n\nTest Business\n\n123 Somewhere St Melbourne, VIC 3000 test@test.com Hrs/Qty Service Rate/Price Adjust Sub Total\n\n### 1.00 Web Design $85.00 0.00% $85.00 This is a sample description...\n\n| Total | $85.00 |\n| --- | --- |\n| Tax | $8.50 |\n| Total | $93.50 |\n\nANZ Bank ACC # 1234 1234 BSB # 4321 432 Paid Payment is due within 30 days from date of invoice. Late payment is subject to fees of 5% per month.\n\nThanks for choosing DEMO - Sliced Invoices | admin@slicedinvoices.com Page 1/1",
+          "content_hash": "4e374c2f5c64252f711cd529fea4d1477a758725843e04d6bfc142086046e237",
+          "modified_at": null,
+          "is_current": true,
+          "created_at": "2026-10-16T13:13:47.420531+00:00"
+        }
+      ]
+    },
+    "current_version": {
+      "id": "c8e3a137-79cb-4b24-94ba-6027c5ac7e63",
+      "document_id": "21d48e17-0769-4ae8-96e5-0526a83251bf",
+      "version_number": 1,
+      "content_uri": "# WordPress PDF Invoice Plugin Sample\n\n## Page 1\n\nInvoice From: Invoice Number INV-3337\n\n| DEMO - Sliced Invoices | Order Number | 12345 |\n| --- | --- | --- |\n| Suite 5A-1204 | Invoice Date | January 25, 2016 |\n| 123 Somewhere Street | Due Date | January 31, 2016 |\n| Your City AZ 12345 admin@slicedinvoices.com | Total Due | $93.50 |\n\nTo:\n\nTest Business\n\n123 Somewhere St Melbourne, VIC 3000 test@test.com Hrs/Qty Service Rate/Price Adjust Sub Total\n\n### 1.00 Web Design $85.00 0.00% $85.00 This is a sample description...\n\n| Total | $85.00 |\n| --- | --- |\n| Tax | $8.50 |\n| Total | $93.50 |\n\nANZ Bank ACC # 1234 1234 BSB # 4321 432 Paid Payment is due within 30 days from date of invoice. Late payment is subject to fees of 5% per month.\n\nThanks for choosing DEMO - Sliced Invoices | admin@slicedinvoices.com Page 1/1",
+      "content_hash": "4e374c2f5c64252f711cd529fea4d1477a758725843e04d6bfc142086046e237",
+      "modified_at": null,
+      "is_current": true,
+      "created_at": "2026-10-16T13:13:47.420531+00:00"
+    },
+    "claims_extracted_count": 10,
+    "claims": [
+      {
+        "id": "611db9b6-7625-458a-b833-457266a9a76b",
+        "organization_id": "11111111-1111-1111-1111-111111111111",
+        "document_version_id": "c8e3a137-79cb-4b24-94ba-6027c5ac7e63",
+        "claim_text": "Late payment is subject to fees of 5% per month.",
+        "subject": "Web Design $85",
+        "predicate": "may_apply_administration_fee",
+        "object": "Late payment is subject to fees of 5% per month.",
+        "claim_type": "policy",
+        "extraction_method": "llm_semantic",
+        "extraction_model": "TrulinUniversalLayer5",
+        "status": "rejected",
+        "created_at": "2026-10-16T13:13:48.081825+00:00",
+        "updated_at": "2026-10-16T13:13:48.081825+00:00",
+        "evidence": [
+          {
+            "id": "43cd751c-667d-47b5-a330-ed820c78025a",
+            "claim_id": "611db9b6-7625-458a-b833-457266a9a76b",
+            "document_id": "21d48e17-0769-4ae8-96e5-0526a83251bf",
+            "evidence_type": "TextDocumentVerificationPlugin",
+            "page_number": null,
+            "section": null,
+            "text_span": "Late payment is subject to fees of 5% per month.",
+            "start_offset": null,
+            "end_offset": null,
+            "evidence_hash": "d854914c298cac6c0151b0f4a7fc07175f297c5fb0f109367a1ac61e85a797d9",
+            "created_at": "2026-10-16T13:13:48.081825+00:00"
+          }
+        ],
+        "validity_records": [
+          {
+            "id": "221795ae-63fd-4153-919b-9d25c4371389",
+            "claim_id": "611db9b6-7625-458a-b833-457266a9a76b",
+            "valid_from": null,
+            "valid_until": null,
+            "version": "1",
+            "is_current": true,
+            "validity_status": "unknown",
+            "created_at": "2026-10-16T13:13:48.081825+00:00"
+          }
+        ],
+        "trust_scores": [
+          {
+            "id": "8f7eba8f-911e-497c-8e8b-3567030f0c49",
+            "claim_id": "611db9b6-7625-458a-b833-457266a9a76b",
+            "source_score": 1.0,
+            "freshness_score": 1.0,
+            "evidence_score": 1.0,
+            "consistency_score": 0.2,
+            "authority_score": 1.0,
+            "human_score": 0.5,
+            "overall_score": 0.8,
+            "scoring_model": null,
+            "scoring_version": null,
+            "calculated_at": "2026-10-16T13:13:48.081825+00:00"
+          },
+          {
+            "id": "00f16802-0e6f-4e21-9a31-115d021f57b3",
+            "claim_id": "611db9b6-7625-458a-b833-457266a9a76b",
+            "source_score": 0.85,
+            "freshness_score": 1.0,
+            "evidence_score": 0.95,
+            "consistency_score": 1.0,
+            "authority_score": 0.9,
+            "human_score": 0.0,
+            "overall_score": 0.935,
+            "scoring_model": "multi_factor_trust_v1",
+            "scoring_version": "1.0.0",
+            "calculated_at": "2026-10-16T13:13:48.517439+00:00"
+          }
+        ]
+      },
+      {
+        "id": "10baddd2-1c7b-4252-9223-9d2ac9428f44",
+        "organization_id": "11111111-1111-1111-1111-111111111111",
+        "document_version_id": "c8e3a137-79cb-4b24-94ba-6027c5ac7e63",
+        "claim_text": "123 Somewhere Street specifies 12345 as January 31, 2016.",
+        "subject": "123 Somewhere Street",
+        "predicate": "has_12345",
+        "object": "January 31, 2016",
+        "claim_type": "policy_rule",
+        "extraction_method": "table_aware",
+        "extraction_model": "TrulinUniversalLayer5",
+        "status": "verified",
+        "created_at": "2026-10-16T13:13:48.081825+00:00",
+        "updated_at": "2026-10-16T13:13:48.081825+00:00",
+        "evidence": [
+          {
+            "id": "5ee9146d-abfe-41df-b39a-2b8f98eb855c",
+            "claim_id": "10baddd2-1c7b-4252-9223-9d2ac9428f44",
+            "document_id": "21d48e17-0769-4ae8-96e5-0526a83251bf",
+            "evidence_type": "TextDocumentVerificationPlugin",
+            "page_number": null,
+            "section": null,
+            "text_span": "DEMO - Sliced Invoices: 123 Somewhere Street | 12345: January 31, 2016",
+            "start_offset": null,
+            "end_offset": null,
+            "evidence_hash": "9440d18786f5bb45b510a98e4b3ee5f9c24e5e190e52166b1b3d2ae99aeeec6e",
+            "created_at": "2026-10-16T13:13:48.081825+00:00"
+          }
+        ],
+        "validity_records": [
+          {
+            "id": "ed4a23c1-ac45-4c8a-87bd-598d9f057f8a",
+            "claim_id": "10baddd2-1c7b-4252-9223-9d2ac9428f44",
+            "valid_from": null,
+            "valid_until": null,
+            "version": "1",
+            "is_current": true,
+            "validity_status": "unknown",
+            "created_at": "2026-10-16T13:13:48.081825+00:00"
+          }
+        ],
+        "trust_scores": [
+          {
+            "id": "f8d3bd95-2ce7-4731-be90-13f4a4b5552d",
+            "claim_id": "10baddd2-1c7b-4252-9223-9d2ac9428f44",
+            "source_score": 1.0,
+            "freshness_score": 1.0,
+            "evidence_score": 1.0,
+            "consistency_score": 0.98,
+            "authority_score": 1.0,
+            "human_score": 0.5,
+            "overall_score": 0.9425,
+            "scoring_model": null,
+            "scoring_version": null,
+            "calculated_at": "2026-10-16T13:13:48.081825+00:00"
+          },
+          {
+            "id": "a308bcc1-d9ec-4e40-abe9-e60d39a2770a",
+            "claim_id": "10baddd2-1c7b-4252-9223-9d2ac9428f44",
+            "source_score": 0.85,
+            "freshness_score": 1.0,
+            "evidence_score": 0.95,
+            "consistency_score": 1.0,
+            "authority_score": 0.9,
+            "human_score": 0.0,
+            "overall_score": 0.935,
+            "scoring_model": "multi_factor_trust_v1",
+            "scoring_version": "1.0.0",
+            "calculated_at": "2026-10-16T13:13:48.517439+00:00"
+          }
+        ]
+      },
+      {
+        "id": "87425585-705b-4adb-9aed-66212ef81797",
+        "organization_id": "11111111-1111-1111-1111-111111111111",
+        "document_version_id": "c8e3a137-79cb-4b24-94ba-6027c5ac7e63",
+        "claim_text": "Suite 5A-1204 specifies Order Number as Invoice Date.",
+        "subject": "Suite 5A-1204",
+        "predicate": "has_order_number",
+        "object": "Invoice Date",
+        "claim_type": "policy_rule",
+        "extraction_method": "table_aware",
+        "extraction_model": "TrulinUniversalLayer5",
+        "status": "verified",
+        "created_at": "2026-10-16T13:13:48.081825+00:00",
+        "updated_at": "2026-10-16T13:13:48.081825+00:00",
+        "evidence": [
+          {
+            "id": "3b20a747-0be7-4036-93ff-23da8475c2d5",
+            "claim_id": "87425585-705b-4adb-9aed-66212ef81797",
+            "document_id": "21d48e17-0769-4ae8-96e5-0526a83251bf",
+            "evidence_type": "TextDocumentVerificationPlugin",
+            "page_number": null,
+            "section": null,
+            "text_span": "DEMO - Sliced Invoices: Suite 5A-1204 | Order Number: Invoice Date",
+            "start_offset": null,
+            "end_offset": null,
+            "evidence_hash": "5bd431980821309b925618bf6bc31287e5159c6ab44921f4e10248f2ffa99dac",
+            "created_at": "2026-10-16T13:13:48.081825+00:00"
+          }
+        ],
+        "validity_records": [
+          {
+            "id": "9eb86f84-1b32-4666-99c4-0507be64d647",
+            "claim_id": "87425585-705b-4adb-9aed-66212ef81797",
+            "valid_from": null,
+            "valid_until": null,
+            "version": "1",
+            "is_current": true,
+            "validity_status": "unknown",
+            "created_at": "2026-10-16T13:13:48.081825+00:00"
+          }
+        ],
+        "trust_scores": [
+          {
+            "id": "f0530bb5-7cf2-4da0-87b1-fd73543478ad",
+            "claim_id": "87425585-705b-4adb-9aed-66212ef81797",
+            "source_score": 1.0,
+            "freshness_score": 1.0,
+            "evidence_score": 1.0,
+            "consistency_score": 0.98,
+            "authority_score": 1.0,
+            "human_score": 1.0,
+            "overall_score": 0.995,
+            "scoring_model": null,
+            "scoring_version": null,
+            "calculated_at": "2026-10-16T13:13:48.081825+00:00"
+          },
+          {
+            "id": "9f1fa349-fd02-4a34-a287-55c0a292a2be",
+            "claim_id": "87425585-705b-4adb-9aed-66212ef81797",
+            "source_score": 0.85,
+            "freshness_score": 1.0,
+            "evidence_score": 0.95,
+            "consistency_score": 1.0,
+            "authority_score": 0.9,
+            "human_score": 0.0,
+            "overall_score": 0.935,
+            "scoring_model": "multi_factor_trust_v1",
+            "scoring_version": "1.0.0",
+            "calculated_at": "2026-10-16T13:13:48.517439+00:00"
+          }
+        ]
+      },
+      {
+        "id": "34c23c3b-4f06-4400-bbd7-540910943290",
+        "organization_id": "11111111-1111-1111-1111-111111111111",
+        "document_version_id": "c8e3a137-79cb-4b24-94ba-6027c5ac7e63",
+        "claim_text": "Suite 5A-1204 specifies 12345 as January 25, 2016.",
+        "subject": "Suite 5A-1204",
+        "predicate": "has_12345",
+        "object": "January 25, 2016",
+        "claim_type": "policy_rule",
+        "extraction_method": "table_aware",
+        "extraction_model": "TrulinUniversalLayer5",
+        "status": "verified",
+        "created_at": "2026-10-16T13:13:48.081825+00:00",
+        "updated_at": "2026-10-16T13:13:48.081825+00:00",
+        "evidence": [
+          {
+            "id": "2df9eef6-f81a-46ae-829f-deb75f7027c4",
+            "claim_id": "34c23c3b-4f06-4400-bbd7-540910943290",
+            "document_id": "21d48e17-0769-4ae8-96e5-0526a83251bf",
+            "evidence_type": "TextDocumentVerificationPlugin",
+            "page_number": null,
+            "section": null,
+            "text_span": "DEMO - Sliced Invoices: Suite 5A-1204 | 12345: January 25, 2016",
+            "start_offset": null,
+            "end_offset": null,
+            "evidence_hash": "8ba3f62b61654211837b55d9c76cec37ca7d0c26b70912914e38d85dac986bfb",
+            "created_at": "2026-10-16T13:13:48.081825+00:00"
+          }
+        ],
+        "validity_records": [
+          {
+            "id": "b322c6cd-f817-4b44-8661-40fe4bc50b8a",
+            "claim_id": "34c23c3b-4f06-4400-bbd7-540910943290",
+            "valid_from": null,
+            "valid_until": null,
+            "version": "1",
+            "is_current": true,
+            "validity_status": "unknown",
+            "created_at": "2026-10-16T13:13:48.081825+00:00"
+          }
+        ],
+        "trust_scores": [
+          {
+            "id": "09e7a280-4898-4cc4-b4bb-326e5815aea2",
+            "claim_id": "34c23c3b-4f06-4400-bbd7-540910943290",
+            "source_score": 1.0,
+            "freshness_score": 1.0,
+            "evidence_score": 1.0,
+            "consistency_score": 0.98,
+            "authority_score": 1.0,
+            "human_score": 1.0,
+            "overall_score": 0.995,
+            "scoring_model": null,
+            "scoring_version": null,
+            "calculated_at": "2026-10-16T13:13:48.081825+00:00"
+          },
+          {
+            "id": "138392f8-cc0d-4e10-9c27-e544c9606916",
+            "claim_id": "34c23c3b-4f06-4400-bbd7-540910943290",
+            "source_score": 0.85,
+            "freshness_score": 1.0,
+            "evidence_score": 0.95,
+            "consistency_score": 1.0,
+            "authority_score": 0.9,
+            "human_score": 0.0,
+            "overall_score": 0.935,
+            "scoring_model": "multi_factor_trust_v1",
+            "scoring_version": "1.0.0",
+            "calculated_at": "2026-10-16T13:13:48.517439+00:00"
+          }
+        ]
+      },
+      {
+        "id": "27ddbb52-c13e-42f4-9a59-e339fd95c593",
+        "organization_id": "11111111-1111-1111-1111-111111111111",
+        "document_version_id": "c8e3a137-79cb-4b24-94ba-6027c5ac7e63",
+        "claim_text": "123 Somewhere Street specifies Order Number as Due Date.",
+        "subject": "123 Somewhere Street",
+        "predicate": "has_order_number",
+        "object": "Due Date",
+        "claim_type": "policy_rule",
+        "extraction_method": "table_aware",
+        "extraction_model": "TrulinUniversalLayer5",
+        "status": "verified",
+        "created_at": "2026-10-16T13:13:48.081825+00:00",
+        "updated_at": "2026-10-16T13:13:48.081825+00:00",
+        "evidence": [
+          {
+            "id": "a65f0fa9-2dd3-4129-a82e-a8cc3dd10003",
+            "claim_id": "27ddbb52-c13e-42f4-9a59-e339fd95c593",
+            "document_id": "21d48e17-0769-4ae8-96e5-0526a83251bf",
+            "evidence_type": "TextDocumentVerificationPlugin",
+            "page_number": null,
+            "section": null,
+            "text_span": "DEMO - Sliced Invoices: 123 Somewhere Street | Order Number: Due Date",
+            "start_offset": null,
+            "end_offset": null,
+            "evidence_hash": "49f6c1aed34bc3ff324fd7e74de93517c0fb7d5c00acab94e1f91e12a040e585",
+            "created_at": "2026-10-16T13:13:48.081825+00:00"
+          }
+        ],
+        "validity_records": [
+          {
+            "id": "7502b168-4f83-499f-a2ce-b4f35b73f0a6",
+            "claim_id": "27ddbb52-c13e-42f4-9a59-e339fd95c593",
+            "valid_from": null,
+            "valid_until": null,
+            "version": "1",
+            "is_current": true,
+            "validity_status": "unknown",
+            "created_at": "2026-10-16T13:13:48.081825+00:00"
+          }
+        ],
+        "trust_scores": [
+          {
+            "id": "e755dcc7-deee-4756-a7fb-8241bbb40eae",
+            "claim_id": "27ddbb52-c13e-42f4-9a59-e339fd95c593",
+            "source_score": 1.0,
+            "freshness_score": 1.0,
+            "evidence_score": 1.0,
+            "consistency_score": 0.98,
+            "authority_score": 1.0,
+            "human_score": 1.0,
+            "overall_score": 0.995,
+            "scoring_model": null,
+            "scoring_version": null,
+            "calculated_at": "2026-10-16T13:13:48.081825+00:00"
+          },
+          {
+            "id": "d445edbb-3418-4750-b39b-e1c688dca01c",
+            "claim_id": "27ddbb52-c13e-42f4-9a59-e339fd95c593",
+            "source_score": 0.85,
+            "freshness_score": 1.0,
+            "evidence_score": 0.95,
+            "consistency_score": 1.0,
+            "authority_score": 0.9,
+            "human_score": 0.0,
+            "overall_score": 0.935,
+            "scoring_model": "multi_factor_trust_v1",
+            "scoring_version": "1.0.0",
+            "calculated_at": "2026-10-16T13:13:48.517439+00:00"
+          }
+        ]
+      },
+      {
+        "id": "9fb6bf20-7c22-4615-acce-2a562da117bc",
+        "organization_id": "11111111-1111-1111-1111-111111111111",
+        "document_version_id": "c8e3a137-79cb-4b24-94ba-6027c5ac7e63",
+        "claim_text": "Your City AZ 12345 admin@slicedinvoices.com specifies Order Number as Total Due.",
+        "subject": "Your City AZ 12345 admin@slicedinvoices.com",
+        "predicate": "has_order_number",
+        "object": "Total Due",
+        "claim_type": "policy_rule",
+        "extraction_method": "table_aware",
+        "extraction_model": "TrulinUniversalLayer5",
+        "status": "verified",
+        "created_at": "2026-10-16T13:13:48.081825+00:00",
+        "updated_at": "2026-10-16T13:13:48.081825+00:00",
+        "evidence": [
+          {
+            "id": "26ea355c-41b5-4bac-8891-9c6b0d48915e",
+            "claim_id": "9fb6bf20-7c22-4615-acce-2a562da117bc",
+            "document_id": "21d48e17-0769-4ae8-96e5-0526a83251bf",
+            "evidence_type": "TextDocumentVerificationPlugin",
+            "page_number": null,
+            "section": null,
+            "text_span": "DEMO - Sliced Invoices: Your City AZ 12345 admin@slicedinvoices.com | Order Number: Total Due",
+            "start_offset": null,
+            "end_offset": null,
+            "evidence_hash": "45cdb774d528c728268f565fd011921765a95573e53dc3b4fd8289f4ebe9add5",
+            "created_at": "2026-10-16T13:13:48.081825+00:00"
+          }
+        ],
+        "validity_records": [
+          {
+            "id": "9b97f2e3-8098-4780-a513-19665e3b21fb",
+            "claim_id": "9fb6bf20-7c22-4615-acce-2a562da117bc",
+            "valid_from": null,
+            "valid_until": null,
+            "version": "1",
+            "is_current": true,
+            "validity_status": "unknown",
+            "created_at": "2026-10-16T13:13:48.081825+00:00"
+          }
+        ],
+        "trust_scores": [
+          {
+            "id": "133dd037-4351-480e-9f5e-dbf874c93a37",
+            "claim_id": "9fb6bf20-7c22-4615-acce-2a562da117bc",
+            "source_score": 1.0,
+            "freshness_score": 1.0,
+            "evidence_score": 1.0,
+            "consistency_score": 0.98,
+            "authority_score": 1.0,
+            "human_score": 1.0,
+            "overall_score": 0.995,
+            "scoring_model": null,
+            "scoring_version": null,
+            "calculated_at": "2026-10-16T13:13:48.081825+00:00"
+          },
+          {
+            "id": "277a6caf-8df9-4b63-a503-2493810a18c8",
+            "claim_id": "9fb6bf20-7c22-4615-acce-2a562da117bc",
+            "source_score": 0.85,
+            "freshness_score": 1.0,
+            "evidence_score": 0.95,
+            "consistency_score": 1.0,
+            "authority_score": 0.9,
+            "human_score": 0.0,
+            "overall_score": 0.935,
+            "scoring_model": "multi_factor_trust_v1",
+            "scoring_version": "1.0.0",
+            "calculated_at": "2026-10-16T13:13:48.517439+00:00"
+          }
+        ]
+      },
+      {
+        "id": "daf225a7-19a6-4094-958f-3c295e680519",
+        "organization_id": "11111111-1111-1111-1111-111111111111",
+        "document_version_id": "c8e3a137-79cb-4b24-94ba-6027c5ac7e63",
+        "claim_text": "Your City AZ 12345 admin@slicedinvoices.com specifies 12345 as $93.50.",
+        "subject": "Your City AZ 12345 admin@slicedinvoices.com",
+        "predicate": "has_12345",
+        "object": "$93.50",
+        "claim_type": "policy_rule",
+        "extraction_method": "table_aware",
+        "extraction_model": "TrulinUniversalLayer5",
+        "status": "verified",
+        "created_at": "2026-10-16T13:13:48.081825+00:00",
+        "updated_at": "2026-10-16T13:13:48.081825+00:00",
+        "evidence": [
+          {
+            "id": "03dcd0b7-58f8-46b0-8dc9-2ea4610dc121",
+            "claim_id": "daf225a7-19a6-4094-958f-3c295e680519",
+            "document_id": "21d48e17-0769-4ae8-96e5-0526a83251bf",
+            "evidence_type": "TextDocumentVerificationPlugin",
+            "page_number": null,
+            "section": null,
+            "text_span": "DEMO - Sliced Invoices: Your City AZ 12345 admin@slicedinvoices.com | 12345: $93.50",
+            "start_offset": null,
+            "end_offset": null,
+            "evidence_hash": "efd860f4e6b3b220d4991dca909a324bef7c6db2f5ef47085a4f1d047190d22c",
+            "created_at": "2026-10-16T13:13:48.081825+00:00"
+          }
+        ],
+        "validity_records": [
+          {
+            "id": "1c543a02-ef14-45b4-bb46-d0b5fd455270",
+            "claim_id": "daf225a7-19a6-4094-958f-3c295e680519",
+            "valid_from": null,
+            "valid_until": null,
+            "version": "1",
+            "is_current": true,
+            "validity_status": "unknown",
+            "created_at": "2026-10-16T13:13:48.081825+00:00"
+          }
+        ],
+        "trust_scores": [
+          {
+            "id": "0c7a5706-6dcb-4867-ba11-12942d17b3d4",
+            "claim_id": "daf225a7-19a6-4094-958f-3c295e680519",
+            "source_score": 1.0,
+            "freshness_score": 1.0,
+            "evidence_score": 1.0,
+            "consistency_score": 0.98,
+            "authority_score": 1.0,
+            "human_score": 1.0,
+            "overall_score": 0.995,
+            "scoring_model": null,
+            "scoring_version": null,
+            "calculated_at": "2026-10-16T13:13:48.081825+00:00"
+          },
+          {
+            "id": "4befacfd-6864-4774-942c-d2ea7ee1deb7",
+            "claim_id": "daf225a7-19a6-4094-958f-3c295e680519",
+            "source_score": 0.85,
+            "freshness_score": 1.0,
+            "evidence_score": 0.95,
+            "consistency_score": 1.0,
+            "authority_score": 0.9,
+            "human_score": 0.0,
+            "overall_score": 0.935,
+            "scoring_model": "multi_factor_trust_v1",
+            "scoring_version": "1.0.0",
+            "calculated_at": "2026-10-16T13:13:48.517439+00:00"
+          }
+        ]
+      },
+      {
+        "id": "a472b3c9-224c-4247-89cc-ff610200f4b2",
+        "organization_id": "11111111-1111-1111-1111-111111111111",
+        "document_version_id": "c8e3a137-79cb-4b24-94ba-6027c5ac7e63",
+        "claim_text": "Tax specifies $85.00 as $8.50.",
+        "subject": "Tax",
+        "predicate": "has_85_00",
+        "object": "$8.50",
+        "claim_type": "policy_rule",
+        "extraction_method": "table_aware",
+        "extraction_model": "TrulinUniversalLayer5",
+        "status": "verified",
+        "created_at": "2026-10-16T13:13:48.081825+00:00",
+        "updated_at": "2026-10-16T13:13:48.081825+00:00",
+        "evidence": [
+          {
+            "id": "7f2bd11c-d0f5-4aaf-a45d-59496653e3af",
+            "claim_id": "a472b3c9-224c-4247-89cc-ff610200f4b2",
+            "document_id": "21d48e17-0769-4ae8-96e5-0526a83251bf",
+            "evidence_type": "TextDocumentVerificationPlugin",
+            "page_number": null,
+            "section": null,
+            "text_span": "Total: Tax | $85.00: $8.50",
+            "start_offset": null,
+            "end_offset": null,
+            "evidence_hash": "fb2d5575c23b85025f2d864577613404762f93acc52b972cfab9e2b3a6c98594",
+            "created_at": "2026-10-16T13:13:48.081825+00:00"
+          }
+        ],
+        "validity_records": [
+          {
+            "id": "c71de804-a40a-4016-8fa3-db046f2cb34f",
+            "claim_id": "a472b3c9-224c-4247-89cc-ff610200f4b2",
+            "valid_from": null,
+            "valid_until": null,
+            "version": "1",
+            "is_current": true,
+            "validity_status": "unknown",
+            "created_at": "2026-10-16T13:13:48.081825+00:00"
+          }
+        ],
+        "trust_scores": [
+          {
+            "id": "ab6e3514-4b3e-422b-b8e3-f55bbfbe4039",
+            "claim_id": "a472b3c9-224c-4247-89cc-ff610200f4b2",
+            "source_score": 1.0,
+            "freshness_score": 1.0,
+            "evidence_score": 1.0,
+            "consistency_score": 0.98,
+            "authority_score": 1.0,
+            "human_score": 1.0,
+            "overall_score": 0.995,
+            "scoring_model": null,
+            "scoring_version": null,
+            "calculated_at": "2026-10-16T13:13:48.081825+00:00"
+          },
+          {
+            "id": "ba635709-e866-4edd-93e3-878a2446dac3",
+            "claim_id": "a472b3c9-224c-4247-89cc-ff610200f4b2",
+            "source_score": 0.85,
+            "freshness_score": 1.0,
+            "evidence_score": 0.95,
+            "consistency_score": 1.0,
+            "authority_score": 0.9,
+            "human_score": 0.0,
+            "overall_score": 0.935,
+            "scoring_model": "multi_factor_trust_v1",
+            "scoring_version": "1.0.0",
+            "calculated_at": "2026-10-16T13:13:48.517439+00:00"
+          }
+        ]
+      },
+      {
+        "id": "b95f0ce6-fc66-4434-b923-97c2a328788f",
+        "organization_id": "11111111-1111-1111-1111-111111111111",
+        "document_version_id": "c8e3a137-79cb-4b24-94ba-6027c5ac7e63",
+        "claim_text": "Total specifies $85.00 as $93.50.",
+        "subject": "Total",
+        "predicate": "has_85_00",
+        "object": "$93.50",
+        "claim_type": "policy_rule",
+        "extraction_method": "table_aware",
+        "extraction_model": "TrulinUniversalLayer5",
+        "status": "verified",
+        "created_at": "2026-10-16T13:13:48.081825+00:00",
+        "updated_at": "2026-10-16T13:13:48.081825+00:00",
+        "evidence": [
+          {
+            "id": "439ef93f-f0e8-4064-a0a7-931703f333d7",
+            "claim_id": "b95f0ce6-fc66-4434-b923-97c2a328788f",
+            "document_id": "21d48e17-0769-4ae8-96e5-0526a83251bf",
+            "evidence_type": "TextDocumentVerificationPlugin",
+            "page_number": null,
+            "section": null,
+            "text_span": "Total: Total | $85.00: $93.50",
+            "start_offset": null,
+            "end_offset": null,
+            "evidence_hash": "85c4b63788a78545f62a26dad50b7d39664c4a9e0be844576f1aff5aac9fbc3d",
+            "created_at": "2026-10-16T13:13:48.081825+00:00"
+          }
+        ],
+        "validity_records": [
+          {
+            "id": "6688189d-438b-476d-b2ae-65e37f5c971b",
+            "claim_id": "b95f0ce6-fc66-4434-b923-97c2a328788f",
+            "valid_from": null,
+            "valid_until": null,
+            "version": "1",
+            "is_current": true,
+            "validity_status": "unknown",
+            "created_at": "2026-10-16T13:13:48.081825+00:00"
+          }
+        ],
+        "trust_scores": [
+          {
+            "id": "74c28f70-f05d-4b32-8234-60a507b73ea8",
+            "claim_id": "b95f0ce6-fc66-4434-b923-97c2a328788f",
+            "source_score": 1.0,
+            "freshness_score": 1.0,
+            "evidence_score": 1.0,
+            "consistency_score": 0.98,
+            "authority_score": 1.0,
+            "human_score": 1.0,
+            "overall_score": 0.995,
+            "scoring_model": null,
+            "scoring_version": null,
+            "calculated_at": "2026-10-16T13:13:48.081825+00:00"
+          },
+          {
+            "id": "df3cb171-886e-4547-9eef-4b19423a09be",
+            "claim_id": "b95f0ce6-fc66-4434-b923-97c2a328788f",
+            "source_score": 0.85,
+            "freshness_score": 1.0,
+            "evidence_score": 0.95,
+            "consistency_score": 1.0,
+            "authority_score": 0.9,
+            "human_score": 0.0,
+            "overall_score": 0.935,
+            "scoring_model": "multi_factor_trust_v1",
+            "scoring_version": "1.0.0",
+            "calculated_at": "2026-10-16T13:13:48.517439+00:00"
+          }
+        ]
+      },
+      {
+        "id": "592d5101-bd01-4bb8-a4fc-f1f9b585f281",
+        "organization_id": "11111111-1111-1111-1111-111111111111",
+        "document_version_id": "c8e3a137-79cb-4b24-94ba-6027c5ac7e63",
+        "claim_text": "ANZ Bank ACC # 1234 1234 BSB # 4321 432 Paid Payment is due within 30 days from date of invoice.",
+        "subject": "Web Design $85",
+        "predicate": "has_return_window",
+        "object": "ANZ Bank ACC # 1234 1234 BSB # 4321 432 Paid Payment is due within 30 days from date of invoice.",
+        "claim_type": "policy",
+        "extraction_method": "llm_semantic",
+        "extraction_model": "TrulinUniversalLayer5",
+        "status": "rejected",
+        "created_at": "2026-10-16T13:13:48.081825+00:00",
+        "updated_at": "2026-10-16T13:13:48.081825+00:00",
+        "evidence": [
+          {
+            "id": "558e0707-e314-46cb-9d6c-1f1d7e1c4346",
+            "claim_id": "592d5101-bd01-4bb8-a4fc-f1f9b585f281",
+            "document_id": "21d48e17-0769-4ae8-96e5-0526a83251bf",
+            "evidence_type": "TextDocumentVerificationPlugin",
+            "page_number": null,
+            "section": null,
+            "text_span": "ANZ Bank ACC # 1234 1234 BSB # 4321 432                                      Paid Payment is due within 30 days from date of invoice.",
+            "start_offset": null,
+            "end_offset": null,
+            "evidence_hash": "95a973bd617f9bdba9ba657782bef1d625c843377821067d179215c5a02326ca",
+            "created_at": "2026-10-16T13:13:48.081825+00:00"
+          }
+        ],
+        "validity_records": [
+          {
+            "id": "58904bdf-0893-4c63-9056-299bde186e00",
+            "claim_id": "592d5101-bd01-4bb8-a4fc-f1f9b585f281",
+            "valid_from": null,
+            "valid_until": null,
+            "version": "1",
+            "is_current": true,
+            "validity_status": "unknown",
+            "created_at": "2026-10-16T13:13:48.081825+00:00"
+          }
+        ],
+        "trust_scores": [
+          {
+            "id": "8d19ff24-cd40-43ec-ac8d-89b19101ae3a",
+            "claim_id": "592d5101-bd01-4bb8-a4fc-f1f9b585f281",
+            "source_score": 1.0,
+            "freshness_score": 1.0,
+            "evidence_score": 1.0,
+            "consistency_score": 0.2,
+            "authority_score": 1.0,
+            "human_score": 0.5,
+            "overall_score": 0.8,
+            "scoring_model": null,
+            "scoring_version": null,
+            "calculated_at": "2026-10-16T13:13:48.081825+00:00"
+          },
+          {
+            "id": "62ef36d5-ee24-4bc5-a9ec-b6d07fb33143",
+            "claim_id": "592d5101-bd01-4bb8-a4fc-f1f9b585f281",
+            "source_score": 0.85,
+            "freshness_score": 1.0,
+            "evidence_score": 0.95,
+            "consistency_score": 1.0,
+            "authority_score": 0.9,
+            "human_score": 0.0,
+            "overall_score": 0.935,
+            "scoring_model": "multi_factor_trust_v1",
+            "scoring_version": "1.0.0",
+            "calculated_at": "2026-10-16T13:13:48.517439+00:00"
+          }
+        ]
+      }
+    ],
+    "duration_ms": 2256.87,
+    "layers": {
+      "layer_1_governance": {
+        "organization_id": "11111111-1111-1111-1111-111111111111",
+        "source_id": "44444444-4444-4444-4444-444444444444",
+        "source_family": "document",
+        "source_intent": "operational_data"
+      },
+      "layer_2_connector": {
+        "ingestion_channel": "file_upload",
+        "filename": "wordpress-pdf-invoice-plugin-sample.pdf",
+        "file_size": 43627,
+        "raw_format": "pdf"
+      },
+      "layer_3_envelope": {
+        "envelope_id": "c0380799-459c-49c8-a066-35dd965dc7ac",
+        "content_hash": "c2de358a0974f9b047aed8e457def7d4b1b39170f44819ec3152b42db787d72e",
+        "tamper_valid": false,
+        "evidence_locator": {
+          "filename": "wordpress-pdf-invoice-plugin-sample.pdf",
+          "document_type": "invoice"
+        }
+      },
+      "layer_4_evidence": {
+        "parser_name": "DocumentParser",
+        "total_units": 14,
+        "completeness_score": 1.0,
+        "quality_metrics": {
+          "total_lines": 27,
+          "parsed_units": 14,
+          "headings_count": 3,
+          "clauses_count": 1,
+          "table_rows_count": 5,
+          "char_count": 1122
+        },
+        "units": [
+          {
+            "unit_id": "c0380799-459c-49c8-a066-35dd965dc7ac:0:fb299c87932f",
+            "envelope_id": "c0380799-459c-49c8-a066-35dd965dc7ac",
+            "asset_id": "file://wordpress-pdf-invoice-plugin-sample.pdf",
+            "block_type": "heading",
+            "content_role": "heading",
+            "is_canonical": false,
+            "content_text": "WordPress PDF Invoice Plugin Sample",
+            "structured_data": {
+              "heading_level": 1,
+              "heading_text": "WordPress PDF Invoice Plugin Sample"
+            },
+            "locator": {
+              "line_start": 1,
+              "line_end": 1,
+              "start_char": 0,
+              "end_char": 38,
+              "heading_path": [
+                "WordPress PDF Invoice Plugin Sample"
+              ],
+              "paragraph_index": 0,
+              "filename": "wordpress-pdf-invoice-plugin-sample.pdf",
+              "file_extension": "pdf",
+              "file_size": 43627,
+              "document_type": "invoice"
+            },
+            "hierarchical_context": [
+              "WordPress PDF Invoice Plugin Sample"
+            ],
+            "content_hash": "fb299c87932f4d13b301555826375673ff1006d06d8f1b4d9e37dbfb274e31ea",
+            "sequence_index": 0,
+            "metadata": {
+              "source_version": "1"
+            }
+          },
+          {
+            "unit_id": "c0380799-459c-49c8-a066-35dd965dc7ac:1:67d76e1cc814",
+            "envelope_id": "c0380799-459c-49c8-a066-35dd965dc7ac",
+            "asset_id": "file://wordpress-pdf-invoice-plugin-sample.pdf",
+            "block_type": "heading",
+            "content_role": "heading",
+            "is_canonical": false,
+            "content_text": "Page 1",
+            "structured_data": {
+              "heading_level": 2,
+              "heading_text": "Page 1"
+            },
+            "locator": {
+              "line_start": 3,
+              "line_end": 3,
+              "start_char": 39,
+              "end_char": 49,
+              "heading_path": [
+                "WordPress PDF Invoice Plugin Sample",
+                "Page 1"
+              ],
+              "paragraph_index": 1,
+              "filename": "wordpress-pdf-invoice-plugin-sample.pdf",
+              "file_extension": "pdf",
+              "file_size": 43627,
+              "document_type": "invoice"
+            },
+            "hierarchical_context": [
+              "WordPress PDF Invoice Plugin Sample",
+              "Page 1"
+            ],
+            "content_hash": "67d76e1cc814d1d397efd0fb958426405dbedf7e2e6c24d0db67ff23fa2737c9",
+            "sequence_index": 1,
+            "metadata": {
+              "source_version": "1"
+            }
+          },
+          {
+            "unit_id": "c0380799-459c-49c8-a066-35dd965dc7ac:2:8407e714907c",
+            "envelope_id": "c0380799-459c-49c8-a066-35dd965dc7ac",
+            "asset_id": "file://wordpress-pdf-invoice-plugin-sample.pdf",
+            "block_type": "paragraph",
+            "content_role": "policy_rule",
+            "is_canonical": true,
+            "content_text": "Invoice From:                                                                             Invoice Number               INV-3337",
+            "structured_data": {
+              "raw_line": "Invoice From:                                                                             Invoice Number               INV-3337"
+            },
+            "locator": {
+              "line_start": 5,
+              "line_end": 5,
+              "start_char": 50,
+              "end_char": 178,
+              "heading_path": [
+                "WordPress PDF Invoice Plugin Sample",
+                "Page 1"
+              ],
+              "paragraph_index": 2,
+              "filename": "wordpress-pdf-invoice-plugin-sample.pdf",
+              "file_extension": "pdf",
+              "file_size": 43627,
+              "document_type": "invoice"
+            },
+            "hierarchical_context": [
+              "WordPress PDF Invoice Plugin Sample",
+              "Page 1"
+            ],
+            "content_hash": "8407e714907c39d4999807b1ed36fd145bf44f88146c71d8aa2b5cfff2e4cafe",
+            "sequence_index": 2,
+            "metadata": {
+              "source_version": "1"
+            }
+          },
+          {
+            "unit_id": "c0380799-459c-49c8-a066-35dd965dc7ac:3:6bd270a0ed6f",
+            "envelope_id": "c0380799-459c-49c8-a066-35dd965dc7ac",
+            "asset_id": "file://wordpress-pdf-invoice-plugin-sample.pdf",
+            "block_type": "table_row",
+            "content_role": "policy_rule",
+            "is_canonical": true,
+            "content_text": "DEMO - Sliced Invoices: Suite 5A-1204 | Order Number: Invoice Date | 12345: January 25, 2016",
+            "structured_data": {
+              "columns": {
+                "DEMO - Sliced Invoices": "Suite 5A-1204",
+                "Order Number": "Invoice Date",
+                "12345": "January 25, 2016"
+              },
+              "table_headers": [
+                "DEMO - Sliced Invoices",
+                "Order Number",
+                "12345"
+              ],
+              "table_type": "policy_matrix",
+              "table_id": "table_line_7",
+              "row_index": 1,
+              "is_ambiguous": false,
+              "ambiguity_reason": null
+            },
+            "locator": {
+              "line_start": 9,
+              "line_end": 9,
+              "start_char": 249,
+              "end_char": 301,
+              "table_id": "table_line_7",
+              "table_start_line": 7,
+              "row_index": 1,
+              "heading_path": [
+                "WordPress PDF Invoice Plugin Sample",
+                "Page 1"
+              ],
+              "paragraph_index": 3,
+              "filename": "wordpress-pdf-invoice-plugin-sample.pdf",
+              "file_extension": "pdf",
+              "file_size": 43627,
+              "document_type": "invoice"
+            },
+            "hierarchical_context": [
+              "WordPress PDF Invoice Plugin Sample",
+              "Page 1"
+            ],
+            "content_hash": "6bd270a0ed6f120d51f9a82aa2f4338db754cb9480311385b5bb6a131fac252d",
+            "sequence_index": 3,
+            "metadata": {
+              "in_table": true,
+              "table_id": "table_line_7",
+              "table_start_line": 7,
+              "row_index": 1,
+              "is_ambiguous": false
+            }
+          },
+          {
+            "unit_id": "c0380799-459c-49c8-a066-35dd965dc7ac:4:28c75b61e015",
+            "envelope_id": "c0380799-459c-49c8-a066-35dd965dc7ac",
+            "asset_id": "file://wordpress-pdf-invoice-plugin-sample.pdf",
+            "block_type": "table_row",
+            "content_role": "policy_rule",
+            "is_canonical": true,
+            "content_text": "DEMO - Sliced Invoices: 123 Somewhere Street | Order Number: Due Date | 12345: January 31, 2016",
+            "structured_data": {
+              "columns": {
+                "DEMO - Sliced Invoices": "123 Somewhere Street",
+                "Order Number": "Due Date",
+                "12345": "January 31, 2016"
+              },
+              "table_headers": [
+                "DEMO - Sliced Invoices",
+                "Order Number",
+                "12345"
+              ],
+              "table_type": "policy_matrix",
+              "table_id": "table_line_7",
+              "row_index": 2,
+              "is_ambiguous": false,
+              "ambiguity_reason": null
+            },
+            "locator": {
+              "line_start": 10,
+              "line_end": 10,
+              "start_char": 301,
+              "end_char": 356,
+              "table_id": "table_line_7",
+              "table_start_line": 7,
+              "row_index": 2,
+              "heading_path": [
+                "WordPress PDF Invoice Plugin Sample",
+                "Page 1"
+              ],
+              "paragraph_index": 4,
+              "filename": "wordpress-pdf-invoice-plugin-sample.pdf",
+              "file_extension": "pdf",
+              "file_size": 43627,
+              "document_type": "invoice"
+            },
+            "hierarchical_context": [
+              "WordPress PDF Invoice Plugin Sample",
+              "Page 1"
+            ],
+            "content_hash": "28c75b61e0158feff155a359f0c9a05e52133a61807746bd452c5bbafaa6aa8b",
+            "sequence_index": 4,
+            "metadata": {
+              "in_table": true,
+              "table_id": "table_line_7",
+              "table_start_line": 7,
+              "row_index": 2,
+              "is_ambiguous": false
+            }
+          },
+          {
+            "unit_id": "c0380799-459c-49c8-a066-35dd965dc7ac:5:3b93494ce177",
+            "envelope_id": "c0380799-459c-49c8-a066-35dd965dc7ac",
+            "asset_id": "file://wordpress-pdf-invoice-plugin-sample.pdf",
+            "block_type": "table_row",
+            "content_role": "policy_rule",
+            "is_canonical": true,
+            "content_text": "DEMO - Sliced Invoices: Your City AZ 12345 admin@slicedinvoices.com | Order Number: Total Due | 12345: $93.50",
+            "structured_data": {
+              "columns": {
+                "DEMO - Sliced Invoices": "Your City AZ 12345 admin@slicedinvoices.com",
+                "Order Number": "Total Due",
+                "12345": "$93.50"
+              },
+              "table_headers": [
+                "DEMO - Sliced Invoices",
+                "Order Number",
+                "12345"
+              ],
+              "table_type": "policy_matrix",
+              "table_id": "table_line_7",
+              "row_index": 3,
+              "is_ambiguous": false,
+              "ambiguity_reason": null
+            },
+            "locator": {
+              "line_start": 11,
+              "line_end": 11,
+              "start_char": 356,
+              "end_char": 425,
+              "table_id": "table_line_7",
+              "table_start_line": 7,
+              "row_index": 3,
+              "heading_path": [
+                "WordPress PDF Invoice Plugin Sample",
+                "Page 1"
+              ],
+              "paragraph_index": 5,
+              "filename": "wordpress-pdf-invoice-plugin-sample.pdf",
+              "file_extension": "pdf",
+              "file_size": 43627,
+              "document_type": "invoice"
+            },
+            "hierarchical_context": [
+              "WordPress PDF Invoice Plugin Sample",
+              "Page 1"
+            ],
+            "content_hash": "3b93494ce177f24c757190daa91f86f32a06c771e5c05f7457aaad5cb3c92da1",
+            "sequence_index": 5,
+            "metadata": {
+              "in_table": true,
+              "table_id": "table_line_7",
+              "table_start_line": 7,
+              "row_index": 3,
+              "is_ambiguous": false
+            }
+          },
+          {
+            "unit_id": "c0380799-459c-49c8-a066-35dd965dc7ac:6:a69d1a735197",
+            "envelope_id": "c0380799-459c-49c8-a066-35dd965dc7ac",
+            "asset_id": "file://wordpress-pdf-invoice-plugin-sample.pdf",
+            "block_type": "paragraph",
+            "content_role": "policy_rule",
+            "is_canonical": true,
+            "content_text": "To:",
+            "structured_data": {
+              "raw_line": "To:"
+            },
+            "locator": {
+              "line_start": 13,
+              "line_end": 13,
+              "start_char": 426,
+              "end_char": 430,
+              "heading_path": [
+                "WordPress PDF Invoice Plugin Sample",
+                "Page 1"
+              ],
+              "paragraph_index": 6,
+              "filename": "wordpress-pdf-invoice-plugin-sample.pdf",
+              "file_extension": "pdf",
+              "file_size": 43627,
+              "document_type": "invoice"
+            },
+            "hierarchical_context": [
+              "WordPress PDF Invoice Plugin Sample",
+              "Page 1"
+            ],
+            "content_hash": "a69d1a735197af69ab52213cfa423a7f88fc25729e1e88adf83f3008e60afb02",
+            "sequence_index": 6,
+            "metadata": {
+              "source_version": "1"
+            }
+          },
+          {
+            "unit_id": "c0380799-459c-49c8-a066-35dd965dc7ac:7:3ee0cdcecaa9",
+            "envelope_id": "c0380799-459c-49c8-a066-35dd965dc7ac",
+            "asset_id": "file://wordpress-pdf-invoice-plugin-sample.pdf",
+            "block_type": "paragraph",
+            "content_role": "policy_rule",
+            "is_canonical": true,
+            "content_text": "Test Business",
+            "structured_data": {
+              "raw_line": "Test Business"
+            },
+            "locator": {
+              "line_start": 15,
+              "line_end": 15,
+              "start_char": 431,
+              "end_char": 445,
+              "heading_path": [
+                "WordPress PDF Invoice Plugin Sample",
+                "Page 1"
+              ],
+              "paragraph_index": 7,
+              "filename": "wordpress-pdf-invoice-plugin-sample.pdf",
+              "file_extension": "pdf",
+              "file_size": 43627,
+              "document_type": "invoice"
+            },
+            "hierarchical_context": [
+              "WordPress PDF Invoice Plugin Sample",
+              "Page 1"
+            ],
+            "content_hash": "3ee0cdcecaa9177aac47121e11b2117ac19ab7d008d1d1ce84ba1b105b660be6",
+            "sequence_index": 7,
+            "metadata": {
+              "source_version": "1"
+            }
+          },
+          {
+            "unit_id": "c0380799-459c-49c8-a066-35dd965dc7ac:8:df82d31e22e0",
+            "envelope_id": "c0380799-459c-49c8-a066-35dd965dc7ac",
+            "asset_id": "file://wordpress-pdf-invoice-plugin-sample.pdf",
+            "block_type": "clause",
+            "content_role": "contact_info",
+            "is_canonical": false,
+            "content_text": "123 Somewhere St Melbourne, VIC 3000 test@test.com Hrs/Qty       Service                                                           Rate/Price               Adjust            Sub Total",
+            "structured_data": {
+              "raw_line": "123 Somewhere St Melbourne, VIC 3000 test@test.com Hrs/Qty       Service                                                           Rate/Price               Adjust            Sub Total"
+            },
+            "locator": {
+              "line_start": 17,
+              "line_end": 17,
+              "start_char": 446,
+              "end_char": 630,
+              "heading_path": [
+                "WordPress PDF Invoice Plugin Sample",
+                "Page 1"
+              ],
+              "paragraph_index": 8,
+              "filename": "wordpress-pdf-invoice-plugin-sample.pdf",
+              "file_extension": "pdf",
+              "file_size": 43627,
+              "document_type": "invoice"
+            },
+            "hierarchical_context": [
+              "WordPress PDF Invoice Plugin Sample",
+              "Page 1"
+            ],
+            "content_hash": "df82d31e22e081ee782463bbf3ce63e211e649cd2727f450e6cc9754fdff66cc",
+            "sequence_index": 8,
+            "metadata": {
+              "source_version": "1"
+            }
+          },
+          {
+            "unit_id": "c0380799-459c-49c8-a066-35dd965dc7ac:9:d54b1e1d8ca7",
+            "envelope_id": "c0380799-459c-49c8-a066-35dd965dc7ac",
+            "asset_id": "file://wordpress-pdf-invoice-plugin-sample.pdf",
+            "block_type": "heading",
+            "content_role": "heading",
+            "is_canonical": false,
+            "content_text": "1.00 Web Design                                                            $85.00                0.00%               $85.00 This is a sample description...",
+            "structured_data": {
+              "heading_level": 3,
+              "heading_text": "1.00 Web Design                                                            $85.00                0.00%               $85.00 This is a sample description..."
+            },
+            "locator": {
+              "line_start": 18,
+              "line_end": 18,
+              "start_char": 630,
+              "end_char": 790,
+              "heading_path": [
+                "WordPress PDF Invoice Plugin Sample",
+                "Page 1",
+                "1.00 Web Design                                                            $85.00                0.00%               $85.00 This is a sample description..."
+              ],
+              "paragraph_index": 9,
+              "filename": "wordpress-pdf-invoice-plugin-sample.pdf",
+              "file_extension": "pdf",
+              "file_size": 43627,
+              "document_type": "invoice"
+            },
+            "hierarchical_context": [
+              "WordPress PDF Invoice Plugin Sample",
+              "Page 1",
+              "1.00 Web Design                                                            $85.00                0.00%               $85.00 This is a sample description..."
+            ],
+            "content_hash": "d54b1e1d8ca7d0e5ecb686948aefd58879cd38ced33d578baccf2d56c7769051",
+            "sequence_index": 9,
+            "metadata": {
+              "source_version": "1"
+            }
+          }
+        ]
+      },
+      "layer_5_extraction": {
+        "candidates_discovered": 6,
+        "claims_extracted": 10,
+        "claims_verified": 10,
+        "completeness_score": 1.0,
+        "ledger_summary": {
+          "total_units": 14,
+          "total_units_evaluated": 14,
+          "processed_with_claims": 6,
+          "processed_no_claims": 0,
+          "skipped_with_reason": 8,
+          "needs_review": 0,
+          "failed_retryable": 0,
+          "failed_terminal": 0,
+          "unaccounted_omissions": 0,
+          "accounting_completeness": 1.0,
+          "skip_reasons_breakdown": {
+            "Structural heading without standalone claim.": 3,
+            "Informational prose without normative constraints.": 5
+          },
+          "breakdown": {
+            "processed_with_claims": 6,
+            "processed_no_claims": 0,
+            "skipped_with_reason": 8,
+            "needs_review": 0,
+            "failed_retryable": 0,
+            "failed_terminal": 0
+          },
+          "candidates_discovered": 6,
+          "units_extracted": 6,
+          "total_claims_generated": 10,
+          "units_verified": 6,
+          "units_rejected": 0,
+          "units_skipped": 8,
+          "completeness_score": 1.0,
+          "verification_success_rate": 1.0
+        },
+        "candidates": [
+          {
+            "candidate_id": "cand:c0380799-459c-49c8-a066-35dd965dc7ac:3:6bd270a0ed6f:5bd4319808",
+            "envelope_id": "c0380799-459c-49c8-a066-35dd965dc7ac",
+            "unit_id": "c0380799-459c-49c8-a066-35dd965dc7ac:3:6bd270a0ed6f",
+            "asset_id": "file://wordpress-pdf-invoice-plugin-sample.pdf",
+            "content_role": "policy_rule",
+            "run_id": null,
+            "source_unit_id": "c0380799-459c-49c8-a066-35dd965dc7ac:3:6bd270a0ed6f",
+            "evidence_id": "ev:c0380799-459c-49c8-a066-35dd965dc7ac:3:6bd270a0ed6f",
+            "table_binding": {
+              "table_id": "table_line_7",
+              "row_key": "Suite 5A-1204",
+              "column_header": "Order Number",
+              "cell_value": "Invoice Date",
+              "normalized_value": "Invoice Date",
+              "normalized_unit": null,
+              "row_index": 9,
+              "col_index": 1,
+              "is_merged_cell": false,
+              "qualifiers": [],
+              "typed_value": {
+                "value_type": "TEXT_RULE",
+                "scalar_min": null,
+                "scalar_max": null,
+                "unit": null,
+                "qualifier": null,
+                "duration_type": null,
+                "time_basis": null,
+                "reference_id": null,
+                "raw_text": "Invoice Date",
+                "structured_rule": null
+              }
+            },
+            "typed_value": {
+              "value_type": "TEXT_RULE",
+              "scalar_min": null,
+              "scalar_max": null,
+              "unit": null,
+              "qualifier": null,
+              "duration_type": null,
+              "time_basis": null,
+              "reference_id": null,
+              "raw_text": "Invoice Date",
+              "structured_rule": null
+            },
+            "claim_text": "Suite 5A-1204 specifies Order Number as Invoice Date.",
+            "subject": "Suite 5A-1204",
+            "predicate": "has_order_number",
+            "object": "Invoice Date",
+            "value": "Invoice Date",
+            "unit": null,
+            "time_basis": null,
+            "deadline": null,
+            "qualifier": null,
+            "qualifiers": [],
+            "modal_operator": "specifies",
+            "modality": "POLICY_FACT",
+            "conditions": [
+              "Table Column: Order Number"
+            ],
+            "exceptions": [],
+            "scope": {
+              "DEMO - Sliced Invoices": "Suite 5A-1204"
+            },
+            "claim_type": "policy_rule",
+            "extraction_strategy": "table_aware",
+            "evidence_text_span": "DEMO - Sliced Invoices: Suite 5A-1204 | Order Number: Invoice Date",
+            "locator": {
+              "line_start": 9,
+              "line_end": 9,
+              "start_char": 249,
+              "end_char": 301,
+              "table_id": "table_line_7",
+              "table_start_line": 7,
+              "row_index": 1,
+              "heading_path": [
+                "WordPress PDF Invoice Plugin Sample",
+                "Page 1"
+              ],
+              "paragraph_index": 3,
+              "filename": "wordpress-pdf-invoice-plugin-sample.pdf",
+              "file_extension": "pdf",
+              "file_size": 43627,
+              "document_type": "invoice",
+              "table_grid": {
+                "table_type": "policy_matrix",
+                "row_key": "Suite 5A-1204",
+                "row_scope": {
+                  "DEMO - Sliced Invoices": "Suite 5A-1204"
+                },
+                "col_header": "Order Number",
+                "cell_value": "Invoice Date",
+                "unit": null,
+                "qualifiers": [],
+                "table_start_line": 7,
+                "row_line": 9
+              },
+              "grid_label": "Row 'Suite 5A-1204' • Col 'Order Number' • Cell 'Invoice Date'",
+              "section_context": [
+                "WordPress PDF Invoice Plugin Sample",
+                "Page 1"
+              ]
+            },
+            "structured_values": {
+              "columns": {
+                "DEMO - Sliced Invoices": "Suite 5A-1204",
+                "Order Number": "Invoice Date",
+                "12345": "January 25, 2016"
+              },
+              "scope": {
+                "DEMO - Sliced Invoices": "Suite 5A-1204"
+              },
+              "table_grid": {
+                "table_type": "policy_matrix",
+                "row_key": "Suite 5A-1204",
+                "row_scope": {
+                  "DEMO - Sliced Invoices": "Suite 5A-1204"
+                },
+                "col_header": "Order Number",
+                "cell_value": "Invoice Date",
+                "unit": null,
+                "qualifiers": [],
+                "table_start_line": 7,
+                "row_line": 9
+              },
+              "section_context": [
+                "WordPress PDF Invoice Plugin Sample",
+                "Page 1"
+              ]
+            },
+            "is_canonical": true,
+            "cross_references": [],
+            "status": "verified",
+            "confidence": 0.98,
+            "is_ambiguous": false,
+            "ambiguity_reason": null,
+            "verification_plugin": "TextDocumentVerificationPlugin",
+            "verification_details": {
+              "quote_grounded": true,
+              "line_start": 9,
+              "line_end": 9,
+              "start_char": 249,
+              "end_char": 301,
+              "evidence_length": 92
+            },
+            "content_hash": "5bd431980821309b925618bf6bc31287e5159c6ab44921f4e10248f2ffa99dac",
+            "extracted_at": "2026-10-16T13:13:47.583163+00:00"
+          },
+          {
+            "candidate_id": "cand:c0380799-459c-49c8-a066-35dd965dc7ac:3:6bd270a0ed6f:8ba3f62b61",
+            "envelope_id": "c0380799-459c-49c8-a066-35dd965dc7ac",
+            "unit_id": "c0380799-459c-49c8-a066-35dd965dc7ac:3:6bd270a0ed6f",
+            "asset_id": "file://wordpress-pdf-invoice-plugin-sample.pdf",
+            "content_role": "policy_rule",
+            "run_id": null,
+            "source_unit_id": "c0380799-459c-49c8-a066-35dd965dc7ac:3:6bd270a0ed6f",
+            "evidence_id": "ev:c0380799-459c-49c8-a066-35dd965dc7ac:3:6bd270a0ed6f",
+            "table_binding": {
+              "table_id": "table_line_7",
+              "row_key": "Suite 5A-1204",
+              "column_header": "12345",
+              "cell_value": "January 25, 2016",
+              "normalized_value": 25,
+              "normalized_unit": null,
+              "row_index": 9,
+              "col_index": 2,
+              "is_merged_cell": false,
+              "qualifiers": [],
+              "typed_value": {
+                "value_type": "TEXT_RULE",
+                "scalar_min": null,
+                "scalar_max": null,
+                "unit": null,
+                "qualifier": null,
+                "duration_type": null,
+                "time_basis": null,
+                "reference_id": null,
+                "raw_text": "January 25, 2016",
+                "structured_rule": null
+              }
+            },
+            "typed_value": {
+              "value_type": "TEXT_RULE",
+              "scalar_min": null,
+              "scalar_max": null,
+              "unit": null,
+              "qualifier": null,
+              "duration_type": null,
+              "time_basis": null,
+              "reference_id": null,
+              "raw_text": "January 25, 2016",
+              "structured_rule": null
+            },
+            "claim_text": "Suite 5A-1204 specifies 12345 as January 25, 2016.",
+            "subject": "Suite 5A-1204",
+            "predicate": "has_12345",
+            "object": "January 25, 2016",
+            "value": 25,
+            "unit": null,
+            "time_basis": null,
+            "deadline": null,
+            "qualifier": null,
+            "qualifiers": [],
+            "modal_operator": "specifies",
+            "modality": "POLICY_FACT",
+            "conditions": [
+              "Table Column: 12345"
+            ],
+            "exceptions": [],
+            "scope": {
+              "DEMO - Sliced Invoices": "Suite 5A-1204"
+            },
+            "claim_type": "policy_rule",
+            "extraction_strategy": "table_aware",
+            "evidence_text_span": "DEMO - Sliced Invoices: Suite 5A-1204 | 12345: January 25, 2016",
+            "locator": {
+              "line_start": 9,
+              "line_end": 9,
+              "start_char": 249,
+              "end_char": 301,
+              "table_id": "table_line_7",
+              "table_start_line": 7,
+              "row_index": 1,
+              "heading_path": [
+                "WordPress PDF Invoice Plugin Sample",
+                "Page 1"
+              ],
+              "paragraph_index": 3,
+              "filename": "wordpress-pdf-invoice-plugin-sample.pdf",
+              "file_extension": "pdf",
+              "file_size": 43627,
+              "document_type": "invoice",
+              "table_grid": {
+                "table_type": "policy_matrix",
+                "row_key": "Suite 5A-1204",
+                "row_scope": {
+                  "DEMO - Sliced Invoices": "Suite 5A-1204"
+                },
+                "col_header": "12345",
+                "cell_value": "January 25, 2016",
+                "unit": null,
+                "qualifiers": [],
+                "table_start_line": 7,
+                "row_line": 9
+              },
+              "grid_label": "Row 'Suite 5A-1204' • Col '12345' • Cell 'January 25, 2016'",
+              "section_context": [
+                "WordPress PDF Invoice Plugin Sample",
+                "Page 1"
+              ]
+            },
+            "structured_values": {
+              "columns": {
+                "DEMO - Sliced Invoices": "Suite 5A-1204",
+                "Order Number": "Invoice Date",
+                "12345": "January 25, 2016"
+              },
+              "scope": {
+                "DEMO - Sliced Invoices": "Suite 5A-1204"
+              },
+              "table_grid": {
+                "table_type": "policy_matrix",
+                "row_key": "Suite 5A-1204",
+                "row_scope": {
+                  "DEMO - Sliced Invoices": "Suite 5A-1204"
+                },
+                "col_header": "12345",
+                "cell_value": "January 25, 2016",
+                "unit": null,
+                "qualifiers": [],
+                "table_start_line": 7,
+                "row_line": 9
+              },
+              "section_context": [
+                "WordPress PDF Invoice Plugin Sample",
+                "Page 1"
+              ]
+            },
+            "is_canonical": true,
+            "cross_references": [],
+            "status": "verified",
+            "confidence": 0.98,
+            "is_ambiguous": false,
+            "ambiguity_reason": null,
+            "verification_plugin": "TextDocumentVerificationPlugin",
+            "verification_details": {
+              "quote_grounded": true,
+              "line_start": 9,
+              "line_end": 9,
+              "start_char": 249,
+              "end_char": 301,
+              "evidence_length": 92
+            },
+            "content_hash": "8ba3f62b61654211837b55d9c76cec37ca7d0c26b70912914e38d85dac986bfb",
+            "extracted_at": "2026-10-16T13:13:47.584153+00:00"
+          },
+          {
+            "candidate_id": "cand:c0380799-459c-49c8-a066-35dd965dc7ac:4:28c75b61e015:49f6c1aed3",
+            "envelope_id": "c0380799-459c-49c8-a066-35dd965dc7ac",
+            "unit_id": "c0380799-459c-49c8-a066-35dd965dc7ac:4:28c75b61e015",
+            "asset_id": "file://wordpress-pdf-invoice-plugin-sample.pdf",
+            "content_role": "policy_rule",
+            "run_id": null,
+            "source_unit_id": "c0380799-459c-49c8-a066-35dd965dc7ac:4:28c75b61e015",
+            "evidence_id": "ev:c0380799-459c-49c8-a066-35dd965dc7ac:4:28c75b61e015",
+            "table_binding": {
+              "table_id": "table_line_7",
+              "row_key": "123 Somewhere Street",
+              "column_header": "Order Number",
+              "cell_value": "Due Date",
+              "normalized_value": "Due Date",
+              "normalized_unit": null,
+              "row_index": 10,
+              "col_index": 1,
+              "is_merged_cell": false,
+              "qualifiers": [],
+              "typed_value": {
+                "value_type": "TEXT_RULE",
+                "scalar_min": null,
+                "scalar_max": null,
+                "unit": null,
+                "qualifier": null,
+                "duration_type": null,
+                "time_basis": null,
+                "reference_id": null,
+                "raw_text": "Due Date",
+                "structured_rule": null
+              }
+            },
+            "typed_value": {
+              "value_type": "TEXT_RULE",
+              "scalar_min": null,
+              "scalar_max": null,
+              "unit": null,
+              "qualifier": null,
+              "duration_type": null,
+              "time_basis": null,
+              "reference_id": null,
+              "raw_text": "Due Date",
+              "structured_rule": null
+            },
+            "claim_text": "123 Somewhere Street specifies Order Number as Due Date.",
+            "subject": "123 Somewhere Street",
+            "predicate": "has_order_number",
+            "object": "Due Date",
+            "value": "Due Date",
+            "unit": null,
+            "time_basis": null,
+            "deadline": null,
+            "qualifier": null,
+            "qualifiers": [],
+            "modal_operator": "specifies",
+            "modality": "POLICY_FACT",
+            "conditions": [
+              "Table Column: Order Number"
+            ],
+            "exceptions": [],
+            "scope": {
+              "DEMO - Sliced Invoices": "123 Somewhere Street"
+            },
+            "claim_type": "policy_rule",
+            "extraction_strategy": "table_aware",
+            "evidence_text_span": "DEMO - Sliced Invoices: 123 Somewhere Street | Order Number: Due Date",
+            "locator": {
+              "line_start": 10,
+              "line_end": 10,
+              "start_char": 301,
+              "end_char": 356,
+              "table_id": "table_line_7",
+              "table_start_line": 7,
+              "row_index": 2,
+              "heading_path": [
+                "WordPress PDF Invoice Plugin Sample",
+                "Page 1"
+              ],
+              "paragraph_index": 4,
+              "filename": "wordpress-pdf-invoice-plugin-sample.pdf",
+              "file_extension": "pdf",
+              "file_size": 43627,
+              "document_type": "invoice",
+              "table_grid": {
+                "table_type": "policy_matrix",
+                "row_key": "123 Somewhere Street",
+                "row_scope": {
+                  "DEMO - Sliced Invoices": "123 Somewhere Street"
+                },
+                "col_header": "Order Number",
+                "cell_value": "Due Date",
+                "unit": null,
+                "qualifiers": [],
+                "table_start_line": 7,
+                "row_line": 10
+              },
+              "grid_label": "Row '123 Somewhere Street' • Col 'Order Number' • Cell 'Due Date'",
+              "section_context": [
+                "WordPress PDF Invoice Plugin Sample",
+                "Page 1"
+              ]
+            },
+            "structured_values": {
+              "columns": {
+                "DEMO - Sliced Invoices": "123 Somewhere Street",
+                "Order Number": "Due Date",
+                "12345": "January 31, 2016"
+              },
+              "scope": {
+                "DEMO - Sliced Invoices": "123 Somewhere Street"
+              },
+              "table_grid": {
+                "table_type": "policy_matrix",
+                "row_key": "123 Somewhere Street",
+                "row_scope": {
+                  "DEMO - Sliced Invoices": "123 Somewhere Street"
+                },
+                "col_header": "Order Number",
+                "cell_value": "Due Date",
+                "unit": null,
+                "qualifiers": [],
+                "table_start_line": 7,
+                "row_line": 10
+              },
+              "section_context": [
+                "WordPress PDF Invoice Plugin Sample",
+                "Page 1"
+              ]
+            },
+            "is_canonical": true,
+            "cross_references": [],
+            "status": "verified",
+            "confidence": 0.98,
+            "is_ambiguous": false,
+            "ambiguity_reason": null,
+            "verification_plugin": "TextDocumentVerificationPlugin",
+            "verification_details": {
+              "quote_grounded": true,
+              "line_start": 10,
+              "line_end": 10,
+              "start_char": 301,
+              "end_char": 356,
+              "evidence_length": 95
+            },
+            "content_hash": "49f6c1aed34bc3ff324fd7e74de93517c0fb7d5c00acab94e1f91e12a040e585",
+            "extracted_at": "2026-10-16T13:13:47.585157+00:00"
+          },
+          {
+            "candidate_id": "cand:c0380799-459c-49c8-a066-35dd965dc7ac:4:28c75b61e015:9440d18786",
+            "envelope_id": "c0380799-459c-49c8-a066-35dd965dc7ac",
+            "unit_id": "c0380799-459c-49c8-a066-35dd965dc7ac:4:28c75b61e015",
+            "asset_id": "file://wordpress-pdf-invoice-plugin-sample.pdf",
+            "content_role": "policy_rule",
+            "run_id": null,
+            "source_unit_id": "c0380799-459c-49c8-a066-35dd965dc7ac:4:28c75b61e015",
+            "evidence_id": "ev:c0380799-459c-49c8-a066-35dd965dc7ac:4:28c75b61e015",
+            "table_binding": {
+              "table_id": "table_line_7",
+              "row_key": "123 Somewhere Street",
+              "column_header": "12345",
+              "cell_value": "January 31, 2016",
+              "normalized_value": {
+                "type": "calendar_date",
+                "rule": "january_31_following_year"
+              },
+              "normalized_unit": null,
+              "row_index": 10,
+              "col_index": 2,
+              "is_merged_cell": false,
+              "qualifiers": [],
+              "typed_value": {
+                "value_type": "CALENDAR_DEADLINE",
+                "scalar_min": null,
+                "scalar_max": null,
+                "unit": null,
+                "qualifier": null,
+                "duration_type": null,
+                "time_basis": "calendar_date",
+                "reference_id": null,
+                "raw_text": "January 31, 2016",
+                "structured_rule": {
+                  "type": "calendar_date",
+                  "rule": "january_31_following_year"
+                }
+              }
+            },
+            "typed_value": {
+              "value_type": "CALENDAR_DEADLINE",
+              "scalar_min": null,
+              "scalar_max": null,
+              "unit": null,
+              "qualifier": null,
+              "duration_type": null,
+              "time_basis": "calendar_date",
+              "reference_id": null,
+              "raw_text": "January 31, 2016",
+              "structured_rule": {
+                "type": "calendar_date",
+                "rule": "january_31_following_year"
+              }
+            },
+            "claim_text": "123 Somewhere Street specifies 12345 as January 31, 2016.",
+            "subject": "123 Somewhere Street",
+            "predicate": "has_12345",
+            "object": "January 31, 2016",
+            "value": {
+              "type": "calendar_date",
+              "rule": "january_31_following_year"
+            },
+            "unit": null,
+            "time_basis": "calendar_date",
+            "deadline": null,
+            "qualifier": null,
+            "qualifiers": [],
+            "modal_operator": "specifies",
+            "modality": "POLICY_FACT",
+            "conditions": [
+              {
+                "field": "purchase_date",
+                "operator": "between",
+                "value": [
+                  "11-01",
+                  "12-24"
+                ]
+              }
+            ],
+            "exceptions": [],
+            "scope": {
+              "DEMO - Sliced Invoices": "123 Somewhere Street"
+            },
+            "claim_type": "policy_rule",
+            "extraction_strategy": "table_aware",
+            "evidence_text_span": "DEMO - Sliced Invoices: 123 Somewhere Street | 12345: January 31, 2016",
+            "locator": {
+              "line_start": 10,
+              "line_end": 10,
+              "start_char": 301,
+              "end_char": 356,
+              "table_id": "table_line_7",
+              "table_start_line": 7,
+              "row_index": 2,
+              "heading_path": [
+                "WordPress PDF Invoice Plugin Sample",
+                "Page 1"
+              ],
+              "paragraph_index": 4,
+              "filename": "wordpress-pdf-invoice-plugin-sample.pdf",
+              "file_extension": "pdf",
+              "file_size": 43627,
+              "document_type": "invoice",
+              "table_grid": {
+                "table_type": "policy_matrix",
+                "row_key": "123 Somewhere Street",
+                "row_scope": {
+                  "DEMO - Sliced Invoices": "123 Somewhere Street"
+                },
+                "col_header": "12345",
+                "cell_value": "January 31, 2016",
+                "unit": null,
+                "qualifiers": [],
+                "table_start_line": 7,
+                "row_line": 10
+              },
+              "grid_label": "Row '123 Somewhere Street' • Col '12345' • Cell 'January 31, 2016'",
+              "section_context": [
+                "WordPress PDF Invoice Plugin Sample",
+                "Page 1"
+              ]
+            },
+            "structured_values": {
+              "columns": {
+                "DEMO - Sliced Invoices": "123 Somewhere Street",
+                "Order Number": "Due Date",
+                "12345": "January 31, 2016"
+              },
+              "scope": {
+                "DEMO - Sliced Invoices": "123 Somewhere Street"
+              },
+              "table_grid": {
+                "table_type": "policy_matrix",
+                "row_key": "123 Somewhere Street",
+                "row_scope": {
+                  "DEMO - Sliced Invoices": "123 Somewhere Street"
+                },
+                "col_header": "12345",
+                "cell_value": "January 31, 2016",
+                "unit": null,
+                "qualifiers": [],
+                "table_start_line": 7,
+                "row_line": 10
+              },
+              "section_context": [
+                "WordPress PDF Invoice Plugin Sample",
+                "Page 1"
+              ]
+            },
+            "is_canonical": true,
+            "cross_references": [],
+            "status": "verified",
+            "confidence": 0.98,
+            "is_ambiguous": false,
+            "ambiguity_reason": null,
+            "verification_plugin": "TextDocumentVerificationPlugin",
+            "verification_details": {
+              "quote_grounded": true,
+              "line_start": 10,
+              "line_end": 10,
+              "start_char": 301,
+              "end_char": 356,
+              "evidence_length": 95
+            },
+            "content_hash": "9440d18786f5bb45b510a98e4b3ee5f9c24e5e190e52166b1b3d2ae99aeeec6e",
+            "extracted_at": "2026-10-16T13:13:47.586156+00:00"
+          },
+          {
+            "candidate_id": "cand:c0380799-459c-49c8-a066-35dd965dc7ac:5:3b93494ce177:45cdb774d5",
+            "envelope_id": "c0380799-459c-49c8-a066-35dd965dc7ac",
+            "unit_id": "c0380799-459c-49c8-a066-35dd965dc7ac:5:3b93494ce177",
+            "asset_id": "file://wordpress-pdf-invoice-plugin-sample.pdf",
+            "content_role": "policy_rule",
+            "run_id": null,
+            "source_unit_id": "c0380799-459c-49c8-a066-35dd965dc7ac:5:3b93494ce177",
+            "evidence_id": "ev:c0380799-459c-49c8-a066-35dd965dc7ac:5:3b93494ce177",
+            "table_binding": {
+              "table_id": "table_line_7",
+              "row_key": "Your City AZ 12345 admin@slicedinvoices.com",
+              "column_header": "Order Number",
+              "cell_value": "Total Due",
+              "normalized_value": "Total Due",
+              "normalized_unit": null,
+              "row_index": 11,
+              "col_index": 1,
+              "is_merged_cell": false,
+              "qualifiers": [],
+              "typed_value": {
+                "value_type": "TEXT_RULE",
+                "scalar_min": null,
+                "scalar_max": null,
+                "unit": null,
+                "qualifier": null,
+                "duration_type": null,
+                "time_basis": null,
+                "reference_id": null,
+                "raw_text": "Total Due",
+                "structured_rule": null
+              }
+            },
+            "typed_value": {
+              "value_type": "TEXT_RULE",
+              "scalar_min": null,
+              "scalar_max": null,
+              "unit": null,
+              "qualifier": null,
+              "duration_type": null,
+              "time_basis": null,
+              "reference_id": null,
+              "raw_text": "Total Due",
+              "structured_rule": null
+            },
+            "claim_text": "Your City AZ 12345 admin@slicedinvoices.com specifies Order Number as Total Due.",
+            "subject": "Your City AZ 12345 admin@slicedinvoices.com",
+            "predicate": "has_order_number",
+            "object": "Total Due",
+            "value": "Total Due",
+            "unit": null,
+            "time_basis": null,
+            "deadline": null,
+            "qualifier": null,
+            "qualifiers": [],
+            "modal_operator": "specifies",
+            "modality": "POLICY_FACT",
+            "conditions": [
+              "Table Column: Order Number"
+            ],
+            "exceptions": [],
+            "scope": {
+              "DEMO - Sliced Invoices": "Your City AZ 12345 admin@slicedinvoices.com"
+            },
+            "claim_type": "policy_rule",
+            "extraction_strategy": "table_aware",
+            "evidence_text_span": "DEMO - Sliced Invoices: Your City AZ 12345 admin@slicedinvoices.com | Order Number: Total Due",
+            "locator": {
+              "line_start": 11,
+              "line_end": 11,
+              "start_char": 356,
+              "end_char": 425,
+              "table_id": "table_line_7",
+              "table_start_line": 7,
+              "row_index": 3,
+              "heading_path": [
+                "WordPress PDF Invoice Plugin Sample",
+                "Page 1"
+              ],
+              "paragraph_index": 5,
+              "filename": "wordpress-pdf-invoice-plugin-sample.pdf",
+              "file_extension": "pdf",
+              "file_size": 43627,
+              "document_type": "invoice",
+              "table_grid": {
+                "table_type": "policy_matrix",
+                "row_key": "Your City AZ 12345 admin@slicedinvoices.com",
+                "row_scope": {
+                  "DEMO - Sliced Invoices": "Your City AZ 12345 admin@slicedinvoices.com"
+                },
+                "col_header": "Order Number",
+                "cell_value": "Total Due",
+                "unit": null,
+                "qualifiers": [],
+                "table_start_line": 7,
+                "row_line": 11
+              },
+              "grid_label": "Row 'Your City AZ 12345 admin@slicedinvoices.com' • Col 'Order Number' • Cell 'Total Due'",
+              "section_context": [
+                "WordPress PDF Invoice Plugin Sample",
+                "Page 1"
+              ]
+            },
+            "structured_values": {
+              "columns": {
+                "DEMO - Sliced Invoices": "Your City AZ 12345 admin@slicedinvoices.com",
+                "Order Number": "Total Due",
+                "12345": "$93.50"
+              },
+              "scope": {
+                "DEMO - Sliced Invoices": "Your City AZ 12345 admin@slicedinvoices.com"
+              },
+              "table_grid": {
+                "table_type": "policy_matrix",
+                "row_key": "Your City AZ 12345 admin@slicedinvoices.com",
+                "row_scope": {
+                  "DEMO - Sliced Invoices": "Your City AZ 12345 admin@slicedinvoices.com"
+                },
+                "col_header": "Order Number",
+                "cell_value": "Total Due",
+                "unit": null,
+                "qualifiers": [],
+                "table_start_line": 7,
+                "row_line": 11
+              },
+              "section_context": [
+                "WordPress PDF Invoice Plugin Sample",
+                "Page 1"
+              ]
+            },
+            "is_canonical": true,
+            "cross_references": [],
+            "status": "verified",
+            "confidence": 0.98,
+            "is_ambiguous": false,
+            "ambiguity_reason": null,
+            "verification_plugin": "TextDocumentVerificationPlugin",
+            "verification_details": {
+              "quote_grounded": true,
+              "line_start": 11,
+              "line_end": 11,
+              "start_char": 356,
+              "end_char": 425,
+              "evidence_length": 109
+            },
+            "content_hash": "45cdb774d528c728268f565fd011921765a95573e53dc3b4fd8289f4ebe9add5",
+            "extracted_at": "2026-10-16T13:13:47.587666+00:00"
+          },
+          {
+            "candidate_id": "cand:c0380799-459c-49c8-a066-35dd965dc7ac:5:3b93494ce177:efd860f4e6",
+            "envelope_id": "c0380799-459c-49c8-a066-35dd965dc7ac",
+            "unit_id": "c0380799-459c-49c8-a066-35dd965dc7ac:5:3b93494ce177",
+            "asset_id": "file://wordpress-pdf-invoice-plugin-sample.pdf",
+            "content_role": "policy_rule",
+            "run_id": null,
+            "source_unit_id": "c0380799-459c-49c8-a066-35dd965dc7ac:5:3b93494ce177",
+            "evidence_id": "ev:c0380799-459c-49c8-a066-35dd965dc7ac:5:3b93494ce177",
+            "table_binding": {
+              "table_id": "table_line_7",
+              "row_key": "Your City AZ 12345 admin@slicedinvoices.com",
+              "column_header": "12345",
+              "cell_value": "$93.50",
+              "normalized_value": 93.5,
+              "normalized_unit": null,
+              "row_index": 11,
+              "col_index": 2,
+              "is_merged_cell": false,
+              "qualifiers": [],
+              "typed_value": {
+                "value_type": "CURRENCY",
+                "scalar_min": 93.5,
+                "scalar_max": 93.5,
+                "unit": "USD",
+                "qualifier": null,
+                "duration_type": null,
+                "time_basis": null,
+                "reference_id": null,
+                "raw_text": "$93.50",
+                "structured_rule": null
+              }
+            },
+            "typed_value": {
+              "value_type": "CURRENCY",
+              "scalar_min": 93.5,
+              "scalar_max": 93.5,
+              "unit": "USD",
+              "qualifier": null,
+              "duration_type": null,
+              "time_basis": null,
+              "reference_id": null,
+              "raw_text": "$93.50",
+              "structured_rule": null
+            },
+            "claim_text": "Your City AZ 12345 admin@slicedinvoices.com specifies 12345 as $93.50.",
+            "subject": "Your City AZ 12345 admin@slicedinvoices.com",
+            "predicate": "has_12345",
+            "object": "$93.50",
+            "value": 93.5,
+            "unit": null,
+            "time_basis": null,
+            "deadline": null,
+            "qualifier": null,
+            "qualifiers": [],
+            "modal_operator": "specifies",
+            "modality": "POLICY_FACT",
+            "conditions": [
+              "Table Column: 12345"
+            ],
+            "exceptions": [],
+            "scope": {
+              "DEMO - Sliced Invoices": "Your City AZ 12345 admin@slicedinvoices.com"
+            },
+            "claim_type": "policy_rule",
+            "extraction_strategy": "table_aware",
+            "evidence_text_span": "DEMO - Sliced Invoices: Your City AZ 12345 admin@slicedinvoices.com | 12345: $93.50",
+            "locator": {
+              "line_start": 11,
+              "line_end": 11,
+              "start_char": 356,
+              "end_char": 425,
+              "table_id": "table_line_7",
+              "table_start_line": 7,
+              "row_index": 3,
+              "heading_path": [
+                "WordPress PDF Invoice Plugin Sample",
+                "Page 1"
+              ],
+              "paragraph_index": 5,
+              "filename": "wordpress-pdf-invoice-plugin-sample.pdf",
+              "file_extension": "pdf",
+              "file_size": 43627,
+              "document_type": "invoice",
+              "table_grid": {
+                "table_type": "policy_matrix",
+                "row_key": "Your City AZ 12345 admin@slicedinvoices.com",
+                "row_scope": {
+                  "DEMO - Sliced Invoices": "Your City AZ 12345 admin@slicedinvoices.com"
+                },
+                "col_header": "12345",
+                "cell_value": "$93.50",
+                "unit": null,
+                "qualifiers": [],
+                "table_start_line": 7,
+                "row_line": 11
+              },
+              "grid_label": "Row 'Your City AZ 12345 admin@slicedinvoices.com' • Col '12345' • Cell '$93.50'",
+              "section_context": [
+                "WordPress PDF Invoice Plugin Sample",
+                "Page 1"
+              ]
+            },
+            "structured_values": {
+              "columns": {
+                "DEMO - Sliced Invoices": "Your City AZ 12345 admin@slicedinvoices.com",
+                "Order Number": "Total Due",
+                "12345": "$93.50"
+              },
+              "scope": {
+                "DEMO - Sliced Invoices": "Your City AZ 12345 admin@slicedinvoices.com"
+              },
+              "table_grid": {
+                "table_type": "policy_matrix",
+                "row_key": "Your City AZ 12345 admin@slicedinvoices.com",
+                "row_scope": {
+                  "DEMO - Sliced Invoices": "Your City AZ 12345 admin@slicedinvoices.com"
+                },
+                "col_header": "12345",
+                "cell_value": "$93.50",
+                "unit": null,
+                "qualifiers": [],
+                "table_start_line": 7,
+                "row_line": 11
+              },
+              "section_context": [
+                "WordPress PDF Invoice Plugin Sample",
+                "Page 1"
+              ]
+            },
+            "is_canonical": true,
+            "cross_references": [],
+            "status": "verified",
+            "confidence": 0.98,
+            "is_ambiguous": false,
+            "ambiguity_reason": null,
+            "verification_plugin": "TextDocumentVerificationPlugin",
+            "verification_details": {
+              "quote_grounded": true,
+              "line_start": 11,
+              "line_end": 11,
+              "start_char": 356,
+              "end_char": 425,
+              "evidence_length": 109
+            },
+            "content_hash": "efd860f4e6b3b220d4991dca909a324bef7c6db2f5ef47085a4f1d047190d22c",
+            "extracted_at": "2026-10-16T13:13:47.588727+00:00"
+          },
+          {
+            "candidate_id": "cand:c0380799-459c-49c8-a066-35dd965dc7ac:10:3dc370382b39:fb2d5575c2",
+            "envelope_id": "c0380799-459c-49c8-a066-35dd965dc7ac",
+            "unit_id": "c0380799-459c-49c8-a066-35dd965dc7ac:10:3dc370382b39",
+            "asset_id": "file://wordpress-pdf-invoice-plugin-sample.pdf",
+            "content_role": "policy_rule",
+            "run_id": null,
+            "source_unit_id": "c0380799-459c-49c8-a066-35dd965dc7ac:10:3dc370382b39",
+            "evidence_id": "ev:c0380799-459c-49c8-a066-35dd965dc7ac:10:3dc370382b39",
+            "table_binding": {
+              "table_id": "table_line_20",
+              "row_key": "Tax",
+              "column_header": "$85.00",
+              "cell_value": "$8.50",
+              "normalized_value": 8.5,
+              "normalized_unit": null,
+              "row_index": 22,
+              "col_index": 1,
+              "is_merged_cell": false,
+              "qualifiers": [],
+              "typed_value": {
+                "value_type": "CURRENCY",
+                "scalar_min": 8.5,
+                "scalar_max": 8.5,
+                "unit": "USD",
+                "qualifier": null,
+                "duration_type": null,
+                "time_basis": null,
+                "reference_id": null,
+                "raw_text": "$8.50",
+                "structured_rule": null
+              }
+            },
+            "typed_value": {
+              "value_type": "CURRENCY",
+              "scalar_min": 8.5,
+              "scalar_max": 8.5,
+              "unit": "USD",
+              "qualifier": null,
+              "duration_type": null,
+              "time_basis": null,
+              "reference_id": null,
+              "raw_text": "$8.50",
+              "structured_rule": null
+            },
+            "claim_text": "Tax specifies $85.00 as $8.50.",
+            "subject": "Tax",
+            "predicate": "has_85_00",
+            "object": "$8.50",
+            "value": 8.5,
+            "unit": null,
+            "time_basis": null,
+            "deadline": null,
+            "qualifier": null,
+            "qualifiers": [],
+            "modal_operator": "specifies",
+            "modality": "POLICY_FACT",
+            "conditions": [
+              "Table Column: $85.00"
+            ],
+            "exceptions": [],
+            "scope": {
+              "Total": "Tax"
+            },
+            "claim_type": "policy_rule",
+            "extraction_strategy": "table_aware",
+            "evidence_text_span": "Total: Tax | $85.00: $8.50",
+            "locator": {
+              "line_start": 22,
+              "line_end": 22,
+              "start_char": 824,
+              "end_char": 840,
+              "table_id": "table_line_20",
+              "table_start_line": 20,
+              "row_index": 1,
+              "heading_path": [
+                "WordPress PDF Invoice Plugin Sample",
+                "Page 1",
+                "1.00 Web Design                                                            $85.00                0.00%               $85.00 This is a sample description..."
+              ],
+              "paragraph_index": 10,
+              "filename": "wordpress-pdf-invoice-plugin-sample.pdf",
+              "file_extension": "pdf",
+              "file_size": 43627,
+              "document_type": "invoice",
+              "table_grid": {
+                "table_type": "policy_matrix",
+                "row_key": "Tax",
+                "row_scope": {
+                  "Total": "Tax"
+                },
+                "col_header": "$85.00",
+                "cell_value": "$8.50",
+                "unit": null,
+                "qualifiers": [],
+                "table_start_line": 20,
+                "row_line": 22
+              },
+              "grid_label": "Row 'Tax' • Col '$85.00' • Cell '$8.50'",
+              "section_context": [
+                "WordPress PDF Invoice Plugin Sample",
+                "Page 1",
+                "1.00 Web Design                                                            $85.00                0.00%               $85.00 This is a sample description..."
+              ]
+            },
+            "structured_values": {
+              "columns": {
+                "Total": "Tax",
+                "$85.00": "$8.50"
+              },
+              "scope": {
+                "Total": "Tax"
+              },
+              "table_grid": {
+                "table_type": "policy_matrix",
+                "row_key": "Tax",
+                "row_scope": {
+                  "Total": "Tax"
+                },
+                "col_header": "$85.00",
+                "cell_value": "$8.50",
+                "unit": null,
+                "qualifiers": [],
+                "table_start_line": 20,
+                "row_line": 22
+              },
+              "section_context": [
+                "WordPress PDF Invoice Plugin Sample",
+                "Page 1",
+                "1.00 Web Design                                                            $85.00                0.00%               $85.00 This is a sample description..."
+              ]
+            },
+            "is_canonical": true,
+            "cross_references": [],
+            "status": "verified",
+            "confidence": 0.98,
+            "is_ambiguous": false,
+            "ambiguity_reason": null,
+            "verification_plugin": "TextDocumentVerificationPlugin",
+            "verification_details": {
+              "quote_grounded": true,
+              "line_start": 22,
+              "line_end": 22,
+              "start_char": 824,
+              "end_char": 840,
+              "evidence_length": 26
+            },
+            "content_hash": "fb2d5575c23b85025f2d864577613404762f93acc52b972cfab9e2b3a6c98594",
+            "extracted_at": "2026-10-16T13:13:47.593496+00:00"
+          },
+          {
+            "candidate_id": "cand:c0380799-459c-49c8-a066-35dd965dc7ac:11:4243bff3f726:85c4b63788",
+            "envelope_id": "c0380799-459c-49c8-a066-35dd965dc7ac",
+            "unit_id": "c0380799-459c-49c8-a066-35dd965dc7ac:11:4243bff3f726",
+            "asset_id": "file://wordpress-pdf-invoice-plugin-sample.pdf",
+            "content_role": "policy_rule",
+            "run_id": null,
+            "source_unit_id": "c0380799-459c-49c8-a066-35dd965dc7ac:11:4243bff3f726",
+            "evidence_id": "ev:c0380799-459c-49c8-a066-35dd965dc7ac:11:4243bff3f726",
+            "table_binding": {
+              "table_id": "table_line_20",
+              "row_key": "Total",
+              "column_header": "$85.00",
+              "cell_value": "$93.50",
+              "normalized_value": 93.5,
+              "normalized_unit": null,
+              "row_index": 23,
+              "col_index": 1,
+              "is_merged_cell": false,
+              "qualifiers": [],
+              "typed_value": {
+                "value_type": "CURRENCY",
+                "scalar_min": 93.5,
+                "scalar_max": 93.5,
+                "unit": "USD",
+                "qualifier": null,
+                "duration_type": null,
+                "time_basis": null,
+                "reference_id": null,
+                "raw_text": "$93.50",
+                "structured_rule": null
+              }
+            },
+            "typed_value": {
+              "value_type": "CURRENCY",
+              "scalar_min": 93.5,
+              "scalar_max": 93.5,
+              "unit": "USD",
+              "qualifier": null,
+              "duration_type": null,
+              "time_basis": null,
+              "reference_id": null,
+              "raw_text": "$93.50",
+              "structured_rule": null
+            },
+            "claim_text": "Total specifies $85.00 as $93.50.",
+            "subject": "Total",
+            "predicate": "has_85_00",
+            "object": "$93.50",
+            "value": 93.5,
+            "unit": null,
+            "time_basis": null,
+            "deadline": null,
+            "qualifier": null,
+            "qualifiers": [],
+            "modal_operator": "specifies",
+            "modality": "POLICY_FACT",
+            "conditions": [
+              "Table Column: $85.00"
+            ],
+            "exceptions": [],
+            "scope": {
+              "Total": "Total"
+            },
+            "claim_type": "policy_rule",
+            "extraction_strategy": "table_aware",
+            "evidence_text_span": "Total: Total | $85.00: $93.50",
+            "locator": {
+              "line_start": 23,
+              "line_end": 23,
+              "start_char": 840,
+              "end_char": 859,
+              "table_id": "table_line_20",
+              "table_start_line": 20,
+              "row_index": 2,
+              "heading_path": [
+                "WordPress PDF Invoice Plugin Sample",
+                "Page 1",
+                "1.00 Web Design                                                            $85.00                0.00%               $85.00 This is a sample description..."
+              ],
+              "paragraph_index": 11,
+              "filename": "wordpress-pdf-invoice-plugin-sample.pdf",
+              "file_extension": "pdf",
+              "file_size": 43627,
+              "document_type": "invoice",
+              "table_grid": {
+                "table_type": "policy_matrix",
+                "row_key": "Total",
+                "row_scope": {
+                  "Total": "Total"
+                },
+                "col_header": "$85.00",
+                "cell_value": "$93.50",
+                "unit": null,
+                "qualifiers": [],
+                "table_start_line": 20,
+                "row_line": 23
+              },
+              "grid_label": "Row 'Total' • Col '$85.00' • Cell '$93.50'",
+              "section_context": [
+                "WordPress PDF Invoice Plugin Sample",
+                "Page 1",
+                "1.00 Web Design                                                            $85.00                0.00%               $85.00 This is a sample description..."
+              ]
+            },
+            "structured_values": {
+              "columns": {
+                "Total": "Total",
+                "$85.00": "$93.50"
+              },
+              "scope": {
+                "Total": "Total"
+              },
+              "table_grid": {
+                "table_type": "policy_matrix",
+                "row_key": "Total",
+                "row_scope": {
+                  "Total": "Total"
+                },
+                "col_header": "$85.00",
+                "cell_value": "$93.50",
+                "unit": null,
+                "qualifiers": [],
+                "table_start_line": 20,
+                "row_line": 23
+              },
+              "section_context": [
+                "WordPress PDF Invoice Plugin Sample",
+                "Page 1",
+                "1.00 Web Design                                                            $85.00                0.00%               $85.00 This is a sample description..."
+              ]
+            },
+            "is_canonical": true,
+            "cross_references": [],
+            "status": "verified",
+            "confidence": 0.98,
+            "is_ambiguous": false,
+            "ambiguity_reason": null,
+            "verification_plugin": "TextDocumentVerificationPlugin",
+            "verification_details": {
+              "quote_grounded": true,
+              "line_start": 23,
+              "line_end": 23,
+              "start_char": 840,
+              "end_char": 859,
+              "evidence_length": 29
+            },
+            "content_hash": "85c4b63788a78545f62a26dad50b7d39664c4a9e0be844576f1aff5aac9fbc3d",
+            "extracted_at": "2026-10-16T13:13:47.595196+00:00"
+          },
+          {
+            "candidate_id": "cand:c0380799-459c-49c8-a066-35dd965dc7ac:12:a0ab2d55013f:95a973bd61",
+            "envelope_id": "c0380799-459c-49c8-a066-35dd965dc7ac",
+            "unit_id": "c0380799-459c-49c8-a066-35dd965dc7ac:12:a0ab2d55013f",
+            "asset_id": "file://wordpress-pdf-invoice-plugin-sample.pdf",
+            "content_role": "policy_rule",
+            "run_id": null,
+            "source_unit_id": "c0380799-459c-49c8-a066-35dd965dc7ac:12:a0ab2d55013f",
+            "evidence_id": "ev:c0380799-459c-49c8-a066-35dd965dc7ac:12:a0ab2d55013f",
+            "table_binding": null,
+            "typed_value": null,
+            "claim_text": "ANZ Bank ACC # 1234 1234 BSB # 4321 432 Paid Payment is due within 30 days from date of invoice.",
+            "subject": "Web Design $85",
+            "predicate": "has_return_window",
+            "object": "ANZ Bank ACC # 1234 1234 BSB # 4321 432 Paid Payment is due within 30 days from date of invoice.",
+            "value": null,
+            "unit": null,
+            "time_basis": null,
+            "deadline": null,
+            "qualifier": null,
+            "qualifiers": [],
+            "modal_operator": "specifies",
+            "modality": "POLICY_FACT",
+            "conditions": [],
+            "exceptions": [],
+            "scope": {},
+            "claim_type": "policy",
+            "extraction_strategy": "llm_semantic",
+            "evidence_text_span": "ANZ Bank ACC # 1234 1234 BSB # 4321 432                                      Paid Payment is due within 30 days from date of invoice.",
+            "locator": {
+              "line_start": 25,
+              "line_end": 25,
+              "start_char": 860,
+              "end_char": 1043,
+              "heading_path": [
+                "WordPress PDF Invoice Plugin Sample",
+                "Page 1",
+                "1.00 Web Design                                                            $85.00                0.00%               $85.00 This is a sample description..."
+              ],
+              "paragraph_index": 12,
+              "filename": "wordpress-pdf-invoice-plugin-sample.pdf",
+              "file_extension": "pdf",
+              "file_size": 43627,
+              "document_type": "invoice",
+              "sentence_index": 0
+            },
+            "structured_values": {
+              "raw_sentence": "ANZ Bank ACC # 1234 1234 BSB # 4321 432                                      Paid Payment is due within 30 days from date of invoice."
+            },
+            "is_canonical": true,
+            "cross_references": [],
+            "status": "verified",
+            "confidence": 0.9,
+            "is_ambiguous": false,
+            "ambiguity_reason": null,
+            "verification_plugin": "TextDocumentVerificationPlugin",
+            "verification_details": {
+              "quote_grounded": true,
+              "line_start": 25,
+              "line_end": 25,
+              "start_char": 860,
+              "end_char": 1043,
+              "evidence_length": 182
+            },
+            "content_hash": "95a973bd617f9bdba9ba657782bef1d625c843377821067d179215c5a02326ca",
+            "extracted_at": "2026-10-16T13:13:47.914611+00:00"
+          },
+          {
+            "candidate_id": "cand:c0380799-459c-49c8-a066-35dd965dc7ac:12:a0ab2d55013f:d854914c29",
+            "envelope_id": "c0380799-459c-49c8-a066-35dd965dc7ac",
+            "unit_id": "c0380799-459c-49c8-a066-35dd965dc7ac:12:a0ab2d55013f",
+            "asset_id": "file://wordpress-pdf-invoice-plugin-sample.pdf",
+            "content_role": "policy_rule",
+            "run_id": null,
+            "source_unit_id": "c0380799-459c-49c8-a066-35dd965dc7ac:12:a0ab2d55013f",
+            "evidence_id": "ev:c0380799-459c-49c8-a066-35dd965dc7ac:12:a0ab2d55013f",
+            "table_binding": null,
+            "typed_value": null,
+            "claim_text": "Late payment is subject to fees of 5% per month.",
+            "subject": "Web Design $85",
+            "predicate": "may_apply_administration_fee",
+            "object": "Late payment is subject to fees of 5% per month.",
+            "value": null,
+            "unit": null,
+            "time_basis": null,
+            "deadline": null,
+            "qualifier": null,
+            "qualifiers": [],
+            "modal_operator": "specifies",
+            "modality": "POLICY_FACT",
+            "conditions": [],
+            "exceptions": [],
+            "scope": {},
+            "claim_type": "policy",
+            "extraction_strategy": "llm_semantic",
+            "evidence_text_span": "Late payment is subject to fees of 5% per month.",
+            "locator": {
+              "line_start": 25,
+              "line_end": 25,
+              "start_char": 860,
+              "end_char": 1043,
+              "heading_path": [
+                "WordPress PDF Invoice Plugin Sample",
+                "Page 1",
+                "1.00 Web Design                                                            $85.00                0.00%               $85.00 This is a sample description..."
+              ],
+              "paragraph_index": 12,
+              "filename": "wordpress-pdf-invoice-plugin-sample.pdf",
+              "file_extension": "pdf",
+              "file_size": 43627,
+              "document_type": "invoice",
+              "sentence_index": 1
+            },
+            "structured_values": {
+              "raw_sentence": "Late payment is subject to fees of 5% per month."
+            },
+            "is_canonical": true,
+            "cross_references": [],
+            "status": "verified",
+            "confidence": 0.9,
+            "is_ambiguous": false,
+            "ambiguity_reason": null,
+            "verification_plugin": "TextDocumentVerificationPlugin",
+            "verification_details": {
+              "quote_grounded": true,
+              "line_start": 25,
+              "line_end": 25,
+              "start_char": 860,
+              "end_char": 1043,
+              "evidence_length": 182
+            },
+            "content_hash": "d854914c298cac6c0151b0f4a7fc07175f297c5fb0f109367a1ac61e85a797d9",
+            "extracted_at": "2026-10-16T13:13:47.915612+00:00"
+          }
+        ]
+      },
+      "layer_6_validation_gate": {
+        "claims_approved": 7,
+        "claims_queued_for_review": 1,
+        "claims_rejected": 2,
+        "average_trust_score": 0.9507,
+        "evaluations": [
+          {
+            "candidate_id": "cand:c0380799-459c-49c8-a066-35dd965dc7ac:3:6bd270a0ed6f:5bd4319808",
+            "envelope_id": "c0380799-459c-49c8-a066-35dd965dc7ac",
+            "asset_id": "file://wordpress-pdf-invoice-plugin-sample.pdf",
+            "claim_text": "Suite 5A-1204 specifies Order Number as Invoice Date.",
+            "subject": "Suite 5A-1204",
+            "predicate": "has_order_number",
+            "object": "",
+            "evidence_text_span": "DEMO - Sliced Invoices: Suite 5A-1204 | Order Number: Invoice Date",
+            "claim_type": "policy_rule",
+            "modality": "POLICY_FACT",
+            "conditions": [
+              "Table Column: Order Number"
+            ],
+            "value": "Invoice Date",
+            "unit": null,
+            "scope": {
+              "DEMO - Sliced Invoices": "Suite 5A-1204"
+            },
+            "locator": {
+              "line_start": 9,
+              "line_end": 9,
+              "start_char": 249,
+              "end_char": 301,
+              "table_id": "table_line_7",
+              "table_start_line": 7,
+              "row_index": 1,
+              "heading_path": [
+                "WordPress PDF Invoice Plugin Sample",
+                "Page 1"
+              ],
+              "paragraph_index": 3,
+              "filename": "wordpress-pdf-invoice-plugin-sample.pdf",
+              "file_extension": "pdf",
+              "file_size": 43627,
+              "document_type": "invoice",
+              "table_grid": {
+                "table_type": "policy_matrix",
+                "row_key": "Suite 5A-1204",
+                "row_scope": {
+                  "DEMO - Sliced Invoices": "Suite 5A-1204"
+                },
+                "col_header": "Order Number",
+                "cell_value": "Invoice Date",
+                "unit": null,
+                "qualifiers": [],
+                "table_start_line": 7,
+                "row_line": 9
+              },
+              "grid_label": "Row 'Suite 5A-1204' • Col 'Order Number' • Cell 'Invoice Date'",
+              "section_context": [
+                "WordPress PDF Invoice Plugin Sample",
+                "Page 1"
+              ]
+            },
+            "is_ambiguous": false,
+            "ambiguity_reason": null,
+            "dimensions": {
+              "source_match": {
+                "dimension_name": "source_match",
+                "status": "pass",
+                "score": 1.0,
+                "passed": true,
+                "reason": "Cryptographically verified by Layer 5 plugin `TextDocumentVerificationPlugin`.",
+                "details": {
+                  "plugin": "TextDocumentVerificationPlugin",
+                  "quote_grounded": true,
+                  "line_start": 9,
+                  "line_end": 9,
+                  "start_char": 249,
+                  "end_char": 301,
+                  "evidence_length": 92
+                }
+              },
+              "completeness": {
+                "dimension_name": "completeness",
+                "status": "complete",
+                "score": 1.0,
+                "passed": true,
+                "reason": "Subject-Predicate-Object semantics, conditions, and evidence coordinates are 100% complete.",
+                "details": {
+                  "subject": "Suite 5A-1204",
+                  "predicate": "has_order_number",
+                  "object": "Invoice Date",
+                  "conditions": [
+                    "Table Column: Order Number"
+                  ],
+                  "value": "Invoice Date",
+                  "unit": null,
+                  "scope": {
+                    "DEMO - Sliced Invoices": "Suite 5A-1204"
+                  }
+                }
+              },
+              "meaning": {
+                "dimension_name": "meaning",
+                "status": "supported",
+                "score": 0.98,
+                "passed": true,
+                "reason": "Clear assertion with verified deontic alignment and strong grounding confidence.",
+                "details": {
+                  "confidence": 0.98,
+                  "modality": "POLICY_FACT"
+                }
+              },
+              "scope": {
+                "dimension_name": "scope",
+                "status": "in",
+                "score": 1.0,
+                "passed": true,
+                "reason": "Claim is within authorized tenant boundary `11111111-1111-1111-1111-111111111111` and asset scope.",
+                "details": {
+                  "organization_id": "11111111-1111-1111-1111-111111111111",
+                  "asset_id": "file://wordpress-pdf-invoice-plugin-sample.pdf"
+                }
+              },
+              "time": {
+                "dimension_name": "time",
+                "status": "current",
+                "score": 1.0,
+                "passed": true,
+                "reason": "Source snapshot is current (captured 0.0 days ago).",
+                "details": {
+                  "age_days": 0.0
+                }
+              },
+              "authority": {
+                "dimension_name": "authority",
+                "status": "authoritative",
+                "score": 1.0,
+                "passed": true,
+                "reason": "Primary authoritative enterprise source (operational_data / document).",
+                "details": {
+                  "intent": "operational_data",
+                  "family": "document",
+                  "tier": 1
+                }
+              },
+              "review": {
+                "dimension_name": "review",
+                "status": "no",
+                "score": 1.0,
+                "passed": true,
+                "reason": "All dimensions verified automatically without human review required.",
+                "details": {
+                  "needs_human_review": false
+                }
+              }
+            },
+            "composite_trust_score": 0.995,
+            "lifecycle_decision": "approve",
+            "decision_code": "APPROVE_ALL_PASSED",
+            "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.5%.",
+            "persisted_claim_id": "87425585-705b-4adb-9aed-66212ef81797",
+            "evaluated_at": "2026-10-16T13:13:47.918132+00:00"
+          },
+          {
+            "candidate_id": "cand:c0380799-459c-49c8-a066-35dd965dc7ac:3:6bd270a0ed6f:8ba3f62b61",
+            "envelope_id": "c0380799-459c-49c8-a066-35dd965dc7ac",
+            "asset_id": "file://wordpress-pdf-invoice-plugin-sample.pdf",
+            "claim_text": "Suite 5A-1204 specifies 12345 as January 25, 2016.",
+            "subject": "Suite 5A-1204",
+            "predicate": "has_12345",
+            "object": "",
+            "evidence_text_span": "DEMO - Sliced Invoices: Suite 5A-1204 | 12345: January 25, 2016",
+            "claim_type": "policy_rule",
+            "modality": "POLICY_FACT",
+            "conditions": [
+              "Table Column: 12345"
+            ],
+            "value": 25,
+            "unit": null,
+            "scope": {
+              "DEMO - Sliced Invoices": "Suite 5A-1204"
+            },
+            "locator": {
+              "line_start": 9,
+              "line_end": 9,
+              "start_char": 249,
+              "end_char": 301,
+              "table_id": "table_line_7",
+              "table_start_line": 7,
+              "row_index": 1,
+              "heading_path": [
+                "WordPress PDF Invoice Plugin Sample",
+                "Page 1"
+              ],
+              "paragraph_index": 3,
+              "filename": "wordpress-pdf-invoice-plugin-sample.pdf",
+              "file_extension": "pdf",
+              "file_size": 43627,
+              "document_type": "invoice",
+              "table_grid": {
+                "table_type": "policy_matrix",
+                "row_key": "Suite 5A-1204",
+                "row_scope": {
+                  "DEMO - Sliced Invoices": "Suite 5A-1204"
+                },
+                "col_header": "12345",
+                "cell_value": "January 25, 2016",
+                "unit": null,
+                "qualifiers": [],
+                "table_start_line": 7,
+                "row_line": 9
+              },
+              "grid_label": "Row 'Suite 5A-1204' • Col '12345' • Cell 'January 25, 2016'",
+              "section_context": [
+                "WordPress PDF Invoice Plugin Sample",
+                "Page 1"
+              ]
+            },
+            "is_ambiguous": false,
+            "ambiguity_reason": null,
+            "dimensions": {
+              "source_match": {
+                "dimension_name": "source_match",
+                "status": "pass",
+                "score": 1.0,
+                "passed": true,
+                "reason": "Cryptographically verified by Layer 5 plugin `TextDocumentVerificationPlugin`.",
+                "details": {
+                  "plugin": "TextDocumentVerificationPlugin",
+                  "quote_grounded": true,
+                  "line_start": 9,
+                  "line_end": 9,
+                  "start_char": 249,
+                  "end_char": 301,
+                  "evidence_length": 92
+                }
+              },
+              "completeness": {
+                "dimension_name": "completeness",
+                "status": "complete",
+                "score": 1.0,
+                "passed": true,
+                "reason": "Subject-Predicate-Object semantics, conditions, and evidence coordinates are 100% complete.",
+                "details": {
+                  "subject": "Suite 5A-1204",
+                  "predicate": "has_12345",
+                  "object": "January 25, 2016",
+                  "conditions": [
+                    "Table Column: 12345"
+                  ],
+                  "value": 25,
+                  "unit": null,
+                  "scope": {
+                    "DEMO - Sliced Invoices": "Suite 5A-1204"
+                  }
+                }
+              },
+              "meaning": {
+                "dimension_name": "meaning",
+                "status": "supported",
+                "score": 0.98,
+                "passed": true,
+                "reason": "Clear assertion with verified deontic alignment and strong grounding confidence.",
+                "details": {
+                  "confidence": 0.98,
+                  "modality": "POLICY_FACT"
+                }
+              },
+              "scope": {
+                "dimension_name": "scope",
+                "status": "in",
+                "score": 1.0,
+                "passed": true,
+                "reason": "Claim is within authorized tenant boundary `11111111-1111-1111-1111-111111111111` and asset scope.",
+                "details": {
+                  "organization_id": "11111111-1111-1111-1111-111111111111",
+                  "asset_id": "file://wordpress-pdf-invoice-plugin-sample.pdf"
+                }
+              },
+              "time": {
+                "dimension_name": "time",
+                "status": "current",
+                "score": 1.0,
+                "passed": true,
+                "reason": "Source snapshot is current (captured 0.0 days ago).",
+                "details": {
+                  "age_days": 0.0
+                }
+              },
+              "authority": {
+                "dimension_name": "authority",
+                "status": "authoritative",
+                "score": 1.0,
+                "passed": true,
+                "reason": "Primary authoritative enterprise source (operational_data / document).",
+                "details": {
+                  "intent": "operational_data",
+                  "family": "document",
+                  "tier": 1
+                }
+              },
+              "review": {
+                "dimension_name": "review",
+                "status": "no",
+                "score": 1.0,
+                "passed": true,
+                "reason": "All dimensions verified automatically without human review required.",
+                "details": {
+                  "needs_human_review": false
+                }
+              }
+            },
+            "composite_trust_score": 0.995,
+            "lifecycle_decision": "approve",
+            "decision_code": "APPROVE_ALL_PASSED",
+            "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.5%.",
+            "persisted_claim_id": "34c23c3b-4f06-4400-bbd7-540910943290",
+            "evaluated_at": "2026-10-16T13:13:47.918132+00:00"
+          },
+          {
+            "candidate_id": "cand:c0380799-459c-49c8-a066-35dd965dc7ac:4:28c75b61e015:49f6c1aed3",
+            "envelope_id": "c0380799-459c-49c8-a066-35dd965dc7ac",
+            "asset_id": "file://wordpress-pdf-invoice-plugin-sample.pdf",
+            "claim_text": "123 Somewhere Street specifies Order Number as Due Date.",
+            "subject": "123 Somewhere Street",
+            "predicate": "has_order_number",
+            "object": "",
+            "evidence_text_span": "DEMO - Sliced Invoices: 123 Somewhere Street | Order Number: Due Date",
+            "claim_type": "policy_rule",
+            "modality": "POLICY_FACT",
+            "conditions": [
+              "Table Column: Order Number"
+            ],
+            "value": "Due Date",
+            "unit": null,
+            "scope": {
+              "DEMO - Sliced Invoices": "123 Somewhere Street"
+            },
+            "locator": {
+              "line_start": 10,
+              "line_end": 10,
+              "start_char": 301,
+              "end_char": 356,
+              "table_id": "table_line_7",
+              "table_start_line": 7,
+              "row_index": 2,
+              "heading_path": [
+                "WordPress PDF Invoice Plugin Sample",
+                "Page 1"
+              ],
+              "paragraph_index": 4,
+              "filename": "wordpress-pdf-invoice-plugin-sample.pdf",
+              "file_extension": "pdf",
+              "file_size": 43627,
+              "document_type": "invoice",
+              "table_grid": {
+                "table_type": "policy_matrix",
+                "row_key": "123 Somewhere Street",
+                "row_scope": {
+                  "DEMO - Sliced Invoices": "123 Somewhere Street"
+                },
+                "col_header": "Order Number",
+                "cell_value": "Due Date",
+                "unit": null,
+                "qualifiers": [],
+                "table_start_line": 7,
+                "row_line": 10
+              },
+              "grid_label": "Row '123 Somewhere Street' • Col 'Order Number' • Cell 'Due Date'",
+              "section_context": [
+                "WordPress PDF Invoice Plugin Sample",
+                "Page 1"
+              ]
+            },
+            "is_ambiguous": false,
+            "ambiguity_reason": null,
+            "dimensions": {
+              "source_match": {
+                "dimension_name": "source_match",
+                "status": "pass",
+                "score": 1.0,
+                "passed": true,
+                "reason": "Cryptographically verified by Layer 5 plugin `TextDocumentVerificationPlugin`.",
+                "details": {
+                  "plugin": "TextDocumentVerificationPlugin",
+                  "quote_grounded": true,
+                  "line_start": 10,
+                  "line_end": 10,
+                  "start_char": 301,
+                  "end_char": 356,
+                  "evidence_length": 95
+                }
+              },
+              "completeness": {
+                "dimension_name": "completeness",
+                "status": "complete",
+                "score": 1.0,
+                "passed": true,
+                "reason": "Subject-Predicate-Object semantics, conditions, and evidence coordinates are 100% complete.",
+                "details": {
+                  "subject": "123 Somewhere Street",
+                  "predicate": "has_order_number",
+                  "object": "Due Date",
+                  "conditions": [
+                    "Table Column: Order Number"
+                  ],
+                  "value": "Due Date",
+                  "unit": null,
+                  "scope": {
+                    "DEMO - Sliced Invoices": "123 Somewhere Street"
+                  }
+                }
+              },
+              "meaning": {
+                "dimension_name": "meaning",
+                "status": "supported",
+                "score": 0.98,
+                "passed": true,
+                "reason": "Clear assertion with verified deontic alignment and strong grounding confidence.",
+                "details": {
+                  "confidence": 0.98,
+                  "modality": "POLICY_FACT"
+                }
+              },
+              "scope": {
+                "dimension_name": "scope",
+                "status": "in",
+                "score": 1.0,
+                "passed": true,
+                "reason": "Claim is within authorized tenant boundary `11111111-1111-1111-1111-111111111111` and asset scope.",
+                "details": {
+                  "organization_id": "11111111-1111-1111-1111-111111111111",
+                  "asset_id": "file://wordpress-pdf-invoice-plugin-sample.pdf"
+                }
+              },
+              "time": {
+                "dimension_name": "time",
+                "status": "current",
+                "score": 1.0,
+                "passed": true,
+                "reason": "Source snapshot is current (captured 0.0 days ago).",
+                "details": {
+                  "age_days": 0.0
+                }
+              },
+              "authority": {
+                "dimension_name": "authority",
+                "status": "authoritative",
+                "score": 1.0,
+                "passed": true,
+                "reason": "Primary authoritative enterprise source (operational_data / document).",
+                "details": {
+                  "intent": "operational_data",
+                  "family": "document",
+                  "tier": 1
+                }
+              },
+              "review": {
+                "dimension_name": "review",
+                "status": "no",
+                "score": 1.0,
+                "passed": true,
+                "reason": "All dimensions verified automatically without human review required.",
+                "details": {
+                  "needs_human_review": false
+                }
+              }
+            },
+            "composite_trust_score": 0.995,
+            "lifecycle_decision": "approve",
+            "decision_code": "APPROVE_ALL_PASSED",
+            "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.5%.",
+            "persisted_claim_id": "27ddbb52-c13e-42f4-9a59-e339fd95c593",
+            "evaluated_at": "2026-10-16T13:13:47.919784+00:00"
+          },
+          {
+            "candidate_id": "cand:c0380799-459c-49c8-a066-35dd965dc7ac:4:28c75b61e015:9440d18786",
+            "envelope_id": "c0380799-459c-49c8-a066-35dd965dc7ac",
+            "asset_id": "file://wordpress-pdf-invoice-plugin-sample.pdf",
+            "claim_text": "123 Somewhere Street specifies 12345 as January 31, 2016.",
+            "subject": "123 Somewhere Street",
+            "predicate": "has_12345",
+            "object": "",
+            "evidence_text_span": "DEMO - Sliced Invoices: 123 Somewhere Street | 12345: January 31, 2016",
+            "claim_type": "policy_rule",
+            "modality": "POLICY_FACT",
+            "conditions": [
+              {
+                "field": "purchase_date",
+                "operator": "between",
+                "value": [
+                  "11-01",
+                  "12-24"
+                ]
+              }
+            ],
+            "value": {
+              "type": "calendar_date",
+              "rule": "january_31_following_year"
+            },
+            "unit": null,
+            "scope": {
+              "DEMO - Sliced Invoices": "123 Somewhere Street"
+            },
+            "locator": {
+              "line_start": 10,
+              "line_end": 10,
+              "start_char": 301,
+              "end_char": 356,
+              "table_id": "table_line_7",
+              "table_start_line": 7,
+              "row_index": 2,
+              "heading_path": [
+                "WordPress PDF Invoice Plugin Sample",
+                "Page 1"
+              ],
+              "paragraph_index": 4,
+              "filename": "wordpress-pdf-invoice-plugin-sample.pdf",
+              "file_extension": "pdf",
+              "file_size": 43627,
+              "document_type": "invoice",
+              "table_grid": {
+                "table_type": "policy_matrix",
+                "row_key": "123 Somewhere Street",
+                "row_scope": {
+                  "DEMO - Sliced Invoices": "123 Somewhere Street"
+                },
+                "col_header": "12345",
+                "cell_value": "January 31, 2016",
+                "unit": null,
+                "qualifiers": [],
+                "table_start_line": 7,
+                "row_line": 10
+              },
+              "grid_label": "Row '123 Somewhere Street' • Col '12345' • Cell 'January 31, 2016'",
+              "section_context": [
+                "WordPress PDF Invoice Plugin Sample",
+                "Page 1"
+              ]
+            },
+            "is_ambiguous": false,
+            "ambiguity_reason": null,
+            "dimensions": {
+              "source_match": {
+                "dimension_name": "source_match",
+                "status": "pass",
+                "score": 1.0,
+                "passed": true,
+                "reason": "Cryptographically verified by Layer 5 plugin `TextDocumentVerificationPlugin`.",
+                "details": {
+                  "plugin": "TextDocumentVerificationPlugin",
+                  "quote_grounded": true,
+                  "line_start": 10,
+                  "line_end": 10,
+                  "start_char": 301,
+                  "end_char": 356,
+                  "evidence_length": 95
+                }
+              },
+              "completeness": {
+                "dimension_name": "completeness",
+                "status": "partial",
+                "score": 0.65,
+                "passed": false,
+                "reason": "Unsupported conditions detected: Condition '{'field': 'purchase_date', 'operator': 'between', 'value': ['11-01', '12-24']}' has ungrounded terms: purchase.",
+                "details": {
+                  "unsupported_conditions": [
+                    "Condition '{'field': 'purchase_date', 'operator': 'between', 'value': ['11-01', '12-24']}' has ungrounded terms: purchase"
+                  ],
+                  "subject": "123 Somewhere Street",
+                  "predicate": "has_12345",
+                  "object": "January 31, 2016",
+                  "conditions": [
+                    {
+                      "field": "purchase_date",
+                      "operator": "between",
+                      "value": [
+                        "11-01",
+                        "12-24"
+                      ]
+                    }
+                  ],
+                  "value": {
+                    "type": "calendar_date",
+                    "rule": "january_31_following_year"
+                  },
+                  "unit": null,
+                  "scope": {
+                    "DEMO - Sliced Invoices": "123 Somewhere Street"
+                  }
+                }
+              },
+              "meaning": {
+                "dimension_name": "meaning",
+                "status": "supported",
+                "score": 0.98,
+                "passed": true,
+                "reason": "Clear assertion with verified deontic alignment and strong grounding confidence.",
+                "details": {
+                  "confidence": 0.98,
+                  "modality": "POLICY_FACT"
+                }
+              },
+              "scope": {
+                "dimension_name": "scope",
+                "status": "in",
+                "score": 1.0,
+                "passed": true,
+                "reason": "Claim is within authorized tenant boundary `11111111-1111-1111-1111-111111111111` and asset scope.",
+                "details": {
+                  "organization_id": "11111111-1111-1111-1111-111111111111",
+                  "asset_id": "file://wordpress-pdf-invoice-plugin-sample.pdf"
+                }
+              },
+              "time": {
+                "dimension_name": "time",
+                "status": "current",
+                "score": 1.0,
+                "passed": true,
+                "reason": "Source snapshot is current (captured 0.0 days ago).",
+                "details": {
+                  "age_days": 0.0
+                }
+              },
+              "authority": {
+                "dimension_name": "authority",
+                "status": "authoritative",
+                "score": 1.0,
+                "passed": true,
+                "reason": "Primary authoritative enterprise source (operational_data / document).",
+                "details": {
+                  "intent": "operational_data",
+                  "family": "document",
+                  "tier": 1
+                }
+              },
+              "review": {
+                "dimension_name": "review",
+                "status": "yes",
+                "score": 0.5,
+                "passed": false,
+                "reason": "Human review recommended due to uncertainty or partial evidence.",
+                "details": {
+                  "needs_human_review": true
+                }
+              }
+            },
+            "composite_trust_score": 0.9425,
+            "lifecycle_decision": "review",
+            "decision_code": "UNSUPPORTED_CONDITION",
+            "decision_reason": "REVIEW: Human review recommended. Unsupported conditions detected: Condition '{'field': 'purchase_date', 'operator': 'between', 'value': ['11-01', '12-24']}' has ungrounded terms: purchase.",
+            "persisted_claim_id": "10baddd2-1c7b-4252-9223-9d2ac9428f44",
+            "evaluated_at": "2026-10-16T13:13:47.919784+00:00"
+          },
+          {
+            "candidate_id": "cand:c0380799-459c-49c8-a066-35dd965dc7ac:5:3b93494ce177:45cdb774d5",
+            "envelope_id": "c0380799-459c-49c8-a066-35dd965dc7ac",
+            "asset_id": "file://wordpress-pdf-invoice-plugin-sample.pdf",
+            "claim_text": "Your City AZ 12345 admin@slicedinvoices.com specifies Order Number as Total Due.",
+            "subject": "Your City AZ 12345 admin@slicedinvoices.com",
+            "predicate": "has_order_number",
+            "object": "",
+            "evidence_text_span": "DEMO - Sliced Invoices: Your City AZ 12345 admin@slicedinvoices.com | Order Number: Total Due",
+            "claim_type": "policy_rule",
+            "modality": "POLICY_FACT",
+            "conditions": [
+              "Table Column: Order Number"
+            ],
+            "value": "Total Due",
+            "unit": null,
+            "scope": {
+              "DEMO - Sliced Invoices": "Your City AZ 12345 admin@slicedinvoices.com"
+            },
+            "locator": {
+              "line_start": 11,
+              "line_end": 11,
+              "start_char": 356,
+              "end_char": 425,
+              "table_id": "table_line_7",
+              "table_start_line": 7,
+              "row_index": 3,
+              "heading_path": [
+                "WordPress PDF Invoice Plugin Sample",
+                "Page 1"
+              ],
+              "paragraph_index": 5,
+              "filename": "wordpress-pdf-invoice-plugin-sample.pdf",
+              "file_extension": "pdf",
+              "file_size": 43627,
+              "document_type": "invoice",
+              "table_grid": {
+                "table_type": "policy_matrix",
+                "row_key": "Your City AZ 12345 admin@slicedinvoices.com",
+                "row_scope": {
+                  "DEMO - Sliced Invoices": "Your City AZ 12345 admin@slicedinvoices.com"
+                },
+                "col_header": "Order Number",
+                "cell_value": "Total Due",
+                "unit": null,
+                "qualifiers": [],
+                "table_start_line": 7,
+                "row_line": 11
+              },
+              "grid_label": "Row 'Your City AZ 12345 admin@slicedinvoices.com' • Col 'Order Number' • Cell 'Total Due'",
+              "section_context": [
+                "WordPress PDF Invoice Plugin Sample",
+                "Page 1"
+              ]
+            },
+            "is_ambiguous": false,
+            "ambiguity_reason": null,
+            "dimensions": {
+              "source_match": {
+                "dimension_name": "source_match",
+                "status": "pass",
+                "score": 1.0,
+                "passed": true,
+                "reason": "Cryptographically verified by Layer 5 plugin `TextDocumentVerificationPlugin`.",
+                "details": {
+                  "plugin": "TextDocumentVerificationPlugin",
+                  "quote_grounded": true,
+                  "line_start": 11,
+                  "line_end": 11,
+                  "start_char": 356,
+                  "end_char": 425,
+                  "evidence_length": 109
+                }
+              },
+              "completeness": {
+                "dimension_name": "completeness",
+                "status": "complete",
+                "score": 1.0,
+                "passed": true,
+                "reason": "Subject-Predicate-Object semantics, conditions, and evidence coordinates are 100% complete.",
+                "details": {
+                  "subject": "Your City AZ 12345 admin@slicedinvoices.com",
+                  "predicate": "has_order_number",
+                  "object": "Total Due",
+                  "conditions": [
+                    "Table Column: Order Number"
+                  ],
+                  "value": "Total Due",
+                  "unit": null,
+                  "scope": {
+                    "DEMO - Sliced Invoices": "Your City AZ 12345 admin@slicedinvoices.com"
+                  }
+                }
+              },
+              "meaning": {
+                "dimension_name": "meaning",
+                "status": "supported",
+                "score": 0.98,
+                "passed": true,
+                "reason": "Clear assertion with verified deontic alignment and strong grounding confidence.",
+                "details": {
+                  "confidence": 0.98,
+                  "modality": "POLICY_FACT"
+                }
+              },
+              "scope": {
+                "dimension_name": "scope",
+                "status": "in",
+                "score": 1.0,
+                "passed": true,
+                "reason": "Claim is within authorized tenant boundary `11111111-1111-1111-1111-111111111111` and asset scope.",
+                "details": {
+                  "organization_id": "11111111-1111-1111-1111-111111111111",
+                  "asset_id": "file://wordpress-pdf-invoice-plugin-sample.pdf"
+                }
+              },
+              "time": {
+                "dimension_name": "time",
+                "status": "current",
+                "score": 1.0,
+                "passed": true,
+                "reason": "Source snapshot is current (captured 0.0 days ago).",
+                "details": {
+                  "age_days": 0.0
+                }
+              },
+              "authority": {
+                "dimension_name": "authority",
+                "status": "authoritative",
+                "score": 1.0,
+                "passed": true,
+                "reason": "Primary authoritative enterprise source (operational_data / document).",
+                "details": {
+                  "intent": "operational_data",
+                  "family": "document",
+                  "tier": 1
+                }
+              },
+              "review": {
+                "dimension_name": "review",
+                "status": "no",
+                "score": 1.0,
+                "passed": true,
+                "reason": "All dimensions verified automatically without human review required.",
+                "details": {
+                  "needs_human_review": false
+                }
+              }
+            },
+            "composite_trust_score": 0.995,
+            "lifecycle_decision": "approve",
+            "decision_code": "APPROVE_ALL_PASSED",
+            "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.5%.",
+            "persisted_claim_id": "9fb6bf20-7c22-4615-acce-2a562da117bc",
+            "evaluated_at": "2026-10-16T13:13:47.919784+00:00"
+          },
+          {
+            "candidate_id": "cand:c0380799-459c-49c8-a066-35dd965dc7ac:5:3b93494ce177:efd860f4e6",
+            "envelope_id": "c0380799-459c-49c8-a066-35dd965dc7ac",
+            "asset_id": "file://wordpress-pdf-invoice-plugin-sample.pdf",
+            "claim_text": "Your City AZ 12345 admin@slicedinvoices.com specifies 12345 as $93.50.",
+            "subject": "Your City AZ 12345 admin@slicedinvoices.com",
+            "predicate": "has_12345",
+            "object": "",
+            "evidence_text_span": "DEMO - Sliced Invoices: Your City AZ 12345 admin@slicedinvoices.com | 12345: $93.50",
+            "claim_type": "policy_rule",
+            "modality": "POLICY_FACT",
+            "conditions": [
+              "Table Column: 12345"
+            ],
+            "value": 93.5,
+            "unit": null,
+            "scope": {
+              "DEMO - Sliced Invoices": "Your City AZ 12345 admin@slicedinvoices.com"
+            },
+            "locator": {
+              "line_start": 11,
+              "line_end": 11,
+              "start_char": 356,
+              "end_char": 425,
+              "table_id": "table_line_7",
+              "table_start_line": 7,
+              "row_index": 3,
+              "heading_path": [
+                "WordPress PDF Invoice Plugin Sample",
+                "Page 1"
+              ],
+              "paragraph_index": 5,
+              "filename": "wordpress-pdf-invoice-plugin-sample.pdf",
+              "file_extension": "pdf",
+              "file_size": 43627,
+              "document_type": "invoice",
+              "table_grid": {
+                "table_type": "policy_matrix",
+                "row_key": "Your City AZ 12345 admin@slicedinvoices.com",
+                "row_scope": {
+                  "DEMO - Sliced Invoices": "Your City AZ 12345 admin@slicedinvoices.com"
+                },
+                "col_header": "12345",
+                "cell_value": "$93.50",
+                "unit": null,
+                "qualifiers": [],
+                "table_start_line": 7,
+                "row_line": 11
+              },
+              "grid_label": "Row 'Your City AZ 12345 admin@slicedinvoices.com' • Col '12345' • Cell '$93.50'",
+              "section_context": [
+                "WordPress PDF Invoice Plugin Sample",
+                "Page 1"
+              ]
+            },
+            "is_ambiguous": false,
+            "ambiguity_reason": null,
+            "dimensions": {
+              "source_match": {
+                "dimension_name": "source_match",
+                "status": "pass",
+                "score": 1.0,
+                "passed": true,
+                "reason": "Cryptographically verified by Layer 5 plugin `TextDocumentVerificationPlugin`.",
+                "details": {
+                  "plugin": "TextDocumentVerificationPlugin",
+                  "quote_grounded": true,
+                  "line_start": 11,
+                  "line_end": 11,
+                  "start_char": 356,
+                  "end_char": 425,
+                  "evidence_length": 109
+                }
+              },
+              "completeness": {
+                "dimension_name": "completeness",
+                "status": "complete",
+                "score": 1.0,
+                "passed": true,
+                "reason": "Subject-Predicate-Object semantics, conditions, and evidence coordinates are 100% complete.",
+                "details": {
+                  "subject": "Your City AZ 12345 admin@slicedinvoices.com",
+                  "predicate": "has_12345",
+                  "object": "$93.50",
+                  "conditions": [
+                    "Table Column: 12345"
+                  ],
+                  "value": 93.5,
+                  "unit": null,
+                  "scope": {
+                    "DEMO - Sliced Invoices": "Your City AZ 12345 admin@slicedinvoices.com"
+                  }
+                }
+              },
+              "meaning": {
+                "dimension_name": "meaning",
+                "status": "supported",
+                "score": 0.98,
+                "passed": true,
+                "reason": "Clear assertion with verified deontic alignment and strong grounding confidence.",
+                "details": {
+                  "confidence": 0.98,
+                  "modality": "POLICY_FACT"
+                }
+              },
+              "scope": {
+                "dimension_name": "scope",
+                "status": "in",
+                "score": 1.0,
+                "passed": true,
+                "reason": "Claim is within authorized tenant boundary `11111111-1111-1111-1111-111111111111` and asset scope.",
+                "details": {
+                  "organization_id": "11111111-1111-1111-1111-111111111111",
+                  "asset_id": "file://wordpress-pdf-invoice-plugin-sample.pdf"
+                }
+              },
+              "time": {
+                "dimension_name": "time",
+                "status": "current",
+                "score": 1.0,
+                "passed": true,
+                "reason": "Source snapshot is current (captured 0.0 days ago).",
+                "details": {
+                  "age_days": 0.0
+                }
+              },
+              "authority": {
+                "dimension_name": "authority",
+                "status": "authoritative",
+                "score": 1.0,
+                "passed": true,
+                "reason": "Primary authoritative enterprise source (operational_data / document).",
+                "details": {
+                  "intent": "operational_data",
+                  "family": "document",
+                  "tier": 1
+                }
+              },
+              "review": {
+                "dimension_name": "review",
+                "status": "no",
+                "score": 1.0,
+                "passed": true,
+                "reason": "All dimensions verified automatically without human review required.",
+                "details": {
+                  "needs_human_review": false
+                }
+              }
+            },
+            "composite_trust_score": 0.995,
+            "lifecycle_decision": "approve",
+            "decision_code": "APPROVE_ALL_PASSED",
+            "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.5%.",
+            "persisted_claim_id": "daf225a7-19a6-4094-958f-3c295e680519",
+            "evaluated_at": "2026-10-16T13:13:47.921303+00:00"
+          },
+          {
+            "candidate_id": "cand:c0380799-459c-49c8-a066-35dd965dc7ac:10:3dc370382b39:fb2d5575c2",
+            "envelope_id": "c0380799-459c-49c8-a066-35dd965dc7ac",
+            "asset_id": "file://wordpress-pdf-invoice-plugin-sample.pdf",
+            "claim_text": "Tax specifies $85.00 as $8.50.",
+            "subject": "Tax",
+            "predicate": "has_85_00",
+            "object": "",
+            "evidence_text_span": "Total: Tax | $85.00: $8.50",
+            "claim_type": "policy_rule",
+            "modality": "POLICY_FACT",
+            "conditions": [
+              "Table Column: $85.00"
+            ],
+            "value": 8.5,
+            "unit": null,
+            "scope": {
+              "Total": "Tax"
+            },
+            "locator": {
+              "line_start": 22,
+              "line_end": 22,
+              "start_char": 824,
+              "end_char": 840,
+              "table_id": "table_line_20",
+              "table_start_line": 20,
+              "row_index": 1,
+              "heading_path": [
+                "WordPress PDF Invoice Plugin Sample",
+                "Page 1",
+                "1.00 Web Design                                                            $85.00                0.00%               $85.00 This is a sample description..."
+              ],
+              "paragraph_index": 10,
+              "filename": "wordpress-pdf-invoice-plugin-sample.pdf",
+              "file_extension": "pdf",
+              "file_size": 43627,
+              "document_type": "invoice",
+              "table_grid": {
+                "table_type": "policy_matrix",
+                "row_key": "Tax",
+                "row_scope": {
+                  "Total": "Tax"
+                },
+                "col_header": "$85.00",
+                "cell_value": "$8.50",
+                "unit": null,
+                "qualifiers": [],
+                "table_start_line": 20,
+                "row_line": 22
+              },
+              "grid_label": "Row 'Tax' • Col '$85.00' • Cell '$8.50'",
+              "section_context": [
+                "WordPress PDF Invoice Plugin Sample",
+                "Page 1",
+                "1.00 Web Design                                                            $85.00                0.00%               $85.00 This is a sample description..."
+              ]
+            },
+            "is_ambiguous": false,
+            "ambiguity_reason": null,
+            "dimensions": {
+              "source_match": {
+                "dimension_name": "source_match",
+                "status": "pass",
+                "score": 1.0,
+                "passed": true,
+                "reason": "Cryptographically verified by Layer 5 plugin `TextDocumentVerificationPlugin`.",
+                "details": {
+                  "plugin": "TextDocumentVerificationPlugin",
+                  "quote_grounded": true,
+                  "line_start": 22,
+                  "line_end": 22,
+                  "start_char": 824,
+                  "end_char": 840,
+                  "evidence_length": 26
+                }
+              },
+              "completeness": {
+                "dimension_name": "completeness",
+                "status": "complete",
+                "score": 1.0,
+                "passed": true,
+                "reason": "Subject-Predicate-Object semantics, conditions, and evidence coordinates are 100% complete.",
+                "details": {
+                  "subject": "Tax",
+                  "predicate": "has_85_00",
+                  "object": "$8.50",
+                  "conditions": [
+                    "Table Column: $85.00"
+                  ],
+                  "value": 8.5,
+                  "unit": null,
+                  "scope": {
+                    "Total": "Tax"
+                  }
+                }
+              },
+              "meaning": {
+                "dimension_name": "meaning",
+                "status": "supported",
+                "score": 0.98,
+                "passed": true,
+                "reason": "Clear assertion with verified deontic alignment and strong grounding confidence.",
+                "details": {
+                  "confidence": 0.98,
+                  "modality": "POLICY_FACT"
+                }
+              },
+              "scope": {
+                "dimension_name": "scope",
+                "status": "in",
+                "score": 1.0,
+                "passed": true,
+                "reason": "Claim is within authorized tenant boundary `11111111-1111-1111-1111-111111111111` and asset scope.",
+                "details": {
+                  "organization_id": "11111111-1111-1111-1111-111111111111",
+                  "asset_id": "file://wordpress-pdf-invoice-plugin-sample.pdf"
+                }
+              },
+              "time": {
+                "dimension_name": "time",
+                "status": "current",
+                "score": 1.0,
+                "passed": true,
+                "reason": "Source snapshot is current (captured 0.0 days ago).",
+                "details": {
+                  "age_days": 0.0
+                }
+              },
+              "authority": {
+                "dimension_name": "authority",
+                "status": "authoritative",
+                "score": 1.0,
+                "passed": true,
+                "reason": "Primary authoritative enterprise source (operational_data / document).",
+                "details": {
+                  "intent": "operational_data",
+                  "family": "document",
+                  "tier": 1
+                }
+              },
+              "review": {
+                "dimension_name": "review",
+                "status": "no",
+                "score": 1.0,
+                "passed": true,
+                "reason": "All dimensions verified automatically without human review required.",
+                "details": {
+                  "needs_human_review": false
+                }
+              }
+            },
+            "composite_trust_score": 0.995,
+            "lifecycle_decision": "approve",
+            "decision_code": "APPROVE_ALL_PASSED",
+            "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.5%.",
+            "persisted_claim_id": "a472b3c9-224c-4247-89cc-ff610200f4b2",
+            "evaluated_at": "2026-10-16T13:13:47.921303+00:00"
+          },
+          {
+            "candidate_id": "cand:c0380799-459c-49c8-a066-35dd965dc7ac:11:4243bff3f726:85c4b63788",
+            "envelope_id": "c0380799-459c-49c8-a066-35dd965dc7ac",
+            "asset_id": "file://wordpress-pdf-invoice-plugin-sample.pdf",
+            "claim_text": "Total specifies $85.00 as $93.50.",
+            "subject": "Total",
+            "predicate": "has_85_00",
+            "object": "",
+            "evidence_text_span": "Total: Total | $85.00: $93.50",
+            "claim_type": "policy_rule",
+            "modality": "POLICY_FACT",
+            "conditions": [
+              "Table Column: $85.00"
+            ],
+            "value": 93.5,
+            "unit": null,
+            "scope": {
+              "Total": "Total"
+            },
+            "locator": {
+              "line_start": 23,
+              "line_end": 23,
+              "start_char": 840,
+              "end_char": 859,
+              "table_id": "table_line_20",
+              "table_start_line": 20,
+              "row_index": 2,
+              "heading_path": [
+                "WordPress PDF Invoice Plugin Sample",
+                "Page 1",
+                "1.00 Web Design                                                            $85.00                0.00%               $85.00 This is a sample description..."
+              ],
+              "paragraph_index": 11,
+              "filename": "wordpress-pdf-invoice-plugin-sample.pdf",
+              "file_extension": "pdf",
+              "file_size": 43627,
+              "document_type": "invoice",
+              "table_grid": {
+                "table_type": "policy_matrix",
+                "row_key": "Total",
+                "row_scope": {
+                  "Total": "Total"
+                },
+                "col_header": "$85.00",
+                "cell_value": "$93.50",
+                "unit": null,
+                "qualifiers": [],
+                "table_start_line": 20,
+                "row_line": 23
+              },
+              "grid_label": "Row 'Total' • Col '$85.00' • Cell '$93.50'",
+              "section_context": [
+                "WordPress PDF Invoice Plugin Sample",
+                "Page 1",
+                "1.00 Web Design                                                            $85.00                0.00%               $85.00 This is a sample description..."
+              ]
+            },
+            "is_ambiguous": false,
+            "ambiguity_reason": null,
+            "dimensions": {
+              "source_match": {
+                "dimension_name": "source_match",
+                "status": "pass",
+                "score": 1.0,
+                "passed": true,
+                "reason": "Cryptographically verified by Layer 5 plugin `TextDocumentVerificationPlugin`.",
+                "details": {
+                  "plugin": "TextDocumentVerificationPlugin",
+                  "quote_grounded": true,
+                  "line_start": 23,
+                  "line_end": 23,
+                  "start_char": 840,
+                  "end_char": 859,
+                  "evidence_length": 29
+                }
+              },
+              "completeness": {
+                "dimension_name": "completeness",
+                "status": "complete",
+                "score": 1.0,
+                "passed": true,
+                "reason": "Subject-Predicate-Object semantics, conditions, and evidence coordinates are 100% complete.",
+                "details": {
+                  "subject": "Total",
+                  "predicate": "has_85_00",
+                  "object": "$93.50",
+                  "conditions": [
+                    "Table Column: $85.00"
+                  ],
+                  "value": 93.5,
+                  "unit": null,
+                  "scope": {
+                    "Total": "Total"
+                  }
+                }
+              },
+              "meaning": {
+                "dimension_name": "meaning",
+                "status": "supported",
+                "score": 0.98,
+                "passed": true,
+                "reason": "Clear assertion with verified deontic alignment and strong grounding confidence.",
+                "details": {
+                  "confidence": 0.98,
+                  "modality": "POLICY_FACT"
+                }
+              },
+              "scope": {
+                "dimension_name": "scope",
+                "status": "in",
+                "score": 1.0,
+                "passed": true,
+                "reason": "Claim is within authorized tenant boundary `11111111-1111-1111-1111-111111111111` and asset scope.",
+                "details": {
+                  "organization_id": "11111111-1111-1111-1111-111111111111",
+                  "asset_id": "file://wordpress-pdf-invoice-plugin-sample.pdf"
+                }
+              },
+              "time": {
+                "dimension_name": "time",
+                "status": "current",
+                "score": 1.0,
+                "passed": true,
+                "reason": "Source snapshot is current (captured 0.0 days ago).",
+                "details": {
+                  "age_days": 0.0
+                }
+              },
+              "authority": {
+                "dimension_name": "authority",
+                "status": "authoritative",
+                "score": 1.0,
+                "passed": true,
+                "reason": "Primary authoritative enterprise source (operational_data / document).",
+                "details": {
+                  "intent": "operational_data",
+                  "family": "document",
+                  "tier": 1
+                }
+              },
+              "review": {
+                "dimension_name": "review",
+                "status": "no",
+                "score": 1.0,
+                "passed": true,
+                "reason": "All dimensions verified automatically without human review required.",
+                "details": {
+                  "needs_human_review": false
+                }
+              }
+            },
+            "composite_trust_score": 0.995,
+            "lifecycle_decision": "approve",
+            "decision_code": "APPROVE_ALL_PASSED",
+            "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.5%.",
+            "persisted_claim_id": "b95f0ce6-fc66-4434-b923-97c2a328788f",
+            "evaluated_at": "2026-10-16T13:13:47.921835+00:00"
+          },
+          {
+            "candidate_id": "cand:c0380799-459c-49c8-a066-35dd965dc7ac:12:a0ab2d55013f:95a973bd61",
+            "envelope_id": "c0380799-459c-49c8-a066-35dd965dc7ac",
+            "asset_id": "file://wordpress-pdf-invoice-plugin-sample.pdf",
+            "claim_text": "ANZ Bank ACC # 1234 1234 BSB # 4321 432 Paid Payment is due within 30 days from date of invoice.",
+            "subject": "Web Design $85",
+            "predicate": "has_return_window",
+            "object": "",
+            "evidence_text_span": "ANZ Bank ACC # 1234 1234 BSB # 4321 432                                      Paid Payment is due within 30 days from date of invoice.",
+            "claim_type": "policy",
+            "modality": "POLICY_FACT",
+            "conditions": [],
+            "value": null,
+            "unit": null,
+            "scope": {},
+            "locator": {
+              "line_start": 25,
+              "line_end": 25,
+              "start_char": 860,
+              "end_char": 1043,
+              "heading_path": [
+                "WordPress PDF Invoice Plugin Sample",
+                "Page 1",
+                "1.00 Web Design                                                            $85.00                0.00%               $85.00 This is a sample description..."
+              ],
+              "paragraph_index": 12,
+              "filename": "wordpress-pdf-invoice-plugin-sample.pdf",
+              "file_extension": "pdf",
+              "file_size": 43627,
+              "document_type": "invoice",
+              "sentence_index": 0
+            },
+            "is_ambiguous": false,
+            "ambiguity_reason": null,
+            "dimensions": {
+              "source_match": {
+                "dimension_name": "source_match",
+                "status": "pass",
+                "score": 1.0,
+                "passed": true,
+                "reason": "Cryptographically verified by Layer 5 plugin `TextDocumentVerificationPlugin`.",
+                "details": {
+                  "plugin": "TextDocumentVerificationPlugin",
+                  "quote_grounded": true,
+                  "line_start": 25,
+                  "line_end": 25,
+                  "start_char": 860,
+                  "end_char": 1043,
+                  "evidence_length": 182
+                }
+              },
+              "completeness": {
+                "dimension_name": "completeness",
+                "status": "complete",
+                "score": 1.0,
+                "passed": true,
+                "reason": "Subject-Predicate-Object semantics, conditions, and evidence coordinates are 100% complete.",
+                "details": {
+                  "subject": "Web Design $85",
+                  "predicate": "has_return_window",
+                  "object": "ANZ Bank ACC # 1234 1234 BSB # 4321 432 Paid Payment is due within 30 days from date of invoice."
+                }
+              },
+              "meaning": {
+                "dimension_name": "meaning",
+                "status": "unsupported",
+                "score": 0.2,
+                "passed": false,
+                "reason": "Subject-Evidence mismatch: asserted subject 'Web Design $85' has no grounding in the underlying evidence span.",
+                "details": {
+                  "subject": "Web Design $85",
+                  "evidence": "ANZ Bank ACC # 1234 1234 BSB # 4321 432                                      Paid Payment is due within 30 days from dat",
+                  "subject_unsupported": true
+                }
+              },
+              "scope": {
+                "dimension_name": "scope",
+                "status": "in",
+                "score": 1.0,
+                "passed": true,
+                "reason": "Claim is within authorized tenant boundary `11111111-1111-1111-1111-111111111111` and asset scope.",
+                "details": {
+                  "organization_id": "11111111-1111-1111-1111-111111111111",
+                  "asset_id": "file://wordpress-pdf-invoice-plugin-sample.pdf"
+                }
+              },
+              "time": {
+                "dimension_name": "time",
+                "status": "current",
+                "score": 1.0,
+                "passed": true,
+                "reason": "Source snapshot is current (captured 0.0 days ago).",
+                "details": {
+                  "age_days": 0.0
+                }
+              },
+              "authority": {
+                "dimension_name": "authority",
+                "status": "authoritative",
+                "score": 1.0,
+                "passed": true,
+                "reason": "Primary authoritative enterprise source (operational_data / document).",
+                "details": {
+                  "intent": "operational_data",
+                  "family": "document",
+                  "tier": 1
+                }
+              },
+              "review": {
+                "dimension_name": "review",
+                "status": "yes",
+                "score": 0.5,
+                "passed": false,
+                "reason": "Human review recommended due to uncertainty or partial evidence.",
+                "details": {
+                  "needs_human_review": true
+                }
+              }
+            },
+            "composite_trust_score": 0.8,
+            "lifecycle_decision": "reject",
+            "decision_code": "REJECT_SEMANTIC_MISMATCH",
+            "decision_reason": "REJECTED: Semantic grounding failure. Subject-Evidence mismatch: asserted subject 'Web Design $85' has no grounding in the underlying evidence span.",
+            "persisted_claim_id": "592d5101-bd01-4bb8-a4fc-f1f9b585f281",
+            "evaluated_at": "2026-10-16T13:13:47.922854+00:00"
+          },
+          {
+            "candidate_id": "cand:c0380799-459c-49c8-a066-35dd965dc7ac:12:a0ab2d55013f:d854914c29",
+            "envelope_id": "c0380799-459c-49c8-a066-35dd965dc7ac",
+            "asset_id": "file://wordpress-pdf-invoice-plugin-sample.pdf",
+            "claim_text": "Late payment is subject to fees of 5% per month.",
+            "subject": "Web Design $85",
+            "predicate": "may_apply_administration_fee",
+            "object": "",
+            "evidence_text_span": "Late payment is subject to fees of 5% per month.",
+            "claim_type": "policy",
+            "modality": "POLICY_FACT",
+            "conditions": [],
+            "value": null,
+            "unit": null,
+            "scope": {},
+            "locator": {
+              "line_start": 25,
+              "line_end": 25,
+              "start_char": 860,
+              "end_char": 1043,
+              "heading_path": [
+                "WordPress PDF Invoice Plugin Sample",
+                "Page 1",
+                "1.00 Web Design                                                            $85.00                0.00%               $85.00 This is a sample description..."
+              ],
+              "paragraph_index": 12,
+              "filename": "wordpress-pdf-invoice-plugin-sample.pdf",
+              "file_extension": "pdf",
+              "file_size": 43627,
+              "document_type": "invoice",
+              "sentence_index": 1
+            },
+            "is_ambiguous": false,
+            "ambiguity_reason": null,
+            "dimensions": {
+              "source_match": {
+                "dimension_name": "source_match",
+                "status": "pass",
+                "score": 1.0,
+                "passed": true,
+                "reason": "Cryptographically verified by Layer 5 plugin `TextDocumentVerificationPlugin`.",
+                "details": {
+                  "plugin": "TextDocumentVerificationPlugin",
+                  "quote_grounded": true,
+                  "line_start": 25,
+                  "line_end": 25,
+                  "start_char": 860,
+                  "end_char": 1043,
+                  "evidence_length": 182
+                }
+              },
+              "completeness": {
+                "dimension_name": "completeness",
+                "status": "complete",
+                "score": 1.0,
+                "passed": true,
+                "reason": "Subject-Predicate-Object semantics, conditions, and evidence coordinates are 100% complete.",
+                "details": {
+                  "subject": "Web Design $85",
+                  "predicate": "may_apply_administration_fee",
+                  "object": "Late payment is subject to fees of 5% per month."
+                }
+              },
+              "meaning": {
+                "dimension_name": "meaning",
+                "status": "unsupported",
+                "score": 0.2,
+                "passed": false,
+                "reason": "Subject-Evidence mismatch: asserted subject 'Web Design $85' has no grounding in the underlying evidence span.",
+                "details": {
+                  "subject": "Web Design $85",
+                  "evidence": "Late payment is subject to fees of 5% per month.",
+                  "subject_unsupported": true
+                }
+              },
+              "scope": {
+                "dimension_name": "scope",
+                "status": "in",
+                "score": 1.0,
+                "passed": true,
+                "reason": "Claim is within authorized tenant boundary `11111111-1111-1111-1111-111111111111` and asset scope.",
+                "details": {
+                  "organization_id": "11111111-1111-1111-1111-111111111111",
+                  "asset_id": "file://wordpress-pdf-invoice-plugin-sample.pdf"
+                }
+              },
+              "time": {
+                "dimension_name": "time",
+                "status": "current",
+                "score": 1.0,
+                "passed": true,
+                "reason": "Source snapshot is current (captured 0.0 days ago).",
+                "details": {
+                  "age_days": 0.0
+                }
+              },
+              "authority": {
+                "dimension_name": "authority",
+                "status": "authoritative",
+                "score": 1.0,
+                "passed": true,
+                "reason": "Primary authoritative enterprise source (operational_data / document).",
+                "details": {
+                  "intent": "operational_data",
+                  "family": "document",
+                  "tier": 1
+                }
+              },
+              "review": {
+                "dimension_name": "review",
+                "status": "yes",
+                "score": 0.5,
+                "passed": false,
+                "reason": "Human review recommended due to uncertainty or partial evidence.",
+                "details": {
+                  "needs_human_review": true
+                }
+              }
+            },
+            "composite_trust_score": 0.8,
+            "lifecycle_decision": "reject",
+            "decision_code": "REJECT_SEMANTIC_MISMATCH",
+            "decision_reason": "REJECTED: Semantic grounding failure. Subject-Evidence mismatch: asserted subject 'Web Design $85' has no grounding in the underlying evidence span.",
+            "persisted_claim_id": "611db9b6-7625-458a-b833-457266a9a76b",
+            "evaluated_at": "2026-10-16T13:13:47.923847+00:00"
+          }
+        ]
+      }
+    },
+    "message": "Successfully parsed 'wordpress-pdf-invoice-plugin-sample.pdf' across all 6 architecture layers (10 claims verified in 2256.87ms)."
+  },
+  "artifacts": {
+    "document": {
+      "id": "21d48e17-0769-4ae8-96e5-0526a83251bf",
+      "title": "WordPress PDF Invoice Plugin Sample",
+      "external_id": "urn:benchmark:DOC-006:1792156427",
+      "document_type": "invoice",
+      "content_hash": "4e374c2f5c64252f711cd529fea4d1477a758725843e04d6bfc142086046e237",
+      "created_at": "2026-10-16T13:13:47.420531+00:00",
+      "versions_count": 1,
+      "content_preview": "# WordPress PDF Invoice Plugin Sample\n\n## Page 1\n\nInvoice From: Invoice Number INV-3337\n\n| DEMO - Sliced Invoices | Order Number | 12345 |\n| --- | --- | --- |\n| Suite 5A-1204 | Invoice Date | January 25, 2016 |\n| 123 Somewhere Street | Due Date | January 31, 2016 |\n| Your City AZ 12345 admin@slicedinvoices.com | Total Due | $93.50 |\n\nTo:\n\nTest Business\n\n123 Somewhere St Melbourne, VIC 3000 test@test.com Hrs/Qty Service Rate/Price Adjust Sub Total\n\n### 1.00 Web Design $85.00 0.00% $85.00 This is a sample description...\n\n| Total | $85.00 |\n| --- | --- |\n| Tax | $8.50 |\n| Total | $93.50 |\n\nANZ Bank ACC # 1234 1234 BSB # 4321 432 Paid Payment is due within 30 days from date of invoice. Late payment is subject to fees of 5% per month.\n\nThanks for choosing DEMO - Sliced Invoices | admin@slicedinvoices.com Page 1/1"
+    },
+    "source": {
+      "id": "44444444-4444-4444-4444-444444444444",
+      "name": "Direct Document Upload",
+      "source_type": "file",
+      "authority_level": 85,
+      "status": "active"
+    },
+    "claims": [
+      {
+        "id": "611db9b6-7625-458a-b833-457266a9a76b",
+        "document_version_id": "c8e3a137-79cb-4b24-94ba-6027c5ac7e63",
+        "subject": "Web Design $85",
+        "predicate": "may_apply_administration_fee",
+        "object": "Late payment is subject to fees of 5% per month.",
+        "claim_text": "Late payment is subject to fees of 5% per month.",
+        "status": "rejected",
+        "trust_score": 0.8,
+        "validity": "unknown",
+        "section": "General",
+        "quote": "Late payment is subject to fees of 5% per month.",
+        "created_at": "2026-10-16T13:13:48.081825+00:00"
+      },
+      {
+        "id": "10baddd2-1c7b-4252-9223-9d2ac9428f44",
+        "document_version_id": "c8e3a137-79cb-4b24-94ba-6027c5ac7e63",
+        "subject": "123 Somewhere Street",
+        "predicate": "has_12345",
+        "object": "January 31, 2016",
+        "claim_text": "123 Somewhere Street specifies 12345 as January 31, 2016.",
+        "status": "verified",
+        "trust_score": 0.9425,
+        "validity": "unknown",
+        "section": "General",
+        "quote": "DEMO - Sliced Invoices: 123 Somewhere Street | 12345: January 31, 2016",
+        "created_at": "2026-10-16T13:13:48.081825+00:00"
+      },
+      {
+        "id": "87425585-705b-4adb-9aed-66212ef81797",
+        "document_version_id": "c8e3a137-79cb-4b24-94ba-6027c5ac7e63",
+        "subject": "Suite 5A-1204",
+        "predicate": "has_order_number",
+        "object": "Invoice Date",
+        "claim_text": "Suite 5A-1204 specifies Order Number as Invoice Date.",
+        "status": "verified",
+        "trust_score": 0.995,
+        "validity": "unknown",
+        "section": "General",
+        "quote": "DEMO - Sliced Invoices: Suite 5A-1204 | Order Number: Invoice Date",
+        "created_at": "2026-10-16T13:13:48.081825+00:00"
+      },
+      {
+        "id": "34c23c3b-4f06-4400-bbd7-540910943290",
+        "document_version_id": "c8e3a137-79cb-4b24-94ba-6027c5ac7e63",
+        "subject": "Suite 5A-1204",
+        "predicate": "has_12345",
+        "object": "January 25, 2016",
+        "claim_text": "Suite 5A-1204 specifies 12345 as January 25, 2016.",
+        "status": "verified",
+        "trust_score": 0.995,
+        "validity": "unknown",
+        "section": "General",
+        "quote": "DEMO - Sliced Invoices: Suite 5A-1204 | 12345: January 25, 2016",
+        "created_at": "2026-10-16T13:13:48.081825+00:00"
+      },
+      {
+        "id": "27ddbb52-c13e-42f4-9a59-e339fd95c593",
+        "document_version_id": "c8e3a137-79cb-4b24-94ba-6027c5ac7e63",
+        "subject": "123 Somewhere Street",
+        "predicate": "has_order_number",
+        "object": "Due Date",
+        "claim_text": "123 Somewhere Street specifies Order Number as Due Date.",
+        "status": "verified",
+        "trust_score": 0.995,
+        "validity": "unknown",
+        "section": "General",
+        "quote": "DEMO - Sliced Invoices: 123 Somewhere Street | Order Number: Due Date",
+        "created_at": "2026-10-16T13:13:48.081825+00:00"
+      },
+      {
+        "id": "9fb6bf20-7c22-4615-acce-2a562da117bc",
+        "document_version_id": "c8e3a137-79cb-4b24-94ba-6027c5ac7e63",
+        "subject": "Your City AZ 12345 admin@slicedinvoices.com",
+        "predicate": "has_order_number",
+        "object": "Total Due",
+        "claim_text": "Your City AZ 12345 admin@slicedinvoices.com specifies Order Number as Total Due.",
+        "status": "verified",
+        "trust_score": 0.995,
+        "validity": "unknown",
+        "section": "General",
+        "quote": "DEMO - Sliced Invoices: Your City AZ 12345 admin@slicedinvoices.com | Order Number: Total Due",
+        "created_at": "2026-10-16T13:13:48.081825+00:00"
+      },
+      {
+        "id": "daf225a7-19a6-4094-958f-3c295e680519",
+        "document_version_id": "c8e3a137-79cb-4b24-94ba-6027c5ac7e63",
+        "subject": "Your City AZ 12345 admin@slicedinvoices.com",
+        "predicate": "has_12345",
+        "object": "$93.50",
+        "claim_text": "Your City AZ 12345 admin@slicedinvoices.com specifies 12345 as $93.50.",
+        "status": "verified",
+        "trust_score": 0.995,
+        "validity": "unknown",
+        "section": "General",
+        "quote": "DEMO - Sliced Invoices: Your City AZ 12345 admin@slicedinvoices.com | 12345: $93.50",
+        "created_at": "2026-10-16T13:13:48.081825+00:00"
+      },
+      {
+        "id": "a472b3c9-224c-4247-89cc-ff610200f4b2",
+        "document_version_id": "c8e3a137-79cb-4b24-94ba-6027c5ac7e63",
+        "subject": "Tax",
+        "predicate": "has_85_00",
+        "object": "$8.50",
+        "claim_text": "Tax specifies $85.00 as $8.50.",
+        "status": "verified",
+        "trust_score": 0.995,
+        "validity": "unknown",
+        "section": "General",
+        "quote": "Total: Tax | $85.00: $8.50",
+        "created_at": "2026-10-16T13:13:48.081825+00:00"
+      },
+      {
+        "id": "b95f0ce6-fc66-4434-b923-97c2a328788f",
+        "document_version_id": "c8e3a137-79cb-4b24-94ba-6027c5ac7e63",
+        "subject": "Total",
+        "predicate": "has_85_00",
+        "object": "$93.50",
+        "claim_text": "Total specifies $85.00 as $93.50.",
+        "status": "verified",
+        "trust_score": 0.995,
+        "validity": "unknown",
+        "section": "General",
+        "quote": "Total: Total | $85.00: $93.50",
+        "created_at": "2026-10-16T13:13:48.081825+00:00"
+      },
+      {
+        "id": "592d5101-bd01-4bb8-a4fc-f1f9b585f281",
+        "document_version_id": "c8e3a137-79cb-4b24-94ba-6027c5ac7e63",
+        "subject": "Web Design $85",
+        "predicate": "has_return_window",
+        "object": "ANZ Bank ACC # 1234 1234 BSB # 4321 432 Paid Payment is due within 30 days from date of invoice.",
+        "claim_text": "ANZ Bank ACC # 1234 1234 BSB # 4321 432 Paid Payment is due within 30 days from date of invoice.",
+        "status": "rejected",
+        "trust_score": 0.8,
+        "validity": "unknown",
+        "section": "General",
+        "quote": "ANZ Bank ACC # 1234 1234 BSB # 4321 432                                      Paid Payment is due within 30 days from date of invoice.",
+        "created_at": "2026-10-16T13:13:48.081825+00:00"
+      }
+    ],
+    "conflicts": [],
+    "total_claims": 10,
+    "total_conflicts": 0
+  }
+}

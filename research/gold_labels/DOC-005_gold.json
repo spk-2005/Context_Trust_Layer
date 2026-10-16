@@ -1,0 +1,89 @@
+{
+  "document_id": "DOC-005",
+  "document_type": "commercial_vendor_agreement",
+  "organization": "Tarion Warranty Corporation",
+  "layout_type": "legal_agreement",
+  "layout_truth": {
+    "total_pages": 20,
+    "has_selectable_text": true,
+    "expected_sections": [
+      "Article 1 Interpretation",
+      "Article 2 Qualification for Enrolment and Enrolment",
+      "Article 3 Representations and Warranties of the Vendor",
+      "Article 4 Indemnification",
+      "Article 5 Security and Financial Information",
+      "Article 6 Defaults and Remedies",
+      "Article 7 General Terms",
+      "Article 8 Term and Termination"
+    ],
+    "multi_column_fragments": []
+  },
+  "table_truth": [],
+  "claim_truth": [
+    {
+      "claim_id": "DOC005-C01",
+      "subject": "Tarion Warranty Corporation",
+      "predicate": "has_regulatory_purpose",
+      "object": {
+        "value": "administer the Ontario New Home Warranties Plan Act",
+        "modality": "MUST"
+      },
+      "claim_type": "STATUTORY_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "Tarion is a private, not-for-profit corporation designated by regulation to administer the Ontario New Home Warranties Plan Act."
+    },
+    {
+      "claim_id": "DOC005-C02",
+      "subject": "Vendor",
+      "predicate": "has_licensing_requirement",
+      "object": {
+        "value": "licensed under the New Home Construction Licensing Act, 2017",
+        "modality": "MUST"
+      },
+      "claim_type": "COMPLIANCE_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "be licensed under the New Home Construction Licensing Act, 2017 ; and must ensure that any such homes are qualified to be enrolled"
+    },
+    {
+      "claim_id": "DOC005-C03",
+      "subject": "Vendor",
+      "predicate": "has_indemnification_obligation",
+      "object": {
+        "value": "indemnify and save harmless Tarion from all costs, claims, damages, and liabilities",
+        "modality": "MUST"
+      },
+      "claim_type": "INDEMNITY_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "costs, claims, damages and/or liabilities which arise resulting from or by virtue of:"
+    },
+    {
+      "claim_id": "DOC005-C04",
+      "subject": "Vendor",
+      "predicate": "has_material_change_notice_requirement",
+      "object": {
+        "value": "notify Tarion promptly of any Material Change",
+        "modality": "MUST"
+      },
+      "claim_type": "NOTICE_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "Material Change means a significant proposed, imminent, or implemented change in the business, operations, personnel, assets, liabilities or affairs of the Vendor"
+    },
+    {
+      "claim_id": "DOC005-C05",
+      "subject": "Warranty Information Sheet and Addendum templates",
+      "predicate": "has_validity_rule",
+      "object": {
+        "value": "be changed",
+        "modality": "MUST_NOT"
+      },
+      "claim_type": "POLICY_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "3.9.3.6 The Warranty Information Sheet and Addendum templates be changed"
+    }
+  ]
+}

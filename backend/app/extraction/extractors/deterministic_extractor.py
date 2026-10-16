@@ -486,6 +486,17 @@ class DeterministicSchemaExtractor:
                         content_role_val = getattr(unit, "content_role", ContentRole.POLICY_RULE)
                         is_canonical_val = getattr(unit, "is_canonical", True)
 
+                    # Check if table row is a document history / changelog / revision entry
+                    is_rev_history = (
+                        final_subject.lower().rstrip(":") in ("edited", "issued", "reviewed", "history", "changelog", "revision")
+                        or any(k.lower() in ("edited", "issued", "reviewed", "history", "changelog", "revision") for k in cols.keys())
+                        or any("edited:" in str(v).lower() or "issued:" in str(v).lower() for v in cols.values())
+                    )
+                    if is_rev_history:
+                        claim_type_val = "revision_history"
+                        content_role_val = ContentRole.DOCUMENT_METADATA
+                        is_canonical_val = False
+
                     c = CandidateClaim.create(
                         envelope_id=unit.envelope_id,
                         unit_id=unit.unit_id,

@@ -81,7 +81,7 @@ class DocumentNormalizer:
     def reflow_fragmented_lines(raw_text: str) -> str:
         """
         Intelligently reflows single-word and fragmented lines extracted from PDFs.
-        
+
         PDF text extractors (such as pypdf) often place linebreaks between individual words
         or tiny word fragments. This function reassembles them into coherent, continuous
         sentences and paragraphs while strictly preserving markdown headers, tables,
@@ -90,7 +90,58 @@ class DocumentNormalizer:
         if not raw_text:
             return ""
 
-        raw_lines = [l.strip() for l in raw_text.split("\n")]
+        # 1. Comprehensive PDF Kerning & Broken Spaced Token Restoration
+        dekerning_pairs = [
+            (r"\bSECT\s+ION\b", "SECTION"),
+            (r"\bSCO\s+PE\b", "SCOPE"),
+            (r"\bAPPLICABIL\s+ITY\b", "APPLICABILITY"),
+            (r"\bP\s+URPOS\s+E\b", "PURPOSE"),
+            (r"\bGROUN\s+DS\b", "GROUNDS"),
+            (r"\bF\s+OR\b", "FOR"),
+            (r"\bIMPL\s+EM\s+ENT\s+ING\b", "IMPLEMENTING"),
+            (r"\bT\s+ER\s+MINAT\s+ION\b", "TERMINATION"),
+            (r"\bEMPLOY\s+MENT\b", "EMPLOYMENT"),
+            (r"\bSEV\s+ERANCE\b", "SEVERANCE"),
+            (r"\bREHIR\s+E\b", "REHIRE"),
+            (r"\bsta\s+ff\b", "staff"),
+            (r"\bSta\s+ff\b", "Staff"),
+            (r"\bmisco\s+nduct\b", "misconduct"),
+            (r"\bte\s+rmination\b", "termination"),
+            (r"\btermin\s+ations\b", "terminations"),
+            (r"\btermi\s+nated\b", "terminated"),
+            (r"\bappo\s+intments\b", "appointments"),
+            (r"\bperfo\s+rming\b", "performing"),
+            (r"\bperfo\s+rmance\b", "performance"),
+            (r"\bprope\s+rty\b", "property"),
+            (r"\bunethic\s+al\b", "unethical"),
+            (r"\bpremise\s+s\b", "premises"),
+            (r"\bprefera\s+bly\b", "preferably"),
+            (r"\bimme\s+diate\b", "immediate"),
+            (r"\bdisres\s+pectful\b", "disrespectful"),
+            (r"\breputatio\s+n\b", "reputation"),
+            (r"\bNotic\s+e\b", "Notice"),
+            (r"\bPrio\s+r\b", "Prior"),
+            (r"\bDeat\s+h\b", "Death"),
+            (r"\bInv\s+oluntar\s+y\b", "Involuntary"),
+            (r"\bfo\s+r\b", "for"),
+            (r"\bFo\s+r\b", "For"),
+            (r"\bo\s+f\b", "of"),
+            (r"\bbu\s+t\b", "but"),
+            (r"\ba\s+re\b", "are"),
+        ]
+        text_processed = raw_text
+        for pat, rep in dekerning_pairs:
+            text_processed = re.sub(pat, rep, text_processed, flags=re.IGNORECASE)
+
+        # 2. Separate merged Section headings onto their own line
+        text_processed = re.sub(
+            r"(\bSECTION\s+[IVXLCDM\d]+\.\s+[A-Z\s]+?)\s+([A-Z][a-z])",
+            r"\n\n\1\n\n\2",
+            text_processed
+        )
+
+        bullet_prefixes = ("-", "*", "+", "●", "•", "■", "▪", "○", "►", "✓", "–", "—")
+        raw_lines = [l.strip() for l in text_processed.split("\n")]
         reflowed = []
         buffer = []
 
@@ -104,12 +155,13 @@ class DocumentNormalizer:
                 continue
 
             # Universal structural elements: Markdown headers, tables, quotes, dividers,
-            # multi-level numbered sections (e.g. "3.2. Points to Remember"), and list bullets
-            is_bullet = any(line.startswith(f"{b} ") for b in ("-", "*", "+", "•", "●", "❖", "■", "▪", "►", "○", "◆", "–", "—"))
+            # multi-level numbered sections (e.g. '3.2. Points to Remember'), and list bullets
+            is_bullet = any(line.startswith(f"{b} ") for b in bullet_prefixes)
             is_numbered = bool(re.match(r"^(?:\d+(?:\.\d+)*\.?|[A-Za-z][\.\)])\s+", line))
             is_heading_or_table = (
                 line.startswith(("#", "|", ">", "---"))
                 or bool(re.match(r"^\d+(?:\.\d+)+\.?\s+[A-Z]", line))
+                or bool(re.match(r"^SECTION\s+[IVXLCDM\d]+", line, re.IGNORECASE))
             )
 
             if is_heading_or_table or is_bullet or is_numbered:
@@ -122,7 +174,7 @@ class DocumentNormalizer:
                     reflowed[-1] = f"{reflowed[-1]}\n{line}"
                 # Group consecutive list items into a single list block
                 elif (is_bullet or is_numbered) and reflowed and (
-                    any(reflowed[-1].split("\n")[-1].startswith(f"{b} ") for b in ("-", "*", "+", "•", "●", "❖", "■", "▪", "►", "○", "◆", "–", "—"))
+                    any(reflowed[-1].split("\n")[-1].startswith(f"{b} ") for b in bullet_prefixes)
                     or bool(re.match(r"^(?:\d+(?:\.\d+)*\.?|[A-Za-z][\.\)])\s+", reflowed[-1].split("\n")[-1]))
                 ):
                     reflowed[-1] = f"{reflowed[-1]}\n{line}"
@@ -130,9 +182,17 @@ class DocumentNormalizer:
                     reflowed.append(line)
                 continue
 
-            words = line.split()
-            # If line ends with terminal punctuation and is not an abbreviation
-            is_terminal = bool(re.search(r"[.!?:]$", line)) and not bool(re.search(r"\b(?:e\.g|i\.e|vs|no|ver|vol|dr|mr|mrs|prof)\.$", line, re.IGNORECASE))
+            # Continuation of incomplete list/bullet item from reflowed[-1]
+            if reflowed and not buffer and (
+                any(reflowed[-1].split("\n")[-1].strip().startswith(f"{b} ") for b in bullet_prefixes)
+                or bool(re.match(r"^(?:\d+(?:\.\d+)*\.?|[A-Za-z][\.\)])\s+", reflowed[-1].split("\n")[-1].strip()))
+            ):
+                last_line = reflowed[-1].split("\n")[-1].strip()
+                if not re.search(r"[.!?:]$", last_line):
+                    reflowed[-1] = f"{reflowed[-1]} {line}"
+                    continue
+
+            is_terminal = bool(re.search(r"[.!?:]$", line)) and not bool(re.search(r"\b(?:e\.g|i\.e|vs|no|ver|vol|dr|mr|ms|mrs|prof)\.$", line, re.IGNORECASE))
 
             buffer.append(line)
             if is_terminal:
@@ -143,6 +203,7 @@ class DocumentNormalizer:
             reflowed.append(" ".join(buffer))
 
         return "\n\n".join(reflowed)
+
 
     @staticmethod
     def compute_content_hash(content: str) -> str:

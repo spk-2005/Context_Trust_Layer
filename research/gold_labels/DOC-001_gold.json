@@ -1,0 +1,234 @@
+{
+  "document_id": "DOC-001",
+  "document_type": "hr_policy",
+  "organization": "Central Ohio Technical College",
+  "layout_type": "multi_column_kerned",
+  "layout_truth": {
+    "total_pages": 2,
+    "has_selectable_text": true,
+    "expected_sections": [
+      "Resignation and Voluntary Termination, 2.7.30 College Policy",
+      "Policy Statement",
+      "Purpose of the Policy",
+      "Policy Details",
+      "I. Notice",
+      "II. Ability to rescind a resignation",
+      "III. Returning college property",
+      "Responsibilities",
+      "Contacts",
+      "History"
+    ],
+    "multi_column_fragments": [
+      {
+        "corrupted": "O Responsibilities",
+        "clean": "Office of Human Resources"
+      },
+      {
+        "corrupted": "Respons ibilities",
+        "clean": "Responsibilities"
+      },
+      {
+        "corrupted": "Dep Contacts artmental sign out f orm",
+        "clean": "Departmental sign out form"
+      }
+    ]
+  },
+  "table_truth": [
+    {
+      "table_id": "T1_RESPONSIBILITIES",
+      "page": 1,
+      "headers": [
+        "Role",
+        "Responsibility Description"
+      ],
+      "expected_row_count": 6,
+      "roles": [
+        "Employee",
+        "Supervisor",
+        "Human Resources"
+      ]
+    },
+    {
+      "table_id": "T2_CONTACTS",
+      "page": 2,
+      "headers": [
+        "Subject",
+        "Office",
+        "Telephone",
+        "E-mail/URL"
+      ],
+      "expected_row_count": 1
+    },
+    {
+      "table_id": "T3_REVISION_HISTORY",
+      "page": 2,
+      "headers": [
+        "Action",
+        "Date",
+        "Notes"
+      ],
+      "is_metadata": true,
+      "expected_row_count": 10
+    }
+  ],
+  "claim_truth": [
+    {
+      "claim_id": "DOC001-C01",
+      "subject": "College staff",
+      "predicate": "may_resign_employment",
+      "object": {
+        "value": "at any time providing written notice",
+        "modality": "MAY"
+      },
+      "claim_type": "POLICY_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "College staff may resign their employment at any time providing written notice."
+    },
+    {
+      "claim_id": "DOC001-C02",
+      "subject": "Support positions",
+      "predicate": "has_standard_notice_duration",
+      "object": {
+        "value": 2,
+        "unit": "week",
+        "modality": "MUST"
+      },
+      "conditions": [
+        {
+          "field": "position_type",
+          "operator": "=",
+          "value": "support"
+        }
+      ],
+      "claim_type": "POLICY_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "A minimum two-week written notice is standard for support positions."
+    },
+    {
+      "claim_id": "DOC001-C03",
+      "subject": "Administrative & professional (A&P) positions",
+      "predicate": "has_standard_notice_duration",
+      "object": {
+        "value": 4,
+        "unit": "week",
+        "modality": "MUST"
+      },
+      "conditions": [
+        {
+          "field": "position_type",
+          "operator": "in",
+          "value": [
+            "A&P",
+            "senior A&P"
+          ]
+        }
+      ],
+      "claim_type": "POLICY_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "A minimum four -week written notice is standard for administrative & professional (A&P), and senior administrative & professional (senior A&P) positions."
+    },
+    {
+      "claim_id": "DOC001-C04",
+      "subject": "Staff",
+      "predicate": "prohibited_from_using_vacation_to_extend_notice",
+      "object": {
+        "value": "vacation or compensatory time",
+        "modality": "CANNOT"
+      },
+      "claim_type": "POLICY_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "Staff may not use vacation or compensatory time to extend the notice period."
+    },
+    {
+      "claim_id": "DOC001-C05",
+      "subject": "Staff members",
+      "predicate": "may_request_to_rescind_resignation",
+      "object": {
+        "value": "in writing at department's discretion",
+        "modality": "MAY"
+      },
+      "claim_type": "POLICY_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "A staff member may request in writing to rescind a resignation. Acceptance is at the department's discretion."
+    },
+    {
+      "claim_id": "DOC001-C06",
+      "subject": "Staff members",
+      "predicate": "must_return_all_college_property",
+      "object": {
+        "value": "on or before the last workday",
+        "modality": "MUST"
+      },
+      "claim_type": "POLICY_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "Staff members must return all college property on or before the last workday, at a time determined by management."
+    },
+    {
+      "claim_id": "DOC001-M01",
+      "subject": "Resignation and Voluntary Termination Policy",
+      "predicate": "has_revision_history_entry",
+      "object": {
+        "value": "03/01/2009",
+        "unit": "date"
+      },
+      "claim_type": "DOCUMENT_METADATA",
+      "canonical": false,
+      "conflict_eligible": false,
+      "evidence_quote": "Edited: 03/01/2009"
+    },
+    {
+      "claim_id": "DOC001-M02",
+      "subject": "Resignation and Voluntary Termination Policy",
+      "predicate": "has_revision_history_entry",
+      "object": {
+        "value": "07/23/2021",
+        "unit": "date"
+      },
+      "claim_type": "DOCUMENT_METADATA",
+      "canonical": false,
+      "conflict_eligible": false,
+      "evidence_quote": "Edited: 07/23/2021"
+    },
+    {
+      "claim_id": "DOC001-C07",
+      "canonical": true,
+      "subject": "Internally transferring staff",
+      "predicate": "requires_written_resignation_notice",
+      "object": {
+        "value": "At least 2 weeks notice to current department",
+        "modality": "MUST"
+      },
+      "evidence_quote": "Staff that internally transfer to another college position are also expected to provide a written resignation with at least two weeks' notice to their current department."
+    },
+    {
+      "claim_id": "DOC001-C08",
+      "canonical": true,
+      "subject": "Resigning staff",
+      "predicate": "has_standard_notice_duration",
+      "object": {
+        "value": "2 weeks",
+        "unit": "week",
+        "modality": "MUST"
+      },
+      "evidence_quote": "A minimum of two weeks' notice to include last day of employment is expected."
+    }
+  ],
+  "conflict_truth": {
+    "expected_internal_conflicts": [],
+    "expected_suppressed_conflicts": [
+      {
+        "description": "Revision history dates must not conflict with each other",
+        "claim_ids": [
+          "DOC001-M01",
+          "DOC001-M02"
+        ]
+      }
+    ]
+  }
+}

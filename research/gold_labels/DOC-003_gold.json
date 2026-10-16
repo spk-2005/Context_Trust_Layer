@@ -1,0 +1,151 @@
+{
+  "document_id": "DOC-003",
+  "document_type": "termination_policy",
+  "organization": "University of St. Thomas",
+  "layout_type": "standard_policy",
+  "layout_truth": {
+    "total_pages": 4,
+    "has_selectable_text": true,
+    "expected_sections": [
+      "Section I. Purpose",
+      "Section II. Scope and Applicability",
+      "Section III. Grounds for Implementing Termination of Employment",
+      "A. Voluntary (Resignation, Retirement)",
+      "B. End of a Term Appointment",
+      "C. Death",
+      "D. Involuntary (Misconduct, Unsatisfactory Performance, Staff Reduction)",
+      "Section IV. Return of University Property",
+      "Section V. Final Paycheck"
+    ],
+    "multi_column_fragments": []
+  },
+  "table_truth": [],
+  "claim_truth": [
+    {
+      "claim_id": "DOC003-C01",
+      "subject": "Termination of Employment Policy",
+      "predicate": "specifies_governing_rule",
+      "object": {
+        "value": "applies to all regular full-time and part-time staff employees",
+        "modality": "MUST"
+      },
+      "claim_type": "POLICY_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "This policy applies to all regular full- time and part- time staff employees, including those holding term appointments."
+    },
+    {
+      "claim_id": "DOC003-C02",
+      "subject": "Employees",
+      "predicate": "has_standard_notice_duration",
+      "object": {
+        "value": "minimum of two weeks' written notice",
+        "unit": "week",
+        "modality": "SHOULD"
+      },
+      "claim_type": "POLICY_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "Employees who decide to leave the University are asked to provide their immediate supervisor with a reasonable notice period, preferably a minimum of two weeks' written notice."
+    },
+    {
+      "claim_id": "DOC003-C03",
+      "subject": "Termination for serious misconduct",
+      "predicate": "may_occur_without_notice",
+      "object": {
+        "value": "may occur without prior notice",
+        "modality": "MAY"
+      },
+      "claim_type": "POLICY_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "Termination for serious misconduct may occur without prior notice in accordance with the University's Corrective Action Policy for Staff Employees"
+    },
+    {
+      "claim_id": "DOC003-C04",
+      "subject": "Staff members terminated for misconduct",
+      "predicate": "has_severance_eligibility",
+      "object": {
+        "value": "not eligible for severance pay",
+        "modality": "MUST_NOT"
+      },
+      "claim_type": "POLICY_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "Staff mem bers term inated for misco nduct are not eligible for severance pay."
+    },
+    {
+      "claim_id": "DOC003-C05",
+      "subject": "position elimination",
+      "predicate": "has_definition_threshold",
+      "object": {
+        "value": "position is eliminated or its duties change by more than 50%",
+        "modality": "MUST"
+      },
+      "claim_type": "DEFINITION_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "A position elimination occurs when a position is eliminate d or its duties change by more than 50%."
+    },
+    {
+      "claim_id": "DOC003-C06",
+      "subject": "supervisors",
+      "predicate": "has_rehire_restriction",
+      "object": {
+        "value": "may not rehire the position for a period of at least one year",
+        "unit": "year",
+        "modality": "MUST_NOT"
+      },
+      "claim_type": "POLICY_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "supervisors may not rehire the position fo r a period of at least one year, except with the approval of the chief human resources officer."
+    },
+    {
+      "claim_id": "DOC003-C07",
+      "subject": "final paycheck",
+      "predicate": "includes_compensation",
+      "object": {
+        "value": "includes all unpaid wages, earned but unused paid leave time (PLT)",
+        "modality": "MUST"
+      },
+      "claim_type": "COMPENSATION_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "The final paycheck includes all unpaid wages, earned but unused paid l eave time (PLT) for non-exempt staff"
+    },
+    {
+      "claim_id": "DOC003-C08",
+      "canonical": true,
+      "subject": "Supervisors",
+      "predicate": "notify_human_resources",
+      "object": {
+        "value": "as soon as they are aware an employee is voluntarily terminating",
+        "modality": "SHOULD"
+      },
+      "evidence_quote": "Supervisors should notify the designated Human Resources partner as soon as they are aware an employee is voluntarily terminating."
+    },
+    {
+      "claim_id": "DOC003-C09",
+      "canonical": true,
+      "subject": "Retiring employees",
+      "predicate": "advance_notice_requirement",
+      "object": {
+        "value": "advance notice of their intention to retire",
+        "modality": "ASKED"
+      },
+      "evidence_quote": "To help assist in a transition, employees are asked to give advance notice of their intention to retire."
+    },
+    {
+      "claim_id": "DOC003-C10",
+      "canonical": true,
+      "subject": "Terminations for Unsatisfactory Performance",
+      "predicate": "follow_corrective_action_policy",
+      "object": {
+        "value": "expected to follow the University's Corrective Action Policy for Staff Employees",
+        "modality": "EXPECTED"
+      },
+      "evidence_quote": "Before terminating an employee for unsatisfactory performance, supervisors are generally expected to follow the University's Corrective Action Policy for Staff Employees."
+    }
+  ]
+}

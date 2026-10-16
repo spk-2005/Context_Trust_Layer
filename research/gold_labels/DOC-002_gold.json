@@ -1,0 +1,152 @@
+{
+  "document_id": "DOC-002",
+  "document_type": "contract_employment_guidelines",
+  "organization": "Government of Mizoram (DP&AR)",
+  "layout_type": "official_guideline",
+  "layout_truth": {
+    "total_pages": 4,
+    "has_selectable_text": true,
+    "expected_sections": [
+      "Subject : Guidelines for Engagement of Employees on Contract basis",
+      "Terms and Conditions (Rules 1-22)",
+      "Agreement Form"
+    ],
+    "multi_column_fragments": []
+  },
+  "table_truth": [],
+  "claim_truth": [
+    {
+      "claim_id": "DOC002-C01",
+      "subject": "All Administrative Departments and Heads of Departments",
+      "predicate": "scrupulously",
+      "object": {
+        "value": "follow the following terms and conditions while making engagements on contract basis",
+        "modality": "MUST"
+      },
+      "claim_type": "POLICY_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "All Administrative Departments and Heads of Departments should scrupulously follow the following terms and conditions while making engagements on contract basis"
+    },
+    {
+      "claim_id": "DOC002-C02",
+      "subject": "engagement on contract basis",
+      "predicate": "has_validity_rule",
+      "object": {
+        "value": "be made except with prior approval of DP&AR and Finance Department",
+        "modality": "MUST"
+      },
+      "claim_type": "STATUTORY_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "No engagement on contract basis shall be made except with prior approval of DP&AR and Finance Department, Government of Mizoram."
+    },
+    {
+      "claim_id": "DOC002-C03",
+      "subject": "Period of engagement on contract basis",
+      "predicate": "has_duration_limit",
+      "object": {
+        "value": "one year at the initial stage",
+        "unit": "year",
+        "modality": "MUST"
+      },
+      "claim_type": "STATUTORY_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "Period of engagement on contract basis shall be for one year at the initial stage."
+    },
+    {
+      "claim_id": "DOC002-C04",
+      "subject": "Retired Officers",
+      "predicate": "has_age_restriction",
+      "object": {
+        "value": "63 years of age",
+        "unit": "year",
+        "modality": "MUST_NOT"
+      },
+      "claim_type": "POLICY_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "Retired Officers should not normally be engaged on contract basis beyond attainment of 63 years of age"
+    },
+    {
+      "claim_id": "DOC002-C05",
+      "subject": "contract employee",
+      "predicate": "has_financial_power_restriction",
+      "object": {
+        "value": "neither be delegated with financial powers nor assigned the work of DDO",
+        "modality": "MUST_NOT"
+      },
+      "claim_type": "POLICY_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "No engagement on contract basis should be made against such post(s) having financial powers and a contract employee should neither be delegated with financial powers nor assigned the work of DDO"
+    },
+    {
+      "claim_id": "DOC002-C06",
+      "subject": "rate of monthly remuneration of contract employee",
+      "predicate": "has_compensation_rate",
+      "object": {
+        "value": "minimum scale of pay attached to the post plus 50%",
+        "modality": "MUST"
+      },
+      "claim_type": "COMPENSATION_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "The rate of monthly remuneration of contract employee shall be equal to the minimum scale of pay attached to the post in which he/she in engaged plus 50% of that amount."
+    },
+    {
+      "claim_id": "DOC002-C07",
+      "subject": "Contract employees",
+      "predicate": "has_medical_reimbursement",
+      "object": {
+        "value": "at par with other regular government servants",
+        "modality": "MUST"
+      },
+      "claim_type": "BENEFIT_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "All Contract employees shall be entitled to Medical Re-imbursement at par with other regular government servants."
+    },
+    {
+      "claim_id": "DOC002-C08",
+      "subject": "gratuity",
+      "predicate": "has_validity_rule",
+      "object": {
+        "value": "be permissible if he had completed not less than five years continuous engagement",
+        "modality": "MAY"
+      },
+      "claim_type": "BENEFIT_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "gratuity at the rate of one-half of a months remuneration for each completed year of engagement shall be permissible if he had completed not less than five years continuous"
+    },
+    {
+      "claim_id": "DOC002-C09",
+      "subject": "Earned leave",
+      "predicate": "has_encashment_limit",
+      "object": {
+        "value": "subject to a maximum of 150 days",
+        "unit": "day",
+        "modality": "MAY"
+      },
+      "claim_type": "LEAVE_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "Earned leave at his credit subject to a maximum of 150 days shall be encashed."
+    },
+    {
+      "claim_id": "DOC002-C10",
+      "subject": "Service book",
+      "predicate": "has_governing_rule",
+      "object": {
+        "value": "shall be maintained for each contract employee",
+        "modality": "MUST"
+      },
+      "claim_type": "POLICY_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "Service book shall be maintained for each contract employee."
+    }
+  ]
+}

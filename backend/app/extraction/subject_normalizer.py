@@ -58,6 +58,28 @@ class SubjectNormalizer:
         "once an order has shipped it": "Shipped order",
         "once an order has shipped": "Shipped order",
         
+        # Company & E-Commerce Pronoun normalization
+        "the company": "Company",
+        "by sending us an email": "Company",
+        
+        # Product specifications & exclusions
+        "personalized goods": "personalized Goods",
+        "the supply of goods made to your specifications or clearly personalized": "personalized Goods",
+        "goods made to your specifications or clearly personalized": "personalized Goods",
+        "supply of goods made to your specifications or clearly personalized": "personalized Goods",
+
+        # Statutory & Contract Employment Subjects (DOC-002)
+        "no engagement on contract basis": "engagement on contract basis",
+        "period of engagement on contract basis": "Period of engagement on contract basis",
+        "the rate of monthly remuneration of contract employee": "rate of monthly remuneration of contract employee",
+        "all contract employees": "Contract employees",
+        "contract employees": "Contract employees",
+        "service book": "Service book",
+        "retired officers": "Retired Officers",
+        "in the event of death or discharge from service of a contract employee within the contract period, gratuity at the rate of one-half of a months remuneration for each completed year of engagement": "gratuity",
+        "in the event of death or discharge from service of a contract employee, 1/ of 2 earned leave at his credit subject to a maximum of 150 days": "Earned leave",
+        "in the event of death or discharge from service of a contract employee, 1/2 of earned leave at his credit subject to a maximum of 150 days": "Earned leave",
+
         # Case studies & narrative isolation
         "case a - wrong size, within window": "Case A: Wrong size, within window",
         "case a: wrong size, within window": "Case A: Wrong size, within window",

@@ -1,0 +1,61 @@
+{
+  "document_id": "DOC-007",
+  "document_type": "regulatory_directive_letter",
+  "organization": "U.S. Environmental Protection Agency (Office of Water)",
+  "layout_type": "scanned_raster_letter",
+  "layout_truth": {
+    "total_pages": 3,
+    "has_selectable_text": false,
+    "expected_sections": [
+      "Header / Date",
+      "Opening / Safe Drinking Water Act (SDWA) Primacy",
+      "Five Near-Term Action Areas for Lead and Copper Rule (LCR)",
+      "30-Day Response Requirement",
+      "Technical Support and Guidance Memorandum"
+    ],
+    "multi_column_fragments": []
+  },
+  "table_truth": [],
+  "claim_truth": [
+    {
+      "claim_id": "DOC007-C01",
+      "subject": "DOC-007: EPA Lead and Copper Rule Implementation Letter",
+      "predicate": "specifies_governing_rule",
+      "object": {
+        "value": "protect public health and the environment and contact Office of Ground Water and Drinking Water",
+        "modality": "MUST"
+      },
+      "claim_type": "CONTACT_INFORMATION",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "As always, the EPA appreciates your leadership and engagement as a partner in our efforts to protect public health"
+    },
+    {
+      "claim_id": "DOC007-C02",
+      "subject": "Safe Drinking Water Act",
+      "predicate": "has_statutory_framework",
+      "object": {
+        "value": "states have primary responsibility for implementation and enforcement while EPA oversees state efforts",
+        "modality": "MUST"
+      },
+      "claim_type": "STATUTORY_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "states having primacy under SDWA, we need to work together to ensure that states are taking action"
+    },
+    {
+      "claim_id": "DOC007-C03",
+      "subject": "You (State Commissioner)",
+      "predicate": "has_response_deadline",
+      "object": {
+        "value": "respond in writing within 30 days to provide information on activities",
+        "unit": "day",
+        "modality": "MUST"
+      },
+      "claim_type": "REPORTING_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "request that you respond in writing, within the next 30 days, to provide information on your activities in these areas."
+    }
+  ]
+}

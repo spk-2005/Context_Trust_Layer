@@ -1,0 +1,2007 @@
+{
+  "timestamp": "2026-10-16T15:09:23Z",
+  "harness_version": "3.2.0",
+  "code_commit": "4ee140ef169da0b4f7d6420a95586e1d2f628fcb",
+  "suite": "Trulin 9-Document Enterprise Reproducibility & Multi-Tier Ground Truth Benchmark",
+  "dual_gate_policy": {
+    "pass": {
+      "min_full_recall": 0.9,
+      "min_full_precision": 0.9,
+      "min_full_f1": 0.9,
+      "min_subject_acc": 0.95,
+      "min_predicate_acc": 0.95,
+      "min_object_acc": 0.95,
+      "max_false_approval": 0.02,
+      "max_false_conflict": 0.02,
+      "max_malformed": 0.0,
+      "min_traceability": 1.0
+    },
+    "conditional_pass": {
+      "min_partial_recall": 0.75,
+      "min_lower_precision": 0.35,
+      "min_partial_f1": 0.5,
+      "min_subject_acc": 0.85,
+      "max_false_approval": 0.05,
+      "max_false_conflict": 0.05,
+      "max_malformed": 0.01
+    }
+  },
+  "documents": {
+    "DOC-001": {
+      "document_id": "DOC-001",
+      "title": "Resignation and Voluntary Termination Policy",
+      "organization": "Central Ohio Technical College",
+      "document_type": "hr_policy",
+      "verdict": "NEEDS_WORK",
+      "verdict_basis": "full_match_canonical_metrics",
+      "blocking_reasons": [
+        "full_match_recall_below_threshold (37.5% < 90.0%)",
+        "canonical_policy_precision_below_threshold (27.3% < 90.0%)",
+        "material_claim_precision_below_threshold (27.3% < 90.0%)",
+        "f1_score_below_threshold (31.6% < 90.0%)",
+        "WRONG_PREDICATE: DOC001-C01 [PREDICATE_MAPPING_ERROR] - College staff: \"College staff may resign their employment at any time provid\"",
+        "WRONG_PREDICATE: DOC001-C04 [PREDICATE_MAPPING_ERROR] - Staff: \"Staff may not use vacation or compensatory time to extend th\"",
+        "WRONG_PREDICATE: DOC001-C05 [PREDICATE_MAPPING_ERROR] - Staff members: \"A staff member may request in writing to rescind a resignati\"",
+        "WRONG_PREDICATE: DOC001-C06 [PREDICATE_MAPPING_ERROR] - Staff members: \"Staff members must return all college property on or before \"",
+        "MISSING: DOC001-C08 [TABLE_STRUCTURE_ERROR] - Resigning staff: \"A minimum of two weeks' notice to include last day of employ\""
+      ],
+      "metrics": {
+        "full_match_recall": 0.375,
+        "partial_match_recall": 0.375,
+        "lower_bound_precision": 0.2727,
+        "partial_precision": 0.2727,
+        "adjudicated_precision": 1.0,
+        "canonical_f1_full_match": 0.3158,
+        "canonical_f1_partial_match": 0.3158,
+        "raw_precision": 0.1579,
+        "raw_recall": 0.5,
+        "raw_f1": 0.24
+      },
+      "paired_metrics": {
+        "raw_metrics": {
+          "precision": 0.1579,
+          "recall": 0.5,
+          "f1": 0.24
+        },
+        "canonical_full_metrics": {
+          "precision": 0.2727,
+          "recall": 0.375,
+          "f1": 0.3158
+        },
+        "canonical_partial_metrics": {
+          "precision": 0.2727,
+          "recall": 0.375,
+          "f1": 0.3158
+        },
+        "canonical_metrics": {
+          "precision": 0.2727,
+          "recall": 0.375,
+          "f1": 0.3158
+        }
+      },
+      "quality_metrics": {
+        "claim_recall": 0.375,
+        "claim_precision": 0.1579,
+        "claim_f1": 0.3158,
+        "canonical_policy_precision": 0.2727,
+        "validated_claim_precision": 0.2727,
+        "raw_candidate_precision": 0.1579,
+        "subject_accuracy": 1.0,
+        "predicate_accuracy": 1.0,
+        "object_accuracy": 1.0,
+        "false_approval_rate": 0.0,
+        "false_rejection_rate": 0.125,
+        "false_conflict_rate": 0.0,
+        "malformed_fragment_rate": 0.0,
+        "evidence_span_traceability": 1.0
+      },
+      "candidate_ledger": {
+        "total_extracted_candidates": 19,
+        "approved_candidates": 11,
+        "rejected_candidates": 8,
+        "review_candidates": 0,
+        "canonical_candidates": 11,
+        "approved_l6_total": 11,
+        "canonical_approved_total": 11,
+        "excluded_non_canonical": 0,
+        "excluded_boilerplate": 0,
+        "excluded_duplicate": 0,
+        "excluded_malformed": 0,
+        "excluded_other": 0,
+        "reconciliation_difference": 0,
+        "deduplicated_canonical_candidates": 11,
+        "correct_full_matches": 3,
+        "correct_partial_matches": 0,
+        "unjudged_spans": 8,
+        "incorrect_predictions": 0,
+        "malformed_claims": 0,
+        "duplicate_claims": 0,
+        "non_canonical_claims": 0,
+        "gold_rules_captured_full": 3,
+        "gold_rules_captured_partial": 0,
+        "gold_rules_raw_discovery": 1,
+        "gold_rules_missed": 5,
+        "correct_canonical_predictions": 3,
+        "incorrect_canonical_predictions": 0,
+        "unjudged_canonical_predictions": 8,
+        "gold_rules_captured": 3,
+        "labeled_rule_recall": 0.375
+      },
+      "counts": {
+        "total_claims_extracted": 19,
+        "total_gold_canonical_rules": 8,
+        "gold_rules_captured": 3,
+        "gold_rules_full_matched": 3,
+        "gold_rules_partial_matched": 0,
+        "gold_rules_raw_discovery": 1,
+        "total_approved": 11,
+        "total_rejected": 8,
+        "total_conflicts": 0,
+        "malformed_fragments_count": 0
+      },
+      "claim_classifications": {
+        "DOC001-C01": {
+          "claim_id": "DOC001-C01",
+          "gold_subject": "College staff",
+          "status": "WRONG_PREDICATE",
+          "match_tier": "WRONG_PREDICATE",
+          "taxonomy": "PREDICATE_MAPPING_ERROR",
+          "evidence_quote": "College staff may resign their employment at any time provid",
+          "matched_claim_id": "374ea03b-e7a2-4d3d-b889-9c654e92968b",
+          "matched_subject": "Resignation and Voluntary Termination, 2.7.30 College Policy Applies to: Staff Responsible Office Human Resources POLICY STATEMENT College staff"
+        },
+        "DOC001-C02": {
+          "claim_id": "DOC001-C02",
+          "gold_subject": "Support positions",
+          "status": "MATCHED",
+          "match_tier": "FULL_MATCH",
+          "taxonomy": "NONE",
+          "evidence_quote": "A minimum two-week written notice is standard for support po",
+          "matched_claim_id": "3ff07afa-97f8-4405-9f2c-bf89a125ef9c",
+          "matched_subject": "Support positions"
+        },
+        "DOC001-C03": {
+          "claim_id": "DOC001-C03",
+          "gold_subject": "Administrative & professional (A&P) positions",
+          "status": "MATCHED",
+          "match_tier": "FULL_MATCH",
+          "taxonomy": "NONE",
+          "evidence_quote": "A minimum four -week written notice is standard for administ",
+          "matched_claim_id": "9464fd5e-f59b-4411-b14d-a3ce2a96cc29",
+          "matched_subject": "Administrative & Professional (A&P) positions"
+        },
+        "DOC001-C04": {
+          "claim_id": "DOC001-C04",
+          "gold_subject": "Staff",
+          "status": "WRONG_PREDICATE",
+          "match_tier": "WRONG_PREDICATE",
+          "taxonomy": "PREDICATE_MAPPING_ERROR",
+          "evidence_quote": "Staff may not use vacation or compensatory time to extend th",
+          "matched_claim_id": "f4e205b5-5a05-432a-9342-694283b03f07",
+          "matched_subject": "Staff"
+        },
+        "DOC001-C05": {
+          "claim_id": "DOC001-C05",
+          "gold_subject": "Staff members",
+          "status": "WRONG_PREDICATE",
+          "match_tier": "WRONG_PREDICATE",
+          "taxonomy": "PREDICATE_MAPPING_ERROR",
+          "evidence_quote": "A staff member may request in writing to rescind a resignati",
+          "matched_claim_id": "36daf451-1ccd-4eae-b566-9f798906265e",
+          "matched_subject": "Ability to rescind a resignation A staff member"
+        },
+        "DOC001-C06": {
+          "claim_id": "DOC001-C06",
+          "gold_subject": "Staff members",
+          "status": "WRONG_PREDICATE",
+          "match_tier": "WRONG_PREDICATE",
+          "taxonomy": "PREDICATE_MAPPING_ERROR",
+          "evidence_quote": "Staff members must return all college property on or before ",
+          "matched_claim_id": "dc548a2c-47fd-4fd0-a9d6-cd8d616fd03d",
+          "matched_subject": "Returning college propert y Staff members"
+        },
+        "DOC001-C07": {
+          "claim_id": "DOC001-C07",
+          "gold_subject": "Internally transferring staff",
+          "status": "MATCHED",
+          "match_tier": "FULL_MATCH",
+          "taxonomy": "NONE",
+          "evidence_quote": "Staff that internally transfer to another college position a",
+          "matched_claim_id": "4c890a3e-c106-4423-8c81-a74aeb5ec7f0",
+          "matched_subject": "Internally transferring staff"
+        },
+        "DOC001-C08": {
+          "claim_id": "DOC001-C08",
+          "gold_subject": "Resigning staff",
+          "status": "MISSING",
+          "match_tier": "RAW_DISCOVERY_MATCH",
+          "taxonomy": "TABLE_STRUCTURE_ERROR",
+          "evidence_quote": "A minimum of two weeks' notice to include last day of employ",
+          "matched_claim_id": "db0aa486-f730-430b-8d37-472e8ec1a41a",
+          "matched_subject": "Resigning staff"
+        }
+      }
+    },
+    "DOC-002": {
+      "document_id": "DOC-002",
+      "title": "Guidelines for Engagement of Employees on Contract Basis",
+      "organization": "Government of Mizoram (DP&AR)",
+      "document_type": "contract_employment_guidelines",
+      "verdict": "NEEDS_WORK",
+      "verdict_basis": "full_match_canonical_metrics",
+      "blocking_reasons": [
+        "canonical_policy_precision_below_threshold (25.0% < 90.0%)",
+        "material_claim_precision_below_threshold (25.0% < 90.0%)",
+        "f1_score_below_threshold (39.1% < 90.0%)"
+      ],
+      "metrics": {
+        "full_match_recall": 0.9,
+        "partial_match_recall": 1.0,
+        "lower_bound_precision": 0.25,
+        "partial_precision": 0.2778,
+        "adjudicated_precision": 0.9,
+        "canonical_f1_full_match": 0.3913,
+        "canonical_f1_partial_match": 0.4348,
+        "raw_precision": 0.2703,
+        "raw_recall": 1.0,
+        "raw_f1": 0.4256
+      },
+      "paired_metrics": {
+        "raw_metrics": {
+          "precision": 0.2703,
+          "recall": 1.0,
+          "f1": 0.4256
+        },
+        "canonical_full_metrics": {
+          "precision": 0.25,
+          "recall": 0.9,
+          "f1": 0.3913
+        },
+        "canonical_partial_metrics": {
+          "precision": 0.2778,
+          "recall": 1.0,
+          "f1": 0.4348
+        },
+        "canonical_metrics": {
+          "precision": 0.25,
+          "recall": 0.9,
+          "f1": 0.3913
+        }
+      },
+      "quality_metrics": {
+        "claim_recall": 0.9,
+        "claim_precision": 0.2703,
+        "claim_f1": 0.3913,
+        "canonical_policy_precision": 0.25,
+        "validated_claim_precision": 0.25,
+        "raw_candidate_precision": 0.2703,
+        "subject_accuracy": 1.0,
+        "predicate_accuracy": 1.0,
+        "object_accuracy": 1.0,
+        "false_approval_rate": 0.0,
+        "false_rejection_rate": 0.0,
+        "false_conflict_rate": 0.0,
+        "malformed_fragment_rate": 0.0,
+        "evidence_span_traceability": 1.0
+      },
+      "candidate_ledger": {
+        "total_extracted_candidates": 37,
+        "approved_candidates": 36,
+        "rejected_candidates": 1,
+        "review_candidates": 0,
+        "canonical_candidates": 36,
+        "approved_l6_total": 36,
+        "canonical_approved_total": 36,
+        "excluded_non_canonical": 0,
+        "excluded_boilerplate": 0,
+        "excluded_duplicate": 0,
+        "excluded_malformed": 0,
+        "excluded_other": 0,
+        "reconciliation_difference": 0,
+        "deduplicated_canonical_candidates": 35,
+        "correct_full_matches": 9,
+        "correct_partial_matches": 1,
+        "unjudged_spans": 25,
+        "incorrect_predictions": 0,
+        "malformed_claims": 0,
+        "duplicate_claims": 1,
+        "non_canonical_claims": 0,
+        "gold_rules_captured_full": 9,
+        "gold_rules_captured_partial": 1,
+        "gold_rules_raw_discovery": 0,
+        "gold_rules_missed": 0,
+        "correct_canonical_predictions": 10,
+        "incorrect_canonical_predictions": 1,
+        "unjudged_canonical_predictions": 25,
+        "gold_rules_captured": 10,
+        "labeled_rule_recall": 1.0
+      },
+      "counts": {
+        "total_claims_extracted": 37,
+        "total_gold_canonical_rules": 10,
+        "gold_rules_captured": 10,
+        "gold_rules_full_matched": 9,
+        "gold_rules_partial_matched": 1,
+        "gold_rules_raw_discovery": 0,
+        "total_approved": 36,
+        "total_rejected": 1,
+        "total_conflicts": 0,
+        "malformed_fragments_count": 0
+      },
+      "claim_classifications": {
+        "DOC002-C01": {
+          "claim_id": "DOC002-C01",
+          "gold_subject": "All Administrative Departments and Heads of Departments",
+          "status": "MATCHED",
+          "match_tier": "FULL_MATCH",
+          "taxonomy": "NONE",
+          "evidence_quote": "All Administrative Departments and Heads of Departments shou",
+          "matched_claim_id": "e5db8cbe-27b7-4f15-a8c8-1e21e6733d38",
+          "matched_subject": "All Administrative Departments and Heads of Departments"
+        },
+        "DOC002-C02": {
+          "claim_id": "DOC002-C02",
+          "gold_subject": "engagement on contract basis",
+          "status": "MATCHED",
+          "match_tier": "FULL_MATCH",
+          "taxonomy": "NONE",
+          "evidence_quote": "No engagement on contract basis shall be made except with pr",
+          "matched_claim_id": "77bca732-c8b8-40d0-a01f-fd54d050d524",
+          "matched_subject": "engagement on contract basis"
+        },
+        "DOC002-C03": {
+          "claim_id": "DOC002-C03",
+          "gold_subject": "Period of engagement on contract basis",
+          "status": "MATCHED",
+          "match_tier": "FULL_MATCH",
+          "taxonomy": "NONE",
+          "evidence_quote": "Period of engagement on contract basis shall be for one year",
+          "matched_claim_id": "5a774d21-10a7-46b7-b8c3-601f337bd634",
+          "matched_subject": "Period of engagement on contract basis"
+        },
+        "DOC002-C04": {
+          "claim_id": "DOC002-C04",
+          "gold_subject": "Retired Officers",
+          "status": "MATCHED",
+          "match_tier": "FULL_MATCH",
+          "taxonomy": "NONE",
+          "evidence_quote": "Retired Officers should not normally be engaged on contract ",
+          "matched_claim_id": "be7c596c-408d-4747-bb27-7c94223782f8",
+          "matched_subject": "Retired Officers"
+        },
+        "DOC002-C05": {
+          "claim_id": "DOC002-C05",
+          "gold_subject": "contract employee",
+          "status": "MATCHED",
+          "match_tier": "FULL_MATCH",
+          "taxonomy": "NONE",
+          "evidence_quote": "No engagement on contract basis should be made against such ",
+          "matched_claim_id": "91591f71-9213-4e19-99b9-4793805bc310",
+          "matched_subject": "engagement on contract basis"
+        },
+        "DOC002-C06": {
+          "claim_id": "DOC002-C06",
+          "gold_subject": "rate of monthly remuneration of contract employee",
+          "status": "MATCHED",
+          "match_tier": "FULL_MATCH",
+          "taxonomy": "NONE",
+          "evidence_quote": "The rate of monthly remuneration of contract employee shall ",
+          "matched_claim_id": "95a6451a-737e-42fc-a43e-6fc2554e40cf",
+          "matched_subject": "rate of monthly remuneration of contract employee"
+        },
+        "DOC002-C07": {
+          "claim_id": "DOC002-C07",
+          "gold_subject": "Contract employees",
+          "status": "MATCHED",
+          "match_tier": "FULL_MATCH",
+          "taxonomy": "NONE",
+          "evidence_quote": "All Contract employees shall be entitled to Medical Re-imbur",
+          "matched_claim_id": "12c87ac6-151c-4281-8ed3-42c419b00668",
+          "matched_subject": "Contract employees"
+        },
+        "DOC002-C08": {
+          "claim_id": "DOC002-C08",
+          "gold_subject": "gratuity",
+          "status": "MATCHED",
+          "match_tier": "FULL_MATCH",
+          "taxonomy": "NONE",
+          "evidence_quote": "gratuity at the rate of one-half of a months remuneration fo",
+          "matched_claim_id": "0a4b310b-f48f-458d-a4cc-28e7f93b5821",
+          "matched_subject": "gratuity"
+        },
+        "DOC002-C09": {
+          "claim_id": "DOC002-C09",
+          "gold_subject": "Earned leave",
+          "status": "PARTIAL",
+          "match_tier": "ACCEPTED_PARTIAL_MATCH",
+          "taxonomy": "PARTIAL_OBJECT_CAPTURE",
+          "evidence_quote": "Earned leave at his credit subject to a maximum of 150 days ",
+          "matched_claim_id": "47f7188f-5a14-4402-a4f6-cb226ce35561",
+          "matched_subject": "Earned leave"
+        },
+        "DOC002-C10": {
+          "claim_id": "DOC002-C10",
+          "gold_subject": "Service book",
+          "status": "MATCHED",
+          "match_tier": "FULL_MATCH",
+          "taxonomy": "NONE",
+          "evidence_quote": "Service book shall be maintained for each contract employee.",
+          "matched_claim_id": "8de7d7f6-e88a-4db0-9dee-a507da7d3a84",
+          "matched_subject": "Service book"
+        }
+      }
+    },
+    "DOC-003": {
+      "document_id": "DOC-003",
+      "title": "Termination of Employment Policy",
+      "organization": "University of St. Thomas",
+      "document_type": "termination_policy",
+      "verdict": "NEEDS_WORK",
+      "verdict_basis": "full_match_canonical_metrics",
+      "blocking_reasons": [
+        "full_match_recall_below_threshold (50.0% < 90.0%)",
+        "canonical_policy_precision_below_threshold (13.2% < 90.0%)",
+        "material_claim_precision_below_threshold (13.2% < 90.0%)",
+        "f1_score_below_threshold (20.8% < 90.0%)",
+        "WRONG_PREDICATE: DOC003-C03 [PREDICATE_MAPPING_ERROR] - Termination for serious misconduct: \"Termination for serious misconduct may occur without prior n\"",
+        "MISSING: DOC003-C05 [SENTENCE_SPLIT_ERROR] - position elimination: \"A position elimination occurs when a position is eliminate d\"",
+        "WRONG_PREDICATE: DOC003-C08 [PREDICATE_MAPPING_ERROR] - Supervisors: \"Supervisors should notify the designated Human Resources par\"",
+        "MISSING: DOC003-C09 [SENTENCE_SPLIT_ERROR] - Retiring employees: \"To help assist in a transition, employees are asked to give \"",
+        "MISSING: DOC003-C10 [SENTENCE_SPLIT_ERROR] - Terminations for Unsatisfactory Performance: \"Before terminating an employee for unsatisfactory performanc\""
+      ],
+      "metrics": {
+        "full_match_recall": 0.5,
+        "partial_match_recall": 0.5,
+        "lower_bound_precision": 0.1316,
+        "partial_precision": 0.1316,
+        "adjudicated_precision": 1.0,
+        "canonical_f1_full_match": 0.2084,
+        "canonical_f1_partial_match": 0.2084,
+        "raw_precision": 0.0909,
+        "raw_recall": 0.6,
+        "raw_f1": 0.1579
+      },
+      "paired_metrics": {
+        "raw_metrics": {
+          "precision": 0.0909,
+          "recall": 0.6,
+          "f1": 0.1579
+        },
+        "canonical_full_metrics": {
+          "precision": 0.1316,
+          "recall": 0.5,
+          "f1": 0.2084
+        },
+        "canonical_partial_metrics": {
+          "precision": 0.1316,
+          "recall": 0.5,
+          "f1": 0.2084
+        },
+        "canonical_metrics": {
+          "precision": 0.1316,
+          "recall": 0.5,
+          "f1": 0.2084
+        }
+      },
+      "quality_metrics": {
+        "claim_recall": 0.5,
+        "claim_precision": 0.0909,
+        "claim_f1": 0.2084,
+        "canonical_policy_precision": 0.1316,
+        "validated_claim_precision": 0.1316,
+        "raw_candidate_precision": 0.0909,
+        "subject_accuracy": 1.0,
+        "predicate_accuracy": 1.0,
+        "object_accuracy": 1.0,
+        "false_approval_rate": 0.0,
+        "false_rejection_rate": 0.1875,
+        "false_conflict_rate": 0.0,
+        "malformed_fragment_rate": 0.0,
+        "evidence_span_traceability": 1.0
+      },
+      "candidate_ledger": {
+        "total_extracted_candidates": 55,
+        "approved_candidates": 39,
+        "rejected_candidates": 16,
+        "review_candidates": 0,
+        "canonical_candidates": 38,
+        "approved_l6_total": 39,
+        "canonical_approved_total": 38,
+        "excluded_non_canonical": 0,
+        "excluded_boilerplate": 1,
+        "excluded_duplicate": 0,
+        "excluded_malformed": 0,
+        "excluded_other": 0,
+        "reconciliation_difference": 0,
+        "deduplicated_canonical_candidates": 38,
+        "correct_full_matches": 5,
+        "correct_partial_matches": 0,
+        "unjudged_spans": 33,
+        "incorrect_predictions": 0,
+        "malformed_claims": 0,
+        "duplicate_claims": 0,
+        "non_canonical_claims": 0,
+        "gold_rules_captured_full": 5,
+        "gold_rules_captured_partial": 0,
+        "gold_rules_raw_discovery": 1,
+        "gold_rules_missed": 5,
+        "correct_canonical_predictions": 5,
+        "incorrect_canonical_predictions": 0,
+        "unjudged_canonical_predictions": 33,
+        "gold_rules_captured": 5,
+        "labeled_rule_recall": 0.5
+      },
+      "counts": {
+        "total_claims_extracted": 55,
+        "total_gold_canonical_rules": 10,
+        "gold_rules_captured": 5,
+        "gold_rules_full_matched": 5,
+        "gold_rules_partial_matched": 0,
+        "gold_rules_raw_discovery": 1,
+        "total_approved": 39,
+        "total_rejected": 16,
+        "total_conflicts": 0,
+        "malformed_fragments_count": 0
+      },
+      "claim_classifications": {
+        "DOC003-C01": {
+          "claim_id": "DOC003-C01",
+          "gold_subject": "Termination of Employment Policy",
+          "status": "MATCHED",
+          "match_tier": "FULL_MATCH",
+          "taxonomy": "NONE",
+          "evidence_quote": "This policy applies to all regular full- time and part- time",
+          "matched_claim_id": "d530e0ca-4694-4b32-a0c3-b3ee705e11f1",
+          "matched_subject": "Termination of Employment Policy"
+        },
+        "DOC003-C02": {
+          "claim_id": "DOC003-C02",
+          "gold_subject": "Employees",
+          "status": "MATCHED",
+          "match_tier": "FULL_MATCH",
+          "taxonomy": "NONE",
+          "evidence_quote": "Employees who decide to leave the University are asked to pr",
+          "matched_claim_id": "074d2adb-76f8-44d7-9732-1c8ab1560552",
+          "matched_subject": "Employees"
+        },
+        "DOC003-C03": {
+          "claim_id": "DOC003-C03",
+          "gold_subject": "Termination for serious misconduct",
+          "status": "WRONG_PREDICATE",
+          "match_tier": "WRONG_PREDICATE",
+          "taxonomy": "PREDICATE_MAPPING_ERROR",
+          "evidence_quote": "Termination for serious misconduct may occur without prior n",
+          "matched_claim_id": "7c014715-811d-4be1-9d2d-988798a68a59",
+          "matched_subject": "Termination for serious misconduct"
+        },
+        "DOC003-C04": {
+          "claim_id": "DOC003-C04",
+          "gold_subject": "Staff members terminated for misconduct",
+          "status": "MATCHED",
+          "match_tier": "FULL_MATCH",
+          "taxonomy": "NONE",
+          "evidence_quote": "Staff mem bers term inated for misco nduct are not eligible ",
+          "matched_claim_id": "c6f9d9af-894a-446e-8a6f-ec38b0fda412",
+          "matched_subject": "Staff members terminated for misconduct"
+        },
+        "DOC003-C05": {
+          "claim_id": "DOC003-C05",
+          "gold_subject": "position elimination",
+          "status": "MISSING",
+          "match_tier": "RAW_DISCOVERY_MATCH",
+          "taxonomy": "SENTENCE_SPLIT_ERROR",
+          "evidence_quote": "A position elimination occurs when a position is eliminate d",
+          "matched_claim_id": "ce473efe-8220-45ab-a84d-0465d05142c0",
+          "matched_subject": "position elimination"
+        },
+        "DOC003-C06": {
+          "claim_id": "DOC003-C06",
+          "gold_subject": "supervisors",
+          "status": "MATCHED",
+          "match_tier": "FULL_MATCH",
+          "taxonomy": "NONE",
+          "evidence_quote": "supervisors may not rehire the position fo r a period of at ",
+          "matched_claim_id": "83974ca3-35e1-448b-8cd3-1e02bc45ff77",
+          "matched_subject": "supervisors"
+        },
+        "DOC003-C07": {
+          "claim_id": "DOC003-C07",
+          "gold_subject": "final paycheck",
+          "status": "MATCHED",
+          "match_tier": "FULL_MATCH",
+          "taxonomy": "NONE",
+          "evidence_quote": "The final paycheck includes all unpaid wages, earned but unu",
+          "matched_claim_id": "e8637bbf-7786-4157-82e3-c5b7795a432f",
+          "matched_subject": "final paycheck"
+        },
+        "DOC003-C08": {
+          "claim_id": "DOC003-C08",
+          "gold_subject": "Supervisors",
+          "status": "WRONG_PREDICATE",
+          "match_tier": "WRONG_PREDICATE",
+          "taxonomy": "PREDICATE_MAPPING_ERROR",
+          "evidence_quote": "Supervisors should notify the designated Human Resources par",
+          "matched_claim_id": "36298ab3-fff9-42fb-95c8-46585f41c4a0",
+          "matched_subject": "Supervisors"
+        },
+        "DOC003-C09": {
+          "claim_id": "DOC003-C09",
+          "gold_subject": "Retiring employees",
+          "status": "MISSING",
+          "match_tier": "MISSING",
+          "taxonomy": "SENTENCE_SPLIT_ERROR",
+          "evidence_quote": "To help assist in a transition, employees are asked to give ",
+          "matched_claim_id": null,
+          "matched_subject": null
+        },
+        "DOC003-C10": {
+          "claim_id": "DOC003-C10",
+          "gold_subject": "Terminations for Unsatisfactory Performance",
+          "status": "MISSING",
+          "match_tier": "MISSING",
+          "taxonomy": "SENTENCE_SPLIT_ERROR",
+          "evidence_quote": "Before terminating an employee for unsatisfactory performanc",
+          "matched_claim_id": null,
+          "matched_subject": null
+        }
+      }
+    },
+    "DOC-004": {
+      "document_id": "DOC-004",
+      "title": "Sample Return and Refund Policy Template",
+      "organization": "TermsFeed E-Commerce Standard",
+      "document_type": "refund_policy",
+      "verdict": "NEEDS_WORK",
+      "verdict_basis": "full_match_canonical_metrics",
+      "blocking_reasons": [
+        "full_match_recall_below_threshold (33.3% < 90.0%)",
+        "canonical_policy_precision_below_threshold (16.7% < 90.0%)",
+        "material_claim_precision_below_threshold (16.7% < 90.0%)",
+        "f1_score_below_threshold (22.2% < 90.0%)",
+        "MISSING: DOC004-C01 [SENTENCE_SPLIT_ERROR] - Your Order Cancellation Rights: \"You are entitled to cancel Your Order within 14 days without\"",
+        "MISSING: DOC004-C02 [SENTENCE_SPLIT_ERROR] - deadline for cancelling an Order: \"The deadline for cancelling an Order is 14 days from the dat\"",
+        "MISSING: DOC004-C04 [SENTENCE_SPLIT_ERROR] - Goods: \"The Goods were purchased in the last 14 days\"",
+        "WRONG_PREDICATE: DOC004-C06 [PREDICATE_MAPPING_ERROR] - Returning Goods: \"You are responsible for the cost and risk of returning the G\""
+      ],
+      "metrics": {
+        "full_match_recall": 0.3333,
+        "partial_match_recall": 0.3333,
+        "lower_bound_precision": 0.1667,
+        "partial_precision": 0.1667,
+        "adjudicated_precision": 1.0,
+        "canonical_f1_full_match": 0.2222,
+        "canonical_f1_partial_match": 0.2222,
+        "raw_precision": 0.1111,
+        "raw_recall": 0.6667,
+        "raw_f1": 0.1905
+      },
+      "paired_metrics": {
+        "raw_metrics": {
+          "precision": 0.1111,
+          "recall": 0.6667,
+          "f1": 0.1905
+        },
+        "canonical_full_metrics": {
+          "precision": 0.1667,
+          "recall": 0.3333,
+          "f1": 0.2222
+        },
+        "canonical_partial_metrics": {
+          "precision": 0.1667,
+          "recall": 0.3333,
+          "f1": 0.2222
+        },
+        "canonical_metrics": {
+          "precision": 0.1667,
+          "recall": 0.3333,
+          "f1": 0.2222
+        }
+      },
+      "quality_metrics": {
+        "claim_recall": 0.3333,
+        "claim_precision": 0.1111,
+        "claim_f1": 0.2222,
+        "canonical_policy_precision": 0.1667,
+        "validated_claim_precision": 0.1667,
+        "raw_candidate_precision": 0.1111,
+        "subject_accuracy": 1.0,
+        "predicate_accuracy": 1.0,
+        "object_accuracy": 1.0,
+        "false_approval_rate": 0.0,
+        "false_rejection_rate": 0.5,
+        "false_conflict_rate": 0.0,
+        "malformed_fragment_rate": 0.0,
+        "evidence_span_traceability": 1.0
+      },
+      "candidate_ledger": {
+        "total_extracted_candidates": 18,
+        "approved_candidates": 12,
+        "rejected_candidates": 6,
+        "review_candidates": 0,
+        "canonical_candidates": 12,
+        "approved_l6_total": 12,
+        "canonical_approved_total": 12,
+        "excluded_non_canonical": 0,
+        "excluded_boilerplate": 0,
+        "excluded_duplicate": 0,
+        "excluded_malformed": 0,
+        "excluded_other": 0,
+        "reconciliation_difference": 0,
+        "deduplicated_canonical_candidates": 12,
+        "correct_full_matches": 2,
+        "correct_partial_matches": 0,
+        "unjudged_spans": 10,
+        "incorrect_predictions": 0,
+        "malformed_claims": 0,
+        "duplicate_claims": 0,
+        "non_canonical_claims": 0,
+        "gold_rules_captured_full": 2,
+        "gold_rules_captured_partial": 0,
+        "gold_rules_raw_discovery": 2,
+        "gold_rules_missed": 4,
+        "correct_canonical_predictions": 2,
+        "incorrect_canonical_predictions": 0,
+        "unjudged_canonical_predictions": 10,
+        "gold_rules_captured": 2,
+        "labeled_rule_recall": 0.3333
+      },
+      "counts": {
+        "total_claims_extracted": 18,
+        "total_gold_canonical_rules": 6,
+        "gold_rules_captured": 2,
+        "gold_rules_full_matched": 2,
+        "gold_rules_partial_matched": 0,
+        "gold_rules_raw_discovery": 2,
+        "total_approved": 12,
+        "total_rejected": 6,
+        "total_conflicts": 0,
+        "malformed_fragments_count": 0
+      },
+      "claim_classifications": {
+        "DOC004-C01": {
+          "claim_id": "DOC004-C01",
+          "gold_subject": "Your Order Cancellation Rights",
+          "status": "MISSING",
+          "match_tier": "RAW_DISCOVERY_MATCH",
+          "taxonomy": "SENTENCE_SPLIT_ERROR",
+          "evidence_quote": "You are entitled to cancel Your Order within 14 days without",
+          "matched_claim_id": "540f1b70-f798-43a1-8b07-8cf1715b4b27",
+          "matched_subject": "Sample Return and Refund Policy Template"
+        },
+        "DOC004-C02": {
+          "claim_id": "DOC004-C02",
+          "gold_subject": "deadline for cancelling an Order",
+          "status": "MISSING",
+          "match_tier": "RAW_DISCOVERY_MATCH",
+          "taxonomy": "SENTENCE_SPLIT_ERROR",
+          "evidence_quote": "The deadline for cancelling an Order is 14 days from the dat",
+          "matched_claim_id": "7b22616d-f7ca-4ae0-95f9-805b251a52b7",
+          "matched_subject": "Sample Return and Refund Policy Template"
+        },
+        "DOC004-C03": {
+          "claim_id": "DOC004-C03",
+          "gold_subject": "Company",
+          "status": "MATCHED",
+          "match_tier": "FULL_MATCH",
+          "taxonomy": "NONE",
+          "evidence_quote": "We will reimburse You no later than 14 days from the day on ",
+          "matched_claim_id": "a40a92d1-8a0d-432a-842b-f88c99da38aa",
+          "matched_subject": "Company"
+        },
+        "DOC004-C04": {
+          "claim_id": "DOC004-C04",
+          "gold_subject": "Goods",
+          "status": "MISSING",
+          "match_tier": "MISSING",
+          "taxonomy": "SENTENCE_SPLIT_ERROR",
+          "evidence_quote": "The Goods were purchased in the last 14 days",
+          "matched_claim_id": null,
+          "matched_subject": null
+        },
+        "DOC004-C05": {
+          "claim_id": "DOC004-C05",
+          "gold_subject": "personalized Goods",
+          "status": "MATCHED",
+          "match_tier": "FULL_MATCH",
+          "taxonomy": "NONE",
+          "evidence_quote": "The supply of Goods made to Your specifications or clearly p",
+          "matched_claim_id": "db972b0c-da20-4e7b-9138-4005c59f6eed",
+          "matched_subject": "personalized Goods"
+        },
+        "DOC004-C06": {
+          "claim_id": "DOC004-C06",
+          "gold_subject": "Returning Goods",
+          "status": "WRONG_PREDICATE",
+          "match_tier": "WRONG_PREDICATE",
+          "taxonomy": "PREDICATE_MAPPING_ERROR",
+          "evidence_quote": "You are responsible for the cost and risk of returning the G",
+          "matched_claim_id": "9f35565f-acc5-4873-a5bd-6617390b7d13",
+          "matched_subject": "Sample Return and Refund Policy Template"
+        }
+      }
+    },
+    "DOC-005": {
+      "document_id": "DOC-005",
+      "title": "Commercial Vendor Agreement Template",
+      "organization": "Tarion Warranty Corporation",
+      "document_type": "commercial_vendor_agreement",
+      "verdict": "NEEDS_WORK",
+      "verdict_basis": "full_match_canonical_metrics",
+      "blocking_reasons": [
+        "full_match_recall_below_threshold (20.0% < 90.0%)",
+        "canonical_policy_precision_below_threshold (4.0% < 90.0%)",
+        "material_claim_precision_below_threshold (4.0% < 90.0%)",
+        "f1_score_below_threshold (6.7% < 90.0%)",
+        "MISSING: DOC005-C01 [SENTENCE_SPLIT_ERROR] - Tarion Warranty Corporation: \"Tarion is a private, not-for-profit corporation designated b\"",
+        "WRONG_PREDICATE: DOC005-C02 [PREDICATE_MAPPING_ERROR] - Vendor: \"be licensed under the New Home Construction Licensing Act, 2\"",
+        "MISSING: DOC005-C03 [SENTENCE_SPLIT_ERROR] - Vendor: \"costs, claims, damages and/or liabilities which arise result\"",
+        "MISSING: DOC005-C04 [SENTENCE_SPLIT_ERROR] - Vendor: \"Material Change means a significant proposed, imminent, or i\""
+      ],
+      "metrics": {
+        "full_match_recall": 0.2,
+        "partial_match_recall": 0.2,
+        "lower_bound_precision": 0.04,
+        "partial_precision": 0.04,
+        "adjudicated_precision": 1.0,
+        "canonical_f1_full_match": 0.0667,
+        "canonical_f1_partial_match": 0.0667,
+        "raw_precision": 0.0078,
+        "raw_recall": 0.2,
+        "raw_f1": 0.015
+      },
+      "paired_metrics": {
+        "raw_metrics": {
+          "precision": 0.0078,
+          "recall": 0.2,
+          "f1": 0.015
+        },
+        "canonical_full_metrics": {
+          "precision": 0.04,
+          "recall": 0.2,
+          "f1": 0.0667
+        },
+        "canonical_partial_metrics": {
+          "precision": 0.04,
+          "recall": 0.2,
+          "f1": 0.0667
+        },
+        "canonical_metrics": {
+          "precision": 0.04,
+          "recall": 0.2,
+          "f1": 0.0667
+        }
+      },
+      "quality_metrics": {
+        "claim_recall": 0.2,
+        "claim_precision": 0.0078,
+        "claim_f1": 0.0667,
+        "canonical_policy_precision": 0.04,
+        "validated_claim_precision": 0.04,
+        "raw_candidate_precision": 0.0078,
+        "subject_accuracy": 1.0,
+        "predicate_accuracy": 1.0,
+        "object_accuracy": 1.0,
+        "false_approval_rate": 0.0,
+        "false_rejection_rate": 0.01,
+        "false_conflict_rate": 0.0,
+        "malformed_fragment_rate": 0.0,
+        "evidence_span_traceability": 1.0
+      },
+      "candidate_ledger": {
+        "total_extracted_candidates": 129,
+        "approved_candidates": 25,
+        "rejected_candidates": 100,
+        "review_candidates": 0,
+        "canonical_candidates": 25,
+        "approved_l6_total": 25,
+        "canonical_approved_total": 25,
+        "excluded_non_canonical": 0,
+        "excluded_boilerplate": 0,
+        "excluded_duplicate": 0,
+        "excluded_malformed": 0,
+        "excluded_other": 0,
+        "reconciliation_difference": 0,
+        "deduplicated_canonical_candidates": 25,
+        "correct_full_matches": 1,
+        "correct_partial_matches": 0,
+        "unjudged_spans": 24,
+        "incorrect_predictions": 0,
+        "malformed_claims": 0,
+        "duplicate_claims": 0,
+        "non_canonical_claims": 0,
+        "gold_rules_captured_full": 1,
+        "gold_rules_captured_partial": 0,
+        "gold_rules_raw_discovery": 0,
+        "gold_rules_missed": 4,
+        "correct_canonical_predictions": 1,
+        "incorrect_canonical_predictions": 0,
+        "unjudged_canonical_predictions": 24,
+        "gold_rules_captured": 1,
+        "labeled_rule_recall": 0.2
+      },
+      "counts": {
+        "total_claims_extracted": 129,
+        "total_gold_canonical_rules": 5,
+        "gold_rules_captured": 1,
+        "gold_rules_full_matched": 1,
+        "gold_rules_partial_matched": 0,
+        "gold_rules_raw_discovery": 0,
+        "total_approved": 25,
+        "total_rejected": 100,
+        "total_conflicts": 5,
+        "malformed_fragments_count": 0
+      },
+      "claim_classifications": {
+        "DOC005-C01": {
+          "claim_id": "DOC005-C01",
+          "gold_subject": "Tarion Warranty Corporation",
+          "status": "MISSING",
+          "match_tier": "MISSING",
+          "taxonomy": "SENTENCE_SPLIT_ERROR",
+          "evidence_quote": "Tarion is a private, not-for-profit corporation designated b",
+          "matched_claim_id": null,
+          "matched_subject": null
+        },
+        "DOC005-C02": {
+          "claim_id": "DOC005-C02",
+          "gold_subject": "Vendor",
+          "status": "WRONG_PREDICATE",
+          "match_tier": "WRONG_PREDICATE",
+          "taxonomy": "PREDICATE_MAPPING_ERROR",
+          "evidence_quote": "be licensed under the New Home Construction Licensing Act, 2",
+          "matched_claim_id": "e1e816c0-f425-402f-a67c-466b4764aa3f",
+          "matched_subject": "The Vendor acknowledges that in order to offer to sell, agree to sell or sell new homes the Vendor must: be licensed under the New Home Construction Licensing Act, 2017 ; and"
+        },
+        "DOC005-C03": {
+          "claim_id": "DOC005-C03",
+          "gold_subject": "Vendor",
+          "status": "MISSING",
+          "match_tier": "MISSING",
+          "taxonomy": "SENTENCE_SPLIT_ERROR",
+          "evidence_quote": "costs, claims, damages and/or liabilities which arise result",
+          "matched_claim_id": null,
+          "matched_subject": null
+        },
+        "DOC005-C04": {
+          "claim_id": "DOC005-C04",
+          "gold_subject": "Vendor",
+          "status": "MISSING",
+          "match_tier": "MISSING",
+          "taxonomy": "SENTENCE_SPLIT_ERROR",
+          "evidence_quote": "Material Change means a significant proposed, imminent, or i",
+          "matched_claim_id": null,
+          "matched_subject": null
+        },
+        "DOC005-C05": {
+          "claim_id": "DOC005-C05",
+          "gold_subject": "Warranty Information Sheet and Addendum templates",
+          "status": "MATCHED",
+          "match_tier": "FULL_MATCH",
+          "taxonomy": "NONE",
+          "evidence_quote": "3.9.3.6 The Warranty Information Sheet and Addendum template",
+          "matched_claim_id": "92c2e523-dc1e-4a12-a502-ae1ae082f3e5",
+          "matched_subject": "3.9.3.6 The Warranty Information Sheet and Addendum templates"
+        }
+      }
+    },
+    "DOC-006": {
+      "document_id": "DOC-006",
+      "title": "WordPress PDF Invoice Plugin Sample",
+      "organization": "DEMO - Sliced Invoices",
+      "document_type": "invoice",
+      "verdict": "NEEDS_WORK",
+      "verdict_basis": "full_match_canonical_metrics",
+      "blocking_reasons": [
+        "full_match_recall_below_threshold (0.0% < 90.0%)",
+        "canonical_policy_precision_below_threshold (0.0% < 90.0%)",
+        "material_claim_precision_below_threshold (0.0% < 90.0%)",
+        "f1_score_below_threshold (0.0% < 90.0%)",
+        "subject_accuracy_below_threshold (90.0% < 95.0%)",
+        "MISSING: DOC006-C01 [TABLE_STRUCTURE_ERROR] - Total: \"Total $85.00\"",
+        "MISSING: DOC006-C02 [TABLE_STRUCTURE_ERROR] - Total: \"Total Due $93.50\"",
+        "MISSING: DOC006-C03 [TABLE_STRUCTURE_ERROR] - Tax: \"Tax $8.50\"",
+        "MISSING: DOC006-C04 [TABLE_STRUCTURE_ERROR] - Payment: \"Payment is due within 30 days from date of invoice.\"",
+        "MISSING: DOC006-C05 [TABLE_STRUCTURE_ERROR] - Late payment: \"Late payment is subject to fees of 5% per month.\""
+      ],
+      "metrics": {
+        "full_match_recall": 0.0,
+        "partial_match_recall": 0.0,
+        "lower_bound_precision": 0.0,
+        "partial_precision": 0.0,
+        "adjudicated_precision": 0.0,
+        "canonical_f1_full_match": 0.0,
+        "canonical_f1_partial_match": 0.0,
+        "raw_precision": 0.0,
+        "raw_recall": 0.2,
+        "raw_f1": 0.0
+      },
+      "paired_metrics": {
+        "raw_metrics": {
+          "precision": 0.0,
+          "recall": 0.2,
+          "f1": 0.0
+        },
+        "canonical_full_metrics": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0
+        },
+        "canonical_partial_metrics": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0
+        },
+        "canonical_metrics": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0
+        }
+      },
+      "quality_metrics": {
+        "claim_recall": 0.0,
+        "claim_precision": 0.0,
+        "claim_f1": 0.0,
+        "canonical_policy_precision": 0.0,
+        "validated_claim_precision": 0.0,
+        "raw_candidate_precision": 0.0,
+        "subject_accuracy": 0.9,
+        "predicate_accuracy": 0.0,
+        "object_accuracy": 0.0,
+        "false_approval_rate": 0.0,
+        "false_rejection_rate": 1.0,
+        "false_conflict_rate": 0.0,
+        "malformed_fragment_rate": 0.0,
+        "evidence_span_traceability": 1.0
+      },
+      "candidate_ledger": {
+        "total_extracted_candidates": 10,
+        "approved_candidates": 8,
+        "rejected_candidates": 2,
+        "review_candidates": 0,
+        "canonical_candidates": 8,
+        "approved_l6_total": 8,
+        "canonical_approved_total": 8,
+        "excluded_non_canonical": 0,
+        "excluded_boilerplate": 0,
+        "excluded_duplicate": 0,
+        "excluded_malformed": 0,
+        "excluded_other": 0,
+        "reconciliation_difference": 0,
+        "deduplicated_canonical_candidates": 8,
+        "correct_full_matches": 0,
+        "correct_partial_matches": 0,
+        "unjudged_spans": 7,
+        "incorrect_predictions": 1,
+        "malformed_claims": 0,
+        "duplicate_claims": 0,
+        "non_canonical_claims": 0,
+        "gold_rules_captured_full": 0,
+        "gold_rules_captured_partial": 0,
+        "gold_rules_raw_discovery": 1,
+        "gold_rules_missed": 5,
+        "correct_canonical_predictions": 0,
+        "incorrect_canonical_predictions": 1,
+        "unjudged_canonical_predictions": 7,
+        "gold_rules_captured": 0,
+        "labeled_rule_recall": 0.0
+      },
+      "counts": {
+        "total_claims_extracted": 10,
+        "total_gold_canonical_rules": 5,
+        "gold_rules_captured": 0,
+        "gold_rules_full_matched": 0,
+        "gold_rules_partial_matched": 0,
+        "gold_rules_raw_discovery": 1,
+        "total_approved": 8,
+        "total_rejected": 2,
+        "total_conflicts": 0,
+        "malformed_fragments_count": 0
+      },
+      "claim_classifications": {
+        "DOC006-C01": {
+          "claim_id": "DOC006-C01",
+          "gold_subject": "Total",
+          "status": "MISSING",
+          "match_tier": "MISSING",
+          "taxonomy": "TABLE_STRUCTURE_ERROR",
+          "evidence_quote": "Total $85.00",
+          "matched_claim_id": null,
+          "matched_subject": null
+        },
+        "DOC006-C02": {
+          "claim_id": "DOC006-C02",
+          "gold_subject": "Total",
+          "status": "MISSING",
+          "match_tier": "MISSING",
+          "taxonomy": "TABLE_STRUCTURE_ERROR",
+          "evidence_quote": "Total Due $93.50",
+          "matched_claim_id": null,
+          "matched_subject": null
+        },
+        "DOC006-C03": {
+          "claim_id": "DOC006-C03",
+          "gold_subject": "Tax",
+          "status": "MISSING",
+          "match_tier": "MISSING",
+          "taxonomy": "TABLE_STRUCTURE_ERROR",
+          "evidence_quote": "Tax $8.50",
+          "matched_claim_id": null,
+          "matched_subject": null
+        },
+        "DOC006-C04": {
+          "claim_id": "DOC006-C04",
+          "gold_subject": "Payment",
+          "status": "MISSING",
+          "match_tier": "MISSING",
+          "taxonomy": "TABLE_STRUCTURE_ERROR",
+          "evidence_quote": "Payment is due within 30 days from date of invoice.",
+          "matched_claim_id": null,
+          "matched_subject": null
+        },
+        "DOC006-C05": {
+          "claim_id": "DOC006-C05",
+          "gold_subject": "Late payment",
+          "status": "MISSING",
+          "match_tier": "RAW_DISCOVERY_MATCH",
+          "taxonomy": "TABLE_STRUCTURE_ERROR",
+          "evidence_quote": "Late payment is subject to fees of 5% per month.",
+          "matched_claim_id": "611db9b6-7625-458a-b833-457266a9a76b",
+          "matched_subject": "Web Design $85"
+        }
+      }
+    },
+    "DOC-007": {
+      "document_id": "DOC-007",
+      "title": "EPA Lead and Copper Rule Implementation Letter",
+      "organization": "U.S. EPA (Office of Water)",
+      "document_type": "regulatory_directive_letter",
+      "verdict": "NEEDS_WORK",
+      "verdict_basis": "full_match_canonical_metrics",
+      "blocking_reasons": [
+        "canonical_policy_precision_below_threshold (23.1% < 90.0%)",
+        "material_claim_precision_below_threshold (23.1% < 90.0%)",
+        "f1_score_below_threshold (37.5% < 90.0%)"
+      ],
+      "metrics": {
+        "full_match_recall": 1.0,
+        "partial_match_recall": 1.0,
+        "lower_bound_precision": 0.2308,
+        "partial_precision": 0.2308,
+        "adjudicated_precision": 1.0,
+        "canonical_f1_full_match": 0.375,
+        "canonical_f1_partial_match": 0.375,
+        "raw_precision": 0.1579,
+        "raw_recall": 1.0,
+        "raw_f1": 0.2727
+      },
+      "paired_metrics": {
+        "raw_metrics": {
+          "precision": 0.1579,
+          "recall": 1.0,
+          "f1": 0.2727
+        },
+        "canonical_full_metrics": {
+          "precision": 0.2308,
+          "recall": 1.0,
+          "f1": 0.375
+        },
+        "canonical_partial_metrics": {
+          "precision": 0.2308,
+          "recall": 1.0,
+          "f1": 0.375
+        },
+        "canonical_metrics": {
+          "precision": 0.2308,
+          "recall": 1.0,
+          "f1": 0.375
+        }
+      },
+      "quality_metrics": {
+        "claim_recall": 1.0,
+        "claim_precision": 0.1579,
+        "claim_f1": 0.375,
+        "canonical_policy_precision": 0.2308,
+        "validated_claim_precision": 0.2308,
+        "raw_candidate_precision": 0.1579,
+        "subject_accuracy": 1.0,
+        "predicate_accuracy": 1.0,
+        "object_accuracy": 1.0,
+        "false_approval_rate": 0.0,
+        "false_rejection_rate": 0.0,
+        "false_conflict_rate": 0.0,
+        "malformed_fragment_rate": 0.0,
+        "evidence_span_traceability": 1.0
+      },
+      "candidate_ledger": {
+        "total_extracted_candidates": 19,
+        "approved_candidates": 13,
+        "rejected_candidates": 6,
+        "review_candidates": 0,
+        "canonical_candidates": 13,
+        "approved_l6_total": 13,
+        "canonical_approved_total": 13,
+        "excluded_non_canonical": 0,
+        "excluded_boilerplate": 0,
+        "excluded_duplicate": 0,
+        "excluded_malformed": 0,
+        "excluded_other": 0,
+        "reconciliation_difference": 0,
+        "deduplicated_canonical_candidates": 13,
+        "correct_full_matches": 3,
+        "correct_partial_matches": 0,
+        "unjudged_spans": 10,
+        "incorrect_predictions": 0,
+        "malformed_claims": 0,
+        "duplicate_claims": 0,
+        "non_canonical_claims": 0,
+        "gold_rules_captured_full": 3,
+        "gold_rules_captured_partial": 0,
+        "gold_rules_raw_discovery": 0,
+        "gold_rules_missed": 0,
+        "correct_canonical_predictions": 3,
+        "incorrect_canonical_predictions": 0,
+        "unjudged_canonical_predictions": 10,
+        "gold_rules_captured": 3,
+        "labeled_rule_recall": 1.0
+      },
+      "counts": {
+        "total_claims_extracted": 19,
+        "total_gold_canonical_rules": 3,
+        "gold_rules_captured": 3,
+        "gold_rules_full_matched": 3,
+        "gold_rules_partial_matched": 0,
+        "gold_rules_raw_discovery": 0,
+        "total_approved": 13,
+        "total_rejected": 6,
+        "total_conflicts": 0,
+        "malformed_fragments_count": 0
+      },
+      "claim_classifications": {
+        "DOC007-C01": {
+          "claim_id": "DOC007-C01",
+          "gold_subject": "DOC-007: EPA Lead and Copper Rule Implementation Letter",
+          "status": "MATCHED",
+          "match_tier": "FULL_MATCH",
+          "taxonomy": "NONE",
+          "evidence_quote": "As always, the EPA appreciates your leadership and engagemen",
+          "matched_claim_id": "e6d47b04-bcef-4b12-9105-23a30ecf3540",
+          "matched_subject": "EPA Lead and Copper Rule Implementation Letter"
+        },
+        "DOC007-C02": {
+          "claim_id": "DOC007-C02",
+          "gold_subject": "Safe Drinking Water Act",
+          "status": "MATCHED",
+          "match_tier": "FULL_MATCH",
+          "taxonomy": "NONE",
+          "evidence_quote": "states having primacy under SDWA, we need to work together t",
+          "matched_claim_id": "a2539f6c-7bfa-42cd-87e4-389bbf0b00af",
+          "matched_subject": "Safe Drinking Water Act"
+        },
+        "DOC007-C03": {
+          "claim_id": "DOC007-C03",
+          "gold_subject": "You (State Commissioner)",
+          "status": "MATCHED",
+          "match_tier": "FULL_MATCH",
+          "taxonomy": "NONE",
+          "evidence_quote": "request that you respond in writing, within the next 30 days",
+          "matched_claim_id": "5e32bf53-6b2c-4343-ac30-3e6c280aa124",
+          "matched_subject": "You (State Commissioner)"
+        }
+      }
+    },
+    "DOC-008": {
+      "document_id": "DOC-008",
+      "title": "Employee Notice Period Policy",
+      "organization": "Wingify Software Private Limited",
+      "document_type": "hr_policy",
+      "verdict": "NEEDS_WORK",
+      "verdict_basis": "full_match_canonical_metrics",
+      "blocking_reasons": [
+        "full_match_recall_below_threshold (61.1% < 90.0%)",
+        "canonical_policy_precision_below_threshold (36.7% < 90.0%)",
+        "material_claim_precision_below_threshold (36.7% < 90.0%)",
+        "f1_score_below_threshold (45.8% < 90.0%)",
+        "MISSING: DOC008-C01 [TABLE_STRUCTURE_ERROR] - Wingify Notice Period Policy: \"Effective April 1, 2021, this policy outlines various aspect\"",
+        "WRONG_PREDICATE: DOC008-C02 [PREDICATE_MAPPING_ERROR] - Grade A (A1 & A2) confirmed employees: \"A (A1 & A2) CXO 90 Days\"",
+        "WRONG_PREDICATE: DOC008-C03 [PREDICATE_MAPPING_ERROR] - Grade B (B1 & B2) confirmed employees: \"B (B1 & B2) SeniorManagement 90 Days\"",
+        "WRONG_PREDICATE: DOC008-C04 [PREDICATE_MAPPING_ERROR] - Grade C (C1, C2 & C3) confirmed employees: \"C (C1, C2 & C3) Middle Management 60 Days\"",
+        "WRONG_PREDICATE: DOC008-C05 [PREDICATE_MAPPING_ERROR] - Grade D and E confirmed employees: \"Grade D & E having 30 days\"",
+        "WRONG_PREDICATE: DOC008-C06 [PREDICATE_MAPPING_ERROR] - Probationary employees: \"Probationers 15 days\"",
+        "WRONG_SUBJECT: DOC008-C07 [SUBJECT_RESOLUTION_ERROR] - Employees: \"Employees must return all Wingify property upon offboarding.\""
+      ],
+      "metrics": {
+        "full_match_recall": 0.6111,
+        "partial_match_recall": 0.6111,
+        "lower_bound_precision": 0.3667,
+        "partial_precision": 0.3667,
+        "adjudicated_precision": 1.0,
+        "canonical_f1_full_match": 0.4584,
+        "canonical_f1_partial_match": 0.4584,
+        "raw_precision": 0.275,
+        "raw_recall": 0.6667,
+        "raw_f1": 0.3894
+      },
+      "paired_metrics": {
+        "raw_metrics": {
+          "precision": 0.275,
+          "recall": 0.6667,
+          "f1": 0.3894
+        },
+        "canonical_full_metrics": {
+          "precision": 0.3667,
+          "recall": 0.6111,
+          "f1": 0.4584
+        },
+        "canonical_partial_metrics": {
+          "precision": 0.3667,
+          "recall": 0.6111,
+          "f1": 0.4584
+        },
+        "canonical_metrics": {
+          "precision": 0.3667,
+          "recall": 0.6111,
+          "f1": 0.4584
+        }
+      },
+      "quality_metrics": {
+        "claim_recall": 0.6111,
+        "claim_precision": 0.275,
+        "claim_f1": 0.4584,
+        "canonical_policy_precision": 0.3667,
+        "validated_claim_precision": 0.3667,
+        "raw_candidate_precision": 0.275,
+        "subject_accuracy": 1.0,
+        "predicate_accuracy": 1.0,
+        "object_accuracy": 1.0,
+        "false_approval_rate": 0.0,
+        "false_rejection_rate": 0.1429,
+        "false_conflict_rate": 0.0,
+        "malformed_fragment_rate": 0.0,
+        "evidence_span_traceability": 1.0
+      },
+      "candidate_ledger": {
+        "total_extracted_candidates": 40,
+        "approved_candidates": 33,
+        "rejected_candidates": 7,
+        "review_candidates": 0,
+        "canonical_candidates": 30,
+        "approved_l6_total": 33,
+        "canonical_approved_total": 30,
+        "excluded_non_canonical": 0,
+        "excluded_boilerplate": 3,
+        "excluded_duplicate": 0,
+        "excluded_malformed": 0,
+        "excluded_other": 0,
+        "reconciliation_difference": 0,
+        "deduplicated_canonical_candidates": 30,
+        "correct_full_matches": 11,
+        "correct_partial_matches": 0,
+        "unjudged_spans": 19,
+        "incorrect_predictions": 0,
+        "malformed_claims": 0,
+        "duplicate_claims": 0,
+        "non_canonical_claims": 0,
+        "gold_rules_captured_full": 11,
+        "gold_rules_captured_partial": 0,
+        "gold_rules_raw_discovery": 1,
+        "gold_rules_missed": 7,
+        "correct_canonical_predictions": 11,
+        "incorrect_canonical_predictions": 0,
+        "unjudged_canonical_predictions": 19,
+        "gold_rules_captured": 11,
+        "labeled_rule_recall": 0.6111
+      },
+      "counts": {
+        "total_claims_extracted": 40,
+        "total_gold_canonical_rules": 18,
+        "gold_rules_captured": 11,
+        "gold_rules_full_matched": 11,
+        "gold_rules_partial_matched": 0,
+        "gold_rules_raw_discovery": 1,
+        "total_approved": 33,
+        "total_rejected": 7,
+        "total_conflicts": 0,
+        "malformed_fragments_count": 0
+      },
+      "claim_classifications": {
+        "DOC008-C01": {
+          "claim_id": "DOC008-C01",
+          "gold_subject": "Wingify Notice Period Policy",
+          "status": "MISSING",
+          "match_tier": "RAW_DISCOVERY_MATCH",
+          "taxonomy": "TABLE_STRUCTURE_ERROR",
+          "evidence_quote": "Effective April 1, 2021, this policy outlines various aspect",
+          "matched_claim_id": "5acbb4a6-456d-4d65-9463-455b53f30cee",
+          "matched_subject": "Governance Policy"
+        },
+        "DOC008-C02": {
+          "claim_id": "DOC008-C02",
+          "gold_subject": "Grade A (A1 & A2) confirmed employees",
+          "status": "WRONG_PREDICATE",
+          "match_tier": "WRONG_PREDICATE",
+          "taxonomy": "PREDICATE_MAPPING_ERROR",
+          "evidence_quote": "A (A1 & A2) CXO 90 Days",
+          "matched_claim_id": "4a59bfb9-00af-46bd-96c9-b3439ef161d9",
+          "matched_subject": "Grade Matrix Overview"
+        },
+        "DOC008-C03": {
+          "claim_id": "DOC008-C03",
+          "gold_subject": "Grade B (B1 & B2) confirmed employees",
+          "status": "WRONG_PREDICATE",
+          "match_tier": "WRONG_PREDICATE",
+          "taxonomy": "PREDICATE_MAPPING_ERROR",
+          "evidence_quote": "B (B1 & B2) SeniorManagement 90 Days",
+          "matched_claim_id": "4a59bfb9-00af-46bd-96c9-b3439ef161d9",
+          "matched_subject": "Grade Matrix Overview"
+        },
+        "DOC008-C04": {
+          "claim_id": "DOC008-C04",
+          "gold_subject": "Grade C (C1, C2 & C3) confirmed employees",
+          "status": "WRONG_PREDICATE",
+          "match_tier": "WRONG_PREDICATE",
+          "taxonomy": "PREDICATE_MAPPING_ERROR",
+          "evidence_quote": "C (C1, C2 & C3) Middle Management 60 Days",
+          "matched_claim_id": "4a59bfb9-00af-46bd-96c9-b3439ef161d9",
+          "matched_subject": "Grade Matrix Overview"
+        },
+        "DOC008-C05": {
+          "claim_id": "DOC008-C05",
+          "gold_subject": "Grade D and E confirmed employees",
+          "status": "WRONG_PREDICATE",
+          "match_tier": "WRONG_PREDICATE",
+          "taxonomy": "PREDICATE_MAPPING_ERROR",
+          "evidence_quote": "Grade D & E having 30 days",
+          "matched_claim_id": "4a59bfb9-00af-46bd-96c9-b3439ef161d9",
+          "matched_subject": "Grade Matrix Overview"
+        },
+        "DOC008-C06": {
+          "claim_id": "DOC008-C06",
+          "gold_subject": "Probationary employees",
+          "status": "WRONG_PREDICATE",
+          "match_tier": "WRONG_PREDICATE",
+          "taxonomy": "PREDICATE_MAPPING_ERROR",
+          "evidence_quote": "Probationers 15 days",
+          "matched_claim_id": "6b0f35ee-9537-4095-90af-d87527524d52",
+          "matched_subject": "Employees in Grade E (E1, E2 & E3) (Fellow)"
+        },
+        "DOC008-C07": {
+          "claim_id": "DOC008-C07",
+          "gold_subject": "Employees",
+          "status": "WRONG_SUBJECT",
+          "match_tier": "WRONG_SUBJECT",
+          "taxonomy": "SUBJECT_RESOLUTION_ERROR",
+          "evidence_quote": "Employees must return all Wingify property upon offboarding.",
+          "matched_claim_id": "8f179269-f7c0-4a3f-97fc-2cc05d64a9b5",
+          "matched_subject": "Wingify (Shipping Costs)"
+        },
+        "DOC008-C08": {
+          "claim_id": "DOC008-C08",
+          "gold_subject": "Wingify",
+          "status": "MATCHED",
+          "match_tier": "FULL_MATCH",
+          "taxonomy": "NONE",
+          "evidence_quote": "Pay instead of notice will not be granted in cases of dismis",
+          "matched_claim_id": "7d98c467-c9bc-4cc7-8d23-dccdc899ec3a",
+          "matched_subject": "Wingify"
+        },
+        "DOC008-C09": {
+          "claim_id": "DOC008-C09",
+          "gold_subject": "Wingify",
+          "status": "MATCHED",
+          "match_tier": "FULL_MATCH",
+          "taxonomy": "NONE",
+          "evidence_quote": "Shipping costs will be covered by Wingify through a mutually",
+          "matched_claim_id": "8f179269-f7c0-4a3f-97fc-2cc05d64a9b5",
+          "matched_subject": "Wingify (Shipping Costs)"
+        },
+        "DOC008-C10": {
+          "claim_id": "DOC008-C10",
+          "gold_subject": "Outstanding Loans and Advances",
+          "status": "MATCHED",
+          "match_tier": "FULL_MATCH",
+          "taxonomy": "NONE",
+          "evidence_quote": "Any outstanding loans or advances the employee takes will be",
+          "matched_claim_id": "33b67b86-1eb0-46a4-9915-90d3e247b15e",
+          "matched_subject": "Outstanding Loans and Advances"
+        },
+        "DOC008-C11": {
+          "claim_id": "DOC008-C11",
+          "gold_subject": "Exit Tax Deductions",
+          "status": "MATCHED",
+          "match_tier": "FULL_MATCH",
+          "taxonomy": "NONE",
+          "evidence_quote": "If investment proofs, as declared on the HR Portal, are not ",
+          "matched_claim_id": "c9beff3a-b9ce-47f0-b21f-452e7497d15b",
+          "matched_subject": "Exit Tax Deductions"
+        },
+        "DOC008-C12": {
+          "claim_id": "DOC008-C12",
+          "gold_subject": "Company",
+          "status": "MATCHED",
+          "match_tier": "FULL_MATCH",
+          "taxonomy": "NONE",
+          "evidence_quote": "If the employee does not serve the full notice period, the c",
+          "matched_claim_id": "773c8d83-5f79-4bc1-bfe4-8b9daa9fd2b6",
+          "matched_subject": "Company"
+        },
+        "DOC008-C13": {
+          "claim_id": "DOC008-C13",
+          "gold_subject": "Joining Bonus Recovery",
+          "status": "MATCHED",
+          "match_tier": "FULL_MATCH",
+          "taxonomy": "NONE",
+          "evidence_quote": "Joining Bonus recovery will be as per the terms mentioned in",
+          "matched_claim_id": "87c15990-ba9e-4701-bef2-b4f307992c1c",
+          "matched_subject": "Joining Bonus Recovery"
+        },
+        "DOC008-C14": {
+          "claim_id": "DOC008-C14",
+          "gold_subject": "EPF and VPF Deductions",
+          "status": "MATCHED",
+          "match_tier": "FULL_MATCH",
+          "taxonomy": "NONE",
+          "evidence_quote": "EPF (Employee Provident Fund) and VPF (Voluntary Provident F",
+          "matched_claim_id": "707ae3a0-6bab-414d-8b91-92d0f77d6a77",
+          "matched_subject": "EPF and VPF Deductions"
+        },
+        "DOC008-C15": {
+          "claim_id": "DOC008-C15",
+          "gold_subject": "Employees",
+          "status": "MATCHED",
+          "match_tier": "FULL_MATCH",
+          "taxonomy": "NONE",
+          "evidence_quote": "Holiday or Leave during Notice Period: Employees may request",
+          "matched_claim_id": "758ab8fe-2ce3-47bd-ae5a-701636273792",
+          "matched_subject": "Employees (Leave During Notice Period)"
+        },
+        "DOC008-C16": {
+          "claim_id": "DOC008-C16",
+          "gold_subject": "Employees in Grade D (D1, D2 & D3) (Junior Management)",
+          "status": "MATCHED",
+          "match_tier": "FULL_MATCH",
+          "taxonomy": "NONE",
+          "evidence_quote": "Employees in Grade D (D1, D2 & D3) (Junior Management) have ",
+          "matched_claim_id": "732b5cc3-25e9-4c11-bc9a-87dd4927402f",
+          "matched_subject": "Employees in Grade D (D1, D2 & D3) (Junior Management)"
+        },
+        "DOC008-C17": {
+          "claim_id": "DOC008-C17",
+          "gold_subject": "Employees in Grade E (E1, E2 & E3) (Fellow)",
+          "status": "MATCHED",
+          "match_tier": "FULL_MATCH",
+          "taxonomy": "NONE",
+          "evidence_quote": "Employees in Grade E (E1, E2 & E3) (Fellow) have a maximum n",
+          "matched_claim_id": "c3a1c78a-b600-494b-9ba4-7f3f0fd37703",
+          "matched_subject": "Employees in Grade E (E1, E2 & E3) (Fellow)"
+        },
+        "DOC008-C18": {
+          "claim_id": "DOC008-C18",
+          "gold_subject": "Employee Notice Period Policy Applicability",
+          "status": "MATCHED",
+          "match_tier": "FULL_MATCH",
+          "taxonomy": "NONE",
+          "evidence_quote": "Applicability The policy applies to all Permanent Employees,",
+          "matched_claim_id": "5a26dc54-b052-409b-9545-fa15827658e9",
+          "matched_subject": "Employee Notice Period Policy Applicability"
+        }
+      }
+    },
+    "DOC-009": {
+      "document_id": "DOC-009",
+      "title": "Northwind Refund Policy Handbook",
+      "organization": "Northwind Traders",
+      "document_type": "refund_handbook",
+      "verdict": "NEEDS_WORK",
+      "verdict_basis": "full_match_canonical_metrics",
+      "blocking_reasons": [
+        "full_match_recall_below_threshold (41.4% < 90.0%)",
+        "canonical_policy_precision_below_threshold (6.8% < 90.0%)",
+        "material_claim_precision_below_threshold (6.8% < 90.0%)",
+        "f1_score_below_threshold (11.7% < 90.0%)",
+        "MISSING: DOC009-C05 [SENTENCE_SPLIT_ERROR] - Exchange: \"Exchange return shipping rule is N/A.\"",
+        "MISSING: DOC009-C08 [SENTENCE_SPLIT_ERROR] - Return window: \"Return window specifies Summary as 30 days from delivery (60\"",
+        "MISSING: DOC009-C09 [SENTENCE_SPLIT_ERROR] - Refund speed: \"Refund speed specifies Summary as 3-5 business days after we\"",
+        "MISSING: DOC009-C10 [SENTENCE_SPLIT_ERROR] - Return shipping: \"Return shipping specifies Summary as Free for defective or i\"",
+        "MISSING: DOC009-C11 [SENTENCE_SPLIT_ERROR] - Restocking fee: \"Restocking fee specifies Summary as None on most items; 15% \"",
+        "MISSING: DOC009-C12 [SENTENCE_SPLIT_ERROR] - Final sale items: \"Final sale items specifies Summary as Not eligible for refun\"",
+        "MISSING: DOC009-C18 [SENTENCE_SPLIT_ERROR] - Returns without a receipt: \"Returns without proof of purchase are accepted in-store only\"",
+        "MISSING: DOC009-C19 [SENTENCE_SPLIT_ERROR] - Returns without a receipt: \"A government-issued photo ID is required and scanned.\"",
+        "MISSING: DOC009-C20 [SENTENCE_SPLIT_ERROR] - Returns without a receipt: \"A limit of three receipt-less returns per customer per 12-mo\"",
+        "MISSING: DOC009-C21 [SENTENCE_SPLIT_ERROR] - Like new, tags attached: \"Like new, tags attached refund percentage is 100%.\"",
+        "WRONG_PREDICATE: DOC009-C22 [PREDICATE_MAPPING_ERROR] - Opened packaging, item unused: \"Opened packaging, item unused refund percentage is 100%.\"",
+        "MISSING: DOC009-C23 [SENTENCE_SPLIT_ERROR] - Missing original box (non-fragile): \"Missing original box (non-fragile) refund percentage is 90%.\"",
+        "MISSING: DOC009-C24 [SENTENCE_SPLIT_ERROR] - Missing accessories or free gift: \"Missing accessories or free gift refund rule is Refund minus\"",
+        "WRONG_PREDICATE: DOC009-C25 [PREDICATE_MAPPING_ERROR] - Light wear or signs of use: \"Light wear or signs of use refund percentage is 50% - 75%.\"",
+        "WRONG_PREDICATE: DOC009-C26 [PREDICATE_MAPPING_ERROR] - Damaged by customer / heavy use: \"Damaged by customer / heavy use refund percentage is 0% - 25\"",
+        "WRONG_PREDICATE: DOC009-C27 [PREDICATE_MAPPING_ERROR] - Washed, altered or stained: \"Washed, altered or stained refund eligibility is Not eligibl\"",
+        "MISSING: DOC009-C28 [SENTENCE_SPLIT_ERROR] - Refund approval: \"Up to $100: Tier 1 agent may approve.\""
+      ],
+      "metrics": {
+        "full_match_recall": 0.4138,
+        "partial_match_recall": 0.4138,
+        "lower_bound_precision": 0.0682,
+        "partial_precision": 0.0682,
+        "adjudicated_precision": 1.0,
+        "canonical_f1_full_match": 0.1171,
+        "canonical_f1_partial_match": 0.1171,
+        "raw_precision": 0.048,
+        "raw_recall": 0.7586,
+        "raw_f1": 0.0903
+      },
+      "paired_metrics": {
+        "raw_metrics": {
+          "precision": 0.048,
+          "recall": 0.7586,
+          "f1": 0.0903
+        },
+        "canonical_full_metrics": {
+          "precision": 0.0682,
+          "recall": 0.4138,
+          "f1": 0.1171
+        },
+        "canonical_partial_metrics": {
+          "precision": 0.0682,
+          "recall": 0.4138,
+          "f1": 0.1171
+        },
+        "canonical_metrics": {
+          "precision": 0.0682,
+          "recall": 0.4138,
+          "f1": 0.1171
+        }
+      },
+      "quality_metrics": {
+        "claim_recall": 0.4138,
+        "claim_precision": 0.048,
+        "claim_f1": 0.1171,
+        "canonical_policy_precision": 0.0682,
+        "validated_claim_precision": 0.0682,
+        "raw_candidate_precision": 0.048,
+        "subject_accuracy": 1.0,
+        "predicate_accuracy": 1.0,
+        "object_accuracy": 1.0,
+        "false_approval_rate": 0.0,
+        "false_rejection_rate": 0.1389,
+        "false_conflict_rate": 0.0,
+        "malformed_fragment_rate": 0.0,
+        "evidence_span_traceability": 1.0
+      },
+      "candidate_ledger": {
+        "total_extracted_candidates": 250,
+        "approved_candidates": 176,
+        "rejected_candidates": 72,
+        "review_candidates": 0,
+        "canonical_candidates": 176,
+        "approved_l6_total": 176,
+        "canonical_approved_total": 176,
+        "excluded_non_canonical": 0,
+        "excluded_boilerplate": 0,
+        "excluded_duplicate": 0,
+        "excluded_malformed": 0,
+        "excluded_other": 0,
+        "reconciliation_difference": 0,
+        "deduplicated_canonical_candidates": 175,
+        "correct_full_matches": 12,
+        "correct_partial_matches": 0,
+        "unjudged_spans": 163,
+        "incorrect_predictions": 0,
+        "malformed_claims": 0,
+        "duplicate_claims": 1,
+        "non_canonical_claims": 0,
+        "gold_rules_captured_full": 12,
+        "gold_rules_captured_partial": 0,
+        "gold_rules_raw_discovery": 10,
+        "gold_rules_missed": 17,
+        "correct_canonical_predictions": 12,
+        "incorrect_canonical_predictions": 1,
+        "unjudged_canonical_predictions": 163,
+        "gold_rules_captured": 12,
+        "labeled_rule_recall": 0.4138
+      },
+      "counts": {
+        "total_claims_extracted": 250,
+        "total_gold_canonical_rules": 29,
+        "gold_rules_captured": 12,
+        "gold_rules_full_matched": 12,
+        "gold_rules_partial_matched": 0,
+        "gold_rules_raw_discovery": 10,
+        "total_approved": 176,
+        "total_rejected": 72,
+        "total_conflicts": 1,
+        "malformed_fragments_count": 0
+      },
+      "claim_classifications": {
+        "DOC009-C01": {
+          "claim_id": "DOC009-C01",
+          "gold_subject": "Changed mind / wrong size",
+          "status": "MATCHED",
+          "match_tier": "FULL_MATCH",
+          "taxonomy": "NONE",
+          "evidence_quote": "Changed mind / wrong size return shipping rule is No",
+          "matched_claim_id": "d593f5aa-51d7-4653-8a25-ac9aa44ca347",
+          "matched_subject": "Changed mind / wrong size"
+        },
+        "DOC009-C02": {
+          "claim_id": "DOC009-C02",
+          "gold_subject": "Changed mind / wrong size",
+          "status": "MATCHED",
+          "match_tier": "FULL_MATCH",
+          "taxonomy": "NONE",
+          "evidence_quote": "$6.95 deducted from refund",
+          "matched_claim_id": "7f44a606-7a3d-489d-a5f1-ed27c7cc2992",
+          "matched_subject": "Changed mind / wrong size"
+        },
+        "DOC009-C03": {
+          "claim_id": "DOC009-C03",
+          "gold_subject": "Gold member, any reason",
+          "status": "MATCHED",
+          "match_tier": "FULL_MATCH",
+          "taxonomy": "NONE",
+          "evidence_quote": "Gold member, any reason return shipping rule is No.",
+          "matched_claim_id": "541b2d81-58ec-4ca4-b0e2-436e42e23b9a",
+          "matched_subject": "Gold member, any reason"
+        },
+        "DOC009-C04": {
+          "claim_id": "DOC009-C04",
+          "gold_subject": "Gold member, any reason",
+          "status": "MATCHED",
+          "match_tier": "FULL_MATCH",
+          "taxonomy": "NONE",
+          "evidence_quote": "Gold member, any reason specifies Return label cost as Free.",
+          "matched_claim_id": "f5ee22b3-4eb5-4154-af5e-a211c4efea4e",
+          "matched_subject": "Gold member, any reason"
+        },
+        "DOC009-C05": {
+          "claim_id": "DOC009-C05",
+          "gold_subject": "Exchange",
+          "status": "MISSING",
+          "match_tier": "RAW_DISCOVERY_MATCH",
+          "taxonomy": "SENTENCE_SPLIT_ERROR",
+          "evidence_quote": "Exchange return shipping rule is N/A.",
+          "matched_claim_id": "b367c206-488e-4254-9f5d-1d9a6ddc2254",
+          "matched_subject": "Exchange"
+        },
+        "DOC009-C06": {
+          "claim_id": "DOC009-C06",
+          "gold_subject": "Exchange",
+          "status": "MATCHED",
+          "match_tier": "FULL_MATCH",
+          "taxonomy": "NONE",
+          "evidence_quote": "Exchange specifies Return label cost as Free both ways.",
+          "matched_claim_id": "3d1b337b-2150-4de9-b472-bfa4f8e50ff7",
+          "matched_subject": "Exchange"
+        },
+        "DOC009-C07": {
+          "claim_id": "DOC009-C07",
+          "gold_subject": "Order over $150, any reason",
+          "status": "MATCHED",
+          "match_tier": "FULL_MATCH",
+          "taxonomy": "NONE",
+          "evidence_quote": "Order over $150, any reason return shipping rule is No.",
+          "matched_claim_id": "d70057aa-3c25-41f7-b754-512d0c27efd8",
+          "matched_subject": "Order over $150, any reason"
+        },
+        "DOC009-C08": {
+          "claim_id": "DOC009-C08",
+          "gold_subject": "Return window",
+          "status": "MISSING",
+          "match_tier": "RAW_DISCOVERY_MATCH",
+          "taxonomy": "SENTENCE_SPLIT_ERROR",
+          "evidence_quote": "Return window specifies Summary as 30 days from delivery (60",
+          "matched_claim_id": "af9c242c-4228-4817-9a87-b68fef3b4972",
+          "matched_subject": "Return window"
+        },
+        "DOC009-C09": {
+          "claim_id": "DOC009-C09",
+          "gold_subject": "Refund speed",
+          "status": "MISSING",
+          "match_tier": "RAW_DISCOVERY_MATCH",
+          "taxonomy": "SENTENCE_SPLIT_ERROR",
+          "evidence_quote": "Refund speed specifies Summary as 3-5 business days after we",
+          "matched_claim_id": "d80e4720-5115-41ae-abfe-a3960ad0772d",
+          "matched_subject": "Refund speed"
+        },
+        "DOC009-C10": {
+          "claim_id": "DOC009-C10",
+          "gold_subject": "Return shipping",
+          "status": "MISSING",
+          "match_tier": "RAW_DISCOVERY_MATCH",
+          "taxonomy": "SENTENCE_SPLIT_ERROR",
+          "evidence_quote": "Return shipping specifies Summary as Free for defective or i",
+          "matched_claim_id": "7193b6bb-2ede-4460-80a5-1b697515d112",
+          "matched_subject": "Return shipping"
+        },
+        "DOC009-C11": {
+          "claim_id": "DOC009-C11",
+          "gold_subject": "Restocking fee",
+          "status": "MISSING",
+          "match_tier": "RAW_DISCOVERY_MATCH",
+          "taxonomy": "SENTENCE_SPLIT_ERROR",
+          "evidence_quote": "Restocking fee specifies Summary as None on most items; 15% ",
+          "matched_claim_id": "49a1d455-26bd-45dc-82c1-c8d24d97798d",
+          "matched_subject": "Restocking fee"
+        },
+        "DOC009-C12": {
+          "claim_id": "DOC009-C12",
+          "gold_subject": "Final sale items",
+          "status": "MISSING",
+          "match_tier": "RAW_DISCOVERY_MATCH",
+          "taxonomy": "SENTENCE_SPLIT_ERROR",
+          "evidence_quote": "Final sale items specifies Summary as Not eligible for refun",
+          "matched_claim_id": "dd32ee94-ec59-4551-852b-5e656393023e",
+          "matched_subject": "Final sale items"
+        },
+        "DOC009-C13": {
+          "claim_id": "DOC009-C13",
+          "gold_subject": "Standard merchandise",
+          "status": "MATCHED",
+          "match_tier": "FULL_MATCH",
+          "taxonomy": "NONE",
+          "evidence_quote": "Standard merchandise has a return window of 30 days.",
+          "matched_claim_id": "00f8c6d0-d9d5-4082-bb8f-d90bba07c0a5",
+          "matched_subject": "Standard merchandise"
+        },
+        "DOC009-C14": {
+          "claim_id": "DOC009-C14",
+          "gold_subject": "Northwind Rewards Gold members",
+          "status": "MATCHED",
+          "match_tier": "FULL_MATCH",
+          "taxonomy": "NONE",
+          "evidence_quote": "Northwind Rewards Gold members has a return window of 60 day",
+          "matched_claim_id": "16f861d3-cb0f-4105-a1fb-e76f63324920",
+          "matched_subject": "Northwind Rewards Gold members"
+        },
+        "DOC009-C15": {
+          "claim_id": "DOC009-C15",
+          "gold_subject": "Holiday purchases (Nov 1 - Dec 24)",
+          "status": "MATCHED",
+          "match_tier": "FULL_MATCH",
+          "taxonomy": "NONE",
+          "evidence_quote": "Holiday purchases (Nov 1 - Dec 24) return deadline is Until ",
+          "matched_claim_id": "c2a647fd-a083-4486-af61-de680ef25802",
+          "matched_subject": "Holiday purchases (Nov 1 - Dec 24)"
+        },
+        "DOC009-C16": {
+          "claim_id": "DOC009-C16",
+          "gold_subject": "Footwear (worn indoors only)",
+          "status": "MATCHED",
+          "match_tier": "FULL_MATCH",
+          "taxonomy": "NONE",
+          "evidence_quote": "Footwear (worn indoors only) has a return window of 45 days.",
+          "matched_claim_id": "c7e065ac-4df7-4bb1-a307-7f35f40fd2dd",
+          "matched_subject": "Footwear (worn indoors only)"
+        },
+        "DOC009-C17": {
+          "claim_id": "DOC009-C17",
+          "gold_subject": "Camping tents and sleeping bags (unused)",
+          "status": "MATCHED",
+          "match_tier": "FULL_MATCH",
+          "taxonomy": "NONE",
+          "evidence_quote": "Camping tents and sleeping bags (unused) has a return window",
+          "matched_claim_id": "a7d6d136-39de-4323-b2dc-253cf43a6c4d",
+          "matched_subject": "Camping tents and sleeping bags (unused)"
+        },
+        "DOC009-C18": {
+          "claim_id": "DOC009-C18",
+          "gold_subject": "Returns without a receipt",
+          "status": "MISSING",
+          "match_tier": "RAW_DISCOVERY_MATCH",
+          "taxonomy": "SENTENCE_SPLIT_ERROR",
+          "evidence_quote": "Returns without proof of purchase are accepted in-store only",
+          "matched_claim_id": "81a1bdf0-03fe-46d3-aa1e-ea7623d17991",
+          "matched_subject": "Returns without a receipt Returns without"
+        },
+        "DOC009-C19": {
+          "claim_id": "DOC009-C19",
+          "gold_subject": "Returns without a receipt",
+          "status": "MISSING",
+          "match_tier": "RAW_DISCOVERY_MATCH",
+          "taxonomy": "SENTENCE_SPLIT_ERROR",
+          "evidence_quote": "A government-issued photo ID is required and scanned.",
+          "matched_claim_id": "ac825a9c-b044-4dea-b249-2d6f07e2a77e",
+          "matched_subject": "Returns without a receipt Returns without"
+        },
+        "DOC009-C20": {
+          "claim_id": "DOC009-C20",
+          "gold_subject": "Returns without a receipt",
+          "status": "MISSING",
+          "match_tier": "RAW_DISCOVERY_MATCH",
+          "taxonomy": "SENTENCE_SPLIT_ERROR",
+          "evidence_quote": "A limit of three receipt-less returns per customer per 12-mo",
+          "matched_claim_id": "928180da-685e-4211-998e-908e15800933",
+          "matched_subject": "Returns without a receipt Returns without"
+        },
+        "DOC009-C21": {
+          "claim_id": "DOC009-C21",
+          "gold_subject": "Like new, tags attached",
+          "status": "MISSING",
+          "match_tier": "MISSING",
+          "taxonomy": "SENTENCE_SPLIT_ERROR",
+          "evidence_quote": "Like new, tags attached refund percentage is 100%.",
+          "matched_claim_id": null,
+          "matched_subject": null
+        },
+        "DOC009-C22": {
+          "claim_id": "DOC009-C22",
+          "gold_subject": "Opened packaging, item unused",
+          "status": "WRONG_PREDICATE",
+          "match_tier": "WRONG_PREDICATE",
+          "taxonomy": "PREDICATE_MAPPING_ERROR",
+          "evidence_quote": "Opened packaging, item unused refund percentage is 100%.",
+          "matched_claim_id": "bf68c517-8eb9-4764-9ba3-aa815d4e38da",
+          "matched_subject": "Opened packaging, item unused"
+        },
+        "DOC009-C23": {
+          "claim_id": "DOC009-C23",
+          "gold_subject": "Missing original box (non-fragile)",
+          "status": "MISSING",
+          "match_tier": "MISSING",
+          "taxonomy": "SENTENCE_SPLIT_ERROR",
+          "evidence_quote": "Missing original box (non-fragile) refund percentage is 90%.",
+          "matched_claim_id": null,
+          "matched_subject": null
+        },
+        "DOC009-C24": {
+          "claim_id": "DOC009-C24",
+          "gold_subject": "Missing accessories or free gift",
+          "status": "MISSING",
+          "match_tier": "MISSING",
+          "taxonomy": "SENTENCE_SPLIT_ERROR",
+          "evidence_quote": "Missing accessories or free gift refund rule is Refund minus",
+          "matched_claim_id": null,
+          "matched_subject": null
+        },
+        "DOC009-C25": {
+          "claim_id": "DOC009-C25",
+          "gold_subject": "Light wear or signs of use",
+          "status": "WRONG_PREDICATE",
+          "match_tier": "WRONG_PREDICATE",
+          "taxonomy": "PREDICATE_MAPPING_ERROR",
+          "evidence_quote": "Light wear or signs of use refund percentage is 50% - 75%.",
+          "matched_claim_id": "afe4d6dd-1e11-421b-8323-ce8b0278ecea",
+          "matched_subject": "Light wear or signs of use"
+        },
+        "DOC009-C26": {
+          "claim_id": "DOC009-C26",
+          "gold_subject": "Damaged by customer / heavy use",
+          "status": "WRONG_PREDICATE",
+          "match_tier": "WRONG_PREDICATE",
+          "taxonomy": "PREDICATE_MAPPING_ERROR",
+          "evidence_quote": "Damaged by customer / heavy use refund percentage is 0% - 25",
+          "matched_claim_id": "55f3f762-bf07-4dbf-a3de-eea5640cc36c",
+          "matched_subject": "Damaged by customer / heavy use"
+        },
+        "DOC009-C27": {
+          "claim_id": "DOC009-C27",
+          "gold_subject": "Washed, altered or stained",
+          "status": "WRONG_PREDICATE",
+          "match_tier": "WRONG_PREDICATE",
+          "taxonomy": "PREDICATE_MAPPING_ERROR",
+          "evidence_quote": "Washed, altered or stained refund eligibility is Not eligibl",
+          "matched_claim_id": "0705a1b4-64c0-48bc-a3fb-622597e91c4e",
+          "matched_subject": "Washed, altered or stained"
+        },
+        "DOC009-C28": {
+          "claim_id": "DOC009-C28",
+          "gold_subject": "Refund approval",
+          "status": "MISSING",
+          "match_tier": "RAW_DISCOVERY_MATCH",
+          "taxonomy": "SENTENCE_SPLIT_ERROR",
+          "evidence_quote": "Up to $100: Tier 1 agent may approve.",
+          "matched_claim_id": "36dd0d8b-f952-4b8b-a4dd-ff037d1fdb17",
+          "matched_subject": "Refund approval"
+        },
+        "DOC009-C29": {
+          "claim_id": "DOC009-C29",
+          "gold_subject": "Refund approval",
+          "status": "MATCHED",
+          "match_tier": "FULL_MATCH",
+          "taxonomy": "NONE",
+          "evidence_quote": "$100.01 - $500: Tier 2 agent or team lead approval required.",
+          "matched_claim_id": "84189d7c-4a25-410c-a596-5ae7000a86b4",
+          "matched_subject": "Refund approval"
+        }
+      }
+    }
+  }
+}

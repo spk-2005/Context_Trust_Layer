@@ -1,0 +1,405 @@
+{
+  "document_id": "DOC-008",
+  "document_type": "hr_policy",
+  "organization": "Wingify Software Private Limited",
+  "policy_name": "Employee Notice Period Policy",
+  "policy_version": "1.5",
+  "effective_date": "2021-04-01",
+  "layout_truth": {
+    "total_pages": 6,
+    "has_selectable_text": true,
+    "expected_sections": [
+      "Policy Summary",
+      "1. Purpose",
+      "2. Applicability",
+      "3. Policy",
+      "3.1 Notice Periods Duration",
+      "3.2. Points to Remember",
+      "3.3. Deduction from Full & Final Salary",
+      "4. Reference and/or Documentation",
+      "Document Revision History"
+    ],
+    "malformed_table_boundaries": [
+      {
+        "corrupted_fragment": "released immediately wit hout serving the notice period, paym ent for the notic e period wil l be made after a discussion",
+        "clean_sentence": "In cases of involuntary exits where an employee is released immediately without serving the notice period, payment for the notice period will be made after a discussion with the Manager, HR, and Department Head, with the CEO being informed of the decision.",
+        "disposition": "QUARANTINE_TABLE_FRAGMENT"
+      },
+      {
+        "corrupted_fragment": "misconduct, insubordinat ion, fraud, or other seve re reasons warran ting penal a ction as determined by Wingify.",
+        "clean_sentence": "Pay instead of notice will not be granted in cases of dismissal due to misconduct, insubordination, fraud, or other severe reasons warranting penal action as determined by Wingify.",
+        "disposition": "QUARANTINE_TABLE_FRAGMENT"
+      }
+    ]
+  },
+  "table_truth": [
+    {
+      "table_id": "T1_GRADE_NOTICE_MATRIX",
+      "page": 4,
+      "headers": [
+        "Level & Grade",
+        "Group Category",
+        "Maximum Duration Confirmed",
+        "Probationers"
+      ],
+      "expected_rows": [
+        {
+          "grade": "A (A1 & A2)",
+          "category": "CXO",
+          "confirmed_notice": "90 Days",
+          "probation_notice": "15 days"
+        },
+        {
+          "grade": "B (B1 & B2)",
+          "category": "SeniorManagement",
+          "confirmed_notice": "90 Days",
+          "probation_notice": "15 days"
+        },
+        {
+          "grade": "C (C1, C2 & C3)",
+          "category": "Middle Management",
+          "confirmed_notice": "60 Days",
+          "probation_notice": "15 days"
+        },
+        {
+          "grade": "D (D1, D2 & D3)",
+          "category": "Junior Management",
+          "confirmed_notice": "30 Days",
+          "probation_notice": "15 days"
+        },
+        {
+          "grade": "E (E1, E2 & E3)",
+          "category": "Fellow",
+          "confirmed_notice": "30 Days",
+          "probation_notice": "15 days"
+        }
+      ]
+    }
+  ],
+  "claim_truth": [
+    {
+      "claim_id": "DOC008-C01",
+      "subject": "Wingify Notice Period Policy",
+      "predicate": "has_effective_date",
+      "object": {
+        "value": "2021-04-01",
+        "unit": "date"
+      },
+      "claim_type": "POLICY_METADATA",
+      "canonical": true,
+      "conflict_eligible": false,
+      "evidence_quote": "Effective April 1, 2021, this policy outlines various aspects:"
+    },
+    {
+      "claim_id": "DOC008-C02",
+      "subject": "Grade A (A1 & A2) confirmed employees",
+      "predicate": "has_maximum_notice_duration",
+      "object": {
+        "value": 90,
+        "unit": "day",
+        "modality": "MUST"
+      },
+      "conditions": [
+        {
+          "field": "grade",
+          "operator": "in",
+          "value": [
+            "A1",
+            "A2"
+          ]
+        },
+        {
+          "field": "status",
+          "operator": "=",
+          "value": "confirmed"
+        }
+      ],
+      "claim_type": "POLICY_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "A (A1 & A2) CXO 90 Days"
+    },
+    {
+      "claim_id": "DOC008-C03",
+      "subject": "Grade B (B1 & B2) confirmed employees",
+      "predicate": "has_maximum_notice_duration",
+      "object": {
+        "value": 90,
+        "unit": "day",
+        "modality": "MUST"
+      },
+      "conditions": [
+        {
+          "field": "grade",
+          "operator": "in",
+          "value": [
+            "B1",
+            "B2"
+          ]
+        },
+        {
+          "field": "status",
+          "operator": "=",
+          "value": "confirmed"
+        }
+      ],
+      "claim_type": "POLICY_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "B (B1 & B2) SeniorManagement 90 Days"
+    },
+    {
+      "claim_id": "DOC008-C04",
+      "subject": "Grade C (C1, C2 & C3) confirmed employees",
+      "predicate": "has_maximum_notice_duration",
+      "object": {
+        "value": 60,
+        "unit": "day",
+        "modality": "MUST"
+      },
+      "conditions": [
+        {
+          "field": "grade",
+          "operator": "in",
+          "value": [
+            "C1",
+            "C2",
+            "C3"
+          ]
+        },
+        {
+          "field": "status",
+          "operator": "=",
+          "value": "confirmed"
+        }
+      ],
+      "claim_type": "POLICY_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "C (C1, C2 & C3) Middle Management 60 Days"
+    },
+    {
+      "claim_id": "DOC008-C05",
+      "subject": "Grade D and E confirmed employees",
+      "predicate": "has_maximum_notice_duration",
+      "object": {
+        "value": 30,
+        "unit": "day",
+        "modality": "MUST"
+      },
+      "conditions": [
+        {
+          "field": "grade",
+          "operator": "in",
+          "value": [
+            "D1",
+            "D2",
+            "D3",
+            "E1",
+            "E2",
+            "E3"
+          ]
+        },
+        {
+          "field": "status",
+          "operator": "=",
+          "value": "confirmed"
+        }
+      ],
+      "claim_type": "POLICY_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "Grade D & E having 30 days"
+    },
+    {
+      "claim_id": "DOC008-C06",
+      "subject": "Probationary employees",
+      "predicate": "has_notice_duration",
+      "object": {
+        "value": 15,
+        "unit": "day",
+        "modality": "MUST"
+      },
+      "conditions": [
+        {
+          "field": "status",
+          "operator": "=",
+          "value": "probation"
+        }
+      ],
+      "claim_type": "POLICY_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "Probationers 15 days"
+    },
+    {
+      "claim_id": "DOC008-C07",
+      "subject": "Employees",
+      "predicate": "must_return_all_company_property",
+      "object": {
+        "value": "all Wingify property upon offboarding",
+        "modality": "MUST"
+      },
+      "claim_type": "POLICY_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "Employees must return all Wingify property upon offboarding. Shipping costs will be covered by Wingify through a mutually agreed-upon method."
+    },
+    {
+      "claim_id": "DOC008-C08",
+      "subject": "Wingify",
+      "predicate": "will_not_grant_pay_in_lieu_of_notice",
+      "object": {
+        "value": "dismissal due to misconduct, insubordination, fraud",
+        "modality": "CANNOT"
+      },
+      "conditions": [
+        {
+          "field": "reason",
+          "operator": "in",
+          "value": [
+            "misconduct",
+            "insubordination",
+            "fraud"
+          ]
+        }
+      ],
+      "claim_type": "POLICY_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "Pay instead of notice will not be granted in cases of dismissal due to misconduct, insubordination, fraud, or other severe reasons warranting penal action as determined by Wingify."
+    },
+    {
+      "claim_id": "DOC008-M01",
+      "subject": "Wingify Software Private Limited",
+      "predicate": "prohibits_unauthorized_disclosure",
+      "object": {
+        "value": "in any media",
+        "modality": "PROHIBITED"
+      },
+      "claim_type": "CONFIDENTIALITY_NOTICE",
+      "canonical": false,
+      "conflict_eligible": false,
+      "evidence_quote": "The unauthorized use or disclosure of this information in any media is prohibited."
+    },
+    {
+      "claim_id": "DOC008-C09",
+      "canonical": true,
+      "subject": "Wingify",
+      "predicate": "covers_shipping_costs",
+      "object": {
+        "value": "Shipping costs through a mutually agreed-upon method",
+        "modality": "MUST"
+      },
+      "evidence_quote": "Shipping costs will be covered by Wingify through a mutually agreed-upon method."
+    },
+    {
+      "claim_id": "DOC008-C10",
+      "canonical": true,
+      "subject": "Outstanding Loans and Advances",
+      "predicate": "adjusted_from_full_and_final_salary",
+      "object": {
+        "value": "Full and Final Salary",
+        "modality": "MUST"
+      },
+      "evidence_quote": "Any outstanding loans or advances the employee takes will be fully adjusted from their Full and Final Salary."
+    },
+    {
+      "claim_id": "DOC008-C11",
+      "canonical": true,
+      "subject": "Exit Tax Deductions",
+      "predicate": "deducted_without_investment_proofs",
+      "object": {
+        "value": "Exit Taxes",
+        "modality": "MUST"
+      },
+      "evidence_quote": "If investment proofs, as declared on the HR Portal, are not provided during exit, taxes will be deducted accordingly."
+    },
+    {
+      "claim_id": "DOC008-C12",
+      "canonical": true,
+      "subject": "Company",
+      "predicate": "may_recover_short_notice_amount",
+      "object": {
+        "value": "Amount equivalent to the short notice period",
+        "modality": "CAN"
+      },
+      "evidence_quote": "If the employee does not serve the full notice period, the company holds the right to recover the amount equivalent to the short notice period."
+    },
+    {
+      "claim_id": "DOC008-C13",
+      "canonical": true,
+      "subject": "Joining Bonus Recovery",
+      "predicate": "governed_by_offer_letter_terms",
+      "object": {
+        "value": "Terms mentioned in the offer letter",
+        "modality": "MUST"
+      },
+      "evidence_quote": "Joining Bonus recovery will be as per the terms mentioned in the offer letter."
+    },
+    {
+      "claim_id": "DOC008-C14",
+      "canonical": true,
+      "subject": "EPF and VPF Deductions",
+      "predicate": "made_and_deposited_into_account",
+      "object": {
+        "value": "Employee's account",
+        "modality": "MUST"
+      },
+      "evidence_quote": "EPF (Employee Provident Fund) and VPF (Voluntary Provident Fund) deductions will be made and deposited into the employee's account."
+    },
+    {
+      "claim_id": "DOC008-C15",
+      "canonical": true,
+      "subject": "Employees",
+      "predicate": "request_leave_during_notice_period",
+      "object": {
+        "value": "Reporting manager prior written approval",
+        "modality": "MAY"
+      },
+      "evidence_quote": "Holiday or Leave during Notice Period: Employees may request leave during the notice period as an exception with prior approval from their reporting manager."
+    },
+    {
+      "claim_id": "DOC008-C16",
+      "canonical": true,
+      "subject": "Employees in Grade D (D1, D2 & D3) (Junior Management)",
+      "predicate": "has_confirmed_notice_duration",
+      "object": {
+        "value": 30,
+        "unit": "day",
+        "modality": "MUST"
+      },
+      "evidence_quote": "Employees in Grade D (D1, D2 & D3) (Junior Management) have a maximum notice period of 30 Days upon confirmation."
+    },
+    {
+      "claim_id": "DOC008-C17",
+      "canonical": true,
+      "subject": "Employees in Grade E (E1, E2 & E3) (Fellow)",
+      "predicate": "has_confirmed_notice_duration",
+      "object": {
+        "value": 30,
+        "unit": "day",
+        "modality": "MUST"
+      },
+      "evidence_quote": "Employees in Grade E (E1, E2 & E3) (Fellow) have a maximum notice period of 30 Days upon confirmation."
+    },
+    {
+      "claim_id": "DOC008-C18",
+      "canonical": true,
+      "subject": "Employee Notice Period Policy Applicability",
+      "predicate": "applies_to_employment_types",
+      "object": {
+        "value": "Permanent Employees, Interns & Contractors",
+        "modality": "MUST"
+      },
+      "evidence_quote": "Applicability The policy applies to all Permanent Employees, Interns & Contractors of Wingify Software Private Limited."
+    }
+  ],
+  "conflict_truth": {
+    "expected_internal_conflicts": [],
+    "quarantined_claims": [
+      "released immediately wit",
+      "misconduct, insubordinat"
+    ]
+  }
+}
