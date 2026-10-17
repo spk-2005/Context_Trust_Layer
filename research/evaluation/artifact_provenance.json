@@ -1,13 +1,14 @@
 {
-  "timestamp": "2026-10-16T15:09:23Z",
-  "code_commit": "4ee140ef169da0b4f7d6420a95586e1d2f628fcb",
+  "timestamp": "2026-10-17T04:21:00Z",
+  "code_commit": "d32d1b3",
   "harness_version": "3.2.0",
   "artifacts": {
-    "corpus_manifest.json": "5501a80ddac6090a979b0caef5c3a50049b65008d58c8cd614ac77edc4b59281",
-    "benchmark_metrics_report.json": "4dd973579a0c433c70b2bc107c1fed517e61e1b50a065a5565f13d60d4216a37",
-    "all_documents_verdict_matrix.json": "e97e590c2b715c197a9afe5df6345b283a3129f08781e5e2cb3504786e5ecdfe",
-    "doc002_gold_rule_audit.json": "e344d0fa699357cd16b704cee7fc8743bd190061a0328fa3c7ac314eadd0acee",
-    "adjudications.json": "cb13033ba9458b1c5150db7fcab1a1cc53f65209d013aadf3695e78837b866c8",
-    "ALL_DOCUMENTS_EVALUATION.md": "d474a421f32568cc1ae4b6bd238e022493930a15b2a4dfc3b3086c40b4502d2e"
+    "corpus_manifest.json": "f1d24d3630dc5ddcdd7619162bd672c830553d187d67b7ae4638ebb774b1bb31",
+    "benchmark_metrics_report.json": "858f0e7e9be082e6edc04165188c3066961e00509608783a86eef2591c63624a",
+    "all_documents_verdict_matrix.json": "ea82daf18bb5f9d554d94166927b41bc0d8c2d010448b62e4a3916fea19b785b",
+    "doc002_gold_rule_audit.json": "e1fa4dbcb91743d9e4cdcec2e9b8b0040ea52a94bb31bfb84c9c1fca26593f0f",
+    "adjudications.json": "2666b1e1d04cba412285e798bda736f38b911f32c071b018a06166e3e8d254d7",
+    "doc006_pipeline_diagnosis.json": "c3371eebac656a3e09bda7d25fe875d02e2f78c00659de2cb68139113cb399aa",
+    "ALL_DOCUMENTS_EVALUATION.md": "25496a9a8ca1314720a1553c8b7bbd56afc137124b93d3d19794e75b7b790f73"
   }
 }

@@ -173,7 +173,7 @@
     "gold_conditions": [],
     "matched_candidate_id": "47f7188f-5a14-4402-a4f6-cb226ce35561",
     "candidate_status": "verified",
-    "match_tier": "ACCEPTED_PARTIAL_MATCH",
+    "match_tier": "PARTIAL_OBJECT_CAPTURE_PENDING_REVIEW",
     "subject_match": true,
     "predicate_match": true,
     "object_match": false,

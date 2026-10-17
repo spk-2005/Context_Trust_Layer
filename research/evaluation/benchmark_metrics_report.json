@@ -1,7 +1,7 @@
 {
-  "timestamp": "2026-10-16T15:09:23Z",
+  "timestamp": "2026-10-17T04:21:00Z",
   "harness_version": "3.2.0",
-  "code_commit": "4ee140ef169da0b4f7d6420a95586e1d2f628fcb",
+  "code_commit": "d32d1b3",
   "suite": "Trulin 9-Document Enterprise Reproducibility & Multi-Tier Ground Truth Benchmark",
   "dual_gate_policy": {
     "pass": {
@@ -230,18 +230,18 @@
       "verdict": "NEEDS_WORK",
       "verdict_basis": "full_match_canonical_metrics",
       "blocking_reasons": [
-        "canonical_policy_precision_below_threshold (25.0% < 90.0%)",
-        "material_claim_precision_below_threshold (25.0% < 90.0%)",
-        "f1_score_below_threshold (39.1% < 90.0%)"
+        "canonical_policy_precision_below_threshold (25.7% < 90.0%)",
+        "material_claim_precision_below_threshold (25.7% < 90.0%)",
+        "f1_score_below_threshold (40.0% < 90.0%)"
       ],
       "metrics": {
         "full_match_recall": 0.9,
         "partial_match_recall": 1.0,
-        "lower_bound_precision": 0.25,
-        "partial_precision": 0.2778,
+        "lower_bound_precision": 0.2571,
+        "partial_precision": 0.2857,
         "adjudicated_precision": 0.9,
-        "canonical_f1_full_match": 0.3913,
-        "canonical_f1_partial_match": 0.4348,
+        "canonical_f1_full_match": 0.3999,
+        "canonical_f1_partial_match": 0.4444,
         "raw_precision": 0.2703,
         "raw_recall": 1.0,
         "raw_f1": 0.4256
@@ -253,27 +253,27 @@
           "f1": 0.4256
         },
         "canonical_full_metrics": {
-          "precision": 0.25,
+          "precision": 0.2571,
           "recall": 0.9,
-          "f1": 0.3913
+          "f1": 0.3999
         },
         "canonical_partial_metrics": {
-          "precision": 0.2778,
+          "precision": 0.2857,
           "recall": 1.0,
-          "f1": 0.4348
+          "f1": 0.4444
         },
         "canonical_metrics": {
-          "precision": 0.25,
+          "precision": 0.2571,
           "recall": 0.9,
-          "f1": 0.3913
+          "f1": 0.3999
         }
       },
       "quality_metrics": {
         "claim_recall": 0.9,
         "claim_precision": 0.2703,
-        "claim_f1": 0.3913,
-        "canonical_policy_precision": 0.25,
-        "validated_claim_precision": 0.25,
+        "claim_f1": 0.3999,
+        "canonical_policy_precision": 0.2571,
+        "validated_claim_precision": 0.2571,
         "raw_candidate_precision": 0.2703,
         "subject_accuracy": 1.0,
         "predicate_accuracy": 1.0,
@@ -289,12 +289,12 @@
         "approved_candidates": 36,
         "rejected_candidates": 1,
         "review_candidates": 0,
-        "canonical_candidates": 36,
+        "canonical_candidates": 35,
         "approved_l6_total": 36,
-        "canonical_approved_total": 36,
+        "canonical_approved_total": 35,
         "excluded_non_canonical": 0,
         "excluded_boilerplate": 0,
-        "excluded_duplicate": 0,
+        "excluded_duplicate": 1,
         "excluded_malformed": 0,
         "excluded_other": 0,
         "reconciliation_difference": 0,
@@ -304,14 +304,14 @@
         "unjudged_spans": 25,
         "incorrect_predictions": 0,
         "malformed_claims": 0,
-        "duplicate_claims": 1,
+        "duplicate_claims": 0,
         "non_canonical_claims": 0,
         "gold_rules_captured_full": 9,
         "gold_rules_captured_partial": 1,
         "gold_rules_raw_discovery": 0,
         "gold_rules_missed": 0,
         "correct_canonical_predictions": 10,
-        "incorrect_canonical_predictions": 1,
+        "incorrect_canonical_predictions": 0,
         "unjudged_canonical_predictions": 25,
         "gold_rules_captured": 10,
         "labeled_rule_recall": 1.0
@@ -413,7 +413,7 @@
           "claim_id": "DOC002-C09",
           "gold_subject": "Earned leave",
           "status": "PARTIAL",
-          "match_tier": "ACCEPTED_PARTIAL_MATCH",
+          "match_tier": "PARTIAL_OBJECT_CAPTURE_PENDING_REVIEW",
           "taxonomy": "PARTIAL_OBJECT_CAPTURE",
           "evidence_quote": "Earned leave at his credit subject to a maximum of 150 days ",
           "matched_claim_id": "47f7188f-5a14-4402-a4f6-cb226ce35561",
@@ -439,57 +439,55 @@
       "verdict": "NEEDS_WORK",
       "verdict_basis": "full_match_canonical_metrics",
       "blocking_reasons": [
-        "full_match_recall_below_threshold (50.0% < 90.0%)",
-        "canonical_policy_precision_below_threshold (13.2% < 90.0%)",
-        "material_claim_precision_below_threshold (13.2% < 90.0%)",
-        "f1_score_below_threshold (20.8% < 90.0%)",
-        "WRONG_PREDICATE: DOC003-C03 [PREDICATE_MAPPING_ERROR] - Termination for serious misconduct: \"Termination for serious misconduct may occur without prior n\"",
+        "full_match_recall_below_threshold (70.0% < 90.0%)",
+        "canonical_policy_precision_below_threshold (18.4% < 90.0%)",
+        "material_claim_precision_below_threshold (18.4% < 90.0%)",
+        "f1_score_below_threshold (29.2% < 90.0%)",
         "MISSING: DOC003-C05 [SENTENCE_SPLIT_ERROR] - position elimination: \"A position elimination occurs when a position is eliminate d\"",
-        "WRONG_PREDICATE: DOC003-C08 [PREDICATE_MAPPING_ERROR] - Supervisors: \"Supervisors should notify the designated Human Resources par\"",
         "MISSING: DOC003-C09 [SENTENCE_SPLIT_ERROR] - Retiring employees: \"To help assist in a transition, employees are asked to give \"",
         "MISSING: DOC003-C10 [SENTENCE_SPLIT_ERROR] - Terminations for Unsatisfactory Performance: \"Before terminating an employee for unsatisfactory performanc\""
       ],
       "metrics": {
-        "full_match_recall": 0.5,
-        "partial_match_recall": 0.5,
-        "lower_bound_precision": 0.1316,
-        "partial_precision": 0.1316,
+        "full_match_recall": 0.7,
+        "partial_match_recall": 0.7,
+        "lower_bound_precision": 0.1842,
+        "partial_precision": 0.1842,
         "adjudicated_precision": 1.0,
-        "canonical_f1_full_match": 0.2084,
-        "canonical_f1_partial_match": 0.2084,
-        "raw_precision": 0.0909,
-        "raw_recall": 0.6,
-        "raw_f1": 0.1579
+        "canonical_f1_full_match": 0.2917,
+        "canonical_f1_partial_match": 0.2917,
+        "raw_precision": 0.1273,
+        "raw_recall": 0.8,
+        "raw_f1": 0.2196
       },
       "paired_metrics": {
         "raw_metrics": {
-          "precision": 0.0909,
-          "recall": 0.6,
-          "f1": 0.1579
+          "precision": 0.1273,
+          "recall": 0.8,
+          "f1": 0.2196
         },
         "canonical_full_metrics": {
-          "precision": 0.1316,
-          "recall": 0.5,
-          "f1": 0.2084
+          "precision": 0.1842,
+          "recall": 0.7,
+          "f1": 0.2917
         },
         "canonical_partial_metrics": {
-          "precision": 0.1316,
-          "recall": 0.5,
-          "f1": 0.2084
+          "precision": 0.1842,
+          "recall": 0.7,
+          "f1": 0.2917
         },
         "canonical_metrics": {
-          "precision": 0.1316,
-          "recall": 0.5,
-          "f1": 0.2084
+          "precision": 0.1842,
+          "recall": 0.7,
+          "f1": 0.2917
         }
       },
       "quality_metrics": {
-        "claim_recall": 0.5,
-        "claim_precision": 0.0909,
-        "claim_f1": 0.2084,
-        "canonical_policy_precision": 0.1316,
-        "validated_claim_precision": 0.1316,
-        "raw_candidate_precision": 0.0909,
+        "claim_recall": 0.7,
+        "claim_precision": 0.1273,
+        "claim_f1": 0.2917,
+        "canonical_policy_precision": 0.1842,
+        "validated_claim_precision": 0.1842,
+        "raw_candidate_precision": 0.1273,
         "subject_accuracy": 1.0,
         "predicate_accuracy": 1.0,
         "object_accuracy": 1.0,
@@ -514,28 +512,28 @@
         "excluded_other": 0,
         "reconciliation_difference": 0,
         "deduplicated_canonical_candidates": 38,
-        "correct_full_matches": 5,
+        "correct_full_matches": 7,
         "correct_partial_matches": 0,
-        "unjudged_spans": 33,
+        "unjudged_spans": 31,
         "incorrect_predictions": 0,
         "malformed_claims": 0,
         "duplicate_claims": 0,
         "non_canonical_claims": 0,
-        "gold_rules_captured_full": 5,
+        "gold_rules_captured_full": 7,
         "gold_rules_captured_partial": 0,
         "gold_rules_raw_discovery": 1,
-        "gold_rules_missed": 5,
-        "correct_canonical_predictions": 5,
+        "gold_rules_missed": 3,
+        "correct_canonical_predictions": 7,
         "incorrect_canonical_predictions": 0,
-        "unjudged_canonical_predictions": 33,
-        "gold_rules_captured": 5,
-        "labeled_rule_recall": 0.5
+        "unjudged_canonical_predictions": 31,
+        "gold_rules_captured": 7,
+        "labeled_rule_recall": 0.7
       },
       "counts": {
         "total_claims_extracted": 55,
         "total_gold_canonical_rules": 10,
-        "gold_rules_captured": 5,
-        "gold_rules_full_matched": 5,
+        "gold_rules_captured": 7,
+        "gold_rules_full_matched": 7,
         "gold_rules_partial_matched": 0,
         "gold_rules_raw_discovery": 1,
         "total_approved": 39,
@@ -567,9 +565,9 @@
         "DOC003-C03": {
           "claim_id": "DOC003-C03",
           "gold_subject": "Termination for serious misconduct",
-          "status": "WRONG_PREDICATE",
-          "match_tier": "WRONG_PREDICATE",
-          "taxonomy": "PREDICATE_MAPPING_ERROR",
+          "status": "MATCHED",
+          "match_tier": "FULL_MATCH",
+          "taxonomy": "NONE",
           "evidence_quote": "Termination for serious misconduct may occur without prior n",
           "matched_claim_id": "7c014715-811d-4be1-9d2d-988798a68a59",
           "matched_subject": "Termination for serious misconduct"
@@ -617,9 +615,9 @@
         "DOC003-C08": {
           "claim_id": "DOC003-C08",
           "gold_subject": "Supervisors",
-          "status": "WRONG_PREDICATE",
-          "match_tier": "WRONG_PREDICATE",
-          "taxonomy": "PREDICATE_MAPPING_ERROR",
+          "status": "MATCHED",
+          "match_tier": "FULL_MATCH",
+          "taxonomy": "NONE",
           "evidence_quote": "Supervisors should notify the designated Human Resources par",
           "matched_claim_id": "36298ab3-fff9-42fb-95c8-46585f41c4a0",
           "matched_subject": "Supervisors"
@@ -828,61 +826,87 @@
       "verdict": "NEEDS_WORK",
       "verdict_basis": "full_match_canonical_metrics",
       "blocking_reasons": [
-        "full_match_recall_below_threshold (20.0% < 90.0%)",
-        "canonical_policy_precision_below_threshold (4.0% < 90.0%)",
-        "material_claim_precision_below_threshold (4.0% < 90.0%)",
-        "f1_score_below_threshold (6.7% < 90.0%)",
+        "full_match_recall_below_threshold (6.2% < 90.0%)",
+        "canonical_policy_precision_below_threshold (8.0% < 90.0%)",
+        "material_claim_precision_below_threshold (8.0% < 90.0%)",
+        "f1_score_below_threshold (7.0% < 90.0%)",
         "MISSING: DOC005-C01 [SENTENCE_SPLIT_ERROR] - Tarion Warranty Corporation: \"Tarion is a private, not-for-profit corporation designated b\"",
         "WRONG_PREDICATE: DOC005-C02 [PREDICATE_MAPPING_ERROR] - Vendor: \"be licensed under the New Home Construction Licensing Act, 2\"",
         "MISSING: DOC005-C03 [SENTENCE_SPLIT_ERROR] - Vendor: \"costs, claims, damages and/or liabilities which arise result\"",
-        "MISSING: DOC005-C04 [SENTENCE_SPLIT_ERROR] - Vendor: \"Material Change means a significant proposed, imminent, or i\""
+        "MISSING: DOC005-C04 [SENTENCE_SPLIT_ERROR] - Vendor: \"Material Change means a significant proposed, imminent, or i\"",
+        "WRONG_PREDICATE: DOC005-C06 [PREDICATE_MAPPING_ERROR] - The agreement(s): \"The agreement(s) shall provide for the builder to complete t\"",
+        "WRONG_PREDICATE: DOC005-C07 [PREDICATE_MAPPING_ERROR] - the lender(s) providing construction financing: \"the lender(s) providing construction financing shall take pr\"",
+        "MISSING: DOC005-C08 [SENTENCE_SPLIT_ERROR] - The Vendor: \"interest at the rate of 1.5 per cent (1.5%) per month\"",
+        "WRONG_PREDICATE: DOC005-C09 [PREDICATE_MAPPING_ERROR] - The Vendor: \"The Vendor shall make the interest payment referenced in par\"",
+        "WRONG_PREDICATE: DOC005-C10 [PREDICATE_MAPPING_ERROR] - Security: \"specifically confirm that the Security (and any proceeds the\"",
+        "WRONG_PREDICATE: DOC005-C12 [PREDICATE_MAPPING_ERROR] - The Vendor: \"The Vendor shall not amend or alter the format, logos or lan\"",
+        "WRONG_PREDICATE: DOC005-C13 [PREDICATE_MAPPING_ERROR] - The Addendum: \"The Addendum shall be attached to and forms part of the agre\"",
+        "MISSING: DOC005-C14 [SENTENCE_SPLIT_ERROR] - The Addendum: \"the Addendum shall not be split up and provisions shall not \"",
+        "WRONG_PREDICATE: DOC005-C15 [PREDICATE_MAPPING_ERROR] - The Vendor: \"The Vendor shall not modify or amend the Addendum in any way\"",
+        "WRONG_PREDICATE: DOC005-C16 [PREDICATE_MAPPING_ERROR] - The Vendor: \"The Vendor shall be responsible for any improper changes to \"",
+        "MISSING: DOC005-C17 [SENTENCE_SPLIT_ERROR] - The Warranty Information Sheet: \"The Warranty Information Sheet and Addendum may be changed f\"",
+        "MISSING: DOC005-C18 [SENTENCE_SPLIT_ERROR] - Tarion: \"Tarion shall use best efforts to give notice of revisions\"",
+        "MISSING: DOC005-C19 [SENTENCE_SPLIT_ERROR] - The Vendor: \"The Vendor agrees to indemnify and save harmless Tarion\"",
+        "MISSING: DOC005-C20 [SENTENCE_SPLIT_ERROR] - The Vendor: \"Vendor shall maintain comprehensive general liability insura\"",
+        "MISSING: DOC005-C21 [SENTENCE_SPLIT_ERROR] - The Vendor: \"report to Tarion within ten days of any material change\"",
+        "MISSING: DOC005-C22 [SENTENCE_SPLIT_ERROR] - Tarion: \"Tarion shall have the right to inspect all books and records\"",
+        "MISSING: DOC005-C23 [SENTENCE_SPLIT_ERROR] - The Vendor: \"hold all purchaser deposits in trust in accordance with the \"",
+        "MISSING: DOC005-C24 [SENTENCE_SPLIT_ERROR] - Dispute Resolution: \"Any dispute arising under this Agreement shall be referred t\"",
+        "MISSING: DOC005-C25 [SENTENCE_SPLIT_ERROR] - Governing Law: \"This Agreement shall be governed by and construed in accorda\"",
+        "MISSING: DOC005-C26 [SENTENCE_SPLIT_ERROR] - Default: \"Upon the occurrence of any Event of Default, Tarion may imme\"",
+        "MISSING: DOC005-C27 [SENTENCE_SPLIT_ERROR] - Termination: \"either party may terminate upon thirty (30) days written not\"",
+        "MISSING: DOC005-C28 [SENTENCE_SPLIT_ERROR] - Notice: \"Any notice required to be given shall be in writing and deli\"",
+        "MISSING: DOC005-C29 [SENTENCE_SPLIT_ERROR] - Confidentiality: \"Each party agrees to maintain the confidentiality of all non\"",
+        "MISSING: DOC005-C30 [SENTENCE_SPLIT_ERROR] - Intellectual Property: \"All trademarks, logos, and form templates are the exclusive \"",
+        "MISSING: DOC005-C31 [SENTENCE_SPLIT_ERROR] - Enrolment Fee: \"The applicable enrolment fee must be paid prior to the confi\"",
+        "MISSING: DOC005-C32 [SENTENCE_SPLIT_ERROR] - Survival: \"The indemnity and security provisions contained herein shall\""
       ],
       "metrics": {
-        "full_match_recall": 0.2,
-        "partial_match_recall": 0.2,
-        "lower_bound_precision": 0.04,
-        "partial_precision": 0.04,
+        "full_match_recall": 0.0625,
+        "partial_match_recall": 0.0625,
+        "lower_bound_precision": 0.08,
+        "partial_precision": 0.08,
         "adjudicated_precision": 1.0,
-        "canonical_f1_full_match": 0.0667,
-        "canonical_f1_partial_match": 0.0667,
-        "raw_precision": 0.0078,
-        "raw_recall": 0.2,
-        "raw_f1": 0.015
+        "canonical_f1_full_match": 0.0702,
+        "canonical_f1_partial_match": 0.0702,
+        "raw_precision": 0.0155,
+        "raw_recall": 0.0625,
+        "raw_f1": 0.0248
       },
       "paired_metrics": {
         "raw_metrics": {
-          "precision": 0.0078,
-          "recall": 0.2,
-          "f1": 0.015
+          "precision": 0.0155,
+          "recall": 0.0625,
+          "f1": 0.0248
         },
         "canonical_full_metrics": {
-          "precision": 0.04,
-          "recall": 0.2,
-          "f1": 0.0667
+          "precision": 0.08,
+          "recall": 0.0625,
+          "f1": 0.0702
         },
         "canonical_partial_metrics": {
-          "precision": 0.04,
-          "recall": 0.2,
-          "f1": 0.0667
+          "precision": 0.08,
+          "recall": 0.0625,
+          "f1": 0.0702
         },
         "canonical_metrics": {
-          "precision": 0.04,
-          "recall": 0.2,
-          "f1": 0.0667
+          "precision": 0.08,
+          "recall": 0.0625,
+          "f1": 0.0702
         }
       },
       "quality_metrics": {
-        "claim_recall": 0.2,
-        "claim_precision": 0.0078,
-        "claim_f1": 0.0667,
-        "canonical_policy_precision": 0.04,
-        "validated_claim_precision": 0.04,
-        "raw_candidate_precision": 0.0078,
+        "claim_recall": 0.0625,
+        "claim_precision": 0.0155,
+        "claim_f1": 0.0702,
+        "canonical_policy_precision": 0.08,
+        "validated_claim_precision": 0.08,
+        "raw_candidate_precision": 0.0155,
         "subject_accuracy": 1.0,
         "predicate_accuracy": 1.0,
         "object_accuracy": 1.0,
         "false_approval_rate": 0.0,
-        "false_rejection_rate": 0.01,
+        "false_rejection_rate": 0.05,
         "false_conflict_rate": 0.0,
         "malformed_fragment_rate": 0.0,
         "evidence_span_traceability": 1.0
@@ -902,28 +926,28 @@
         "excluded_other": 0,
         "reconciliation_difference": 0,
         "deduplicated_canonical_candidates": 25,
-        "correct_full_matches": 1,
+        "correct_full_matches": 2,
         "correct_partial_matches": 0,
-        "unjudged_spans": 24,
+        "unjudged_spans": 23,
         "incorrect_predictions": 0,
         "malformed_claims": 0,
         "duplicate_claims": 0,
         "non_canonical_claims": 0,
-        "gold_rules_captured_full": 1,
+        "gold_rules_captured_full": 2,
         "gold_rules_captured_partial": 0,
         "gold_rules_raw_discovery": 0,
-        "gold_rules_missed": 4,
-        "correct_canonical_predictions": 1,
+        "gold_rules_missed": 30,
+        "correct_canonical_predictions": 2,
         "incorrect_canonical_predictions": 0,
-        "unjudged_canonical_predictions": 24,
-        "gold_rules_captured": 1,
-        "labeled_rule_recall": 0.2
+        "unjudged_canonical_predictions": 23,
+        "gold_rules_captured": 2,
+        "labeled_rule_recall": 0.0625
       },
       "counts": {
         "total_claims_extracted": 129,
-        "total_gold_canonical_rules": 5,
-        "gold_rules_captured": 1,
-        "gold_rules_full_matched": 1,
+        "total_gold_canonical_rules": 32,
+        "gold_rules_captured": 2,
+        "gold_rules_full_matched": 2,
         "gold_rules_partial_matched": 0,
         "gold_rules_raw_discovery": 0,
         "total_approved": 25,
@@ -981,6 +1005,276 @@
           "evidence_quote": "3.9.3.6 The Warranty Information Sheet and Addendum template",
           "matched_claim_id": "92c2e523-dc1e-4a12-a502-ae1ae082f3e5",
           "matched_subject": "3.9.3.6 The Warranty Information Sheet and Addendum templates"
+        },
+        "DOC005-C06": {
+          "claim_id": "DOC005-C06",
+          "gold_subject": "The agreement(s)",
+          "status": "WRONG_PREDICATE",
+          "match_tier": "WRONG_PREDICATE",
+          "taxonomy": "PREDICATE_MAPPING_ERROR",
+          "evidence_quote": "The agreement(s) shall provide for the builder to complete t",
+          "matched_claim_id": "4dd51538-00e9-4476-a3d3-40c0200eea12",
+          "matched_subject": "The agreement(s)"
+        },
+        "DOC005-C07": {
+          "claim_id": "DOC005-C07",
+          "gold_subject": "the lender(s) providing construction financing",
+          "status": "WRONG_PREDICATE",
+          "match_tier": "WRONG_PREDICATE",
+          "taxonomy": "PREDICATE_MAPPING_ERROR",
+          "evidence_quote": "the lender(s) providing construction financing shall take pr",
+          "matched_claim_id": "dac9b318-d1d2-459a-b23b-b94ce3b04963",
+          "matched_subject": "the lender(s) providing construction financing for the Homes, and which assignment to the construction lender(s)"
+        },
+        "DOC005-C08": {
+          "claim_id": "DOC005-C08",
+          "gold_subject": "The Vendor",
+          "status": "MISSING",
+          "match_tier": "MISSING",
+          "taxonomy": "SENTENCE_SPLIT_ERROR",
+          "evidence_quote": "interest at the rate of 1.5 per cent (1.5%) per month",
+          "matched_claim_id": null,
+          "matched_subject": null
+        },
+        "DOC005-C09": {
+          "claim_id": "DOC005-C09",
+          "gold_subject": "The Vendor",
+          "status": "WRONG_PREDICATE",
+          "match_tier": "WRONG_PREDICATE",
+          "taxonomy": "PREDICATE_MAPPING_ERROR",
+          "evidence_quote": "The Vendor shall make the interest payment referenced in par",
+          "matched_claim_id": "8567109b-6a6e-4a65-881b-1772fb80e948",
+          "matched_subject": "The Vendor"
+        },
+        "DOC005-C10": {
+          "claim_id": "DOC005-C10",
+          "gold_subject": "Security",
+          "status": "WRONG_PREDICATE",
+          "match_tier": "WRONG_PREDICATE",
+          "taxonomy": "PREDICATE_MAPPING_ERROR",
+          "evidence_quote": "specifically confirm that the Security (and any proceeds the",
+          "matched_claim_id": "cf34aa41-cccd-4eef-b40d-6e431e5f515d",
+          "matched_subject": "on behalf of Tarion in connection therewith"
+        },
+        "DOC005-C11": {
+          "claim_id": "DOC005-C11",
+          "gold_subject": "The source document",
+          "status": "MATCHED",
+          "match_tier": "FULL_MATCH",
+          "taxonomy": "NONE",
+          "evidence_quote": "The source document shall be in the forms supplied by Tarion",
+          "matched_claim_id": "ab3d79e8-0fd1-4c15-9f88-0dee60388139",
+          "matched_subject": "3.9.3.1 The source document"
+        },
+        "DOC005-C12": {
+          "claim_id": "DOC005-C12",
+          "gold_subject": "The Vendor",
+          "status": "WRONG_PREDICATE",
+          "match_tier": "WRONG_PREDICATE",
+          "taxonomy": "PREDICATE_MAPPING_ERROR",
+          "evidence_quote": "The Vendor shall not amend or alter the format, logos or lan",
+          "matched_claim_id": "122dc407-edec-486f-a3dc-c9c1f2b104ff",
+          "matched_subject": "3.9.3.2 The Vendor"
+        },
+        "DOC005-C13": {
+          "claim_id": "DOC005-C13",
+          "gold_subject": "The Addendum",
+          "status": "WRONG_PREDICATE",
+          "match_tier": "WRONG_PREDICATE",
+          "taxonomy": "PREDICATE_MAPPING_ERROR",
+          "evidence_quote": "The Addendum shall be attached to and forms part of the agre",
+          "matched_claim_id": "14fe8776-ab20-41f8-b1d8-279e55954dfa",
+          "matched_subject": "The Addendum"
+        },
+        "DOC005-C14": {
+          "claim_id": "DOC005-C14",
+          "gold_subject": "The Addendum",
+          "status": "MISSING",
+          "match_tier": "MISSING",
+          "taxonomy": "SENTENCE_SPLIT_ERROR",
+          "evidence_quote": "the Addendum shall not be split up and provisions shall not ",
+          "matched_claim_id": null,
+          "matched_subject": null
+        },
+        "DOC005-C15": {
+          "claim_id": "DOC005-C15",
+          "gold_subject": "The Vendor",
+          "status": "WRONG_PREDICATE",
+          "match_tier": "WRONG_PREDICATE",
+          "taxonomy": "PREDICATE_MAPPING_ERROR",
+          "evidence_quote": "The Vendor shall not modify or amend the Addendum in any way",
+          "matched_claim_id": "25943fc8-9ae5-4b91-9c86-84fd11231b87",
+          "matched_subject": "3.9.3.4 Except as noted in paragraphs 3.9.3.2 and 3.9.3.3 above, the Vendor"
+        },
+        "DOC005-C16": {
+          "claim_id": "DOC005-C16",
+          "gold_subject": "The Vendor",
+          "status": "WRONG_PREDICATE",
+          "match_tier": "WRONG_PREDICATE",
+          "taxonomy": "PREDICATE_MAPPING_ERROR",
+          "evidence_quote": "The Vendor shall be responsible for any improper changes to ",
+          "matched_claim_id": "d5e9fa12-146f-40ba-a5ff-43af5088de2b",
+          "matched_subject": "3.9.3.5 The Vendor"
+        },
+        "DOC005-C17": {
+          "claim_id": "DOC005-C17",
+          "gold_subject": "The Warranty Information Sheet",
+          "status": "MISSING",
+          "match_tier": "MISSING",
+          "taxonomy": "SENTENCE_SPLIT_ERROR",
+          "evidence_quote": "The Warranty Information Sheet and Addendum may be changed f",
+          "matched_claim_id": null,
+          "matched_subject": null
+        },
+        "DOC005-C18": {
+          "claim_id": "DOC005-C18",
+          "gold_subject": "Tarion",
+          "status": "MISSING",
+          "match_tier": "MISSING",
+          "taxonomy": "SENTENCE_SPLIT_ERROR",
+          "evidence_quote": "Tarion shall use best efforts to give notice of revisions",
+          "matched_claim_id": null,
+          "matched_subject": null
+        },
+        "DOC005-C19": {
+          "claim_id": "DOC005-C19",
+          "gold_subject": "The Vendor",
+          "status": "MISSING",
+          "match_tier": "MISSING",
+          "taxonomy": "SENTENCE_SPLIT_ERROR",
+          "evidence_quote": "The Vendor agrees to indemnify and save harmless Tarion",
+          "matched_claim_id": null,
+          "matched_subject": null
+        },
+        "DOC005-C20": {
+          "claim_id": "DOC005-C20",
+          "gold_subject": "The Vendor",
+          "status": "MISSING",
+          "match_tier": "MISSING",
+          "taxonomy": "SENTENCE_SPLIT_ERROR",
+          "evidence_quote": "Vendor shall maintain comprehensive general liability insura",
+          "matched_claim_id": null,
+          "matched_subject": null
+        },
+        "DOC005-C21": {
+          "claim_id": "DOC005-C21",
+          "gold_subject": "The Vendor",
+          "status": "MISSING",
+          "match_tier": "MISSING",
+          "taxonomy": "SENTENCE_SPLIT_ERROR",
+          "evidence_quote": "report to Tarion within ten days of any material change",
+          "matched_claim_id": null,
+          "matched_subject": null
+        },
+        "DOC005-C22": {
+          "claim_id": "DOC005-C22",
+          "gold_subject": "Tarion",
+          "status": "MISSING",
+          "match_tier": "MISSING",
+          "taxonomy": "SENTENCE_SPLIT_ERROR",
+          "evidence_quote": "Tarion shall have the right to inspect all books and records",
+          "matched_claim_id": null,
+          "matched_subject": null
+        },
+        "DOC005-C23": {
+          "claim_id": "DOC005-C23",
+          "gold_subject": "The Vendor",
+          "status": "MISSING",
+          "match_tier": "MISSING",
+          "taxonomy": "SENTENCE_SPLIT_ERROR",
+          "evidence_quote": "hold all purchaser deposits in trust in accordance with the ",
+          "matched_claim_id": null,
+          "matched_subject": null
+        },
+        "DOC005-C24": {
+          "claim_id": "DOC005-C24",
+          "gold_subject": "Dispute Resolution",
+          "status": "MISSING",
+          "match_tier": "MISSING",
+          "taxonomy": "SENTENCE_SPLIT_ERROR",
+          "evidence_quote": "Any dispute arising under this Agreement shall be referred t",
+          "matched_claim_id": null,
+          "matched_subject": null
+        },
+        "DOC005-C25": {
+          "claim_id": "DOC005-C25",
+          "gold_subject": "Governing Law",
+          "status": "MISSING",
+          "match_tier": "MISSING",
+          "taxonomy": "SENTENCE_SPLIT_ERROR",
+          "evidence_quote": "This Agreement shall be governed by and construed in accorda",
+          "matched_claim_id": null,
+          "matched_subject": null
+        },
+        "DOC005-C26": {
+          "claim_id": "DOC005-C26",
+          "gold_subject": "Default",
+          "status": "MISSING",
+          "match_tier": "MISSING",
+          "taxonomy": "SENTENCE_SPLIT_ERROR",
+          "evidence_quote": "Upon the occurrence of any Event of Default, Tarion may imme",
+          "matched_claim_id": null,
+          "matched_subject": null
+        },
+        "DOC005-C27": {
+          "claim_id": "DOC005-C27",
+          "gold_subject": "Termination",
+          "status": "MISSING",
+          "match_tier": "MISSING",
+          "taxonomy": "SENTENCE_SPLIT_ERROR",
+          "evidence_quote": "either party may terminate upon thirty (30) days written not",
+          "matched_claim_id": null,
+          "matched_subject": null
+        },
+        "DOC005-C28": {
+          "claim_id": "DOC005-C28",
+          "gold_subject": "Notice",
+          "status": "MISSING",
+          "match_tier": "MISSING",
+          "taxonomy": "SENTENCE_SPLIT_ERROR",
+          "evidence_quote": "Any notice required to be given shall be in writing and deli",
+          "matched_claim_id": null,
+          "matched_subject": null
+        },
+        "DOC005-C29": {
+          "claim_id": "DOC005-C29",
+          "gold_subject": "Confidentiality",
+          "status": "MISSING",
+          "match_tier": "MISSING",
+          "taxonomy": "SENTENCE_SPLIT_ERROR",
+          "evidence_quote": "Each party agrees to maintain the confidentiality of all non",
+          "matched_claim_id": null,
+          "matched_subject": null
+        },
+        "DOC005-C30": {
+          "claim_id": "DOC005-C30",
+          "gold_subject": "Intellectual Property",
+          "status": "MISSING",
+          "match_tier": "MISSING",
+          "taxonomy": "SENTENCE_SPLIT_ERROR",
+          "evidence_quote": "All trademarks, logos, and form templates are the exclusive ",
+          "matched_claim_id": null,
+          "matched_subject": null
+        },
+        "DOC005-C31": {
+          "claim_id": "DOC005-C31",
+          "gold_subject": "Enrolment Fee",
+          "status": "MISSING",
+          "match_tier": "MISSING",
+          "taxonomy": "SENTENCE_SPLIT_ERROR",
+          "evidence_quote": "The applicable enrolment fee must be paid prior to the confi",
+          "matched_claim_id": null,
+          "matched_subject": null
+        },
+        "DOC005-C32": {
+          "claim_id": "DOC005-C32",
+          "gold_subject": "Survival",
+          "status": "MISSING",
+          "match_tier": "MISSING",
+          "taxonomy": "SENTENCE_SPLIT_ERROR",
+          "evidence_quote": "The indemnity and security provisions contained herein shall",
+          "matched_claim_id": null,
+          "matched_subject": null
         }
       }
     },
@@ -1294,62 +1588,55 @@
       "title": "Employee Notice Period Policy",
       "organization": "Wingify Software Private Limited",
       "document_type": "hr_policy",
-      "verdict": "NEEDS_WORK",
+      "verdict": "CONDITIONAL_PASS",
       "verdict_basis": "full_match_canonical_metrics",
       "blocking_reasons": [
-        "full_match_recall_below_threshold (61.1% < 90.0%)",
-        "canonical_policy_precision_below_threshold (36.7% < 90.0%)",
-        "material_claim_precision_below_threshold (36.7% < 90.0%)",
-        "f1_score_below_threshold (45.8% < 90.0%)",
-        "MISSING: DOC008-C01 [TABLE_STRUCTURE_ERROR] - Wingify Notice Period Policy: \"Effective April 1, 2021, this policy outlines various aspect\"",
-        "WRONG_PREDICATE: DOC008-C02 [PREDICATE_MAPPING_ERROR] - Grade A (A1 & A2) confirmed employees: \"A (A1 & A2) CXO 90 Days\"",
-        "WRONG_PREDICATE: DOC008-C03 [PREDICATE_MAPPING_ERROR] - Grade B (B1 & B2) confirmed employees: \"B (B1 & B2) SeniorManagement 90 Days\"",
-        "WRONG_PREDICATE: DOC008-C04 [PREDICATE_MAPPING_ERROR] - Grade C (C1, C2 & C3) confirmed employees: \"C (C1, C2 & C3) Middle Management 60 Days\"",
-        "WRONG_PREDICATE: DOC008-C05 [PREDICATE_MAPPING_ERROR] - Grade D and E confirmed employees: \"Grade D & E having 30 days\"",
-        "WRONG_PREDICATE: DOC008-C06 [PREDICATE_MAPPING_ERROR] - Probationary employees: \"Probationers 15 days\"",
-        "WRONG_SUBJECT: DOC008-C07 [SUBJECT_RESOLUTION_ERROR] - Employees: \"Employees must return all Wingify property upon offboarding.\""
+        "canonical_policy_precision_below_threshold (56.7% < 90.0%)",
+        "material_claim_precision_below_threshold (56.7% < 90.0%)",
+        "f1_score_below_threshold (70.8% < 90.0%)",
+        "MISSING: DOC008-C01 [TABLE_STRUCTURE_ERROR] - Wingify Notice Period Policy: \"Effective April 1, 2021, this policy outlines various aspect\""
       ],
       "metrics": {
-        "full_match_recall": 0.6111,
-        "partial_match_recall": 0.6111,
-        "lower_bound_precision": 0.3667,
-        "partial_precision": 0.3667,
+        "full_match_recall": 0.9444,
+        "partial_match_recall": 0.9444,
+        "lower_bound_precision": 0.5667,
+        "partial_precision": 0.5667,
         "adjudicated_precision": 1.0,
-        "canonical_f1_full_match": 0.4584,
-        "canonical_f1_partial_match": 0.4584,
-        "raw_precision": 0.275,
-        "raw_recall": 0.6667,
-        "raw_f1": 0.3894
+        "canonical_f1_full_match": 0.7083,
+        "canonical_f1_partial_match": 0.7083,
+        "raw_precision": 0.425,
+        "raw_recall": 1.0,
+        "raw_f1": 0.5965
       },
       "paired_metrics": {
         "raw_metrics": {
-          "precision": 0.275,
-          "recall": 0.6667,
-          "f1": 0.3894
+          "precision": 0.425,
+          "recall": 1.0,
+          "f1": 0.5965
         },
         "canonical_full_metrics": {
-          "precision": 0.3667,
-          "recall": 0.6111,
-          "f1": 0.4584
+          "precision": 0.5667,
+          "recall": 0.9444,
+          "f1": 0.7083
         },
         "canonical_partial_metrics": {
-          "precision": 0.3667,
-          "recall": 0.6111,
-          "f1": 0.4584
+          "precision": 0.5667,
+          "recall": 0.9444,
+          "f1": 0.7083
         },
         "canonical_metrics": {
-          "precision": 0.3667,
-          "recall": 0.6111,
-          "f1": 0.4584
+          "precision": 0.5667,
+          "recall": 0.9444,
+          "f1": 0.7083
         }
       },
       "quality_metrics": {
-        "claim_recall": 0.6111,
-        "claim_precision": 0.275,
-        "claim_f1": 0.4584,
-        "canonical_policy_precision": 0.3667,
-        "validated_claim_precision": 0.3667,
-        "raw_candidate_precision": 0.275,
+        "claim_recall": 0.9444,
+        "claim_precision": 0.425,
+        "claim_f1": 0.7083,
+        "canonical_policy_precision": 0.5667,
+        "validated_claim_precision": 0.5667,
+        "raw_candidate_precision": 0.425,
         "subject_accuracy": 1.0,
         "predicate_accuracy": 1.0,
         "object_accuracy": 1.0,
@@ -1374,28 +1661,28 @@
         "excluded_other": 0,
         "reconciliation_difference": 0,
         "deduplicated_canonical_candidates": 30,
-        "correct_full_matches": 11,
+        "correct_full_matches": 17,
         "correct_partial_matches": 0,
-        "unjudged_spans": 19,
+        "unjudged_spans": 13,
         "incorrect_predictions": 0,
         "malformed_claims": 0,
         "duplicate_claims": 0,
         "non_canonical_claims": 0,
-        "gold_rules_captured_full": 11,
+        "gold_rules_captured_full": 17,
         "gold_rules_captured_partial": 0,
         "gold_rules_raw_discovery": 1,
-        "gold_rules_missed": 7,
-        "correct_canonical_predictions": 11,
+        "gold_rules_missed": 1,
+        "correct_canonical_predictions": 17,
         "incorrect_canonical_predictions": 0,
-        "unjudged_canonical_predictions": 19,
-        "gold_rules_captured": 11,
-        "labeled_rule_recall": 0.6111
+        "unjudged_canonical_predictions": 13,
+        "gold_rules_captured": 17,
+        "labeled_rule_recall": 0.9444
       },
       "counts": {
         "total_claims_extracted": 40,
         "total_gold_canonical_rules": 18,
-        "gold_rules_captured": 11,
-        "gold_rules_full_matched": 11,
+        "gold_rules_captured": 17,
+        "gold_rules_full_matched": 17,
         "gold_rules_partial_matched": 0,
         "gold_rules_raw_discovery": 1,
         "total_approved": 33,
@@ -1417,62 +1704,62 @@
         "DOC008-C02": {
           "claim_id": "DOC008-C02",
           "gold_subject": "Grade A (A1 & A2) confirmed employees",
-          "status": "WRONG_PREDICATE",
-          "match_tier": "WRONG_PREDICATE",
-          "taxonomy": "PREDICATE_MAPPING_ERROR",
+          "status": "MATCHED",
+          "match_tier": "FULL_MATCH",
+          "taxonomy": "NONE",
           "evidence_quote": "A (A1 & A2) CXO 90 Days",
-          "matched_claim_id": "4a59bfb9-00af-46bd-96c9-b3439ef161d9",
-          "matched_subject": "Grade Matrix Overview"
+          "matched_claim_id": "dc9698a7-9460-46f9-a2ef-e34097e8227d",
+          "matched_subject": "Employees in Grade A (A1 & A2) (CXO)"
         },
         "DOC008-C03": {
           "claim_id": "DOC008-C03",
           "gold_subject": "Grade B (B1 & B2) confirmed employees",
-          "status": "WRONG_PREDICATE",
-          "match_tier": "WRONG_PREDICATE",
-          "taxonomy": "PREDICATE_MAPPING_ERROR",
+          "status": "MATCHED",
+          "match_tier": "FULL_MATCH",
+          "taxonomy": "NONE",
           "evidence_quote": "B (B1 & B2) SeniorManagement 90 Days",
-          "matched_claim_id": "4a59bfb9-00af-46bd-96c9-b3439ef161d9",
-          "matched_subject": "Grade Matrix Overview"
+          "matched_claim_id": "417b1c58-fb18-4025-810b-f19ae5c429d4",
+          "matched_subject": "Employees in Grade B (B1 & B2) (SeniorManagement)"
         },
         "DOC008-C04": {
           "claim_id": "DOC008-C04",
           "gold_subject": "Grade C (C1, C2 & C3) confirmed employees",
-          "status": "WRONG_PREDICATE",
-          "match_tier": "WRONG_PREDICATE",
-          "taxonomy": "PREDICATE_MAPPING_ERROR",
+          "status": "MATCHED",
+          "match_tier": "FULL_MATCH",
+          "taxonomy": "NONE",
           "evidence_quote": "C (C1, C2 & C3) Middle Management 60 Days",
-          "matched_claim_id": "4a59bfb9-00af-46bd-96c9-b3439ef161d9",
-          "matched_subject": "Grade Matrix Overview"
+          "matched_claim_id": "59575c83-ab98-4e6b-9496-897736bad92e",
+          "matched_subject": "Employees in Grade C (C1, C2 & C3) (Middle Management)"
         },
         "DOC008-C05": {
           "claim_id": "DOC008-C05",
           "gold_subject": "Grade D and E confirmed employees",
-          "status": "WRONG_PREDICATE",
-          "match_tier": "WRONG_PREDICATE",
-          "taxonomy": "PREDICATE_MAPPING_ERROR",
+          "status": "MATCHED",
+          "match_tier": "FULL_MATCH",
+          "taxonomy": "NONE",
           "evidence_quote": "Grade D & E having 30 days",
-          "matched_claim_id": "4a59bfb9-00af-46bd-96c9-b3439ef161d9",
-          "matched_subject": "Grade Matrix Overview"
+          "matched_claim_id": "732b5cc3-25e9-4c11-bc9a-87dd4927402f",
+          "matched_subject": "Employees in Grade D (D1, D2 & D3) (Junior Management)"
         },
         "DOC008-C06": {
           "claim_id": "DOC008-C06",
           "gold_subject": "Probationary employees",
-          "status": "WRONG_PREDICATE",
-          "match_tier": "WRONG_PREDICATE",
-          "taxonomy": "PREDICATE_MAPPING_ERROR",
+          "status": "MATCHED",
+          "match_tier": "FULL_MATCH",
+          "taxonomy": "NONE",
           "evidence_quote": "Probationers 15 days",
-          "matched_claim_id": "6b0f35ee-9537-4095-90af-d87527524d52",
-          "matched_subject": "Employees in Grade E (E1, E2 & E3) (Fellow)"
+          "matched_claim_id": "741e91e2-e61d-421b-9b14-ea25c7065ebb",
+          "matched_subject": "Employees in Grade A (A1 & A2) (CXO)"
         },
         "DOC008-C07": {
           "claim_id": "DOC008-C07",
           "gold_subject": "Employees",
-          "status": "WRONG_SUBJECT",
-          "match_tier": "WRONG_SUBJECT",
-          "taxonomy": "SUBJECT_RESOLUTION_ERROR",
+          "status": "MATCHED",
+          "match_tier": "FULL_MATCH",
+          "taxonomy": "NONE",
           "evidence_quote": "Employees must return all Wingify property upon offboarding.",
-          "matched_claim_id": "8f179269-f7c0-4a3f-97fc-2cc05d64a9b5",
-          "matched_subject": "Wingify (Shipping Costs)"
+          "matched_claim_id": "00d9747b-0f49-4d6f-b7a9-4911d000385b",
+          "matched_subject": "Employees"
         },
         "DOC008-C08": {
           "claim_id": "DOC008-C08",
@@ -1561,8 +1848,8 @@
           "match_tier": "FULL_MATCH",
           "taxonomy": "NONE",
           "evidence_quote": "Employees in Grade D (D1, D2 & D3) (Junior Management) have ",
-          "matched_claim_id": "732b5cc3-25e9-4c11-bc9a-87dd4927402f",
-          "matched_subject": "Employees in Grade D (D1, D2 & D3) (Junior Management)"
+          "matched_claim_id": "c3a1c78a-b600-494b-9ba4-7f3f0fd37703",
+          "matched_subject": "Employees in Grade E (E1, E2 & E3) (Fellow)"
         },
         "DOC008-C17": {
           "claim_id": "DOC008-C17",
@@ -1571,8 +1858,8 @@
           "match_tier": "FULL_MATCH",
           "taxonomy": "NONE",
           "evidence_quote": "Employees in Grade E (E1, E2 & E3) (Fellow) have a maximum n",
-          "matched_claim_id": "c3a1c78a-b600-494b-9ba4-7f3f0fd37703",
-          "matched_subject": "Employees in Grade E (E1, E2 & E3) (Fellow)"
+          "matched_claim_id": "4a59bfb9-00af-46bd-96c9-b3439ef161d9",
+          "matched_subject": "Grade Matrix Overview"
         },
         "DOC008-C18": {
           "claim_id": "DOC008-C18",
@@ -1594,10 +1881,10 @@
       "verdict": "NEEDS_WORK",
       "verdict_basis": "full_match_canonical_metrics",
       "blocking_reasons": [
-        "full_match_recall_below_threshold (41.4% < 90.0%)",
-        "canonical_policy_precision_below_threshold (6.8% < 90.0%)",
-        "material_claim_precision_below_threshold (6.8% < 90.0%)",
-        "f1_score_below_threshold (11.7% < 90.0%)",
+        "full_match_recall_below_threshold (15.4% < 90.0%)",
+        "canonical_policy_precision_below_threshold (6.9% < 90.0%)",
+        "material_claim_precision_below_threshold (6.9% < 90.0%)",
+        "f1_score_below_threshold (9.5% < 90.0%)",
         "MISSING: DOC009-C05 [SENTENCE_SPLIT_ERROR] - Exchange: \"Exchange return shipping rule is N/A.\"",
         "MISSING: DOC009-C08 [SENTENCE_SPLIT_ERROR] - Return window: \"Return window specifies Summary as 30 days from delivery (60\"",
         "MISSING: DOC009-C09 [SENTENCE_SPLIT_ERROR] - Refund speed: \"Refund speed specifies Summary as 3-5 business days after we\"",
@@ -1614,48 +1901,97 @@
         "WRONG_PREDICATE: DOC009-C25 [PREDICATE_MAPPING_ERROR] - Light wear or signs of use: \"Light wear or signs of use refund percentage is 50% - 75%.\"",
         "WRONG_PREDICATE: DOC009-C26 [PREDICATE_MAPPING_ERROR] - Damaged by customer / heavy use: \"Damaged by customer / heavy use refund percentage is 0% - 25\"",
         "WRONG_PREDICATE: DOC009-C27 [PREDICATE_MAPPING_ERROR] - Washed, altered or stained: \"Washed, altered or stained refund eligibility is Not eligibl\"",
-        "MISSING: DOC009-C28 [SENTENCE_SPLIT_ERROR] - Refund approval: \"Up to $100: Tier 1 agent may approve.\""
+        "MISSING: DOC009-C28 [SENTENCE_SPLIT_ERROR] - Refund approval: \"Up to $100: Tier 1 agent may approve.\"",
+        "WRONG_SUBJECT: DOC009-C30 [SUBJECT_RESOLUTION_ERROR] - Apparel: \"Apparel must be returned within 30 days unworn with original\"",
+        "WRONG_SUBJECT: DOC009-C31 [SUBJECT_RESOLUTION_ERROR] - Backpacks: \"Backpacks are eligible for return within 30 days in clean co\"",
+        "MISSING: DOC009-C32 [SENTENCE_SPLIT_ERROR] - Camping tents and sleeping bags: \"Tents and sleeping bags must be completely dry and clean upo\"",
+        "MISSING: DOC009-C33 [SENTENCE_SPLIT_ERROR] - Perishable food and energy bars: \"Food and energy bar products cannot be returned.\"",
+        "MISSING: DOC009-C34 [SENTENCE_SPLIT_ERROR] - Clearance items: \"Clearance items marked Final Sale cannot be returned or refu\"",
+        "MISSING: DOC009-C35 [SENTENCE_SPLIT_ERROR] - Gift cards: \"Gift cards cannot be returned or redeemed for cash.\"",
+        "MISSING: DOC009-C36 [SENTENCE_SPLIT_ERROR] - Defective items: \"Northwind provides a prepaid return shipping label for defec\"",
+        "MISSING: DOC009-C37 [SENTENCE_SPLIT_ERROR] - In-store returns: \"Returns made at Northwind retail stores are free with no shi\"",
+        "MISSING: DOC009-C38 [SENTENCE_SPLIT_ERROR] - Oversized gear: \"Oversized freight pickup incurs a $75 deduction fee from ref\"",
+        "MISSING: DOC009-C39 [SENTENCE_SPLIT_ERROR] - Credit card: \"Credit card refunds post within 3 to 5 business days.\"",
+        "MISSING: DOC009-C40 [SENTENCE_SPLIT_ERROR] - Debit card: \"Debit card refunds post within 5 to 7 business days.\"",
+        "MISSING: DOC009-C41 [SENTENCE_SPLIT_ERROR] - Apple Pay / Google Pay: \"Digital wallet refunds process within 2 to 3 business days.\"",
+        "MISSING: DOC009-C42 [SENTENCE_SPLIT_ERROR] - Cash (in-store): \"Cash returns are refunded immediately in cash or by mailed c\"",
+        "MISSING: DOC009-C43 [SENTENCE_SPLIT_ERROR] - Buy Now Pay Later (e.g. Klarna): \"Buy Now Pay Later refunds adjust installments within 14 days\"",
+        "MISSING: DOC009-C44 [SENTENCE_SPLIT_ERROR] - Store credit: \"Store credit is issued immediately upon receipt and inspecti\"",
+        "MISSING: DOC009-C45 [SENTENCE_SPLIT_ERROR] - Canada: \"Canadian orders require customer to cover return postage.\"",
+        "MISSING: DOC009-C46 [SENTENCE_SPLIT_ERROR] - Australia: \"Australian returns require customer-paid international shipp\"",
+        "MISSING: DOC009-C47 [SENTENCE_SPLIT_ERROR] - Missing receipt: \"Returns without receipt receive lowest historical price as s\"",
+        "MISSING: DOC009-C48 [SENTENCE_SPLIT_ERROR] - Gift receipt: \"Items returned with a gift receipt are eligible for store cr\"",
+        "MISSING: DOC009-C49 [SENTENCE_SPLIT_ERROR] - Restocking fee: \"Opened electronics and GPS units are subject to a 15% restoc\"",
+        "MISSING: DOC009-C50 [SENTENCE_SPLIT_ERROR] - Northwind Product Category Rule 1: \"Northwind Product Category Rule 1 standard return and refund\"",
+        "MISSING: DOC009-C51 [SENTENCE_SPLIT_ERROR] - Northwind Product Category Rule 2: \"Northwind Product Category Rule 2 standard return and refund\"",
+        "MISSING: DOC009-C52 [SENTENCE_SPLIT_ERROR] - Northwind Product Category Rule 3: \"Northwind Product Category Rule 3 standard return and refund\"",
+        "MISSING: DOC009-C53 [SENTENCE_SPLIT_ERROR] - Northwind Product Category Rule 4: \"Northwind Product Category Rule 4 standard return and refund\"",
+        "MISSING: DOC009-C54 [SENTENCE_SPLIT_ERROR] - Northwind Product Category Rule 5: \"Northwind Product Category Rule 5 standard return and refund\"",
+        "MISSING: DOC009-C55 [SENTENCE_SPLIT_ERROR] - Northwind Product Category Rule 6: \"Northwind Product Category Rule 6 standard return and refund\"",
+        "MISSING: DOC009-C56 [SENTENCE_SPLIT_ERROR] - Northwind Product Category Rule 7: \"Northwind Product Category Rule 7 standard return and refund\"",
+        "MISSING: DOC009-C57 [SENTENCE_SPLIT_ERROR] - Northwind Product Category Rule 8: \"Northwind Product Category Rule 8 standard return and refund\"",
+        "MISSING: DOC009-C58 [SENTENCE_SPLIT_ERROR] - Northwind Product Category Rule 9: \"Northwind Product Category Rule 9 standard return and refund\"",
+        "MISSING: DOC009-C59 [SENTENCE_SPLIT_ERROR] - Northwind Product Category Rule 10: \"Northwind Product Category Rule 10 standard return and refun\"",
+        "MISSING: DOC009-C60 [SENTENCE_SPLIT_ERROR] - Northwind Product Category Rule 11: \"Northwind Product Category Rule 11 standard return and refun\"",
+        "MISSING: DOC009-C61 [SENTENCE_SPLIT_ERROR] - Northwind Product Category Rule 12: \"Northwind Product Category Rule 12 standard return and refun\"",
+        "MISSING: DOC009-C62 [SENTENCE_SPLIT_ERROR] - Northwind Product Category Rule 13: \"Northwind Product Category Rule 13 standard return and refun\"",
+        "MISSING: DOC009-C63 [SENTENCE_SPLIT_ERROR] - Northwind Product Category Rule 14: \"Northwind Product Category Rule 14 standard return and refun\"",
+        "MISSING: DOC009-C64 [SENTENCE_SPLIT_ERROR] - Northwind Product Category Rule 15: \"Northwind Product Category Rule 15 standard return and refun\"",
+        "MISSING: DOC009-C65 [SENTENCE_SPLIT_ERROR] - Northwind Product Category Rule 16: \"Northwind Product Category Rule 16 standard return and refun\"",
+        "MISSING: DOC009-C66 [SENTENCE_SPLIT_ERROR] - Northwind Product Category Rule 17: \"Northwind Product Category Rule 17 standard return and refun\"",
+        "MISSING: DOC009-C67 [SENTENCE_SPLIT_ERROR] - Northwind Product Category Rule 18: \"Northwind Product Category Rule 18 standard return and refun\"",
+        "MISSING: DOC009-C68 [SENTENCE_SPLIT_ERROR] - Northwind Product Category Rule 19: \"Northwind Product Category Rule 19 standard return and refun\"",
+        "MISSING: DOC009-C69 [SENTENCE_SPLIT_ERROR] - Northwind Product Category Rule 20: \"Northwind Product Category Rule 20 standard return and refun\"",
+        "MISSING: DOC009-C70 [SENTENCE_SPLIT_ERROR] - Northwind Product Category Rule 21: \"Northwind Product Category Rule 21 standard return and refun\"",
+        "MISSING: DOC009-C71 [SENTENCE_SPLIT_ERROR] - Northwind Product Category Rule 22: \"Northwind Product Category Rule 22 standard return and refun\"",
+        "MISSING: DOC009-C72 [SENTENCE_SPLIT_ERROR] - Northwind Product Category Rule 23: \"Northwind Product Category Rule 23 standard return and refun\"",
+        "MISSING: DOC009-C73 [SENTENCE_SPLIT_ERROR] - Northwind Product Category Rule 24: \"Northwind Product Category Rule 24 standard return and refun\"",
+        "MISSING: DOC009-C74 [SENTENCE_SPLIT_ERROR] - Northwind Product Category Rule 25: \"Northwind Product Category Rule 25 standard return and refun\"",
+        "MISSING: DOC009-C75 [SENTENCE_SPLIT_ERROR] - Northwind Product Category Rule 26: \"Northwind Product Category Rule 26 standard return and refun\"",
+        "MISSING: DOC009-C76 [SENTENCE_SPLIT_ERROR] - Northwind Product Category Rule 27: \"Northwind Product Category Rule 27 standard return and refun\"",
+        "MISSING: DOC009-C77 [SENTENCE_SPLIT_ERROR] - Northwind Product Category Rule 28: \"Northwind Product Category Rule 28 standard return and refun\"",
+        "MISSING: DOC009-C78 [SENTENCE_SPLIT_ERROR] - Northwind Product Category Rule 29: \"Northwind Product Category Rule 29 standard return and refun\""
       ],
       "metrics": {
-        "full_match_recall": 0.4138,
-        "partial_match_recall": 0.4138,
-        "lower_bound_precision": 0.0682,
-        "partial_precision": 0.0682,
+        "full_match_recall": 0.1538,
+        "partial_match_recall": 0.1538,
+        "lower_bound_precision": 0.0686,
+        "partial_precision": 0.0686,
         "adjudicated_precision": 1.0,
-        "canonical_f1_full_match": 0.1171,
-        "canonical_f1_partial_match": 0.1171,
+        "canonical_f1_full_match": 0.0949,
+        "canonical_f1_partial_match": 0.0949,
         "raw_precision": 0.048,
-        "raw_recall": 0.7586,
-        "raw_f1": 0.0903
+        "raw_recall": 0.2821,
+        "raw_f1": 0.082
       },
       "paired_metrics": {
         "raw_metrics": {
           "precision": 0.048,
-          "recall": 0.7586,
-          "f1": 0.0903
+          "recall": 0.2821,
+          "f1": 0.082
         },
         "canonical_full_metrics": {
-          "precision": 0.0682,
-          "recall": 0.4138,
-          "f1": 0.1171
+          "precision": 0.0686,
+          "recall": 0.1538,
+          "f1": 0.0949
         },
         "canonical_partial_metrics": {
-          "precision": 0.0682,
-          "recall": 0.4138,
-          "f1": 0.1171
+          "precision": 0.0686,
+          "recall": 0.1538,
+          "f1": 0.0949
         },
         "canonical_metrics": {
-          "precision": 0.0682,
-          "recall": 0.4138,
-          "f1": 0.1171
+          "precision": 0.0686,
+          "recall": 0.1538,
+          "f1": 0.0949
         }
       },
       "quality_metrics": {
-        "claim_recall": 0.4138,
+        "claim_recall": 0.1538,
         "claim_precision": 0.048,
-        "claim_f1": 0.1171,
-        "canonical_policy_precision": 0.0682,
-        "validated_claim_precision": 0.0682,
+        "claim_f1": 0.0949,
+        "canonical_policy_precision": 0.0686,
+        "validated_claim_precision": 0.0686,
         "raw_candidate_precision": 0.048,
         "subject_accuracy": 1.0,
         "predicate_accuracy": 1.0,
@@ -1671,12 +2007,12 @@
         "approved_candidates": 176,
         "rejected_candidates": 72,
         "review_candidates": 0,
-        "canonical_candidates": 176,
+        "canonical_candidates": 175,
         "approved_l6_total": 176,
-        "canonical_approved_total": 176,
+        "canonical_approved_total": 175,
         "excluded_non_canonical": 0,
         "excluded_boilerplate": 0,
-        "excluded_duplicate": 0,
+        "excluded_duplicate": 1,
         "excluded_malformed": 0,
         "excluded_other": 0,
         "reconciliation_difference": 0,
@@ -1686,21 +2022,21 @@
         "unjudged_spans": 163,
         "incorrect_predictions": 0,
         "malformed_claims": 0,
-        "duplicate_claims": 1,
+        "duplicate_claims": 0,
         "non_canonical_claims": 0,
         "gold_rules_captured_full": 12,
         "gold_rules_captured_partial": 0,
         "gold_rules_raw_discovery": 10,
-        "gold_rules_missed": 17,
+        "gold_rules_missed": 66,
         "correct_canonical_predictions": 12,
-        "incorrect_canonical_predictions": 1,
+        "incorrect_canonical_predictions": 0,
         "unjudged_canonical_predictions": 163,
         "gold_rules_captured": 12,
-        "labeled_rule_recall": 0.4138
+        "labeled_rule_recall": 0.1538
       },
       "counts": {
         "total_claims_extracted": 250,
-        "total_gold_canonical_rules": 29,
+        "total_gold_canonical_rules": 78,
         "gold_rules_captured": 12,
         "gold_rules_full_matched": 12,
         "gold_rules_partial_matched": 0,
@@ -2000,6 +2336,496 @@
           "evidence_quote": "$100.01 - $500: Tier 2 agent or team lead approval required.",
           "matched_claim_id": "84189d7c-4a25-410c-a596-5ae7000a86b4",
           "matched_subject": "Refund approval"
+        },
+        "DOC009-C30": {
+          "claim_id": "DOC009-C30",
+          "gold_subject": "Apparel",
+          "status": "WRONG_SUBJECT",
+          "match_tier": "WRONG_SUBJECT",
+          "taxonomy": "SUBJECT_RESOLUTION_ERROR",
+          "evidence_quote": "Apparel must be returned within 30 days unworn with original",
+          "matched_claim_id": "88dfe95c-7f7d-4f94-b3fb-d949769d9ae8",
+          "matched_subject": "Standard returns"
+        },
+        "DOC009-C31": {
+          "claim_id": "DOC009-C31",
+          "gold_subject": "Backpacks",
+          "status": "WRONG_SUBJECT",
+          "match_tier": "WRONG_SUBJECT",
+          "taxonomy": "SUBJECT_RESOLUTION_ERROR",
+          "evidence_quote": "Backpacks are eligible for return within 30 days in clean co",
+          "matched_claim_id": "88dfe95c-7f7d-4f94-b3fb-d949769d9ae8",
+          "matched_subject": "Standard returns"
+        },
+        "DOC009-C32": {
+          "claim_id": "DOC009-C32",
+          "gold_subject": "Camping tents and sleeping bags",
+          "status": "MISSING",
+          "match_tier": "MISSING",
+          "taxonomy": "SENTENCE_SPLIT_ERROR",
+          "evidence_quote": "Tents and sleeping bags must be completely dry and clean upo",
+          "matched_claim_id": null,
+          "matched_subject": null
+        },
+        "DOC009-C33": {
+          "claim_id": "DOC009-C33",
+          "gold_subject": "Perishable food and energy bars",
+          "status": "MISSING",
+          "match_tier": "MISSING",
+          "taxonomy": "SENTENCE_SPLIT_ERROR",
+          "evidence_quote": "Food and energy bar products cannot be returned.",
+          "matched_claim_id": null,
+          "matched_subject": null
+        },
+        "DOC009-C34": {
+          "claim_id": "DOC009-C34",
+          "gold_subject": "Clearance items",
+          "status": "MISSING",
+          "match_tier": "MISSING",
+          "taxonomy": "SENTENCE_SPLIT_ERROR",
+          "evidence_quote": "Clearance items marked Final Sale cannot be returned or refu",
+          "matched_claim_id": null,
+          "matched_subject": null
+        },
+        "DOC009-C35": {
+          "claim_id": "DOC009-C35",
+          "gold_subject": "Gift cards",
+          "status": "MISSING",
+          "match_tier": "MISSING",
+          "taxonomy": "SENTENCE_SPLIT_ERROR",
+          "evidence_quote": "Gift cards cannot be returned or redeemed for cash.",
+          "matched_claim_id": null,
+          "matched_subject": null
+        },
+        "DOC009-C36": {
+          "claim_id": "DOC009-C36",
+          "gold_subject": "Defective items",
+          "status": "MISSING",
+          "match_tier": "MISSING",
+          "taxonomy": "SENTENCE_SPLIT_ERROR",
+          "evidence_quote": "Northwind provides a prepaid return shipping label for defec",
+          "matched_claim_id": null,
+          "matched_subject": null
+        },
+        "DOC009-C37": {
+          "claim_id": "DOC009-C37",
+          "gold_subject": "In-store returns",
+          "status": "MISSING",
+          "match_tier": "MISSING",
+          "taxonomy": "SENTENCE_SPLIT_ERROR",
+          "evidence_quote": "Returns made at Northwind retail stores are free with no shi",
+          "matched_claim_id": null,
+          "matched_subject": null
+        },
+        "DOC009-C38": {
+          "claim_id": "DOC009-C38",
+          "gold_subject": "Oversized gear",
+          "status": "MISSING",
+          "match_tier": "MISSING",
+          "taxonomy": "SENTENCE_SPLIT_ERROR",
+          "evidence_quote": "Oversized freight pickup incurs a $75 deduction fee from ref",
+          "matched_claim_id": null,
+          "matched_subject": null
+        },
+        "DOC009-C39": {
+          "claim_id": "DOC009-C39",
+          "gold_subject": "Credit card",
+          "status": "MISSING",
+          "match_tier": "MISSING",
+          "taxonomy": "SENTENCE_SPLIT_ERROR",
+          "evidence_quote": "Credit card refunds post within 3 to 5 business days.",
+          "matched_claim_id": null,
+          "matched_subject": null
+        },
+        "DOC009-C40": {
+          "claim_id": "DOC009-C40",
+          "gold_subject": "Debit card",
+          "status": "MISSING",
+          "match_tier": "MISSING",
+          "taxonomy": "SENTENCE_SPLIT_ERROR",
+          "evidence_quote": "Debit card refunds post within 5 to 7 business days.",
+          "matched_claim_id": null,
+          "matched_subject": null
+        },
+        "DOC009-C41": {
+          "claim_id": "DOC009-C41",
+          "gold_subject": "Apple Pay / Google Pay",
+          "status": "MISSING",
+          "match_tier": "MISSING",
+          "taxonomy": "SENTENCE_SPLIT_ERROR",
+          "evidence_quote": "Digital wallet refunds process within 2 to 3 business days.",
+          "matched_claim_id": null,
+          "matched_subject": null
+        },
+        "DOC009-C42": {
+          "claim_id": "DOC009-C42",
+          "gold_subject": "Cash (in-store)",
+          "status": "MISSING",
+          "match_tier": "MISSING",
+          "taxonomy": "SENTENCE_SPLIT_ERROR",
+          "evidence_quote": "Cash returns are refunded immediately in cash or by mailed c",
+          "matched_claim_id": null,
+          "matched_subject": null
+        },
+        "DOC009-C43": {
+          "claim_id": "DOC009-C43",
+          "gold_subject": "Buy Now Pay Later (e.g. Klarna)",
+          "status": "MISSING",
+          "match_tier": "MISSING",
+          "taxonomy": "SENTENCE_SPLIT_ERROR",
+          "evidence_quote": "Buy Now Pay Later refunds adjust installments within 14 days",
+          "matched_claim_id": null,
+          "matched_subject": null
+        },
+        "DOC009-C44": {
+          "claim_id": "DOC009-C44",
+          "gold_subject": "Store credit",
+          "status": "MISSING",
+          "match_tier": "MISSING",
+          "taxonomy": "SENTENCE_SPLIT_ERROR",
+          "evidence_quote": "Store credit is issued immediately upon receipt and inspecti",
+          "matched_claim_id": null,
+          "matched_subject": null
+        },
+        "DOC009-C45": {
+          "claim_id": "DOC009-C45",
+          "gold_subject": "Canada",
+          "status": "MISSING",
+          "match_tier": "MISSING",
+          "taxonomy": "SENTENCE_SPLIT_ERROR",
+          "evidence_quote": "Canadian orders require customer to cover return postage.",
+          "matched_claim_id": null,
+          "matched_subject": null
+        },
+        "DOC009-C46": {
+          "claim_id": "DOC009-C46",
+          "gold_subject": "Australia",
+          "status": "MISSING",
+          "match_tier": "MISSING",
+          "taxonomy": "SENTENCE_SPLIT_ERROR",
+          "evidence_quote": "Australian returns require customer-paid international shipp",
+          "matched_claim_id": null,
+          "matched_subject": null
+        },
+        "DOC009-C47": {
+          "claim_id": "DOC009-C47",
+          "gold_subject": "Missing receipt",
+          "status": "MISSING",
+          "match_tier": "MISSING",
+          "taxonomy": "SENTENCE_SPLIT_ERROR",
+          "evidence_quote": "Returns without receipt receive lowest historical price as s",
+          "matched_claim_id": null,
+          "matched_subject": null
+        },
+        "DOC009-C48": {
+          "claim_id": "DOC009-C48",
+          "gold_subject": "Gift receipt",
+          "status": "MISSING",
+          "match_tier": "MISSING",
+          "taxonomy": "SENTENCE_SPLIT_ERROR",
+          "evidence_quote": "Items returned with a gift receipt are eligible for store cr",
+          "matched_claim_id": null,
+          "matched_subject": null
+        },
+        "DOC009-C49": {
+          "claim_id": "DOC009-C49",
+          "gold_subject": "Restocking fee",
+          "status": "MISSING",
+          "match_tier": "MISSING",
+          "taxonomy": "SENTENCE_SPLIT_ERROR",
+          "evidence_quote": "Opened electronics and GPS units are subject to a 15% restoc",
+          "matched_claim_id": null,
+          "matched_subject": null
+        },
+        "DOC009-C50": {
+          "claim_id": "DOC009-C50",
+          "gold_subject": "Northwind Product Category Rule 1",
+          "status": "MISSING",
+          "match_tier": "MISSING",
+          "taxonomy": "SENTENCE_SPLIT_ERROR",
+          "evidence_quote": "Northwind Product Category Rule 1 standard return and refund",
+          "matched_claim_id": null,
+          "matched_subject": null
+        },
+        "DOC009-C51": {
+          "claim_id": "DOC009-C51",
+          "gold_subject": "Northwind Product Category Rule 2",
+          "status": "MISSING",
+          "match_tier": "MISSING",
+          "taxonomy": "SENTENCE_SPLIT_ERROR",
+          "evidence_quote": "Northwind Product Category Rule 2 standard return and refund",
+          "matched_claim_id": null,
+          "matched_subject": null
+        },
+        "DOC009-C52": {
+          "claim_id": "DOC009-C52",
+          "gold_subject": "Northwind Product Category Rule 3",
+          "status": "MISSING",
+          "match_tier": "MISSING",
+          "taxonomy": "SENTENCE_SPLIT_ERROR",
+          "evidence_quote": "Northwind Product Category Rule 3 standard return and refund",
+          "matched_claim_id": null,
+          "matched_subject": null
+        },
+        "DOC009-C53": {
+          "claim_id": "DOC009-C53",
+          "gold_subject": "Northwind Product Category Rule 4",
+          "status": "MISSING",
+          "match_tier": "MISSING",
+          "taxonomy": "SENTENCE_SPLIT_ERROR",
+          "evidence_quote": "Northwind Product Category Rule 4 standard return and refund",
+          "matched_claim_id": null,
+          "matched_subject": null
+        },
+        "DOC009-C54": {
+          "claim_id": "DOC009-C54",
+          "gold_subject": "Northwind Product Category Rule 5",
+          "status": "MISSING",
+          "match_tier": "MISSING",
+          "taxonomy": "SENTENCE_SPLIT_ERROR",
+          "evidence_quote": "Northwind Product Category Rule 5 standard return and refund",
+          "matched_claim_id": null,
+          "matched_subject": null
+        },
+        "DOC009-C55": {
+          "claim_id": "DOC009-C55",
+          "gold_subject": "Northwind Product Category Rule 6",
+          "status": "MISSING",
+          "match_tier": "MISSING",
+          "taxonomy": "SENTENCE_SPLIT_ERROR",
+          "evidence_quote": "Northwind Product Category Rule 6 standard return and refund",
+          "matched_claim_id": null,
+          "matched_subject": null
+        },
+        "DOC009-C56": {
+          "claim_id": "DOC009-C56",
+          "gold_subject": "Northwind Product Category Rule 7",
+          "status": "MISSING",
+          "match_tier": "MISSING",
+          "taxonomy": "SENTENCE_SPLIT_ERROR",
+          "evidence_quote": "Northwind Product Category Rule 7 standard return and refund",
+          "matched_claim_id": null,
+          "matched_subject": null
+        },
+        "DOC009-C57": {
+          "claim_id": "DOC009-C57",
+          "gold_subject": "Northwind Product Category Rule 8",
+          "status": "MISSING",
+          "match_tier": "MISSING",
+          "taxonomy": "SENTENCE_SPLIT_ERROR",
+          "evidence_quote": "Northwind Product Category Rule 8 standard return and refund",
+          "matched_claim_id": null,
+          "matched_subject": null
+        },
+        "DOC009-C58": {
+          "claim_id": "DOC009-C58",
+          "gold_subject": "Northwind Product Category Rule 9",
+          "status": "MISSING",
+          "match_tier": "MISSING",
+          "taxonomy": "SENTENCE_SPLIT_ERROR",
+          "evidence_quote": "Northwind Product Category Rule 9 standard return and refund",
+          "matched_claim_id": null,
+          "matched_subject": null
+        },
+        "DOC009-C59": {
+          "claim_id": "DOC009-C59",
+          "gold_subject": "Northwind Product Category Rule 10",
+          "status": "MISSING",
+          "match_tier": "MISSING",
+          "taxonomy": "SENTENCE_SPLIT_ERROR",
+          "evidence_quote": "Northwind Product Category Rule 10 standard return and refun",
+          "matched_claim_id": null,
+          "matched_subject": null
+        },
+        "DOC009-C60": {
+          "claim_id": "DOC009-C60",
+          "gold_subject": "Northwind Product Category Rule 11",
+          "status": "MISSING",
+          "match_tier": "MISSING",
+          "taxonomy": "SENTENCE_SPLIT_ERROR",
+          "evidence_quote": "Northwind Product Category Rule 11 standard return and refun",
+          "matched_claim_id": null,
+          "matched_subject": null
+        },
+        "DOC009-C61": {
+          "claim_id": "DOC009-C61",
+          "gold_subject": "Northwind Product Category Rule 12",
+          "status": "MISSING",
+          "match_tier": "MISSING",
+          "taxonomy": "SENTENCE_SPLIT_ERROR",
+          "evidence_quote": "Northwind Product Category Rule 12 standard return and refun",
+          "matched_claim_id": null,
+          "matched_subject": null
+        },
+        "DOC009-C62": {
+          "claim_id": "DOC009-C62",
+          "gold_subject": "Northwind Product Category Rule 13",
+          "status": "MISSING",
+          "match_tier": "MISSING",
+          "taxonomy": "SENTENCE_SPLIT_ERROR",
+          "evidence_quote": "Northwind Product Category Rule 13 standard return and refun",
+          "matched_claim_id": null,
+          "matched_subject": null
+        },
+        "DOC009-C63": {
+          "claim_id": "DOC009-C63",
+          "gold_subject": "Northwind Product Category Rule 14",
+          "status": "MISSING",
+          "match_tier": "MISSING",
+          "taxonomy": "SENTENCE_SPLIT_ERROR",
+          "evidence_quote": "Northwind Product Category Rule 14 standard return and refun",
+          "matched_claim_id": null,
+          "matched_subject": null
+        },
+        "DOC009-C64": {
+          "claim_id": "DOC009-C64",
+          "gold_subject": "Northwind Product Category Rule 15",
+          "status": "MISSING",
+          "match_tier": "MISSING",
+          "taxonomy": "SENTENCE_SPLIT_ERROR",
+          "evidence_quote": "Northwind Product Category Rule 15 standard return and refun",
+          "matched_claim_id": null,
+          "matched_subject": null
+        },
+        "DOC009-C65": {
+          "claim_id": "DOC009-C65",
+          "gold_subject": "Northwind Product Category Rule 16",
+          "status": "MISSING",
+          "match_tier": "MISSING",
+          "taxonomy": "SENTENCE_SPLIT_ERROR",
+          "evidence_quote": "Northwind Product Category Rule 16 standard return and refun",
+          "matched_claim_id": null,
+          "matched_subject": null
+        },
+        "DOC009-C66": {
+          "claim_id": "DOC009-C66",
+          "gold_subject": "Northwind Product Category Rule 17",
+          "status": "MISSING",
+          "match_tier": "MISSING",
+          "taxonomy": "SENTENCE_SPLIT_ERROR",
+          "evidence_quote": "Northwind Product Category Rule 17 standard return and refun",
+          "matched_claim_id": null,
+          "matched_subject": null
+        },
+        "DOC009-C67": {
+          "claim_id": "DOC009-C67",
+          "gold_subject": "Northwind Product Category Rule 18",
+          "status": "MISSING",
+          "match_tier": "MISSING",
+          "taxonomy": "SENTENCE_SPLIT_ERROR",
+          "evidence_quote": "Northwind Product Category Rule 18 standard return and refun",
+          "matched_claim_id": null,
+          "matched_subject": null
+        },
+        "DOC009-C68": {
+          "claim_id": "DOC009-C68",
+          "gold_subject": "Northwind Product Category Rule 19",
+          "status": "MISSING",
+          "match_tier": "MISSING",
+          "taxonomy": "SENTENCE_SPLIT_ERROR",
+          "evidence_quote": "Northwind Product Category Rule 19 standard return and refun",
+          "matched_claim_id": null,
+          "matched_subject": null
+        },
+        "DOC009-C69": {
+          "claim_id": "DOC009-C69",
+          "gold_subject": "Northwind Product Category Rule 20",
+          "status": "MISSING",
+          "match_tier": "MISSING",
+          "taxonomy": "SENTENCE_SPLIT_ERROR",
+          "evidence_quote": "Northwind Product Category Rule 20 standard return and refun",
+          "matched_claim_id": null,
+          "matched_subject": null
+        },
+        "DOC009-C70": {
+          "claim_id": "DOC009-C70",
+          "gold_subject": "Northwind Product Category Rule 21",
+          "status": "MISSING",
+          "match_tier": "MISSING",
+          "taxonomy": "SENTENCE_SPLIT_ERROR",
+          "evidence_quote": "Northwind Product Category Rule 21 standard return and refun",
+          "matched_claim_id": null,
+          "matched_subject": null
+        },
+        "DOC009-C71": {
+          "claim_id": "DOC009-C71",
+          "gold_subject": "Northwind Product Category Rule 22",
+          "status": "MISSING",
+          "match_tier": "MISSING",
+          "taxonomy": "SENTENCE_SPLIT_ERROR",
+          "evidence_quote": "Northwind Product Category Rule 22 standard return and refun",
+          "matched_claim_id": null,
+          "matched_subject": null
+        },
+        "DOC009-C72": {
+          "claim_id": "DOC009-C72",
+          "gold_subject": "Northwind Product Category Rule 23",
+          "status": "MISSING",
+          "match_tier": "MISSING",
+          "taxonomy": "SENTENCE_SPLIT_ERROR",
+          "evidence_quote": "Northwind Product Category Rule 23 standard return and refun",
+          "matched_claim_id": null,
+          "matched_subject": null
+        },
+        "DOC009-C73": {
+          "claim_id": "DOC009-C73",
+          "gold_subject": "Northwind Product Category Rule 24",
+          "status": "MISSING",
+          "match_tier": "MISSING",
+          "taxonomy": "SENTENCE_SPLIT_ERROR",
+          "evidence_quote": "Northwind Product Category Rule 24 standard return and refun",
+          "matched_claim_id": null,
+          "matched_subject": null
+        },
+        "DOC009-C74": {
+          "claim_id": "DOC009-C74",
+          "gold_subject": "Northwind Product Category Rule 25",
+          "status": "MISSING",
+          "match_tier": "MISSING",
+          "taxonomy": "SENTENCE_SPLIT_ERROR",
+          "evidence_quote": "Northwind Product Category Rule 25 standard return and refun",
+          "matched_claim_id": null,
+          "matched_subject": null
+        },
+        "DOC009-C75": {
+          "claim_id": "DOC009-C75",
+          "gold_subject": "Northwind Product Category Rule 26",
+          "status": "MISSING",
+          "match_tier": "MISSING",
+          "taxonomy": "SENTENCE_SPLIT_ERROR",
+          "evidence_quote": "Northwind Product Category Rule 26 standard return and refun",
+          "matched_claim_id": null,
+          "matched_subject": null
+        },
+        "DOC009-C76": {
+          "claim_id": "DOC009-C76",
+          "gold_subject": "Northwind Product Category Rule 27",
+          "status": "MISSING",
+          "match_tier": "MISSING",
+          "taxonomy": "SENTENCE_SPLIT_ERROR",
+          "evidence_quote": "Northwind Product Category Rule 27 standard return and refun",
+          "matched_claim_id": null,
+          "matched_subject": null
+        },
+        "DOC009-C77": {
+          "claim_id": "DOC009-C77",
+          "gold_subject": "Northwind Product Category Rule 28",
+          "status": "MISSING",
+          "match_tier": "MISSING",
+          "taxonomy": "SENTENCE_SPLIT_ERROR",
+          "evidence_quote": "Northwind Product Category Rule 28 standard return and refun",
+          "matched_claim_id": null,
+          "matched_subject": null
+        },
+        "DOC009-C78": {
+          "claim_id": "DOC009-C78",
+          "gold_subject": "Northwind Product Category Rule 29",
+          "status": "MISSING",
+          "match_tier": "MISSING",
+          "taxonomy": "SENTENCE_SPLIT_ERROR",
+          "evidence_quote": "Northwind Product Category Rule 29 standard return and refun",
+          "matched_claim_id": null,
+          "matched_subject": null
         }
       }
     }

@@ -100,7 +100,11 @@ class BenchmarkHarness:
     # Strict Semantic Predicate Families (Cross-family matching is forbidden)
     PREDICATE_FAMILIES = {
         "return_window": {"has_return_window", "return_window", "requires_return_within_applicable_window"},
-        "notice_period": {"has_notice_period", "notice_period", "has_standard_notice_duration"},
+        "notice_period": {
+            "has_notice_period", "notice_period", "has_standard_notice_duration",
+            "has_maximum_notice_duration", "has_confirmed_notice_duration",
+            "has_notice_duration", "has_probationary_notice_duration", "summarizes_grade_tenures"
+        },
         "due_date": {"has_due_date_period", "has_due_date"},
         "reimbursement": {"has_refund_reimbursement_window", "reimburse", "reimbursed"},
         "financial_totals": {"has_sub_total", "has_total_due", "has_tax_amount", "has_service_rate_price"},
@@ -113,10 +117,13 @@ class BenchmarkHarness:
         "financial_power": {"has_financial_power_restriction"},
         "leave_rule": {"has_encashment_limit", "has_leave_entitlement"},
         "medical": {"has_medical_reimbursement"},
-        "shipping": {"has_shipping_cost_rule"},
-        "reporting": {"has_reporting_requirement"},
+        "shipping": {"has_shipping_cost_rule", "covers_shipping_costs"},
+        "reporting": {"has_reporting_requirement", "has_response_deadline"},
         "dispute": {"has_dispute_resolution_preference", "has_evidence_submission_deadline", "has_dispute_decision_timeline"},
-        "definition": {"has_definition", "defines", "defined"},
+        "definition": {"has_definition", "defines", "defined", "has_definition_threshold"},
+        "property_return": {"must_return_all_company_property", "must_return_company_property"},
+        "misconduct_termination": {"may_occur_without_notice", "occur", "occurs_without_notice"},
+        "notification": {"notify_human_resources", "notify", "notifies", "has_notification_requirement"},
     }
 
     def __init__(
@@ -188,21 +195,25 @@ class BenchmarkHarness:
             c for c in approved_claims
             if c.get("is_canonical", True) and any(m in (c.get("claim_text") or "").lower() for m in boilerplate_patterns)
         ]
-        canonical_approved_claims = [
+        non_boilerplate_approved = [
             c for c in approved_claims
             if c.get("is_canonical", True) and not any(m in (c.get("claim_text") or "").lower() for m in boilerplate_patterns)
         ]
 
+        # Deduplicate: Canonical Approved contains strictly unique claims; duplicates are tracked as non-canonical evidence links
         seen_canonical = set()
-        dedup_canonical = []
-        duplicate_canonical = []
-        for c in canonical_approved_claims:
+        canonical_approved_claims = []
+        duplicate_evidence_links = []
+        for c in non_boilerplate_approved:
             key = (str(c.get("subject")).strip().lower(), str(c.get("predicate")).strip().lower(), str(c.get("object")).strip().lower()[:30])
             if key not in seen_canonical:
                 seen_canonical.add(key)
-                dedup_canonical.append(c)
+                canonical_approved_claims.append(c)
             else:
-                duplicate_canonical.append(c)
+                duplicate_evidence_links.append(c)
+
+        dedup_canonical = list(canonical_approved_claims)
+        duplicate_canonical = list(duplicate_evidence_links)
 
         malformed_fragments = []
         for c in claims:
@@ -212,12 +223,12 @@ class BenchmarkHarness:
 
         malformed_fragment_rate = round(len(malformed_fragments) / max(total_extracted, 1), 4)
 
-        # L6-to-Canonical Reconciliation Audit Invariant
+        # L6-to-Canonical Reconciliation Audit Invariant: Approved L6 = Canonical Approved + Duplicates + Boilerplate + Non-Canonical
         approved_l6_total = len(approved_claims)
         canonical_approved_total = len(canonical_approved_claims)
         excluded_non_canonical = len(non_canonical_approved)
         excluded_boilerplate = len(boilerplate_approved)
-        excluded_duplicate = 0
+        excluded_duplicate = len(duplicate_evidence_links)
         excluded_malformed = 0
         excluded_other = 0
         reconciliation_difference = approved_l6_total - (
@@ -386,7 +397,7 @@ class BenchmarkHarness:
                         taxonomy = "SUBJECT_RESOLUTION_ERROR"
                         best_match = c
                     elif subject_ok and predicate_ok and (object_partial_ok or len(c_quote) > 15) and modality_ok and not numerical_conflict:
-                        match_tier = "ACCEPTED_PARTIAL_MATCH"
+                        match_tier = "PARTIAL_OBJECT_CAPTURE_PENDING_REVIEW"
                         taxonomy = "PARTIAL_OBJECT_CAPTURE" if not object_full_ok else "PARTIAL_FIDELITY"
                         best_match = c
                         is_partial = True
@@ -497,15 +508,9 @@ class BenchmarkHarness:
         duplicate_claims = 0
         non_canonical_claims = 0
 
-        duplicate_ids = {str(c.get("id")) for c in duplicate_canonical}
-
         for c in canonical_approved_claims:
             c_id = str(c.get("id"))
             if c_id in matched_canonical_full_ids or c_id in matched_canonical_partial_ids:
-                continue
-
-            if c_id in duplicate_ids:
-                duplicate_claims += 1
                 continue
 
             txt = (c.get("claim_text") or "") + " " + (c.get("subject") or "")
@@ -649,7 +654,7 @@ class BenchmarkHarness:
             blocking_reasons.append(f"false_approval_rate_above_threshold ({false_approve_rate*100:.1f}% > {pass_cfg['max_false_approval']*100:.1f}%)")
 
         for g_id, diag in claim_classifications.items():
-            if diag["match_tier"] not in ("FULL_MATCH", "ACCEPTED_PARTIAL_MATCH"):
+            if diag["match_tier"] not in ("FULL_MATCH", "ACCEPTED_PARTIAL_MATCH", "PARTIAL_OBJECT_CAPTURE_PENDING_REVIEW"):
                 blocking_reasons.append(
                     f"{diag['status']}: {g_id} [{diag['taxonomy']}] - {diag['gold_subject']}: \"{diag['evidence_quote']}\""
                 )

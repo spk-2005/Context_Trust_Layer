@@ -84,6 +84,359 @@
       "canonical": true,
       "conflict_eligible": true,
       "evidence_quote": "3.9.3.6 The Warranty Information Sheet and Addendum templates be changed"
+    },
+    {
+      "claim_id": "DOC005-C06",
+      "subject": "The agreement(s)",
+      "predicate": "has_validity_rule",
+      "object": {
+        "value": "provide for the builder to complete the Home",
+        "modality": "MUST"
+      },
+      "claim_type": "CONTRACT_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "The agreement(s) shall provide for the builder to complete the Home"
+    },
+    {
+      "claim_id": "DOC005-C07",
+      "subject": "the lender(s) providing construction financing",
+      "predicate": "has_priority_rule",
+      "object": {
+        "value": "take priority over any such assignment by the Vendor",
+        "modality": "MUST"
+      },
+      "claim_type": "FINANCIAL_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "the lender(s) providing construction financing shall take priority over any such assignment by the Vendor"
+    },
+    {
+      "claim_id": "DOC005-C08",
+      "subject": "The Vendor",
+      "predicate": "has_interest_rate",
+      "object": {
+        "value": 1.5,
+        "unit": "percent",
+        "modality": "MUST"
+      },
+      "claim_type": "FINANCIAL_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "interest at the rate of 1.5 per cent (1.5%) per month"
+    },
+    {
+      "claim_id": "DOC005-C09",
+      "subject": "The Vendor",
+      "predicate": "has_payment_obligation",
+      "object": {
+        "value": "make the interest payment referenced in paragraph 3.8.1",
+        "modality": "MUST"
+      },
+      "claim_type": "PAYMENT_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "The Vendor shall make the interest payment referenced in paragraph 3.8.1"
+    },
+    {
+      "claim_id": "DOC005-C10",
+      "subject": "Security",
+      "predicate": "has_validity_rule",
+      "object": {
+        "value": "specifically confirm that the Security (and any proceeds thereof) is held by Tarion",
+        "modality": "MUST"
+      },
+      "claim_type": "SECURITY_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "specifically confirm that the Security (and any proceeds thereof) is held by Tarion"
+    },
+    {
+      "claim_id": "DOC005-C11",
+      "subject": "The source document",
+      "predicate": "has_governing_rule",
+      "object": {
+        "value": "be in the forms supplied by Tarion without modification",
+        "modality": "MUST"
+      },
+      "claim_type": "TEMPLATE_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "The source document shall be in the forms supplied by Tarion"
+    },
+    {
+      "claim_id": "DOC005-C12",
+      "subject": "The Vendor",
+      "predicate": "cannot_alter_document_format",
+      "object": {
+        "value": "amend or alter the format, logos or language",
+        "modality": "MUST_NOT"
+      },
+      "claim_type": "PROHIBITION",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "The Vendor shall not amend or alter the format, logos or language"
+    },
+    {
+      "claim_id": "DOC005-C13",
+      "subject": "The Addendum",
+      "predicate": "has_attachment_requirement",
+      "object": {
+        "value": "be attached to and forms part of the agreement of purchase and sale",
+        "modality": "MUST"
+      },
+      "claim_type": "CONTRACT_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "The Addendum shall be attached to and forms part of the agreement"
+    },
+    {
+      "claim_id": "DOC005-C14",
+      "subject": "The Addendum",
+      "predicate": "cannot_be_split",
+      "object": {
+        "value": "be split up and provisions shall not be deleted",
+        "modality": "MUST_NOT"
+      },
+      "claim_type": "PROHIBITION",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "the Addendum shall not be split up and provisions shall not be deleted"
+    },
+    {
+      "claim_id": "DOC005-C15",
+      "subject": "The Vendor",
+      "predicate": "cannot_modify_addendum",
+      "object": {
+        "value": "modify or amend the Addendum in any way",
+        "modality": "MUST_NOT"
+      },
+      "claim_type": "PROHIBITION",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "The Vendor shall not modify or amend the Addendum in any way"
+    },
+    {
+      "claim_id": "DOC005-C16",
+      "subject": "The Vendor",
+      "predicate": "has_liability_rule",
+      "object": {
+        "value": "be responsible for any improper changes to the forms",
+        "modality": "MUST"
+      },
+      "claim_type": "LIABILITY_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "The Vendor shall be responsible for any improper changes to the forms"
+    },
+    {
+      "claim_id": "DOC005-C17",
+      "subject": "The Warranty Information Sheet",
+      "predicate": "has_amendment_rule",
+      "object": {
+        "value": "be changed from time to time by government regulation",
+        "modality": "MAY"
+      },
+      "claim_type": "GOVERNANCE_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "The Warranty Information Sheet and Addendum may be changed from time to time"
+    },
+    {
+      "claim_id": "DOC005-C18",
+      "subject": "Tarion",
+      "predicate": "has_notification_obligation",
+      "object": {
+        "value": "use best efforts to give notice of revisions",
+        "modality": "MUST"
+      },
+      "claim_type": "NOTICE_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "Tarion shall use best efforts to give notice of revisions"
+    },
+    {
+      "claim_id": "DOC005-C19",
+      "subject": "The Vendor",
+      "predicate": "has_indemnification_obligation",
+      "object": {
+        "value": "indemnify Tarion against any and all claims, losses, liabilities",
+        "modality": "MUST"
+      },
+      "claim_type": "INDEMNITY_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "The Vendor agrees to indemnify and save harmless Tarion"
+    },
+    {
+      "claim_id": "DOC005-C20",
+      "subject": "The Vendor",
+      "predicate": "has_insurance_requirement",
+      "object": {
+        "value": "maintain comprehensive general liability insurance",
+        "modality": "MUST"
+      },
+      "claim_type": "INSURANCE_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "Vendor shall maintain comprehensive general liability insurance"
+    },
+    {
+      "claim_id": "DOC005-C21",
+      "subject": "The Vendor",
+      "predicate": "has_reporting_requirement",
+      "object": {
+        "value": "report to Tarion within ten days of any material change",
+        "modality": "MUST"
+      },
+      "claim_type": "REPORTING_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "report to Tarion within ten days of any material change"
+    },
+    {
+      "claim_id": "DOC005-C22",
+      "subject": "Tarion",
+      "predicate": "has_inspection_right",
+      "object": {
+        "value": "inspect all books, records, and construction sites",
+        "modality": "CAN"
+      },
+      "claim_type": "AUDIT_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "Tarion shall have the right to inspect all books and records"
+    },
+    {
+      "claim_id": "DOC005-C23",
+      "subject": "The Vendor",
+      "predicate": "has_deposit_protection_rule",
+      "object": {
+        "value": "hold all purchaser deposits in trust in accordance with legislation",
+        "modality": "MUST"
+      },
+      "claim_type": "STATUTORY_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "hold all purchaser deposits in trust in accordance with the Act"
+    },
+    {
+      "claim_id": "DOC005-C24",
+      "subject": "Dispute Resolution",
+      "predicate": "has_governing_rule",
+      "object": {
+        "value": "be resolved by arbitration pursuant to the Arbitration Act of Ontario",
+        "modality": "MUST"
+      },
+      "claim_type": "DISPUTE_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "Any dispute arising under this Agreement shall be referred to arbitration"
+    },
+    {
+      "claim_id": "DOC005-C25",
+      "subject": "Governing Law",
+      "predicate": "has_jurisdiction_rule",
+      "object": {
+        "value": "governed by the laws of the Province of Ontario and the laws of Canada",
+        "modality": "MUST"
+      },
+      "claim_type": "LEGAL_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "This Agreement shall be governed by and construed in accordance with the laws of Ontario"
+    },
+    {
+      "claim_id": "DOC005-C26",
+      "subject": "Default",
+      "predicate": "has_remedy_rule",
+      "object": {
+        "value": "Tarion may revoke enrolment or draw on security upon default",
+        "modality": "MAY"
+      },
+      "claim_type": "REMEDY_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "Upon the occurrence of any Event of Default, Tarion may immediately revoke enrolment"
+    },
+    {
+      "claim_id": "DOC005-C27",
+      "subject": "Termination",
+      "predicate": "has_notice_period",
+      "object": {
+        "value": 30,
+        "unit": "day",
+        "modality": "MUST"
+      },
+      "claim_type": "TERMINATION_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "either party may terminate upon thirty (30) days written notice"
+    },
+    {
+      "claim_id": "DOC005-C28",
+      "subject": "Notice",
+      "predicate": "has_delivery_rule",
+      "object": {
+        "value": "be in writing and delivered by registered mail or email",
+        "modality": "MUST"
+      },
+      "claim_type": "NOTICE_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "Any notice required to be given shall be in writing and delivered"
+    },
+    {
+      "claim_id": "DOC005-C29",
+      "subject": "Confidentiality",
+      "predicate": "has_non_disclosure_rule",
+      "object": {
+        "value": "keep confidential all proprietary vendor and warranty data",
+        "modality": "MUST"
+      },
+      "claim_type": "CONFIDENTIALITY_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "Each party agrees to maintain the confidentiality of all non-public information"
+    },
+    {
+      "claim_id": "DOC005-C30",
+      "subject": "Intellectual Property",
+      "predicate": "has_ownership_rule",
+      "object": {
+        "value": "all Tarion trademarks and standard forms remain the exclusive property of Tarion",
+        "modality": "MUST"
+      },
+      "claim_type": "IP_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "All trademarks, logos, and form templates are the exclusive intellectual property of Tarion"
+    },
+    {
+      "claim_id": "DOC005-C31",
+      "subject": "Enrolment Fee",
+      "predicate": "has_payment_deadline",
+      "object": {
+        "value": "be paid prior to the confirmation of home enrolment",
+        "modality": "MUST"
+      },
+      "claim_type": "FEE_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "The applicable enrolment fee must be paid prior to the confirmation of enrolment"
+    },
+    {
+      "claim_id": "DOC005-C32",
+      "subject": "Survival",
+      "predicate": "specifies_governing_rule",
+      "object": {
+        "value": "indemnity and security provisions survive termination of agreement",
+        "modality": "MUST"
+      },
+      "claim_type": "LEGAL_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "The indemnity and security provisions contained herein shall survive the termination"
     }
   ]
 }

@@ -1,0 +1,51 @@
+{
+  "document_id": "DOC-006",
+  "official_title": "WordPress PDF Invoice Plugin Sample",
+  "evaluation_summary": {
+    "initial_full_match_recall": 0.0,
+    "root_cause_analysis": "Multi-stage pipeline parsing breakdown across table segmentation and regex binding."
+  },
+  "missed_rules_pipeline_autopsy": [
+    {
+      "gold_claim_id": "DOC006-C01",
+      "gold_subject": "Total",
+      "gold_predicate": "has_sub_total",
+      "gold_object": "$85.00 USD",
+      "pipeline_stage": "UniversalFileParser (Stage 3 Table Linearization)",
+      "failure_mechanism": "Two-column key-value summary table (| Total | $85.00 |) was parsed with $85.00 treated as column key header, generating spurious slug predicate 'has_85_00' rather than identifying subtotal semantic role."
+    },
+    {
+      "gold_claim_id": "DOC006-C02",
+      "gold_subject": "Total",
+      "gold_predicate": "has_total_due",
+      "gold_object": "$93.50 USD",
+      "pipeline_stage": "UniversalFileParser (Stage 1 OCR / PDF Cell Merging)",
+      "failure_mechanism": "Row 'Total Due | $93.50' in header metadata table experienced cell bleed across merged columns, resulting in claim subject bound to email 'admin@slicedinvoices.com' and predicate 'has_12345'."
+    },
+    {
+      "gold_claim_id": "DOC006-C03",
+      "gold_subject": "Tax",
+      "gold_predicate": "has_tax_amount",
+      "gold_object": "$8.50 USD",
+      "pipeline_stage": "UniversalFileParser (Stage 3 Table Linearization)",
+      "failure_mechanism": "Middle tax row (| Tax | $8.50 |) inherited the $85.00 column slug header, emitting 'Tax has_85_00 $8.50' instead of 'has_tax_amount'."
+    },
+    {
+      "gold_claim_id": "DOC006-C04",
+      "gold_subject": "Payment",
+      "gold_predicate": "has_due_date_period",
+      "gold_object": "due within 30 days from date of invoice",
+      "pipeline_stage": "Sentence Segmenter & Deontic Classifier (Layer 4)",
+      "failure_mechanism": "Invoice footer clause 'Payment is due within 30 days from date of invoice' was concatenated with preceding line item text and captured by default e-commerce return window regex as 'has_return_window' under subject 'Web Design $85'."
+    },
+    {
+      "gold_claim_id": "DOC006-C05",
+      "gold_subject": "Late payment",
+      "gold_predicate": "may_apply_administration_fee",
+      "gold_object": "fees of 5% per month",
+      "pipeline_stage": "Candidate Discovery & Normalizer (Layer 5)",
+      "failure_mechanism": "Late payment sentence 'Late payment is subject to fees of 5% per month' was concatenated to line item 'Web Design $85', causing Knockout 4 subject discrepancy and quarantining in raw discovery."
+    }
+  ],
+  "repair_strategy": "Implement dedicated invoice parser plugin with layout-aware key-value total table recognizer and footer payment terms segmentation."
+}

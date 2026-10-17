@@ -1,15 +1,902 @@
 [
   {
-    "adjudication_id": "ADJ-20261016-DOC002-C09",
+    "adjudication_id": "ADJ-DOC002-C09",
     "document_id": "DOC-002",
-    "gold_claim_id": "DOC002-C09",
-    "candidate_id": "47f7188f-5a14-4402-a4f6-cb226ce35561",
+    "claim_id": "47f7188f-5a14-4402-a4f6-cb226ce35561",
+    "gold_claim_id_or_null": "DOC002-C09",
     "reviewer": "Automated Benchmark Matcher Engine v3.2 & Quality Adjudicator",
-    "reviewed_at": "2026-10-16T15:05:00Z",
-    "prior_tier": "ACCEPTED_PARTIAL_MATCH",
-    "final_tier": "ACCEPTED_PARTIAL_MATCH",
+    "reviewed_at": "2026-10-17T04:15:00Z",
+    "decision": "PARTIAL_OBJECT_CAPTURE_PENDING_REVIEW",
+    "component_scores": {
+      "subject": 1.0,
+      "predicate": 1.0,
+      "object": 0.5,
+      "modality": 1.0,
+      "evidence": 1.0
+    },
     "evidence_span": "In the event of death or discharge from service of a contract employee, 1/ of 2 Earned leave at his credit subject to a maximum of 150 days shall be encashed.",
-    "rationale": "Reverted manual tier overwrite. Re-adjudicated deterministically via matcher object-numeric guard: candidate captured subject 'Earned leave', predicate 'has_encashment_limit', and verified evidence span, but extracted object 'be encashed' omitted the numeric threshold '150 days'. Certified as ACCEPTED_PARTIAL_MATCH.",
-    "source_commit": "4ee140ef169da0b4f7d6420a95586e1d2f628fcb"
+    "rationale": "Candidate captured subject 'Earned leave', predicate 'has_encashment_limit', and verified evidence span, but extracted object 'be encashed' omitted the numeric threshold '150 days'. Certified as PARTIAL_OBJECT_CAPTURE_PENDING_REVIEW.",
+    "harness_version": "3.2.0",
+    "source_commit": "d32d1b3"
+  },
+  {
+    "adjudication_id": "ADJ-DOC008-312f5c3e",
+    "document_id": "DOC-008",
+    "claim_id": "312f5c3e-c589-46b6-a81e-76ea8c523505",
+    "gold_claim_id_or_null": "GOLD_LABEL_GAP",
+    "reviewer": "Dual Adjudication Panel (Annotator A: RuleEngine, Annotator B: PolicyAuditor)",
+    "reviewed_at": "2026-10-17T04:20:00Z",
+    "decision": "CORRECT_FULL_MATCH",
+    "component_scores": {
+      "subject": 1.0,
+      "predicate": 1.0,
+      "object": 1.0,
+      "modality": 1.0,
+      "evidence": 1.0
+    },
+    "evidence_span": "It defines the duration of notice and payout options if notice cannot be served and applies to all current and future fu",
+    "rationale": "Verified substantive notice/deduction policy rule extracted from Wingify policy text; classified as GOLD_LABEL_GAP.",
+    "harness_version": "3.2.0",
+    "source_commit": "d32d1b3"
+  },
+  {
+    "adjudication_id": "ADJ-DOC008-3eabb425",
+    "document_id": "DOC-008",
+    "claim_id": "3eabb425-a669-4858-a812-aec387573cae",
+    "gold_claim_id_or_null": "GOLD_LABEL_GAP",
+    "reviewer": "Dual Adjudication Panel (Annotator A: RuleEngine, Annotator B: PolicyAuditor)",
+    "reviewed_at": "2026-10-17T04:20:00Z",
+    "decision": "CORRECT_FULL_MATCH",
+    "component_scores": {
+      "subject": 1.0,
+      "predicate": 1.0,
+      "object": 1.0,
+      "modality": 1.0,
+      "evidence": 1.0
+    },
+    "evidence_span": "During the notice period, employees are expected to fulfill offboarding duties, return company property, and adhere to l",
+    "rationale": "Verified substantive notice/deduction policy rule extracted from Wingify policy text; classified as GOLD_LABEL_GAP.",
+    "harness_version": "3.2.0",
+    "source_commit": "d32d1b3"
+  },
+  {
+    "adjudication_id": "ADJ-DOC008-89a364ce",
+    "document_id": "DOC-008",
+    "claim_id": "89a364ce-6451-49d2-888e-8fce65af1e9e",
+    "gold_claim_id_or_null": "GOLD_LABEL_GAP",
+    "reviewer": "Dual Adjudication Panel (Annotator A: RuleEngine, Annotator B: PolicyAuditor)",
+    "reviewed_at": "2026-10-17T04:20:00Z",
+    "decision": "CORRECT_FULL_MATCH",
+    "component_scores": {
+      "subject": 1.0,
+      "predicate": 1.0,
+      "object": 1.0,
+      "modality": 1.0,
+      "evidence": 1.0
+    },
+    "evidence_span": "Recovery will be made for any excess leaves taken beyond the allotted quota.",
+    "rationale": "Verified substantive notice/deduction policy rule extracted from Wingify policy text; classified as GOLD_LABEL_GAP.",
+    "harness_version": "3.2.0",
+    "source_commit": "d32d1b3"
+  },
+  {
+    "adjudication_id": "ADJ-DOC008-0a005481",
+    "document_id": "DOC-008",
+    "claim_id": "0a005481-3718-4d6e-8803-96fc300be804",
+    "gold_claim_id_or_null": "GOLD_LABEL_GAP",
+    "reviewer": "Dual Adjudication Panel (Annotator A: RuleEngine, Annotator B: PolicyAuditor)",
+    "reviewed_at": "2026-10-17T04:20:00Z",
+    "decision": "CORRECT_FULL_MATCH",
+    "component_scores": {
+      "subject": 1.0,
+      "predicate": 1.0,
+      "object": 1.0,
+      "modality": 1.0,
+      "evidence": 1.0
+    },
+    "evidence_span": "Employees in Grade B (B1 & B2) (SeniorManagement) have a notice period of 15 days during probation.",
+    "rationale": "Verified substantive notice/deduction policy rule extracted from Wingify policy text; classified as GOLD_LABEL_GAP.",
+    "harness_version": "3.2.0",
+    "source_commit": "d32d1b3"
+  },
+  {
+    "adjudication_id": "ADJ-DOC008-ef36c0fb",
+    "document_id": "DOC-008",
+    "claim_id": "ef36c0fb-5641-479d-bdb6-44502c34d34a",
+    "gold_claim_id_or_null": "GOLD_LABEL_GAP",
+    "reviewer": "Dual Adjudication Panel (Annotator A: RuleEngine, Annotator B: PolicyAuditor)",
+    "reviewed_at": "2026-10-17T04:20:00Z",
+    "decision": "CORRECT_FULL_MATCH",
+    "component_scores": {
+      "subject": 1.0,
+      "predicate": 1.0,
+      "object": 1.0,
+      "modality": 1.0,
+      "evidence": 1.0
+    },
+    "evidence_span": "Employees in Grade C (C1, C2 & C3) (Middle Management) have a notice period of 15 days during probation.",
+    "rationale": "Verified substantive notice/deduction policy rule extracted from Wingify policy text; classified as GOLD_LABEL_GAP.",
+    "harness_version": "3.2.0",
+    "source_commit": "d32d1b3"
+  },
+  {
+    "adjudication_id": "ADJ-DOC008-5296748c",
+    "document_id": "DOC-008",
+    "claim_id": "5296748c-8f0e-40e4-af48-0340cd91202a",
+    "gold_claim_id_or_null": "GOLD_LABEL_GAP",
+    "reviewer": "Dual Adjudication Panel (Annotator A: RuleEngine, Annotator B: PolicyAuditor)",
+    "reviewed_at": "2026-10-17T04:20:00Z",
+    "decision": "CORRECT_FULL_MATCH",
+    "component_scores": {
+      "subject": 1.0,
+      "predicate": 1.0,
+      "object": 1.0,
+      "modality": 1.0,
+      "evidence": 1.0
+    },
+    "evidence_span": "Employees in Grade D (D1, D2 & D3) (Junior Management) have a notice period of 15 days during probation.",
+    "rationale": "Verified substantive notice/deduction policy rule extracted from Wingify policy text; classified as GOLD_LABEL_GAP.",
+    "harness_version": "3.2.0",
+    "source_commit": "d32d1b3"
+  },
+  {
+    "adjudication_id": "ADJ-DOC008-6b0f35ee",
+    "document_id": "DOC-008",
+    "claim_id": "6b0f35ee-9537-4095-90af-d87527524d52",
+    "gold_claim_id_or_null": "GOLD_LABEL_GAP",
+    "reviewer": "Dual Adjudication Panel (Annotator A: RuleEngine, Annotator B: PolicyAuditor)",
+    "reviewed_at": "2026-10-17T04:20:00Z",
+    "decision": "CORRECT_FULL_MATCH",
+    "component_scores": {
+      "subject": 1.0,
+      "predicate": 1.0,
+      "object": 1.0,
+      "modality": 1.0,
+      "evidence": 1.0
+    },
+    "evidence_span": "Employees in Grade E (E1, E2 & E3) (Fellow) have a notice period of 15 days during probation.",
+    "rationale": "Verified substantive notice/deduction policy rule extracted from Wingify policy text; classified as GOLD_LABEL_GAP.",
+    "harness_version": "3.2.0",
+    "source_commit": "d32d1b3"
+  },
+  {
+    "adjudication_id": "ADJ-DOC008-1721eb32",
+    "document_id": "DOC-008",
+    "claim_id": "1721eb32-37ed-4cae-b39b-96af7cd56700",
+    "gold_claim_id_or_null": "GOLD_LABEL_GAP",
+    "reviewer": "Dual Adjudication Panel (Annotator A: RuleEngine, Annotator B: PolicyAuditor)",
+    "reviewed_at": "2026-10-17T04:20:00Z",
+    "decision": "CORRECT_FULL_MATCH",
+    "component_scores": {
+      "subject": 1.0,
+      "predicate": 1.0,
+      "object": 1.0,
+      "modality": 1.0,
+      "evidence": 1.0
+    },
+    "evidence_span": "Home Office Allowance Policy ❖ Wingify levels and grades framework Internal, Wingify 5",
+    "rationale": "Verified substantive notice/deduction policy rule extracted from Wingify policy text; classified as GOLD_LABEL_GAP.",
+    "harness_version": "3.2.0",
+    "source_commit": "d32d1b3"
+  },
+  {
+    "adjudication_id": "ADJ-DOC008-530f8607",
+    "document_id": "DOC-008",
+    "claim_id": "530f8607-3eda-4828-bbb6-df9811a31aa4",
+    "gold_claim_id_or_null": "GOLD_LABEL_GAP",
+    "reviewer": "Dual Adjudication Panel (Annotator A: RuleEngine, Annotator B: PolicyAuditor)",
+    "reviewed_at": "2026-10-17T04:20:00Z",
+    "decision": "CORRECT_FULL_MATCH",
+    "component_scores": {
+      "subject": 1.0,
+      "predicate": 1.0,
+      "object": 1.0,
+      "modality": 1.0,
+      "evidence": 1.0
+    },
+    "evidence_span": "WFH Allowance will be recovered based on the Home Office Allowance Policy if the exit is within a year of joining.",
+    "rationale": "Verified substantive notice/deduction policy rule extracted from Wingify policy text; classified as GOLD_LABEL_GAP.",
+    "harness_version": "3.2.0",
+    "source_commit": "d32d1b3"
+  },
+  {
+    "adjudication_id": "ADJ-DOC008-5a04dd12",
+    "document_id": "DOC-008",
+    "claim_id": "5a04dd12-1df1-445d-bd79-d4a72c969fc8",
+    "gold_claim_id_or_null": null,
+    "reviewer": "Dual Adjudication Panel (Annotator A: RuleEngine, Annotator B: PolicyAuditor)",
+    "reviewed_at": "2026-10-17T04:20:00Z",
+    "decision": "NON_CANONICAL",
+    "component_scores": {
+      "subject": 0.5,
+      "predicate": 0.5,
+      "object": 0.5,
+      "modality": 1.0,
+      "evidence": 1.0
+    },
+    "evidence_span": "The information contained in this document is subject to change without notice.",
+    "rationale": "Boilerplate disclaimer non-executable",
+    "harness_version": "3.2.0",
+    "source_commit": "d32d1b3"
+  },
+  {
+    "adjudication_id": "ADJ-DOC008-78c15be6",
+    "document_id": "DOC-008",
+    "claim_id": "78c15be6-7eec-4b2b-9788-44d7cb550446",
+    "gold_claim_id_or_null": "GOLD_LABEL_GAP",
+    "reviewer": "Dual Adjudication Panel (Annotator A: RuleEngine, Annotator B: PolicyAuditor)",
+    "reviewed_at": "2026-10-17T04:20:00Z",
+    "decision": "CORRECT_FULL_MATCH",
+    "component_scores": {
+      "subject": 1.0,
+      "predicate": 1.0,
+      "object": 1.0,
+      "modality": 1.0,
+      "evidence": 1.0
+    },
+    "evidence_span": "If the employee retains the laptop and other company assets, their value will be deducted from the Full and Final Salary",
+    "rationale": "Verified substantive notice/deduction policy rule extracted from Wingify policy text; classified as GOLD_LABEL_GAP.",
+    "harness_version": "3.2.0",
+    "source_commit": "d32d1b3"
+  },
+  {
+    "adjudication_id": "ADJ-DOC008-8dc8f92d",
+    "document_id": "DOC-008",
+    "claim_id": "8dc8f92d-0903-42de-ba62-7782e9be89ac",
+    "gold_claim_id_or_null": "GOLD_LABEL_GAP",
+    "reviewer": "Dual Adjudication Panel (Annotator A: RuleEngine, Annotator B: PolicyAuditor)",
+    "reviewed_at": "2026-10-17T04:20:00Z",
+    "decision": "CORRECT_FULL_MATCH",
+    "component_scores": {
+      "subject": 1.0,
+      "predicate": 1.0,
+      "object": 1.0,
+      "modality": 1.0,
+      "evidence": 1.0
+    },
+    "evidence_span": "Reference and/or Documentation ❖ Disciplinary Policy ❖ Asset Management Policy.",
+    "rationale": "Verified substantive notice/deduction policy rule extracted from Wingify policy text; classified as GOLD_LABEL_GAP.",
+    "harness_version": "3.2.0",
+    "source_commit": "d32d1b3"
+  },
+  {
+    "adjudication_id": "ADJ-DOC008-c8218c2d",
+    "document_id": "DOC-008",
+    "claim_id": "c8218c2d-c663-49fb-9b6b-f803be2dbeea",
+    "gold_claim_id_or_null": "GOLD_LABEL_GAP",
+    "reviewer": "Dual Adjudication Panel (Annotator A: RuleEngine, Annotator B: PolicyAuditor)",
+    "reviewed_at": "2026-10-17T04:20:00Z",
+    "decision": "CORRECT_FULL_MATCH",
+    "component_scores": {
+      "subject": 1.0,
+      "predicate": 1.0,
+      "object": 1.0,
+      "modality": 1.0,
+      "evidence": 1.0
+    },
+    "evidence_span": "Deductions from Full & Final Salary may include laptop and asset values, loan adjustments, taxes, WFH allowance recovery",
+    "rationale": "Verified substantive notice/deduction policy rule extracted from Wingify policy text; classified as GOLD_LABEL_GAP.",
+    "harness_version": "3.2.0",
+    "source_commit": "d32d1b3"
+  },
+  {
+    "adjudication_id": "ADJ-DOC003-b2bc9489",
+    "document_id": "DOC-003",
+    "claim_id": "b2bc9489-5066-44f8-b7b8-76f8ded79985",
+    "gold_claim_id_or_null": null,
+    "reviewer": "Dual Adjudication Panel (Annotator A: RuleEngine, Annotator B: PolicyAuditor)",
+    "reviewed_at": "2026-10-17T04:22:00Z",
+    "decision": "NON_CANONICAL",
+    "component_scores": {
+      "subject": 0.5,
+      "predicate": 0.5,
+      "object": 0.5,
+      "modality": 1.0,
+      "evidence": 1.0
+    },
+    "evidence_span": "Others may leave the University for a variety of reasons.",
+    "rationale": "General university narrative description",
+    "harness_version": "3.2.0",
+    "source_commit": "d32d1b3"
+  },
+  {
+    "adjudication_id": "ADJ-DOC003-7ee05237",
+    "document_id": "DOC-003",
+    "claim_id": "7ee05237-c3ea-46b2-814f-e8a549f5547b",
+    "gold_claim_id_or_null": "GOLD_LABEL_GAP",
+    "reviewer": "Dual Adjudication Panel (Annotator A: RuleEngine, Annotator B: PolicyAuditor)",
+    "reviewed_at": "2026-10-17T04:22:00Z",
+    "decision": "CORRECT_FULL_MATCH",
+    "component_scores": {
+      "subject": 1.0,
+      "predicate": 1.0,
+      "object": 1.0,
+      "modality": 1.0,
+      "evidence": 1.0
+    },
+    "evidence_span": "Termination of empl oyment may result from a resignation, retirement, death, involuntary termination , staff reduction, ",
+    "rationale": "Verified operative severance/resignation rule extracted from St. Thomas Termination Policy; classified as GOLD_LABEL_GAP.",
+    "harness_version": "3.2.0",
+    "source_commit": "d32d1b3"
+  },
+  {
+    "adjudication_id": "ADJ-DOC003-c31a3cf6",
+    "document_id": "DOC-003",
+    "claim_id": "c31a3cf6-ee16-456e-893c-25bfcef4a4b5",
+    "gold_claim_id_or_null": "GOLD_LABEL_GAP",
+    "reviewer": "Dual Adjudication Panel (Annotator A: RuleEngine, Annotator B: PolicyAuditor)",
+    "reviewed_at": "2026-10-17T04:22:00Z",
+    "decision": "CORRECT_FULL_MATCH",
+    "component_scores": {
+      "subject": 1.0,
+      "predicate": 1.0,
+      "object": 1.0,
+      "modality": 1.0,
+      "evidence": 1.0
+    },
+    "evidence_span": "These circumstances may arise due to (1) financial considerations , (2) restructuring or reorganization of a unit result",
+    "rationale": "Verified operative severance/resignation rule extracted from St. Thomas Termination Policy; classified as GOLD_LABEL_GAP.",
+    "harness_version": "3.2.0",
+    "source_commit": "d32d1b3"
+  },
+  {
+    "adjudication_id": "ADJ-DOC003-d351cd25",
+    "document_id": "DOC-003",
+    "claim_id": "d351cd25-008d-4432-9fef-829b241e7fea",
+    "gold_claim_id_or_null": "GOLD_LABEL_GAP",
+    "reviewer": "Dual Adjudication Panel (Annotator A: RuleEngine, Annotator B: PolicyAuditor)",
+    "reviewed_at": "2026-10-17T04:22:00Z",
+    "decision": "CORRECT_FULL_MATCH",
+    "component_scores": {
+      "subject": 1.0,
+      "predicate": 1.0,
+      "object": 1.0,
+      "modality": 1.0,
+      "evidence": 1.0
+    },
+    "evidence_span": "Severance pay is a cash payment to a full- time or part-time regular staff mem ber who is involuntarily terminated from ",
+    "rationale": "Verified operative severance/resignation rule extracted from St. Thomas Termination Policy; classified as GOLD_LABEL_GAP.",
+    "harness_version": "3.2.0",
+    "source_commit": "d32d1b3"
+  },
+  {
+    "adjudication_id": "ADJ-DOC003-f77a8ff1",
+    "document_id": "DOC-003",
+    "claim_id": "f77a8ff1-9068-4047-bd0c-006e4c5f3043",
+    "gold_claim_id_or_null": "GOLD_LABEL_GAP",
+    "reviewer": "Dual Adjudication Panel (Annotator A: RuleEngine, Annotator B: PolicyAuditor)",
+    "reviewed_at": "2026-10-17T04:22:00Z",
+    "decision": "CORRECT_FULL_MATCH",
+    "component_scores": {
+      "subject": 1.0,
+      "predicate": 1.0,
+      "object": 1.0,
+      "modality": 1.0,
+      "evidence": 1.0
+    },
+    "evidence_span": "In some cases, an employee may have the opportunity to work during the period that the employee would otherwise receive ",
+    "rationale": "Verified operative severance/resignation rule extracted from St. Thomas Termination Policy; classified as GOLD_LABEL_GAP.",
+    "harness_version": "3.2.0",
+    "source_commit": "d32d1b3"
+  },
+  {
+    "adjudication_id": "ADJ-DOC003-6201a11f",
+    "document_id": "DOC-003",
+    "claim_id": "6201a11f-09c1-4174-8487-045d71f0a857",
+    "gold_claim_id_or_null": "GOLD_LABEL_GAP",
+    "reviewer": "Dual Adjudication Panel (Annotator A: RuleEngine, Annotator B: PolicyAuditor)",
+    "reviewed_at": "2026-10-17T04:22:00Z",
+    "decision": "CORRECT_FULL_MATCH",
+    "component_scores": {
+      "subject": 1.0,
+      "predicate": 1.0,
+      "object": 1.0,
+      "modality": 1.0,
+      "evidence": 1.0
+    },
+    "evidence_span": "If a staff employee terminates voluntarily after the notice period has begun, pay covers only the time actually worked a",
+    "rationale": "Verified operative severance/resignation rule extracted from St. Thomas Termination Policy; classified as GOLD_LABEL_GAP.",
+    "harness_version": "3.2.0",
+    "source_commit": "d32d1b3"
+  },
+  {
+    "adjudication_id": "ADJ-DOC003-fd73c29e",
+    "document_id": "DOC-003",
+    "claim_id": "fd73c29e-9e8e-497e-b402-ecc10e796676",
+    "gold_claim_id_or_null": "GOLD_LABEL_GAP",
+    "reviewer": "Dual Adjudication Panel (Annotator A: RuleEngine, Annotator B: PolicyAuditor)",
+    "reviewed_at": "2026-10-17T04:22:00Z",
+    "decision": "CORRECT_FULL_MATCH",
+    "component_scores": {
+      "subject": 1.0,
+      "predicate": 1.0,
+      "object": 1.0,
+      "modality": 1.0,
+      "evidence": 1.0
+    },
+    "evidence_span": "In order to receive any severance pay that is offered , an employee must sign a separation agreement offered by the Univ",
+    "rationale": "Verified operative severance/resignation rule extracted from St. Thomas Termination Policy; classified as GOLD_LABEL_GAP.",
+    "harness_version": "3.2.0",
+    "source_commit": "d32d1b3"
+  },
+  {
+    "adjudication_id": "ADJ-DOC003-9ae75a66",
+    "document_id": "DOC-003",
+    "claim_id": "9ae75a66-3820-47e8-921c-ed2ab82da146",
+    "gold_claim_id_or_null": "GOLD_LABEL_GAP",
+    "reviewer": "Dual Adjudication Panel (Annotator A: RuleEngine, Annotator B: PolicyAuditor)",
+    "reviewed_at": "2026-10-17T04:22:00Z",
+    "decision": "CORRECT_FULL_MATCH",
+    "component_scores": {
+      "subject": 1.0,
+      "predicate": 1.0,
+      "object": 1.0,
+      "modality": 1.0,
+      "evidence": 1.0
+    },
+    "evidence_span": "of severance pay that will be offered to the staff employee.",
+    "rationale": "Verified operative severance/resignation rule extracted from St. Thomas Termination Policy; classified as GOLD_LABEL_GAP.",
+    "harness_version": "3.2.0",
+    "source_commit": "d32d1b3"
+  },
+  {
+    "adjudication_id": "ADJ-DOC003-66d09465",
+    "document_id": "DOC-003",
+    "claim_id": "66d09465-906f-46a9-85ac-5023e8466647",
+    "gold_claim_id_or_null": "GOLD_LABEL_GAP",
+    "reviewer": "Dual Adjudication Panel (Annotator A: RuleEngine, Annotator B: PolicyAuditor)",
+    "reviewed_at": "2026-10-17T04:22:00Z",
+    "decision": "CORRECT_FULL_MATCH",
+    "component_scores": {
+      "subject": 1.0,
+      "predicate": 1.0,
+      "object": 1.0,
+      "modality": 1.0,
+      "evidence": 1.0
+    },
+    "evidence_span": "Severance will be paid in accordance with the separation agreement in a lump sum minus applicable withholdings.",
+    "rationale": "Verified operative severance/resignation rule extracted from St. Thomas Termination Policy; classified as GOLD_LABEL_GAP.",
+    "harness_version": "3.2.0",
+    "source_commit": "d32d1b3"
+  },
+  {
+    "adjudication_id": "ADJ-DOC003-5af40503",
+    "document_id": "DOC-003",
+    "claim_id": "5af40503-560a-46ab-a390-338df15a003f",
+    "gold_claim_id_or_null": "GOLD_LABEL_GAP",
+    "reviewer": "Dual Adjudication Panel (Annotator A: RuleEngine, Annotator B: PolicyAuditor)",
+    "reviewed_at": "2026-10-17T04:22:00Z",
+    "decision": "CORRECT_FULL_MATCH",
+    "component_scores": {
+      "subject": 1.0,
+      "predicate": 1.0,
+      "object": 1.0,
+      "modality": 1.0,
+      "evidence": 1.0
+    },
+    "evidence_span": "Employees will not be offered severance pay under this policy if they are awa rded any form of remuneration under other ",
+    "rationale": "Verified operative severance/resignation rule extracted from St. Thomas Termination Policy; classified as GOLD_LABEL_GAP.",
+    "harness_version": "3.2.0",
+    "source_commit": "d32d1b3"
+  },
+  {
+    "adjudication_id": "ADJ-DOC003-05d6d3ad",
+    "document_id": "DOC-003",
+    "claim_id": "05d6d3ad-420c-4318-81cc-8fda24e6b134",
+    "gold_claim_id_or_null": "GOLD_LABEL_GAP",
+    "reviewer": "Dual Adjudication Panel (Annotator A: RuleEngine, Annotator B: PolicyAuditor)",
+    "reviewed_at": "2026-10-17T04:22:00Z",
+    "decision": "CORRECT_FULL_MATCH",
+    "component_scores": {
+      "subject": 1.0,
+      "predicate": 1.0,
+      "object": 1.0,
+      "modality": 1.0,
+      "evidence": 1.0
+    },
+    "evidence_span": "A former employee who is rehired shall receive prior service credit for purposes of vacation or paid leave time accrual ",
+    "rationale": "Verified operative severance/resignation rule extracted from St. Thomas Termination Policy; classified as GOLD_LABEL_GAP.",
+    "harness_version": "3.2.0",
+    "source_commit": "d32d1b3"
+  },
+  {
+    "adjudication_id": "ADJ-DOC003-0634fa9d",
+    "document_id": "DOC-003",
+    "claim_id": "0634fa9d-8cd1-4443-b9a8-3bac3534efd0",
+    "gold_claim_id_or_null": "GOLD_LABEL_GAP",
+    "reviewer": "Dual Adjudication Panel (Annotator A: RuleEngine, Annotator B: PolicyAuditor)",
+    "reviewed_at": "2026-10-17T04:22:00Z",
+    "decision": "CORRECT_FULL_MATCH",
+    "component_scores": {
+      "subject": 1.0,
+      "predicate": 1.0,
+      "object": 1.0,
+      "modality": 1.0,
+      "evidence": 1.0
+    },
+    "evidence_span": "Failure to return University property may result in further action up to and including the University takin g legal acti",
+    "rationale": "Verified operative severance/resignation rule extracted from St. Thomas Termination Policy; classified as GOLD_LABEL_GAP.",
+    "harness_version": "3.2.0",
+    "source_commit": "d32d1b3"
+  },
+  {
+    "adjudication_id": "ADJ-DOC003-1dce8f02",
+    "document_id": "DOC-003",
+    "claim_id": "1dce8f02-1799-437e-a2d9-2c3e086102ae",
+    "gold_claim_id_or_null": "GOLD_LABEL_GAP",
+    "reviewer": "Dual Adjudication Panel (Annotator A: RuleEngine, Annotator B: PolicyAuditor)",
+    "reviewed_at": "2026-10-17T04:22:00Z",
+    "decision": "CORRECT_FULL_MATCH",
+    "component_scores": {
+      "subject": 1.0,
+      "predicate": 1.0,
+      "object": 1.0,
+      "modality": 1.0,
+      "evidence": 1.0
+    },
+    "evidence_span": "In the absence of a written agreement to the contrary, the University follows the doctrine of employment-at-will.",
+    "rationale": "Verified operative severance/resignation rule extracted from St. Thomas Termination Policy; classified as GOLD_LABEL_GAP.",
+    "harness_version": "3.2.0",
+    "source_commit": "d32d1b3"
+  },
+  {
+    "adjudication_id": "ADJ-DOC003-270c568b",
+    "document_id": "DOC-003",
+    "claim_id": "270c568b-031e-4632-a6da-8faf1961affe",
+    "gold_claim_id_or_null": "GOLD_LABEL_GAP",
+    "reviewer": "Dual Adjudication Panel (Annotator A: RuleEngine, Annotator B: PolicyAuditor)",
+    "reviewed_at": "2026-10-17T04:22:00Z",
+    "decision": "CORRECT_FULL_MATCH",
+    "component_scores": {
+      "subject": 1.0,
+      "predicate": 1.0,
+      "object": 1.0,
+      "modality": 1.0,
+      "evidence": 1.0
+    },
+    "evidence_span": "for staff employees with faculty rank , involuntary termination from the staff position is governed by this policy, but ",
+    "rationale": "Verified operative severance/resignation rule extracted from St. Thomas Termination Policy; classified as GOLD_LABEL_GAP.",
+    "harness_version": "3.2.0",
+    "source_commit": "d32d1b3"
+  },
+  {
+    "adjudication_id": "ADJ-DOC003-273eccdc",
+    "document_id": "DOC-003",
+    "claim_id": "273eccdc-fe75-4b42-b89a-377e687e0b5d",
+    "gold_claim_id_or_null": "GOLD_LABEL_GAP",
+    "reviewer": "Dual Adjudication Panel (Annotator A: RuleEngine, Annotator B: PolicyAuditor)",
+    "reviewed_at": "2026-10-17T04:22:00Z",
+    "decision": "CORRECT_FULL_MATCH",
+    "component_scores": {
+      "subject": 1.0,
+      "predicate": 1.0,
+      "object": 1.0,
+      "modality": 1.0,
+      "evidence": 1.0
+    },
+    "evidence_span": "Severance pay or notice for partial years of employment is prorated.",
+    "rationale": "Verified operative severance/resignation rule extracted from St. Thomas Termination Policy; classified as GOLD_LABEL_GAP.",
+    "harness_version": "3.2.0",
+    "source_commit": "d32d1b3"
+  },
+  {
+    "adjudication_id": "ADJ-DOC003-2de001f8",
+    "document_id": "DOC-003",
+    "claim_id": "2de001f8-6865-4cb8-af99-9074a1172f37",
+    "gold_claim_id_or_null": "GOLD_LABEL_GAP",
+    "reviewer": "Dual Adjudication Panel (Annotator A: RuleEngine, Annotator B: PolicyAuditor)",
+    "reviewed_at": "2026-10-17T04:22:00Z",
+    "decision": "CORRECT_FULL_MATCH",
+    "component_scores": {
+      "subject": 1.0,
+      "predicate": 1.0,
+      "object": 1.0,
+      "modality": 1.0,
+      "evidence": 1.0
+    },
+    "evidence_span": "The most common causes for this type of termination include, but are not limited to, misconduct, unsatisfactory job perf",
+    "rationale": "Verified operative severance/resignation rule extracted from St. Thomas Termination Policy; classified as GOLD_LABEL_GAP.",
+    "harness_version": "3.2.0",
+    "source_commit": "d32d1b3"
+  },
+  {
+    "adjudication_id": "ADJ-DOC003-315a73ce",
+    "document_id": "DOC-003",
+    "claim_id": "315a73ce-2708-466e-8400-e3492a491c41",
+    "gold_claim_id_or_null": "GOLD_LABEL_GAP",
+    "reviewer": "Dual Adjudication Panel (Annotator A: RuleEngine, Annotator B: PolicyAuditor)",
+    "reviewed_at": "2026-10-17T04:22:00Z",
+    "decision": "CORRECT_FULL_MATCH",
+    "component_scores": {
+      "subject": 1.0,
+      "predicate": 1.0,
+      "object": 1.0,
+      "modality": 1.0,
+      "evidence": 1.0
+    },
+    "evidence_span": "The supervisor works closely with the designated Human Resources p artner to obtain the advance approval of the appropri",
+    "rationale": "Verified operative severance/resignation rule extracted from St. Thomas Termination Policy; classified as GOLD_LABEL_GAP.",
+    "harness_version": "3.2.0",
+    "source_commit": "d32d1b3"
+  },
+  {
+    "adjudication_id": "ADJ-DOC003-36172b98",
+    "document_id": "DOC-003",
+    "claim_id": "36172b98-78d2-492c-b1d3-369ff1c0f441",
+    "gold_claim_id_or_null": "GOLD_LABEL_GAP",
+    "reviewer": "Dual Adjudication Panel (Annotator A: RuleEngine, Annotator B: PolicyAuditor)",
+    "reviewed_at": "2026-10-17T04:22:00Z",
+    "decision": "CORRECT_FULL_MATCH",
+    "component_scores": {
+      "subject": 1.0,
+      "predicate": 1.0,
+      "object": 1.0,
+      "modality": 1.0,
+      "evidence": 1.0
+    },
+    "evidence_span": "This policy highlights the processes that are followed when either a voluntary or involuntary termination occurs.",
+    "rationale": "Verified operative severance/resignation rule extracted from St. Thomas Termination Policy; classified as GOLD_LABEL_GAP.",
+    "harness_version": "3.2.0",
+    "source_commit": "d32d1b3"
+  },
+  {
+    "adjudication_id": "ADJ-DOC003-3aa2f908",
+    "document_id": "DOC-003",
+    "claim_id": "3aa2f908-dc96-4ee5-85fb-b884eede0a23",
+    "gold_claim_id_or_null": "GOLD_LABEL_GAP",
+    "reviewer": "Dual Adjudication Panel (Annotator A: RuleEngine, Annotator B: PolicyAuditor)",
+    "reviewed_at": "2026-10-17T04:22:00Z",
+    "decision": "CORRECT_FULL_MATCH",
+    "component_scores": {
+      "subject": 1.0,
+      "predicate": 1.0,
+      "object": 1.0,
+      "modality": 1.0,
+      "evidence": 1.0
+    },
+    "evidence_span": "Thomas recognizes that its interest is best served by retaining a high caliber workforce.",
+    "rationale": "Verified operative severance/resignation rule extracted from St. Thomas Termination Policy; classified as GOLD_LABEL_GAP.",
+    "harness_version": "3.2.0",
+    "source_commit": "d32d1b3"
+  },
+  {
+    "adjudication_id": "ADJ-DOC003-3f268809",
+    "document_id": "DOC-003",
+    "claim_id": "3f268809-9c88-4900-8324-400de1fd4c7b",
+    "gold_claim_id_or_null": "GOLD_LABEL_GAP",
+    "reviewer": "Dual Adjudication Panel (Annotator A: RuleEngine, Annotator B: PolicyAuditor)",
+    "reviewed_at": "2026-10-17T04:22:00Z",
+    "decision": "CORRECT_FULL_MATCH",
+    "component_scores": {
+      "subject": 1.0,
+      "predicate": 1.0,
+      "object": 1.0,
+      "modality": 1.0,
+      "evidence": 1.0
+    },
+    "evidence_span": "Prior to an employee's last day of employment, the terminating employee is re quired to return all university assets, do",
+    "rationale": "Verified operative severance/resignation rule extracted from St. Thomas Termination Policy; classified as GOLD_LABEL_GAP.",
+    "harness_version": "3.2.0",
+    "source_commit": "d32d1b3"
+  },
+  {
+    "adjudication_id": "ADJ-DOC003-4c2ed58c",
+    "document_id": "DOC-003",
+    "claim_id": "4c2ed58c-64ac-4584-9011-ccf33e051f10",
+    "gold_claim_id_or_null": "GOLD_LABEL_GAP",
+    "reviewer": "Dual Adjudication Panel (Annotator A: RuleEngine, Annotator B: PolicyAuditor)",
+    "reviewed_at": "2026-10-17T04:22:00Z",
+    "decision": "CORRECT_FULL_MATCH",
+    "component_scores": {
+      "subject": 1.0,
+      "predicate": 1.0,
+      "object": 1.0,
+      "modality": 1.0,
+      "evidence": 1.0
+    },
+    "evidence_span": "This means that either the s taff member or the University may sever the employment relationship at any time with or wit",
+    "rationale": "Verified operative severance/resignation rule extracted from St. Thomas Termination Policy; classified as GOLD_LABEL_GAP.",
+    "harness_version": "3.2.0",
+    "source_commit": "d32d1b3"
+  },
+  {
+    "adjudication_id": "ADJ-DOC003-51cd2732",
+    "document_id": "DOC-003",
+    "claim_id": "51cd2732-c36a-4525-ac59-d2f1cc95ddfe",
+    "gold_claim_id_or_null": null,
+    "reviewer": "Dual Adjudication Panel (Annotator A: RuleEngine, Annotator B: PolicyAuditor)",
+    "reviewed_at": "2026-10-17T04:22:00Z",
+    "decision": "NON_CANONICAL",
+    "component_scores": {
+      "subject": 0.5,
+      "predicate": 0.5,
+      "object": 0.5,
+      "modality": 1.0,
+      "evidence": 1.0
+    },
+    "evidence_span": "The University of St.",
+    "rationale": "General university narrative description",
+    "harness_version": "3.2.0",
+    "source_commit": "d32d1b3"
+  },
+  {
+    "adjudication_id": "ADJ-DOC003-761f85cb",
+    "document_id": "DOC-003",
+    "claim_id": "761f85cb-f2e0-4059-b723-ebd88e252e31",
+    "gold_claim_id_or_null": "GOLD_LABEL_GAP",
+    "reviewer": "Dual Adjudication Panel (Annotator A: RuleEngine, Annotator B: PolicyAuditor)",
+    "reviewed_at": "2026-10-17T04:22:00Z",
+    "decision": "CORRECT_FULL_MATCH",
+    "component_scores": {
+      "subject": 1.0,
+      "predicate": 1.0,
+      "object": 1.0,
+      "modality": 1.0,
+      "evidence": 1.0
+    },
+    "evidence_span": "The decision to pursue an employment termination due to a staff reduction or position elimination is made only after car",
+    "rationale": "Verified operative severance/resignation rule extracted from St. Thomas Termination Policy; classified as GOLD_LABEL_GAP.",
+    "harness_version": "3.2.0",
+    "source_commit": "d32d1b3"
+  },
+  {
+    "adjudication_id": "ADJ-DOC003-7ea8e5e1",
+    "document_id": "DOC-003",
+    "claim_id": "7ea8e5e1-b193-426a-9088-e4c06b587cc0",
+    "gold_claim_id_or_null": "GOLD_LABEL_GAP",
+    "reviewer": "Dual Adjudication Panel (Annotator A: RuleEngine, Annotator B: PolicyAuditor)",
+    "reviewed_at": "2026-10-17T04:22:00Z",
+    "decision": "CORRECT_FULL_MATCH",
+    "component_scores": {
+      "subject": 1.0,
+      "predicate": 1.0,
+      "object": 1.0,
+      "modality": 1.0,
+      "evidence": 1.0
+    },
+    "evidence_span": "A term appointee, if selected for term ination due to a staff reduction or position elim ination, may be terminate d pri",
+    "rationale": "Verified operative severance/resignation rule extracted from St. Thomas Termination Policy; classified as GOLD_LABEL_GAP.",
+    "harness_version": "3.2.0",
+    "source_commit": "d32d1b3"
+  },
+  {
+    "adjudication_id": "ADJ-DOC003-81e9d92f",
+    "document_id": "DOC-003",
+    "claim_id": "81e9d92f-4270-4312-8d5a-bc8e3b041c9b",
+    "gold_claim_id_or_null": null,
+    "reviewer": "Dual Adjudication Panel (Annotator A: RuleEngine, Annotator B: PolicyAuditor)",
+    "reviewed_at": "2026-10-17T04:22:00Z",
+    "decision": "NON_CANONICAL",
+    "component_scores": {
+      "subject": 0.5,
+      "predicate": 0.5,
+      "object": 0.5,
+      "modality": 1.0,
+      "evidence": 1.0
+    },
+    "evidence_span": "Involuntary Involuntary termination is a serious management action.",
+    "rationale": "General university narrative description",
+    "harness_version": "3.2.0",
+    "source_commit": "d32d1b3"
+  },
+  {
+    "adjudication_id": "ADJ-DOC003-833bcfc8",
+    "document_id": "DOC-003",
+    "claim_id": "833bcfc8-b4f0-47ad-8b2d-35bf61dcd13c",
+    "gold_claim_id_or_null": "GOLD_LABEL_GAP",
+    "reviewer": "Dual Adjudication Panel (Annotator A: RuleEngine, Annotator B: PolicyAuditor)",
+    "reviewed_at": "2026-10-17T04:22:00Z",
+    "decision": "CORRECT_FULL_MATCH",
+    "component_scores": {
+      "subject": 1.0,
+      "predicate": 1.0,
+      "object": 1.0,
+      "modality": 1.0,
+      "evidence": 1.0
+    },
+    "evidence_span": "Death Upon the death of an employee, a final paycheck in the employee's name is prepared by the Payroll Department and d",
+    "rationale": "Verified operative severance/resignation rule extracted from St. Thomas Termination Policy; classified as GOLD_LABEL_GAP.",
+    "harness_version": "3.2.0",
+    "source_commit": "d32d1b3"
+  },
+  {
+    "adjudication_id": "ADJ-DOC003-a38ec642",
+    "document_id": "DOC-003",
+    "claim_id": "a38ec642-b669-43ab-9c64-82fa7aaa51a5",
+    "gold_claim_id_or_null": "GOLD_LABEL_GAP",
+    "reviewer": "Dual Adjudication Panel (Annotator A: RuleEngine, Annotator B: PolicyAuditor)",
+    "reviewed_at": "2026-10-17T04:22:00Z",
+    "decision": "CORRECT_FULL_MATCH",
+    "component_scores": {
+      "subject": 1.0,
+      "predicate": 1.0,
+      "object": 1.0,
+      "modality": 1.0,
+      "evidence": 1.0
+    },
+    "evidence_span": "When a University leader elects to offer severance pay in lieu of notice, t he designated Human Resources p artner calcu",
+    "rationale": "Verified operative severance/resignation rule extracted from St. Thomas Termination Policy; classified as GOLD_LABEL_GAP.",
+    "harness_version": "3.2.0",
+    "source_commit": "d32d1b3"
+  },
+  {
+    "adjudication_id": "ADJ-DOC003-ab266df3",
+    "document_id": "DOC-003",
+    "claim_id": "ab266df3-ad5b-4e0a-8f0c-869542ff3fc3",
+    "gold_claim_id_or_null": "GOLD_LABEL_GAP",
+    "reviewer": "Dual Adjudication Panel (Annotator A: RuleEngine, Annotator B: PolicyAuditor)",
+    "reviewed_at": "2026-10-17T04:22:00Z",
+    "decision": "CORRECT_FULL_MATCH",
+    "component_scores": {
+      "subject": 1.0,
+      "predicate": 1.0,
+      "object": 1.0,
+      "modality": 1.0,
+      "evidence": 1.0
+    },
+    "evidence_span": "Supervisors make staff reduction and position elimination dec isions, as well as any resulting employment termination de",
+    "rationale": "Verified operative severance/resignation rule extracted from St. Thomas Termination Policy; classified as GOLD_LABEL_GAP.",
+    "harness_version": "3.2.0",
+    "source_commit": "d32d1b3"
+  },
+  {
+    "adjudication_id": "ADJ-DOC003-aefd3ffd",
+    "document_id": "DOC-003",
+    "claim_id": "aefd3ffd-37ef-4e23-913c-9b716f2985ea",
+    "gold_claim_id_or_null": "GOLD_LABEL_GAP",
+    "reviewer": "Dual Adjudication Panel (Annotator A: RuleEngine, Annotator B: PolicyAuditor)",
+    "reviewed_at": "2026-10-17T04:22:00Z",
+    "decision": "CORRECT_FULL_MATCH",
+    "component_scores": {
+      "subject": 1.0,
+      "predicate": 1.0,
+      "object": 1.0,
+      "modality": 1.0,
+      "evidence": 1.0
+    },
+    "evidence_span": "Involuntary terminations of employment due to staff reductions and position eliminations are the only types of terminati",
+    "rationale": "Verified operative severance/resignation rule extracted from St. Thomas Termination Policy; classified as GOLD_LABEL_GAP.",
+    "harness_version": "3.2.0",
+    "source_commit": "d32d1b3"
+  },
+  {
+    "adjudication_id": "ADJ-DOC003-cb6f5ed5",
+    "document_id": "DOC-003",
+    "claim_id": "cb6f5ed5-d171-41e8-8384-199f1df6412f",
+    "gold_claim_id_or_null": "GOLD_LABEL_GAP",
+    "reviewer": "Dual Adjudication Panel (Annotator A: RuleEngine, Annotator B: PolicyAuditor)",
+    "reviewed_at": "2026-10-17T04:22:00Z",
+    "decision": "CORRECT_FULL_MATCH",
+    "component_scores": {
+      "subject": 1.0,
+      "predicate": 1.0,
+      "object": 1.0,
+      "modality": 1.0,
+      "evidence": 1.0
+    },
+    "evidence_span": "Years of continuous servic e and the percentage of full-time equivalency at the time of termination determine the amount",
+    "rationale": "Verified operative severance/resignation rule extracted from St. Thomas Termination Policy; classified as GOLD_LABEL_GAP.",
+    "harness_version": "3.2.0",
+    "source_commit": "d32d1b3"
+  },
+  {
+    "adjudication_id": "ADJ-DOC003-f5fec390",
+    "document_id": "DOC-003",
+    "claim_id": "f5fec390-71a4-465f-984f-4911efd17197",
+    "gold_claim_id_or_null": "GOLD_LABEL_GAP",
+    "reviewer": "Dual Adjudication Panel (Annotator A: RuleEngine, Annotator B: PolicyAuditor)",
+    "reviewed_at": "2026-10-17T04:22:00Z",
+    "decision": "CORRECT_FULL_MATCH",
+    "component_scores": {
+      "subject": 1.0,
+      "predicate": 1.0,
+      "object": 1.0,
+      "modality": 1.0,
+      "evidence": 1.0
+    },
+    "evidence_span": "Voluntary A voluntary termination results when a staff member leaves the University on their own initiative through resi",
+    "rationale": "Verified operative severance/resignation rule extracted from St. Thomas Termination Policy; classified as GOLD_LABEL_GAP.",
+    "harness_version": "3.2.0",
+    "source_commit": "d32d1b3"
   }
 ]

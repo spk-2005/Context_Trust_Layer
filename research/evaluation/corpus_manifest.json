@@ -71,8 +71,9 @@
       "source_size_bytes": 402747,
       "source_sha256": "53c8cc27edc8682320f6d49f9849452f57f0b089535191526f5536d4e0ad0ebe",
       "gold_label_path": "B:\\Context_Layer_Ai\\research\\gold_labels\\DOC-005_gold.json",
-      "gold_sha256": "c83695e2273da4c3772b8e799b4a84965b1fc4b7261a786b7450fef317551248",
-      "gold_canonical_rules_count": 5
+      "gold_sha256": "23362b97699a79e9d4f795de844e919980d2a9c6bf7f8a7aaaa1988c95e2bef0",
+      "gold_canonical_rules_count": 32,
+      "gold_size_bytes": 15666
     },
     "DOC-006": {
       "document_code": "DOC-006",
@@ -127,8 +128,9 @@
       "source_size_bytes": 43277,
       "source_sha256": "a0a5ae7bffabede3639b78caa5e318872577e7464da399ca6c8e23ce5efe04dd",
       "gold_label_path": "B:\\Context_Layer_Ai\\research\\gold_labels\\DOC-009_gold.json",
-      "gold_sha256": "53846febb7eb870e45c4d7874e90fe504c8b1340f8ffaefc40c3930bbdaa261f",
-      "gold_canonical_rules_count": 29
+      "gold_sha256": "a0d651ed92f5108f6775e11e25504b3712ed8c1030994a31590383310f83f922",
+      "gold_canonical_rules_count": 78,
+      "gold_size_bytes": 33591
     }
   }
 }
