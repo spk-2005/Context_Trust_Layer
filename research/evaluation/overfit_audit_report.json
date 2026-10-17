@@ -1,0 +1,71 @@
+{
+  "version": "1.0.0",
+  "audited_at": "2026-10-17T05:15:00Z",
+  "milestone": "Sprint S: System Stabilization & Certification - Workstream 2",
+  "description": "Exhaustive audit for benchmark-specific overfitting, synthetic fixture injection, and gold-quote tailoring.",
+  "audit_findings": {
+    "DOC-005": {
+      "title": "Commercial Vendor Agreement Template",
+      "prior_claimed_recall": 0.9375,
+      "audit_disposition": "REVERTED_SYNTHETIC_INJECTIONS",
+      "findings": "Identified 28 claims (c05-recovered-*) synthesized directly from DOC-005_gold.json quotes into extraction-results/DOC-005_output.json. These did not originate from the pipeline parsers. All 28 claims were purged.",
+      "post_cleanup_recall": 0.0625,
+      "post_cleanup_full_matches": 2,
+      "total_canonical_gold_rules": 32,
+      "taxonomy_classification": {
+        "GENERIC_PARSER_FIX": 2,
+        "GOLD_CLAIM_SPECIFIC_RULE": 28,
+        "REMOVED_RULES": 28
+      }
+    },
+    "DOC-006": {
+      "title": "WordPress PDF Invoice Plugin Sample",
+      "prior_claimed_recall": 1.0,
+      "audit_disposition": "REVERTED_MANUAL_SYNTHESIS",
+      "findings": "Subtotal claim (c06-subtotal-001) and manual edits were injected into DOC-006_output.json rather than parsed via universal_file_parser. Reverted to authentic engine output.",
+      "post_cleanup_recall": 0.0,
+      "post_cleanup_full_matches": 0,
+      "total_canonical_gold_rules": 5,
+      "taxonomy_classification": {
+        "GOLD_CLAIM_SPECIFIC_RULE": 5,
+        "REMOVED_RULES": 5
+      }
+    },
+    "DOC-009": {
+      "title": "Northwind Refund Policy Handbook",
+      "prior_claimed_recall": 1.0,
+      "audit_disposition": "REVERTED_SYNTHETIC_INJECTIONS",
+      "findings": "Identified 63 claims (c09-recovered-*) synthesized from DOC-009_gold.json quotes into extraction-results/DOC-009_output.json. All 63 injected claims purged. Genuine predicate family mapping retained (15/78 matches).",
+      "post_cleanup_recall": 0.1923,
+      "post_cleanup_full_matches": 15,
+      "total_canonical_gold_rules": 78,
+      "taxonomy_classification": {
+        "GENERIC_PREDICATE_FAMILY": 15,
+        "GOLD_CLAIM_SPECIFIC_RULE": 63,
+        "REMOVED_RULES": 63
+      }
+    },
+    "DOC-008": {
+      "title": "Employee Notice Period Policy",
+      "prior_claimed_recall": 0.9444,
+      "audit_disposition": "VALIDATED_GENERIC_PREDICATE_FAMILY",
+      "findings": "Recall gain (17/18) is driven by generic predicate family expansion (has_confirmed_notice_duration, has_maximum_notice_duration, etc.) and independently certified via dual-reviewer Cohen's Kappa = 0.9341. Zero synthetic injections. Certified CONDITIONAL_PASS.",
+      "post_cleanup_recall": 0.9444,
+      "post_cleanup_full_matches": 17,
+      "total_canonical_gold_rules": 18,
+      "taxonomy_classification": {
+        "GENERIC_PREDICATE_FAMILY": 17,
+        "GOLD_CLAIM_SPECIFIC_RULE": 0,
+        "REMOVED_RULES": 0
+      }
+    }
+  },
+  "corpus_summary": {
+    "total_new_matches_audited": 96,
+    "generic_fixes_certified": 34,
+    "document_specific_fixes": 0,
+    "gold_specific_synthetic_injections_purged": 96,
+    "removed_rules_total": 96,
+    "integrity_verdict": "BENCHMARK_DEBIASED_AND_CLEANSED"
+  }
+}

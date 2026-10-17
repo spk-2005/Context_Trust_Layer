@@ -1,0 +1,151 @@
+{
+  "version": "1.0.0",
+  "sealed_at": "2026-10-17T04:45:00Z",
+  "description": "Sealed 15-document holdout corpus frozen for true out-of-distribution evaluation.",
+  "status": "SEALED_AND_FROZEN",
+  "total_documents": 15,
+  "domains": {
+    "invoices": 3,
+    "hr_policies": 3,
+    "commercial_contracts": 3,
+    "regulatory_directives": 3,
+    "terms_and_warranties": 3
+  },
+  "documents": {
+    "HOLD-001": {
+      "document_code": "HOLD-001",
+      "title": "Acme Cloud Services Invoice",
+      "domain": "invoices",
+      "source_filename": "acme_invoice_2026.pdf",
+      "source_sha256": "51242988478aa1cba612ea8d5b77f92e6da84252012698a57631108f726b79a0",
+      "gold_canonical_rules_count": 5,
+      "gold_sha256": "25f9de7407a22dcdfd53300927e62ff99c5dcac897a039b309faa6db051249a8"
+    },
+    "HOLD-002": {
+      "document_code": "HOLD-002",
+      "title": "Globex IT Consulting Invoice",
+      "domain": "invoices",
+      "source_filename": "globex_consulting_inv.pdf",
+      "source_sha256": "9e368b42256cdeec8ee77d1c7272864af69f91c2b66d18617dba04e688177c04",
+      "gold_canonical_rules_count": 6,
+      "gold_sha256": "562befa637dc82aafcb3cc49b4d37b8e4ed363445c1242f129ced53aa94f2ee5"
+    },
+    "HOLD-003": {
+      "document_code": "HOLD-003",
+      "title": "Stripe Connect Billing Statement",
+      "domain": "invoices",
+      "source_filename": "stripe_connect_billing.pdf",
+      "source_sha256": "84612b90a0cc8ad4147798af4e53a33e1cb6f811f56e00391d6ca4d4e468cb2c",
+      "gold_canonical_rules_count": 5,
+      "gold_sha256": "b6a89588a9d6e59777712aba734ac38c098b1023b5b156a1a79bc7d22329d4af"
+    },
+    "HOLD-004": {
+      "document_code": "HOLD-004",
+      "title": "Enterprise Remote Work Policy",
+      "domain": "hr_policies",
+      "source_filename": "remote_work_policy.pdf",
+      "source_sha256": "60c72bca622a81bc44a57dca8cfbf5973a1a943b92453a9950ece537ae08028c",
+      "gold_canonical_rules_count": 12,
+      "gold_sha256": "4290fc49a116efe2639b9b2d0cd1dbf0c36f1fd7e4b8657c27605b6081b7ac7d"
+    },
+    "HOLD-005": {
+      "document_code": "HOLD-005",
+      "title": "Parental & Caregiver Leave Guidelines",
+      "domain": "hr_policies",
+      "source_filename": "parental_leave_guidelines.pdf",
+      "source_sha256": "f5f64b3f864abde487a7a58c89cda858bdaa20ed9b8f66e956c751e1982c9a59",
+      "gold_canonical_rules_count": 14,
+      "gold_sha256": "1e7cac90699512a28d468125a02e0e04731f39aaca2ef3ad806498d477d6d617"
+    },
+    "HOLD-006": {
+      "document_code": "HOLD-006",
+      "title": "Global Anti-Corruption Code of Conduct",
+      "domain": "hr_policies",
+      "source_filename": "anti_corruption_code.pdf",
+      "source_sha256": "7f777038872448902d6f84744db13b80b8d56d75dbd1d707e210aeb8d312805c",
+      "gold_canonical_rules_count": 10,
+      "gold_sha256": "031fa2184ffe1a5b396a8e892fd91d372eebd1e2532ae4d4b6d3774d0e16c6cd"
+    },
+    "HOLD-007": {
+      "document_code": "HOLD-007",
+      "title": "Master SaaS Subscription Agreement",
+      "domain": "commercial_contracts",
+      "source_filename": "saas_subscription_msa.pdf",
+      "source_sha256": "a20bec9fad43732e4ad143e65012897f4d6778bf8a43061ba73a80b423cde1e8",
+      "gold_canonical_rules_count": 25,
+      "gold_sha256": "70254b1d552e77c97da20f375fbf70e019fc1e1efda25c26ada2742a4631efc5"
+    },
+    "HOLD-008": {
+      "document_code": "HOLD-008",
+      "title": "Procurement Hardware Purchase SOW",
+      "domain": "commercial_contracts",
+      "source_filename": "hardware_procurement_sow.pdf",
+      "source_sha256": "94ee44c5b84d84b31b2bfa5752c301b949625ea54db37c22e2ae39a487be11fe",
+      "gold_canonical_rules_count": 18,
+      "gold_sha256": "c0b17aba6d0bc8ad709f8b901087f961b0213fed0c8dc050bd1cb71de5829432"
+    },
+    "HOLD-009": {
+      "document_code": "HOLD-009",
+      "title": "Cloud Infrastructure SLA & Penalties",
+      "domain": "commercial_contracts",
+      "source_filename": "cloud_sla_penalties.pdf",
+      "source_sha256": "6c5a334a259562dae53f06c491a1eae8e319c174edd312749fd5f5c0a8963223",
+      "gold_canonical_rules_count": 15,
+      "gold_sha256": "39375ca847fd7a960b33a9ec9c08757c53ab06cc8583ab04ad073b84772873f5"
+    },
+    "HOLD-010": {
+      "document_code": "HOLD-010",
+      "title": "OSHA Workplace Safety Standard Directive",
+      "domain": "regulatory_directives",
+      "source_filename": "osha_workplace_safety.pdf",
+      "source_sha256": "fd3bf38c5737aa3ebe22cd60b4b327c30956776a962294446897f89e70e95c44",
+      "gold_canonical_rules_count": 8,
+      "gold_sha256": "f2c37e1bdddf42f341d00bb52f98c222c0f997cafd05f074162aa1bcf87fed37"
+    },
+    "HOLD-011": {
+      "document_code": "HOLD-011",
+      "title": "FDA Dietary Supplement Compliance Letter",
+      "domain": "regulatory_directives",
+      "source_filename": "fda_supplement_letter.pdf",
+      "source_sha256": "cd3721bf0a25e8197aefe969accfd3136ce86d826bf1b06aff2781ff10c53295",
+      "gold_canonical_rules_count": 6,
+      "gold_sha256": "bd303c421817ef93aa248ffff90edb0ba021465970501c65a4fca5fd86c0749a"
+    },
+    "HOLD-012": {
+      "document_code": "HOLD-012",
+      "title": "GDPR Data Processing Directive",
+      "domain": "regulatory_directives",
+      "source_filename": "gdpr_dpa_directive.pdf",
+      "source_sha256": "58a8a90b866af7dd7ba03036bd6f03c03da074cd191e5e3075b2791f6df6cb92",
+      "gold_canonical_rules_count": 12,
+      "gold_sha256": "e06e307066cfa067015c2dadf51a9a570864217c47ac875ce03866c8c9d80ed8"
+    },
+    "HOLD-013": {
+      "document_code": "HOLD-013",
+      "title": "Consumer Electronics Warranty Policy",
+      "domain": "terms_and_warranties",
+      "source_filename": "electronics_warranty.pdf",
+      "source_sha256": "de130230cc5404d1ccd24016309fdd0fbb8270a8d3b3b94ce8f1008ca8de4c93",
+      "gold_canonical_rules_count": 20,
+      "gold_sha256": "d910877c763381dc5b5ebf3bc43fd43502c9c98bcc4e88ff0348a9f4b8d11bff"
+    },
+    "HOLD-014": {
+      "document_code": "HOLD-014",
+      "title": "Automotive Parts Return & Core Fee Matrix",
+      "domain": "terms_and_warranties",
+      "source_filename": "auto_parts_return_matrix.pdf",
+      "source_sha256": "4ce24261e01e9ad5c1e8cd483ab6ae319dca8b1154e00f7476f1990c7f24b476",
+      "gold_canonical_rules_count": 22,
+      "gold_sha256": "1694ea8482eb1f3f678d4b7992e66d2acc984906d8c7bd5daad929ca53f199b7"
+    },
+    "HOLD-015": {
+      "document_code": "HOLD-015",
+      "title": "Software Perpetual License End User Terms",
+      "domain": "terms_and_warranties",
+      "source_filename": "eula_terms_of_service.pdf",
+      "source_sha256": "715be28fc32b53778c7b9ab735ee2056699a39e6616cab777f12d9e2a1843c69",
+      "gold_canonical_rules_count": 16,
+      "gold_sha256": "ad676da0cbf81c2a8270e6b5888af2c55723d8ae17ecc68e384f6ff5bfedc1bc"
+    }
+  }
+}

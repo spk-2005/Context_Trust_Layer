@@ -445,10 +445,7 @@ class DeterministicSchemaExtractor:
                         claim_type_val = "form_field_specification"
                         content_role_val = ContentRole.PROCEDURE
                         is_canonical_val = False
-                    elif (any("topic" in ck for ck in col_keys_lower) and any("summary" in ck for ck in col_keys_lower)):
-                        claim_type_val = "summary_non_canonical"
-                        content_role_val = ContentRole.EXAMPLE
-                        is_canonical_val = False
+
                     elif normalized.get("claim_type") == "CONTACT_INFORMATION" or getattr(unit, "content_role", None) == ContentRole.CONTACT_INFO:
                         claim_type_val = "CONTACT_INFORMATION"
                         content_role_val = ContentRole.CONTACT_INFO

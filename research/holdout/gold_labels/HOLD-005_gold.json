@@ -1,0 +1,148 @@
+{
+  "document_id": "HOLD-005",
+  "title": "Parental & Caregiver Leave Guidelines",
+  "domain": "hr_policies",
+  "canonical_rules_count": 14,
+  "claim_truth": [
+    {
+      "claim_id": "HOLD-005-C01",
+      "subject": "Hr_policies Subject 1",
+      "predicate": "specifies_governing_rule",
+      "object": {
+        "value": "Standard condition 1",
+        "modality": "MUST"
+      },
+      "canonical": true
+    },
+    {
+      "claim_id": "HOLD-005-C02",
+      "subject": "Hr_policies Subject 2",
+      "predicate": "specifies_governing_rule",
+      "object": {
+        "value": "Standard condition 2",
+        "modality": "MUST"
+      },
+      "canonical": true
+    },
+    {
+      "claim_id": "HOLD-005-C03",
+      "subject": "Hr_policies Subject 3",
+      "predicate": "specifies_governing_rule",
+      "object": {
+        "value": "Standard condition 3",
+        "modality": "MUST"
+      },
+      "canonical": true
+    },
+    {
+      "claim_id": "HOLD-005-C04",
+      "subject": "Hr_policies Subject 4",
+      "predicate": "specifies_governing_rule",
+      "object": {
+        "value": "Standard condition 4",
+        "modality": "MUST"
+      },
+      "canonical": true
+    },
+    {
+      "claim_id": "HOLD-005-C05",
+      "subject": "Hr_policies Subject 5",
+      "predicate": "specifies_governing_rule",
+      "object": {
+        "value": "Standard condition 5",
+        "modality": "MUST"
+      },
+      "canonical": true
+    },
+    {
+      "claim_id": "HOLD-005-C06",
+      "subject": "Hr_policies Subject 6",
+      "predicate": "specifies_governing_rule",
+      "object": {
+        "value": "Standard condition 6",
+        "modality": "MUST"
+      },
+      "canonical": true
+    },
+    {
+      "claim_id": "HOLD-005-C07",
+      "subject": "Hr_policies Subject 7",
+      "predicate": "specifies_governing_rule",
+      "object": {
+        "value": "Standard condition 7",
+        "modality": "MUST"
+      },
+      "canonical": true
+    },
+    {
+      "claim_id": "HOLD-005-C08",
+      "subject": "Hr_policies Subject 8",
+      "predicate": "specifies_governing_rule",
+      "object": {
+        "value": "Standard condition 8",
+        "modality": "MUST"
+      },
+      "canonical": true
+    },
+    {
+      "claim_id": "HOLD-005-C09",
+      "subject": "Hr_policies Subject 9",
+      "predicate": "specifies_governing_rule",
+      "object": {
+        "value": "Standard condition 9",
+        "modality": "MUST"
+      },
+      "canonical": true
+    },
+    {
+      "claim_id": "HOLD-005-C10",
+      "subject": "Hr_policies Subject 10",
+      "predicate": "specifies_governing_rule",
+      "object": {
+        "value": "Standard condition 10",
+        "modality": "MUST"
+      },
+      "canonical": true
+    },
+    {
+      "claim_id": "HOLD-005-C11",
+      "subject": "Hr_policies Subject 11",
+      "predicate": "specifies_governing_rule",
+      "object": {
+        "value": "Standard condition 11",
+        "modality": "MUST"
+      },
+      "canonical": true
+    },
+    {
+      "claim_id": "HOLD-005-C12",
+      "subject": "Hr_policies Subject 12",
+      "predicate": "specifies_governing_rule",
+      "object": {
+        "value": "Standard condition 12",
+        "modality": "MUST"
+      },
+      "canonical": true
+    },
+    {
+      "claim_id": "HOLD-005-C13",
+      "subject": "Hr_policies Subject 13",
+      "predicate": "specifies_governing_rule",
+      "object": {
+        "value": "Standard condition 13",
+        "modality": "MUST"
+      },
+      "canonical": true
+    },
+    {
+      "claim_id": "HOLD-005-C14",
+      "subject": "Hr_policies Subject 14",
+      "predicate": "specifies_governing_rule",
+      "object": {
+        "value": "Standard condition 14",
+        "modality": "MUST"
+      },
+      "canonical": true
+    }
+  ]
+}

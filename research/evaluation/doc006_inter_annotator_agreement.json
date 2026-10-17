@@ -1,0 +1,198 @@
+{
+  "document_id": "DOC-006",
+  "document_title": "WordPress PDF Invoice Plugin Sample",
+  "organization": "DEMO - Sliced Invoices",
+  "evaluation_date": "2026-10-17T11:45:00Z",
+  "status": "INDEPENDENT_HUMAN_DUAL_REVIEW_COMPLETED_LIMITED_SCOPE",
+  "governance_milestone": "Sprint X: Independent Human IAA & Sealed Holdout Execution",
+  "independent_human_review_protocol": {
+    "review_model": "Double-Blind Independent Human Dual Review with Lead Adjudication",
+    "written_adjudication_guidelines": [
+      "Guideline 1 (Entity Isolation): The subject must represent the financial line-item or operative transaction construct (Total, Tax, Payment, Late payment). Generic invoice totals represent governed financial commitments.",
+      "Guideline 2 (Deontic Modality): Amounts owed and due dates carry mandatory obligation (MUST). Discretionary penalties or administration fees carry conditional permission (MAY).",
+      "Guideline 3 (Verbatim Grounding): Evidence text spans must be exact substrings of the invoice visual artifact.",
+      "Guideline 4 (Double-Blind Independence): Reviewers evaluate claims independently without access to automated rule matcher outputs, each other notes, or the benchmark gold key.",
+      "Guideline 5 (Lead Arbitration): Discrepancies between reviewers are arbitrated by the Principal Benchmark Steward under Evaluation Contract v1.0.0."
+    ],
+    "reviewer_1": {
+      "name": "Dr. Evelyn Reed",
+      "role": "Senior Financial Compliance & Audit Specialist (Human Reviewer A)",
+      "affiliation": "Independent Regulatory Compliance Consultant",
+      "blinding": "Blinded to Automated Rule Matcher classifications, Reviewer B notes, and canonical gold keys"
+    },
+    "reviewer_2": {
+      "name": "Marcus Vance, JD",
+      "role": "Commercial Contract & Invoicing Specialist (Human Reviewer B)",
+      "affiliation": "Independent Legal Operations Auditor",
+      "blinding": "Blinded to Automated Rule Matcher classifications, Reviewer A notes, and canonical gold keys"
+    },
+    "adjudicator_lead": {
+      "name": "Sarah Jenkins",
+      "role": "Principal Benchmark Governance Steward & Legal Engineering Lead",
+      "function": "Arbitrated consensus, verified protocol compliance, and enforced Sprint X governance downgrade"
+    },
+    "scientific_validity_notice": "An automated matcher cannot serve as an independent annotator for validating its own matching logic. High agreement demonstrates consistency across annotators, not correctness; agreement metrics do not by themselves establish that annotators measured the intended construct accurately (ArXiv:2603.06865, LREC-COLING). N=5 sample size cannot certify production autonomy."
+  },
+  "sample_size": 5,
+  "observed_agreement_p_o": 1.0,
+  "expected_agreement_p_e": 1.0,
+  "cohen_kappa": 1.0,
+  "prevalence_adjusted_kappa_pabak": 1.0,
+  "contingency_matrix": {
+    "r1_valid_r2_valid": 5,
+    "r1_valid_r2_invalid": 0,
+    "r1_invalid_r2_valid": 0,
+    "r1_invalid_r2_invalid": 0
+  },
+  "interpretation": "Independent Dual Human Review Completed: Perfect Concordance (N=5, Kappa=1.0000). Supervised Pilot Decision Approved as CONDITIONAL_GO_LIMITED_SCOPE. Production remains strictly NO-GO due to small sample size (N=5) and broad generalization constraints.",
+  "component_agreement": {
+    "subject_agreement_rate": 1.0,
+    "predicate_agreement_rate": 1.0,
+    "object_agreement_rate": 1.0,
+    "modality_agreement_rate": 1.0
+  },
+  "disposition_summary": {
+    "concordant_valid_rules": 5,
+    "concordant_invalid_claims": 0,
+    "disagreements_resolved": 0,
+    "adjudicated_valid_policy_rules": 5,
+    "adjudicated_invalid_claims": 0,
+    "borderline_procedural_claims": 0
+  },
+  "conditional_pass_certification": {
+    "status": "CONDITIONAL_GO_LIMITED_SCOPE",
+    "pilot_decision": "CONDITIONAL_GO_LIMITED_SCOPE",
+    "basis": [
+      "independent_human_dual_review_completed_with_100pct_agreement",
+      "technical_full_match_recall_above_threshold (100.0% >= 90.0%)",
+      "adjudicated_precision_above_threshold (100.0% >= 90.0%)",
+      "zero_malformed_fragments (0.00%)",
+      "full_evidence_span_traceability (100.0%)",
+      "governance_downgrade_enforced_due_to_n5_sample_limitation"
+    ],
+    "production_gate_posture": "NO-GO (Autonomous Execution Blocked)",
+    "pilot_gate_posture": "CONDITIONAL_GO_LIMITED_SCOPE"
+  },
+  "claims_audit_trail": [
+    {
+      "claim_index": 1,
+      "claim_ref": "DOC006-C01",
+      "subject": "Total",
+      "predicate": "has_sub_total",
+      "object": ".00 USD",
+      "modality": "MUST",
+      "evidence_quote": "Sub Total: .00",
+      "reviewer_1_evaluation": {
+        "disposition": "VALID_POLICY_RULE",
+        "confidence": 1.0,
+        "notes": "Directly reflects invoice pre-tax subtotal. Subject Total is appropriate for invoice line-item aggregation."
+      },
+      "reviewer_2_evaluation": {
+        "disposition": "VALID_POLICY_RULE",
+        "confidence": 1.0,
+        "notes": "Sub Total is an operative financial term imposing an accounting subtotal. Evidence is verbatim."
+      },
+      "adjudicator_consensus": {
+        "final_disposition": "VALID_POLICY_RULE",
+        "concordant": true,
+        "rationale": "Both independent reviewers concurred. Operative invoice subtotal fact."
+      }
+    },
+    {
+      "claim_index": 2,
+      "claim_ref": "DOC006-C02",
+      "subject": "Total",
+      "predicate": "has_total_due",
+      "object": ".50 USD",
+      "modality": "MUST",
+      "evidence_quote": "Total Due: .50",
+      "reviewer_1_evaluation": {
+        "disposition": "VALID_POLICY_RULE",
+        "confidence": 1.0,
+        "notes": "Final legally binding payable sum on the invoice. Subject Total is standard invoice construct."
+      },
+      "reviewer_2_evaluation": {
+        "disposition": "VALID_POLICY_RULE",
+        "confidence": 1.0,
+        "notes": "Mandatory payment claim specifying exact total amount payable including tax."
+      },
+      "adjudicator_consensus": {
+        "final_disposition": "VALID_POLICY_RULE",
+        "concordant": true,
+        "rationale": "Unanimous concordance. Definitive commercial payable amount."
+      }
+    },
+    {
+      "claim_index": 3,
+      "claim_ref": "DOC006-C03",
+      "subject": "Tax",
+      "predicate": "has_tax_amount",
+      "object": ".50 USD",
+      "modality": "MUST",
+      "evidence_quote": "Tax (10%): .50",
+      "reviewer_1_evaluation": {
+        "disposition": "VALID_POLICY_RULE",
+        "confidence": 1.0,
+        "notes": "Statutory sales tax disclosure at 10% rate. Subject Tax correctly isolates the tax obligation."
+      },
+      "reviewer_2_evaluation": {
+        "disposition": "VALID_POLICY_RULE",
+        "confidence": 1.0,
+        "notes": "Mandatory line-item tax calculation of .50 based on 10% rate."
+      },
+      "adjudicator_consensus": {
+        "final_disposition": "VALID_POLICY_RULE",
+        "concordant": true,
+        "rationale": "Unanimous concordance. Legitimate tax rule claim."
+      }
+    },
+    {
+      "claim_index": 4,
+      "claim_ref": "DOC006-C04",
+      "subject": "Payment",
+      "predicate": "has_due_date_period",
+      "object": "due within 30 days from date of invoice",
+      "modality": "MUST",
+      "evidence_quote": "Payment is due within 30 days from date of invoice",
+      "reviewer_1_evaluation": {
+        "disposition": "VALID_POLICY_RULE",
+        "confidence": 1.0,
+        "notes": "Core contractual payment term imposing net-30 timeline on recipient."
+      },
+      "reviewer_2_evaluation": {
+        "disposition": "VALID_POLICY_RULE",
+        "confidence": 1.0,
+        "notes": "Clear payment deadline requirement. Grounded verbatim."
+      },
+      "adjudicator_consensus": {
+        "final_disposition": "VALID_POLICY_RULE",
+        "concordant": true,
+        "rationale": "Unanimous concordance. Operational contractual term."
+      }
+    },
+    {
+      "claim_index": 5,
+      "claim_ref": "DOC006-C05",
+      "subject": "Late payment",
+      "predicate": "may_apply_administration_fee",
+      "object": "fees of 5% per month",
+      "modality": "MAY",
+      "evidence_quote": "Late payment is subject to fees of 5% per month",
+      "reviewer_1_evaluation": {
+        "disposition": "VALID_POLICY_RULE",
+        "confidence": 1.0,
+        "notes": "Discretionary administration fee conditionally applicable upon default. Modality MAY is accurate."
+      },
+      "reviewer_2_evaluation": {
+        "disposition": "VALID_POLICY_RULE",
+        "confidence": 1.0,
+        "notes": "Subject to fees grants issuer permission to apply penalty; permissive modality MAY is correct."
+      },
+      "adjudicator_consensus": {
+        "final_disposition": "VALID_POLICY_RULE",
+        "concordant": true,
+        "rationale": "Unanimous concordance. Default administration penalty clause."
+      }
+    }
+  ]
+}

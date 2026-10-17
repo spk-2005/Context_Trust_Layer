@@ -148,6 +148,11 @@ class SubjectNormalizer:
         # Strip trailing unclosed parenthesis if opened but not closed
         if "(" in s and ")" not in s:
             s = re.sub(r"\s*\([^)]*$", "", s).strip()
+        # Strip section numbers, legal prefixes, and preambles
+        s = re.sub(r"^(?:(?:Section|Article|Clause|Rule)\s+)?(?:\d+(?:\.\d+)*|[A-Z]\.|\([a-z0-9]+\))\s*[:.-]?\s+(?=[A-Za-z])", "", s, flags=re.IGNORECASE)
+        s = re.sub(r"^(?:Except as (?:noted|provided|set forth|stated)[^,]+,\s*)", "", s, flags=re.IGNORECASE)
+        s = re.sub(r"^(?:For example,\s*)", "", s, flags=re.IGNORECASE)
+        s = re.sub(r"^.*?\b(?:acknowledges that|agrees that|confirms that|states that)\s+(?:in order to .*?\b(?:the|a|an)\b\s*)?", "", s, flags=re.IGNORECASE)
         # Strip trailing punctuation
         s = s.rstrip(":,;.-").strip()
         return s
@@ -163,6 +168,17 @@ class SubjectNormalizer:
         cleaned = cls.clean_raw_subject(raw_subject)
         cleaned_lower = cleaned.lower()
         ctx_lower = (context or "").lower()
+
+        # Enumerated section reference resolution (e.g., '3.6.3.2' -> resolve to operative actor)
+        if re.match(r"^(?:\d+(?:\.\d+)+|\d+\.)\s*$", cleaned):
+            if "vendor" in ctx_lower or "supplier" in ctx_lower:
+                return "Vendor", True
+            if "employee" in ctx_lower or "staff" in ctx_lower or "worker" in ctx_lower:
+                return "Employee", True
+            if "employer" in ctx_lower or "company" in ctx_lower:
+                return "Employer", True
+            if "customer" in ctx_lower or "client" in ctx_lower:
+                return "Customer", True
         combined = f"{cleaned_lower} {ctx_lower}"
 
         # Subject contamination protection: General policy must NOT absorb Case Study subjects
@@ -192,6 +208,8 @@ class SubjectNormalizer:
             return "Card issuer", True
         if "items returned after 90 days" in combined:
             return "Items returned after 90 days", True
+        if "gift receipt" in combined or "returning a gift" in combined:
+            return "Gift receipt", True
         if "gift card" in combined:
             return "Gift cards", True
 

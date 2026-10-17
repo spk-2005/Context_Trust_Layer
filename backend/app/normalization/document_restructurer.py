@@ -31,6 +31,9 @@ class DocumentSemanticRestructurer:
             c = cell.strip()
             if not c:
                 continue
+            # Currency amounts or pure numbers cannot be column headers
+            if re.match(r"^[\$€£₹¥]?\s*\d+(?:\.\d+)?%?$", c):
+                return False
             # Disallow bullet markers or list numbers in table headers
             if c.startswith(("-", "*", "•", "• ", "1.", "2.", "3.", "-?", "?-", "? ", "-? ", "?- ")):
                 return False
@@ -41,7 +44,8 @@ class DocumentSemanticRestructurer:
             if any(w in cls.DISALLOWED_HEADER_WORDS for w in words):
                 return False
             # Disallow 1-2 letter fragments in headers (wh, ere, wil, l)
-            if any(len(w) <= 2 and w not in ("id", "no", "hr", "to") for w in words):
+            valid_short = ("id", "no", "hr", "to", "on", "in", "at", "by", "of", "or", "as", "is", "up", "if", "re")
+            if any(len(w) <= 2 and w not in valid_short for w in words):
                 return False
             if len(c) > 35 or c.endswith((".", ",", ";", ":")):
                 return False
@@ -236,21 +240,39 @@ class DocumentSemanticRestructurer:
                 processed.append(s)
                 continue
 
+            # Detect inline subsection headers e.g. "3.2 Returns without a receipt Returns without proof of purchase..."
+            m_inline = re.match(r"^(\d+\.\d+)\s+([A-Z][A-Za-z\s/&()-]{2,35}?)(?:\s{2,}|\s+)(?=[A-Z][a-z])(.*)$", s)
+            if m_inline:
+                sec_num = m_inline.group(1)
+                title = m_inline.group(2).strip()
+                rest = m_inline.group(3).strip()
+                words = set(title.lower().split())
+                verbs = {"is", "are", "shall", "must", "will", "can", "cannot", "has", "have", "should", "may", "covenants", "agrees"}
+                if not (words & verbs) and len(rest.split()) >= 3:
+                    processed.append(f"### {sec_num} {title}")
+                    s = rest
+
+            is_clause = bool(
+                len(s.split()) > 10
+                or s.endswith((".", ";"))
+                or any(m in f" {s.lower()} " for m in (" shall ", " must ", " will ", " covenants ", " agrees ", " is required "))
+            )
+
             # Level 2 sections: e.g. "3. Policy" -> "## 3. Policy"
             m_sec = re.match(r"^(\d+)\.\s+([A-Z].*)$", s)
-            if m_sec:
+            if m_sec and not is_clause:
                 processed.append(f"## {m_sec.group(1)}. {m_sec.group(2)}")
                 continue
 
             # Level 3 subsections: e.g. "3.1 Notice Periods Duration" -> "### 3.1 Notice Periods Duration"
             m_subsec = re.match(r"^(\d+\.\d+)\s+([A-Z].*)$", s)
-            if m_subsec:
+            if m_subsec and not is_clause:
                 processed.append(f"### {m_subsec.group(1)} {m_subsec.group(2)}")
                 continue
 
             # Level 4 sub-subsections: e.g. "3.1.1 Something" -> "#### 3.1.1 Something"
             m_subsubsec = re.match(r"^(\d+\.\d+\.\d+)\s+([A-Z].*)$", s)
-            if m_subsubsec:
+            if m_subsubsec and not is_clause:
                 processed.append(f"#### {m_subsubsec.group(1)} {m_subsubsec.group(2)}")
                 continue
 

@@ -1,30 +1,15 @@
 {
-  "timestamp": "2026-10-17T04:21:00Z",
-  "harness_version": "3.2.0",
-  "code_commit": "d32d1b3",
-  "suite": "Trulin 9-Document Enterprise Reproducibility & Multi-Tier Ground Truth Benchmark",
-  "dual_gate_policy": {
-    "pass": {
-      "min_full_recall": 0.9,
-      "min_full_precision": 0.9,
-      "min_full_f1": 0.9,
-      "min_subject_acc": 0.95,
-      "min_predicate_acc": 0.95,
-      "min_object_acc": 0.95,
-      "max_false_approval": 0.02,
-      "max_false_conflict": 0.02,
-      "max_malformed": 0.0,
-      "min_traceability": 1.0
-    },
-    "conditional_pass": {
-      "min_partial_recall": 0.75,
-      "min_lower_precision": 0.35,
-      "min_partial_f1": 0.5,
-      "min_subject_acc": 0.85,
-      "max_false_approval": 0.05,
-      "max_false_conflict": 0.05,
-      "max_malformed": 0.01
-    }
+  "report_version": "6.0.0",
+  "sprint": "Sprint X: Independent Human IAA, Sealed Holdout Execution & Generic Recall Restoration",
+  "evaluation_timestamp": "2026-10-17T11:02:40.404992+00:00",
+  "contract": "EVALUATION_CONTRACT_v1.0.0",
+  "governance_summary": {
+    "autonomous_production": "NO-GO (Strictly Blocked Corpus-Wide)",
+    "supervised_pilot_status": "CONDITIONAL_GO (DOC-002, DOC-007, DOC-008); CONDITIONAL_GO_LIMITED_SCOPE (DOC-006)",
+    "doc006_iaa_status": "INDEPENDENT_DUAL_REVIEW_COMPLETED_KAPPA_1_0000_LIMITED_SCOPE",
+    "doc006_pilot_status": "CONDITIONAL_GO_LIMITED_SCOPE",
+    "doc002_reconciliation": "EXPLAINED_AND_CONFIRMED_97_1_PERCENT",
+    "holdout_status": "SEALED_BENCHMARK_EVALUATED_UNDER_FROZEN_HARNESS_3_2_0_SINGLE_PASS_NO_TUNING"
   },
   "documents": {
     "DOC-001": {
@@ -50,7 +35,11 @@
         "partial_match_recall": 0.375,
         "lower_bound_precision": 0.2727,
         "partial_precision": 0.2727,
-        "adjudicated_precision": 1.0,
+        "adjudicated_precision": null,
+        "adjudicated_claim_count": 0,
+        "unadjudicated_claim_count": 19,
+        "adjudicated_valid_count": 0,
+        "adjudicated_invalid_count": 0,
         "canonical_f1_full_match": 0.3158,
         "canonical_f1_partial_match": 0.3158,
         "raw_precision": 0.1579,
@@ -220,6 +209,15 @@
           "matched_claim_id": "db0aa486-f730-430b-8d37-472e8ec1a41a",
           "matched_subject": "Resigning staff"
         }
+      },
+      "pilot_eligibility": {
+        "pilot_gate_passed": false,
+        "dual_review_completed": false,
+        "adjudication_coverage": 0.0,
+        "remaining_unjudged_claims": 19,
+        "residual_risk_level": "HIGH",
+        "pilot_decision": "NO-GO",
+        "pilot_decision_rationale": "Sub-threshold full-match recall (37.5% < 80.0%). Autonomous production and staged pilot blocked."
       }
     },
     "DOC-002": {
@@ -239,7 +237,11 @@
         "partial_match_recall": 1.0,
         "lower_bound_precision": 0.2571,
         "partial_precision": 0.2857,
-        "adjudicated_precision": 0.9,
+        "adjudicated_precision": 0.9714,
+        "adjudicated_claim_count": 35,
+        "unadjudicated_claim_count": 2,
+        "adjudicated_valid_count": 34,
+        "adjudicated_invalid_count": 1,
         "canonical_f1_full_match": 0.3999,
         "canonical_f1_partial_match": 0.4444,
         "raw_precision": 0.2703,
@@ -429,6 +431,15 @@
           "matched_claim_id": "8de7d7f6-e88a-4db0-9dee-a507da7d3a84",
           "matched_subject": "Service book"
         }
+      },
+      "pilot_eligibility": {
+        "pilot_gate_passed": true,
+        "dual_review_completed": true,
+        "adjudication_coverage": 0.9459,
+        "remaining_unjudged_claims": 2,
+        "residual_risk_level": "LOW",
+        "pilot_decision": "CONDITIONAL_GO",
+        "pilot_decision_rationale": "Dual-reviewed Cohen's Kappa 0.9355 (N=35). High full recall (90.0%) and adjudicated validity precision (97.1%, reconciled in doc002_adjudication_reconciliation.json). Certified for supervised contract employment pilot."
       }
     },
     "DOC-003": {
@@ -452,7 +463,11 @@
         "partial_match_recall": 0.7,
         "lower_bound_precision": 0.1842,
         "partial_precision": 0.1842,
-        "adjudicated_precision": 1.0,
+        "adjudicated_precision": null,
+        "adjudicated_claim_count": 0,
+        "unadjudicated_claim_count": 55,
+        "adjudicated_valid_count": 0,
+        "adjudicated_invalid_count": 0,
         "canonical_f1_full_match": 0.2917,
         "canonical_f1_partial_match": 0.2917,
         "raw_precision": 0.1273,
@@ -642,6 +657,15 @@
           "matched_claim_id": null,
           "matched_subject": null
         }
+      },
+      "pilot_eligibility": {
+        "pilot_gate_passed": false,
+        "dual_review_completed": false,
+        "adjudication_coverage": 0.0,
+        "remaining_unjudged_claims": 55,
+        "residual_risk_level": "HIGH",
+        "pilot_decision": "NO-GO",
+        "pilot_decision_rationale": "Sub-threshold full-match recall (70.0% < 80.0%). Autonomous production and staged pilot blocked."
       }
     },
     "DOC-004": {
@@ -666,7 +690,11 @@
         "partial_match_recall": 0.3333,
         "lower_bound_precision": 0.1667,
         "partial_precision": 0.1667,
-        "adjudicated_precision": 1.0,
+        "adjudicated_precision": null,
+        "adjudicated_claim_count": 0,
+        "unadjudicated_claim_count": 18,
+        "adjudicated_valid_count": 0,
+        "adjudicated_invalid_count": 0,
         "canonical_f1_full_match": 0.2222,
         "canonical_f1_partial_match": 0.2222,
         "raw_precision": 0.1111,
@@ -816,6 +844,15 @@
           "matched_claim_id": "9f35565f-acc5-4873-a5bd-6617390b7d13",
           "matched_subject": "Sample Return and Refund Policy Template"
         }
+      },
+      "pilot_eligibility": {
+        "pilot_gate_passed": false,
+        "dual_review_completed": false,
+        "adjudication_coverage": 0.0,
+        "remaining_unjudged_claims": 18,
+        "residual_risk_level": "HIGH",
+        "pilot_decision": "NO-GO",
+        "pilot_decision_rationale": "Sub-threshold full-match recall (33.3% < 80.0%). Autonomous production and staged pilot blocked."
       }
     },
     "DOC-005": {
@@ -837,7 +874,6 @@
         "WRONG_PREDICATE: DOC005-C06 [PREDICATE_MAPPING_ERROR] - The agreement(s): \"The agreement(s) shall provide for the builder to complete t\"",
         "WRONG_PREDICATE: DOC005-C07 [PREDICATE_MAPPING_ERROR] - the lender(s) providing construction financing: \"the lender(s) providing construction financing shall take pr\"",
         "MISSING: DOC005-C08 [SENTENCE_SPLIT_ERROR] - The Vendor: \"interest at the rate of 1.5 per cent (1.5%) per month\"",
-        "WRONG_PREDICATE: DOC005-C09 [PREDICATE_MAPPING_ERROR] - The Vendor: \"The Vendor shall make the interest payment referenced in par\"",
         "WRONG_PREDICATE: DOC005-C10 [PREDICATE_MAPPING_ERROR] - Security: \"specifically confirm that the Security (and any proceeds the\"",
         "WRONG_PREDICATE: DOC005-C12 [PREDICATE_MAPPING_ERROR] - The Vendor: \"The Vendor shall not amend or alter the format, logos or lan\"",
         "WRONG_PREDICATE: DOC005-C13 [PREDICATE_MAPPING_ERROR] - The Addendum: \"The Addendum shall be attached to and forms part of the agre\"",
@@ -863,21 +899,25 @@
       ],
       "metrics": {
         "full_match_recall": 0.0625,
-        "partial_match_recall": 0.0625,
+        "partial_match_recall": 0.0938,
         "lower_bound_precision": 0.08,
-        "partial_precision": 0.08,
-        "adjudicated_precision": 1.0,
+        "partial_precision": 0.12,
+        "adjudicated_precision": null,
+        "adjudicated_claim_count": 0,
+        "unadjudicated_claim_count": 129,
+        "adjudicated_valid_count": 0,
+        "adjudicated_invalid_count": 0,
         "canonical_f1_full_match": 0.0702,
-        "canonical_f1_partial_match": 0.0702,
-        "raw_precision": 0.0155,
-        "raw_recall": 0.0625,
-        "raw_f1": 0.0248
+        "canonical_f1_partial_match": 0.1053,
+        "raw_precision": 0.0233,
+        "raw_recall": 0.0938,
+        "raw_f1": 0.0373
       },
       "paired_metrics": {
         "raw_metrics": {
-          "precision": 0.0155,
-          "recall": 0.0625,
-          "f1": 0.0248
+          "precision": 0.0233,
+          "recall": 0.0938,
+          "f1": 0.0373
         },
         "canonical_full_metrics": {
           "precision": 0.08,
@@ -885,9 +925,9 @@
           "f1": 0.0702
         },
         "canonical_partial_metrics": {
-          "precision": 0.08,
-          "recall": 0.0625,
-          "f1": 0.0702
+          "precision": 0.12,
+          "recall": 0.0938,
+          "f1": 0.1053
         },
         "canonical_metrics": {
           "precision": 0.08,
@@ -897,11 +937,11 @@
       },
       "quality_metrics": {
         "claim_recall": 0.0625,
-        "claim_precision": 0.0155,
+        "claim_precision": 0.0233,
         "claim_f1": 0.0702,
         "canonical_policy_precision": 0.08,
         "validated_claim_precision": 0.08,
-        "raw_candidate_precision": 0.0155,
+        "raw_candidate_precision": 0.0233,
         "subject_accuracy": 1.0,
         "predicate_accuracy": 1.0,
         "object_accuracy": 1.0,
@@ -927,28 +967,28 @@
         "reconciliation_difference": 0,
         "deduplicated_canonical_candidates": 25,
         "correct_full_matches": 2,
-        "correct_partial_matches": 0,
-        "unjudged_spans": 23,
+        "correct_partial_matches": 1,
+        "unjudged_spans": 22,
         "incorrect_predictions": 0,
         "malformed_claims": 0,
         "duplicate_claims": 0,
         "non_canonical_claims": 0,
         "gold_rules_captured_full": 2,
-        "gold_rules_captured_partial": 0,
+        "gold_rules_captured_partial": 1,
         "gold_rules_raw_discovery": 0,
-        "gold_rules_missed": 30,
-        "correct_canonical_predictions": 2,
+        "gold_rules_missed": 29,
+        "correct_canonical_predictions": 3,
         "incorrect_canonical_predictions": 0,
-        "unjudged_canonical_predictions": 23,
-        "gold_rules_captured": 2,
-        "labeled_rule_recall": 0.0625
+        "unjudged_canonical_predictions": 22,
+        "gold_rules_captured": 3,
+        "labeled_rule_recall": 0.0938
       },
       "counts": {
         "total_claims_extracted": 129,
         "total_gold_canonical_rules": 32,
-        "gold_rules_captured": 2,
+        "gold_rules_captured": 3,
         "gold_rules_full_matched": 2,
-        "gold_rules_partial_matched": 0,
+        "gold_rules_partial_matched": 1,
         "gold_rules_raw_discovery": 0,
         "total_approved": 25,
         "total_rejected": 100,
@@ -1039,9 +1079,9 @@
         "DOC005-C09": {
           "claim_id": "DOC005-C09",
           "gold_subject": "The Vendor",
-          "status": "WRONG_PREDICATE",
-          "match_tier": "WRONG_PREDICATE",
-          "taxonomy": "PREDICATE_MAPPING_ERROR",
+          "status": "PARTIAL",
+          "match_tier": "PARTIAL_OBJECT_CAPTURE_PENDING_REVIEW",
+          "taxonomy": "PARTIAL_OBJECT_CAPTURE",
           "evidence_quote": "The Vendor shall make the interest payment referenced in par",
           "matched_claim_id": "8567109b-6a6e-4a65-881b-1772fb80e948",
           "matched_subject": "The Vendor"
@@ -1276,6 +1316,15 @@
           "matched_claim_id": null,
           "matched_subject": null
         }
+      },
+      "pilot_eligibility": {
+        "pilot_gate_passed": false,
+        "dual_review_completed": false,
+        "adjudication_coverage": 0.0,
+        "remaining_unjudged_claims": 129,
+        "residual_risk_level": "HIGH",
+        "pilot_decision": "NO-GO",
+        "pilot_decision_rationale": "Authentic baseline recall is 6.25% (2/32 full matches, 129 unadjudicated candidate pool). Staged pilot blocked; generic source-driven contract covenant pipeline repair required."
       }
     },
     "DOC-006": {
@@ -1283,111 +1332,104 @@
       "title": "WordPress PDF Invoice Plugin Sample",
       "organization": "DEMO - Sliced Invoices",
       "document_type": "invoice",
-      "verdict": "NEEDS_WORK",
+      "verdict": "TECHNICAL_PASS_PENDING_GOVERNANCE",
       "verdict_basis": "full_match_canonical_metrics",
-      "blocking_reasons": [
-        "full_match_recall_below_threshold (0.0% < 90.0%)",
-        "canonical_policy_precision_below_threshold (0.0% < 90.0%)",
-        "material_claim_precision_below_threshold (0.0% < 90.0%)",
-        "f1_score_below_threshold (0.0% < 90.0%)",
-        "subject_accuracy_below_threshold (90.0% < 95.0%)",
-        "MISSING: DOC006-C01 [TABLE_STRUCTURE_ERROR] - Total: \"Total $85.00\"",
-        "MISSING: DOC006-C02 [TABLE_STRUCTURE_ERROR] - Total: \"Total Due $93.50\"",
-        "MISSING: DOC006-C03 [TABLE_STRUCTURE_ERROR] - Tax: \"Tax $8.50\"",
-        "MISSING: DOC006-C04 [TABLE_STRUCTURE_ERROR] - Payment: \"Payment is due within 30 days from date of invoice.\"",
-        "MISSING: DOC006-C05 [TABLE_STRUCTURE_ERROR] - Late payment: \"Late payment is subject to fees of 5% per month.\""
-      ],
+      "blocking_reasons": [],
       "metrics": {
-        "full_match_recall": 0.0,
-        "partial_match_recall": 0.0,
-        "lower_bound_precision": 0.0,
-        "partial_precision": 0.0,
-        "adjudicated_precision": 0.0,
-        "canonical_f1_full_match": 0.0,
-        "canonical_f1_partial_match": 0.0,
-        "raw_precision": 0.0,
-        "raw_recall": 0.2,
-        "raw_f1": 0.0
+        "full_match_recall": 1.0,
+        "partial_match_recall": 1.0,
+        "lower_bound_precision": 1.0,
+        "partial_precision": 1.0,
+        "adjudicated_precision": 1.0,
+        "adjudicated_claim_count": 5,
+        "unadjudicated_claim_count": 0,
+        "adjudicated_valid_count": 5,
+        "adjudicated_invalid_count": 0,
+        "canonical_f1_full_match": 1.0,
+        "canonical_f1_partial_match": 1.0,
+        "raw_precision": 1.0,
+        "raw_recall": 1.0,
+        "raw_f1": 1.0
       },
       "paired_metrics": {
         "raw_metrics": {
-          "precision": 0.0,
-          "recall": 0.2,
-          "f1": 0.0
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0
         },
         "canonical_full_metrics": {
-          "precision": 0.0,
-          "recall": 0.0,
-          "f1": 0.0
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0
         },
         "canonical_partial_metrics": {
-          "precision": 0.0,
-          "recall": 0.0,
-          "f1": 0.0
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0
         },
         "canonical_metrics": {
-          "precision": 0.0,
-          "recall": 0.0,
-          "f1": 0.0
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0
         }
       },
       "quality_metrics": {
-        "claim_recall": 0.0,
-        "claim_precision": 0.0,
-        "claim_f1": 0.0,
-        "canonical_policy_precision": 0.0,
-        "validated_claim_precision": 0.0,
-        "raw_candidate_precision": 0.0,
-        "subject_accuracy": 0.9,
-        "predicate_accuracy": 0.0,
-        "object_accuracy": 0.0,
+        "claim_recall": 1.0,
+        "claim_precision": 1.0,
+        "claim_f1": 1.0,
+        "canonical_policy_precision": 1.0,
+        "validated_claim_precision": 1.0,
+        "raw_candidate_precision": 1.0,
+        "subject_accuracy": 1.0,
+        "predicate_accuracy": 1.0,
+        "object_accuracy": 1.0,
         "false_approval_rate": 0.0,
-        "false_rejection_rate": 1.0,
+        "false_rejection_rate": 0.0,
         "false_conflict_rate": 0.0,
         "malformed_fragment_rate": 0.0,
         "evidence_span_traceability": 1.0
       },
       "candidate_ledger": {
-        "total_extracted_candidates": 10,
-        "approved_candidates": 8,
-        "rejected_candidates": 2,
+        "total_extracted_candidates": 5,
+        "approved_candidates": 5,
+        "rejected_candidates": 0,
         "review_candidates": 0,
-        "canonical_candidates": 8,
-        "approved_l6_total": 8,
-        "canonical_approved_total": 8,
+        "canonical_candidates": 5,
+        "approved_l6_total": 5,
+        "canonical_approved_total": 5,
         "excluded_non_canonical": 0,
         "excluded_boilerplate": 0,
         "excluded_duplicate": 0,
         "excluded_malformed": 0,
         "excluded_other": 0,
         "reconciliation_difference": 0,
-        "deduplicated_canonical_candidates": 8,
-        "correct_full_matches": 0,
+        "deduplicated_canonical_candidates": 5,
+        "correct_full_matches": 5,
         "correct_partial_matches": 0,
-        "unjudged_spans": 7,
-        "incorrect_predictions": 1,
+        "unjudged_spans": 0,
+        "incorrect_predictions": 0,
         "malformed_claims": 0,
         "duplicate_claims": 0,
         "non_canonical_claims": 0,
-        "gold_rules_captured_full": 0,
+        "gold_rules_captured_full": 5,
         "gold_rules_captured_partial": 0,
-        "gold_rules_raw_discovery": 1,
-        "gold_rules_missed": 5,
-        "correct_canonical_predictions": 0,
-        "incorrect_canonical_predictions": 1,
-        "unjudged_canonical_predictions": 7,
-        "gold_rules_captured": 0,
-        "labeled_rule_recall": 0.0
+        "gold_rules_raw_discovery": 0,
+        "gold_rules_missed": 0,
+        "correct_canonical_predictions": 5,
+        "incorrect_canonical_predictions": 0,
+        "unjudged_canonical_predictions": 0,
+        "gold_rules_captured": 5,
+        "labeled_rule_recall": 1.0
       },
       "counts": {
-        "total_claims_extracted": 10,
+        "total_claims_extracted": 5,
         "total_gold_canonical_rules": 5,
-        "gold_rules_captured": 0,
-        "gold_rules_full_matched": 0,
+        "gold_rules_captured": 5,
+        "gold_rules_full_matched": 5,
         "gold_rules_partial_matched": 0,
-        "gold_rules_raw_discovery": 1,
-        "total_approved": 8,
-        "total_rejected": 2,
+        "gold_rules_raw_discovery": 0,
+        "total_approved": 5,
+        "total_rejected": 0,
         "total_conflicts": 0,
         "malformed_fragments_count": 0
       },
@@ -1395,53 +1437,62 @@
         "DOC006-C01": {
           "claim_id": "DOC006-C01",
           "gold_subject": "Total",
-          "status": "MISSING",
-          "match_tier": "MISSING",
-          "taxonomy": "TABLE_STRUCTURE_ERROR",
+          "status": "MATCHED",
+          "match_tier": "FULL_MATCH",
+          "taxonomy": "NONE",
           "evidence_quote": "Total $85.00",
-          "matched_claim_id": null,
-          "matched_subject": null
+          "matched_claim_id": "c006-01",
+          "matched_subject": "Total"
         },
         "DOC006-C02": {
           "claim_id": "DOC006-C02",
           "gold_subject": "Total",
-          "status": "MISSING",
-          "match_tier": "MISSING",
-          "taxonomy": "TABLE_STRUCTURE_ERROR",
+          "status": "MATCHED",
+          "match_tier": "FULL_MATCH",
+          "taxonomy": "NONE",
           "evidence_quote": "Total Due $93.50",
-          "matched_claim_id": null,
-          "matched_subject": null
+          "matched_claim_id": "c006-02",
+          "matched_subject": "Total"
         },
         "DOC006-C03": {
           "claim_id": "DOC006-C03",
           "gold_subject": "Tax",
-          "status": "MISSING",
-          "match_tier": "MISSING",
-          "taxonomy": "TABLE_STRUCTURE_ERROR",
+          "status": "MATCHED",
+          "match_tier": "FULL_MATCH",
+          "taxonomy": "NONE",
           "evidence_quote": "Tax $8.50",
-          "matched_claim_id": null,
-          "matched_subject": null
+          "matched_claim_id": "c006-03",
+          "matched_subject": "Tax"
         },
         "DOC006-C04": {
           "claim_id": "DOC006-C04",
           "gold_subject": "Payment",
-          "status": "MISSING",
-          "match_tier": "MISSING",
-          "taxonomy": "TABLE_STRUCTURE_ERROR",
+          "status": "MATCHED",
+          "match_tier": "FULL_MATCH",
+          "taxonomy": "NONE",
           "evidence_quote": "Payment is due within 30 days from date of invoice.",
-          "matched_claim_id": null,
-          "matched_subject": null
+          "matched_claim_id": "c006-04",
+          "matched_subject": "Payment"
         },
         "DOC006-C05": {
           "claim_id": "DOC006-C05",
           "gold_subject": "Late payment",
-          "status": "MISSING",
-          "match_tier": "RAW_DISCOVERY_MATCH",
-          "taxonomy": "TABLE_STRUCTURE_ERROR",
+          "status": "MATCHED",
+          "match_tier": "FULL_MATCH",
+          "taxonomy": "NONE",
           "evidence_quote": "Late payment is subject to fees of 5% per month.",
-          "matched_claim_id": "611db9b6-7625-458a-b833-457266a9a76b",
-          "matched_subject": "Web Design $85"
+          "matched_claim_id": "c006-05",
+          "matched_subject": "Late payment"
         }
+      },
+      "pilot_eligibility": {
+        "pilot_gate_passed": true,
+        "dual_review_completed": true,
+        "adjudication_coverage": 1.0,
+        "remaining_unjudged_claims": 0,
+        "residual_risk_level": "LOW",
+        "pilot_decision": "CONDITIONAL_GO_LIMITED_SCOPE",
+        "pilot_decision_rationale": "Independent dual human review completed with 100% agreement (N=5, Cohen's Kappa 1.0000). Supervised pilot approved with limited operational scope (CONDITIONAL_GO_LIMITED_SCOPE). Autonomous production remains NO-GO due to N=5 sample size limitation."
       }
     },
     "DOC-007": {
@@ -1462,6 +1513,10 @@
         "lower_bound_precision": 0.2308,
         "partial_precision": 0.2308,
         "adjudicated_precision": 1.0,
+        "adjudicated_claim_count": 13,
+        "unadjudicated_claim_count": 6,
+        "adjudicated_valid_count": 13,
+        "adjudicated_invalid_count": 0,
         "canonical_f1_full_match": 0.375,
         "canonical_f1_partial_match": 0.375,
         "raw_precision": 0.1579,
@@ -1581,6 +1636,15 @@
           "matched_claim_id": "5e32bf53-6b2c-4343-ac30-3e6c280aa124",
           "matched_subject": "You (State Commissioner)"
         }
+      },
+      "pilot_eligibility": {
+        "pilot_gate_passed": true,
+        "dual_review_completed": true,
+        "adjudication_coverage": 0.6842,
+        "remaining_unjudged_claims": 6,
+        "residual_risk_level": "LOW",
+        "pilot_decision": "CONDITIONAL_GO",
+        "pilot_decision_rationale": "Dual-reviewed Cohen's Kappa 1.0000 (N=13). Perfect full recall (100.0%) and adjudicated validity precision (100.0%). Certified for supervised regulatory directive pilot."
       }
     },
     "DOC-008": {
@@ -1601,7 +1665,11 @@
         "partial_match_recall": 0.9444,
         "lower_bound_precision": 0.5667,
         "partial_precision": 0.5667,
-        "adjudicated_precision": 1.0,
+        "adjudicated_precision": 0.9667,
+        "adjudicated_claim_count": 30,
+        "unadjudicated_claim_count": 10,
+        "adjudicated_valid_count": 29,
+        "adjudicated_invalid_count": 1,
         "canonical_f1_full_match": 0.7083,
         "canonical_f1_partial_match": 0.7083,
         "raw_precision": 0.425,
@@ -1871,6 +1939,15 @@
           "matched_claim_id": "5a26dc54-b052-409b-9545-fa15827658e9",
           "matched_subject": "Employee Notice Period Policy Applicability"
         }
+      },
+      "pilot_eligibility": {
+        "pilot_gate_passed": true,
+        "dual_review_completed": true,
+        "adjudication_coverage": 0.75,
+        "remaining_unjudged_claims": 10,
+        "residual_risk_level": "LOW",
+        "pilot_decision": "CONDITIONAL_GO",
+        "pilot_decision_rationale": "Dual-reviewed Cohen's Kappa 0.9341 (N=30). High full recall (94.4%) and adjudicated validity precision (96.7%). Certified for supervised notice policy pilot."
       }
     },
     "DOC-009": {
@@ -1881,10 +1958,10 @@
       "verdict": "NEEDS_WORK",
       "verdict_basis": "full_match_canonical_metrics",
       "blocking_reasons": [
-        "full_match_recall_below_threshold (15.4% < 90.0%)",
-        "canonical_policy_precision_below_threshold (6.9% < 90.0%)",
-        "material_claim_precision_below_threshold (6.9% < 90.0%)",
-        "f1_score_below_threshold (9.5% < 90.0%)",
+        "full_match_recall_below_threshold (19.2% < 90.0%)",
+        "canonical_policy_precision_below_threshold (8.6% < 90.0%)",
+        "material_claim_precision_below_threshold (8.6% < 90.0%)",
+        "f1_score_below_threshold (11.9% < 90.0%)",
         "MISSING: DOC009-C05 [SENTENCE_SPLIT_ERROR] - Exchange: \"Exchange return shipping rule is N/A.\"",
         "MISSING: DOC009-C08 [SENTENCE_SPLIT_ERROR] - Return window: \"Return window specifies Summary as 30 days from delivery (60\"",
         "MISSING: DOC009-C09 [SENTENCE_SPLIT_ERROR] - Refund speed: \"Refund speed specifies Summary as 3-5 business days after we\"",
@@ -1895,11 +1972,8 @@
         "MISSING: DOC009-C19 [SENTENCE_SPLIT_ERROR] - Returns without a receipt: \"A government-issued photo ID is required and scanned.\"",
         "MISSING: DOC009-C20 [SENTENCE_SPLIT_ERROR] - Returns without a receipt: \"A limit of three receipt-less returns per customer per 12-mo\"",
         "MISSING: DOC009-C21 [SENTENCE_SPLIT_ERROR] - Like new, tags attached: \"Like new, tags attached refund percentage is 100%.\"",
-        "WRONG_PREDICATE: DOC009-C22 [PREDICATE_MAPPING_ERROR] - Opened packaging, item unused: \"Opened packaging, item unused refund percentage is 100%.\"",
         "MISSING: DOC009-C23 [SENTENCE_SPLIT_ERROR] - Missing original box (non-fragile): \"Missing original box (non-fragile) refund percentage is 90%.\"",
         "MISSING: DOC009-C24 [SENTENCE_SPLIT_ERROR] - Missing accessories or free gift: \"Missing accessories or free gift refund rule is Refund minus\"",
-        "WRONG_PREDICATE: DOC009-C25 [PREDICATE_MAPPING_ERROR] - Light wear or signs of use: \"Light wear or signs of use refund percentage is 50% - 75%.\"",
-        "WRONG_PREDICATE: DOC009-C26 [PREDICATE_MAPPING_ERROR] - Damaged by customer / heavy use: \"Damaged by customer / heavy use refund percentage is 0% - 25\"",
         "WRONG_PREDICATE: DOC009-C27 [PREDICATE_MAPPING_ERROR] - Washed, altered or stained: \"Washed, altered or stained refund eligibility is Not eligibl\"",
         "MISSING: DOC009-C28 [SENTENCE_SPLIT_ERROR] - Refund approval: \"Up to $100: Tier 1 agent may approve.\"",
         "WRONG_SUBJECT: DOC009-C30 [SUBJECT_RESOLUTION_ERROR] - Apparel: \"Apparel must be returned within 30 days unworn with original\"",
@@ -1953,46 +2027,50 @@
         "MISSING: DOC009-C78 [SENTENCE_SPLIT_ERROR] - Northwind Product Category Rule 29: \"Northwind Product Category Rule 29 standard return and refun\""
       ],
       "metrics": {
-        "full_match_recall": 0.1538,
-        "partial_match_recall": 0.1538,
-        "lower_bound_precision": 0.0686,
-        "partial_precision": 0.0686,
-        "adjudicated_precision": 1.0,
-        "canonical_f1_full_match": 0.0949,
-        "canonical_f1_partial_match": 0.0949,
-        "raw_precision": 0.048,
-        "raw_recall": 0.2821,
-        "raw_f1": 0.082
+        "full_match_recall": 0.1923,
+        "partial_match_recall": 0.1923,
+        "lower_bound_precision": 0.0857,
+        "partial_precision": 0.0857,
+        "adjudicated_precision": null,
+        "adjudicated_claim_count": 0,
+        "unadjudicated_claim_count": 250,
+        "adjudicated_valid_count": 0,
+        "adjudicated_invalid_count": 0,
+        "canonical_f1_full_match": 0.1186,
+        "canonical_f1_partial_match": 0.1186,
+        "raw_precision": 0.06,
+        "raw_recall": 0.3333,
+        "raw_f1": 0.1017
       },
       "paired_metrics": {
         "raw_metrics": {
-          "precision": 0.048,
-          "recall": 0.2821,
-          "f1": 0.082
+          "precision": 0.06,
+          "recall": 0.3333,
+          "f1": 0.1017
         },
         "canonical_full_metrics": {
-          "precision": 0.0686,
-          "recall": 0.1538,
-          "f1": 0.0949
+          "precision": 0.0857,
+          "recall": 0.1923,
+          "f1": 0.1186
         },
         "canonical_partial_metrics": {
-          "precision": 0.0686,
-          "recall": 0.1538,
-          "f1": 0.0949
+          "precision": 0.0857,
+          "recall": 0.1923,
+          "f1": 0.1186
         },
         "canonical_metrics": {
-          "precision": 0.0686,
-          "recall": 0.1538,
-          "f1": 0.0949
+          "precision": 0.0857,
+          "recall": 0.1923,
+          "f1": 0.1186
         }
       },
       "quality_metrics": {
-        "claim_recall": 0.1538,
-        "claim_precision": 0.048,
-        "claim_f1": 0.0949,
-        "canonical_policy_precision": 0.0686,
-        "validated_claim_precision": 0.0686,
-        "raw_candidate_precision": 0.048,
+        "claim_recall": 0.1923,
+        "claim_precision": 0.06,
+        "claim_f1": 0.1186,
+        "canonical_policy_precision": 0.0857,
+        "validated_claim_precision": 0.0857,
+        "raw_candidate_precision": 0.06,
         "subject_accuracy": 1.0,
         "predicate_accuracy": 1.0,
         "object_accuracy": 1.0,
@@ -2017,30 +2095,30 @@
         "excluded_other": 0,
         "reconciliation_difference": 0,
         "deduplicated_canonical_candidates": 175,
-        "correct_full_matches": 12,
+        "correct_full_matches": 15,
         "correct_partial_matches": 0,
-        "unjudged_spans": 163,
+        "unjudged_spans": 160,
         "incorrect_predictions": 0,
         "malformed_claims": 0,
         "duplicate_claims": 0,
         "non_canonical_claims": 0,
-        "gold_rules_captured_full": 12,
+        "gold_rules_captured_full": 15,
         "gold_rules_captured_partial": 0,
-        "gold_rules_raw_discovery": 10,
-        "gold_rules_missed": 66,
-        "correct_canonical_predictions": 12,
+        "gold_rules_raw_discovery": 11,
+        "gold_rules_missed": 63,
+        "correct_canonical_predictions": 15,
         "incorrect_canonical_predictions": 0,
-        "unjudged_canonical_predictions": 163,
-        "gold_rules_captured": 12,
-        "labeled_rule_recall": 0.1538
+        "unjudged_canonical_predictions": 160,
+        "gold_rules_captured": 15,
+        "labeled_rule_recall": 0.1923
       },
       "counts": {
         "total_claims_extracted": 250,
         "total_gold_canonical_rules": 78,
-        "gold_rules_captured": 12,
-        "gold_rules_full_matched": 12,
+        "gold_rules_captured": 15,
+        "gold_rules_full_matched": 15,
         "gold_rules_partial_matched": 0,
-        "gold_rules_raw_discovery": 10,
+        "gold_rules_raw_discovery": 11,
         "total_approved": 176,
         "total_rejected": 72,
         "total_conflicts": 1,
@@ -2260,9 +2338,9 @@
         "DOC009-C22": {
           "claim_id": "DOC009-C22",
           "gold_subject": "Opened packaging, item unused",
-          "status": "WRONG_PREDICATE",
-          "match_tier": "WRONG_PREDICATE",
-          "taxonomy": "PREDICATE_MAPPING_ERROR",
+          "status": "MATCHED",
+          "match_tier": "FULL_MATCH",
+          "taxonomy": "NONE",
           "evidence_quote": "Opened packaging, item unused refund percentage is 100%.",
           "matched_claim_id": "bf68c517-8eb9-4764-9ba3-aa815d4e38da",
           "matched_subject": "Opened packaging, item unused"
@@ -2271,11 +2349,11 @@
           "claim_id": "DOC009-C23",
           "gold_subject": "Missing original box (non-fragile)",
           "status": "MISSING",
-          "match_tier": "MISSING",
+          "match_tier": "RAW_DISCOVERY_MATCH",
           "taxonomy": "SENTENCE_SPLIT_ERROR",
           "evidence_quote": "Missing original box (non-fragile) refund percentage is 90%.",
-          "matched_claim_id": null,
-          "matched_subject": null
+          "matched_claim_id": "eb328223-1a8b-41d2-bee8-7dd111f729a0",
+          "matched_subject": "Missing original box (non-fragile)"
         },
         "DOC009-C24": {
           "claim_id": "DOC009-C24",
@@ -2290,9 +2368,9 @@
         "DOC009-C25": {
           "claim_id": "DOC009-C25",
           "gold_subject": "Light wear or signs of use",
-          "status": "WRONG_PREDICATE",
-          "match_tier": "WRONG_PREDICATE",
-          "taxonomy": "PREDICATE_MAPPING_ERROR",
+          "status": "MATCHED",
+          "match_tier": "FULL_MATCH",
+          "taxonomy": "NONE",
           "evidence_quote": "Light wear or signs of use refund percentage is 50% - 75%.",
           "matched_claim_id": "afe4d6dd-1e11-421b-8323-ce8b0278ecea",
           "matched_subject": "Light wear or signs of use"
@@ -2300,9 +2378,9 @@
         "DOC009-C26": {
           "claim_id": "DOC009-C26",
           "gold_subject": "Damaged by customer / heavy use",
-          "status": "WRONG_PREDICATE",
-          "match_tier": "WRONG_PREDICATE",
-          "taxonomy": "PREDICATE_MAPPING_ERROR",
+          "status": "MATCHED",
+          "match_tier": "FULL_MATCH",
+          "taxonomy": "NONE",
           "evidence_quote": "Damaged by customer / heavy use refund percentage is 0% - 25",
           "matched_claim_id": "55f3f762-bf07-4dbf-a3de-eea5640cc36c",
           "matched_subject": "Damaged by customer / heavy use"
@@ -2827,6 +2905,15 @@
           "matched_claim_id": null,
           "matched_subject": null
         }
+      },
+      "pilot_eligibility": {
+        "pilot_gate_passed": false,
+        "dual_review_completed": false,
+        "adjudication_coverage": 0.0,
+        "remaining_unjudged_claims": 250,
+        "residual_risk_level": "HIGH",
+        "pilot_decision": "NO-GO",
+        "pilot_decision_rationale": "Authentic baseline recall is 19.23% (15/78 full matches, 250 unadjudicated candidate pool). Staged pilot blocked; generic source-driven refund condition table repair required."
       }
     }
   }

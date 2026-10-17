@@ -1,0 +1,74 @@
+{
+  "audit_version": "1.0.0",
+  "milestone": "Sprint V: Integrity Rollback & Fresh Provenance",
+  "audited_at": "2026-10-17T08:03:27.552418+00:00",
+  "purpose": "Forensic diff-classified change log documenting Sprint U artifact edits and their complete rollback in Sprint V",
+  "executive_verdict": "SYNTHETIC_INJECTIONS_PURGED_AND_REVERTED",
+  "artifacts_audited": [
+    {
+      "artifact": "research/extraction-results/DOC-005_output.json",
+      "document_code": "DOC-005",
+      "title": "Commercial Vendor Agreement Template",
+      "organization": "Tarion Warranty Corporation",
+      "change_type": "SYNTHETIC_INJECTION_PURGED_AND_REVERTED",
+      "sprint_u_edit_detected": true,
+      "sprint_u_before_claim_count": 129,
+      "sprint_u_injected_claim_count": 32,
+      "sprint_v_restored_claim_count": 129,
+      "extraction_stage_that_should_produce_claim": "Layer 5 (DomainRuleExtractor / DeterministicSchemaExtractor)",
+      "generic_vs_document_specific": "Document-specific synthesis of gold covenants bypassed runtime extraction pipeline",
+      "synthetic_injection_detected": true,
+      "rollback_status": "CONFIRMED_REVERTED_TO_GIT_HEAD",
+      "authentic_baseline_metrics": {
+        "total_claims": 129,
+        "gold_canonical_rules": 32,
+        "full_matches": 2,
+        "full_match_recall": 0.0625,
+        "lower_bound_precision": 0.08,
+        "adjudicated_precision": null,
+        "pilot_decision": "NO-GO",
+        "notes": "Authentic baseline recall is 6.25% (2/32). High-recall claims were injected post-hoc in Sprint U; purged in Sprint V."
+      }
+    },
+    {
+      "artifact": "research/extraction-results/DOC-009_output.json",
+      "document_code": "DOC-009",
+      "title": "Northwind Refund Policy Handbook",
+      "organization": "Northwind Traders",
+      "change_type": "SYNTHETIC_INJECTION_PURGED_AND_REVERTED",
+      "sprint_u_edit_detected": true,
+      "sprint_u_before_claim_count": 250,
+      "sprint_u_injected_claim_count": 78,
+      "sprint_v_restored_claim_count": 250,
+      "extraction_stage_that_should_produce_claim": "Layer 5 (DeterministicSchemaExtractor / 2D Table Matrix Parser)",
+      "generic_vs_document_specific": "Synthesized 2D condition-action matrix and product category rules injected into output file",
+      "synthetic_injection_detected": true,
+      "rollback_status": "CONFIRMED_REVERTED_TO_GIT_HEAD",
+      "authentic_baseline_metrics": {
+        "total_claims": 250,
+        "gold_canonical_rules": 78,
+        "full_matches": 15,
+        "full_match_recall": 0.1923,
+        "lower_bound_precision": 0.0857,
+        "adjudicated_precision": null,
+        "unadjudicated_candidate_pool": 250,
+        "pilot_decision": "NO-GO",
+        "notes": "Authentic baseline recall is 19.23% (15/78). Injected matrix claims purged in Sprint V; unreviewed pool marked NO-GO."
+      }
+    },
+    {
+      "artifact": "research/evaluation/benchmark_harness.py",
+      "document_code": "CORPUS_WIDE",
+      "title": "Evaluation Benchmark Harness Matcher",
+      "organization": "Antigravity Evaluation Framework",
+      "change_type": "GOLD_CONDITIONED_EXEMPTION_REMOVED",
+      "sprint_u_edit_detected": true,
+      "specific_defect": "Lines 332 and 591 conditioned subject validity for 'Total' on 'total in gold_subjects'",
+      "sprint_v_repair": "Removed all gold_subjects cross-referencing. Implemented domain-general invoice subject rule based strictly on document_type == 'invoice'.",
+      "generic_vs_document_specific": "Domain-general (all invoice documents uniformly treat financial summary totals as operative subjects)",
+      "synthetic_injection_detected": false,
+      "rollback_status": "GOLD_DEPENDENCY_PURGED",
+      "notes": "Benchmark matcher no longer inspects gold label contents to evaluate candidate subject validity."
+    }
+  ]
+}

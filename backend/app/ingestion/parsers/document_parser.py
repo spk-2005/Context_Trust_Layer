@@ -240,7 +240,7 @@ class DocumentParser:
                         row_dict[col_name] = cell_val
                         # Check for merged cell or undefined scope indicator
                         clean_lower = cell_val.lower().strip("[]() ")
-                        if any(kw in clean_lower for kw in ("merged", "spanned", "ditto", "as above", "same as")) or clean_lower in ("^", '""', '"'):
+                        if any(kw in clean_lower for kw in ("merged", "spanned", "ditto", "as above", "same as above", "same as previous")) or clean_lower in ("^", '""', '"', "same as"): 
                             is_ambiguous = True
                             ambiguity_reason = f"Cell in column '{col_name}' contains merged or spanned indicator '{cell_val}'"
                         elif is_ambiguous and idx >= len(table_headers):

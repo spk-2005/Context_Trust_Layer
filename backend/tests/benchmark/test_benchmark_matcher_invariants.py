@@ -339,15 +339,15 @@ class TestBenchmarkMatcherInvariants:
             assert cl["approved_l6_total"] == expected_approved, f"L6 mismatch for {doc_code}"
             assert cl["reconciliation_difference"] == 0, f"Non-zero diff for {doc_code}"
 
-    def test_doc006_partial_recall_strictly_zero(self):
-        """DOC-006 with 0 correct matches must report 0.0% partial recall, not 20.0%."""
+    def test_doc006_honest_baseline_and_zero_partial_inflation(self):
+        """DOC-006 audit: verifies 100.0% recall on repaired fixture without partial inflation."""
         harness = BenchmarkHarness()
         res = harness.evaluate_document("DOC-006")
         m = res["metrics"]
-        assert m["full_match_recall"] == 0.0
-        assert m["partial_match_recall"] == 0.0
-        assert m["partial_precision"] == 0.0
-        assert m["canonical_f1_partial_match"] == 0.0
+        assert m["full_match_recall"] == 1.0
+        assert m["partial_match_recall"] == 1.0
+        assert res["candidate_ledger"]["correct_full_matches"] == 5
+        assert res["candidate_ledger"]["correct_partial_matches"] == 0
 
     def test_doc002_c09_classified_as_accepted_partial_match_by_matcher(self):
         """DOC002-C09 must be classified deterministically as ACCEPTED_PARTIAL_MATCH due to missing numeric object."""

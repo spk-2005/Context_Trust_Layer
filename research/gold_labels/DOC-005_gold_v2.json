@@ -1,0 +1,379 @@
+{
+  "document_id": "DOC-005",
+  "document_type": "commercial_vendor_agreement",
+  "organization": "Tarion Warranty Corporation",
+  "layout_type": "legal_agreement",
+  "layout_truth": {
+    "total_pages": 20,
+    "has_selectable_text": true,
+    "expected_sections": [
+      "Article 1 Interpretation",
+      "Article 2 Qualification for Enrolment and Enrolment",
+      "Article 3 Representations and Warranties of the Vendor",
+      "Article 4 Indemnification",
+      "Article 5 Security and Financial Information",
+      "Article 6 Defaults and Remedies",
+      "Article 7 General Terms",
+      "Article 8 Term and Termination"
+    ],
+    "multi_column_fragments": []
+  },
+  "table_truth": [],
+  "claim_truth": [
+    {
+      "claim_id": "DOC005-C01",
+      "subject": "Tarion Warranty Corporation",
+      "predicate": "has_regulatory_purpose",
+      "object": {
+        "value": "administer the Ontario New Home Warranties Plan Act",
+        "modality": "MUST"
+      },
+      "claim_type": "STATUTORY_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "Tarion is a private, not-for-profit corporation designated by regulation to administer the Ontario New Home Warranties Plan Act.",
+      "source_evidence_span": "Tarion is a private, not-for-profit corporation designated by regulation to administer the Ontario New Home Warranties Plan Act.",
+      "source_section": "Recital A",
+      "adjudication_ids": [
+        "adj-z-doc005-c01"
+      ]
+    },
+    {
+      "claim_id": "DOC005-C02",
+      "subject": "Vendor",
+      "predicate": "has_licensing_requirement",
+      "object": {
+        "value": "licensed under the New Home Construction Licensing Act, 2017",
+        "modality": "MUST"
+      },
+      "claim_type": "STATUTORY_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "be licensed under the New Home Construction Licensing Act, 2017 ; and must ensure that any such homes are qualified to be enrolled",
+      "source_evidence_span": "be licensed under the New Home Construction Licensing Act, 2017 ; and must ensure that any such homes are qualified to be enrolled",
+      "source_section": "Recital B",
+      "adjudication_ids": [
+        "adj-z-doc005-c02"
+      ]
+    },
+    {
+      "claim_id": "DOC005-C03",
+      "subject": "The Vendor",
+      "predicate": "has_indemnification_obligation",
+      "object": {
+        "value": "fully indemnify and save Tarion harmless from and against any losses, costs, claims, damages and/or liabilities",
+        "modality": "MUST"
+      },
+      "claim_type": "CONTRACT_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "The Vendor shall fully indemnify and save Tarion harmless from and against any losses, costs, claims, damages and/or liabilities which may arise resulting from or by virtue of:",
+      "source_evidence_span": "The Vendor shall fully indemnify and save Tarion harmless from and against any losses, costs, claims, damages and/or liabilities which may arise resulting from or by virtue of:",
+      "source_section": "Section 4.1.1",
+      "adjudication_ids": [
+        "adj-z-doc005-c03"
+      ]
+    },
+    {
+      "claim_id": "DOC005-C04",
+      "subject": "The Vendor",
+      "predicate": "has_material_change_notice_requirement",
+      "object": {
+        "value": "provide prompt written notice to Tarion if there is a Material Change",
+        "modality": "MUST"
+      },
+      "claim_type": "CONTRACT_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "The Vendor shall provide prompt written notice to Tarion if there is a Material Change",
+      "source_evidence_span": "The Vendor shall provide prompt written notice to Tarion if there is a Material Change",
+      "source_section": "Section 3.3.2",
+      "adjudication_ids": [
+        "adj-z-doc005-c04"
+      ]
+    },
+    {
+      "claim_id": "DOC005-C05",
+      "subject": "The Warranty Information Sheet and Addendum templates",
+      "predicate": "has_amendment_rule",
+      "object": {
+        "value": "be changed from time to time by governmental directive or by Tarion",
+        "modality": "MAY"
+      },
+      "claim_type": "CONTRACT_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "3.9.3.6 The Warranty Information Sheet and Addendum templates may be changed from time to time by governmental directive or by Tarion",
+      "source_evidence_span": "3.9.3.6 The Warranty Information Sheet and Addendum templates may be changed from time to time by governmental directive or by Tarion",
+      "source_section": "Section 3.9.3.6",
+      "adjudication_ids": [
+        "adj-z-doc005-c05"
+      ]
+    },
+    {
+      "claim_id": "DOC005-C06",
+      "subject": "The agreement(s)",
+      "predicate": "has_validity_rule",
+      "object": {
+        "value": "provide for the builder to complete the Home and provide statutory warranty coverage",
+        "modality": "MUST"
+      },
+      "claim_type": "CONTRACT_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "The agreement(s) shall provide for the builder to complete the Home",
+      "source_evidence_span": "The agreement(s) shall provide for the builder to complete the Home and provide statutory warranty coverage",
+      "source_section": "Section 3.6.1",
+      "adjudication_ids": [
+        "adj-z-doc005-c06"
+      ]
+    },
+    {
+      "claim_id": "DOC005-C07",
+      "subject": "the lender(s) providing construction financing",
+      "predicate": "has_priority_rule",
+      "object": {
+        "value": "take priority over any such assignment by the Vendor to and in favour of Tarion",
+        "modality": "MUST"
+      },
+      "claim_type": "CONTRACT_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "the lender(s) providing construction financing shall take priority over any such assignment by the Vendor",
+      "source_evidence_span": "the lender(s) providing construction financing for the Homes, and which assignment to the construction lender(s) shall take priority over any such assignment by the Vendor to and in favour of Tarion",
+      "source_section": "Section 3.7.2",
+      "adjudication_ids": [
+        "adj-z-doc005-c07"
+      ]
+    },
+    {
+      "claim_id": "DOC005-C08",
+      "subject": "The Vendor",
+      "predicate": "has_interest_rate",
+      "object": {
+        "value": 1.5,
+        "unit": "percent",
+        "modality": "MUST"
+      },
+      "claim_type": "CONTRACT_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "interest at the rate of 1.5 per cent (1.5%) per month, calculated daily (or such other interest rate as may be stipulated from time to time by regulation under the ONHWP Act).",
+      "source_evidence_span": "interest at the rate of 1.5 per cent (1.5%) per month, calculated daily (or such other interest rate as may be stipulated from time to time by regulation under the ONHWP Act).",
+      "source_section": "Section 3.8.1",
+      "adjudication_ids": [
+        "adj-z-doc005-c08"
+      ]
+    },
+    {
+      "claim_id": "DOC005-C09",
+      "subject": "The Vendor",
+      "predicate": "has_payment_obligation",
+      "object": {
+        "value": "make the interest payment referenced above on the first day of each month following the date of default in repaying the amounts owed until the amounts owed are repaid in full",
+        "modality": "MUST"
+      },
+      "claim_type": "CONTRACT_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "The Vendor shall make the interest payment referenced above on the first day of each month following the date of default",
+      "source_evidence_span": "The Vendor shall make the interest payment referenced above on the first day of each month following the date of default in repaying the amounts owed until the amounts owed are repaid in full",
+      "source_section": "Section 3.8.2",
+      "adjudication_ids": [
+        "adj-z-doc005-c09"
+      ]
+    },
+    {
+      "claim_id": "DOC005-C10",
+      "subject": "The Vendor",
+      "predicate": "specifies_governing_rule",
+      "object": {
+        "value": "confirm that the Security (and any and all proceeds derived therefrom) are related to the specific project or the specific Homes",
+        "modality": "MUST"
+      },
+      "claim_type": "CONTRACT_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "specifically confirm that the Security (and any proceeds thereof) is held by Tarion",
+      "source_evidence_span": "specifically confirm that the Security (and any and all proceeds derived therefrom) are related to the specific project or the specific Homes for which the Security was originally provided by the Vendor",
+      "source_section": "Section 3.8.3",
+      "adjudication_ids": [
+        "adj-z-doc005-c10"
+      ]
+    },
+    {
+      "claim_id": "DOC005-C11",
+      "subject": "The source document",
+      "predicate": "has_governing_rule",
+      "object": {
+        "value": "be in the forms supplied by Tarion without alteration or amendment",
+        "modality": "MUST"
+      },
+      "claim_type": "CONTRACT_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "The source document shall be in the forms supplied by Tarion without alteration or amendment",
+      "source_evidence_span": "The source document shall be in the forms supplied by Tarion without alteration or amendment",
+      "source_section": "Section 3.9.3.1",
+      "adjudication_ids": [
+        "adj-z-doc005-c11"
+      ]
+    },
+    {
+      "claim_id": "DOC005-C12",
+      "subject": "The Vendor",
+      "predicate": "cannot_alter_document_format",
+      "object": {
+        "value": "amend or alter the format, logos or language of the standard documents without prior written approval",
+        "modality": "MUST_NOT"
+      },
+      "claim_type": "CONTRACT_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "The Vendor shall not amend or alter the format, logos or language of the standard documents without prior written approval",
+      "source_evidence_span": "The Vendor shall not amend or alter the format, logos or language of the standard documents without prior written approval",
+      "source_section": "Section 3.9.3.2",
+      "adjudication_ids": [
+        "adj-z-doc005-c12"
+      ]
+    },
+    {
+      "claim_id": "DOC005-C13",
+      "subject": "The Addendum",
+      "predicate": "has_attachment_requirement",
+      "object": {
+        "value": "be attached to and forms part of the agreement of purchase and sale",
+        "modality": "MUST"
+      },
+      "claim_type": "CONTRACT_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "The Addendum shall be attached to and forms part of the agreement of purchase and sale",
+      "source_evidence_span": "The Addendum shall be attached to and forms part of the agreement of purchase and sale",
+      "source_section": "Section 3.9.3.3",
+      "adjudication_ids": [
+        "adj-z-doc005-c13"
+      ]
+    },
+    {
+      "claim_id": "DOC005-C14",
+      "subject": "the Addendum",
+      "predicate": "cannot_be_split",
+      "object": {
+        "value": "be split up and provisions shall not be distributed in other parts of the agreement of purchase and sale",
+        "modality": "MUST_NOT"
+      },
+      "claim_type": "CONTRACT_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "For example, the Addendum cannot be split up and provisions shall not be distributed in other parts of the agreement of purchase and sale.",
+      "source_evidence_span": "For example, the Addendum cannot be split up and provisions shall not be distributed in other parts of the agreement of purchase and sale.",
+      "source_section": "Section 3.9.3.3",
+      "adjudication_ids": [
+        "adj-z-doc005-c14"
+      ]
+    },
+    {
+      "claim_id": "DOC005-C15",
+      "subject": "The Vendor",
+      "predicate": "cannot_modify_addendum",
+      "object": {
+        "value": "modify or amend the Addendum in any way, whether by deleting provisions, adding rider provisions, or otherwise",
+        "modality": "MUST_NOT"
+      },
+      "claim_type": "CONTRACT_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "the Vendor shall not modify or amend the Addendum in any way, whether by deleting provisions, adding rider provisions, or otherwise",
+      "source_evidence_span": "the Vendor shall not modify or amend the Addendum in any way, whether by deleting provisions, adding rider provisions, or otherwise",
+      "source_section": "Section 3.9.3.4",
+      "adjudication_ids": [
+        "adj-z-doc005-c15"
+      ]
+    },
+    {
+      "claim_id": "DOC005-C16",
+      "subject": "The Vendor",
+      "predicate": "has_liability_rule",
+      "object": {
+        "value": "be responsible for any improper changes to the forms and shall indemnify Tarion against all resulting costs",
+        "modality": "MUST"
+      },
+      "claim_type": "CONTRACT_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "The Vendor shall be responsible for any improper changes to the forms and shall indemnify Tarion against all resulting costs",
+      "source_evidence_span": "The Vendor shall be responsible for any improper changes to the forms and shall indemnify Tarion against all resulting costs",
+      "source_section": "Section 3.9.3.5",
+      "adjudication_ids": [
+        "adj-z-doc005-c16"
+      ]
+    },
+    {
+      "claim_id": "DOC005-C25",
+      "subject": "This Agreement",
+      "predicate": "has_jurisdiction_rule",
+      "object": {
+        "value": "be governed by and construed in accordance with the laws of the Province of Ontario and the laws of Canada applicable therein",
+        "modality": "MUST"
+      },
+      "claim_type": "CONTRACT_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "This Agreement shall be governed by and construed in accordance with the laws of the Province of Ontario and the laws of Canada applicable therein",
+      "source_evidence_span": "This Agreement shall be governed by and construed in accordance with the laws of the Province of Ontario and the laws of Canada applicable therein",
+      "source_section": "Section 1.11.1 / 6.1",
+      "adjudication_ids": [
+        "adj-z-doc005-c25"
+      ]
+    }
+  ],
+  "version": "v2.0-remediated",
+  "remediation_metadata": {
+    "authentic_gold_rule_count": 17,
+    "invalid_rule_count": 15,
+    "synthetic_fixture_count": 0,
+    "duplicate_rule_count": 2,
+    "not_present_in_source_count": 13,
+    "remediation_reason": "Sprint Z gold remediation: excluded 13 general boilerplate commercial provisions absent from builder agreement text and 2 duplicate provisions.",
+    "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+    "adjudication_ids": [
+      "adj-z-doc005-doc005-c01",
+      "adj-z-doc005-doc005-c02",
+      "adj-z-doc005-doc005-c03",
+      "adj-z-doc005-doc005-c04",
+      "adj-z-doc005-doc005-c05",
+      "adj-z-doc005-doc005-c06",
+      "adj-z-doc005-doc005-c07",
+      "adj-z-doc005-doc005-c08",
+      "adj-z-doc005-doc005-c09",
+      "adj-z-doc005-doc005-c10",
+      "adj-z-doc005-doc005-c11",
+      "adj-z-doc005-doc005-c12",
+      "adj-z-doc005-doc005-c13",
+      "adj-z-doc005-doc005-c14",
+      "adj-z-doc005-doc005-c15",
+      "adj-z-doc005-doc005-c16",
+      "adj-z-doc005-doc005-c25"
+    ],
+    "source_evidence_span_for_each_authentic_rule": {
+      "DOC005-C01": "Tarion is a private, not-for-profit corporation designated by regulation to administer the Ontario New Home Warranties Plan Act.",
+      "DOC005-C02": "be licensed under the New Home Construction Licensing Act, 2017 ; and must ensure that any such homes are qualified to be enrolled",
+      "DOC005-C03": "The Vendor shall fully indemnify and save Tarion harmless from and against any losses, costs, claims, damages and/or liabilities which may arise resulting from or by virtue of:",
+      "DOC005-C04": "The Vendor shall provide prompt written notice to Tarion if there is a Material Change",
+      "DOC005-C05": "3.9.3.6 The Warranty Information Sheet and Addendum templates may be changed from time to time by governmental directive or by Tarion",
+      "DOC005-C06": "The agreement(s) shall provide for the builder to complete the Home and provide statutory warranty coverage",
+      "DOC005-C07": "the lender(s) providing construction financing for the Homes, and which assignment to the construction lender(s) shall take priority over any such assignment by the Vendor to and in favour of Tarion",
+      "DOC005-C08": "interest at the rate of 1.5 per cent (1.5%) per month, calculated daily (or such other interest rate as may be stipulated from time to time by regulation under the ONHWP Act).",
+      "DOC005-C09": "The Vendor shall make the interest payment referenced above on the first day of each month following the date of default in repaying the amounts owed until the amounts owed are repaid in full",
+      "DOC005-C10": "specifically confirm that the Security (and any and all proceeds derived therefrom) are related to the specific project or the specific Homes for which the Security was originally provided by the Vendor",
+      "DOC005-C11": "The source document shall be in the forms supplied by Tarion without alteration or amendment",
+      "DOC005-C12": "The Vendor shall not amend or alter the format, logos or language of the standard documents without prior written approval",
+      "DOC005-C13": "The Addendum shall be attached to and forms part of the agreement of purchase and sale",
+      "DOC005-C14": "For example, the Addendum cannot be split up and provisions shall not be distributed in other parts of the agreement of purchase and sale.",
+      "DOC005-C15": "the Vendor shall not modify or amend the Addendum in any way, whether by deleting provisions, adding rider provisions, or otherwise",
+      "DOC005-C16": "The Vendor shall be responsible for any improper changes to the forms and shall indemnify Tarion against all resulting costs",
+      "DOC005-C25": "This Agreement shall be governed by and construed in accordance with the laws of the Province of Ontario and the laws of Canada applicable therein"
+    }
+  }
+}

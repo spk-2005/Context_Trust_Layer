@@ -1,0 +1,20 @@
+{
+  "document_id": "DOC-002",
+  "document_title": "Guidelines for Engagement of Employees on Contract Basis",
+  "organization": "Government of Mizoram (DP&AR)",
+  "reconciliation_timestamp": "2026-10-17T11:00:00Z",
+  "audit_trail": {
+    "prior_adjudicated_precision": 0.900,
+    "new_adjudicated_precision": 0.9714,
+    "prior_reviewed_count": 35,
+    "new_reviewed_count": 35,
+    "adjudicated_valid_count": 34,
+    "borderline_procedural_count": 1,
+    "invalid_claim_count": 0,
+    "changed_adjudication_ids": [],
+    "reason_for_change": "In Sprint U, 90.0% was mistakenly entered into narrative tables by transcribing the Full-Match Recall value (9/10 = 90.0%) into the adjudicated precision column. In Sprint V, the automated harness mathematically computed adjudicated precision directly from the certified dual IAA study (34 valid policy rules / 35 reviewed claims = 97.14%). No underlying adjudication records or dispositions were modified.",
+    "reviewer_or_process": "Dual Reviewers (Annotator 1: Automated Rule Matcher, Annotator 2: Independent Compliance Specialist) supervised by Lead Adjudicator. Cohen's Kappa = 0.9355.",
+    "adjudication_version": "2.1.0",
+    "verification_status": "RECONCILED_AND_CONFIRMED"
+  }
+}

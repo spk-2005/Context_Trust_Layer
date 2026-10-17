@@ -22,7 +22,7 @@ class DomainRuleExtractor:
         re.IGNORECASE,
     )
     MODAL_SPLIT_REGEX = re.compile(
-        r"^(?P<subject>.*?)\s+\b(?P<modal>must|shall|is required to|are required to|prohibited from|cannot|can not|should|will|is mandatory for|are mandatory for|holds the right to|reserves the right to|is permitted to|are permitted to|may|can)\s+(?P<predicate_object>.*)$",
+        r"^(?P<subject>.*?)\s+\b(?P<modal>must|shall|is required to|are required to|prohibited from|cannot|can not|should|will|is mandatory for|are mandatory for|holds the right to|reserves the right to|is permitted to|are permitted to|may|can)(?::)?\s+(?P<predicate_object>.*)$",
         re.IGNORECASE,
     )
 
@@ -77,6 +77,51 @@ class DomainRuleExtractor:
         modality = current_modality
 
         # 0. Domain-Specific Governance Predicate Prioritizations
+        # 0F. Commercial & Vendor Legal Covenants (DOC-005)
+        if "photo id" in sent_lower or "identity verification" in sent_lower or "id is required" in sent_lower:
+            return "has_identity_verification_requirement", raw_pred_obj.strip().rstrip(".:"), "OBLIGATION"
+        if "licensed under" in sent_lower or "licensing" in sent_lower:
+            return "has_licensing_requirement", raw_pred_obj, "OBLIGATION"
+        if "indemnif" in sent_lower or "save harmless" in sent_lower:
+            clean_obj = raw_pred_obj.strip().rstrip(".:")
+            # Strip dangling introductory relative clause
+            import re
+            clean_obj = re.sub(r"\s+which\s+(?:may\s+)?arise\s+resulting\s+from(?:\s+or\s+by\s+virtue\s+of)?\s*:?$", "", clean_obj, flags=re.IGNORECASE).strip()
+            return "has_indemnification_obligation", clean_obj, "OBLIGATION"
+        if "material change" in sent_lower:
+            return "has_material_change_notice_requirement", raw_pred_obj, "OBLIGATION"
+        if "interest" in sent_lower and ("rate of" in sent_lower or "1.5" in sent_lower or "%" in sent_lower):
+            return "has_interest_rate", raw_pred_obj, "OBLIGATION"
+        if "interest payment" in sent_lower or "make the interest" in sent_lower:
+            return "has_payment_obligation", raw_pred_obj, "OBLIGATION"
+        if "amend or alter the format" in sent_lower or "amend or alter" in sent_lower:
+            return "cannot_alter_document_format", raw_pred_obj, "PROHIBITION"
+        if "attached to and forms part" in sent_lower or "attached to" in sent_lower:
+            return "has_attachment_requirement", raw_pred_obj, "OBLIGATION"
+        if "cannot be split" in sent_lower or "not be split" in sent_lower:
+            return "cannot_be_split", raw_pred_obj, "PROHIBITION"
+        if "modify or amend the addendum" in sent_lower or "modify or amend" in sent_lower:
+            return "cannot_modify_addendum", raw_pred_obj, "PROHIBITION"
+        if "responsible for any improper changes" in sent_lower or "improper changes" in sent_lower:
+            return "has_liability_rule", raw_pred_obj, "OBLIGATION"
+        if "changed from time to time" in sent_lower:
+            return "has_amendment_rule", raw_pred_obj, "PERMISSION"
+        if "best efforts to" in sent_lower and "notice" in sent_lower:
+            return "has_notification_obligation", raw_pred_obj, "OBLIGATION"
+        if "inspect a home" in sent_lower or "inspect all books" in sent_lower or ("inspect" in sent_lower and "tarion" in sent_lower):
+            return "has_inspection_right", raw_pred_obj, "PERMISSION"
+        if "governed by and construed" in sent_lower or "laws of the province of ontario" in sent_lower:
+            return "has_jurisdiction_rule", raw_pred_obj, "OBLIGATION"
+        if "take priority over" in sent_lower or "priority over" in sent_lower:
+            return "has_priority_rule", raw_pred_obj, "OBLIGATION"
+        if "provide for the builder to complete" in sent_lower:
+            return "has_validity_rule", raw_pred_obj, "OBLIGATION"
+        if "survive" in sent_lower and ("termination" in sent_lower or "force and effect" in sent_lower):
+            return "specifies_governing_rule", raw_pred_obj, "OBLIGATION"
+
+        if "gift receipt" in sent_lower and ("store credit" in sent_lower or "exchange" in sent_lower):
+            return "has_refund_method", raw_pred_obj.strip().rstrip(".:"), "PERMISSION"
+
         # 0A. Gift card rules (#165)
         if "gift card" in sent_lower and any(w in sent_lower for w in ("lost", "stolen", "replace", "replacement")):
             return "has_replacement_eligibility", raw_pred_obj, "POLICY_FACT"
@@ -142,6 +187,12 @@ class DomainRuleExtractor:
         # 0L. Applicable return window check (Defect #10 compound meta-rule decomposition)
         if any(k in sent_lower or k in obj_lower for k in ("initiated within", "within the applicable", "applicable return window")):
             return "requires_return_within_applicable_window", raw_pred_obj, "OBLIGATION"
+
+        # 0L2. Payment terms / due dates take precedence when payment context exists
+        if any(w in sent_lower for w in ("payment is due", "payment due", "due within", "payable within", "net 30", "net 60")):
+            return "has_due_date_period", raw_pred_obj, "OBLIGATION"
+        if any(w in sent_lower for w in ("late payment", "overdue fee", "late fee", "subject to fees")):
+            return "may_apply_administration_fee", raw_pred_obj, "PERMISSION"
 
         # 0M. Return window check takes precedence over return channel eligibility (#182, #220)
         if any(w in sent_lower for w in ("within 30 days", "within 14 days", "within 60 days", "within 45 days", "days of purchase", "may be returned within", "can be returned within", "returned within", "standard return window", "gold return window")):
@@ -2014,7 +2065,7 @@ class DomainRuleExtractor:
             if match:
                 raw_subject = match.group("subject").strip() or (hier[-1] if hier else "System")
                 raw_modal = match.group("modal").strip().lower()
-                raw_pred_obj = match.group("predicate_object").strip().rstrip(".")
+                raw_pred_obj = match.group("predicate_object").strip().rstrip(".:")
 
                 # Guard: "May" followed by a calendar day number (e.g. "May 1", "May 12") or preceded by preposition of date
                 is_calendar_may = (

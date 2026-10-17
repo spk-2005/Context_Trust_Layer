@@ -1,0 +1,228 @@
+{
+  "document_id": "HOLD-014",
+  "title": "Automotive Parts Return & Core Fee Matrix",
+  "domain": "terms_and_warranties",
+  "canonical_rules_count": 22,
+  "claim_truth": [
+    {
+      "claim_id": "HOLD-014-C01",
+      "subject": "Terms_and_warranties Subject 1",
+      "predicate": "specifies_governing_rule",
+      "object": {
+        "value": "Standard condition 1",
+        "modality": "MUST"
+      },
+      "canonical": true
+    },
+    {
+      "claim_id": "HOLD-014-C02",
+      "subject": "Terms_and_warranties Subject 2",
+      "predicate": "specifies_governing_rule",
+      "object": {
+        "value": "Standard condition 2",
+        "modality": "MUST"
+      },
+      "canonical": true
+    },
+    {
+      "claim_id": "HOLD-014-C03",
+      "subject": "Terms_and_warranties Subject 3",
+      "predicate": "specifies_governing_rule",
+      "object": {
+        "value": "Standard condition 3",
+        "modality": "MUST"
+      },
+      "canonical": true
+    },
+    {
+      "claim_id": "HOLD-014-C04",
+      "subject": "Terms_and_warranties Subject 4",
+      "predicate": "specifies_governing_rule",
+      "object": {
+        "value": "Standard condition 4",
+        "modality": "MUST"
+      },
+      "canonical": true
+    },
+    {
+      "claim_id": "HOLD-014-C05",
+      "subject": "Terms_and_warranties Subject 5",
+      "predicate": "specifies_governing_rule",
+      "object": {
+        "value": "Standard condition 5",
+        "modality": "MUST"
+      },
+      "canonical": true
+    },
+    {
+      "claim_id": "HOLD-014-C06",
+      "subject": "Terms_and_warranties Subject 6",
+      "predicate": "specifies_governing_rule",
+      "object": {
+        "value": "Standard condition 6",
+        "modality": "MUST"
+      },
+      "canonical": true
+    },
+    {
+      "claim_id": "HOLD-014-C07",
+      "subject": "Terms_and_warranties Subject 7",
+      "predicate": "specifies_governing_rule",
+      "object": {
+        "value": "Standard condition 7",
+        "modality": "MUST"
+      },
+      "canonical": true
+    },
+    {
+      "claim_id": "HOLD-014-C08",
+      "subject": "Terms_and_warranties Subject 8",
+      "predicate": "specifies_governing_rule",
+      "object": {
+        "value": "Standard condition 8",
+        "modality": "MUST"
+      },
+      "canonical": true
+    },
+    {
+      "claim_id": "HOLD-014-C09",
+      "subject": "Terms_and_warranties Subject 9",
+      "predicate": "specifies_governing_rule",
+      "object": {
+        "value": "Standard condition 9",
+        "modality": "MUST"
+      },
+      "canonical": true
+    },
+    {
+      "claim_id": "HOLD-014-C10",
+      "subject": "Terms_and_warranties Subject 10",
+      "predicate": "specifies_governing_rule",
+      "object": {
+        "value": "Standard condition 10",
+        "modality": "MUST"
+      },
+      "canonical": true
+    },
+    {
+      "claim_id": "HOLD-014-C11",
+      "subject": "Terms_and_warranties Subject 11",
+      "predicate": "specifies_governing_rule",
+      "object": {
+        "value": "Standard condition 11",
+        "modality": "MUST"
+      },
+      "canonical": true
+    },
+    {
+      "claim_id": "HOLD-014-C12",
+      "subject": "Terms_and_warranties Subject 12",
+      "predicate": "specifies_governing_rule",
+      "object": {
+        "value": "Standard condition 12",
+        "modality": "MUST"
+      },
+      "canonical": true
+    },
+    {
+      "claim_id": "HOLD-014-C13",
+      "subject": "Terms_and_warranties Subject 13",
+      "predicate": "specifies_governing_rule",
+      "object": {
+        "value": "Standard condition 13",
+        "modality": "MUST"
+      },
+      "canonical": true
+    },
+    {
+      "claim_id": "HOLD-014-C14",
+      "subject": "Terms_and_warranties Subject 14",
+      "predicate": "specifies_governing_rule",
+      "object": {
+        "value": "Standard condition 14",
+        "modality": "MUST"
+      },
+      "canonical": true
+    },
+    {
+      "claim_id": "HOLD-014-C15",
+      "subject": "Terms_and_warranties Subject 15",
+      "predicate": "specifies_governing_rule",
+      "object": {
+        "value": "Standard condition 15",
+        "modality": "MUST"
+      },
+      "canonical": true
+    },
+    {
+      "claim_id": "HOLD-014-C16",
+      "subject": "Terms_and_warranties Subject 16",
+      "predicate": "specifies_governing_rule",
+      "object": {
+        "value": "Standard condition 16",
+        "modality": "MUST"
+      },
+      "canonical": true
+    },
+    {
+      "claim_id": "HOLD-014-C17",
+      "subject": "Terms_and_warranties Subject 17",
+      "predicate": "specifies_governing_rule",
+      "object": {
+        "value": "Standard condition 17",
+        "modality": "MUST"
+      },
+      "canonical": true
+    },
+    {
+      "claim_id": "HOLD-014-C18",
+      "subject": "Terms_and_warranties Subject 18",
+      "predicate": "specifies_governing_rule",
+      "object": {
+        "value": "Standard condition 18",
+        "modality": "MUST"
+      },
+      "canonical": true
+    },
+    {
+      "claim_id": "HOLD-014-C19",
+      "subject": "Terms_and_warranties Subject 19",
+      "predicate": "specifies_governing_rule",
+      "object": {
+        "value": "Standard condition 19",
+        "modality": "MUST"
+      },
+      "canonical": true
+    },
+    {
+      "claim_id": "HOLD-014-C20",
+      "subject": "Terms_and_warranties Subject 20",
+      "predicate": "specifies_governing_rule",
+      "object": {
+        "value": "Standard condition 20",
+        "modality": "MUST"
+      },
+      "canonical": true
+    },
+    {
+      "claim_id": "HOLD-014-C21",
+      "subject": "Terms_and_warranties Subject 21",
+      "predicate": "specifies_governing_rule",
+      "object": {
+        "value": "Standard condition 21",
+        "modality": "MUST"
+      },
+      "canonical": true
+    },
+    {
+      "claim_id": "HOLD-014-C22",
+      "subject": "Terms_and_warranties Subject 22",
+      "predicate": "specifies_governing_rule",
+      "object": {
+        "value": "Standard condition 22",
+        "modality": "MUST"
+      },
+      "canonical": true
+    }
+  ]
+}

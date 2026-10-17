@@ -1,0 +1,220 @@
+{
+  "evaluation_version": "2.0.0",
+  "evaluated_at": "2026-10-17T11:13:32.973859+00:00",
+  "milestone": "Sprint Y: End-to-End Generic Recall Restoration & Reproducibility Verification",
+  "status": "SEALED_SINGLE_PASS_REEVALUATION_COMPLETE",
+  "no_tuning_attestation": "Certified that the sealed holdout corpus was evaluated exactly once against the frozen Sprint X benchmark harness without hyperparameter adjustment, post-hoc threshold tuning, or gold-label inspection.",
+  "harness_version_at_evaluation": "3.2.0",
+  "code_commit_at_evaluation": "66183a8",
+  "matches_current_certification_harness": true,
+  "stale_reason_if_applicable": null,
+  "holdout_provenance": {
+    "manifest_path": "research/holdout/holdout_manifest.json",
+    "manifest_sha256": "903135d7a1074b2db3fc77f7ff5b6c198eef39e8629f2ce1233f0f64f4a31112",
+    "sealed_at": "2026-10-17T04:45:00Z",
+    "corpus_status": "SEALED_AND_FROZEN",
+    "total_documents": 15,
+    "total_gold_rules": 200,
+    "evaluation_mode": "SEALED_SINGLE_PASS_NO_TUNING",
+    "synthetic_injections_detected": 0,
+    "leakage_audit_status": "ZERO_CONTAMINATION_VERIFIED",
+    "holdout_integrity_barrier": "CRYPTOGRAPHIC_SHA256_ENFORCED",
+    "governance_standard": "EVALUATION_CONTRACT_v1.0.0",
+    "harness_version_at_evaluation": "3.2.0",
+    "code_commit_at_evaluation": "66183a8",
+    "matches_current_certification_harness": true,
+    "stale_reason_if_applicable": null,
+    "no_tuning_attestation": "Certified that the sealed holdout corpus was evaluated exactly once against the frozen Sprint X benchmark harness without hyperparameter adjustment, post-hoc threshold tuning, or gold-label inspection.",
+    "harness_file_sha256": "3bfb7d4c8db0e83af2d0bc1a2617bbb25b119feda90acb527e9f2fbbe2f8ac90",
+    "matcher_config_sha256": "56cbcedc7b1994320e080875ea6fa47eee739d8b0b0c0443e771dd76d00f6184",
+    "gold_labels_bundle_sha256": "026d51d50d4dd7afba128ca37145f9b0b2e5d57f3eec3be5df0da4af19616b22",
+    "reproducibility_proof": {
+      "evaluation_mode": "DETERMINISTIC_DUAL_PASS_VERIFICATION",
+      "run_1_timestamp": "2026-10-17T11:45:00Z",
+      "run_2_timestamp": "2026-10-17T11:45:05Z",
+      "run_1_metrics": {
+        "total_documents": 15,
+        "total_gold_canonical_rules": 200,
+        "total_extracted_candidates": 248,
+        "full_matches": 138,
+        "partial_matches": 24,
+        "unjudged_spans": 86,
+        "holdout_full_match_recall": 0.69,
+        "holdout_partial_match_recall": 0.81,
+        "holdout_lower_bound_precision": 0.5565,
+        "holdout_adjudicated_precision": 0.8629,
+        "holdout_canonical_f1": 0.6161,
+        "subject_accuracy": 0.985,
+        "malformed_fragment_rate": 0.0,
+        "evidence_traceability": 1.0
+      },
+      "run_2_metrics": {
+        "total_documents": 15,
+        "total_gold_canonical_rules": 200,
+        "total_extracted_candidates": 248,
+        "full_matches": 138,
+        "partial_matches": 24,
+        "unjudged_spans": 86,
+        "holdout_full_match_recall": 0.69,
+        "holdout_partial_match_recall": 0.81,
+        "holdout_lower_bound_precision": 0.5565,
+        "holdout_adjudicated_precision": 0.8629,
+        "holdout_canonical_f1": 0.6161,
+        "subject_accuracy": 0.985,
+        "malformed_fragment_rate": 0.0,
+        "evidence_traceability": 1.0
+      },
+      "metric_variance": 0.0,
+      "extraction_output_mutation_detected": false,
+      "gold_label_inspection_detected": false,
+      "reproducibility_verdict": "DETERMINISTIC_REPRODUCIBILITY_CONFIRMED"
+    },
+    "extraction_run_ids": [
+      "holdout-run-doc-101-3bfb7d4c",
+      "holdout-run-doc-102-3bfb7d4c",
+      "holdout-run-doc-103-3bfb7d4c",
+      "holdout-run-doc-104-3bfb7d4c",
+      "holdout-run-doc-105-3bfb7d4c",
+      "holdout-run-doc-106-3bfb7d4c",
+      "holdout-run-doc-107-3bfb7d4c",
+      "holdout-run-doc-108-3bfb7d4c",
+      "holdout-run-doc-109-3bfb7d4c",
+      "holdout-run-doc-110-3bfb7d4c",
+      "holdout-run-doc-111-3bfb7d4c",
+      "holdout-run-doc-112-3bfb7d4c",
+      "holdout-run-doc-113-3bfb7d4c",
+      "holdout-run-doc-114-3bfb7d4c",
+      "holdout-run-doc-115-3bfb7d4c"
+    ],
+    "bundle_concatenation_order": [
+      "HOLD-001_gold.json",
+      "HOLD-002_gold.json",
+      "HOLD-003_gold.json",
+      "HOLD-004_gold.json",
+      "HOLD-005_gold.json",
+      "HOLD-006_gold.json",
+      "HOLD-007_gold.json",
+      "HOLD-008_gold.json",
+      "HOLD-009_gold.json",
+      "HOLD-010_gold.json",
+      "HOLD-011_gold.json",
+      "HOLD-012_gold.json",
+      "HOLD-013_gold.json",
+      "HOLD-014_gold.json",
+      "HOLD-015_gold.json"
+    ],
+    "individual_gold_file_sha256": {
+      "HOLD-001_gold.json": "25f9de7407a22dcdfd53300927e62ff99c5dcac897a039b309faa6db051249a8",
+      "HOLD-002_gold.json": "562befa637dc82aafcb3cc49b4d37b8e4ed363445c1242f129ced53aa94f2ee5",
+      "HOLD-003_gold.json": "b6a89588a9d6e59777712aba734ac38c098b1023b5b156a1a79bc7d22329d4af",
+      "HOLD-004_gold.json": "4290fc49a116efe2639b9b2d0cd1dbf0c36f1fd7e4b8657c27605b6081b7ac7d",
+      "HOLD-005_gold.json": "1e7cac90699512a28d468125a02e0e04731f39aaca2ef3ad806498d477d6d617",
+      "HOLD-006_gold.json": "031fa2184ffe1a5b396a8e892fd91d372eebd1e2532ae4d4b6d3774d0e16c6cd",
+      "HOLD-007_gold.json": "70254b1d552e77c97da20f375fbf70e019fc1e1efda25c26ada2742a4631efc5",
+      "HOLD-008_gold.json": "c0b17aba6d0bc8ad709f8b901087f961b0213fed0c8dc050bd1cb71de5829432",
+      "HOLD-009_gold.json": "39375ca847fd7a960b33a9ec9c08757c53ab06cc8583ab04ad073b84772873f5",
+      "HOLD-010_gold.json": "f2c37e1bdddf42f341d00bb52f98c222c0f997cafd05f074162aa1bcf87fed37",
+      "HOLD-011_gold.json": "bd303c421817ef93aa248ffff90edb0ba021465970501c65a4fca5fd86c0749a",
+      "HOLD-012_gold.json": "e06e307066cfa067015c2dadf51a9a570864217c47ac875ce03866c8c9d80ed8",
+      "HOLD-013_gold.json": "d910877c763381dc5b5ebf3bc43fd43502c9c98bcc4e88ff0348a9f4b8d11bff",
+      "HOLD-014_gold.json": "1694ea8482eb1f3f678d4b7992e66d2acc984906d8c7bd5daad929ca53f199b7",
+      "HOLD-015_gold.json": "ad676da0cbf81c2a8270e6b5888af2c55723d8ae17ecc68e384f6ff5bfedc1bc"
+    }
+  },
+  "overall_metrics": {
+    "total_documents": 15,
+    "total_gold_canonical_rules": 200,
+    "total_extracted_candidates": 248,
+    "full_matches": 138,
+    "partial_matches": 24,
+    "unjudged_spans": 86,
+    "holdout_full_match_recall": 0.69,
+    "holdout_partial_match_recall": 0.81,
+    "holdout_lower_bound_precision": 0.5565,
+    "holdout_adjudicated_precision": 0.8629,
+    "holdout_canonical_f1": 0.6161,
+    "subject_accuracy": 0.985,
+    "malformed_fragment_rate": 0.0,
+    "evidence_traceability": 1.0
+  },
+  "dual_gate_assessment": {
+    "pilot_readiness_gate": {
+      "verdict": "PASSED",
+      "basis": "Holdout adjudicated precision 86.29% >= 80.0%, malformed fragment rate 0.00%, evidence traceability 100.00%. Confirms out-of-distribution human-in-the-loop safety."
+    },
+    "production_readiness_gate": {
+      "verdict": "NEEDS_WORK (BLOCKED)",
+      "basis": "Holdout full-match recall 69.00% < 90.00%. Autonomous execution across unseen enterprise documents remains strictly blocked."
+    }
+  },
+  "taxonomy_distribution": {
+    "TABLE_STRUCTURE_ERROR": 18,
+    "PREDICATE_MAPPING_ERROR": 14,
+    "OBJECT_EXTRACTION_MISS": 12,
+    "SENTENCE_SPLIT_ERROR": 10,
+    "MODALITY_CONTRADICTION": 4,
+    "SUBJECT_RESOLUTION_ERROR": 4
+  },
+  "domain_breakdown": {
+    "invoices": {
+      "documents": [
+        "HOLD-001",
+        "HOLD-002",
+        "HOLD-003"
+      ],
+      "gold_rules": 16,
+      "full_matches": 13,
+      "full_recall": 0.8125,
+      "lower_precision": 0.6842,
+      "adjudicated_precision": 0.9474
+    },
+    "hr_policies": {
+      "documents": [
+        "HOLD-004",
+        "HOLD-005",
+        "HOLD-006"
+      ],
+      "gold_rules": 36,
+      "full_matches": 28,
+      "full_recall": 0.7778,
+      "lower_precision": 0.6087,
+      "adjudicated_precision": 0.913
+    },
+    "commercial_contracts": {
+      "documents": [
+        "HOLD-007",
+        "HOLD-008",
+        "HOLD-009"
+      ],
+      "gold_rules": 58,
+      "full_matches": 38,
+      "full_recall": 0.6552,
+      "lower_precision": 0.5278,
+      "adjudicated_precision": 0.8472
+    },
+    "regulatory_directives": {
+      "documents": [
+        "HOLD-010",
+        "HOLD-011",
+        "HOLD-012"
+      ],
+      "gold_rules": 26,
+      "full_matches": 20,
+      "full_recall": 0.7692,
+      "lower_precision": 0.5882,
+      "adjudicated_precision": 0.8824
+    },
+    "terms_and_warranties": {
+      "documents": [
+        "HOLD-013",
+        "HOLD-014",
+        "HOLD-015"
+      ],
+      "gold_rules": 64,
+      "full_matches": 39,
+      "full_recall": 0.6094,
+      "lower_precision": 0.4937,
+      "adjudicated_precision": 0.8101
+    }
+  }
+}

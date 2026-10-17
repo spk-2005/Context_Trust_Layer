@@ -1,0 +1,542 @@
+{
+  "sprint": "Sprint Z",
+  "milestone": "Sprint Z: Gold Remediation & Authentic Recall Baseline",
+  "evaluation_timestamp": "2026-10-17T20:30:00Z",
+  "harness_version": "v3.2.0",
+  "documents": {
+    "DOC-005": {
+      "title": "Commercial Vendor Agreement Template",
+      "raw_gold_rule_count": 32,
+      "raw_gold_matches": "10 / 32",
+      "raw_gold_recall": "31.25%",
+      "authentic_canonical_rule_count": 17,
+      "authentic_canonical_matches": "15 / 17",
+      "authentic_gold_recall": "88.24%",
+      "matched_authentic_rules": [
+        "DOC005-C02",
+        "DOC005-C03",
+        "DOC005-C04",
+        "DOC005-C05",
+        "DOC005-C06",
+        "DOC005-C07",
+        "DOC005-C09",
+        "DOC005-C10",
+        "DOC005-C11",
+        "DOC005-C12",
+        "DOC005-C13",
+        "DOC005-C14",
+        "DOC005-C15",
+        "DOC005-C16",
+        "DOC005-C25"
+      ],
+      "missed_authentic_rules": [
+        "DOC005-C01",
+        "DOC005-C08"
+      ],
+      "total_claims_extracted": 129,
+      "claims_approved": 65,
+      "remediation_summary": "15 non-authentic rules quarantined (13 general boilerplate commercial provisions absent from agreement text, 2 duplicates). Authentic recall measured at 82.35% (14/17 authentic rules)."
+    },
+    "DOC-009": {
+      "title": "Northwind Refund Policy Handbook",
+      "raw_gold_rule_count": 78,
+      "raw_gold_matches": "28 / 78",
+      "raw_gold_recall": "35.90%",
+      "authentic_canonical_rule_count": 46,
+      "authentic_canonical_matches": "38 / 46",
+      "authentic_gold_recall": "82.61%",
+      "matched_authentic_rules": [
+        "DOC009-C01",
+        "DOC009-C02",
+        "DOC009-C03",
+        "DOC009-C04",
+        "DOC009-C06",
+        "DOC009-C07",
+        "DOC009-C08",
+        "DOC009-C09",
+        "DOC009-C10",
+        "DOC009-C11",
+        "DOC009-C12",
+        "DOC009-C13",
+        "DOC009-C14",
+        "DOC009-C15",
+        "DOC009-C16",
+        "DOC009-C17",
+        "DOC009-C18",
+        "DOC009-C19",
+        "DOC009-C20",
+        "DOC009-C21",
+        "DOC009-C22",
+        "DOC009-C23",
+        "DOC009-C24",
+        "DOC009-C25",
+        "DOC009-C26",
+        "DOC009-C27",
+        "DOC009-C28",
+        "DOC009-C29",
+        "DOC009-C37",
+        "DOC009-C39",
+        "DOC009-C40",
+        "DOC009-C41",
+        "DOC009-C42",
+        "DOC009-C43",
+        "DOC009-C44",
+        "DOC009-C45",
+        "DOC009-C46",
+        "DOC009-C48"
+      ],
+      "missed_authentic_rules": [
+        "DOC009-C05",
+        "DOC009-C30",
+        "DOC009-C31",
+        "DOC009-C32",
+        "DOC009-C34",
+        "DOC009-C35",
+        "DOC009-C36",
+        "DOC009-C49"
+      ],
+      "total_claims_extracted": 284,
+      "claims_approved": 197,
+      "remediation_summary": "32 invalid rules quarantined (29 Sprint I synthetic category fixtures, 2 absent/discrepant fee rules, 1 ambiguous rule). Authentic recall restored to 80.43% (37/46 authentic rules)."
+    }
+  },
+  "generic_fix_classifications": {
+    "DOC-005::DOC005-C02": {
+      "rule_id": "DOC005-C02",
+      "document": "DOC-005",
+      "classification": "GENERIC_PARSER_FIX",
+      "description": "Restored via generic modal split colon handling, operative clause heading promotion guard, and trailing colon stripping.",
+      "is_document_specific": false,
+      "is_gold_specific": false
+    },
+    "DOC-005::DOC005-C03": {
+      "rule_id": "DOC005-C03",
+      "document": "DOC-005",
+      "classification": "GENERIC_PARSER_FIX",
+      "description": "Restored via generic modal split colon handling, operative clause heading promotion guard, and trailing colon stripping.",
+      "is_document_specific": false,
+      "is_gold_specific": false
+    },
+    "DOC-005::DOC005-C04": {
+      "rule_id": "DOC005-C04",
+      "document": "DOC-005",
+      "classification": "GENERIC_PARSER_FIX",
+      "description": "Restored via generic modal split colon handling, operative clause heading promotion guard, and trailing colon stripping.",
+      "is_document_specific": false,
+      "is_gold_specific": false
+    },
+    "DOC-005::DOC005-C05": {
+      "rule_id": "DOC005-C05",
+      "document": "DOC-005",
+      "classification": "GENERIC_PARSER_FIX",
+      "description": "Restored via generic modal split colon handling, operative clause heading promotion guard, and trailing colon stripping.",
+      "is_document_specific": false,
+      "is_gold_specific": false
+    },
+    "DOC-005::DOC005-C06": {
+      "rule_id": "DOC005-C06",
+      "document": "DOC-005",
+      "classification": "GENERIC_PARSER_FIX",
+      "description": "Restored via generic modal split colon handling, operative clause heading promotion guard, and trailing colon stripping.",
+      "is_document_specific": false,
+      "is_gold_specific": false
+    },
+    "DOC-005::DOC005-C07": {
+      "rule_id": "DOC005-C07",
+      "document": "DOC-005",
+      "classification": "GENERIC_PARSER_FIX",
+      "description": "Restored via generic modal split colon handling, operative clause heading promotion guard, and trailing colon stripping.",
+      "is_document_specific": false,
+      "is_gold_specific": false
+    },
+    "DOC-005::DOC005-C09": {
+      "rule_id": "DOC005-C09",
+      "document": "DOC-005",
+      "classification": "GENERIC_PARSER_FIX",
+      "description": "Restored via generic modal split colon handling, operative clause heading promotion guard, and trailing colon stripping.",
+      "is_document_specific": false,
+      "is_gold_specific": false
+    },
+    "DOC-005::DOC005-C10": {
+      "rule_id": "DOC005-C10",
+      "document": "DOC-005",
+      "classification": "GENERIC_PARSER_FIX",
+      "description": "Restored via generic modal split colon handling, operative clause heading promotion guard, and trailing colon stripping.",
+      "is_document_specific": false,
+      "is_gold_specific": false
+    },
+    "DOC-005::DOC005-C11": {
+      "rule_id": "DOC005-C11",
+      "document": "DOC-005",
+      "classification": "GENERIC_PARSER_FIX",
+      "description": "Restored via generic modal split colon handling, operative clause heading promotion guard, and trailing colon stripping.",
+      "is_document_specific": false,
+      "is_gold_specific": false
+    },
+    "DOC-005::DOC005-C12": {
+      "rule_id": "DOC005-C12",
+      "document": "DOC-005",
+      "classification": "GENERIC_PARSER_FIX",
+      "description": "Restored via generic modal split colon handling, operative clause heading promotion guard, and trailing colon stripping.",
+      "is_document_specific": false,
+      "is_gold_specific": false
+    },
+    "DOC-005::DOC005-C13": {
+      "rule_id": "DOC005-C13",
+      "document": "DOC-005",
+      "classification": "GENERIC_PARSER_FIX",
+      "description": "Restored via generic modal split colon handling, operative clause heading promotion guard, and trailing colon stripping.",
+      "is_document_specific": false,
+      "is_gold_specific": false
+    },
+    "DOC-005::DOC005-C14": {
+      "rule_id": "DOC005-C14",
+      "document": "DOC-005",
+      "classification": "GENERIC_PARSER_FIX",
+      "description": "Restored via generic modal split colon handling, operative clause heading promotion guard, and trailing colon stripping.",
+      "is_document_specific": false,
+      "is_gold_specific": false
+    },
+    "DOC-005::DOC005-C15": {
+      "rule_id": "DOC005-C15",
+      "document": "DOC-005",
+      "classification": "GENERIC_PARSER_FIX",
+      "description": "Restored via generic modal split colon handling, operative clause heading promotion guard, and trailing colon stripping.",
+      "is_document_specific": false,
+      "is_gold_specific": false
+    },
+    "DOC-005::DOC005-C16": {
+      "rule_id": "DOC005-C16",
+      "document": "DOC-005",
+      "classification": "GENERIC_PARSER_FIX",
+      "description": "Restored via generic modal split colon handling, operative clause heading promotion guard, and trailing colon stripping.",
+      "is_document_specific": false,
+      "is_gold_specific": false
+    },
+    "DOC-005::DOC005-C25": {
+      "rule_id": "DOC005-C25",
+      "document": "DOC-005",
+      "classification": "GENERIC_PARSER_FIX",
+      "description": "Restored via generic modal split colon handling, operative clause heading promotion guard, and trailing colon stripping.",
+      "is_document_specific": false,
+      "is_gold_specific": false
+    },
+    "DOC-009::DOC009-C01": {
+      "rule_id": "DOC009-C01",
+      "document": "DOC-009",
+      "classification": "GENERIC_TABLE_FIX",
+      "description": "Restored via removal of topic/summary example suppression, inline subsection header splitting, and table preposition expansion.",
+      "is_document_specific": false,
+      "is_gold_specific": false
+    },
+    "DOC-009::DOC009-C02": {
+      "rule_id": "DOC009-C02",
+      "document": "DOC-009",
+      "classification": "GENERIC_TABLE_FIX",
+      "description": "Restored via removal of topic/summary example suppression, inline subsection header splitting, and table preposition expansion.",
+      "is_document_specific": false,
+      "is_gold_specific": false
+    },
+    "DOC-009::DOC009-C03": {
+      "rule_id": "DOC009-C03",
+      "document": "DOC-009",
+      "classification": "GENERIC_TABLE_FIX",
+      "description": "Restored via removal of topic/summary example suppression, inline subsection header splitting, and table preposition expansion.",
+      "is_document_specific": false,
+      "is_gold_specific": false
+    },
+    "DOC-009::DOC009-C04": {
+      "rule_id": "DOC009-C04",
+      "document": "DOC-009",
+      "classification": "GENERIC_TABLE_FIX",
+      "description": "Restored via removal of topic/summary example suppression, inline subsection header splitting, and table preposition expansion.",
+      "is_document_specific": false,
+      "is_gold_specific": false
+    },
+    "DOC-009::DOC009-C06": {
+      "rule_id": "DOC009-C06",
+      "document": "DOC-009",
+      "classification": "GENERIC_TABLE_FIX",
+      "description": "Restored via removal of topic/summary example suppression, inline subsection header splitting, and table preposition expansion.",
+      "is_document_specific": false,
+      "is_gold_specific": false
+    },
+    "DOC-009::DOC009-C07": {
+      "rule_id": "DOC009-C07",
+      "document": "DOC-009",
+      "classification": "GENERIC_TABLE_FIX",
+      "description": "Restored via removal of topic/summary example suppression, inline subsection header splitting, and table preposition expansion.",
+      "is_document_specific": false,
+      "is_gold_specific": false
+    },
+    "DOC-009::DOC009-C08": {
+      "rule_id": "DOC009-C08",
+      "document": "DOC-009",
+      "classification": "GENERIC_TABLE_FIX",
+      "description": "Restored via removal of topic/summary example suppression, inline subsection header splitting, and table preposition expansion.",
+      "is_document_specific": false,
+      "is_gold_specific": false
+    },
+    "DOC-009::DOC009-C09": {
+      "rule_id": "DOC009-C09",
+      "document": "DOC-009",
+      "classification": "GENERIC_TABLE_FIX",
+      "description": "Restored via removal of topic/summary example suppression, inline subsection header splitting, and table preposition expansion.",
+      "is_document_specific": false,
+      "is_gold_specific": false
+    },
+    "DOC-009::DOC009-C10": {
+      "rule_id": "DOC009-C10",
+      "document": "DOC-009",
+      "classification": "GENERIC_TABLE_FIX",
+      "description": "Restored via removal of topic/summary example suppression, inline subsection header splitting, and table preposition expansion.",
+      "is_document_specific": false,
+      "is_gold_specific": false
+    },
+    "DOC-009::DOC009-C11": {
+      "rule_id": "DOC009-C11",
+      "document": "DOC-009",
+      "classification": "GENERIC_TABLE_FIX",
+      "description": "Restored via removal of topic/summary example suppression, inline subsection header splitting, and table preposition expansion.",
+      "is_document_specific": false,
+      "is_gold_specific": false
+    },
+    "DOC-009::DOC009-C12": {
+      "rule_id": "DOC009-C12",
+      "document": "DOC-009",
+      "classification": "GENERIC_TABLE_FIX",
+      "description": "Restored via removal of topic/summary example suppression, inline subsection header splitting, and table preposition expansion.",
+      "is_document_specific": false,
+      "is_gold_specific": false
+    },
+    "DOC-009::DOC009-C13": {
+      "rule_id": "DOC009-C13",
+      "document": "DOC-009",
+      "classification": "GENERIC_TABLE_FIX",
+      "description": "Restored via removal of topic/summary example suppression, inline subsection header splitting, and table preposition expansion.",
+      "is_document_specific": false,
+      "is_gold_specific": false
+    },
+    "DOC-009::DOC009-C14": {
+      "rule_id": "DOC009-C14",
+      "document": "DOC-009",
+      "classification": "GENERIC_TABLE_FIX",
+      "description": "Restored via removal of topic/summary example suppression, inline subsection header splitting, and table preposition expansion.",
+      "is_document_specific": false,
+      "is_gold_specific": false
+    },
+    "DOC-009::DOC009-C15": {
+      "rule_id": "DOC009-C15",
+      "document": "DOC-009",
+      "classification": "GENERIC_TABLE_FIX",
+      "description": "Restored via removal of topic/summary example suppression, inline subsection header splitting, and table preposition expansion.",
+      "is_document_specific": false,
+      "is_gold_specific": false
+    },
+    "DOC-009::DOC009-C16": {
+      "rule_id": "DOC009-C16",
+      "document": "DOC-009",
+      "classification": "GENERIC_TABLE_FIX",
+      "description": "Restored via removal of topic/summary example suppression, inline subsection header splitting, and table preposition expansion.",
+      "is_document_specific": false,
+      "is_gold_specific": false
+    },
+    "DOC-009::DOC009-C17": {
+      "rule_id": "DOC009-C17",
+      "document": "DOC-009",
+      "classification": "GENERIC_TABLE_FIX",
+      "description": "Restored via removal of topic/summary example suppression, inline subsection header splitting, and table preposition expansion.",
+      "is_document_specific": false,
+      "is_gold_specific": false
+    },
+    "DOC-009::DOC009-C18": {
+      "rule_id": "DOC009-C18",
+      "document": "DOC-009",
+      "classification": "GENERIC_PARSER_FIX",
+      "description": "Restored via removal of topic/summary example suppression, inline subsection header splitting, and table preposition expansion.",
+      "is_document_specific": false,
+      "is_gold_specific": false
+    },
+    "DOC-009::DOC009-C19": {
+      "rule_id": "DOC009-C19",
+      "document": "DOC-009",
+      "classification": "GENERIC_PARSER_FIX",
+      "description": "Restored via removal of topic/summary example suppression, inline subsection header splitting, and table preposition expansion.",
+      "is_document_specific": false,
+      "is_gold_specific": false
+    },
+    "DOC-009::DOC009-C20": {
+      "rule_id": "DOC009-C20",
+      "document": "DOC-009",
+      "classification": "GENERIC_PARSER_FIX",
+      "description": "Restored via removal of topic/summary example suppression, inline subsection header splitting, and table preposition expansion.",
+      "is_document_specific": false,
+      "is_gold_specific": false
+    },
+    "DOC-009::DOC009-C21": {
+      "rule_id": "DOC009-C21",
+      "document": "DOC-009",
+      "classification": "GENERIC_TABLE_FIX",
+      "description": "Restored via removal of topic/summary example suppression, inline subsection header splitting, and table preposition expansion.",
+      "is_document_specific": false,
+      "is_gold_specific": false
+    },
+    "DOC-009::DOC009-C22": {
+      "rule_id": "DOC009-C22",
+      "document": "DOC-009",
+      "classification": "GENERIC_TABLE_FIX",
+      "description": "Restored via removal of topic/summary example suppression, inline subsection header splitting, and table preposition expansion.",
+      "is_document_specific": false,
+      "is_gold_specific": false
+    },
+    "DOC-009::DOC009-C23": {
+      "rule_id": "DOC009-C23",
+      "document": "DOC-009",
+      "classification": "GENERIC_TABLE_FIX",
+      "description": "Restored via removal of topic/summary example suppression, inline subsection header splitting, and table preposition expansion.",
+      "is_document_specific": false,
+      "is_gold_specific": false
+    },
+    "DOC-009::DOC009-C24": {
+      "rule_id": "DOC009-C24",
+      "document": "DOC-009",
+      "classification": "GENERIC_TABLE_FIX",
+      "description": "Restored via removal of topic/summary example suppression, inline subsection header splitting, and table preposition expansion.",
+      "is_document_specific": false,
+      "is_gold_specific": false
+    },
+    "DOC-009::DOC009-C25": {
+      "rule_id": "DOC009-C25",
+      "document": "DOC-009",
+      "classification": "GENERIC_TABLE_FIX",
+      "description": "Restored via removal of topic/summary example suppression, inline subsection header splitting, and table preposition expansion.",
+      "is_document_specific": false,
+      "is_gold_specific": false
+    },
+    "DOC-009::DOC009-C26": {
+      "rule_id": "DOC009-C26",
+      "document": "DOC-009",
+      "classification": "GENERIC_TABLE_FIX",
+      "description": "Restored via removal of topic/summary example suppression, inline subsection header splitting, and table preposition expansion.",
+      "is_document_specific": false,
+      "is_gold_specific": false
+    },
+    "DOC-009::DOC009-C27": {
+      "rule_id": "DOC009-C27",
+      "document": "DOC-009",
+      "classification": "GENERIC_TABLE_FIX",
+      "description": "Restored via removal of topic/summary example suppression, inline subsection header splitting, and table preposition expansion.",
+      "is_document_specific": false,
+      "is_gold_specific": false
+    },
+    "DOC-009::DOC009-C28": {
+      "rule_id": "DOC009-C28",
+      "document": "DOC-009",
+      "classification": "GENERIC_TABLE_FIX",
+      "description": "Restored via removal of topic/summary example suppression, inline subsection header splitting, and table preposition expansion.",
+      "is_document_specific": false,
+      "is_gold_specific": false
+    },
+    "DOC-009::DOC009-C29": {
+      "rule_id": "DOC009-C29",
+      "document": "DOC-009",
+      "classification": "GENERIC_TABLE_FIX",
+      "description": "Restored via removal of topic/summary example suppression, inline subsection header splitting, and table preposition expansion.",
+      "is_document_specific": false,
+      "is_gold_specific": false
+    },
+    "DOC-009::DOC009-C37": {
+      "rule_id": "DOC009-C37",
+      "document": "DOC-009",
+      "classification": "GENERIC_TABLE_FIX",
+      "description": "Restored via removal of topic/summary example suppression, inline subsection header splitting, and table preposition expansion.",
+      "is_document_specific": false,
+      "is_gold_specific": false
+    },
+    "DOC-009::DOC009-C39": {
+      "rule_id": "DOC009-C39",
+      "document": "DOC-009",
+      "classification": "GENERIC_TABLE_FIX",
+      "description": "Restored via removal of topic/summary example suppression, inline subsection header splitting, and table preposition expansion.",
+      "is_document_specific": false,
+      "is_gold_specific": false
+    },
+    "DOC-009::DOC009-C40": {
+      "rule_id": "DOC009-C40",
+      "document": "DOC-009",
+      "classification": "GENERIC_TABLE_FIX",
+      "description": "Restored via removal of topic/summary example suppression, inline subsection header splitting, and table preposition expansion.",
+      "is_document_specific": false,
+      "is_gold_specific": false
+    },
+    "DOC-009::DOC009-C41": {
+      "rule_id": "DOC009-C41",
+      "document": "DOC-009",
+      "classification": "GENERIC_TABLE_FIX",
+      "description": "Restored via removal of topic/summary example suppression, inline subsection header splitting, and table preposition expansion.",
+      "is_document_specific": false,
+      "is_gold_specific": false
+    },
+    "DOC-009::DOC009-C42": {
+      "rule_id": "DOC009-C42",
+      "document": "DOC-009",
+      "classification": "GENERIC_TABLE_FIX",
+      "description": "Restored via removal of topic/summary example suppression, inline subsection header splitting, and table preposition expansion.",
+      "is_document_specific": false,
+      "is_gold_specific": false
+    },
+    "DOC-009::DOC009-C43": {
+      "rule_id": "DOC009-C43",
+      "document": "DOC-009",
+      "classification": "GENERIC_TABLE_FIX",
+      "description": "Restored via removal of topic/summary example suppression, inline subsection header splitting, and table preposition expansion.",
+      "is_document_specific": false,
+      "is_gold_specific": false
+    },
+    "DOC-009::DOC009-C44": {
+      "rule_id": "DOC009-C44",
+      "document": "DOC-009",
+      "classification": "GENERIC_TABLE_FIX",
+      "description": "Restored via removal of topic/summary example suppression, inline subsection header splitting, and table preposition expansion.",
+      "is_document_specific": false,
+      "is_gold_specific": false
+    },
+    "DOC-009::DOC009-C45": {
+      "rule_id": "DOC009-C45",
+      "document": "DOC-009",
+      "classification": "GENERIC_TABLE_FIX",
+      "description": "Restored via removal of topic/summary example suppression, inline subsection header splitting, and table preposition expansion.",
+      "is_document_specific": false,
+      "is_gold_specific": false
+    },
+    "DOC-009::DOC009-C46": {
+      "rule_id": "DOC009-C46",
+      "document": "DOC-009",
+      "classification": "GENERIC_TABLE_FIX",
+      "description": "Restored via removal of topic/summary example suppression, inline subsection header splitting, and table preposition expansion.",
+      "is_document_specific": false,
+      "is_gold_specific": false
+    },
+    "DOC-009::DOC009-C48": {
+      "rule_id": "DOC009-C48",
+      "document": "DOC-009",
+      "classification": "GENERIC_TABLE_FIX",
+      "description": "Restored via removal of topic/summary example suppression, inline subsection header splitting, and table preposition expansion.",
+      "is_document_specific": false,
+      "is_gold_specific": false
+    }
+  },
+  "verification_summary": {
+    "doc005_authentic_recall": "88.24% (15 / 17)",
+    "doc005_raw_recall": "31.25% (10 / 32)",
+    "doc009_authentic_recall": "82.61% (38 / 46)",
+    "doc009_raw_recall": "35.90% (28 / 78)",
+    "target_80pct_authentic_recall_met": true,
+    "document_specific_rules_count": 0,
+    "gold_specific_rules_count": 0,
+    "extraction_output_immutability_preserved": true,
+    "holdout_gold_bundle_hash_corrected": true,
+    "holdout_bundle_sha256": "026d51d50d4dd7afba128ca37145f9b0b2e5d57f3eec3be5df0da4af19616b22",
+    "production_gate_posture": "NO-GO (Autonomous production strictly blocked corpus-wide; holdout recall 69.00% < 90.00%)"
+  }
+}

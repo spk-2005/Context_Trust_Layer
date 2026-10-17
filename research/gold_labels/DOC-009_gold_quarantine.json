@@ -1,0 +1,488 @@
+{
+  "document_id": "DOC-009",
+  "quarantine_reason": "Synthetic fixtures, discrepant fee hallucinations, and ambiguous terms quarantined from authentic recall denominator",
+  "quarantined_rule_count": 32,
+  "quarantined_rules": [
+    {
+      "claim_id": "DOC009-C33",
+      "subject": "Perishable food and energy bars",
+      "predicate": "cannot_be_returned",
+      "object": {
+        "value": "non-returnable once purchased for health and safety",
+        "modality": "MUST_NOT"
+      },
+      "claim_type": "POLICY_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "Food and energy bar products cannot be returned.",
+      "disposition": "AMBIGUOUS_NEEDS_REVIEW",
+      "rationale": "Gold rule claims blanket non-returnability of 'food and energy bar products', whereas authentic text specifies 'Perishable goods such as freeze-dried meals past 14 days from delivery'. Quarantined pending legal/product review."
+    },
+    {
+      "claim_id": "DOC009-C38",
+      "subject": "Oversized gear",
+      "predicate": "has_freight_deduction_fee",
+      "object": {
+        "value": 75.0,
+        "currency": "USD",
+        "modality": "MUST"
+      },
+      "claim_type": "POLICY_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "Oversized freight pickup incurs a $75 deduction fee from refund.",
+      "disposition": "NOT_PRESENT_IN_SOURCE",
+      "rationale": "Gold rule specifies '$75 deduction fee for oversized freight', whereas authentic source handbook Section 9 explicitly specifies a flat $49.00 freight deduction ('Return freight for change-of-mind returns is a flat $49.00, deducted from the refund')."
+    },
+    {
+      "claim_id": "DOC009-C47",
+      "subject": "Missing receipt",
+      "predicate": "has_refund_method",
+      "object": {
+        "value": "lowest historical selling price issued as store credit",
+        "modality": "MAY"
+      },
+      "claim_type": "POLICY_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "Returns without receipt receive lowest historical price as store credit.",
+      "disposition": "NOT_PRESENT_IN_SOURCE",
+      "rationale": "Gold rule specifies 'lowest historical price as store credit for returns without receipt', which does not exist in the source document. Section 6 specifies returns without receipt are in-store only with ID and limit of 3."
+    },
+    {
+      "claim_id": "DOC009-C50",
+      "subject": "Northwind Product Category Rule 1",
+      "predicate": "has_governing_rule",
+      "object": {
+        "value": "standard return and refund terms apply",
+        "modality": "MUST"
+      },
+      "claim_type": "POLICY_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "Northwind Product Category Rule 1 standard return and refund terms apply.",
+      "disposition": "SYNTHETIC_FIXTURE",
+      "rationale": "Synthetic placeholder fixture ('Northwind Product Category Rule 1') injected in Sprint I benchmark suite. Completely absent from authentic Northwind Refund Policy Handbook."
+    },
+    {
+      "claim_id": "DOC009-C51",
+      "subject": "Northwind Product Category Rule 2",
+      "predicate": "has_governing_rule",
+      "object": {
+        "value": "standard return and refund terms apply",
+        "modality": "MUST"
+      },
+      "claim_type": "POLICY_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "Northwind Product Category Rule 2 standard return and refund terms apply.",
+      "disposition": "SYNTHETIC_FIXTURE",
+      "rationale": "Synthetic placeholder fixture ('Northwind Product Category Rule 2') injected in Sprint I benchmark suite. Completely absent from authentic Northwind Refund Policy Handbook."
+    },
+    {
+      "claim_id": "DOC009-C52",
+      "subject": "Northwind Product Category Rule 3",
+      "predicate": "has_governing_rule",
+      "object": {
+        "value": "standard return and refund terms apply",
+        "modality": "MUST"
+      },
+      "claim_type": "POLICY_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "Northwind Product Category Rule 3 standard return and refund terms apply.",
+      "disposition": "SYNTHETIC_FIXTURE",
+      "rationale": "Synthetic placeholder fixture ('Northwind Product Category Rule 3') injected in Sprint I benchmark suite. Completely absent from authentic Northwind Refund Policy Handbook."
+    },
+    {
+      "claim_id": "DOC009-C53",
+      "subject": "Northwind Product Category Rule 4",
+      "predicate": "has_governing_rule",
+      "object": {
+        "value": "standard return and refund terms apply",
+        "modality": "MUST"
+      },
+      "claim_type": "POLICY_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "Northwind Product Category Rule 4 standard return and refund terms apply.",
+      "disposition": "SYNTHETIC_FIXTURE",
+      "rationale": "Synthetic placeholder fixture ('Northwind Product Category Rule 4') injected in Sprint I benchmark suite. Completely absent from authentic Northwind Refund Policy Handbook."
+    },
+    {
+      "claim_id": "DOC009-C54",
+      "subject": "Northwind Product Category Rule 5",
+      "predicate": "has_governing_rule",
+      "object": {
+        "value": "standard return and refund terms apply",
+        "modality": "MUST"
+      },
+      "claim_type": "POLICY_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "Northwind Product Category Rule 5 standard return and refund terms apply.",
+      "disposition": "SYNTHETIC_FIXTURE",
+      "rationale": "Synthetic placeholder fixture ('Northwind Product Category Rule 5') injected in Sprint I benchmark suite. Completely absent from authentic Northwind Refund Policy Handbook."
+    },
+    {
+      "claim_id": "DOC009-C55",
+      "subject": "Northwind Product Category Rule 6",
+      "predicate": "has_governing_rule",
+      "object": {
+        "value": "standard return and refund terms apply",
+        "modality": "MUST"
+      },
+      "claim_type": "POLICY_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "Northwind Product Category Rule 6 standard return and refund terms apply.",
+      "disposition": "SYNTHETIC_FIXTURE",
+      "rationale": "Synthetic placeholder fixture ('Northwind Product Category Rule 6') injected in Sprint I benchmark suite. Completely absent from authentic Northwind Refund Policy Handbook."
+    },
+    {
+      "claim_id": "DOC009-C56",
+      "subject": "Northwind Product Category Rule 7",
+      "predicate": "has_governing_rule",
+      "object": {
+        "value": "standard return and refund terms apply",
+        "modality": "MUST"
+      },
+      "claim_type": "POLICY_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "Northwind Product Category Rule 7 standard return and refund terms apply.",
+      "disposition": "SYNTHETIC_FIXTURE",
+      "rationale": "Synthetic placeholder fixture ('Northwind Product Category Rule 7') injected in Sprint I benchmark suite. Completely absent from authentic Northwind Refund Policy Handbook."
+    },
+    {
+      "claim_id": "DOC009-C57",
+      "subject": "Northwind Product Category Rule 8",
+      "predicate": "has_governing_rule",
+      "object": {
+        "value": "standard return and refund terms apply",
+        "modality": "MUST"
+      },
+      "claim_type": "POLICY_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "Northwind Product Category Rule 8 standard return and refund terms apply.",
+      "disposition": "SYNTHETIC_FIXTURE",
+      "rationale": "Synthetic placeholder fixture ('Northwind Product Category Rule 8') injected in Sprint I benchmark suite. Completely absent from authentic Northwind Refund Policy Handbook."
+    },
+    {
+      "claim_id": "DOC009-C58",
+      "subject": "Northwind Product Category Rule 9",
+      "predicate": "has_governing_rule",
+      "object": {
+        "value": "standard return and refund terms apply",
+        "modality": "MUST"
+      },
+      "claim_type": "POLICY_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "Northwind Product Category Rule 9 standard return and refund terms apply.",
+      "disposition": "SYNTHETIC_FIXTURE",
+      "rationale": "Synthetic placeholder fixture ('Northwind Product Category Rule 9') injected in Sprint I benchmark suite. Completely absent from authentic Northwind Refund Policy Handbook."
+    },
+    {
+      "claim_id": "DOC009-C59",
+      "subject": "Northwind Product Category Rule 10",
+      "predicate": "has_governing_rule",
+      "object": {
+        "value": "standard return and refund terms apply",
+        "modality": "MUST"
+      },
+      "claim_type": "POLICY_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "Northwind Product Category Rule 10 standard return and refund terms apply.",
+      "disposition": "SYNTHETIC_FIXTURE",
+      "rationale": "Synthetic placeholder fixture ('Northwind Product Category Rule 10') injected in Sprint I benchmark suite. Completely absent from authentic Northwind Refund Policy Handbook."
+    },
+    {
+      "claim_id": "DOC009-C60",
+      "subject": "Northwind Product Category Rule 11",
+      "predicate": "has_governing_rule",
+      "object": {
+        "value": "standard return and refund terms apply",
+        "modality": "MUST"
+      },
+      "claim_type": "POLICY_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "Northwind Product Category Rule 11 standard return and refund terms apply.",
+      "disposition": "SYNTHETIC_FIXTURE",
+      "rationale": "Synthetic placeholder fixture ('Northwind Product Category Rule 11') injected in Sprint I benchmark suite. Completely absent from authentic Northwind Refund Policy Handbook."
+    },
+    {
+      "claim_id": "DOC009-C61",
+      "subject": "Northwind Product Category Rule 12",
+      "predicate": "has_governing_rule",
+      "object": {
+        "value": "standard return and refund terms apply",
+        "modality": "MUST"
+      },
+      "claim_type": "POLICY_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "Northwind Product Category Rule 12 standard return and refund terms apply.",
+      "disposition": "SYNTHETIC_FIXTURE",
+      "rationale": "Synthetic placeholder fixture ('Northwind Product Category Rule 12') injected in Sprint I benchmark suite. Completely absent from authentic Northwind Refund Policy Handbook."
+    },
+    {
+      "claim_id": "DOC009-C62",
+      "subject": "Northwind Product Category Rule 13",
+      "predicate": "has_governing_rule",
+      "object": {
+        "value": "standard return and refund terms apply",
+        "modality": "MUST"
+      },
+      "claim_type": "POLICY_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "Northwind Product Category Rule 13 standard return and refund terms apply.",
+      "disposition": "SYNTHETIC_FIXTURE",
+      "rationale": "Synthetic placeholder fixture ('Northwind Product Category Rule 13') injected in Sprint I benchmark suite. Completely absent from authentic Northwind Refund Policy Handbook."
+    },
+    {
+      "claim_id": "DOC009-C63",
+      "subject": "Northwind Product Category Rule 14",
+      "predicate": "has_governing_rule",
+      "object": {
+        "value": "standard return and refund terms apply",
+        "modality": "MUST"
+      },
+      "claim_type": "POLICY_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "Northwind Product Category Rule 14 standard return and refund terms apply.",
+      "disposition": "SYNTHETIC_FIXTURE",
+      "rationale": "Synthetic placeholder fixture ('Northwind Product Category Rule 14') injected in Sprint I benchmark suite. Completely absent from authentic Northwind Refund Policy Handbook."
+    },
+    {
+      "claim_id": "DOC009-C64",
+      "subject": "Northwind Product Category Rule 15",
+      "predicate": "has_governing_rule",
+      "object": {
+        "value": "standard return and refund terms apply",
+        "modality": "MUST"
+      },
+      "claim_type": "POLICY_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "Northwind Product Category Rule 15 standard return and refund terms apply.",
+      "disposition": "SYNTHETIC_FIXTURE",
+      "rationale": "Synthetic placeholder fixture ('Northwind Product Category Rule 15') injected in Sprint I benchmark suite. Completely absent from authentic Northwind Refund Policy Handbook."
+    },
+    {
+      "claim_id": "DOC009-C65",
+      "subject": "Northwind Product Category Rule 16",
+      "predicate": "has_governing_rule",
+      "object": {
+        "value": "standard return and refund terms apply",
+        "modality": "MUST"
+      },
+      "claim_type": "POLICY_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "Northwind Product Category Rule 16 standard return and refund terms apply.",
+      "disposition": "SYNTHETIC_FIXTURE",
+      "rationale": "Synthetic placeholder fixture ('Northwind Product Category Rule 16') injected in Sprint I benchmark suite. Completely absent from authentic Northwind Refund Policy Handbook."
+    },
+    {
+      "claim_id": "DOC009-C66",
+      "subject": "Northwind Product Category Rule 17",
+      "predicate": "has_governing_rule",
+      "object": {
+        "value": "standard return and refund terms apply",
+        "modality": "MUST"
+      },
+      "claim_type": "POLICY_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "Northwind Product Category Rule 17 standard return and refund terms apply.",
+      "disposition": "SYNTHETIC_FIXTURE",
+      "rationale": "Synthetic placeholder fixture ('Northwind Product Category Rule 17') injected in Sprint I benchmark suite. Completely absent from authentic Northwind Refund Policy Handbook."
+    },
+    {
+      "claim_id": "DOC009-C67",
+      "subject": "Northwind Product Category Rule 18",
+      "predicate": "has_governing_rule",
+      "object": {
+        "value": "standard return and refund terms apply",
+        "modality": "MUST"
+      },
+      "claim_type": "POLICY_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "Northwind Product Category Rule 18 standard return and refund terms apply.",
+      "disposition": "SYNTHETIC_FIXTURE",
+      "rationale": "Synthetic placeholder fixture ('Northwind Product Category Rule 18') injected in Sprint I benchmark suite. Completely absent from authentic Northwind Refund Policy Handbook."
+    },
+    {
+      "claim_id": "DOC009-C68",
+      "subject": "Northwind Product Category Rule 19",
+      "predicate": "has_governing_rule",
+      "object": {
+        "value": "standard return and refund terms apply",
+        "modality": "MUST"
+      },
+      "claim_type": "POLICY_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "Northwind Product Category Rule 19 standard return and refund terms apply.",
+      "disposition": "SYNTHETIC_FIXTURE",
+      "rationale": "Synthetic placeholder fixture ('Northwind Product Category Rule 19') injected in Sprint I benchmark suite. Completely absent from authentic Northwind Refund Policy Handbook."
+    },
+    {
+      "claim_id": "DOC009-C69",
+      "subject": "Northwind Product Category Rule 20",
+      "predicate": "has_governing_rule",
+      "object": {
+        "value": "standard return and refund terms apply",
+        "modality": "MUST"
+      },
+      "claim_type": "POLICY_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "Northwind Product Category Rule 20 standard return and refund terms apply.",
+      "disposition": "SYNTHETIC_FIXTURE",
+      "rationale": "Synthetic placeholder fixture ('Northwind Product Category Rule 20') injected in Sprint I benchmark suite. Completely absent from authentic Northwind Refund Policy Handbook."
+    },
+    {
+      "claim_id": "DOC009-C70",
+      "subject": "Northwind Product Category Rule 21",
+      "predicate": "has_governing_rule",
+      "object": {
+        "value": "standard return and refund terms apply",
+        "modality": "MUST"
+      },
+      "claim_type": "POLICY_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "Northwind Product Category Rule 21 standard return and refund terms apply.",
+      "disposition": "SYNTHETIC_FIXTURE",
+      "rationale": "Synthetic placeholder fixture ('Northwind Product Category Rule 21') injected in Sprint I benchmark suite. Completely absent from authentic Northwind Refund Policy Handbook."
+    },
+    {
+      "claim_id": "DOC009-C71",
+      "subject": "Northwind Product Category Rule 22",
+      "predicate": "has_governing_rule",
+      "object": {
+        "value": "standard return and refund terms apply",
+        "modality": "MUST"
+      },
+      "claim_type": "POLICY_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "Northwind Product Category Rule 22 standard return and refund terms apply.",
+      "disposition": "SYNTHETIC_FIXTURE",
+      "rationale": "Synthetic placeholder fixture ('Northwind Product Category Rule 22') injected in Sprint I benchmark suite. Completely absent from authentic Northwind Refund Policy Handbook."
+    },
+    {
+      "claim_id": "DOC009-C72",
+      "subject": "Northwind Product Category Rule 23",
+      "predicate": "has_governing_rule",
+      "object": {
+        "value": "standard return and refund terms apply",
+        "modality": "MUST"
+      },
+      "claim_type": "POLICY_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "Northwind Product Category Rule 23 standard return and refund terms apply.",
+      "disposition": "SYNTHETIC_FIXTURE",
+      "rationale": "Synthetic placeholder fixture ('Northwind Product Category Rule 23') injected in Sprint I benchmark suite. Completely absent from authentic Northwind Refund Policy Handbook."
+    },
+    {
+      "claim_id": "DOC009-C73",
+      "subject": "Northwind Product Category Rule 24",
+      "predicate": "has_governing_rule",
+      "object": {
+        "value": "standard return and refund terms apply",
+        "modality": "MUST"
+      },
+      "claim_type": "POLICY_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "Northwind Product Category Rule 24 standard return and refund terms apply.",
+      "disposition": "SYNTHETIC_FIXTURE",
+      "rationale": "Synthetic placeholder fixture ('Northwind Product Category Rule 24') injected in Sprint I benchmark suite. Completely absent from authentic Northwind Refund Policy Handbook."
+    },
+    {
+      "claim_id": "DOC009-C74",
+      "subject": "Northwind Product Category Rule 25",
+      "predicate": "has_governing_rule",
+      "object": {
+        "value": "standard return and refund terms apply",
+        "modality": "MUST"
+      },
+      "claim_type": "POLICY_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "Northwind Product Category Rule 25 standard return and refund terms apply.",
+      "disposition": "SYNTHETIC_FIXTURE",
+      "rationale": "Synthetic placeholder fixture ('Northwind Product Category Rule 25') injected in Sprint I benchmark suite. Completely absent from authentic Northwind Refund Policy Handbook."
+    },
+    {
+      "claim_id": "DOC009-C75",
+      "subject": "Northwind Product Category Rule 26",
+      "predicate": "has_governing_rule",
+      "object": {
+        "value": "standard return and refund terms apply",
+        "modality": "MUST"
+      },
+      "claim_type": "POLICY_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "Northwind Product Category Rule 26 standard return and refund terms apply.",
+      "disposition": "SYNTHETIC_FIXTURE",
+      "rationale": "Synthetic placeholder fixture ('Northwind Product Category Rule 26') injected in Sprint I benchmark suite. Completely absent from authentic Northwind Refund Policy Handbook."
+    },
+    {
+      "claim_id": "DOC009-C76",
+      "subject": "Northwind Product Category Rule 27",
+      "predicate": "has_governing_rule",
+      "object": {
+        "value": "standard return and refund terms apply",
+        "modality": "MUST"
+      },
+      "claim_type": "POLICY_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "Northwind Product Category Rule 27 standard return and refund terms apply.",
+      "disposition": "SYNTHETIC_FIXTURE",
+      "rationale": "Synthetic placeholder fixture ('Northwind Product Category Rule 27') injected in Sprint I benchmark suite. Completely absent from authentic Northwind Refund Policy Handbook."
+    },
+    {
+      "claim_id": "DOC009-C77",
+      "subject": "Northwind Product Category Rule 28",
+      "predicate": "has_governing_rule",
+      "object": {
+        "value": "standard return and refund terms apply",
+        "modality": "MUST"
+      },
+      "claim_type": "POLICY_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "Northwind Product Category Rule 28 standard return and refund terms apply.",
+      "disposition": "SYNTHETIC_FIXTURE",
+      "rationale": "Synthetic placeholder fixture ('Northwind Product Category Rule 28') injected in Sprint I benchmark suite. Completely absent from authentic Northwind Refund Policy Handbook."
+    },
+    {
+      "claim_id": "DOC009-C78",
+      "subject": "Northwind Product Category Rule 29",
+      "predicate": "has_governing_rule",
+      "object": {
+        "value": "standard return and refund terms apply",
+        "modality": "MUST"
+      },
+      "claim_type": "POLICY_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "Northwind Product Category Rule 29 standard return and refund terms apply.",
+      "disposition": "SYNTHETIC_FIXTURE",
+      "rationale": "Synthetic placeholder fixture ('Northwind Product Category Rule 29') injected in Sprint I benchmark suite. Completely absent from authentic Northwind Refund Policy Handbook."
+    }
+  ]
+}

@@ -1,0 +1,68 @@
+{
+  "document_id": "HOLD-002",
+  "title": "Globex IT Consulting Invoice",
+  "domain": "invoices",
+  "canonical_rules_count": 6,
+  "claim_truth": [
+    {
+      "claim_id": "HOLD-002-C01",
+      "subject": "Invoices Subject 1",
+      "predicate": "specifies_governing_rule",
+      "object": {
+        "value": "Standard condition 1",
+        "modality": "MUST"
+      },
+      "canonical": true
+    },
+    {
+      "claim_id": "HOLD-002-C02",
+      "subject": "Invoices Subject 2",
+      "predicate": "specifies_governing_rule",
+      "object": {
+        "value": "Standard condition 2",
+        "modality": "MUST"
+      },
+      "canonical": true
+    },
+    {
+      "claim_id": "HOLD-002-C03",
+      "subject": "Invoices Subject 3",
+      "predicate": "specifies_governing_rule",
+      "object": {
+        "value": "Standard condition 3",
+        "modality": "MUST"
+      },
+      "canonical": true
+    },
+    {
+      "claim_id": "HOLD-002-C04",
+      "subject": "Invoices Subject 4",
+      "predicate": "specifies_governing_rule",
+      "object": {
+        "value": "Standard condition 4",
+        "modality": "MUST"
+      },
+      "canonical": true
+    },
+    {
+      "claim_id": "HOLD-002-C05",
+      "subject": "Invoices Subject 5",
+      "predicate": "specifies_governing_rule",
+      "object": {
+        "value": "Standard condition 5",
+        "modality": "MUST"
+      },
+      "canonical": true
+    },
+    {
+      "claim_id": "HOLD-002-C06",
+      "subject": "Invoices Subject 6",
+      "predicate": "specifies_governing_rule",
+      "object": {
+        "value": "Standard condition 6",
+        "modality": "MUST"
+      },
+      "canonical": true
+    }
+  ]
+}

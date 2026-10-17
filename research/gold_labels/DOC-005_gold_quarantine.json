@@ -1,0 +1,233 @@
+{
+  "document_id": "DOC-005",
+  "quarantine_reason": "Rules either absent from source text or substantive duplicates",
+  "quarantined_rule_count": 15,
+  "quarantined_rules": [
+    {
+      "claim_id": "DOC005-C17",
+      "subject": "The Warranty Information Sheet",
+      "predicate": "has_amendment_rule",
+      "object": {
+        "value": "be changed from time to time by government regulation",
+        "modality": "MAY"
+      },
+      "claim_type": "GOVERNANCE_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "The Warranty Information Sheet and Addendum may be changed from time to time",
+      "disposition": "DUPLICATE",
+      "rationale": "Exact substantive duplicate of DOC005-C05 referencing Section 3.9.3.6 (Warranty Information Sheet and Addendum amendment)."
+    },
+    {
+      "claim_id": "DOC005-C18",
+      "subject": "Tarion",
+      "predicate": "has_notification_obligation",
+      "object": {
+        "value": "use best efforts to give notice of revisions",
+        "modality": "MUST"
+      },
+      "claim_type": "NOTICE_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "Tarion shall use best efforts to give notice of revisions",
+      "disposition": "NOT_PRESENT_IN_SOURCE",
+      "rationale": "Provision regarding Tarion 'using best efforts to give notice of revisions' is absent from this builder vendor agreement PDF."
+    },
+    {
+      "claim_id": "DOC005-C19",
+      "subject": "The Vendor",
+      "predicate": "has_indemnification_obligation",
+      "object": {
+        "value": "indemnify Tarion against any and all claims, losses, liabilities",
+        "modality": "MUST"
+      },
+      "claim_type": "INDEMNITY_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "The Vendor agrees to indemnify and save harmless Tarion",
+      "disposition": "DUPLICATE",
+      "rationale": "Substantive duplicate of DOC005-C03 (Vendor indemnification of Tarion)."
+    },
+    {
+      "claim_id": "DOC005-C20",
+      "subject": "The Vendor",
+      "predicate": "has_insurance_requirement",
+      "object": {
+        "value": "maintain comprehensive general liability insurance",
+        "modality": "MUST"
+      },
+      "claim_type": "INSURANCE_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "Vendor shall maintain comprehensive general liability insurance",
+      "disposition": "NOT_PRESENT_IN_SOURCE",
+      "rationale": "Provision mandating 'comprehensive general liability insurance' is absent from this agreement PDF."
+    },
+    {
+      "claim_id": "DOC005-C21",
+      "subject": "The Vendor",
+      "predicate": "has_reporting_requirement",
+      "object": {
+        "value": "report to Tarion within ten days of any material change",
+        "modality": "MUST"
+      },
+      "claim_type": "REPORTING_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "report to Tarion within ten days of any material change",
+      "disposition": "NOT_PRESENT_IN_SOURCE",
+      "rationale": "Clause requiring 'reporting within ten days of any material change' is absent; Section 1.2.2.8 defines Material Change but does not contain a 10-day notice clause."
+    },
+    {
+      "claim_id": "DOC005-C22",
+      "subject": "Tarion",
+      "predicate": "has_inspection_right",
+      "object": {
+        "value": "inspect all books, records, and construction sites",
+        "modality": "CAN"
+      },
+      "claim_type": "AUDIT_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "Tarion shall have the right to inspect all books and records",
+      "disposition": "NOT_PRESENT_IN_SOURCE",
+      "rationale": "Provision regarding Tarion's 'right to inspect all books, records, and construction sites' is absent from this agreement PDF."
+    },
+    {
+      "claim_id": "DOC005-C23",
+      "subject": "The Vendor",
+      "predicate": "has_deposit_protection_rule",
+      "object": {
+        "value": "hold all purchaser deposits in trust in accordance with legislation",
+        "modality": "MUST"
+      },
+      "claim_type": "STATUTORY_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "hold all purchaser deposits in trust in accordance with the Act",
+      "disposition": "NOT_PRESENT_IN_SOURCE",
+      "rationale": "Clause regarding 'holding purchaser deposits in trust' is absent from this agreement PDF."
+    },
+    {
+      "claim_id": "DOC005-C24",
+      "subject": "Dispute Resolution",
+      "predicate": "has_governing_rule",
+      "object": {
+        "value": "be resolved by arbitration pursuant to the Arbitration Act of Ontario",
+        "modality": "MUST"
+      },
+      "claim_type": "DISPUTE_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "Any dispute arising under this Agreement shall be referred to arbitration",
+      "disposition": "NOT_PRESENT_IN_SOURCE",
+      "rationale": "Clause regarding 'mandatory arbitration dispute resolution' is absent from this agreement PDF."
+    },
+    {
+      "claim_id": "DOC005-C26",
+      "subject": "Default",
+      "predicate": "has_remedy_rule",
+      "object": {
+        "value": "Tarion may revoke enrolment or draw on security upon default",
+        "modality": "MAY"
+      },
+      "claim_type": "REMEDY_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "Upon the occurrence of any Event of Default, Tarion may immediately revoke enrolment",
+      "disposition": "NOT_PRESENT_IN_SOURCE",
+      "rationale": "Clause stating 'Tarion may immediately revoke enrolment upon Event of Default' is absent from this agreement PDF."
+    },
+    {
+      "claim_id": "DOC005-C27",
+      "subject": "Termination",
+      "predicate": "has_notice_period",
+      "object": {
+        "value": 30,
+        "unit": "day",
+        "modality": "MUST"
+      },
+      "claim_type": "TERMINATION_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "either party may terminate upon thirty (30) days written notice",
+      "disposition": "NOT_PRESENT_IN_SOURCE",
+      "rationale": "Clause regarding 'either party may terminate upon 30 days written notice' is absent from this agreement PDF."
+    },
+    {
+      "claim_id": "DOC005-C28",
+      "subject": "Notice",
+      "predicate": "has_delivery_rule",
+      "object": {
+        "value": "be in writing and delivered by registered mail or email",
+        "modality": "MUST"
+      },
+      "claim_type": "NOTICE_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "Any notice required to be given shall be in writing and delivered",
+      "disposition": "NOT_PRESENT_IN_SOURCE",
+      "rationale": "Clause regarding 'notices in writing delivered by registered mail' is absent from this agreement PDF."
+    },
+    {
+      "claim_id": "DOC005-C29",
+      "subject": "Confidentiality",
+      "predicate": "has_non_disclosure_rule",
+      "object": {
+        "value": "keep confidential all proprietary vendor and warranty data",
+        "modality": "MUST"
+      },
+      "claim_type": "CONFIDENTIALITY_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "Each party agrees to maintain the confidentiality of all non-public information",
+      "disposition": "NOT_PRESENT_IN_SOURCE",
+      "rationale": "Clause regarding 'confidentiality of proprietary vendor information' is absent from this agreement PDF."
+    },
+    {
+      "claim_id": "DOC005-C30",
+      "subject": "Intellectual Property",
+      "predicate": "has_ownership_rule",
+      "object": {
+        "value": "all Tarion trademarks and standard forms remain the exclusive property of Tarion",
+        "modality": "MUST"
+      },
+      "claim_type": "IP_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "All trademarks, logos, and form templates are the exclusive intellectual property of Tarion",
+      "disposition": "NOT_PRESENT_IN_SOURCE",
+      "rationale": "Clause regarding 'intellectual property / trademarks ownership' is absent from this agreement PDF."
+    },
+    {
+      "claim_id": "DOC005-C31",
+      "subject": "Enrolment Fee",
+      "predicate": "has_payment_deadline",
+      "object": {
+        "value": "be paid prior to the confirmation of home enrolment",
+        "modality": "MUST"
+      },
+      "claim_type": "FEE_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "The applicable enrolment fee must be paid prior to the confirmation of enrolment",
+      "disposition": "NOT_PRESENT_IN_SOURCE",
+      "rationale": "Clause regarding 'enrolment fee payment deadline' is absent from this agreement PDF."
+    },
+    {
+      "claim_id": "DOC005-C32",
+      "subject": "Survival",
+      "predicate": "specifies_governing_rule",
+      "object": {
+        "value": "indemnity and security provisions survive termination of agreement",
+        "modality": "MUST"
+      },
+      "claim_type": "LEGAL_RULE",
+      "canonical": true,
+      "conflict_eligible": true,
+      "evidence_quote": "The indemnity and security provisions contained herein shall survive the termination",
+      "disposition": "NOT_PRESENT_IN_SOURCE",
+      "rationale": "Clause regarding 'survival of indemnity and security provisions' is absent from this agreement PDF."
+    }
+  ]
+}

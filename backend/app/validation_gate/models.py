@@ -18,7 +18,7 @@ import uuid
 from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 
 class SourceMatchStatus(str, Enum):
@@ -116,6 +116,7 @@ class DimensionEvaluation(BaseModel):
 
 class CandidateGateEvaluation(BaseModel):
     """Complete 6-dimensional evaluation and lifecycle decision for a candidate claim."""
+    model_config = ConfigDict(populate_by_name=True)
     candidate_id: str
     envelope_id: uuid.UUID
     asset_id: str

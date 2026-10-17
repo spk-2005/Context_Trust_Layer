@@ -1,0 +1,258 @@
+{
+  "document_id": "HOLD-007",
+  "title": "Master SaaS Subscription Agreement",
+  "domain": "commercial_contracts",
+  "canonical_rules_count": 25,
+  "claim_truth": [
+    {
+      "claim_id": "HOLD-007-C01",
+      "subject": "Commercial_contracts Subject 1",
+      "predicate": "specifies_governing_rule",
+      "object": {
+        "value": "Standard condition 1",
+        "modality": "MUST"
+      },
+      "canonical": true
+    },
+    {
+      "claim_id": "HOLD-007-C02",
+      "subject": "Commercial_contracts Subject 2",
+      "predicate": "specifies_governing_rule",
+      "object": {
+        "value": "Standard condition 2",
+        "modality": "MUST"
+      },
+      "canonical": true
+    },
+    {
+      "claim_id": "HOLD-007-C03",
+      "subject": "Commercial_contracts Subject 3",
+      "predicate": "specifies_governing_rule",
+      "object": {
+        "value": "Standard condition 3",
+        "modality": "MUST"
+      },
+      "canonical": true
+    },
+    {
+      "claim_id": "HOLD-007-C04",
+      "subject": "Commercial_contracts Subject 4",
+      "predicate": "specifies_governing_rule",
+      "object": {
+        "value": "Standard condition 4",
+        "modality": "MUST"
+      },
+      "canonical": true
+    },
+    {
+      "claim_id": "HOLD-007-C05",
+      "subject": "Commercial_contracts Subject 5",
+      "predicate": "specifies_governing_rule",
+      "object": {
+        "value": "Standard condition 5",
+        "modality": "MUST"
+      },
+      "canonical": true
+    },
+    {
+      "claim_id": "HOLD-007-C06",
+      "subject": "Commercial_contracts Subject 6",
+      "predicate": "specifies_governing_rule",
+      "object": {
+        "value": "Standard condition 6",
+        "modality": "MUST"
+      },
+      "canonical": true
+    },
+    {
+      "claim_id": "HOLD-007-C07",
+      "subject": "Commercial_contracts Subject 7",
+      "predicate": "specifies_governing_rule",
+      "object": {
+        "value": "Standard condition 7",
+        "modality": "MUST"
+      },
+      "canonical": true
+    },
+    {
+      "claim_id": "HOLD-007-C08",
+      "subject": "Commercial_contracts Subject 8",
+      "predicate": "specifies_governing_rule",
+      "object": {
+        "value": "Standard condition 8",
+        "modality": "MUST"
+      },
+      "canonical": true
+    },
+    {
+      "claim_id": "HOLD-007-C09",
+      "subject": "Commercial_contracts Subject 9",
+      "predicate": "specifies_governing_rule",
+      "object": {
+        "value": "Standard condition 9",
+        "modality": "MUST"
+      },
+      "canonical": true
+    },
+    {
+      "claim_id": "HOLD-007-C10",
+      "subject": "Commercial_contracts Subject 10",
+      "predicate": "specifies_governing_rule",
+      "object": {
+        "value": "Standard condition 10",
+        "modality": "MUST"
+      },
+      "canonical": true
+    },
+    {
+      "claim_id": "HOLD-007-C11",
+      "subject": "Commercial_contracts Subject 11",
+      "predicate": "specifies_governing_rule",
+      "object": {
+        "value": "Standard condition 11",
+        "modality": "MUST"
+      },
+      "canonical": true
+    },
+    {
+      "claim_id": "HOLD-007-C12",
+      "subject": "Commercial_contracts Subject 12",
+      "predicate": "specifies_governing_rule",
+      "object": {
+        "value": "Standard condition 12",
+        "modality": "MUST"
+      },
+      "canonical": true
+    },
+    {
+      "claim_id": "HOLD-007-C13",
+      "subject": "Commercial_contracts Subject 13",
+      "predicate": "specifies_governing_rule",
+      "object": {
+        "value": "Standard condition 13",
+        "modality": "MUST"
+      },
+      "canonical": true
+    },
+    {
+      "claim_id": "HOLD-007-C14",
+      "subject": "Commercial_contracts Subject 14",
+      "predicate": "specifies_governing_rule",
+      "object": {
+        "value": "Standard condition 14",
+        "modality": "MUST"
+      },
+      "canonical": true
+    },
+    {
+      "claim_id": "HOLD-007-C15",
+      "subject": "Commercial_contracts Subject 15",
+      "predicate": "specifies_governing_rule",
+      "object": {
+        "value": "Standard condition 15",
+        "modality": "MUST"
+      },
+      "canonical": true
+    },
+    {
+      "claim_id": "HOLD-007-C16",
+      "subject": "Commercial_contracts Subject 16",
+      "predicate": "specifies_governing_rule",
+      "object": {
+        "value": "Standard condition 16",
+        "modality": "MUST"
+      },
+      "canonical": true
+    },
+    {
+      "claim_id": "HOLD-007-C17",
+      "subject": "Commercial_contracts Subject 17",
+      "predicate": "specifies_governing_rule",
+      "object": {
+        "value": "Standard condition 17",
+        "modality": "MUST"
+      },
+      "canonical": true
+    },
+    {
+      "claim_id": "HOLD-007-C18",
+      "subject": "Commercial_contracts Subject 18",
+      "predicate": "specifies_governing_rule",
+      "object": {
+        "value": "Standard condition 18",
+        "modality": "MUST"
+      },
+      "canonical": true
+    },
+    {
+      "claim_id": "HOLD-007-C19",
+      "subject": "Commercial_contracts Subject 19",
+      "predicate": "specifies_governing_rule",
+      "object": {
+        "value": "Standard condition 19",
+        "modality": "MUST"
+      },
+      "canonical": true
+    },
+    {
+      "claim_id": "HOLD-007-C20",
+      "subject": "Commercial_contracts Subject 20",
+      "predicate": "specifies_governing_rule",
+      "object": {
+        "value": "Standard condition 20",
+        "modality": "MUST"
+      },
+      "canonical": true
+    },
+    {
+      "claim_id": "HOLD-007-C21",
+      "subject": "Commercial_contracts Subject 21",
+      "predicate": "specifies_governing_rule",
+      "object": {
+        "value": "Standard condition 21",
+        "modality": "MUST"
+      },
+      "canonical": true
+    },
+    {
+      "claim_id": "HOLD-007-C22",
+      "subject": "Commercial_contracts Subject 22",
+      "predicate": "specifies_governing_rule",
+      "object": {
+        "value": "Standard condition 22",
+        "modality": "MUST"
+      },
+      "canonical": true
+    },
+    {
+      "claim_id": "HOLD-007-C23",
+      "subject": "Commercial_contracts Subject 23",
+      "predicate": "specifies_governing_rule",
+      "object": {
+        "value": "Standard condition 23",
+        "modality": "MUST"
+      },
+      "canonical": true
+    },
+    {
+      "claim_id": "HOLD-007-C24",
+      "subject": "Commercial_contracts Subject 24",
+      "predicate": "specifies_governing_rule",
+      "object": {
+        "value": "Standard condition 24",
+        "modality": "MUST"
+      },
+      "canonical": true
+    },
+    {
+      "claim_id": "HOLD-007-C25",
+      "subject": "Commercial_contracts Subject 25",
+      "predicate": "specifies_governing_rule",
+      "object": {
+        "value": "Standard condition 25",
+        "modality": "MUST"
+      },
+      "canonical": true
+    }
+  ]
+}

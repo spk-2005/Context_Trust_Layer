@@ -457,7 +457,7 @@ class MeaningEvaluator:
     # Words signaling uncertainty or hedges
     UNCERTAIN_HEDGES = re.compile(r"\b(might|maybe|possibly|perhaps|unclear|tentative|assumed|unconfirmed)\b", re.IGNORECASE)
     OBLIGATION_EVIDENCE = re.compile(r"\b(must|shall|required|requires|mandates?|mandatory|obligated|has to|have to|return)\b", re.IGNORECASE)
-    PROHIBITION_EVIDENCE = re.compile(r"\b(prohibited|shall not|must not|forbidden|strictly prohibited|unauthorized\s+.*?\s+prohibited|will not be granted|not be granted|may not|cannot|no .* should be made)\b", re.IGNORECASE)
+    PROHIBITION_EVIDENCE = re.compile(r"\b(prohibited|shall\s+not|must\s+not|forbidden|strictly\s+prohibited|unauthorized\s+.*?\s+prohibited|will\s+not\s+be\s+granted|not\s+be\s+granted|may\s+not|cannot|no\s+.*?\s+should\s+be\s+made)\b", re.IGNORECASE)
 
     @classmethod
     def evaluate(cls, candidate: CandidateClaim) -> DimensionEvaluation:
@@ -482,9 +482,10 @@ class MeaningEvaluator:
         is_structured_schema = bool(getattr(candidate, "extraction_strategy", None) == ExtractionStrategyType.DETERMINISTIC_SCHEMA)
 
         if subj_words and not has_table_grid and not is_derived_summary and not is_structured_schema:
-            matched_subj = any(w in ev_lower for w in subj_words)
+            loc_headings = " ".join((getattr(candidate, "locator", {}) or {}).get("heading_path") or []).lower()
+            matched_subj = any(w in ev_lower or w in loc_headings for w in subj_words)
             # Allow general policy/governance meta subjects if evidence mentions policy/guideline
-            is_doc_meta_subj = any(w in {"policy", "governance", "document"} for w in subj_words) and ("policy" in ev_lower or "guideline" in ev_lower)
+            is_doc_meta_subj = any(w in {"policy", "governance", "document"} for w in subj_words) and ("policy" in ev_lower or "guideline" in ev_lower or "policy" in loc_headings)
             if not matched_subj and not is_doc_meta_subj:
                 return DimensionEvaluation(
                     dimension_name="meaning",
@@ -497,8 +498,13 @@ class MeaningEvaluator:
 
         # 2. Deontic consistency verification against evidence text
         deontic_mismatch = False
-        discretionary_phrases = ("holds the right", "holds right", "may request", "may", "permitted", "option to", "at its discretion")
-        has_discretionary = any(p in evidence.lower() or p in text.lower() for p in discretionary_phrases)
+        ev_clean = re.sub(r"\b(?:which|as|that)\s+may\b", "", evidence, flags=re.IGNORECASE)
+        text_clean = re.sub(r"\b(?:which|as|that)\s+may\b", "", text, flags=re.IGNORECASE)
+        has_shall_or_must = bool(re.search(r"\b(shall|must)\b", evidence, re.IGNORECASE))
+        discretionary_phrases = ("holds the right", "holds right", "may request", "permitted", "option to", "at its discretion")
+        has_discretionary = any(p in ev_clean.lower() or p in text_clean.lower() for p in discretionary_phrases)
+        if not has_shall_or_must and (re.search(r"\bmay\b", ev_clean, re.IGNORECASE) or re.search(r"\bmay\b", text_clean, re.IGNORECASE)):
+            has_discretionary = True
 
         if modality == "OBLIGATION" and (has_discretionary or not cls.OBLIGATION_EVIDENCE.search(evidence)):
             deontic_mismatch = True

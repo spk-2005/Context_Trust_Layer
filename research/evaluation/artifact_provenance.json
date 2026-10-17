@@ -1,14 +1,26 @@
 {
-  "timestamp": "2026-10-17T04:21:00Z",
-  "code_commit": "d32d1b3",
-  "harness_version": "3.2.0",
+  "version": "7.0.0",
+  "sprint": "Sprint Y: End-to-End Generic Recall Restoration & Reproducibility Verification",
+  "last_verified_at": "2026-10-17T12:11:33.815108+00:00",
+  "commit": "UNCOMMITTED_LOCAL_STAGE",
+  "note": "Per user instructions, no git commits or pushes performed. Working tree anchored with SHA-256 across all 16 artifacts.",
   "artifacts": {
     "corpus_manifest.json": "f1d24d3630dc5ddcdd7619162bd672c830553d187d67b7ae4638ebb774b1bb31",
-    "benchmark_metrics_report.json": "858f0e7e9be082e6edc04165188c3066961e00509608783a86eef2591c63624a",
-    "all_documents_verdict_matrix.json": "ea82daf18bb5f9d554d94166927b41bc0d8c2d010448b62e4a3916fea19b785b",
-    "doc002_gold_rule_audit.json": "e1fa4dbcb91743d9e4cdcec2e9b8b0040ea52a94bb31bfb84c9c1fca26593f0f",
-    "adjudications.json": "2666b1e1d04cba412285e798bda736f38b911f32c071b018a06166e3e8d254d7",
+    "gold_version_diff.json": "d6e40d55573cb2f29c807cbc474ce35e5302d6e8fe4be07d5c4e3f94e091011c",
+    "EVALUATION_CONTRACT_v1.md": "f5b13f4cdbb4d5a0348a31ebf61a6027d1615f2b13ce3278a712bd784277aa2c",
+    "overfit_audit_report.json": "c79e93618f42408105e4cb7ed469839e06b72d3ca6902663118ce6b676aed5b5",
+    "adjudications.json": "290ab19605a3b74f37084cf11d1f392b7e2d52016ec5237fc1621f6b3296d6c1",
+    "doc002_inter_annotator_agreement.json": "30706c3f4af15071e8d8f06e71cc531224f540e3282afdb86685bac87a674c1c",
+    "doc002_adjudication_reconciliation.json": "111fa0e6ef262b2458347126cb9a74d4a41549f24c0778d47e930bbaa4e303f9",
     "doc006_pipeline_diagnosis.json": "c3371eebac656a3e09bda7d25fe875d02e2f78c00659de2cb68139113cb399aa",
-    "ALL_DOCUMENTS_EVALUATION.md": "25496a9a8ca1314720a1553c8b7bbd56afc137124b93d3d19794e75b7b790f73"
-  }
+    "doc006_inter_annotator_agreement.json": "d76809846379ef23149b9a96dcb05577e60d8243b151d1fdf47cf64bdfcdc62d",
+    "doc007_inter_annotator_agreement.json": "ea17108cfa66839acefeee4b8499102ef8555724d1d36d90e7265fb80a19d3f9",
+    "doc008_inter_annotator_agreement.json": "7afdf14f726f0ad37ce1a63615d6b7110aa5a58149f380ecfd9e976dad9d9fa8",
+    "all_documents_verdict_matrix.json": "2fd8c540198d08e8ab1806abf8fce4b88d5ec26a0a4019eb19b236292b185470",
+    "benchmark_metrics_report.json": "d9120a0d6670a130265359a9d4ad7259ca44d2fd5a07939e96fa646848a7c122",
+    "ALL_DOCUMENTS_EVALUATION.md": "f673258942ab2762ac4915451a6d281ca6fa6c84af0408dd2d2a20da3d8b4fc8",
+    "CERTIFICATION_REPORT_v1.md": "e4ed38cb09d2817976244cc30853c8002700b7346ca16698a248f0316befe195",
+    "artifact_diff_audit.json": "628a5ba2fa868ba2281c52fc870880d927fad59f54252e8ca8f973ea62a612a4"
+  },
+  "milestone": "Sprint Y: End-to-End Generic Recall Restoration & Reproducibility Verification"
 }

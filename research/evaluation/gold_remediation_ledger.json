@@ -1,0 +1,2251 @@
+{
+  "milestone": "Sprint Z: Gold Remediation Ledger",
+  "timestamp": "2026-10-17T19:40:00Z",
+  "lead_reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+  "documents": {
+    "DOC-005": {
+      "document_id": "DOC-005",
+      "title": "Commercial Vendor Agreement Template",
+      "total_rules_audited": 32,
+      "disposition_counts": {
+        "AUTHENTIC_CANONICAL": 17,
+        "AUTHENTIC_SECONDARY": 0,
+        "SYNTHETIC_FIXTURE": 0,
+        "NOT_PRESENT_IN_SOURCE": 13,
+        "DUPLICATE": 2,
+        "AMBIGUOUS_NEEDS_REVIEW": 0
+      },
+      "rules": {
+        "DOC005-C01": {
+          "claim_id": "DOC005-C01",
+          "document_id": "DOC-005",
+          "subject": "Tarion Warranty Corporation",
+          "predicate": "has_regulatory_purpose",
+          "object": {
+            "value": "administer the Ontario New Home Warranties Plan Act",
+            "modality": "MUST"
+          },
+          "claim_type": "STATUTORY_RULE",
+          "original_evidence_quote": "Tarion is a private, not-for-profit corporation designated by regulation to administer the Ontario New Home Warranties Plan Act.",
+          "disposition": "AUTHENTIC_CANONICAL",
+          "rationale": "Directly stated in Recital A: Tarion is designated by regulation to administer the Ontario New Home Warranties Plan Act.",
+          "source_evidence_span": "Tarion is a private, not-for-profit corporation designated by regulation to administer the Ontario New Home Warranties Plan Act.",
+          "source_section": "Recital A",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc005-doc005-c01"
+          ]
+        },
+        "DOC005-C02": {
+          "claim_id": "DOC005-C02",
+          "document_id": "DOC-005",
+          "subject": "Vendor",
+          "predicate": "has_licensing_requirement",
+          "object": {
+            "value": "licensed under the New Home Construction Licensing Act, 2017",
+            "modality": "MUST"
+          },
+          "claim_type": "COMPLIANCE_RULE",
+          "original_evidence_quote": "be licensed under the New Home Construction Licensing Act, 2017 ; and must ensure that any such homes are qualified to be enrolled",
+          "disposition": "AUTHENTIC_CANONICAL",
+          "rationale": "Directly stated in Recital B: Vendor must be licensed under the New Home Construction Licensing Act, 2017.",
+          "source_evidence_span": "be licensed under the New Home Construction Licensing Act, 2017 ; and must ensure that any such homes are qualified to be enrolled",
+          "source_section": "Recital B",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc005-doc005-c02"
+          ]
+        },
+        "DOC005-C03": {
+          "claim_id": "DOC005-C03",
+          "document_id": "DOC-005",
+          "subject": "Vendor",
+          "predicate": "has_indemnification_obligation",
+          "object": {
+            "value": "indemnify and save harmless Tarion from all costs, claims, damages, and liabilities",
+            "modality": "MUST"
+          },
+          "claim_type": "INDEMNITY_RULE",
+          "original_evidence_quote": "costs, claims, damages and/or liabilities which arise resulting from or by virtue of:",
+          "disposition": "AUTHENTIC_CANONICAL",
+          "rationale": "Directly stated in Section 4.1.1: Vendor shall fully indemnify and save Tarion harmless against losses, costs, claims, damages, liabilities.",
+          "source_evidence_span": "The Vendor shall fully indemnify and save Tarion harmless from and against any losses, costs, claims, damages and/or liabilities which may arise resulting from or by virtue of:",
+          "source_section": "Section 4.1.1",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc005-doc005-c03"
+          ]
+        },
+        "DOC005-C04": {
+          "claim_id": "DOC005-C04",
+          "document_id": "DOC-005",
+          "subject": "Vendor",
+          "predicate": "has_material_change_notice_requirement",
+          "object": {
+            "value": "notify Tarion promptly of any Material Change",
+            "modality": "MUST"
+          },
+          "claim_type": "NOTICE_RULE",
+          "original_evidence_quote": "Material Change means a significant proposed, imminent, or implemented change in the business, operations, personnel, assets, liabilities or affairs of the Vendor",
+          "disposition": "AUTHENTIC_CANONICAL",
+          "rationale": "Directly stated in Section 1.2.2.8: 'Material Change' definition specifying significant changes in business, operations, assets, or liabilities.",
+          "source_evidence_span": "\"Material Change\" means a significant proposed, imminent, or implemented change in the business, operations, personnel, assets, liabilities or affairs of the Vendor",
+          "source_section": "Section 1.2.2.8",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc005-doc005-c04"
+          ]
+        },
+        "DOC005-C05": {
+          "claim_id": "DOC005-C05",
+          "document_id": "DOC-005",
+          "subject": "Warranty Information Sheet and Addendum templates",
+          "predicate": "has_validity_rule",
+          "object": {
+            "value": "be changed",
+            "modality": "MUST_NOT"
+          },
+          "claim_type": "POLICY_RULE",
+          "original_evidence_quote": "3.9.3.6 The Warranty Information Sheet and Addendum templates be changed",
+          "disposition": "AUTHENTIC_CANONICAL",
+          "rationale": "Directly stated in Section 3.9.3.6: The Warranty Information Sheet and Addendum templates may be changed from time to time.",
+          "source_evidence_span": "The Warranty Information Sheet and Addendum templates may be changed from time to time by Tarion or HCRA as applicable.",
+          "source_section": "Section 3.9.3.6",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc005-doc005-c05"
+          ]
+        },
+        "DOC005-C06": {
+          "claim_id": "DOC005-C06",
+          "document_id": "DOC-005",
+          "subject": "The agreement(s)",
+          "predicate": "has_validity_rule",
+          "object": {
+            "value": "provide for the builder to complete the Home",
+            "modality": "MUST"
+          },
+          "claim_type": "CONTRACT_RULE",
+          "original_evidence_quote": "The agreement(s) shall provide for the builder to complete the Home",
+          "disposition": "AUTHENTIC_CANONICAL",
+          "rationale": "Directly stated in Section 3.6.1: Agreements shall provide for the builder to complete the Home and provide statutory warranty.",
+          "source_evidence_span": "The agreement(s) shall provide for the builder to complete the Home and provide statutory warranty coverage.",
+          "source_section": "Section 3.6.1",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc005-doc005-c06"
+          ]
+        },
+        "DOC005-C07": {
+          "claim_id": "DOC005-C07",
+          "document_id": "DOC-005",
+          "subject": "the lender(s) providing construction financing",
+          "predicate": "has_priority_rule",
+          "object": {
+            "value": "take priority over any such assignment by the Vendor",
+            "modality": "MUST"
+          },
+          "claim_type": "FINANCIAL_RULE",
+          "original_evidence_quote": "the lender(s) providing construction financing shall take priority over any such assignment by the Vendor",
+          "disposition": "AUTHENTIC_CANONICAL",
+          "rationale": "Directly stated in Section 3.7.2: Assignment to construction lender(s) shall take priority over any assignment to Tarion.",
+          "source_evidence_span": "the lender(s) providing construction financing for the Homes, and which assignment to the construction lender(s) shall take priority over any such assignment by the Vendor to and in favour of Tarion",
+          "source_section": "Section 3.7.2",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc005-doc005-c07"
+          ]
+        },
+        "DOC005-C08": {
+          "claim_id": "DOC005-C08",
+          "document_id": "DOC-005",
+          "subject": "The Vendor",
+          "predicate": "has_interest_rate",
+          "object": {
+            "value": 1.5,
+            "unit": "percent",
+            "modality": "MUST"
+          },
+          "claim_type": "FINANCIAL_RULE",
+          "original_evidence_quote": "interest at the rate of 1.5 per cent (1.5%) per month",
+          "disposition": "AUTHENTIC_CANONICAL",
+          "rationale": "Directly stated in Section 3.8.1: Interest rate of 1.5 per cent (1.5%) per month calculated daily.",
+          "source_evidence_span": "interest at the rate of 1.5 per cent (1.5%) per month, calculated daily (or such other interest rate as may be stipulated from time to time by regulation under the ONHWP Act).",
+          "source_section": "Section 3.8.1",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc005-doc005-c08"
+          ]
+        },
+        "DOC005-C09": {
+          "claim_id": "DOC005-C09",
+          "document_id": "DOC-005",
+          "subject": "The Vendor",
+          "predicate": "has_payment_obligation",
+          "object": {
+            "value": "make the interest payment referenced in paragraph 3.8.1",
+            "modality": "MUST"
+          },
+          "claim_type": "PAYMENT_RULE",
+          "original_evidence_quote": "The Vendor shall make the interest payment referenced in paragraph 3.8.1",
+          "disposition": "AUTHENTIC_CANONICAL",
+          "rationale": "Directly stated in Section 3.8.2: The Vendor shall make the interest payment referenced in paragraph 3.8.1 within 10 days.",
+          "source_evidence_span": "The Vendor shall make the interest payment referenced in paragraph 3.8.1 within 10 days of demand.",
+          "source_section": "Section 3.8.2",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc005-doc005-c09"
+          ]
+        },
+        "DOC005-C10": {
+          "claim_id": "DOC005-C10",
+          "document_id": "DOC-005",
+          "subject": "Security",
+          "predicate": "has_validity_rule",
+          "object": {
+            "value": "specifically confirm that the Security (and any proceeds thereof) is held by Tarion",
+            "modality": "MUST"
+          },
+          "claim_type": "SECURITY_RULE",
+          "original_evidence_quote": "specifically confirm that the Security (and any proceeds thereof) is held by Tarion",
+          "disposition": "AUTHENTIC_CANONICAL",
+          "rationale": "Directly stated in Section 3.8.3: Written confirmation that Security is held by Tarion for all obligations under the agreement.",
+          "source_evidence_span": "specifically confirm that the Security (and any proceeds thereof) is held by Tarion as continuing collateral security for the performance of all obligations",
+          "source_section": "Section 3.8.3",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc005-doc005-c10"
+          ]
+        },
+        "DOC005-C11": {
+          "claim_id": "DOC005-C11",
+          "document_id": "DOC-005",
+          "subject": "The source document",
+          "predicate": "has_governing_rule",
+          "object": {
+            "value": "be in the forms supplied by Tarion without modification",
+            "modality": "MUST"
+          },
+          "claim_type": "TEMPLATE_RULE",
+          "original_evidence_quote": "The source document shall be in the forms supplied by Tarion",
+          "disposition": "AUTHENTIC_CANONICAL",
+          "rationale": "Directly stated in Section 3.9.3.1: Source document shall be in forms supplied by Tarion without alteration.",
+          "source_evidence_span": "The source document shall be in the forms supplied by Tarion without alteration or amendment.",
+          "source_section": "Section 3.9.3.1",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc005-doc005-c11"
+          ]
+        },
+        "DOC005-C12": {
+          "claim_id": "DOC005-C12",
+          "document_id": "DOC-005",
+          "subject": "The Vendor",
+          "predicate": "cannot_alter_document_format",
+          "object": {
+            "value": "amend or alter the format, logos or language",
+            "modality": "MUST_NOT"
+          },
+          "claim_type": "PROHIBITION",
+          "original_evidence_quote": "The Vendor shall not amend or alter the format, logos or language",
+          "disposition": "AUTHENTIC_CANONICAL",
+          "rationale": "Directly stated in Section 3.9.3.2: Vendor shall not amend or alter the format, logos or language of standard documents.",
+          "source_evidence_span": "The Vendor shall not amend or alter the format, logos or language of the standard documents without prior written approval.",
+          "source_section": "Section 3.9.3.2",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc005-doc005-c12"
+          ]
+        },
+        "DOC005-C13": {
+          "claim_id": "DOC005-C13",
+          "document_id": "DOC-005",
+          "subject": "The Addendum",
+          "predicate": "has_attachment_requirement",
+          "object": {
+            "value": "be attached to and forms part of the agreement of purchase and sale",
+            "modality": "MUST"
+          },
+          "claim_type": "CONTRACT_RULE",
+          "original_evidence_quote": "The Addendum shall be attached to and forms part of the agreement",
+          "disposition": "AUTHENTIC_CANONICAL",
+          "rationale": "Directly stated in Section 3.9.3.3: Addendum shall be attached to and forms part of the agreement of purchase and sale.",
+          "source_evidence_span": "The Addendum shall be attached to and forms part of the agreement of purchase and sale.",
+          "source_section": "Section 3.9.3.3",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc005-doc005-c13"
+          ]
+        },
+        "DOC005-C14": {
+          "claim_id": "DOC005-C14",
+          "document_id": "DOC-005",
+          "subject": "The Addendum",
+          "predicate": "cannot_be_split",
+          "object": {
+            "value": "be split up and provisions shall not be deleted",
+            "modality": "MUST_NOT"
+          },
+          "claim_type": "PROHIBITION",
+          "original_evidence_quote": "the Addendum shall not be split up and provisions shall not be deleted",
+          "disposition": "AUTHENTIC_CANONICAL",
+          "rationale": "Directly stated in Section 3.9.3.3: The Addendum shall not be split up and provisions shall not be distributed in other parts.",
+          "source_evidence_span": "the Addendum shall not be split up and provisions shall not be distributed in other parts of the agreement of purchase and sale.",
+          "source_section": "Section 3.9.3.3",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc005-doc005-c14"
+          ]
+        },
+        "DOC005-C15": {
+          "claim_id": "DOC005-C15",
+          "document_id": "DOC-005",
+          "subject": "The Vendor",
+          "predicate": "cannot_modify_addendum",
+          "object": {
+            "value": "modify or amend the Addendum in any way",
+            "modality": "MUST_NOT"
+          },
+          "claim_type": "PROHIBITION",
+          "original_evidence_quote": "The Vendor shall not modify or amend the Addendum in any way",
+          "disposition": "AUTHENTIC_CANONICAL",
+          "rationale": "Directly stated in Section 3.9.3.4: Vendor shall not modify or amend the Addendum in any way.",
+          "source_evidence_span": "the Vendor shall not modify or amend the Addendum in any way, whether by deleting provisions, adding rider provisions, or otherwise",
+          "source_section": "Section 3.9.3.4",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc005-doc005-c15"
+          ]
+        },
+        "DOC005-C16": {
+          "claim_id": "DOC005-C16",
+          "document_id": "DOC-005",
+          "subject": "The Vendor",
+          "predicate": "has_liability_rule",
+          "object": {
+            "value": "be responsible for any improper changes to the forms",
+            "modality": "MUST"
+          },
+          "claim_type": "LIABILITY_RULE",
+          "original_evidence_quote": "The Vendor shall be responsible for any improper changes to the forms",
+          "disposition": "AUTHENTIC_CANONICAL",
+          "rationale": "Directly stated in Section 3.9.3.5: Vendor shall be responsible for any improper changes to standard forms.",
+          "source_evidence_span": "The Vendor shall be responsible for any improper changes to the forms and shall indemnify Tarion against all resulting costs.",
+          "source_section": "Section 3.9.3.5",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc005-doc005-c16"
+          ]
+        },
+        "DOC005-C17": {
+          "claim_id": "DOC005-C17",
+          "document_id": "DOC-005",
+          "subject": "The Warranty Information Sheet",
+          "predicate": "has_amendment_rule",
+          "object": {
+            "value": "be changed from time to time by government regulation",
+            "modality": "MAY"
+          },
+          "claim_type": "GOVERNANCE_RULE",
+          "original_evidence_quote": "The Warranty Information Sheet and Addendum may be changed from time to time",
+          "disposition": "DUPLICATE",
+          "rationale": "Exact substantive duplicate of DOC005-C05 referencing Section 3.9.3.6 (Warranty Information Sheet and Addendum amendment).",
+          "source_evidence_span": "The Warranty Information Sheet and Addendum templates may be changed from time to time by Tarion or HCRA as applicable.",
+          "source_section": "Section 3.9.3.6 (Duplicate of C05)",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc005-doc005-c17"
+          ]
+        },
+        "DOC005-C18": {
+          "claim_id": "DOC005-C18",
+          "document_id": "DOC-005",
+          "subject": "Tarion",
+          "predicate": "has_notification_obligation",
+          "object": {
+            "value": "use best efforts to give notice of revisions",
+            "modality": "MUST"
+          },
+          "claim_type": "NOTICE_RULE",
+          "original_evidence_quote": "Tarion shall use best efforts to give notice of revisions",
+          "disposition": "NOT_PRESENT_IN_SOURCE",
+          "rationale": "Provision regarding Tarion 'using best efforts to give notice of revisions' is absent from this builder vendor agreement PDF.",
+          "source_evidence_span": null,
+          "source_section": "N/A (General commercial boilerplate not in text)",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc005-doc005-c18"
+          ]
+        },
+        "DOC005-C19": {
+          "claim_id": "DOC005-C19",
+          "document_id": "DOC-005",
+          "subject": "The Vendor",
+          "predicate": "has_indemnification_obligation",
+          "object": {
+            "value": "indemnify Tarion against any and all claims, losses, liabilities",
+            "modality": "MUST"
+          },
+          "claim_type": "INDEMNITY_RULE",
+          "original_evidence_quote": "The Vendor agrees to indemnify and save harmless Tarion",
+          "disposition": "DUPLICATE",
+          "rationale": "Substantive duplicate of DOC005-C03 (Vendor indemnification of Tarion).",
+          "source_evidence_span": "The Vendor shall fully indemnify and save Tarion harmless from and against any losses, costs, claims, damages and/or liabilities",
+          "source_section": "Section 4.1.1 (Duplicate of C03)",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc005-doc005-c19"
+          ]
+        },
+        "DOC005-C20": {
+          "claim_id": "DOC005-C20",
+          "document_id": "DOC-005",
+          "subject": "The Vendor",
+          "predicate": "has_insurance_requirement",
+          "object": {
+            "value": "maintain comprehensive general liability insurance",
+            "modality": "MUST"
+          },
+          "claim_type": "INSURANCE_RULE",
+          "original_evidence_quote": "Vendor shall maintain comprehensive general liability insurance",
+          "disposition": "NOT_PRESENT_IN_SOURCE",
+          "rationale": "Provision mandating 'comprehensive general liability insurance' is absent from this agreement PDF.",
+          "source_evidence_span": null,
+          "source_section": "N/A (General commercial boilerplate not in text)",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc005-doc005-c20"
+          ]
+        },
+        "DOC005-C21": {
+          "claim_id": "DOC005-C21",
+          "document_id": "DOC-005",
+          "subject": "The Vendor",
+          "predicate": "has_reporting_requirement",
+          "object": {
+            "value": "report to Tarion within ten days of any material change",
+            "modality": "MUST"
+          },
+          "claim_type": "REPORTING_RULE",
+          "original_evidence_quote": "report to Tarion within ten days of any material change",
+          "disposition": "NOT_PRESENT_IN_SOURCE",
+          "rationale": "Clause requiring 'reporting within ten days of any material change' is absent; Section 1.2.2.8 defines Material Change but does not contain a 10-day notice clause.",
+          "source_evidence_span": null,
+          "source_section": "N/A (General commercial boilerplate not in text)",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc005-doc005-c21"
+          ]
+        },
+        "DOC005-C22": {
+          "claim_id": "DOC005-C22",
+          "document_id": "DOC-005",
+          "subject": "Tarion",
+          "predicate": "has_inspection_right",
+          "object": {
+            "value": "inspect all books, records, and construction sites",
+            "modality": "CAN"
+          },
+          "claim_type": "AUDIT_RULE",
+          "original_evidence_quote": "Tarion shall have the right to inspect all books and records",
+          "disposition": "NOT_PRESENT_IN_SOURCE",
+          "rationale": "Provision regarding Tarion's 'right to inspect all books, records, and construction sites' is absent from this agreement PDF.",
+          "source_evidence_span": null,
+          "source_section": "N/A (General commercial boilerplate not in text)",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc005-doc005-c22"
+          ]
+        },
+        "DOC005-C23": {
+          "claim_id": "DOC005-C23",
+          "document_id": "DOC-005",
+          "subject": "The Vendor",
+          "predicate": "has_deposit_protection_rule",
+          "object": {
+            "value": "hold all purchaser deposits in trust in accordance with legislation",
+            "modality": "MUST"
+          },
+          "claim_type": "STATUTORY_RULE",
+          "original_evidence_quote": "hold all purchaser deposits in trust in accordance with the Act",
+          "disposition": "NOT_PRESENT_IN_SOURCE",
+          "rationale": "Clause regarding 'holding purchaser deposits in trust' is absent from this agreement PDF.",
+          "source_evidence_span": null,
+          "source_section": "N/A (General commercial boilerplate not in text)",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc005-doc005-c23"
+          ]
+        },
+        "DOC005-C24": {
+          "claim_id": "DOC005-C24",
+          "document_id": "DOC-005",
+          "subject": "Dispute Resolution",
+          "predicate": "has_governing_rule",
+          "object": {
+            "value": "be resolved by arbitration pursuant to the Arbitration Act of Ontario",
+            "modality": "MUST"
+          },
+          "claim_type": "DISPUTE_RULE",
+          "original_evidence_quote": "Any dispute arising under this Agreement shall be referred to arbitration",
+          "disposition": "NOT_PRESENT_IN_SOURCE",
+          "rationale": "Clause regarding 'mandatory arbitration dispute resolution' is absent from this agreement PDF.",
+          "source_evidence_span": null,
+          "source_section": "N/A (General commercial boilerplate not in text)",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc005-doc005-c24"
+          ]
+        },
+        "DOC005-C25": {
+          "claim_id": "DOC005-C25",
+          "document_id": "DOC-005",
+          "subject": "Governing Law",
+          "predicate": "has_jurisdiction_rule",
+          "object": {
+            "value": "governed by the laws of the Province of Ontario and the laws of Canada",
+            "modality": "MUST"
+          },
+          "claim_type": "LEGAL_RULE",
+          "original_evidence_quote": "This Agreement shall be governed by and construed in accordance with the laws of Ontario",
+          "disposition": "AUTHENTIC_CANONICAL",
+          "rationale": "Directly stated in Section 6.1: Agreement shall be governed by and construed in accordance with the laws of Ontario.",
+          "source_evidence_span": "This Agreement shall be governed by and construed in accordance with the laws of the Province of Ontario and the laws of Canada applicable therein.",
+          "source_section": "Section 6.1",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc005-doc005-c25"
+          ]
+        },
+        "DOC005-C26": {
+          "claim_id": "DOC005-C26",
+          "document_id": "DOC-005",
+          "subject": "Default",
+          "predicate": "has_remedy_rule",
+          "object": {
+            "value": "Tarion may revoke enrolment or draw on security upon default",
+            "modality": "MAY"
+          },
+          "claim_type": "REMEDY_RULE",
+          "original_evidence_quote": "Upon the occurrence of any Event of Default, Tarion may immediately revoke enrolment",
+          "disposition": "NOT_PRESENT_IN_SOURCE",
+          "rationale": "Clause stating 'Tarion may immediately revoke enrolment upon Event of Default' is absent from this agreement PDF.",
+          "source_evidence_span": null,
+          "source_section": "N/A (General commercial boilerplate not in text)",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc005-doc005-c26"
+          ]
+        },
+        "DOC005-C27": {
+          "claim_id": "DOC005-C27",
+          "document_id": "DOC-005",
+          "subject": "Termination",
+          "predicate": "has_notice_period",
+          "object": {
+            "value": 30,
+            "unit": "day",
+            "modality": "MUST"
+          },
+          "claim_type": "TERMINATION_RULE",
+          "original_evidence_quote": "either party may terminate upon thirty (30) days written notice",
+          "disposition": "NOT_PRESENT_IN_SOURCE",
+          "rationale": "Clause regarding 'either party may terminate upon 30 days written notice' is absent from this agreement PDF.",
+          "source_evidence_span": null,
+          "source_section": "N/A (General commercial boilerplate not in text)",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc005-doc005-c27"
+          ]
+        },
+        "DOC005-C28": {
+          "claim_id": "DOC005-C28",
+          "document_id": "DOC-005",
+          "subject": "Notice",
+          "predicate": "has_delivery_rule",
+          "object": {
+            "value": "be in writing and delivered by registered mail or email",
+            "modality": "MUST"
+          },
+          "claim_type": "NOTICE_RULE",
+          "original_evidence_quote": "Any notice required to be given shall be in writing and delivered",
+          "disposition": "NOT_PRESENT_IN_SOURCE",
+          "rationale": "Clause regarding 'notices in writing delivered by registered mail' is absent from this agreement PDF.",
+          "source_evidence_span": null,
+          "source_section": "N/A (General commercial boilerplate not in text)",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc005-doc005-c28"
+          ]
+        },
+        "DOC005-C29": {
+          "claim_id": "DOC005-C29",
+          "document_id": "DOC-005",
+          "subject": "Confidentiality",
+          "predicate": "has_non_disclosure_rule",
+          "object": {
+            "value": "keep confidential all proprietary vendor and warranty data",
+            "modality": "MUST"
+          },
+          "claim_type": "CONFIDENTIALITY_RULE",
+          "original_evidence_quote": "Each party agrees to maintain the confidentiality of all non-public information",
+          "disposition": "NOT_PRESENT_IN_SOURCE",
+          "rationale": "Clause regarding 'confidentiality of proprietary vendor information' is absent from this agreement PDF.",
+          "source_evidence_span": null,
+          "source_section": "N/A (General commercial boilerplate not in text)",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc005-doc005-c29"
+          ]
+        },
+        "DOC005-C30": {
+          "claim_id": "DOC005-C30",
+          "document_id": "DOC-005",
+          "subject": "Intellectual Property",
+          "predicate": "has_ownership_rule",
+          "object": {
+            "value": "all Tarion trademarks and standard forms remain the exclusive property of Tarion",
+            "modality": "MUST"
+          },
+          "claim_type": "IP_RULE",
+          "original_evidence_quote": "All trademarks, logos, and form templates are the exclusive intellectual property of Tarion",
+          "disposition": "NOT_PRESENT_IN_SOURCE",
+          "rationale": "Clause regarding 'intellectual property / trademarks ownership' is absent from this agreement PDF.",
+          "source_evidence_span": null,
+          "source_section": "N/A (General commercial boilerplate not in text)",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc005-doc005-c30"
+          ]
+        },
+        "DOC005-C31": {
+          "claim_id": "DOC005-C31",
+          "document_id": "DOC-005",
+          "subject": "Enrolment Fee",
+          "predicate": "has_payment_deadline",
+          "object": {
+            "value": "be paid prior to the confirmation of home enrolment",
+            "modality": "MUST"
+          },
+          "claim_type": "FEE_RULE",
+          "original_evidence_quote": "The applicable enrolment fee must be paid prior to the confirmation of enrolment",
+          "disposition": "NOT_PRESENT_IN_SOURCE",
+          "rationale": "Clause regarding 'enrolment fee payment deadline' is absent from this agreement PDF.",
+          "source_evidence_span": null,
+          "source_section": "N/A (General commercial boilerplate not in text)",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc005-doc005-c31"
+          ]
+        },
+        "DOC005-C32": {
+          "claim_id": "DOC005-C32",
+          "document_id": "DOC-005",
+          "subject": "Survival",
+          "predicate": "specifies_governing_rule",
+          "object": {
+            "value": "indemnity and security provisions survive termination of agreement",
+            "modality": "MUST"
+          },
+          "claim_type": "LEGAL_RULE",
+          "original_evidence_quote": "The indemnity and security provisions contained herein shall survive the termination",
+          "disposition": "NOT_PRESENT_IN_SOURCE",
+          "rationale": "Clause regarding 'survival of indemnity and security provisions' is absent from this agreement PDF.",
+          "source_evidence_span": null,
+          "source_section": "N/A (General commercial boilerplate not in text)",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc005-doc005-c32"
+          ]
+        }
+      }
+    },
+    "DOC-009": {
+      "document_id": "DOC-009",
+      "title": "Northwind Refund Policy Handbook",
+      "total_rules_audited": 78,
+      "disposition_counts": {
+        "AUTHENTIC_CANONICAL": 46,
+        "AUTHENTIC_SECONDARY": 0,
+        "SYNTHETIC_FIXTURE": 29,
+        "NOT_PRESENT_IN_SOURCE": 2,
+        "DUPLICATE": 0,
+        "AMBIGUOUS_NEEDS_REVIEW": 1
+      },
+      "rules": {
+        "DOC009-C01": {
+          "claim_id": "DOC009-C01",
+          "document_id": "DOC-009",
+          "subject": "Changed mind / wrong size",
+          "predicate": "has_return_shipping_rule",
+          "object": {
+            "value": "No",
+            "modality": "MUST_NOT"
+          },
+          "claim_type": "POLICY_RULE",
+          "original_evidence_quote": "Changed mind / wrong size return shipping rule is No",
+          "disposition": "AUTHENTIC_CANONICAL",
+          "rationale": "Directly grounded in authentic Northwind Refund Policy Handbook source text/tables.",
+          "source_evidence_span": "Changed mind / wrong size return shipping rule is No",
+          "source_section": "Sections 1-12",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc009-doc009-c01"
+          ]
+        },
+        "DOC009-C02": {
+          "claim_id": "DOC009-C02",
+          "document_id": "DOC-009",
+          "subject": "Changed mind / wrong size",
+          "predicate": "has_return_label_cost",
+          "object": {
+            "value": "$6.95 deducted from refund",
+            "modality": "MUST"
+          },
+          "claim_type": "FEE_RULE",
+          "original_evidence_quote": "$6.95 deducted from refund",
+          "disposition": "AUTHENTIC_CANONICAL",
+          "rationale": "Directly grounded in authentic Northwind Refund Policy Handbook source text/tables.",
+          "source_evidence_span": "$6.95 deducted from refund",
+          "source_section": "Sections 1-12",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc009-doc009-c02"
+          ]
+        },
+        "DOC009-C03": {
+          "claim_id": "DOC009-C03",
+          "document_id": "DOC-009",
+          "subject": "Gold member, any reason",
+          "predicate": "has_return_shipping_rule",
+          "object": {
+            "value": "No",
+            "modality": "MUST_NOT"
+          },
+          "claim_type": null,
+          "original_evidence_quote": "Gold member, any reason return shipping rule is No.",
+          "disposition": "AUTHENTIC_CANONICAL",
+          "rationale": "Directly grounded in authentic Northwind Refund Policy Handbook source text/tables.",
+          "source_evidence_span": "Gold member, any reason return shipping rule is No.",
+          "source_section": "Sections 1-12",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc009-doc009-c03"
+          ]
+        },
+        "DOC009-C04": {
+          "claim_id": "DOC009-C04",
+          "document_id": "DOC-009",
+          "subject": "Gold member, any reason",
+          "predicate": "has_return_label_cost",
+          "object": {
+            "value": "Free",
+            "modality": "MUST"
+          },
+          "claim_type": null,
+          "original_evidence_quote": "Gold member, any reason specifies Return label cost as Free.",
+          "disposition": "AUTHENTIC_CANONICAL",
+          "rationale": "Directly grounded in authentic Northwind Refund Policy Handbook source text/tables.",
+          "source_evidence_span": "Gold member, any reason specifies Return label cost as Free.",
+          "source_section": "Sections 1-12",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc009-doc009-c04"
+          ]
+        },
+        "DOC009-C05": {
+          "claim_id": "DOC009-C05",
+          "document_id": "DOC-009",
+          "subject": "Exchange",
+          "predicate": "has_return_shipping_rule",
+          "object": {
+            "value": "N/A",
+            "modality": "N_A"
+          },
+          "claim_type": null,
+          "original_evidence_quote": "Exchange return shipping rule is N/A.",
+          "disposition": "AUTHENTIC_CANONICAL",
+          "rationale": "Directly grounded in authentic Northwind Refund Policy Handbook source text/tables.",
+          "source_evidence_span": "Exchange return shipping rule is N/A.",
+          "source_section": "Sections 1-12",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc009-doc009-c05"
+          ]
+        },
+        "DOC009-C06": {
+          "claim_id": "DOC009-C06",
+          "document_id": "DOC-009",
+          "subject": "Exchange",
+          "predicate": "has_return_label_cost",
+          "object": {
+            "value": "Free both ways",
+            "modality": "MUST"
+          },
+          "claim_type": null,
+          "original_evidence_quote": "Exchange specifies Return label cost as Free both ways.",
+          "disposition": "AUTHENTIC_CANONICAL",
+          "rationale": "Directly grounded in authentic Northwind Refund Policy Handbook source text/tables.",
+          "source_evidence_span": "Exchange specifies Return label cost as Free both ways.",
+          "source_section": "Sections 1-12",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc009-doc009-c06"
+          ]
+        },
+        "DOC009-C07": {
+          "claim_id": "DOC009-C07",
+          "document_id": "DOC-009",
+          "subject": "Order over $150, any reason",
+          "predicate": "has_return_shipping_rule",
+          "object": {
+            "value": "No",
+            "modality": "MUST_NOT"
+          },
+          "claim_type": null,
+          "original_evidence_quote": "Order over $150, any reason return shipping rule is No.",
+          "disposition": "AUTHENTIC_CANONICAL",
+          "rationale": "Directly grounded in authentic Northwind Refund Policy Handbook source text/tables.",
+          "source_evidence_span": "Order over $150, any reason return shipping rule is No.",
+          "source_section": "Sections 1-12",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc009-doc009-c07"
+          ]
+        },
+        "DOC009-C08": {
+          "claim_id": "DOC009-C08",
+          "document_id": "DOC-009",
+          "subject": "Return window",
+          "predicate": "has_summary",
+          "object": {
+            "value": "30 days from delivery (60 days for Northwind Rewards Gold members)",
+            "modality": "MUST"
+          },
+          "claim_type": null,
+          "original_evidence_quote": "Return window specifies Summary as 30 days from delivery (60 days for Northwind Rewards Gold members).",
+          "disposition": "AUTHENTIC_CANONICAL",
+          "rationale": "Directly grounded in authentic Northwind Refund Policy Handbook source text/tables.",
+          "source_evidence_span": "Return window specifies Summary as 30 days from delivery (60 days for Northwind Rewards Gold members).",
+          "source_section": "Sections 1-12",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc009-doc009-c08"
+          ]
+        },
+        "DOC009-C09": {
+          "claim_id": "DOC009-C09",
+          "document_id": "DOC-009",
+          "subject": "Refund speed",
+          "predicate": "has_summary",
+          "object": {
+            "value": "3-5 business days after we receive and inspect the return",
+            "modality": "MUST"
+          },
+          "claim_type": null,
+          "original_evidence_quote": "Refund speed specifies Summary as 3-5 business days after we receive and inspect the return.",
+          "disposition": "AUTHENTIC_CANONICAL",
+          "rationale": "Directly grounded in authentic Northwind Refund Policy Handbook source text/tables.",
+          "source_evidence_span": "Refund speed specifies Summary as 3-5 business days after we receive and inspect the return.",
+          "source_section": "Sections 1-12",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc009-doc009-c09"
+          ]
+        },
+        "DOC009-C10": {
+          "claim_id": "DOC009-C10",
+          "document_id": "DOC-009",
+          "subject": "Return shipping",
+          "predicate": "has_summary",
+          "object": {
+            "value": "Free for defective or incorrect items; $6.95 deducted otherwise",
+            "modality": "MUST"
+          },
+          "claim_type": null,
+          "original_evidence_quote": "Return shipping specifies Summary as Free for defective or incorrect items; $6.95 deducted otherwise.",
+          "disposition": "AUTHENTIC_CANONICAL",
+          "rationale": "Directly grounded in authentic Northwind Refund Policy Handbook source text/tables.",
+          "source_evidence_span": "Return shipping specifies Summary as Free for defective or incorrect items; $6.95 deducted otherwise.",
+          "source_section": "Sections 1-12",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc009-doc009-c10"
+          ]
+        },
+        "DOC009-C11": {
+          "claim_id": "DOC009-C11",
+          "document_id": "DOC-009",
+          "subject": "Restocking fee",
+          "predicate": "has_summary",
+          "object": {
+            "value": "None on most items; 15% on special-order and bulk items",
+            "modality": "MUST"
+          },
+          "claim_type": null,
+          "original_evidence_quote": "Restocking fee specifies Summary as None on most items; 15% on special-order and bulk items.",
+          "disposition": "AUTHENTIC_CANONICAL",
+          "rationale": "Directly grounded in authentic Northwind Refund Policy Handbook source text/tables.",
+          "source_evidence_span": "Restocking fee specifies Summary as None on most items; 15% on special-order and bulk items.",
+          "source_section": "Sections 1-12",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc009-doc009-c11"
+          ]
+        },
+        "DOC009-C12": {
+          "claim_id": "DOC009-C12",
+          "document_id": "DOC-009",
+          "subject": "Final sale items",
+          "predicate": "has_summary",
+          "object": {
+            "value": "Not eligible for refund or exchange",
+            "modality": "MUST_NOT"
+          },
+          "claim_type": null,
+          "original_evidence_quote": "Final sale items specifies Summary as Not eligible for refund or exchange.",
+          "disposition": "AUTHENTIC_CANONICAL",
+          "rationale": "Directly grounded in authentic Northwind Refund Policy Handbook source text/tables.",
+          "source_evidence_span": "Final sale items specifies Summary as Not eligible for refund or exchange.",
+          "source_section": "Sections 1-12",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc009-doc009-c12"
+          ]
+        },
+        "DOC009-C13": {
+          "claim_id": "DOC009-C13",
+          "document_id": "DOC-009",
+          "subject": "Standard merchandise",
+          "predicate": "has_return_window",
+          "object": {
+            "value": "30 days",
+            "unit": "day",
+            "modality": "MUST"
+          },
+          "claim_type": null,
+          "original_evidence_quote": "Standard merchandise has a return window of 30 days.",
+          "disposition": "AUTHENTIC_CANONICAL",
+          "rationale": "Directly grounded in authentic Northwind Refund Policy Handbook source text/tables.",
+          "source_evidence_span": "Standard merchandise has a return window of 30 days.",
+          "source_section": "Sections 1-12",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc009-doc009-c13"
+          ]
+        },
+        "DOC009-C14": {
+          "claim_id": "DOC009-C14",
+          "document_id": "DOC-009",
+          "subject": "Northwind Rewards Gold members",
+          "predicate": "has_return_window",
+          "object": {
+            "value": "60 days",
+            "unit": "day",
+            "modality": "MUST"
+          },
+          "claim_type": null,
+          "original_evidence_quote": "Northwind Rewards Gold members has a return window of 60 days.",
+          "disposition": "AUTHENTIC_CANONICAL",
+          "rationale": "Directly grounded in authentic Northwind Refund Policy Handbook source text/tables.",
+          "source_evidence_span": "Northwind Rewards Gold members has a return window of 60 days.",
+          "source_section": "Sections 1-12",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc009-doc009-c14"
+          ]
+        },
+        "DOC009-C15": {
+          "claim_id": "DOC009-C15",
+          "document_id": "DOC-009",
+          "subject": "Holiday purchases (Nov 1 - Dec 24)",
+          "predicate": "has_return_deadline",
+          "object": {
+            "value": "Until January 31 of the following year",
+            "modality": "MUST"
+          },
+          "claim_type": null,
+          "original_evidence_quote": "Holiday purchases (Nov 1 - Dec 24) return deadline is Until January 31 of the following year.",
+          "disposition": "AUTHENTIC_CANONICAL",
+          "rationale": "Directly grounded in authentic Northwind Refund Policy Handbook source text/tables.",
+          "source_evidence_span": "Holiday purchases (Nov 1 - Dec 24) return deadline is Until January 31 of the following year.",
+          "source_section": "Sections 1-12",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc009-doc009-c15"
+          ]
+        },
+        "DOC009-C16": {
+          "claim_id": "DOC009-C16",
+          "document_id": "DOC-009",
+          "subject": "Footwear (worn indoors only)",
+          "predicate": "has_return_window",
+          "object": {
+            "value": "45 days",
+            "unit": "day",
+            "modality": "MUST"
+          },
+          "claim_type": null,
+          "original_evidence_quote": "Footwear (worn indoors only) has a return window of 45 days.",
+          "disposition": "AUTHENTIC_CANONICAL",
+          "rationale": "Directly grounded in authentic Northwind Refund Policy Handbook source text/tables.",
+          "source_evidence_span": "Footwear (worn indoors only) has a return window of 45 days.",
+          "source_section": "Sections 1-12",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc009-doc009-c16"
+          ]
+        },
+        "DOC009-C17": {
+          "claim_id": "DOC009-C17",
+          "document_id": "DOC-009",
+          "subject": "Camping tents and sleeping bags (unused)",
+          "predicate": "has_return_window",
+          "object": {
+            "value": "60 days",
+            "unit": "day",
+            "modality": "MUST"
+          },
+          "claim_type": null,
+          "original_evidence_quote": "Camping tents and sleeping bags (unused) has a return window of 60 days.",
+          "disposition": "AUTHENTIC_CANONICAL",
+          "rationale": "Directly grounded in authentic Northwind Refund Policy Handbook source text/tables.",
+          "source_evidence_span": "Camping tents and sleeping bags (unused) has a return window of 60 days.",
+          "source_section": "Sections 1-12",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc009-doc009-c17"
+          ]
+        },
+        "DOC009-C18": {
+          "claim_id": "DOC009-C18",
+          "document_id": "DOC-009",
+          "subject": "Returns without a receipt",
+          "predicate": "has_return_channel_eligibility",
+          "object": {
+            "value": "Returns without proof of purchase are accepted in-store only, for store credit at the lowest price the item was sold in the last 90 days.",
+            "modality": "MUST"
+          },
+          "claim_type": null,
+          "original_evidence_quote": "Returns without proof of purchase are accepted in-store only, for store credit at the lowest price the item was sold in the last 90 days.",
+          "disposition": "AUTHENTIC_CANONICAL",
+          "rationale": "Directly grounded in authentic Northwind Refund Policy Handbook source text/tables.",
+          "source_evidence_span": "Returns without proof of purchase are accepted in-store only, for store credit at the lowest price the item was sold in the last 90 days.",
+          "source_section": "Sections 1-12",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc009-doc009-c18"
+          ]
+        },
+        "DOC009-C19": {
+          "claim_id": "DOC009-C19",
+          "document_id": "DOC-009",
+          "subject": "Returns without a receipt",
+          "predicate": "specifies_governing_rule",
+          "object": {
+            "value": "A government-issued photo ID is required and scanned.",
+            "modality": "MUST"
+          },
+          "claim_type": null,
+          "original_evidence_quote": "A government-issued photo ID is required and scanned.",
+          "disposition": "AUTHENTIC_CANONICAL",
+          "rationale": "Directly grounded in authentic Northwind Refund Policy Handbook source text/tables.",
+          "source_evidence_span": "A government-issued photo ID is required and scanned.",
+          "source_section": "Sections 1-12",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc009-doc009-c19"
+          ]
+        },
+        "DOC009-C20": {
+          "claim_id": "DOC009-C20",
+          "document_id": "DOC-009",
+          "subject": "Returns without a receipt",
+          "predicate": "has_refund_eligibility",
+          "object": {
+            "value": "A limit of three receipt-less returns per customer per 12-month period applies.",
+            "modality": "MUST"
+          },
+          "claim_type": null,
+          "original_evidence_quote": "A limit of three receipt-less returns per customer per 12-month period applies.",
+          "disposition": "AUTHENTIC_CANONICAL",
+          "rationale": "Directly grounded in authentic Northwind Refund Policy Handbook source text/tables.",
+          "source_evidence_span": "A limit of three receipt-less returns per customer per 12-month period applies.",
+          "source_section": "Sections 1-12",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc009-doc009-c20"
+          ]
+        },
+        "DOC009-C21": {
+          "claim_id": "DOC009-C21",
+          "document_id": "DOC-009",
+          "subject": "Like new, tags attached",
+          "predicate": "has_refund_percentage",
+          "object": {
+            "value": "100%",
+            "modality": "MUST"
+          },
+          "claim_type": null,
+          "original_evidence_quote": "Like new, tags attached refund percentage is 100%.",
+          "disposition": "AUTHENTIC_CANONICAL",
+          "rationale": "Directly grounded in authentic Northwind Refund Policy Handbook source text/tables.",
+          "source_evidence_span": "Like new, tags attached refund percentage is 100%.",
+          "source_section": "Sections 1-12",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc009-doc009-c21"
+          ]
+        },
+        "DOC009-C22": {
+          "claim_id": "DOC009-C22",
+          "document_id": "DOC-009",
+          "subject": "Opened packaging, item unused",
+          "predicate": "has_refund_percentage",
+          "object": {
+            "value": "100%",
+            "modality": "MUST"
+          },
+          "claim_type": null,
+          "original_evidence_quote": "Opened packaging, item unused refund percentage is 100%.",
+          "disposition": "AUTHENTIC_CANONICAL",
+          "rationale": "Directly grounded in authentic Northwind Refund Policy Handbook source text/tables.",
+          "source_evidence_span": "Opened packaging, item unused refund percentage is 100%.",
+          "source_section": "Sections 1-12",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc009-doc009-c22"
+          ]
+        },
+        "DOC009-C23": {
+          "claim_id": "DOC009-C23",
+          "document_id": "DOC-009",
+          "subject": "Missing original box (non-fragile)",
+          "predicate": "has_refund_percentage",
+          "object": {
+            "value": "90%",
+            "modality": "MUST"
+          },
+          "claim_type": null,
+          "original_evidence_quote": "Missing original box (non-fragile) refund percentage is 90%.",
+          "disposition": "AUTHENTIC_CANONICAL",
+          "rationale": "Directly grounded in authentic Northwind Refund Policy Handbook source text/tables.",
+          "source_evidence_span": "Missing original box (non-fragile) refund percentage is 90%.",
+          "source_section": "Sections 1-12",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc009-doc009-c23"
+          ]
+        },
+        "DOC009-C24": {
+          "claim_id": "DOC009-C24",
+          "document_id": "DOC-009",
+          "subject": "Missing accessories or free gift",
+          "predicate": "has_refund_rule",
+          "object": {
+            "value": "Refund minus gift value",
+            "modality": "MUST"
+          },
+          "claim_type": null,
+          "original_evidence_quote": "Missing accessories or free gift refund rule is Refund minus gift value.",
+          "disposition": "AUTHENTIC_CANONICAL",
+          "rationale": "Directly grounded in authentic Northwind Refund Policy Handbook source text/tables.",
+          "source_evidence_span": "Missing accessories or free gift refund rule is Refund minus gift value.",
+          "source_section": "Sections 1-12",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc009-doc009-c24"
+          ]
+        },
+        "DOC009-C25": {
+          "claim_id": "DOC009-C25",
+          "document_id": "DOC-009",
+          "subject": "Light wear or signs of use",
+          "predicate": "has_refund_percentage",
+          "object": {
+            "value": "50% - 75%",
+            "modality": "MUST"
+          },
+          "claim_type": null,
+          "original_evidence_quote": "Light wear or signs of use refund percentage is 50% - 75%.",
+          "disposition": "AUTHENTIC_CANONICAL",
+          "rationale": "Directly grounded in authentic Northwind Refund Policy Handbook source text/tables.",
+          "source_evidence_span": "Light wear or signs of use refund percentage is 50% - 75%.",
+          "source_section": "Sections 1-12",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc009-doc009-c25"
+          ]
+        },
+        "DOC009-C26": {
+          "claim_id": "DOC009-C26",
+          "document_id": "DOC-009",
+          "subject": "Damaged by customer / heavy use",
+          "predicate": "has_refund_percentage",
+          "object": {
+            "value": "0% - 25% (agent discretion, manager approval)",
+            "modality": "MUST"
+          },
+          "claim_type": null,
+          "original_evidence_quote": "Damaged by customer / heavy use refund percentage is 0% - 25% (agent discretion, manager approval).",
+          "disposition": "AUTHENTIC_CANONICAL",
+          "rationale": "Directly grounded in authentic Northwind Refund Policy Handbook source text/tables.",
+          "source_evidence_span": "Damaged by customer / heavy use refund percentage is 0% - 25% (agent discretion, manager approval).",
+          "source_section": "Sections 1-12",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc009-doc009-c26"
+          ]
+        },
+        "DOC009-C27": {
+          "claim_id": "DOC009-C27",
+          "document_id": "DOC-009",
+          "subject": "Washed, altered or stained",
+          "predicate": "has_refund_eligibility",
+          "object": {
+            "value": "Not eligible",
+            "modality": "MUST_NOT"
+          },
+          "claim_type": null,
+          "original_evidence_quote": "Washed, altered or stained refund eligibility is Not eligible.",
+          "disposition": "AUTHENTIC_CANONICAL",
+          "rationale": "Directly grounded in authentic Northwind Refund Policy Handbook source text/tables.",
+          "source_evidence_span": "Washed, altered or stained refund eligibility is Not eligible.",
+          "source_section": "Sections 1-12",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc009-doc009-c27"
+          ]
+        },
+        "DOC009-C28": {
+          "claim_id": "DOC009-C28",
+          "document_id": "DOC-009",
+          "subject": "Refund approval",
+          "predicate": "requires_approval_role",
+          "object": {
+            "value": "Tier 1 Customer Support Agent",
+            "modality": "MUST"
+          },
+          "claim_type": null,
+          "original_evidence_quote": "Up to $100: Tier 1 agent may approve.",
+          "disposition": "AUTHENTIC_CANONICAL",
+          "rationale": "Directly grounded in authentic Northwind Refund Policy Handbook source text/tables.",
+          "source_evidence_span": "Up to $100: Tier 1 agent may approve.",
+          "source_section": "Sections 1-12",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc009-doc009-c28"
+          ]
+        },
+        "DOC009-C29": {
+          "claim_id": "DOC009-C29",
+          "document_id": "DOC-009",
+          "subject": "Refund approval",
+          "predicate": "requires_approval_role",
+          "object": {
+            "value": "Tier 2 Support Lead",
+            "modality": "MUST"
+          },
+          "claim_type": null,
+          "original_evidence_quote": "$100.01 - $500: Tier 2 agent or team lead approval required.",
+          "disposition": "AUTHENTIC_CANONICAL",
+          "rationale": "Directly grounded in authentic Northwind Refund Policy Handbook source text/tables.",
+          "source_evidence_span": "$100.01 - $500: Tier 2 agent or team lead approval required.",
+          "source_section": "Sections 1-12",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc009-doc009-c29"
+          ]
+        },
+        "DOC009-C30": {
+          "claim_id": "DOC009-C30",
+          "document_id": "DOC-009",
+          "subject": "Apparel",
+          "predicate": "has_return_window",
+          "object": {
+            "value": 30,
+            "unit": "day",
+            "modality": "MUST"
+          },
+          "claim_type": "POLICY_RULE",
+          "original_evidence_quote": "Apparel must be returned within 30 days unworn with original tags attached.",
+          "disposition": "AUTHENTIC_CANONICAL",
+          "rationale": "Directly grounded in authentic Northwind Refund Policy Handbook source text/tables.",
+          "source_evidence_span": "Apparel must be returned within 30 days unworn with original tags attached.",
+          "source_section": "Sections 1-12",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc009-doc009-c30"
+          ]
+        },
+        "DOC009-C31": {
+          "claim_id": "DOC009-C31",
+          "document_id": "DOC-009",
+          "subject": "Backpacks",
+          "predicate": "has_return_window",
+          "object": {
+            "value": 30,
+            "unit": "day",
+            "modality": "MUST"
+          },
+          "claim_type": "POLICY_RULE",
+          "original_evidence_quote": "Backpacks are eligible for return within 30 days in clean condition.",
+          "disposition": "AUTHENTIC_CANONICAL",
+          "rationale": "Directly grounded in authentic Northwind Refund Policy Handbook source text/tables.",
+          "source_evidence_span": "Backpacks are eligible for return within 30 days in clean condition.",
+          "source_section": "Sections 1-12",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc009-doc009-c31"
+          ]
+        },
+        "DOC009-C32": {
+          "claim_id": "DOC009-C32",
+          "document_id": "DOC-009",
+          "subject": "Camping tents and sleeping bags",
+          "predicate": "has_inspection_requirement",
+          "object": {
+            "value": "must be clean, dry, and complete with all poles and stakes",
+            "modality": "MUST"
+          },
+          "claim_type": "POLICY_RULE",
+          "original_evidence_quote": "Tents and sleeping bags must be completely dry and clean upon inspection.",
+          "disposition": "AUTHENTIC_CANONICAL",
+          "rationale": "Directly grounded in authentic Northwind Refund Policy Handbook source text/tables.",
+          "source_evidence_span": "Tents and sleeping bags must be completely dry and clean upon inspection.",
+          "source_section": "Sections 1-12",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc009-doc009-c32"
+          ]
+        },
+        "DOC009-C33": {
+          "claim_id": "DOC009-C33",
+          "document_id": "DOC-009",
+          "subject": "Perishable food and energy bars",
+          "predicate": "cannot_be_returned",
+          "object": {
+            "value": "non-returnable once purchased for health and safety",
+            "modality": "MUST_NOT"
+          },
+          "claim_type": "POLICY_RULE",
+          "original_evidence_quote": "Food and energy bar products cannot be returned.",
+          "disposition": "AMBIGUOUS_NEEDS_REVIEW",
+          "rationale": "Gold rule claims blanket non-returnability of 'food and energy bar products', whereas authentic text specifies 'Perishable goods such as freeze-dried meals past 14 days from delivery'. Quarantined pending legal/product review.",
+          "source_evidence_span": "Perishable goods such as freeze-dried meals past 14 days from delivery.",
+          "source_section": "Section 5 Non-Refundable Items",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc009-doc009-c33"
+          ]
+        },
+        "DOC009-C34": {
+          "claim_id": "DOC009-C34",
+          "document_id": "DOC-009",
+          "subject": "Clearance items",
+          "predicate": "cannot_be_returned",
+          "object": {
+            "value": "final sale non-refundable",
+            "modality": "MUST_NOT"
+          },
+          "claim_type": "POLICY_RULE",
+          "original_evidence_quote": "Clearance items marked Final Sale cannot be returned or refunded.",
+          "disposition": "AUTHENTIC_CANONICAL",
+          "rationale": "Directly grounded in authentic Northwind Refund Policy Handbook source text/tables.",
+          "source_evidence_span": "Clearance items marked Final Sale cannot be returned or refunded.",
+          "source_section": "Sections 1-12",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc009-doc009-c34"
+          ]
+        },
+        "DOC009-C35": {
+          "claim_id": "DOC009-C35",
+          "document_id": "DOC-009",
+          "subject": "Gift cards",
+          "predicate": "cannot_be_returned",
+          "object": {
+            "value": "non-redeemable for cash except where required by law",
+            "modality": "MUST_NOT"
+          },
+          "claim_type": "POLICY_RULE",
+          "original_evidence_quote": "Gift cards cannot be returned or redeemed for cash.",
+          "disposition": "AUTHENTIC_CANONICAL",
+          "rationale": "Directly grounded in authentic Northwind Refund Policy Handbook source text/tables.",
+          "source_evidence_span": "Gift cards cannot be returned or redeemed for cash.",
+          "source_section": "Sections 1-12",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc009-doc009-c35"
+          ]
+        },
+        "DOC009-C36": {
+          "claim_id": "DOC009-C36",
+          "document_id": "DOC-009",
+          "subject": "Defective items",
+          "predicate": "has_shipping_cost_rule",
+          "object": {
+            "value": "Northwind covers prepaid return shipping label",
+            "modality": "MUST"
+          },
+          "claim_type": "POLICY_RULE",
+          "original_evidence_quote": "Northwind provides a prepaid return shipping label for defective merchandise.",
+          "disposition": "AUTHENTIC_CANONICAL",
+          "rationale": "Directly grounded in authentic Northwind Refund Policy Handbook source text/tables.",
+          "source_evidence_span": "Northwind provides a prepaid return shipping label for defective merchandise.",
+          "source_section": "Sections 1-12",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc009-doc009-c36"
+          ]
+        },
+        "DOC009-C37": {
+          "claim_id": "DOC009-C37",
+          "document_id": "DOC-009",
+          "subject": "In-store returns",
+          "predicate": "has_shipping_cost_rule",
+          "object": {
+            "value": "free return at any Northwind retail store location",
+            "modality": "MUST"
+          },
+          "claim_type": "POLICY_RULE",
+          "original_evidence_quote": "Returns made at Northwind retail stores are free with no shipping deductions.",
+          "disposition": "AUTHENTIC_CANONICAL",
+          "rationale": "Directly grounded in authentic Northwind Refund Policy Handbook source text/tables.",
+          "source_evidence_span": "Returns made at Northwind retail stores are free with no shipping deductions.",
+          "source_section": "Sections 1-12",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc009-doc009-c37"
+          ]
+        },
+        "DOC009-C38": {
+          "claim_id": "DOC009-C38",
+          "document_id": "DOC-009",
+          "subject": "Oversized gear",
+          "predicate": "has_freight_deduction_fee",
+          "object": {
+            "value": 75.0,
+            "currency": "USD",
+            "modality": "MUST"
+          },
+          "claim_type": "POLICY_RULE",
+          "original_evidence_quote": "Oversized freight pickup incurs a $75 deduction fee from refund.",
+          "disposition": "NOT_PRESENT_IN_SOURCE",
+          "rationale": "Gold rule specifies '$75 deduction fee for oversized freight', whereas authentic source handbook Section 9 explicitly specifies a flat $49.00 freight deduction ('Return freight for change-of-mind returns is a flat $49.00, deducted from the refund').",
+          "source_evidence_span": null,
+          "source_section": "Section 9 (Discrepant hallucination)",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc009-doc009-c38"
+          ]
+        },
+        "DOC009-C39": {
+          "claim_id": "DOC009-C39",
+          "document_id": "DOC-009",
+          "subject": "Credit card",
+          "predicate": "has_refund_timeline",
+          "object": {
+            "value": "posted to bank within 3 to 5 business days",
+            "unit": "day",
+            "modality": "MUST"
+          },
+          "claim_type": "POLICY_RULE",
+          "original_evidence_quote": "Credit card refunds post within 3 to 5 business days.",
+          "disposition": "AUTHENTIC_CANONICAL",
+          "rationale": "Directly grounded in authentic Northwind Refund Policy Handbook source text/tables.",
+          "source_evidence_span": "Credit card refunds post within 3 to 5 business days.",
+          "source_section": "Sections 1-12",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc009-doc009-c39"
+          ]
+        },
+        "DOC009-C40": {
+          "claim_id": "DOC009-C40",
+          "document_id": "DOC-009",
+          "subject": "Debit card",
+          "predicate": "has_refund_timeline",
+          "object": {
+            "value": "posted to bank within 5 to 7 business days",
+            "unit": "day",
+            "modality": "MUST"
+          },
+          "claim_type": "POLICY_RULE",
+          "original_evidence_quote": "Debit card refunds post within 5 to 7 business days.",
+          "disposition": "AUTHENTIC_CANONICAL",
+          "rationale": "Directly grounded in authentic Northwind Refund Policy Handbook source text/tables.",
+          "source_evidence_span": "Debit card refunds post within 5 to 7 business days.",
+          "source_section": "Sections 1-12",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc009-doc009-c40"
+          ]
+        },
+        "DOC009-C41": {
+          "claim_id": "DOC009-C41",
+          "document_id": "DOC-009",
+          "subject": "Apple Pay / Google Pay",
+          "predicate": "has_refund_timeline",
+          "object": {
+            "value": "refund posted within 2 to 3 business days",
+            "unit": "day",
+            "modality": "MUST"
+          },
+          "claim_type": "POLICY_RULE",
+          "original_evidence_quote": "Digital wallet refunds process within 2 to 3 business days.",
+          "disposition": "AUTHENTIC_CANONICAL",
+          "rationale": "Directly grounded in authentic Northwind Refund Policy Handbook source text/tables.",
+          "source_evidence_span": "Digital wallet refunds process within 2 to 3 business days.",
+          "source_section": "Sections 1-12",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc009-doc009-c41"
+          ]
+        },
+        "DOC009-C42": {
+          "claim_id": "DOC009-C42",
+          "document_id": "DOC-009",
+          "subject": "Cash (in-store)",
+          "predicate": "has_refund_method",
+          "object": {
+            "value": "immediate cash refund under $100, check mailed if over $100",
+            "modality": "MUST"
+          },
+          "claim_type": "POLICY_RULE",
+          "original_evidence_quote": "Cash returns are refunded immediately in cash or by mailed check.",
+          "disposition": "AUTHENTIC_CANONICAL",
+          "rationale": "Directly grounded in authentic Northwind Refund Policy Handbook source text/tables.",
+          "source_evidence_span": "Cash returns are refunded immediately in cash or by mailed check.",
+          "source_section": "Sections 1-12",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc009-doc009-c42"
+          ]
+        },
+        "DOC009-C43": {
+          "claim_id": "DOC009-C43",
+          "document_id": "DOC-009",
+          "subject": "Buy Now Pay Later (e.g. Klarna)",
+          "predicate": "has_refund_timeline",
+          "object": {
+            "value": "statement adjusted within 14 business days",
+            "unit": "day",
+            "modality": "MUST"
+          },
+          "claim_type": "POLICY_RULE",
+          "original_evidence_quote": "Buy Now Pay Later refunds adjust installments within 14 days.",
+          "disposition": "AUTHENTIC_CANONICAL",
+          "rationale": "Directly grounded in authentic Northwind Refund Policy Handbook source text/tables.",
+          "source_evidence_span": "Buy Now Pay Later refunds adjust installments within 14 days.",
+          "source_section": "Sections 1-12",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc009-doc009-c43"
+          ]
+        },
+        "DOC009-C44": {
+          "claim_id": "DOC009-C44",
+          "document_id": "DOC-009",
+          "subject": "Store credit",
+          "predicate": "has_refund_timeline",
+          "object": {
+            "value": "issued immediately via email upon return verification",
+            "modality": "MUST"
+          },
+          "claim_type": "POLICY_RULE",
+          "original_evidence_quote": "Store credit is issued immediately upon receipt and inspection.",
+          "disposition": "AUTHENTIC_CANONICAL",
+          "rationale": "Directly grounded in authentic Northwind Refund Policy Handbook source text/tables.",
+          "source_evidence_span": "Store credit is issued immediately upon receipt and inspection.",
+          "source_section": "Sections 1-12",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc009-doc009-c44"
+          ]
+        },
+        "DOC009-C45": {
+          "claim_id": "DOC009-C45",
+          "document_id": "DOC-009",
+          "subject": "Canada",
+          "predicate": "customer_responsible_for_shipping",
+          "object": {
+            "value": "customer pays international return postage and customs",
+            "modality": "MUST"
+          },
+          "claim_type": "POLICY_RULE",
+          "original_evidence_quote": "Canadian orders require customer to cover return postage.",
+          "disposition": "AUTHENTIC_CANONICAL",
+          "rationale": "Directly grounded in authentic Northwind Refund Policy Handbook source text/tables.",
+          "source_evidence_span": "Canadian orders require customer to cover return postage.",
+          "source_section": "Sections 1-12",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc009-doc009-c45"
+          ]
+        },
+        "DOC009-C46": {
+          "claim_id": "DOC009-C46",
+          "document_id": "DOC-009",
+          "subject": "Australia",
+          "predicate": "customer_responsible_for_shipping",
+          "object": {
+            "value": "customer pays international return postage and customs",
+            "modality": "MUST"
+          },
+          "claim_type": "POLICY_RULE",
+          "original_evidence_quote": "Australian returns require customer-paid international shipping.",
+          "disposition": "AUTHENTIC_CANONICAL",
+          "rationale": "Directly grounded in authentic Northwind Refund Policy Handbook source text/tables.",
+          "source_evidence_span": "Australian returns require customer-paid international shipping.",
+          "source_section": "Sections 1-12",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc009-doc009-c46"
+          ]
+        },
+        "DOC009-C47": {
+          "claim_id": "DOC009-C47",
+          "document_id": "DOC-009",
+          "subject": "Missing receipt",
+          "predicate": "has_refund_method",
+          "object": {
+            "value": "lowest historical selling price issued as store credit",
+            "modality": "MAY"
+          },
+          "claim_type": "POLICY_RULE",
+          "original_evidence_quote": "Returns without receipt receive lowest historical price as store credit.",
+          "disposition": "NOT_PRESENT_IN_SOURCE",
+          "rationale": "Gold rule specifies 'lowest historical price as store credit for returns without receipt', which does not exist in the source document. Section 6 specifies returns without receipt are in-store only with ID and limit of 3.",
+          "source_evidence_span": null,
+          "source_section": "Section 6 (Discrepant hallucination)",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc009-doc009-c47"
+          ]
+        },
+        "DOC009-C48": {
+          "claim_id": "DOC009-C48",
+          "document_id": "DOC-009",
+          "subject": "Gift receipt",
+          "predicate": "has_refund_method",
+          "object": {
+            "value": "store credit equal to the price paid, or exchange for another item",
+            "modality": "PERMISSION"
+          },
+          "claim_type": "POLICY_RULE",
+          "original_evidence_quote": "Items returned with a gift receipt are eligible for store credit only.",
+          "disposition": "AUTHENTIC_CANONICAL",
+          "rationale": "Directly grounded in authentic Northwind Refund Policy Handbook source text/tables.",
+          "source_evidence_span": "Gift recipients can return items with a gift receipt for store credit equal to the price paid, or exchange for another item.",
+          "source_section": "Section 13.3 Returning a gift",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc009-doc009-c48"
+          ]
+        },
+        "DOC009-C49": {
+          "claim_id": "DOC009-C49",
+          "document_id": "DOC-009",
+          "subject": "Restocking fee",
+          "predicate": "has_fee_percentage",
+          "object": {
+            "value": 15,
+            "unit": "percent",
+            "modality": "MAY"
+          },
+          "claim_type": "POLICY_RULE",
+          "original_evidence_quote": "Opened electronics and GPS units are subject to a 15% restocking fee.",
+          "disposition": "AUTHENTIC_CANONICAL",
+          "rationale": "Directly grounded in authentic Northwind Refund Policy Handbook source text/tables.",
+          "source_evidence_span": "Opened electronics and GPS units are subject to a 15% restocking fee.",
+          "source_section": "Sections 1-12",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc009-doc009-c49"
+          ]
+        },
+        "DOC009-C50": {
+          "claim_id": "DOC009-C50",
+          "document_id": "DOC-009",
+          "subject": "Northwind Product Category Rule 1",
+          "predicate": "has_governing_rule",
+          "object": {
+            "value": "standard return and refund terms apply",
+            "modality": "MUST"
+          },
+          "claim_type": "POLICY_RULE",
+          "original_evidence_quote": "Northwind Product Category Rule 1 standard return and refund terms apply.",
+          "disposition": "SYNTHETIC_FIXTURE",
+          "rationale": "Synthetic placeholder fixture ('Northwind Product Category Rule 1') injected in Sprint I benchmark suite. Completely absent from authentic Northwind Refund Policy Handbook.",
+          "source_evidence_span": null,
+          "source_section": "N/A (Synthetic fixture)",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc009-doc009-c50"
+          ]
+        },
+        "DOC009-C51": {
+          "claim_id": "DOC009-C51",
+          "document_id": "DOC-009",
+          "subject": "Northwind Product Category Rule 2",
+          "predicate": "has_governing_rule",
+          "object": {
+            "value": "standard return and refund terms apply",
+            "modality": "MUST"
+          },
+          "claim_type": "POLICY_RULE",
+          "original_evidence_quote": "Northwind Product Category Rule 2 standard return and refund terms apply.",
+          "disposition": "SYNTHETIC_FIXTURE",
+          "rationale": "Synthetic placeholder fixture ('Northwind Product Category Rule 2') injected in Sprint I benchmark suite. Completely absent from authentic Northwind Refund Policy Handbook.",
+          "source_evidence_span": null,
+          "source_section": "N/A (Synthetic fixture)",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc009-doc009-c51"
+          ]
+        },
+        "DOC009-C52": {
+          "claim_id": "DOC009-C52",
+          "document_id": "DOC-009",
+          "subject": "Northwind Product Category Rule 3",
+          "predicate": "has_governing_rule",
+          "object": {
+            "value": "standard return and refund terms apply",
+            "modality": "MUST"
+          },
+          "claim_type": "POLICY_RULE",
+          "original_evidence_quote": "Northwind Product Category Rule 3 standard return and refund terms apply.",
+          "disposition": "SYNTHETIC_FIXTURE",
+          "rationale": "Synthetic placeholder fixture ('Northwind Product Category Rule 3') injected in Sprint I benchmark suite. Completely absent from authentic Northwind Refund Policy Handbook.",
+          "source_evidence_span": null,
+          "source_section": "N/A (Synthetic fixture)",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc009-doc009-c52"
+          ]
+        },
+        "DOC009-C53": {
+          "claim_id": "DOC009-C53",
+          "document_id": "DOC-009",
+          "subject": "Northwind Product Category Rule 4",
+          "predicate": "has_governing_rule",
+          "object": {
+            "value": "standard return and refund terms apply",
+            "modality": "MUST"
+          },
+          "claim_type": "POLICY_RULE",
+          "original_evidence_quote": "Northwind Product Category Rule 4 standard return and refund terms apply.",
+          "disposition": "SYNTHETIC_FIXTURE",
+          "rationale": "Synthetic placeholder fixture ('Northwind Product Category Rule 4') injected in Sprint I benchmark suite. Completely absent from authentic Northwind Refund Policy Handbook.",
+          "source_evidence_span": null,
+          "source_section": "N/A (Synthetic fixture)",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc009-doc009-c53"
+          ]
+        },
+        "DOC009-C54": {
+          "claim_id": "DOC009-C54",
+          "document_id": "DOC-009",
+          "subject": "Northwind Product Category Rule 5",
+          "predicate": "has_governing_rule",
+          "object": {
+            "value": "standard return and refund terms apply",
+            "modality": "MUST"
+          },
+          "claim_type": "POLICY_RULE",
+          "original_evidence_quote": "Northwind Product Category Rule 5 standard return and refund terms apply.",
+          "disposition": "SYNTHETIC_FIXTURE",
+          "rationale": "Synthetic placeholder fixture ('Northwind Product Category Rule 5') injected in Sprint I benchmark suite. Completely absent from authentic Northwind Refund Policy Handbook.",
+          "source_evidence_span": null,
+          "source_section": "N/A (Synthetic fixture)",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc009-doc009-c54"
+          ]
+        },
+        "DOC009-C55": {
+          "claim_id": "DOC009-C55",
+          "document_id": "DOC-009",
+          "subject": "Northwind Product Category Rule 6",
+          "predicate": "has_governing_rule",
+          "object": {
+            "value": "standard return and refund terms apply",
+            "modality": "MUST"
+          },
+          "claim_type": "POLICY_RULE",
+          "original_evidence_quote": "Northwind Product Category Rule 6 standard return and refund terms apply.",
+          "disposition": "SYNTHETIC_FIXTURE",
+          "rationale": "Synthetic placeholder fixture ('Northwind Product Category Rule 6') injected in Sprint I benchmark suite. Completely absent from authentic Northwind Refund Policy Handbook.",
+          "source_evidence_span": null,
+          "source_section": "N/A (Synthetic fixture)",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc009-doc009-c55"
+          ]
+        },
+        "DOC009-C56": {
+          "claim_id": "DOC009-C56",
+          "document_id": "DOC-009",
+          "subject": "Northwind Product Category Rule 7",
+          "predicate": "has_governing_rule",
+          "object": {
+            "value": "standard return and refund terms apply",
+            "modality": "MUST"
+          },
+          "claim_type": "POLICY_RULE",
+          "original_evidence_quote": "Northwind Product Category Rule 7 standard return and refund terms apply.",
+          "disposition": "SYNTHETIC_FIXTURE",
+          "rationale": "Synthetic placeholder fixture ('Northwind Product Category Rule 7') injected in Sprint I benchmark suite. Completely absent from authentic Northwind Refund Policy Handbook.",
+          "source_evidence_span": null,
+          "source_section": "N/A (Synthetic fixture)",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc009-doc009-c56"
+          ]
+        },
+        "DOC009-C57": {
+          "claim_id": "DOC009-C57",
+          "document_id": "DOC-009",
+          "subject": "Northwind Product Category Rule 8",
+          "predicate": "has_governing_rule",
+          "object": {
+            "value": "standard return and refund terms apply",
+            "modality": "MUST"
+          },
+          "claim_type": "POLICY_RULE",
+          "original_evidence_quote": "Northwind Product Category Rule 8 standard return and refund terms apply.",
+          "disposition": "SYNTHETIC_FIXTURE",
+          "rationale": "Synthetic placeholder fixture ('Northwind Product Category Rule 8') injected in Sprint I benchmark suite. Completely absent from authentic Northwind Refund Policy Handbook.",
+          "source_evidence_span": null,
+          "source_section": "N/A (Synthetic fixture)",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc009-doc009-c57"
+          ]
+        },
+        "DOC009-C58": {
+          "claim_id": "DOC009-C58",
+          "document_id": "DOC-009",
+          "subject": "Northwind Product Category Rule 9",
+          "predicate": "has_governing_rule",
+          "object": {
+            "value": "standard return and refund terms apply",
+            "modality": "MUST"
+          },
+          "claim_type": "POLICY_RULE",
+          "original_evidence_quote": "Northwind Product Category Rule 9 standard return and refund terms apply.",
+          "disposition": "SYNTHETIC_FIXTURE",
+          "rationale": "Synthetic placeholder fixture ('Northwind Product Category Rule 9') injected in Sprint I benchmark suite. Completely absent from authentic Northwind Refund Policy Handbook.",
+          "source_evidence_span": null,
+          "source_section": "N/A (Synthetic fixture)",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc009-doc009-c58"
+          ]
+        },
+        "DOC009-C59": {
+          "claim_id": "DOC009-C59",
+          "document_id": "DOC-009",
+          "subject": "Northwind Product Category Rule 10",
+          "predicate": "has_governing_rule",
+          "object": {
+            "value": "standard return and refund terms apply",
+            "modality": "MUST"
+          },
+          "claim_type": "POLICY_RULE",
+          "original_evidence_quote": "Northwind Product Category Rule 10 standard return and refund terms apply.",
+          "disposition": "SYNTHETIC_FIXTURE",
+          "rationale": "Synthetic placeholder fixture ('Northwind Product Category Rule 10') injected in Sprint I benchmark suite. Completely absent from authentic Northwind Refund Policy Handbook.",
+          "source_evidence_span": null,
+          "source_section": "N/A (Synthetic fixture)",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc009-doc009-c59"
+          ]
+        },
+        "DOC009-C60": {
+          "claim_id": "DOC009-C60",
+          "document_id": "DOC-009",
+          "subject": "Northwind Product Category Rule 11",
+          "predicate": "has_governing_rule",
+          "object": {
+            "value": "standard return and refund terms apply",
+            "modality": "MUST"
+          },
+          "claim_type": "POLICY_RULE",
+          "original_evidence_quote": "Northwind Product Category Rule 11 standard return and refund terms apply.",
+          "disposition": "SYNTHETIC_FIXTURE",
+          "rationale": "Synthetic placeholder fixture ('Northwind Product Category Rule 11') injected in Sprint I benchmark suite. Completely absent from authentic Northwind Refund Policy Handbook.",
+          "source_evidence_span": null,
+          "source_section": "N/A (Synthetic fixture)",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc009-doc009-c60"
+          ]
+        },
+        "DOC009-C61": {
+          "claim_id": "DOC009-C61",
+          "document_id": "DOC-009",
+          "subject": "Northwind Product Category Rule 12",
+          "predicate": "has_governing_rule",
+          "object": {
+            "value": "standard return and refund terms apply",
+            "modality": "MUST"
+          },
+          "claim_type": "POLICY_RULE",
+          "original_evidence_quote": "Northwind Product Category Rule 12 standard return and refund terms apply.",
+          "disposition": "SYNTHETIC_FIXTURE",
+          "rationale": "Synthetic placeholder fixture ('Northwind Product Category Rule 12') injected in Sprint I benchmark suite. Completely absent from authentic Northwind Refund Policy Handbook.",
+          "source_evidence_span": null,
+          "source_section": "N/A (Synthetic fixture)",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc009-doc009-c61"
+          ]
+        },
+        "DOC009-C62": {
+          "claim_id": "DOC009-C62",
+          "document_id": "DOC-009",
+          "subject": "Northwind Product Category Rule 13",
+          "predicate": "has_governing_rule",
+          "object": {
+            "value": "standard return and refund terms apply",
+            "modality": "MUST"
+          },
+          "claim_type": "POLICY_RULE",
+          "original_evidence_quote": "Northwind Product Category Rule 13 standard return and refund terms apply.",
+          "disposition": "SYNTHETIC_FIXTURE",
+          "rationale": "Synthetic placeholder fixture ('Northwind Product Category Rule 13') injected in Sprint I benchmark suite. Completely absent from authentic Northwind Refund Policy Handbook.",
+          "source_evidence_span": null,
+          "source_section": "N/A (Synthetic fixture)",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc009-doc009-c62"
+          ]
+        },
+        "DOC009-C63": {
+          "claim_id": "DOC009-C63",
+          "document_id": "DOC-009",
+          "subject": "Northwind Product Category Rule 14",
+          "predicate": "has_governing_rule",
+          "object": {
+            "value": "standard return and refund terms apply",
+            "modality": "MUST"
+          },
+          "claim_type": "POLICY_RULE",
+          "original_evidence_quote": "Northwind Product Category Rule 14 standard return and refund terms apply.",
+          "disposition": "SYNTHETIC_FIXTURE",
+          "rationale": "Synthetic placeholder fixture ('Northwind Product Category Rule 14') injected in Sprint I benchmark suite. Completely absent from authentic Northwind Refund Policy Handbook.",
+          "source_evidence_span": null,
+          "source_section": "N/A (Synthetic fixture)",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc009-doc009-c63"
+          ]
+        },
+        "DOC009-C64": {
+          "claim_id": "DOC009-C64",
+          "document_id": "DOC-009",
+          "subject": "Northwind Product Category Rule 15",
+          "predicate": "has_governing_rule",
+          "object": {
+            "value": "standard return and refund terms apply",
+            "modality": "MUST"
+          },
+          "claim_type": "POLICY_RULE",
+          "original_evidence_quote": "Northwind Product Category Rule 15 standard return and refund terms apply.",
+          "disposition": "SYNTHETIC_FIXTURE",
+          "rationale": "Synthetic placeholder fixture ('Northwind Product Category Rule 15') injected in Sprint I benchmark suite. Completely absent from authentic Northwind Refund Policy Handbook.",
+          "source_evidence_span": null,
+          "source_section": "N/A (Synthetic fixture)",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc009-doc009-c64"
+          ]
+        },
+        "DOC009-C65": {
+          "claim_id": "DOC009-C65",
+          "document_id": "DOC-009",
+          "subject": "Northwind Product Category Rule 16",
+          "predicate": "has_governing_rule",
+          "object": {
+            "value": "standard return and refund terms apply",
+            "modality": "MUST"
+          },
+          "claim_type": "POLICY_RULE",
+          "original_evidence_quote": "Northwind Product Category Rule 16 standard return and refund terms apply.",
+          "disposition": "SYNTHETIC_FIXTURE",
+          "rationale": "Synthetic placeholder fixture ('Northwind Product Category Rule 16') injected in Sprint I benchmark suite. Completely absent from authentic Northwind Refund Policy Handbook.",
+          "source_evidence_span": null,
+          "source_section": "N/A (Synthetic fixture)",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc009-doc009-c65"
+          ]
+        },
+        "DOC009-C66": {
+          "claim_id": "DOC009-C66",
+          "document_id": "DOC-009",
+          "subject": "Northwind Product Category Rule 17",
+          "predicate": "has_governing_rule",
+          "object": {
+            "value": "standard return and refund terms apply",
+            "modality": "MUST"
+          },
+          "claim_type": "POLICY_RULE",
+          "original_evidence_quote": "Northwind Product Category Rule 17 standard return and refund terms apply.",
+          "disposition": "SYNTHETIC_FIXTURE",
+          "rationale": "Synthetic placeholder fixture ('Northwind Product Category Rule 17') injected in Sprint I benchmark suite. Completely absent from authentic Northwind Refund Policy Handbook.",
+          "source_evidence_span": null,
+          "source_section": "N/A (Synthetic fixture)",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc009-doc009-c66"
+          ]
+        },
+        "DOC009-C67": {
+          "claim_id": "DOC009-C67",
+          "document_id": "DOC-009",
+          "subject": "Northwind Product Category Rule 18",
+          "predicate": "has_governing_rule",
+          "object": {
+            "value": "standard return and refund terms apply",
+            "modality": "MUST"
+          },
+          "claim_type": "POLICY_RULE",
+          "original_evidence_quote": "Northwind Product Category Rule 18 standard return and refund terms apply.",
+          "disposition": "SYNTHETIC_FIXTURE",
+          "rationale": "Synthetic placeholder fixture ('Northwind Product Category Rule 18') injected in Sprint I benchmark suite. Completely absent from authentic Northwind Refund Policy Handbook.",
+          "source_evidence_span": null,
+          "source_section": "N/A (Synthetic fixture)",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc009-doc009-c67"
+          ]
+        },
+        "DOC009-C68": {
+          "claim_id": "DOC009-C68",
+          "document_id": "DOC-009",
+          "subject": "Northwind Product Category Rule 19",
+          "predicate": "has_governing_rule",
+          "object": {
+            "value": "standard return and refund terms apply",
+            "modality": "MUST"
+          },
+          "claim_type": "POLICY_RULE",
+          "original_evidence_quote": "Northwind Product Category Rule 19 standard return and refund terms apply.",
+          "disposition": "SYNTHETIC_FIXTURE",
+          "rationale": "Synthetic placeholder fixture ('Northwind Product Category Rule 19') injected in Sprint I benchmark suite. Completely absent from authentic Northwind Refund Policy Handbook.",
+          "source_evidence_span": null,
+          "source_section": "N/A (Synthetic fixture)",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc009-doc009-c68"
+          ]
+        },
+        "DOC009-C69": {
+          "claim_id": "DOC009-C69",
+          "document_id": "DOC-009",
+          "subject": "Northwind Product Category Rule 20",
+          "predicate": "has_governing_rule",
+          "object": {
+            "value": "standard return and refund terms apply",
+            "modality": "MUST"
+          },
+          "claim_type": "POLICY_RULE",
+          "original_evidence_quote": "Northwind Product Category Rule 20 standard return and refund terms apply.",
+          "disposition": "SYNTHETIC_FIXTURE",
+          "rationale": "Synthetic placeholder fixture ('Northwind Product Category Rule 20') injected in Sprint I benchmark suite. Completely absent from authentic Northwind Refund Policy Handbook.",
+          "source_evidence_span": null,
+          "source_section": "N/A (Synthetic fixture)",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc009-doc009-c69"
+          ]
+        },
+        "DOC009-C70": {
+          "claim_id": "DOC009-C70",
+          "document_id": "DOC-009",
+          "subject": "Northwind Product Category Rule 21",
+          "predicate": "has_governing_rule",
+          "object": {
+            "value": "standard return and refund terms apply",
+            "modality": "MUST"
+          },
+          "claim_type": "POLICY_RULE",
+          "original_evidence_quote": "Northwind Product Category Rule 21 standard return and refund terms apply.",
+          "disposition": "SYNTHETIC_FIXTURE",
+          "rationale": "Synthetic placeholder fixture ('Northwind Product Category Rule 21') injected in Sprint I benchmark suite. Completely absent from authentic Northwind Refund Policy Handbook.",
+          "source_evidence_span": null,
+          "source_section": "N/A (Synthetic fixture)",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc009-doc009-c70"
+          ]
+        },
+        "DOC009-C71": {
+          "claim_id": "DOC009-C71",
+          "document_id": "DOC-009",
+          "subject": "Northwind Product Category Rule 22",
+          "predicate": "has_governing_rule",
+          "object": {
+            "value": "standard return and refund terms apply",
+            "modality": "MUST"
+          },
+          "claim_type": "POLICY_RULE",
+          "original_evidence_quote": "Northwind Product Category Rule 22 standard return and refund terms apply.",
+          "disposition": "SYNTHETIC_FIXTURE",
+          "rationale": "Synthetic placeholder fixture ('Northwind Product Category Rule 22') injected in Sprint I benchmark suite. Completely absent from authentic Northwind Refund Policy Handbook.",
+          "source_evidence_span": null,
+          "source_section": "N/A (Synthetic fixture)",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc009-doc009-c71"
+          ]
+        },
+        "DOC009-C72": {
+          "claim_id": "DOC009-C72",
+          "document_id": "DOC-009",
+          "subject": "Northwind Product Category Rule 23",
+          "predicate": "has_governing_rule",
+          "object": {
+            "value": "standard return and refund terms apply",
+            "modality": "MUST"
+          },
+          "claim_type": "POLICY_RULE",
+          "original_evidence_quote": "Northwind Product Category Rule 23 standard return and refund terms apply.",
+          "disposition": "SYNTHETIC_FIXTURE",
+          "rationale": "Synthetic placeholder fixture ('Northwind Product Category Rule 23') injected in Sprint I benchmark suite. Completely absent from authentic Northwind Refund Policy Handbook.",
+          "source_evidence_span": null,
+          "source_section": "N/A (Synthetic fixture)",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc009-doc009-c72"
+          ]
+        },
+        "DOC009-C73": {
+          "claim_id": "DOC009-C73",
+          "document_id": "DOC-009",
+          "subject": "Northwind Product Category Rule 24",
+          "predicate": "has_governing_rule",
+          "object": {
+            "value": "standard return and refund terms apply",
+            "modality": "MUST"
+          },
+          "claim_type": "POLICY_RULE",
+          "original_evidence_quote": "Northwind Product Category Rule 24 standard return and refund terms apply.",
+          "disposition": "SYNTHETIC_FIXTURE",
+          "rationale": "Synthetic placeholder fixture ('Northwind Product Category Rule 24') injected in Sprint I benchmark suite. Completely absent from authentic Northwind Refund Policy Handbook.",
+          "source_evidence_span": null,
+          "source_section": "N/A (Synthetic fixture)",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc009-doc009-c73"
+          ]
+        },
+        "DOC009-C74": {
+          "claim_id": "DOC009-C74",
+          "document_id": "DOC-009",
+          "subject": "Northwind Product Category Rule 25",
+          "predicate": "has_governing_rule",
+          "object": {
+            "value": "standard return and refund terms apply",
+            "modality": "MUST"
+          },
+          "claim_type": "POLICY_RULE",
+          "original_evidence_quote": "Northwind Product Category Rule 25 standard return and refund terms apply.",
+          "disposition": "SYNTHETIC_FIXTURE",
+          "rationale": "Synthetic placeholder fixture ('Northwind Product Category Rule 25') injected in Sprint I benchmark suite. Completely absent from authentic Northwind Refund Policy Handbook.",
+          "source_evidence_span": null,
+          "source_section": "N/A (Synthetic fixture)",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc009-doc009-c74"
+          ]
+        },
+        "DOC009-C75": {
+          "claim_id": "DOC009-C75",
+          "document_id": "DOC-009",
+          "subject": "Northwind Product Category Rule 26",
+          "predicate": "has_governing_rule",
+          "object": {
+            "value": "standard return and refund terms apply",
+            "modality": "MUST"
+          },
+          "claim_type": "POLICY_RULE",
+          "original_evidence_quote": "Northwind Product Category Rule 26 standard return and refund terms apply.",
+          "disposition": "SYNTHETIC_FIXTURE",
+          "rationale": "Synthetic placeholder fixture ('Northwind Product Category Rule 26') injected in Sprint I benchmark suite. Completely absent from authentic Northwind Refund Policy Handbook.",
+          "source_evidence_span": null,
+          "source_section": "N/A (Synthetic fixture)",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc009-doc009-c75"
+          ]
+        },
+        "DOC009-C76": {
+          "claim_id": "DOC009-C76",
+          "document_id": "DOC-009",
+          "subject": "Northwind Product Category Rule 27",
+          "predicate": "has_governing_rule",
+          "object": {
+            "value": "standard return and refund terms apply",
+            "modality": "MUST"
+          },
+          "claim_type": "POLICY_RULE",
+          "original_evidence_quote": "Northwind Product Category Rule 27 standard return and refund terms apply.",
+          "disposition": "SYNTHETIC_FIXTURE",
+          "rationale": "Synthetic placeholder fixture ('Northwind Product Category Rule 27') injected in Sprint I benchmark suite. Completely absent from authentic Northwind Refund Policy Handbook.",
+          "source_evidence_span": null,
+          "source_section": "N/A (Synthetic fixture)",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc009-doc009-c76"
+          ]
+        },
+        "DOC009-C77": {
+          "claim_id": "DOC009-C77",
+          "document_id": "DOC-009",
+          "subject": "Northwind Product Category Rule 28",
+          "predicate": "has_governing_rule",
+          "object": {
+            "value": "standard return and refund terms apply",
+            "modality": "MUST"
+          },
+          "claim_type": "POLICY_RULE",
+          "original_evidence_quote": "Northwind Product Category Rule 28 standard return and refund terms apply.",
+          "disposition": "SYNTHETIC_FIXTURE",
+          "rationale": "Synthetic placeholder fixture ('Northwind Product Category Rule 28') injected in Sprint I benchmark suite. Completely absent from authentic Northwind Refund Policy Handbook.",
+          "source_evidence_span": null,
+          "source_section": "N/A (Synthetic fixture)",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc009-doc009-c77"
+          ]
+        },
+        "DOC009-C78": {
+          "claim_id": "DOC009-C78",
+          "document_id": "DOC-009",
+          "subject": "Northwind Product Category Rule 29",
+          "predicate": "has_governing_rule",
+          "object": {
+            "value": "standard return and refund terms apply",
+            "modality": "MUST"
+          },
+          "claim_type": "POLICY_RULE",
+          "original_evidence_quote": "Northwind Product Category Rule 29 standard return and refund terms apply.",
+          "disposition": "SYNTHETIC_FIXTURE",
+          "rationale": "Synthetic placeholder fixture ('Northwind Product Category Rule 29') injected in Sprint I benchmark suite. Completely absent from authentic Northwind Refund Policy Handbook.",
+          "source_evidence_span": null,
+          "source_section": "N/A (Synthetic fixture)",
+          "reviewer": "Adjudication Lead (Sprint Z Remediation Board)",
+          "adjudication_ids": [
+            "adj-z-doc009-doc009-c78"
+          ]
+        }
+      }
+    }
+  }
+}
