@@ -1,0 +1,30 @@
+{
+  "fixture_id": "FIX-CONTRACT-002-INTEREST",
+  "description": "Tests interest rate covenant percentage extraction",
+  "target_doc_reference": "DOC-005",
+  "input_unit": {
+    "unit_id": "unit-contract-interest",
+    "envelope_id": "11111111-1111-1111-1111-111111111111",
+    "asset_id": "44444444-4444-4444-4444-444444444444",
+    "content_text": "The Vendor shall pay interest at the rate of 1.5 per cent (1.5%) per month, calculated daily on overdue amounts.",
+    "hierarchical_context": [
+      "Commercial Vendor Agreement Template",
+      "3.2 Interest"
+    ],
+    "block_type": "paragraph",
+    "locator": {
+      "line_start": 180,
+      "line_end": 180,
+      "heading_path": [
+        "Commercial Vendor Agreement Template",
+        "3.2 Interest"
+      ]
+    }
+  },
+  "expected_candidate": {
+    "subject": "The Vendor",
+    "predicate": "has_interest_rate",
+    "modality": "OBLIGATION"
+  },
+  "expected_decision": "approve"
+}

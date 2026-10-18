@@ -1,0 +1,42 @@
+{
+  "fixture_id": "FIX-POLICY-001-MATRIX-ROW",
+  "description": "Tests table policy row extraction without sibling cell ditto contamination",
+  "target_doc_reference": "DOC-009",
+  "input_unit": {
+    "unit_id": "unit-matrix-applepay",
+    "envelope_id": "11111111-1111-1111-1111-111111111111",
+    "asset_id": "44444444-4444-4444-4444-444444444444",
+    "content_text": "Original payment: Apple Pay / Google Pay | Refund method: Underlying card | Processing speed: Same as card",
+    "hierarchical_context": [
+      "Northwind Refund Policy Handbook",
+      "8. Refund Methods and Payment Types"
+    ],
+    "block_type": "table_row",
+    "structured_data": {
+      "table_id": "table_line_223",
+      "table_type": "policy_matrix",
+      "columns": {
+        "Original payment": "Apple Pay / Google Pay",
+        "Refund method": "Underlying card",
+        "Processing speed": "Same as card"
+      },
+      "is_ambiguous": false
+    },
+    "locator": {
+      "line_start": 228,
+      "line_end": 228,
+      "table_id": "table_line_223",
+      "heading_path": [
+        "Northwind Refund Policy Handbook",
+        "8. Refund Methods"
+      ]
+    }
+  },
+  "expected_candidate": {
+    "subject": "Apple Pay / Google Pay",
+    "predicate": "has_refund_method",
+    "object": "Underlying card"
+  },
+  "expected_is_ambiguous": false,
+  "expected_decision": "approve"
+}

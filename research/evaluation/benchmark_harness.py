@@ -866,6 +866,58 @@ class BenchmarkHarness:
 
 
 if __name__ == "__main__":
+    import argparse
+    import os
+    import subprocess
+    import sys
+
+    parser = argparse.ArgumentParser(description="Context Layer AI Benchmark Harness v3.1")
+    parser.add_argument(
+        "--profile",
+        choices=["smoke", "fast", "full", "certify"],
+        default="full",
+        help="Evaluation profile: smoke (micro-fixtures), fast (active slice DOC-005,DOC-009), full (DOC-001..DOC-009), certify (full + provenance guard)",
+    )
+    parser.add_argument("--docs", type=str, default=None, help="Comma-separated document codes (e.g. DOC-005,DOC-009)")
+    parser.add_argument("--no-cache", action="store_true", help="Disable pipeline caching")
+    parser.add_argument("--json", action="store_true", help="Print summary JSON output")
+
+    args = parser.parse_args()
+
+    if args.no_cache:
+        os.environ["CONTEXT_LAYER_NO_CACHE"] = "1"
+
+    if args.profile == "smoke":
+        print("=== Benchmark Profile: SMOKE (Golden Micro-Fixtures) ===")
+        ret = subprocess.run([sys.executable, "-m", "pytest", "backend/tests/unit/test_golden_micro_fixtures.py", "-q"])
+        sys.exit(ret.returncode)
+
     harness = BenchmarkHarness()
-    summary = harness.run_all([f"DOC-00{i}" for i in range(1, 10)])
-    print(f"Evaluated {len(summary)} documents with BenchmarkHarness v3.1.")
+
+    if args.docs:
+        doc_codes = [d.strip() for d in args.docs.split(",") if d.strip()]
+    elif args.profile == "fast":
+        doc_codes = ["DOC-005", "DOC-009"]
+    else:
+        doc_codes = [f"DOC-00{i}" for i in range(1, 10)]
+
+    print(f"=== Benchmark Profile: {args.profile.upper()} ({len(doc_codes)} documents) ===")
+    summary = harness.run_all(doc_codes)
+
+    if args.profile == "certify":
+        print("=== Running Cryptographic Lifecycle Provenance Guard ===")
+        from lifecycle_provenance_guard import LifecycleProvenanceGuard
+        guard = LifecycleProvenanceGuard()
+        report = guard.run_lifecycle_barrier()
+        if report.get("overall_status") != "ALL_8_STAGES_PASSED":
+            print(f"CERTIFICATION FAILED: {report.get('overall_status')}")
+            sys.exit(1)
+        print("CERTIFICATION PASSED: All 8 stages verified.")
+
+    if args.json:
+        print(json.dumps({k: {"counts": v["counts"], "metrics": v["metrics"]} for k, v in summary.items()}, indent=2))
+    else:
+        print(f"Evaluated {len(summary)} documents with BenchmarkHarness v3.1.")
+        for k, v in summary.items():
+            m = v["metrics"]
+            print(f"  {k}: full_recall={m['full_match_recall']:.2%}, labeled_recall={m['partial_match_recall']:.2%}, approved={v['counts']['total_approved']}")

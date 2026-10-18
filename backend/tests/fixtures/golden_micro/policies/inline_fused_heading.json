@@ -1,0 +1,8 @@
+{
+  "fixture_id": "FIX-POLICY-002-FUSED-HEADING",
+  "description": "Tests splitting of fused inline PDF subsection headers from operative body prose",
+  "target_doc_reference": "DOC-009",
+  "input_text": "3.2 Returns without a receipt Returns without proof of purchase are accepted in-store only, for store credit at the lowest recent selling price. A government-issued photo ID is required and scanned.",
+  "expected_heading": "3.2 Returns without a receipt",
+  "expected_body_prefix": "Returns without proof of purchase are accepted in-store only"
+}

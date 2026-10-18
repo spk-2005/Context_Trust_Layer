@@ -1,0 +1,31 @@
+{
+  "fixture_id": "FIX-POLICY-004-GIFT-RECEIPT",
+  "description": "Tests gift receipt subject normalization and refund method extraction",
+  "target_doc_reference": "DOC-009",
+  "input_unit": {
+    "unit_id": "unit-gift-receipt",
+    "envelope_id": "11111111-1111-1111-1111-111111111111",
+    "asset_id": "44444444-4444-4444-4444-444444444444",
+    "content_text": "Gift recipients can return items with a gift receipt for store credit equal to the price paid, or exchange for another item.",
+    "hierarchical_context": [
+      "Northwind Refund Policy Handbook",
+      "13. Digital Products and Gift Cards",
+      "13.3 Returning a gift"
+    ],
+    "block_type": "paragraph",
+    "locator": {
+      "line_start": 348,
+      "line_end": 348,
+      "heading_path": [
+        "Northwind Refund Policy Handbook",
+        "13.3 Returning a gift"
+      ]
+    }
+  },
+  "expected_candidate": {
+    "subject": "Gift receipt",
+    "predicate": "has_refund_method",
+    "modality": "PERMISSION"
+  },
+  "expected_decision": "approve"
+}

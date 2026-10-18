@@ -232,6 +232,21 @@ class UniversalFileParser:
         lower_name = name.lower()
         content_hash = hashlib.sha256(raw_bytes).hexdigest()
 
+        # Content-Addressed Pipeline Cache Lookup
+        cache_key = None
+        try:
+            from app.caching.pipeline_cache import default_pipeline_cache
+            cache_key = default_pipeline_cache.compute_key(
+                stage_name="universal_parser",
+                code_version="v3.1",
+                input_data=raw_bytes,
+            )
+            cached_doc = default_pipeline_cache.get_model("universal_parser", cache_key, ParsedDocument)
+            if cached_doc is not None:
+                return cached_doc
+        except Exception:
+            pass
+
         file_type = "plain_text"
         if lower_name.endswith(".pdf"):
             file_type = "pdf"
@@ -351,7 +366,7 @@ class UniversalFileParser:
         if not full_text:
             full_text = f"# {title}\n\nIngested document '{filename}' ({len(raw_bytes)} bytes)."
 
-        return ParsedDocument(
+        result_doc = ParsedDocument(
             filename=filename,
             title=title,
             file_type=file_type,
@@ -366,6 +381,13 @@ class UniversalFileParser:
             warnings=warnings,
             metadata={"file_size": len(raw_bytes), "block_count": len(blocks), "page_count": len(pages)},
         )
+        if cache_key:
+            try:
+                from app.caching.pipeline_cache import default_pipeline_cache
+                default_pipeline_cache.set("universal_parser", cache_key, result_doc, metadata={"filename": filename})
+            except Exception:
+                pass
+        return result_doc
 
     @classmethod
     def _parse_pdf_structured(
