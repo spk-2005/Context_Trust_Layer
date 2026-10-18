@@ -1,0 +1,4887 @@
+{
+  "sprint": "AD-6",
+  "audited_at": "2026-10-18T06:04:18.816773+00:00",
+  "total_claims_adjudicated": 157,
+  "tier1_sample_count": 150,
+  "rescued_claims_count": 7,
+  "inter_annotator_metrics": {
+    "agreed_count": 157,
+    "disagreed_count": 0,
+    "agreement_rate": 1.0,
+    "cohens_kappa_estimate": 1.0
+  },
+  "adjudication_results": {
+    "certified_claims_count": 155,
+    "rejected_claims_count": 2,
+    "observed_precision": 0.9873
+  },
+  "records": [
+    {
+      "claim_id": "claim:DOC-067:655",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-067",
+      "claim_text": "to own Supplier\u2019s IP rights",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-061:115",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-061",
+      "claim_text": "with Microsoft, upon request, to assist Microsoft in responding to an AI Inquiry, including providing Microsoft will all necessary information regarding (1) any AI System used or developed in connection with or incorporated into the Goods, Services, Cloud Servi ces, or (2) any Deliverable, or any Goods, Services, Cloud Services, or Deliverables intended to be used with or incorporated into an AI System",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-057:26",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-057",
+      "claim_text": "the E-invoicing functionality to Vendor through a third party provider (\u201cE-invoicing Provider\u201d)",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-062:282",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-062",
+      "claim_text": "the Subprocessors listed in a statement of work or written agreement signed by the parties\u2019 authorized representatives when it acts as a Processor in accordance with this Exhibit",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-062:251",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-062",
+      "claim_text": "buy additional coverage, and notify Microsoft in writing, if Microsoft reasonably determines Supplier\u2019s coverage is less than required to meet its obligations",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-062:229",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-062",
+      "claim_text": "a valid certification under the International Organization for Standardization standard ISO 27001 or a valid SOC 2 Type II attestation report (\u201c Supplier Certification \u201d)",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-061:143",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-061",
+      "claim_text": "use Trademarks for Services, Cloud Services and Deliverables in compliance with the guidelines at https://www.microsoft.com/en- us/legal/intellectualproperty/Trademarks/Usage/General.aspx",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-061:105",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-061",
+      "claim_text": "make that policy available to Microsoft, along with descriptions of the security controls in place for the Services and Cloud Services, and other information reasonably requested by Microsoft regarding Supplier security practices and policies",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-067:693",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-067",
+      "claim_text": "processes and controls sufficient to meet the requirements mandated under applicable AI Laws and Policies",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-066:559",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-066",
+      "claim_text": "with all applicable Anti-Corruption Laws",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-061:90",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-061",
+      "claim_text": "be performed professionally and be at or above industry standard; c",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-066:605",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-066",
+      "claim_text": "be interpreted according to their plain meaning without presuming that they should favor either party",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-064:433",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-064",
+      "claim_text": "\u201cMicrosoft Materials,\u201d meaning any tangible or intangible materials, provided by or on behalf of Microsoft, any of its affiliated companies , or their respective end users, to Supplier to perform Services, Deliverables, or Cloud Services, or obtained or collected by Supplier in connection with the Goods, Services, Deliverables, or Cloud Services (e.g., usage data) (including hardware, software, source code, documentation, methodologies, know how, processes, techniques, ideas, concepts, techn ologies, reports and data)",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-058:33",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-058",
+      "claim_text": "the feature, you must first turn it on in the Microsoft 365 admin center",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-058:31",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-058",
+      "claim_text": "be a Global Administrator to manage Auto-claim policies at the organization level",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-061:96",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-061",
+      "claim_text": "with all applicable Anti -Corruption Laws",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-062:224",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-062",
+      "claim_text": "participate in the Microsoft Supplier Security and Privacy Assurance (\u201cSSPA\u201d) program, as required by Microsoft, including by attesting to Supplier\u2019s compliance status with respect to all applicable portions of Microsoft\u2019s then current Supplier Data Protection Requirements (\u201cDPR\u201d) on an annual basis (or more frequently if additional portions of the DPR become available), and (2) comply with Microsoft\u2019s then current DPR",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-062:239",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-062",
+      "claim_text": "Microsoft to offer edits or updates to the notification",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-066:518",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-066",
+      "claim_text": "(2) Supplier will not charge Microsoft for packaging or pre-shipping costs, such as boxing, crating, handling damage, drayage, or storage.",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-066:617",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-066",
+      "claim_text": "with the prohibitions set forth in this Section (8)(a)(4)",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-058:28",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-058",
+      "claim_text": "\"Manage auto-claim policies in the Microsoft 365 admin center\" f1.keywords: - CSH author: cmcatee-MSFT ms.author: cmcatee manager: scotv ms.reviewer: rabhange audience: Admin ms.topic: how-to ms.service: microsoft-365-business ms.subservice: m365-commerce-acquisition ms.localizationpriority: medium ms.collection: - Tier1 - scotvorg - M365-subscription-management - AdmO365 - operations-pod ms.custom: - commercelicensing - AdminSurgePortfolio - admindeeplinkMAC - GAUpdates - campaignIDs-batch2 description: \"Learn how to create and manage auto-claim policies that automatically assign licenses to users for certain apps.\" search.appverid: MET150 ms.date: 07/30/2025 --- # Manage auto-claim policies in the Microsoft 365 admin center As an admin, you typically assign licenses to users either manually, or by using group-based licensing.",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-066:575",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-066",
+      "claim_text": "use any AI System in connection with or incorporate any AI System into the Goods , Services, Cloud Services, or any Deliverable without Microsoft\u2019s prior written consent",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-062:204",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-062",
+      "claim_text": "a separate license to any Microsoft products or services used in connection with the Good, Services, Deliverables, or Cloud Services",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-067:666",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-067",
+      "claim_text": "modify, reverse engineer, decompile, or disassemble Microsoft Materials except as allowed by Microsoft; (ii) Supplier will leave in place, and not alter or obscure proprietary notices and licenses contained in Microsoft Materials; (iii) Microsoft is not obligated to provide technical support, maintenance, or updates for Microsoft Materials; (iv) all Microsoft Materials are provided \u201cas-is\u201d without warranty; and (v) Supplier assumes the risk of loss, damage, unauthorized access or use, or theft or disappearance of Microsoft Materials in Supplier\u2019s (or subcontractor\u2019s) care, custody, or control",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-067:719",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-067",
+      "claim_text": "issue press releases or other publicity related to Supplier\u2019s relationship with Microsoft or these PO Terms without prior written approval from Microsoft",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-070:741",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-070",
+      "claim_text": "customer data to other regions within the same geographic area (for example, the United States) for data resiliency, but Microsoft will not replicate customer data outside the chosen geographic area",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-064:430",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-064",
+      "claim_text": "to own Supplier\u2019s IP rights",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-062:226",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-062",
+      "claim_text": "risk assessment and controls for: (1) system access; (2) system and application development and maintenance; (3) change management; (4) asset classification and control; (5) incident response, physical and environmental security; (6) disaster recovery/business continuity; and (7) employee training",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-064:460",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-064",
+      "claim_text": "a valid certification under the International Organization for Standardization standard ISO 27001 or a valid SOC 2 Type II attestation report (\u201cSupplier Certification\u201d)",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-066:604",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-066",
+      "claim_text": "in full force and effect",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-063:285",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-063",
+      "claim_text": "//supplier.microsoft.com), a web-based application provided by Microsoft that enables payees to submit electronic invoices directly to Microsoft either individually or through mass upload for multiple invoices.",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-051:7",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-051",
+      "claim_text": "be validated at FIPS 140 Level 1 or higher",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-061:164",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-061",
+      "claim_text": "The data exporter is the Data Exporter (defined above) and the data importer is the Data Importer (defined above).",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-067:715",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-067",
+      "claim_text": "its rights under these PO Term s",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-067:738",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-067",
+      "claim_text": "The parties select Option 1.",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-063:349",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-063",
+      "claim_text": "Microsoft\u2019s written approval before notifying any governmental entity, individual, the press, or other third party of a Security Incident that affected or reasonably could affect Microsoft, including any Confidential Information that Supplier received from Microsoft or Processed on behalf of Microsoft",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-067:720",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-067",
+      "claim_text": "use Trademarks for Services, Cloud Services and Deliverables in compliance with the guidelines a t https://www.microsoft.com/en- us/legal/intellectualproperty/Trademarks/Usage/General.aspx",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-061:160",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-061",
+      "claim_text": "the Supplier of any Data Subject request that the Supplier must comply with and will provide information necessary for compliance",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-062:221",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-062",
+      "claim_text": "these PO Terms or the applicable SOW with or without cause",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-063:345",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-063",
+      "claim_text": "a valid certification under the International Organization for Standardization standard ISO 27001 or a valid SOC 2 Type II attestation report (\u201c Supplier Certification \u201d)",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-070:743",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-070",
+      "claim_text": "to examination completion delays simply due to scale",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-061:95",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-061",
+      "claim_text": "//www.microsoft.com/en - us/exporting.",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-063:390",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-063",
+      "claim_text": "Microsoft if it believes that it cannot follow Microsoft\u2019s instructions or fulfill its obligations under the PO Terms because of a legal obligation to which Supplier is subject, unless Supplier is prohibited by law from making such notification",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-061:100",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-061",
+      "claim_text": "prejudice to any other remedies Microsoft may have) provide a pro-rata refund to Microsoft for any prepaid unused fees",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-063:368",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-063",
+      "claim_text": "apply to and be incorporated in these PO Terms and the existence of and all terms and conditions of these PO Terms and Microsoft Materials wi ll be deemed Microsoft Confidential Information",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-063:353",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-063",
+      "claim_text": "Microsoft\u2019s written approval before (i) notifying any governmental entity, individual, the press, or other third party of a Security Incident that affected or reasonably could affect Microsoft, including any Confidential Information that Supplier received from Microsoft or Processed on behalf of Microsoft, or (ii) responding to, or notifying any governmental entity, individual, the press, or other third party of, an AI Inquiry",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-066:619",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-066",
+      "claim_text": "the Supplier of any Data Subject request that the Supplier must comply with and will provide information necessary for compliance",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-062:271",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-062",
+      "claim_text": "have a Business Associate Agreement and/or other required agreement in place with Microsoft",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-058:45",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-058",
+      "claim_text": "reports for the past 1, 7, 30, and 90 days",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-064:471",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-064",
+      "claim_text": "sclose the identity of the third party and provide a copy of the notification (if the notification to the third party has not been sent, Supplier will provide a draft to Microsoft)",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-066:550",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-066",
+      "claim_text": "modify, reverse engineer, decompile, or disassemble Microsoft Materials except as allowed by Microsoft; (ii) Supplier will leave in place, and not alter or obscure proprietary notices and licenses contained in Microsoft Materials; (iii) Microsoft is not obligated to provide technical support, maintenance, or updates for Microsoft Materials; (iv) all Microsoft Materials are provided \u201cas -is\u201d without warranty; and (v) Supplier assumes the risk of loss, damage, unauthorized access or use, or theft or disappearance of Microsoft Materials in Supplier\u2019s (or subcontractor\u2019s) care, custody, or control",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-061:128",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-061",
+      "claim_text": "to Microsoft proof of the insurance coverage required under these PO Terms on request",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-063:388",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-063",
+      "claim_text": "Process Personal Data solely to (i) provide Services to Microsoft and , where applicable, for the Business Purposes specified in the applicable SOW, (ii) carry out its obligations under the PO Terms, and (iii) carry out Microsoft\u2019s documented instructions",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-061:81",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-061",
+      "claim_text": "apply and those terms control in the case of conflict with these PO Terms",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-066:566",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-066",
+      "claim_text": "//www.microsoft.com/en -us/procurement/supplier -contracting.aspx and Supplier Security and Privacy Assurance (SSPA) (aka.ms) for SSPA program details, including the program requirements and current DPR.",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-063:301",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-063",
+      "claim_text": "replace or correct, at their expense, any item rejected or requiring correction",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-067:644",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-067",
+      "claim_text": "be complete and available to Microsoft during performance of these PO Terms and for such further period as Microsoft determines",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-067:634",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-067",
+      "claim_text": "notice to Supplier within a reasonable time after the set-off",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-063:371",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-063",
+      "claim_text": "reasonable notice (15 days except in emergencies) to Supplier before the audit or inspection and will instruct the Auditor to avoid disrupting Supplier\u2019s operations, including consolidating audits where practical",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-066:592",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-066",
+      "claim_text": "apply to and be incorporated in these PO Terms and the existence of and all terms and conditions of these PO Terms and Microsoft Materials will be deemed Microsoft Confidential Information",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-062:197",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-062",
+      "claim_text": "to own Supplier\u2019s IP rights",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-061:72",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-061",
+      "claim_text": "(1) backup media to Microsoft (as reasonably requested by Microsoft) containing all Microsoft Materials (unless the Cloud Services provide this as a self-service function to Microsoft); and (2) all assistance Microsoft reasonably requires (at Microsoft\u2019s expense) to timely and smoothly transition from the Cloud Services",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-061:47",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-061",
+      "claim_text": "unless the result would be unreasonable, unconscionable, or prohibited by law",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-067:678",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-067",
+      "claim_text": "(1) implement and maintain appropriate technical and organizational measures to protect the Microsoft Materials, including Personal Data, and any other Microsoft Confidential Information against accidental or unlawful destruc tion, loss, alteration, unauthorized disclosure of, or access to, Microsoft Materials, including Personal Data, or any other Microsoft Confidential Information, transmitted, stored or otherwise processed; (2) as soon as commercially and technologically pra cticable, remediate any material vulnerabilities of which Supplier becomes aware; and (3 ) comply with Supplier\u2019s confidentiality, artificial intelligence, privacy and data protection obligations under these PO Terms, including Sections 15, 16 and Exhibit A.",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-062:234",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-062",
+      "claim_text": "use any AI System in connection with or incorporate any AI System into the Goods , Services, Cloud Services, or any Deliverable without Microsoft\u2019s prior written consent",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-063:297",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-063",
+      "claim_text": "these PO Terms or the applicable SOW if Supplier fails to comply with the standards and specifications in these PO Terms",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-061:82",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-061",
+      "claim_text": "a separate license to any Microsoft products or services used in connection with the Good, Services, Deliverables, or Cloud Services",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-067:733",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-067",
+      "claim_text": "using, or disclosing the Personal Data (1) for any purpose other than the Business Purposes specified in the applicable SOW , including retaining, using, or disclosing the Personal Data for a commercial purpose other than carrying out Microsoft\u2019s instructions; (2) outside of the Parties\u2019 direct business relationship, unless permitted by applicable Data Protection Law, or (3) by combining Personal data that Supplier receives from, or on behalf of, Microsoft with Personal Data that it receives from, or on behalf of, another person or persons, or collects from its own interaction with the Data Subject, provided that Supplier may co mbine Personal Data to perform any Business Purposes permitted by applicable Data Protection Law",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-061:104",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-061",
+      "claim_text": "be set forth in a Supplier security policy",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-067:708",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-067",
+      "claim_text": "to Microsoft proof of the insurance coverage required under these PO Terms on request",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-067:714",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-067",
+      "claim_text": "the expense of its auditors or inspection team",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-064:465",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-064",
+      "claim_text": "use any AI System in connection with or incorporate any AI System into the Goods, Services, Cloud Services, or any Deliverable without Microsoft\u2019s prior written consent",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-067:651",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-067",
+      "claim_text": "provide Microsoft with a Software Bill of Materials (\u201cSBOM\u201d) for all software provided under these PO Terms",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-063:374",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-063",
+      "claim_text": "notify Microsoft in writing of such dispute and furnish all relevant details",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-062:167",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-062",
+      "claim_text": "unless the result would be unreasonable, unconscionable, or prohibited by law",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-063:380",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-063",
+      "claim_text": "be interpreted according to their plain meaning without presuming that they should favor either party",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-063:364",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-063",
+      "claim_text": "active policy coverage or an extended reporting period providing coverage for claims first made and reported to the i nsurer within 12 months after these PO Terms terminate or expire or the applicable SOW or Order is fulfilled",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-062:215",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-062",
+      "claim_text": "with all laws and regulations applicable to the import or export of the Items, including, without limitation, trade laws of the U.S., EU, and UK, such as the U.S. Export Administration Regulations, sanctions regulations administered by the U.S. Office of Foreign Assets Control, the EU Dual Use Regulation 2021/821, the Federal Acqui sition Regulation (including 48 C.F.R",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-062:274",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-062",
+      "claim_text": "Microsoft if it believes that it cannot follow Microsoft\u2019s instructions or fulfill its obligations under the PO Terms because of a legal obligation to which Supplier is subject, unless Supplier is prohibited by law from making such notification",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-067:664",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-067",
+      "claim_text": "automatically on the earlier of the expiration or termination of these PO Terms or an applicable SOW",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-061:74",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-061",
+      "claim_text": "be used for any work or production of any materials or parts other than for Microsoft, without Microsoft\u2019s prior written permission",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-066:624",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-066",
+      "claim_text": "the Subprocessors listed in a statement of work or written agreement signed by the parties\u2019 authorized representatives when it acts as a Processor in accordance with this Exhibit",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-067:687",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-067",
+      "claim_text": "a valid certification under the International Organization for Standardization standard ISO 27001 or a valid SOC 2 Type II attestation report (\u201c Supplier Certification \u201d)",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-062:176",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-062",
+      "claim_text": "notice to Supplier within a reasonable time after the set-off",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-066:547",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-066",
+      "claim_text": "apply and those terms control in the case of conflict with these PO Terms",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-071:746",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-071",
+      "claim_text": "Trust Services Criteria for General Use Report is a short, public- facing summary of the SOC 2 Type 2 attestation report for users who need assurances about service organization's controls, but don't need a full SOC 2 report or aren't eligible under SOC 2 to receive one.",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-062:168",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-062",
+      "claim_text": "(2) Supplier will not charge Microsoft for packaging or pre-shipping costs, such as boxing, crating, handling damage, drayage, or storage.",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-064:474",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-064",
+      "claim_text": "with the most current Supplier Code of Conduct at https://aka.ms/scoc and the most current Anti-Corruption Policy for Microsoft Representatives at http://aka.ms/microsoftethics/representatives, and any other Policies (e.g., those related to physical or information security or artificial intelligence) or training identified by Microsoft in a SOW or otherwise during the Term and Supplier will provide such training",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-063:389",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-063",
+      "claim_text": "Process Personal Data for any other purpose, unless required by applicable law, and will not Sell or Share Personal Data that it collects or obtains pursuant to the PO Terms",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-062:277",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-062",
+      "claim_text": "Microsoft with assistance, upon request, to help Microsoft to respond to a Data Subject\u2019s request, including by stopping the Processing of Personal Data where required in accordance with a Data Subject\u2019s request",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-067:656",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-067",
+      "claim_text": "Microsoft a worldwide, nonexclusive, perpetual, irrevocable, royalty-free, fully paid up right and license, under all current and future IP rights, to use Supplier\u2019s and third-party IP consistent with Microsoft\u2019s ownership interests under this Section 12",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-066:571",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-066",
+      "claim_text": "provide to Micros oft upon Microsoft\u2019s request a full copy of the Supplier Certification",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-062:225",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-062",
+      "claim_text": "//www.microsoft.com/en-us/procurement/supplier-contracting.aspx and Supplier Security and Privacy Assurance (SSPA) (aka.ms) for SSPA program details, including the program requirements and current DPR.",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-063:333",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-063",
+      "claim_text": "or terminate these PO Terms immediately without notice to the extent that Microsoft reasonably believes that performance would cause it to violate Trade Laws or put it at risk of becoming subject to sanctions and penalties under such laws",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-061:58",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-061",
+      "claim_text": "Supplier any sales, use, goods and services, or value added taxes it owes due to these PO Terms and which the law requires Supplier to collect from Microsoft",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-062:235",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-062",
+      "claim_text": "processes and controls sufficient to meet the requirements mandated under applicable AI Laws and Policies",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-067:737",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-067",
+      "claim_text": "The parties select Option 1.",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-063:324",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-063",
+      "claim_text": "modify, reverse engineer, decompile, or disassemble Microsoft Materials except as allowed by Microsoft; (ii) Supplier will leave in place, and not alter or obscure proprietary notices and licenses contained in Microsoft Materials; (iii) Microsoft is not obligated to provide technical support, maintenance, or updates for Microsoft Materials; (iv) all Microsoft Materials are provided \u201cas-is\u201d without warranty; and (v) Supplier assumes the risk of loss, damage, unauthorized access or use, or theft or disappearance of Microsoft Materials in Supplier\u2019s (or subcontractor\u2019s) care, custody, or control",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-064:411",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-064",
+      "claim_text": "collect the taxes covered by such certificate",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-062:275",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-062",
+      "claim_text": "using, or disclosing the Personal Data (1) for any purpose other than the Business Purposes specified in the applicable SOW , including retaining, using, or disclosing the Personal Data for a commercial purpose other than carrying out Microsoft\u2019s instructions; (2) outside of the Parties\u2019 direct business relationship, unless permitted by applicable Data Protection Law, or (3) by combining Personal data that Supplier receives from, or on behalf of, Microsoft with Personal Data that it receives from, or on behalf of, another person or persons, or collects from its own interaction with the Data Subject, provided that Supplier may co mbine Personal Data to perform any Business Purposes permitted by applicable Data Protection Law",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-061:68",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-061",
+      "claim_text": "any Cloud Services upgrades or maintenance during the Maintenance Window defined in the applicable SOW",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-062:217",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-062",
+      "claim_text": "or terminate these PO Terms immediately without notice to the extent that Microsoft reasonably believes that performance would cause it to violate Trade Laws or put it at risk of becoming subject to sanctions and penalties under such laws",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-066:581",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-066",
+      "claim_text": "the identity of the third party and provide a copy of the Purchase Order Terms and Conditions (POTC) India (English) Date Updated: August 2026 Date Reviewed: August 2026",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-063:323",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-063",
+      "claim_text": "return any Microsoft Materials on request or termination of Supplier\u2019s license",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-062:218",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-062",
+      "claim_text": "with all applicable Anti -Corruption Laws",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-064:512",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-064",
+      "claim_text": "The data exporter is the Data Exporter (defined above) and the data importer is the Data Importer (defined above).",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-064:406",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-064",
+      "claim_text": "constitute acceptance under these PO Terms, and is subject to adjustment for errors, shortages, defects, or other failure of Supplier to meet the requirements of these PO Terms",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-064:470",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-064",
+      "claim_text": "Microsoft\u2019s written approval before (i) notifying any governmental entity, individual, the press, or other third party of a Security Incident that affected or reasonably could affect Microsoft, including any Confidential Information th at Supplier received from Microsoft or Processed on behalf of Microsoft, or (ii) responding to, or notifying any governmental entity, individual, the press, or other third party of, an AI Inquiry",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-061:147",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-061",
+      "claim_text": "Microsoft if it determines that it can no longer meet its obligations under applicable Data Protection Law",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-062:272",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-062",
+      "claim_text": "Process Personal Data solely to (i) provide Services to Microsoft and , where applicable, for the Business Purposes specified in the applicable SOW, (ii) carry out its obligations under the PO Terms, and (iii) carry out Microsoft\u2019s documented instructions",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-070:744",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-070",
+      "claim_text": "have an existing subscription or free trial account in Office 365 or Office 365 U.S",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-062:253",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-062",
+      "claim_text": "market, and distribute such similar technology or services in addition to, or in lieu of, the technology or services contemplated by these PO Terms, including any software or cloud services (in whole or in part)",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-067:729",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-067",
+      "claim_text": "have a Business Associate Agreement and/or other required agreement in place with Microsoft",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-066:552",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-066",
+      "claim_text": "a.",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "REJECT_MALFORMED",
+        "rationale": "Object truncated or references table metadata",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 0.5,
+          "object": 0.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "REJECT_MALFORMED",
+        "rationale": "Object truncated or references table metadata",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 0.5,
+          "object": 0.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "REJECT_MALFORMED"
+    },
+    {
+      "claim_id": "claim:DOC-062:270",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-062",
+      "claim_text": "appropriate technical and organizational measures to ensure a level of security appropriate to the risk, considering as well any additional measures to ensure an appropriate level of protection with regards to Sensitive Data that may be subject to these PO Terms",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-066:599",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-066",
+      "claim_text": "notify Microsoft in writing of such dispute and furnish all relevant details",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-064:439",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-064",
+      "claim_text": "return any Microsoft Materials on request or termination of Supplier\u2019s license",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-066:598",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-066",
+      "claim_text": "its rights under these PO Terms",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-064:409",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-064",
+      "claim_text": "Supplier any sales, use, goods and services, or value added taxes it owes due to these PO Terms and which the law requires Supplier to collect from Microsoft",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-067:692",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-067",
+      "claim_text": "use any AI System in connection with or incorporate any AI System into the Goods , Services, Cloud Services, or any Deliverable without Microsoft\u2019s prior written consent",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-067:658",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-067",
+      "claim_text": "from Supplier to Microsoft on final acceptance",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-061:142",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-061",
+      "claim_text": "issue press releases or other publicity related to Supplier\u2019s relationship with Microsoft or these PO Terms without prior written approval from Microsoft",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-066:522",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-066",
+      "claim_text": "charge Microsoft for researching, reporting on, or correcting any errors relating to its invoices",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-064:506",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-064",
+      "claim_text": "with the prohibitions set forth in this Section (8)(a)(4)",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-061:94",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-061",
+      "claim_text": "or terminate these PO Terms immediately to the extent that Microsoft reasonably concludes that continued performance would violate Trade Laws or put it at risk of becoming subject to sanctions or penalties under Trade Laws",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-061:49",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-061",
+      "claim_text": "be delivered on the 10 day after the purchase order date",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-061:113",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-061",
+      "claim_text": "be set forth in a Supplier artificial intelligence policy, including all documentation needed to demonstrate compliance with AI Laws",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-061:157",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-061",
+      "claim_text": "inform Microsoft if Supplier receives a request from a Data Subject to exercise their rights with respect to their Personal Data under applicable Data Protection Law",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-067:718",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-067",
+      "claim_text": "lack of personal jurisdiction or forum non conveniens in the courts agreed above",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-067:716",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-067",
+      "claim_text": "notify Microsoft in writing of such dispute and furnish all relevant details",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-066:611",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-066",
+      "claim_text": "appropriate technical and organizational measures to ensure a level of security appropriate to the risk, considering as well any additional measures to ensure an appropriate level of protection with regards to Sensitive Data that may be subject to these PO Terms",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-061:66",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-061",
+      "claim_text": "replace or correct, at their expense, any item rejected or requiring correction",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-063:395",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-063",
+      "claim_text": "The parties select Option 1.",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-063:391",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-063",
+      "claim_text": "using, or disclosing the Personal Data (1) for any purpose other than the Business Purposes specified in the applicable SOW , including retaining, using, or disclosing the Personal Data for a commercial purpose other than carrying out Microsoft\u2019s instructions; (2) outside of the Parties\u2019 direct business relationship, unless permitted by applicable Data Protection Law, or (3) by combining Personal data that Supplier receives from, or on behalf of, Microsoft with Personal Data that it receives from, or on behalf of, another person or persons, or collects from its own interaction with the Data Subject, provided that Supplier may co mbine Personal Data to perform any Business Purposes permitted by applicable Data Protection Law",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-066:620",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-066",
+      "claim_text": "The parties select Option 1.",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-064:480",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-064",
+      "claim_text": "to Microsoft proof of the insurance coverage required under these PO Terms on request",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-066:542",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-066",
+      "claim_text": "provide",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-062:258",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-062",
+      "claim_text": "notify Microsoft in writing of such dispute and furnish all relevant details",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-066:567",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-066",
+      "claim_text": "risk assessment and controls for: (1) system access; (2) system and application development and maintenance; (3) change management; (4) asset classification and control; (5) incident response, physical and environmental security; (6) disaster recovery/business continuity; and (7) employee training",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-053:12",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-053",
+      "claim_text": "Customers also benefit from multiple layers of security and governance technologies, operational practices, and compliance policies that enforce data privacy and integrity at specific levels.",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "REJECT_NON_POLICY",
+        "rationale": "Ungrounded or invalid subject: 'Governance Policy'",
+        "component_scores": {
+          "subject": 0.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "REJECT_NON_POLICY",
+        "rationale": "Ungrounded or invalid subject: 'Governance Policy'",
+        "component_scores": {
+          "subject": 0.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "REJECT_NON_POLICY"
+    },
+    {
+      "claim_id": "claim:DOC-061:118",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-061",
+      "claim_text": "a third party about a Security Incident affecting Personal Data if Supplier is under a legal obligation to do so, provided that Supplier makes every effort to give Microsoft prior notification, as soon as possible and if prior notification is not possible, notify Microsoft immediately once it becomes possible to give notification",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-067:700",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-067",
+      "claim_text": "result in a waiver of that or any other right or remedy",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-067:672",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-067",
+      "claim_text": "with all Laws, rules, and regulations, including Data Protection Law (as defined in Exhibit A), Trade Laws, AI Laws (as defined in Section 15(f)), and Anti -Corruption Laws (i.e., all Laws against fraud, bribery, corruption, inaccurate books and records, inadequate internal controls, and/or money-laundering, including the U.S. Foreign Corrupt Practices Act), whether local, state, federal or foreign",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-067:717",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-067",
+      "claim_text": "a provision identical to the above in each subcontract and, immediately upon receipt of such notice, give written notice to Microsoft",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-071:749",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-071",
+      "claim_text": "have an existing subscription or free trial account in Office 365 or Office 365 U.S",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-067:695",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-067",
+      "claim_text": "Microsoft\u2019s written approval before (i) notifying any governmental entity, individual, the press, or other third party of a Security Incident that affected or reasonably could affect Microsoft, including any Confidential Information that Supplier received from Microsoft or Processed on behalf of Microsoft, or (ii) responding to, or notifying any governmental entity, individual, the press, or other third party of, an AI Inquiry",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-064:446",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-064",
+      "claim_text": "with all Laws, rules, and regulations, including Data Protection Law (as defined in Exhibit A), Trade Laws, AI Laws (as defined in Section 15(f)), and Anti -Corruption Laws (i.e., all Laws against fraud, bribery, corruption, inaccurate books and records, inadequate internal controls, and/or money - laundering, including the U.S. Foreign Corrupt Practices Act), whe ther local, state, federal or foreign",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-061:162",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-061",
+      "claim_text": "The parties select Option 1.",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-067:679",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-067",
+      "claim_text": "these PO Terms or the applicable SOW with or without cause",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "claim:DOC-051:4",
+      "source_queue": "TIER1_SAMPLE",
+      "document_id": "DOC-051",
+      "claim_text": "be stored on a device that is separate from the computer being used to access the application",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "rescued:DOC-056:5:1:9e4fecbd",
+      "source_queue": "RESCUED_CLAIMS",
+      "document_id": "DOC-056",
+      "claim_text": "Because we offer hyperscale, multitenant services that are standardized for all our customers, we must operate in a consistent manner.",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "rescued:DOC-061:21:2:7478dc08",
+      "source_queue": "RESCUED_CLAIMS",
+      "document_id": "DOC-061",
+      "claim_text": "While performing under these PO Terms, Supplier will provide training to its employees on compliance with Anti -Corruption Laws and, upon request by Microsoft, will complete Microsoft\u2019s standard online training for supplier compliance with AntiCorruption Laws; and i.",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "rescued:DOC-062:21:2:0c5acfb5",
+      "source_queue": "RESCUED_CLAIMS",
+      "document_id": "DOC-062",
+      "claim_text": "While performing under these PO Terms, Supplier will provide training to its employees on compliance with Anti -Corruption Laws and, upon request by Microsoft, will complete Microsoft\u2019s standard online training for supplier compliance with Anti -Corruption Laws ; and i.",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "rescued:DOC-063:21:2:0c5acfb5",
+      "source_queue": "RESCUED_CLAIMS",
+      "document_id": "DOC-063",
+      "claim_text": "While performing under these PO Terms, Supplier will provide training to its employees on compliance with Anti -Corruption Laws and, upon request by Microsoft, will complete Microsoft\u2019s standard online training for supplier compliance with Anti -Corruption Laws ; and i.",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "rescued:DOC-064:21:2:a5862e21",
+      "source_queue": "RESCUED_CLAIMS",
+      "document_id": "DOC-064",
+      "claim_text": "While performing under these PO Terms, Supplier will provide training to its employees on compliance with Anti-Corruption Laws and, upon request by Microsoft, will complete Microsoft\u2019s standard online training for supplier compliance with Anti- Corruption Laws; and i.",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "rescued:DOC-066:23:2:ad02cfe1",
+      "source_queue": "RESCUED_CLAIMS",
+      "document_id": "DOC-066",
+      "claim_text": "While performing under these PO Terms, Supplier will provide training to its employees on compliance with Anti-Corruption Laws and, upon request by Microsoft, will complete Microsoft\u2019s standard online training for supplier compliance with Anti-Corruption Laws; and i.",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    },
+    {
+      "claim_id": "rescued:DOC-067:21:2:0c5acfb5",
+      "source_queue": "RESCUED_CLAIMS",
+      "document_id": "DOC-067",
+      "claim_text": "While performing under these PO Terms, Supplier will provide training to its employees on compliance with Anti -Corruption Laws and, upon request by Microsoft, will complete Microsoft\u2019s standard online training for supplier compliance with Anti -Corruption Laws ; and i.",
+      "reviewer_a": {
+        "reviewer_id": "reviewer_alpha",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "reviewer_b": {
+        "reviewer_id": "reviewer_beta",
+        "disposition": "CERTIFY",
+        "rationale": "Grounded normative requirement verified across S-P-O and locator",
+        "component_scores": {
+          "subject": 1.0,
+          "predicate": 1.0,
+          "object": 1.0,
+          "evidence": 1.0
+        }
+      },
+      "agreement": "AGREED",
+      "arbitration": null,
+      "final_certified_disposition": "CERTIFY"
+    }
+  ]
+}

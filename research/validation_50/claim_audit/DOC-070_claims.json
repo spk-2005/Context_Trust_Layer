@@ -1,0 +1,76 @@
+{
+  "document_id": "DOC-070",
+  "filename": "System and Organization Controls (SOC) 2 Type 2 - Microsoft Compliance _ Microsoft Learn.pdf",
+  "document_type": "regulatory_compliance",
+  "claim_counts": {
+    "candidate_claims": 5,
+    "valid": 5,
+    "invalid": 0,
+    "missed": 0,
+    "duplicate": 0,
+    "ambiguous": 0,
+    "malformed": 0
+  },
+  "metrics": {
+    "claim_precision": 1.0,
+    "claim_recall": 1.0,
+    "f1": 1.0,
+    "evidence_supported_rate": 1.0,
+    "locator_accuracy_rate": 1.0,
+    "duplicate_rate": 0.0
+  },
+  "human_review_required": false,
+  "failure_patterns": [],
+  "claims": [
+    {
+      "subject": "Microsoft",
+      "predicate": "replicate",
+      "object": "customer data to other regions within the same geographic area (for example, the United States) for data resiliency, but Microsoft will not replicate customer data outside the chosen geographic area",
+      "disposition": "CORRECT_FULL_MATCH",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "In accordance with AICPA requirements, you",
+      "predicate": "has_validity_rule",
+      "object": "have an existing subscription or free trial account in Office 365 or Office 365 U.S. Government to download SOC 1 and SOC 2 attestation reports and any bridge letters as needed",
+      "disposition": "CORRECT_FULL_MATCH",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "This scope",
+      "predicate": "lead",
+      "object": "to examination completion delays simply due to scale",
+      "disposition": "CORRECT_FULL_MATCH",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "You",
+      "predicate": "has_validity_rule",
+      "object": "have an existing subscription or free trial account in Office 365 or Office 365 U.S",
+      "disposition": "CORRECT_FULL_MATCH",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "You",
+      "predicate": "then",
+      "object": "download audit certificates, assessment reports, and other applicable documents to help you with your own regulatory requirements",
+      "disposition": "CORRECT_FULL_MATCH",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    }
+  ]
+}

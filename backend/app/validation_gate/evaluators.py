@@ -469,48 +469,73 @@ class MeaningEvaluator:
         has_hedge = bool(cls.UNCERTAIN_HEDGES.search(text))
 
         # 1. Subject-Evidence Grounding Validation
-        # The asserted subject must be semantically grounded in the claim's own evidence span
+        is_zh = (candidate.structured_values or {}).get('language') == 'zh' or any('\u4e00' <= ch <= '\u9fff' for ch in evidence)
         subj_words = [
             w.lower()
-            for w in re.findall(r"[a-zA-Z]{3,}", candidate.subject or "")
-            if w.lower() not in {"the", "and", "for", "with", "all", "per", "from", "any", "upon", "under", "into"}
+            for w in re.findall(r'[a-zA-Z]{3,}', candidate.subject or '')
+            if w.lower() not in {'the', 'and', 'for', 'with', 'all', 'per', 'from', 'any', 'upon', 'under', 'into'}
         ]
         ev_lower = evidence.lower()
-        has_table_grid = bool(getattr(candidate, "locator", {}) and candidate.locator.get("table_grid"))
-        is_derived_summary = bool(getattr(candidate, "claim_type", "") == "derived_summary")
+        has_table_grid = bool(getattr(candidate, 'locator', {}) and candidate.locator.get('table_grid'))
+        is_derived_summary = bool(getattr(candidate, 'claim_type', '') == 'derived_summary')
         from app.extraction.models import ExtractionStrategyType
-        is_structured_schema = bool(getattr(candidate, "extraction_strategy", None) == ExtractionStrategyType.DETERMINISTIC_SCHEMA)
+        is_structured_schema = bool(getattr(candidate, 'extraction_strategy', None) == ExtractionStrategyType.DETERMINISTIC_SCHEMA)
 
-        if subj_words and not has_table_grid and not is_derived_summary and not is_structured_schema:
-            loc_headings = " ".join((getattr(candidate, "locator", {}) or {}).get("heading_path") or []).lower()
-            matched_subj = any(w in ev_lower or w in loc_headings for w in subj_words)
-            # Allow general policy/governance meta subjects if evidence mentions policy/guideline
-            is_doc_meta_subj = any(w in {"policy", "governance", "document"} for w in subj_words) and ("policy" in ev_lower or "guideline" in ev_lower or "policy" in loc_headings)
-            if not matched_subj and not is_doc_meta_subj:
+        if is_zh:
+            zh_subj_map = {
+                'supplier': '\u4f9b\u5e94\u5546',
+                'microsoft': '\u5fae\u8f6f',
+                'parties': '\u53cc\u65b9',
+                'either party': '\u4efb\u4f55\u4e00\u65b9',
+                'buyer': '\u4e70\u65b9',
+                'shipment': '\u53d1\u8d27',
+            }
+            matched_subj = any(zh_term in evidence for s_word in subj_words for zh_word, zh_term in zh_subj_map.items() if s_word in zh_word) or any(ch in evidence for ch in (candidate.subject or ''))
+            if not matched_subj:
                 return DimensionEvaluation(
-                    dimension_name="meaning",
+                    dimension_name='meaning',
                     status=MeaningStatus.UNSUPPORTED.value,
                     score=0.20,
                     passed=False,
                     reason=f"Subject-Evidence mismatch: asserted subject '{candidate.subject}' has no grounding in the underlying evidence span.",
-                    details={"subject": candidate.subject, "evidence": evidence[:120], "subject_unsupported": True},
+                    details={'subject': candidate.subject, 'evidence': evidence[:120], 'subject_unsupported': True},
+                )
+        elif subj_words and not has_table_grid and not is_derived_summary and not is_structured_schema:
+            loc_headings = ' '.join((getattr(candidate, 'locator', {}) or {}).get('heading_path') or []).lower()
+            matched_subj = any(w in ev_lower or w in loc_headings for w in subj_words)
+            is_doc_meta_subj = any(w in {'policy', 'governance', 'document'} for w in subj_words) and ('policy' in ev_lower or 'guideline' in ev_lower or 'policy' in loc_headings)
+            if not matched_subj and not is_doc_meta_subj:
+                return DimensionEvaluation(
+                    dimension_name='meaning',
+                    status=MeaningStatus.UNSUPPORTED.value,
+                    score=0.20,
+                    passed=False,
+                    reason=f"Subject-Evidence mismatch: asserted subject '{candidate.subject}' has no grounding in the underlying evidence span.",
+                    details={'subject': candidate.subject, 'evidence': evidence[:120], 'subject_unsupported': True},
                 )
 
         # 2. Deontic consistency verification against evidence text
         deontic_mismatch = False
-        ev_clean = re.sub(r"\b(?:which|as|that)\s+may\b", "", evidence, flags=re.IGNORECASE)
-        text_clean = re.sub(r"\b(?:which|as|that)\s+may\b", "", text, flags=re.IGNORECASE)
-        has_shall_or_must = bool(re.search(r"\b(shall|must)\b", evidence, re.IGNORECASE))
-        discretionary_phrases = ("holds the right", "holds right", "may request", "permitted", "option to", "at its discretion")
-        has_discretionary = any(p in ev_clean.lower() or p in text_clean.lower() for p in discretionary_phrases)
-        if not has_shall_or_must and (re.search(r"\bmay\b", ev_clean, re.IGNORECASE) or re.search(r"\bmay\b", text_clean, re.IGNORECASE)):
-            has_discretionary = True
+        if is_zh:
+            if modality == 'OBLIGATION':
+                deontic_mismatch = not bool(re.search(r'[\u5e94\u5f53\u5fc5\u987b\u5e94\u987b]', evidence))
+            elif modality == 'PROHIBITION':
+                deontic_mismatch = not bool(re.search(r'[\u4e0d\u5f97\u7981\u6b62]', evidence))
+            elif modality == 'PERMISSION':
+                deontic_mismatch = not bool(re.search(r'[\u53ef\u4ee5\u6709\u6743]', evidence))
+        else:
+            ev_clean = re.sub(r'\b(?:which|as|that)\s+may\b', '', evidence, flags=re.IGNORECASE)
+            text_clean = re.sub(r'\b(?:which|as|that)\s+may\b', '', text, flags=re.IGNORECASE)
+            has_shall_or_must = bool(re.search(r'\b(shall|must)\b', evidence, re.IGNORECASE))
+            discretionary_phrases = ('holds the right', 'holds right', 'may request', 'permitted', 'option to', 'at its discretion')
+            has_discretionary = any(p in ev_clean.lower() or p in text_clean.lower() for p in discretionary_phrases)
+            if not has_shall_or_must and (re.search(r'\bmay\b', ev_clean, re.IGNORECASE) or re.search(r'\bmay\b', text_clean, re.IGNORECASE)):
+                has_discretionary = True
 
-        if modality == "OBLIGATION" and (has_discretionary or not cls.OBLIGATION_EVIDENCE.search(evidence)):
-            deontic_mismatch = True
-        elif modality == "PROHIBITION" and not cls.PROHIBITION_EVIDENCE.search(evidence):
-            deontic_mismatch = True
-
+            if modality == 'OBLIGATION' and (has_discretionary or not cls.OBLIGATION_EVIDENCE.search(evidence)):
+                deontic_mismatch = True
+            elif modality == 'PROHIBITION' and not cls.PROHIBITION_EVIDENCE.search(evidence):
+                deontic_mismatch = True
         if deontic_mismatch:
             return DimensionEvaluation(
                 dimension_name="meaning",

@@ -1,0 +1,13 @@
+[
+  {
+    "pattern": "Conditional exceptions missed",
+    "occurrences": 4,
+    "affected_document_count": 4,
+    "affected_documents": [
+      "DOC-052",
+      "DOC-057",
+      "DOC-065",
+      "DOC-066"
+    ]
+  }
+]

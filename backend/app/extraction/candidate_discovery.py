@@ -107,6 +107,12 @@ class CandidateDiscoveryEngine:
                 return True, ExtractionStrategyType.DOMAIN_RULES, "Conversational decision or policy exemption."
             return False, ExtractionStrategyType.DOMAIN_RULES, "Informal chat message without decision."
 
+        # Chinese Deontic Modal Check (DOC-068) - Gated by feature flag
+        from app.core.multilingual import is_multilingual_enabled
+        if is_multilingual_enabled("zh-CN"):
+            if any("\u4e00" <= ch <= "\u9fff" for ch in text) and any(m in text for m in ("\u4e0d\u5f97", "\u5e94\u5f53", "\u5fc5\u987b", "\u5e94", "\u6709\u6743", "\u53ef\u4ee5")):
+                return True, ExtractionStrategyType.DOMAIN_RULES, "Chinese contract deontic policy assertion."
+
         # 6. Document Clauses & Paragraphs
         if b_type in ("clause", "paragraph"):
             from app.extraction.deontic_classifier import DeonticClassifier

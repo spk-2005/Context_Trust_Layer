@@ -68,6 +68,7 @@ class DeonticClassifier:
     def is_macro_summary(cls, text: str) -> bool:
         """Checks if text is a macro summary duplicating detailed clauses or table rows."""
         clean = cls.strip_markdown(text)
+
         return any(pat.search(clean) for pat in cls.MACRO_SUMMARY_PATTERNS)
 
     @classmethod
@@ -183,6 +184,16 @@ class DeonticClassifier:
         Returns (modality, modal_operator, is_decision_eligible).
         """
         clean = cls.strip_markdown(text)
+
+        # Chinese Contract Deontic Modal Classification (DOC-068) - Gated by feature flag
+        from app.core.multilingual import is_multilingual_enabled
+        if is_multilingual_enabled("zh-CN") and any("\u4e00" <= ch <= "\u9fff" for ch in clean):
+            if any(m in clean for m in ("\u4e0d\u5f97", "\u7981\u6b62")):
+                return "PROHIBITION", "prohibits", True
+            if "\u5e94\u5f53" in clean or "\u5fc5\u987b" in clean or "\u987b" in clean or bool(re.search(r"(?<!\u4f9b)\u5e94(?!\u5546)(?!\u7528)", clean)):
+                return "OBLIGATION", "must", True
+            if any(m in clean for m in ("\u53ef\u4ee5", "\u6709\u6743")):
+                return "PERMISSION", "may", True
 
         # 1. Descriptive / Purpose statements FIRST (informational preamble, not decision gate rules)
         for pat in cls.DESCRIPTIVE_PATTERNS:

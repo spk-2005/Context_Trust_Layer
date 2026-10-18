@@ -1,4 +1,4 @@
-﻿"""
+"""
 Content-Addressed Pipeline Stage Cache.
 
 Provides cryptographic (SHA-256) caching for expensive pipeline operations:
@@ -66,13 +66,37 @@ class PipelineStageCache:
 
         return hasher.hexdigest()
 
+    def compute_pipeline_key(
+        self,
+        stage_name: str,
+        source_sha256: str,
+        parser_version: str,
+        parser_config_hash: str,
+        normalizer_version: str,
+    ) -> str:
+        """Computes deterministic 4-factor cryptographic cache key for document processing.
+
+        Incorporates:
+        1. Source file SHA-256
+        2. Parser implementation version
+        3. Parser configuration hash (OCR, table, layout flags)
+        4. Normalizer semantic rules version
+        """
+        hasher = hashlib.sha256()
+        hasher.update(stage_name.encode("utf-8"))
+        hasher.update(source_sha256.encode("utf-8"))
+        hasher.update(parser_version.encode("utf-8"))
+        hasher.update(parser_config_hash.encode("utf-8"))
+        hasher.update(normalizer_version.encode("utf-8"))
+        return hasher.hexdigest()
+
     def _get_stage_dir(self, stage_name: str) -> Path:
         stage_dir = self.cache_dir / stage_name
         stage_dir.mkdir(parents=True, exist_ok=True)
         return stage_dir
 
     def get(self, stage_name: str, cache_key: str) -> Optional[Dict[str, Any]]:
-        """Retrieves cached JSON payload if present and cache is enabled."""
+        """Retrieves cached JSON payload if present and cache is enabled. Gracefully evicts corrupted files."""
         if not self.enabled:
             return None
 
@@ -88,19 +112,28 @@ class PipelineStageCache:
             logger.debug("Pipeline cache HIT for %s:%s", stage_name, cache_key[:12])
             return data
         except Exception as e:
-            logger.warning("Failed to read cache for %s:%s: %s", stage_name, cache_key[:12], e)
+            logger.warning("Corrupted cache entry evicted for %s:%s: %s", stage_name, cache_key[:12], e)
+            try:
+                target_file.unlink(missing_ok=True)
+            except Exception:
+                pass
             self._misses += 1
             return None
 
     def get_model(self, stage_name: str, cache_key: str, model_cls: Type[T]) -> Optional[T]:
-        """Retrieves and deserializes cached Pydantic model."""
+        """Retrieves and deserializes cached Pydantic model with safe fallback on corruption."""
         data = self.get(stage_name, cache_key)
         if data is None:
             return None
         try:
             return model_cls.model_validate(data)
         except Exception as e:
-            logger.warning("Failed to validate cached model %s: %s", model_cls.__name__, e)
+            logger.warning("Cached data incompatible with model %s (%s); evicting corrupted cache.", model_cls.__name__, e)
+            try:
+                (self._get_stage_dir(stage_name) / f"{cache_key}.json").unlink(missing_ok=True)
+            except Exception:
+                pass
+            self._misses += 1
             return None
 
     def set(

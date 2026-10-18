@@ -1,0 +1,196 @@
+{
+  "document_id": "DOC-060",
+  "filename": "Microsoft Store Refund & Return Policy (Surface, Xbox, etc.).pdf",
+  "document_type": "refund_policy",
+  "claim_counts": {
+    "candidate_claims": 17,
+    "valid": 11,
+    "invalid": 0,
+    "missed": 0,
+    "duplicate": 1,
+    "ambiguous": 6,
+    "malformed": 0
+  },
+  "metrics": {
+    "claim_precision": 0.6471,
+    "claim_recall": 1.0,
+    "f1": 0.7857,
+    "evidence_supported_rate": 0.9412,
+    "locator_accuracy_rate": 1.0,
+    "duplicate_rate": 0.0556
+  },
+  "human_review_required": true,
+  "failure_patterns": [],
+  "claims": [
+    {
+      "subject": "Returns",
+      "predicate": "has_definition",
+      "object": "Holiday extended return policy available with eligible physical products purchased between October 1, 2026 - December 2, 2026 from Microsoft Store online and Microsoft Experience Centers in select markets.",
+      "disposition": "AMBIGUOUS_NEEDS_REVIEW",
+      "trust_score": 0.9875,
+      "decision_reason": "NON-CANONICAL CONTEXT: Retained for overview display; excluded from active decision gate to prevent duplicate evaluation against atomic row claims.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Holiday purchases made during that window",
+      "predicate": "has_validity_rule",
+      "object": "be returned through January 31, 2027",
+      "disposition": "CORRECT_FULL_MATCH",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Return process",
+      "predicate": "has_return_window",
+      "object": "be started within 60 days after customer receives the product",
+      "disposition": "CORRECT_FULL_MATCH",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Microsoft",
+      "predicate": "modify",
+      "object": "or discontinue offers at any time",
+      "disposition": "CORRECT_FULL_MATCH",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Price protection",
+      "predicate": "has_definition",
+      "object": "Microsoft Store Price Adjustment: Holiday extended price protection valid on purchases of qualifying physical consumer products purchased from Microsoft Store online and Microsoft Experience centers in select markets between October 1, 2026 \u2013 December 2, 2026.",
+      "disposition": "AMBIGUOUS_NEEDS_REVIEW",
+      "trust_score": 0.9875,
+      "decision_reason": "NON-CANONICAL CONTEXT: Retained for overview display; excluded from active decision gate to prevent duplicate evaluation against atomic row claims.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Holiday purchase price adjustment",
+      "predicate": "has_return_deadline",
+      "object": "be requested until January 31, 2027",
+      "disposition": "AMBIGUOUS_NEEDS_REVIEW",
+      "trust_score": 0.8,
+      "decision_reason": "REVIEW: Human review recommended. Deontic mismatch: claim claims OBLIGATION but underlying source evidence reflects discretionary/permissive phrasing or lacks normative imperative verbs.; Trust score 0.80 is below 0.88 auto-approval threshold",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "An Eligible RetailerLet's chat Price Adjustment",
+      "predicate": "has_validity_rule",
+      "object": "be requested at time of purchase",
+      "disposition": "CORRECT_FULL_MATCH",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Microsoft",
+      "predicate": "must_verify_refund_conditions",
+      "object": "verify an eligible retailer\u2019s advertised price and availability of the product",
+      "disposition": "AMBIGUOUS_NEEDS_REVIEW",
+      "trust_score": 0.8,
+      "decision_reason": "REVIEW: Human review recommended. Deontic mismatch: claim claims OBLIGATION but underlying source evidence reflects discretionary/permissive phrasing or lacks normative imperative verbs.; Trust score 0.80 is below 0.88 auto-approval threshold",
+      "evidence_supported": false,
+      "locator_valid": true
+    },
+    {
+      "subject": "sold by the eligible retailer",
+      "predicate": "has_refund_eligibility",
+      "object": "be identical to the product sold by Microsoft and must be in stock for purchase at the eligible retailer at the reduced price",
+      "disposition": "CORRECT_FULL_MATCH",
+      "trust_score": 0.975,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 97.5%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Both price adjustments",
+      "predicate": "has_definition",
+      "object": "Customer is eligible only if the product is in stock for purchase at Microsoft Store or a Microsoft Experience Center.",
+      "disposition": "AMBIGUOUS_NEEDS_REVIEW",
+      "trust_score": 0.9875,
+      "decision_reason": "NON-CANONICAL CONTEXT: Retained for overview display; excluded from active decision gate to prevent duplicate evaluation against atomic row claims.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Customer",
+      "predicate": "contact",
+      "object": "Microsoft to request the adjustment",
+      "disposition": "CORRECT_FULL_MATCH",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "For purchases from a Microsoft Experience Center, you",
+      "predicate": "has_validity_rule",
+      "object": "return to the location with your receipt",
+      "disposition": "CORRECT_FULL_MATCH",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Trade-In",
+      "predicate": "has_definition",
+      "object": "Available only through the Microsoft Store online in the United States.",
+      "disposition": "AMBIGUOUS_NEEDS_REVIEW",
+      "trust_score": 0.9875,
+      "decision_reason": "NON-CANONICAL CONTEXT: Retained for overview display; excluded from active decision gate to prevent duplicate evaluation against atomic row claims.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "To be eligible for trade in, (i) you",
+      "predicate": "own",
+      "object": "the qualifying device, (ii) the device must power on, (iii) the battery must hold a charge (the device must not be required to be plugged in to operate), and (iv) the device must be in fully-functional, working condition and not have broken or missing components, a cracked display or screen, liquid damage, modification(s) or the device warranty seal broken",
+      "disposition": "CORRECT_FULL_MATCH",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "The device",
+      "predicate": "has_validity_rule",
+      "object": "be password protected and must include its original chargers, accessories, and hard drive",
+      "disposition": "CORRECT_FULL_MATCH",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Customer",
+      "predicate": "has_refund_reimbursement_window",
+      "object": "mail in the qualifying trade-in device to be eligible for reimbursement",
+      "disposition": "CORRECT_FULL_MATCH",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Devices determined to not meet eligibility criteria",
+      "predicate": "has_validity_rule",
+      "object": "be shipped back to the customer or recycled",
+      "disposition": "CORRECT_FULL_MATCH",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    }
+  ]
+}

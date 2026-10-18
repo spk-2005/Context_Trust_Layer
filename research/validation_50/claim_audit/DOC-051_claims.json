@@ -1,0 +1,136 @@
+{
+  "document_id": "DOC-051",
+  "filename": "Electronic Prescriptions for Controlled Substances (EPCS) - Azure Compliance _ Microsoft Learn.pdf",
+  "document_type": "regulatory_compliance",
+  "claim_counts": {
+    "candidate_claims": 11,
+    "valid": 10,
+    "invalid": 0,
+    "missed": 0,
+    "duplicate": 0,
+    "ambiguous": 1,
+    "malformed": 0
+  },
+  "metrics": {
+    "claim_precision": 0.9091,
+    "claim_recall": 1.0,
+    "f1": 0.9524,
+    "evidence_supported_rate": 1.0,
+    "locator_accuracy_rate": 1.0,
+    "duplicate_rate": 0.0
+  },
+  "human_review_required": true,
+  "failure_patterns": [],
+  "claims": [
+    {
+      "subject": "Prescribers",
+      "predicate": "digitally",
+      "object": "sign, transmit, report, and archive electronic prescriptions, while pharmacies can receive, dispense, and archive these electronic prescriptions",
+      "disposition": "CORRECT_FULL_MATCH",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Two-factor authentication",
+      "predicate": "has_validity_rule",
+      "object": "be used to assign a prescriber within the electronic system, approve a prescription entry, and digitally sign a prescription",
+      "disposition": "CORRECT_FULL_MATCH",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Two of the factors",
+      "predicate": "has_validity_rule",
+      "object": "be of the following three options: a username/password, a hard token, or a biometric identification",
+      "disposition": "CORRECT_FULL_MATCH",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "The hard token",
+      "predicate": "has_validity_rule",
+      "object": "be stored on a device that is separate from the computer being used to access the application",
+      "disposition": "CORRECT_FULL_MATCH",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "With the Microsoft Authenticator app, you",
+      "predicate": "provide",
+      "object": "secondary verification for MFA scenarios to meet your EPCS MFA requirements",
+      "disposition": "CORRECT_FULL_MATCH",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Moreover, Azure",
+      "predicate": "help",
+      "object": "you meet and exceed your EPCS MFA requirements by supporting the highest Authenticator Assurance Level 3 (AAL3), as described in the National Institute of Standards and Technology (NIST) SP 800-63 Digital Identity Guidelines",
+      "disposition": "CORRECT_FULL_MATCH",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Verifiers at AAL3",
+      "predicate": "has_validity_rule",
+      "object": "be validated at FIPS 140 Level 1 or higher",
+      "disposition": "CORRECT_FULL_MATCH",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Authenticator requirements",
+      "predicate": "has_definition",
+      "object": "FIDO2 security keys, smartcards, and Windows Hello for Business can help you meet AAL3 requirements, including the underlying FIPS 140 validation requirements.",
+      "disposition": "AMBIGUOUS_NEEDS_REVIEW",
+      "trust_score": 0.8562,
+      "decision_reason": "REVIEW: Human review recommended. Sub-threshold semantic confidence (85% < 88%).; Trust score 0.86 is below 0.88 auto-approval threshold",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Azure",
+      "predicate": "help",
+      "object": "you meet your EPCS multi-factor authentication requirements because Azure AD supports both authenticator and verifier NIST SP 800-63B Authenticator Assurance Level 3 (AAL3) requirements, including FIPS 140 validation at the requisite level",
+      "disposition": "CORRECT_FULL_MATCH",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "FIDO2 security keys, smartcards, and Windows Hello for Business",
+      "predicate": "help",
+      "object": "you meet AAL3 requirements, which in turn cover EPCS multi-factor authentication requirements",
+      "disposition": "CORRECT_FULL_MATCH",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "You",
+      "predicate": "also",
+      "object": "use the Microsoft Authenticator app, which meets FIPS 140 Level 1 validation requirements for all Azure AD authentications, as explained in Authentication methods in Azure Active Directory - Microsoft Authenticator app",
+      "disposition": "CORRECT_FULL_MATCH",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    }
+  ]
+}

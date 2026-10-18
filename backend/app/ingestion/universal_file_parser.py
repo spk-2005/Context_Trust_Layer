@@ -232,14 +232,17 @@ class UniversalFileParser:
         lower_name = name.lower()
         content_hash = hashlib.sha256(raw_bytes).hexdigest()
 
-        # Content-Addressed Pipeline Cache Lookup
+        # Content-Addressed Pipeline Cache Lookup (4-Factor Invariant Key)
         cache_key = None
         try:
             from app.caching.pipeline_cache import default_pipeline_cache
-            cache_key = default_pipeline_cache.compute_key(
+            config_hash = hashlib.sha256(b"ocr=true,table=true,headings=v2").hexdigest()[:16]
+            cache_key = default_pipeline_cache.compute_pipeline_key(
                 stage_name="universal_parser",
-                code_version="v3.1",
-                input_data=raw_bytes,
+                source_sha256=content_hash,
+                parser_version="v3.1",
+                parser_config_hash=config_hash,
+                normalizer_version="v1.2",
             )
             cached_doc = default_pipeline_cache.get_model("universal_parser", cache_key, ParsedDocument)
             if cached_doc is not None:

@@ -32,6 +32,20 @@ class SubjectNormalizer:
     """
 
     KNOWN_FRAGMENT_MAPPINGS = {
+        # Chinese Entity Normalization (DOC-068)
+        "\u4f9b\u5e94\u5546": "Supplier",
+        "\u5fae\u8f6f": "Microsoft",
+        "\u53cc\u65b9": "Parties",
+        "\u4efb\u4f55\u4e00\u65b9": "Either party",
+        "\u4e70\u65b9": "Buyer",
+        "\u6bcf\u6b21\u53d1\u8d27": "Shipment",
+        # Enterprise Role Normalization (DOC-059)
+        "online services manager": "Online Services Manager",
+        "license position reader": "License Position Reader",
+        "microsoft 365 admin center role": "Microsoft 365 Admin Center Role",
+        "global administrator": "Global Administrator",
+        "vl administrator": "Volume Licensing Administrator",
+        "vl admin": "Volume Licensing Administrator",
         # Business customers
         "business customers on standard accounts (custom contracts": "Business customer with standard account",
         "business customers on standard accounts (custom contracts may override these terms)": "Business customer with standard account",
@@ -145,6 +159,14 @@ class SubjectNormalizer:
         # Remove bullet marks / control chars
         s = re.sub(r"^[\x00-\x1f\x7f\s*•●❖\-_#|>]+", "", s).strip()
         s = re.sub(r"[\x00-\x1f\x7f]", "", s).strip()
+        # Strip HTML tags
+        s = re.sub(r"<[^>]+>", "", s).strip()
+        # Clean Markdown table pipe artifacts
+        if "|" in s:
+            pipe_parts = [p.strip() for p in s.split("|") if p.strip()]
+            if pipe_parts:
+                s = pipe_parts[0]
+
         # Strip trailing unclosed parenthesis if opened but not closed
         if "(" in s and ")" not in s:
             s = re.sub(r"\s*\([^)]*$", "", s).strip()
@@ -152,6 +174,7 @@ class SubjectNormalizer:
         s = re.sub(r"^(?:(?:Section|Article|Clause|Rule)\s+)?(?:\d+(?:\.\d+)*|[A-Z]\.|\([a-z0-9]+\))\s*[:.-]?\s+(?=[A-Za-z])", "", s, flags=re.IGNORECASE)
         s = re.sub(r"^(?:Except as (?:noted|provided|set forth|stated)[^,]+,\s*)", "", s, flags=re.IGNORECASE)
         s = re.sub(r"^(?:For example,\s*)", "", s, flags=re.IGNORECASE)
+        s = re.sub(r"^(?:(?:At a minimum|To the extent permitted by [^,]+|Under no circumstances|In addition to [^,]+|Subject to [^,]+|Notwithstanding [^,]+|Unless otherwise [^,]+),\s*)+", "", s, flags=re.IGNORECASE)
         s = re.sub(r"^.*?\b(?:acknowledges that|agrees that|confirms that|states that)\s+(?:in order to .*?\b(?:the|a|an)\b\s*)?", "", s, flags=re.IGNORECASE)
         # Strip trailing punctuation
         s = s.rstrip(":,;.-").strip()

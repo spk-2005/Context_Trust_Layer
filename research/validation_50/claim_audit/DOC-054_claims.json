@@ -1,0 +1,56 @@
+{
+  "document_id": "DOC-054",
+  "filename": "Health Data Hosting (HDS) France - Microsoft Compliance _ Microsoft Learn.pdf",
+  "document_type": "regulatory_compliance",
+  "claim_counts": {
+    "candidate_claims": 3,
+    "valid": 3,
+    "invalid": 0,
+    "missed": 0,
+    "duplicate": 0,
+    "ambiguous": 0,
+    "malformed": 0
+  },
+  "metrics": {
+    "claim_precision": 1.0,
+    "claim_recall": 1.0,
+    "f1": 1.0,
+    "evidence_supported_rate": 1.0,
+    "locator_accuracy_rate": 1.0,
+    "duplicate_rate": 0.0
+  },
+  "human_review_required": false,
+  "failure_patterns": [],
+  "claims": [
+    {
+      "subject": "Hosting candidates",
+      "predicate": "submit",
+      "object": "their certification application to a certification body accredited by the French Accreditation Committee (COFRAC), the sole accreditation body at the national level, or any equivalent body at the European level",
+      "disposition": "CORRECT_FULL_MATCH",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "How to implement Contractual terms",
+      "predicate": "has_definition",
+      "object": "The French Public Health code requires the execution of specific contractual terms between the health data hosting service or cloud service provider and its",
+      "disposition": "CORRECT_FULL_MATCH",
+      "trust_score": 0.975,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 97.5%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Eligible customers",
+      "predicate": "has_licensing_requirement",
+      "object": "reach out to their Microsoft licensing point of contact to enter into these specific contractual terms before hosting health personal data on Microsoft online services",
+      "disposition": "CORRECT_FULL_MATCH",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    }
+  ]
+}

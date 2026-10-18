@@ -1,0 +1,66 @@
+{
+  "document_id": "DOC-056",
+  "filename": "Health Insurance Portability and Accountability Act (HIPAA) & Health Information Technology for Economic and Clinical Health (HITECH) Act - Microsoft Compliance _ Microsoft Learn.pdf",
+  "document_type": "regulatory_compliance",
+  "claim_counts": {
+    "candidate_claims": 4,
+    "valid": 3,
+    "invalid": 1,
+    "missed": 0,
+    "duplicate": 0,
+    "ambiguous": 0,
+    "malformed": 0
+  },
+  "metrics": {
+    "claim_precision": 0.75,
+    "claim_recall": 1.0,
+    "f1": 0.8571,
+    "evidence_supported_rate": 1.0,
+    "locator_accuracy_rate": 1.0,
+    "duplicate_rate": 0.0
+  },
+  "human_review_required": true,
+  "failure_patterns": [],
+  "claims": [
+    {
+      "subject": "Microsoft",
+      "predicate": "replicate",
+      "object": "customer data to other regions within the same geographic area (for example, the United States) for data resiliency, but Microsoft will not replicate customer data outside the chosen geographic area",
+      "disposition": "CORRECT_FULL_MATCH",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Company",
+      "predicate": "operate",
+      "object": "in a consistent manner",
+      "disposition": "INCORRECT",
+      "trust_score": 0.8,
+      "decision_reason": "REJECTED: Semantic grounding failure. Subject-Evidence mismatch: asserted subject 'Company' has no grounding in the underlying evidence span.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "You",
+      "predicate": "use",
+      "object": "the portal to request audit reports so that your auditors can compare Microsoft's cloud services results with your own legal and regulatory requirements",
+      "disposition": "CORRECT_FULL_MATCH",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Azure customers",
+      "predicate": "also",
+      "object": "retrieve Azure certificates and audit reports in the Azure portal through the audit reports blade in Microsoft Defender for Cloud",
+      "disposition": "CORRECT_FULL_MATCH",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    }
+  ]
+}

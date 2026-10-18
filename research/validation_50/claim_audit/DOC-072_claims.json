@@ -1,0 +1,156 @@
+{
+  "document_id": "DOC-072",
+  "filename": "volume-licensing-invoices.md",
+  "document_type": "invoice",
+  "claim_counts": {
+    "candidate_claims": 13,
+    "valid": 11,
+    "invalid": 0,
+    "missed": 0,
+    "duplicate": 0,
+    "ambiguous": 2,
+    "malformed": 0
+  },
+  "metrics": {
+    "claim_precision": 0.8462,
+    "claim_recall": 1.0,
+    "f1": 0.9167,
+    "evidence_supported_rate": 1.0,
+    "locator_accuracy_rate": 1.0,
+    "duplicate_rate": 0.0
+  },
+  "human_review_required": true,
+  "failure_patterns": [],
+  "claims": [
+    {
+      "subject": "volume-licensing-invoices --- title",
+      "predicate": "has_definition",
+      "object": "\"Microsoft volume licensing invoices\" f1.keywords: - NOCSH author: cmcatee-MSFT ms.author: cmcatee manager: scotv ms.reviewer: aasthatiwari, atuldubey audience: Admin ms.topic: concept-article ms.service: microsoft-365-business ms.subservice: m365-commerce-volume-licensing ms.localizationpriority: medium ms.collection: - Tier1 - scotvorg ms.custom: - commercevl - AdminTemplateSet - admindeeplinkMAC service.tree.id: e6e1ea2a-04a0-4f78-bc75-7d45c90eee39 search.appverid: MET150 ROBOTS: NOINDEX, NOFOLLOW description: \"Learn how to access your non-Azure volume licensing invoices in the Microsoft 365 admin center.\" ms.date: 04/21/2026 --- # Microsoft volume licensing invoices > [!IMPORTANT] > This article applies only to volume licensing (VL) invoices for non-Azure products bought under a direct VL agreement type, except for Microsoft Products & Services Agreements (MPSA), Federal Government, Special agreements, and Select Plus agreements.",
+      "disposition": "CORRECT_FULL_MATCH",
+      "trust_score": 0.975,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 97.5%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "You",
+      "predicate": "view",
+      "object": "the invoice online in the <a href=\"https://go.microsoft.com/fwlink/p/?linkid=2024339\" target=\"blank\">Microsoft 365 admin center</a>",
+      "disposition": "CORRECT_FULL_MATCH",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "You",
+      "predicate": "also",
+      "object": "download a copy of your invoice in the Portable Document Format (PDF) to send via email",
+      "disposition": "CORRECT_FULL_MATCH",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "you",
+      "predicate": "has_validity_rule",
+      "object": "be a VL Administrator or an Invoice Reader for the corresponding contracts",
+      "disposition": "CORRECT_FULL_MATCH",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "In the <a href=\"https",
+      "predicate": "has_definition",
+      "object": "//go.microsoft.com/fwlink/p/?linkid=2024339\" target=\"blank\">Microsoft 365 admin center</a> go to the Billing > <a href=\"https://go.microsoft.com/fwlink/p/?linkid=842054\" target=\"blank\">Your products</a> page, then select the <a href=\"https://go.microsoft.com/fwlink/p/?linkid=2244144\" target=\"blank\">Volume licensing</a> tab.",
+      "disposition": "CORRECT_FULL_MATCH",
+      "trust_score": 0.975,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 97.5%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "You",
+      "predicate": "download",
+      "object": "the invoice PDF and invoice recon file",
+      "disposition": "CORRECT_FULL_MATCH",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Total=Charges\\-Commitment Usage (if applicable)+Sales Tax",
+      "predicate": "has_definition",
+      "object": "::image type=\"content\" source=\"../../media/volume-licensing-invoices/vlinvoices-billingsummary.png\" alt-text=\"The Billing Summary section of the invoice that explains how the total amount due is calculated.\"::: ### Payment Instructions The PAYMENT INSTRUCTIONS section contains the account information you need to send your wire transfer payment.",
+      "disposition": "CORRECT_FULL_MATCH",
+      "trust_score": 0.975,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 97.5%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "You",
+      "predicate": "see",
+      "object": "two types of invoice documents issued by Microsoft: debit invoices and credit memos",
+      "disposition": "CORRECT_FULL_MATCH",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "You",
+      "predicate": "confirm",
+      "object": "who the Bill to contact is by going to Contracts > View contract details > Contacts",
+      "disposition": "CORRECT_FULL_MATCH",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "The Invoice created date",
+      "predicate": "has_validity_rule",
+      "object": "be November 18, 2022, or later",
+      "disposition": "CORRECT_FULL_MATCH",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Volume Licensing Administrator",
+      "predicate": "view",
+      "object": "the invoices or assign the Invoice Reader role to any user",
+      "disposition": "CORRECT_FULL_MATCH",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "You",
+      "predicate": "must_verify_refund_conditions",
+      "object": "check the invoice recon file for the tax rate applied to each item",
+      "disposition": "AMBIGUOUS_NEEDS_REVIEW",
+      "trust_score": 0.8,
+      "decision_reason": "REVIEW: Human review recommended. Deontic mismatch: claim claims OBLIGATION but underlying source evidence reflects discretionary/permissive phrasing or lacks normative imperative verbs.; Trust score 0.80 is below 0.88 auto-approval threshold",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Customers",
+      "predicate": "has_licensing_requirement",
+      "object": "contact their Microsoft partner or seller for questions relating to the following issues: - The accuracy of invoice or pricing applied to products - The billing frequency or billing coverage periods - The application of tax rates on invoices - Changing the legal participant Bill to Contact on a License ID - Submitting or canceling a new order or a renewal order > [!TIP] > To identify the partner or seller for a License ID, go to the Billing > Your Products page, select the Volume Licensing tab, select Contracts, then select View contract details",
+      "disposition": "AMBIGUOUS_NEEDS_REVIEW",
+      "trust_score": 0.8,
+      "decision_reason": "REVIEW: Human review recommended. Deontic mismatch: claim claims OBLIGATION but underlying source evidence reflects discretionary/permissive phrasing or lacks normative imperative verbs.; Trust score 0.80 is below 0.88 auto-approval threshold",
+      "evidence_supported": true,
+      "locator_valid": true
+    }
+  ]
+}

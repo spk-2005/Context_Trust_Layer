@@ -18,7 +18,7 @@ class DomainRuleExtractor:
     """Grammar and modal pattern extractor for policy clauses and standard requirements."""
 
     CONDITIONAL_SPLIT_REGEX = re.compile(
-        r"^(?:if|in cases where|in the event that|where)\s+(?P<condition>.*?),\s+(?P<main_clause>.*)$",
+        r"^(?:if|in cases where|in the event that|where|when|whenever|after|once|as soon as|upon|unless|provided that|subject to [^,]+)\s+(?P<condition>.*?),\s+(?P<main_clause>.*)$",
         re.IGNORECASE,
     )
     MODAL_SPLIT_REGEX = re.compile(
@@ -59,7 +59,10 @@ class DomainRuleExtractor:
         for pat in cls.PROTECTED_ABBREVIATIONS:
             protected = re.sub(pat, _mask, protected, flags=re.IGNORECASE)
 
-        splits = [s.strip() for s in re.split(r"(?<=[.!?])\s+|(?<=\])\s+(?=[A-Z])", protected) if s.strip()]
+        if any("\u4e00" <= ch <= "\u9fff" for ch in protected):
+            splits = [s.strip() for s in re.split(r"[\u3002\n]+", protected) if s.strip()]
+        else:
+            splits = [s.strip() for s in re.split(r"(?<=[.!?])\s+|(?<=\])\s+(?=[A-Z])", protected) if s.strip()]
         sentences = [s.replace("__DOT__", ".") for s in splits if s]
         return sentences or [text]
 
@@ -117,7 +120,7 @@ class DomainRuleExtractor:
         if "provide for the builder to complete" in sent_lower:
             return "has_validity_rule", raw_pred_obj, "OBLIGATION"
         if "survive" in sent_lower and ("termination" in sent_lower or "force and effect" in sent_lower):
-            return "specifies_governing_rule", raw_pred_obj, "OBLIGATION"
+            return "has_validity_rule", raw_pred_obj, "OBLIGATION"
 
         if "gift receipt" in sent_lower and ("store credit" in sent_lower or "exchange" in sent_lower):
             return "has_refund_method", raw_pred_obj.strip().rstrip(".:"), "PERMISSION"
@@ -340,7 +343,7 @@ class DomainRuleExtractor:
             return "may_recover_short_notice_amount", raw_pred_obj, "PERMISSION"
 
         # 11. Fallback for remaining weak predicates
-        if raw_p in ("be", "is", "are", "defines", "specifies", "issue", "start", "verify", "cover", "return", "returns", "override", "satisfy", "have", "has", "do", "make", "must_satisfy_requirement", "apply", "offer", "specifies_governing_rule"):
+        if raw_p in ("be", "is", "are", "defines", "specifies", "issue", "start", "verify", "cover", "return", "returns", "override", "satisfy", "have", "has", "do", "make", "must_satisfy_requirement", "apply", "offer", "has_validity_rule"):
             return "has_validity_rule", raw_pred_obj, modality
 
         return raw_p, raw_pred_obj, modality
@@ -623,6 +626,58 @@ class DomainRuleExtractor:
             is_return_policy = any(w in context_prefix.lower() or w in clean_s.lower() for w in ("return", "refund", "cancellation", "order", "goods", "merchandise", "purchase")) and not any(w in clean_s.lower() for w in ("employment", "severance", "resignation", "termination", "water", "lead", "sdwa", "contaminant"))
             clean_s = re.sub(r"\s+\d+(?:\.\d+)+\.?$", "", clean_s).strip()
 
+            # Skip image macros, includes, and metadata lines
+            if clean_s.startswith(("::image", ":::image", "![", "<img", "[!INCLUDE", ":::")):
+                continue
+            # Skip procedural UI navigation steps (walkthroughs / clicks)
+            if re.match(r"^(?:Select|Click|Go to|Enter|Navigate to|In the admin center|In the Navigation menu|Choose|Check|Verify|Verify the|In the details pane|On the [^,]+ page|On the Review and finish page)", clean_s, re.IGNORECASE):
+                continue
+            # Skip questions / FAQ prompts
+            if clean_s.strip().endswith("?") or re.match(r"^(?:What|How|Why|When|Where|Who|Can I|Should I)", clean_s, re.IGNORECASE):
+                continue
+            # Skip table separator rows
+            if re.match(r"^\|?\s*[-:]+[-| :]*$", clean_s):
+                continue
+
+            # Check Chinese Deontic Modal Assertions (DOC-068) - Gated by feature flag
+            from app.core.multilingual import is_multilingual_enabled
+            if is_multilingual_enabled("zh-CN") and any("\u4e00" <= ch <= "\u9fff" for ch in clean_s):
+                zh_pat = re.compile(r"(?:(?P<cond>\u9664\u975e[^\uff0c,]+|\u5982\u679c[^\uff0c,]+|\u5728[^\uff0c,]+\u7684\u60c5\u51b5\u4e0b)[\uff0c,])?\s*(?:\u5426\u5219)?\s*(?P<subject>\u4f9b\u5e94\u5546|\u5fae\u8f6f|\u53cc\u65b9|\u4efb\u4f55\u4e00\u65b9|\u4e70\u65b9|\u6bcf\u6b21\u53d1\u8d27|[^\s\uff0c,]{2,10}?)\s*(?P<modal>\u4e0d\u5f97|\u5e94\u5f53|\u5fc5\u987b|(?<!\u4f9b)\u5e94(?!\u5546)(?!\u7528)|\u6709\u6743|\u53ef\u4ee5)\s*(?P<pred_obj>[^\u3002\uff1b;\r\n]+)")
+                zh_m = zh_pat.search(clean_s)
+                if zh_m:
+                    zh_subj = zh_m.group("subject").strip()
+                    zh_modal = zh_m.group("modal").strip()
+                    zh_obj = zh_m.group("pred_obj").strip()
+                    zh_cond = zh_m.group("cond").strip() if zh_m.group("cond") else None
+
+                    zh_modality = "PROHIBITION" if zh_modal in ("\u4e0d\u5f97", "\u7981\u6b62") else ("PERMISSION" if zh_modal in ("\u53ef\u4ee5", "\u6709\u6743") else "OBLIGATION")
+                    zh_op = "prohibits" if zh_modality == "PROHIBITION" else ("may" if zh_modality == "PERMISSION" else "must")
+
+                    norm_subj, _ = SubjectNormalizer.normalize(zh_subj, context=context_prefix)
+
+                    c = CandidateClaim.create(
+                        envelope_id=unit.envelope_id,
+                        unit_id=unit.unit_id,
+                        asset_id=unit.asset_id,
+                        claim_text=clean_s,
+                        subject=norm_subj,
+                        predicate="has_validity_rule",
+                        object_=zh_obj,
+                        evidence_text_span=sentence,
+                        modal_operator=zh_op,
+                        modality=zh_modality,
+                        conditions=[zh_cond] if zh_cond else [],
+                        cross_references=[],
+                        claim_type="policy",
+                        content_role=ContentRole.POLICY_RULE,
+                        is_canonical=True,
+                        extraction_strategy=ExtractionStrategyType.DOMAIN_RULES,
+                        locator={**loc, "sentence_index": s_idx},
+                        structured_values={"raw_sentence": sentence, "language": "zh"},
+                        confidence=0.95,
+                    )
+                    claims.append(c)
+                    continue
             # Check 0-PG: Personalized Goods & Specification Exclusions (DOC-004)
             if any(w in clean_s.lower() for w in ("clearly personalized", "made to your specifications")):
                 claims.append(
@@ -692,7 +747,7 @@ class DomainRuleExtractor:
                     asset_id=unit.asset_id,
                     claim_text=clean_s,
                     subject="Termination of Employment Policy",
-                    predicate="specifies_governing_rule",
+                    predicate="has_validity_rule",
                     object_="applies to all regular full-time and part-time staff employees",
                     evidence_text_span=sentence,
                     modal_operator="applies_to",
@@ -1167,6 +1222,7 @@ class DomainRuleExtractor:
                 colon_match
                 and not clean_s.lower().startswith(("note:", "warning:", "tip:", "step:", "exception:", "clause:", "rule:", "condition:"))
                 and colon_match.group(1).strip().lower() not in ("exception", "note", "warning", "tip", "step", "clause", "rule", "condition", "important")
+                and not re.match(r"^(?:table|figure|column|col\d+|header|cell)\b", colon_match.group(1).strip(), re.IGNORECASE)
                 and not re.search(r"\b(?:will not be|shall not be|must not be|cannot be|will be|shall be|must be|holds the right)\b", colon_match.group(2), re.IGNORECASE)
             ):
                 colon_parts = clean_s.split(":", 1)
@@ -2078,6 +2134,46 @@ class DomainRuleExtractor:
                 if is_calendar_may:
                     match = None  # Do NOT treat calendar "May 1" as modal "may" + predicate "1"
 
+                # Guard 2: Regulatory Actor Head-Noun Normalization & Narrative Fragment Guard
+                if match:
+                    subj_clean = raw_subject.strip()
+
+                    # 2A. Extract leading subordinate clauses (e.g. "Because we offer X, we must...")
+                    subord_m = re.match(
+                        r"^(?P<lead>(?:because|although|while|since|in addition to|among other things).*?),\s+(?P<rest>(?:we|the company|our company|vendor|supplier|customers?|parties|covered entities|business associates|healthcare organizations?))\b\s*$",
+                        subj_clean,
+                        re.IGNORECASE,
+                    )
+                    if subord_m:
+                        extracted_cond = subord_m.group("lead").strip()
+                        raw_subject = subord_m.group("rest").strip()
+                        subj_clean = raw_subject
+                        if extracted_cond and extracted_cond not in gen_conds:
+                            gen_conds = [extracted_cond] + gen_conds
+
+                    # 2B. Legal / Regulatory Actor Head-Noun Extraction
+                    # e.g. "Covered entities that create, receive, maintain, or transmit PHI" -> Head: "Covered entities"
+                    actor_m = re.match(
+                        r"^(?P<actor>(?:the\s+)?(?:covered entities|business associates|healthcare organizations?|customers?|vendors?|suppliers?|prescribers?|parties|either party|any party))\s+(?:that|who|which)\s+(?P<qualifier>.*)$",
+                        subj_clean,
+                        re.IGNORECASE,
+                    )
+                    if actor_m:
+                        raw_subject = actor_m.group("actor").strip()
+                        qual = actor_m.group("qualifier").strip()
+                        if qual and qual not in gen_conds:
+                            gen_conds.append(f"applies to {raw_subject} that {qual}")
+                        subj_clean = raw_subject
+
+                    # 2C. Suppress genuine ungrounded narrative fragments and run-on headings
+                    if (
+                        len(subj_clean.split()) > 10
+                        or subj_clean.lower().endswith((" that", " which", " where", " who"))
+                        or subj_clean.lower().startswith(("because ", "although ", "while ", "since ", "then, "))
+                        or bool(re.search(r"\b(?:that|which|who)\s+[a-z]+\s+(?:is|are|was|were|has|have)\b", subj_clean, re.IGNORECASE))
+                    ):
+                        match = None
+
             if match:
                 # Refine predicate and object with clean word boundaries
                 pred_words = [w for w in raw_pred_obj.split(" ") if w]
@@ -2194,6 +2290,13 @@ class DomainRuleExtractor:
                 if unit_role in cls.NON_CANONICAL_ROLES or not getattr(unit, "is_canonical", True):
                     unit_canonical = False
 
+                if (subject_val or "").lower().strip() in ("it", "this", "that", "they", "which", "these", "those"):
+                    continue
+                if subject_val == "Governance Policy" and not any(w in clean_s.lower() or w in context_prefix.lower() for w in ("governance policy", "governance")):
+                    continue
+                if any(term in (subject_val or "").lower() for term in ("table", "header", "col0", "column", "cell")) or re.match(r"^(?:table|figure|col\d+|column|cell)\b", (subject_val or "").strip(), re.IGNORECASE):
+                    continue
+
                 if unit_role == ContentRole.EXAMPLE or is_case_study:
                     claim_type_out = "EXAMPLE"
                 elif unit_role == ContentRole.CONTACT_INFO:
@@ -2204,6 +2307,9 @@ class DomainRuleExtractor:
                     claim_type_out = "definition"
                 else:
                     claim_type_out = "policy"
+
+                if not subject_val or len(str(subject_val).strip()) <= 1 or not object_val or len(str(object_val).strip()) <= 1:
+                    continue
 
                 c = CandidateClaim.create(
                     envelope_id=unit.envelope_id,
@@ -2360,7 +2466,7 @@ class DomainRuleExtractor:
                     elif is_return_policy and any(w in clean_s.lower() for w in ("refund", "refunds", "return")):
                         predicate = "has_refund_eligibility"
                     else:
-                        predicate = "specifies_governing_rule"
+                        predicate = "has_validity_rule"
 
                 if unit_role in cls.NON_CANONICAL_ROLES or not getattr(unit, "is_canonical", True):
                     unit_canonical = False
@@ -2383,6 +2489,16 @@ class DomainRuleExtractor:
                         validity_dict = {"duration": int(val_m.group(1)), "unit": val_m.group(2).lower()}
                     elif "5 years" in clean_s.lower() and "store credit" in subject.lower():
                         validity_dict = {"duration": 5, "unit": "years"}
+
+                if subject.lower().strip() in ("it", "this", "that", "they", "which", "these", "those"):
+                    continue
+                if subject == "Governance Policy" and not any(w in clean_s.lower() for w in ("governance policy", "governance")):
+                    continue
+                if any(term in subject.lower() for term in ("table", "header", "col0", "column", "cell")) or re.match(r"^(?:table|figure|col\d+|column|cell)\b", subject.strip(), re.IGNORECASE):
+                    continue
+
+                if not subject or len(str(subject).strip()) <= 1 or not object_val or len(str(object_val).strip()) <= 1:
+                    continue
 
                 c = CandidateClaim.create(
                     envelope_id=unit.envelope_id,

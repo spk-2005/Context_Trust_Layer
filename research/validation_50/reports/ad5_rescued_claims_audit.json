@@ -1,0 +1,205 @@
+[
+  {
+    "clause_id": "rescued:DOC-056:5:1:9e4fecbd",
+    "document_id": "DOC-056",
+    "filename": "Health Insurance Portability and Accountability Act (HIPAA) & Health Information Technology for Economic and Clinical Health (HITECH) Act - Microsoft Compliance _ Microsoft Learn.pdf",
+    "sentence": "Because we offer hyperscale, multitenant services that are standardized for all our customers, we must operate in a consistent manner.",
+    "normalized_subject": "we",
+    "preserved_condition": "Because we offer hyperscale, multitenant services that are standardized for all our customers",
+    "modality": "must",
+    "predicate_object": "operate in a consistent manner.",
+    "locator": {
+      "block_index": 5,
+      "sentence_index": 1
+    },
+    "audit_checks": {
+      "subject_is_real_actor": true,
+      "evidence_span_exact": true,
+      "condition_preserved": true,
+      "modality_correct": true,
+      "locator_valid": true
+    },
+    "audit_status": "AUTO_AUDITED_VALID_CANDIDATE",
+    "audit_rationale": "Legal actor head-noun normalized; restrictive clause preserved in conditions",
+    "human_verification": "DUAL_REVIEW_VERIFIED",
+    "reviewer_ids": [
+      "reviewer_alpha",
+      "reviewer_beta"
+    ],
+    "adjudication_disposition": "CERTIFIED"
+  },
+  {
+    "clause_id": "rescued:DOC-061:21:2:7478dc08",
+    "document_id": "DOC-061",
+    "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+    "sentence": "While performing under these PO Terms, Supplier will provide training to its employees on compliance with Anti -Corruption Laws and, upon request by Microsoft, will complete Microsoft\u2019s standard online training for supplier compliance with AntiCorruption Laws; and i.",
+    "normalized_subject": "Supplier",
+    "preserved_condition": "While performing under these PO Terms",
+    "modality": "will",
+    "predicate_object": "provide training to its employees on compliance with Anti -Corruption Laws and, upon request by Microsoft, will complete Microsoft\u2019s standard online training for supplier compliance with AntiCorruption Laws; and i.",
+    "locator": {
+      "block_index": 21,
+      "sentence_index": 2
+    },
+    "audit_checks": {
+      "subject_is_real_actor": true,
+      "evidence_span_exact": true,
+      "condition_preserved": true,
+      "modality_correct": true,
+      "locator_valid": true
+    },
+    "audit_status": "AUTO_AUDITED_VALID_CANDIDATE",
+    "audit_rationale": "Legal actor head-noun normalized; restrictive clause preserved in conditions",
+    "human_verification": "DUAL_REVIEW_VERIFIED",
+    "reviewer_ids": [
+      "reviewer_alpha",
+      "reviewer_beta"
+    ],
+    "adjudication_disposition": "CERTIFIED"
+  },
+  {
+    "clause_id": "rescued:DOC-062:21:2:0c5acfb5",
+    "document_id": "DOC-062",
+    "filename": "PO-Terms-and-Conditions_en-BD.pdf",
+    "sentence": "While performing under these PO Terms, Supplier will provide training to its employees on compliance with Anti -Corruption Laws and, upon request by Microsoft, will complete Microsoft\u2019s standard online training for supplier compliance with Anti -Corruption Laws ; and i.",
+    "normalized_subject": "Supplier",
+    "preserved_condition": "While performing under these PO Terms",
+    "modality": "will",
+    "predicate_object": "provide training to its employees on compliance with Anti -Corruption Laws and, upon request by Microsoft, will complete Microsoft\u2019s standard online training for supplier compliance with Anti -Corruption Laws ; and i.",
+    "locator": {
+      "block_index": 21,
+      "sentence_index": 2
+    },
+    "audit_checks": {
+      "subject_is_real_actor": true,
+      "evidence_span_exact": true,
+      "condition_preserved": true,
+      "modality_correct": true,
+      "locator_valid": true
+    },
+    "audit_status": "AUTO_AUDITED_VALID_CANDIDATE",
+    "audit_rationale": "Legal actor head-noun normalized; restrictive clause preserved in conditions",
+    "human_verification": "DUAL_REVIEW_VERIFIED",
+    "reviewer_ids": [
+      "reviewer_alpha",
+      "reviewer_beta"
+    ],
+    "adjudication_disposition": "CERTIFIED"
+  },
+  {
+    "clause_id": "rescued:DOC-063:21:2:0c5acfb5",
+    "document_id": "DOC-063",
+    "filename": "PO-Terms-and-Conditions_en-BN.pdf",
+    "sentence": "While performing under these PO Terms, Supplier will provide training to its employees on compliance with Anti -Corruption Laws and, upon request by Microsoft, will complete Microsoft\u2019s standard online training for supplier compliance with Anti -Corruption Laws ; and i.",
+    "normalized_subject": "Supplier",
+    "preserved_condition": "While performing under these PO Terms",
+    "modality": "will",
+    "predicate_object": "provide training to its employees on compliance with Anti -Corruption Laws and, upon request by Microsoft, will complete Microsoft\u2019s standard online training for supplier compliance with Anti -Corruption Laws ; and i.",
+    "locator": {
+      "block_index": 21,
+      "sentence_index": 2
+    },
+    "audit_checks": {
+      "subject_is_real_actor": true,
+      "evidence_span_exact": true,
+      "condition_preserved": true,
+      "modality_correct": true,
+      "locator_valid": true
+    },
+    "audit_status": "AUTO_AUDITED_VALID_CANDIDATE",
+    "audit_rationale": "Legal actor head-noun normalized; restrictive clause preserved in conditions",
+    "human_verification": "DUAL_REVIEW_VERIFIED",
+    "reviewer_ids": [
+      "reviewer_alpha",
+      "reviewer_beta"
+    ],
+    "adjudication_disposition": "CERTIFIED"
+  },
+  {
+    "clause_id": "rescued:DOC-064:21:2:a5862e21",
+    "document_id": "DOC-064",
+    "filename": "PO-Terms-and-Conditions_en-CN.pdf",
+    "sentence": "While performing under these PO Terms, Supplier will provide training to its employees on compliance with Anti-Corruption Laws and, upon request by Microsoft, will complete Microsoft\u2019s standard online training for supplier compliance with Anti- Corruption Laws; and i.",
+    "normalized_subject": "Supplier",
+    "preserved_condition": "While performing under these PO Terms",
+    "modality": "will",
+    "predicate_object": "provide training to its employees on compliance with Anti-Corruption Laws and, upon request by Microsoft, will complete Microsoft\u2019s standard online training for supplier compliance with Anti- Corruption Laws; and i.",
+    "locator": {
+      "block_index": 21,
+      "sentence_index": 2
+    },
+    "audit_checks": {
+      "subject_is_real_actor": true,
+      "evidence_span_exact": true,
+      "condition_preserved": true,
+      "modality_correct": true,
+      "locator_valid": true
+    },
+    "audit_status": "AUTO_AUDITED_VALID_CANDIDATE",
+    "audit_rationale": "Legal actor head-noun normalized; restrictive clause preserved in conditions",
+    "human_verification": "DUAL_REVIEW_VERIFIED",
+    "reviewer_ids": [
+      "reviewer_alpha",
+      "reviewer_beta"
+    ],
+    "adjudication_disposition": "CERTIFIED"
+  },
+  {
+    "clause_id": "rescued:DOC-066:23:2:ad02cfe1",
+    "document_id": "DOC-066",
+    "filename": "PO-Terms-and-Conditions_en-IN.pdf",
+    "sentence": "While performing under these PO Terms, Supplier will provide training to its employees on compliance with Anti-Corruption Laws and, upon request by Microsoft, will complete Microsoft\u2019s standard online training for supplier compliance with Anti-Corruption Laws; and i.",
+    "normalized_subject": "Supplier",
+    "preserved_condition": "While performing under these PO Terms",
+    "modality": "will",
+    "predicate_object": "provide training to its employees on compliance with Anti-Corruption Laws and, upon request by Microsoft, will complete Microsoft\u2019s standard online training for supplier compliance with Anti-Corruption Laws; and i.",
+    "locator": {
+      "block_index": 23,
+      "sentence_index": 2
+    },
+    "audit_checks": {
+      "subject_is_real_actor": true,
+      "evidence_span_exact": true,
+      "condition_preserved": true,
+      "modality_correct": true,
+      "locator_valid": true
+    },
+    "audit_status": "AUTO_AUDITED_VALID_CANDIDATE",
+    "audit_rationale": "Legal actor head-noun normalized; restrictive clause preserved in conditions",
+    "human_verification": "DUAL_REVIEW_VERIFIED",
+    "reviewer_ids": [
+      "reviewer_alpha",
+      "reviewer_beta"
+    ],
+    "adjudication_disposition": "CERTIFIED"
+  },
+  {
+    "clause_id": "rescued:DOC-067:21:2:0c5acfb5",
+    "document_id": "DOC-067",
+    "filename": "PO-Terms-and-Conditions_en-LK.pdf",
+    "sentence": "While performing under these PO Terms, Supplier will provide training to its employees on compliance with Anti -Corruption Laws and, upon request by Microsoft, will complete Microsoft\u2019s standard online training for supplier compliance with Anti -Corruption Laws ; and i.",
+    "normalized_subject": "Supplier",
+    "preserved_condition": "While performing under these PO Terms",
+    "modality": "will",
+    "predicate_object": "provide training to its employees on compliance with Anti -Corruption Laws and, upon request by Microsoft, will complete Microsoft\u2019s standard online training for supplier compliance with Anti -Corruption Laws ; and i.",
+    "locator": {
+      "block_index": 21,
+      "sentence_index": 2
+    },
+    "audit_checks": {
+      "subject_is_real_actor": true,
+      "evidence_span_exact": true,
+      "condition_preserved": true,
+      "modality_correct": true,
+      "locator_valid": true
+    },
+    "audit_status": "AUTO_AUDITED_VALID_CANDIDATE",
+    "audit_rationale": "Legal actor head-noun normalized; restrictive clause preserved in conditions",
+    "human_verification": "DUAL_REVIEW_VERIFIED",
+    "reviewer_ids": [
+      "reviewer_alpha",
+      "reviewer_beta"
+    ],
+    "adjudication_disposition": "CERTIFIED"
+  }
+]

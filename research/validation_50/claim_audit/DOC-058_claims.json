@@ -1,0 +1,226 @@
+{
+  "document_id": "DOC-058",
+  "filename": "manage-auto-claim-policies.md",
+  "document_type": "general_policy",
+  "claim_counts": {
+    "candidate_claims": 20,
+    "valid": 19,
+    "invalid": 1,
+    "missed": 0,
+    "duplicate": 0,
+    "ambiguous": 0,
+    "malformed": 0
+  },
+  "metrics": {
+    "claim_precision": 0.95,
+    "claim_recall": 1.0,
+    "f1": 0.9744,
+    "evidence_supported_rate": 1.0,
+    "locator_accuracy_rate": 1.0,
+    "duplicate_rate": 0.0
+  },
+  "human_review_required": true,
+  "failure_patterns": [],
+  "claims": [
+    {
+      "subject": "manage-auto-claim-policies --- title",
+      "predicate": "has_definition",
+      "object": "\"Manage auto-claim policies in the Microsoft 365 admin center\" f1.keywords: - CSH author: cmcatee-MSFT ms.author: cmcatee manager: scotv ms.reviewer: rabhange audience: Admin ms.topic: how-to ms.service: microsoft-365-business ms.subservice: m365-commerce-acquisition ms.localizationpriority: medium ms.collection: - Tier1 - scotvorg - M365-subscription-management - AdmO365 - operations-pod ms.custom: - commercelicensing - AdminSurgePortfolio - admindeeplinkMAC - GAUpdates - campaignIDs-batch2 description: \"Learn how to create and manage auto-claim policies that automatically assign licenses to users for certain apps.\" search.appverid: MET150 ms.date: 07/30/2025 --- # Manage auto-claim policies in the Microsoft 365 admin center As an admin, you typically assign licenses to users either manually, or by using group-based licensing.",
+      "disposition": "CORRECT_FULL_MATCH",
+      "trust_score": 0.975,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 97.5%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "For some products and services, you",
+      "predicate": "use",
+      "object": "an auto-claim policy to let users automatically claim a license without requiring you to assign them",
+      "disposition": "CORRECT_FULL_MATCH",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "With an auto-claim policy in place, users",
+      "predicate": "automatically",
+      "object": "claim a license for a product the first time that they sign in to an app that requires a license",
+      "disposition": "CORRECT_FULL_MATCH",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "You",
+      "predicate": "also",
+      "object": "control which products those licenses come from",
+      "disposition": "INCORRECT",
+      "trust_score": 0.84,
+      "decision_reason": "REJECTED: INCOMPLETE_ASSERTION: Incomplete syntactic clause, headless fragment, bare heading, or missing measurement unit: 'control which products those licenses come from'. Complete assertion required.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Before you begin You",
+      "predicate": "has_validity_rule",
+      "object": "be a Global Administrator to manage Auto-claim policies at the organization level",
+      "disposition": "CORRECT_FULL_MATCH",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "User, License and Global admins",
+      "predicate": "create",
+      "object": "and manage auto-claim policies in the Auto-claim policy tab under Licenses",
+      "disposition": "CORRECT_FULL_MATCH",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Before you",
+      "predicate": "use",
+      "object": "the feature, you must first turn it on in the Microsoft 365 admin center",
+      "disposition": "CORRECT_FULL_MATCH",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "you",
+      "predicate": "create",
+      "object": "an auto-claim policy",
+      "disposition": "CORRECT_FULL_MATCH",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Go to the <a href=\"https",
+      "predicate": "has_definition",
+      "object": "//go.microsoft.com/fwlink/p/?linkid=2024339\" target=\"blank\">Microsoft 365 admin center</a>.",
+      "disposition": "CORRECT_FULL_MATCH",
+      "trust_score": 0.975,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 97.5%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "no more users",
+      "predicate": "claim",
+      "object": "a license from that point on",
+      "disposition": "CORRECT_FULL_MATCH",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "On this tab, you",
+      "predicate": "see",
+      "object": "the following items: the name of the policy, the app that is associated with the policy, the product that's assigned to the policy, the number of available licenses, and the status of the policy",
+      "disposition": "CORRECT_FULL_MATCH",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "you",
+      "predicate": "add",
+      "object": "a backup product to it",
+      "disposition": "CORRECT_FULL_MATCH",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "You",
+      "predicate": "add",
+      "object": "up to four backup products and [change the order in which they're used](#change-the-assigning-order-for-backup-products)",
+      "disposition": "CORRECT_FULL_MATCH",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "[!NOTE] > Currently, you",
+      "predicate": "only",
+      "object": "create one auto-claim policy",
+      "disposition": "CORRECT_FULL_MATCH",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "The number of policies you",
+      "predicate": "create",
+      "object": "will increase as more products are able to use this feature",
+      "disposition": "CORRECT_FULL_MATCH",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "You",
+      "predicate": "add",
+      "object": "or remove products for an auto-claim policy at any time",
+      "disposition": "CORRECT_FULL_MATCH",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "[!NOTE] > An auto-claim policy",
+      "predicate": "contain",
+      "object": "at least one product",
+      "disposition": "CORRECT_FULL_MATCH",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "For each product in your auto-claim policy, you",
+      "predicate": "specify",
+      "object": "which apps and services to include when a user is automatically assigned a license to that product",
+      "disposition": "CORRECT_FULL_MATCH",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "You",
+      "predicate": "view",
+      "object": "reports for the past 1, 7, 30, and 90 days",
+      "disposition": "CORRECT_FULL_MATCH",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Auto-claim policies for Microsoft Power Apps Admins",
+      "predicate": "now",
+      "object": "create auto-claim policies for Power Apps per user licenses in the Microsoft 365 admin center, similar to how they can create auto-claim policies for other Microsoft products and services",
+      "disposition": "CORRECT_FULL_MATCH",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    }
+  ]
+}

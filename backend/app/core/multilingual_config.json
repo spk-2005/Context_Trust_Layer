@@ -1,0 +1,12 @@
+{
+  "multilingual_extraction": {
+    "enabled": false,
+    "supported_languages": [
+      "en"
+    ],
+    "experimental_languages": [
+      "zh-CN"
+    ],
+    "require_dedicated_regression_suite": true
+  }
+}

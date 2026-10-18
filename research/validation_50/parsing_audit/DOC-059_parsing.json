@@ -1,0 +1,16 @@
+{
+  "document_id": "DOC-059",
+  "filename": "manage-user-roles-vl.md",
+  "page_count": 1,
+  "total_characters": 22123,
+  "block_count": 1,
+  "table_count": 0,
+  "parsing_status": "PASS_WITH_MINOR_ISSUES",
+  "major_issues": [],
+  "minor_issues": [
+    "Header/footer repetition in body text: 1 repeating phrases detected"
+  ],
+  "all_issues_count": 1,
+  "reading_order_fidelity": "PASS",
+  "table_fidelity": "PASS"
+}

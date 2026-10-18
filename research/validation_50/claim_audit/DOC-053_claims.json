@@ -1,0 +1,56 @@
+{
+  "document_id": "DOC-053",
+  "filename": "Good Clinical, Laboratory, and Manufacturing Practices (GxP) - Microsoft Compliance _ Microsoft Learn.pdf",
+  "document_type": "regulatory_compliance",
+  "claim_counts": {
+    "candidate_claims": 3,
+    "valid": 3,
+    "invalid": 0,
+    "missed": 0,
+    "duplicate": 0,
+    "ambiguous": 0,
+    "malformed": 0
+  },
+  "metrics": {
+    "claim_precision": 1.0,
+    "claim_recall": 1.0,
+    "f1": 1.0,
+    "evidence_supported_rate": 1.0,
+    "locator_accuracy_rate": 1.0,
+    "duplicate_rate": 0.0
+  },
+  "human_review_required": false,
+  "failure_patterns": [],
+  "claims": [
+    {
+      "subject": "Microsoft and GxP Microsoft",
+      "predicate": "help",
+      "object": "organizations that deal with regulated aspects of the research, clinical study, maintenance, manufacturing, and distribution of life science products and services to meet their requirements under Good Clinical, Laboratory, and Manufacturing Practices (GxP)",
+      "disposition": "CORRECT_FULL_MATCH",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Governance Policy",
+      "predicate": "has_validity_rule",
+      "object": "Customers also benefit from multiple layers of security and governance technologies, operational practices, and compliance policies that enforce data privacy and integrity at specific levels.",
+      "disposition": "CORRECT_FULL_MATCH",
+      "trust_score": 0.975,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 97.5%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Customers deploying applications on Azure",
+      "predicate": "determine",
+      "object": "the GxP requirements that apply to their computerized systems based on the intended use",
+      "disposition": "CORRECT_FULL_MATCH",
+      "trust_score": 0.975,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 97.5%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    }
+  ]
+}

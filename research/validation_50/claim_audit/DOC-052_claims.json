@@ -1,0 +1,98 @@
+{
+  "document_id": "DOC-052",
+  "filename": "Food and Drug Administration CFR Title 21 Part 11 - Microsoft Compliance _ Microsoft Learn.pdf",
+  "document_type": "regulatory_compliance",
+  "claim_counts": {
+    "candidate_claims": 7,
+    "valid": 6,
+    "invalid": 0,
+    "missed": 2,
+    "duplicate": 0,
+    "ambiguous": 1,
+    "malformed": 0
+  },
+  "metrics": {
+    "claim_precision": 0.8571,
+    "claim_recall": 0.75,
+    "f1": 0.8,
+    "evidence_supported_rate": 1.0,
+    "locator_accuracy_rate": 1.0,
+    "duplicate_rate": 0.0
+  },
+  "human_review_required": true,
+  "failure_patterns": [
+    "Conditional exceptions missed (2 unextracted clauses)"
+  ],
+  "claims": [
+    {
+      "subject": "Subject companies",
+      "predicate": "prove",
+      "object": "that their processes and products work as they're designed to, and if these process and products change, they must revalidate that proof",
+      "disposition": "CORRECT_FULL_MATCH",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Customers",
+      "predicate": "request",
+      "object": "access to the compliance reports, subject to nondisclosure agreement terms and conditions, through their Microsoft account representative, or through the Service Trust Portal",
+      "disposition": "CORRECT_FULL_MATCH",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "These audits",
+      "predicate": "help",
+      "object": "you with your compliance efforts",
+      "disposition": "CORRECT_FULL_MATCH",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Azure",
+      "predicate": "has_definition",
+      "object": "Cloud Services, Storage, Traffic Manager, Virtual Machines, and Virtual Network Azure DevOps Microsoft Intune Microsoft Dynamics 365 and Dynamics 365 U.S. Government Office 365 and Office 365 U.S. Government Audits, reports, and certificates The audit reports for SOC 1 and SOC 2 Type 2, ISO/IEC 27001, and ISO/IEC 27018 standards attest to the effectiveness of the controls Microsoft implements.",
+      "disposition": "AMBIGUOUS_NEEDS_REVIEW",
+      "trust_score": 0.9875,
+      "decision_reason": "NON-CANONICAL CONTEXT: Retained for overview display; excluded from active decision gate to prevent duplicate evaluation against atomic row claims.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "These reports",
+      "predicate": "help",
+      "object": "you comply with FDA CFR Title 21 Part 11",
+      "disposition": "CORRECT_FULL_MATCH",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "You",
+      "predicate": "use",
+      "object": "the portal to request audit reports so that your auditors can compare Microsoft's cloud services results with your own legal and regulatory requirements",
+      "disposition": "CORRECT_FULL_MATCH",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Microsoft enterprise cloud customers",
+      "predicate": "use",
+      "object": "the audited controls described in these related reports as part of their own CFR Title 21 Part 11 risk analysis and qualification efforts",
+      "disposition": "CORRECT_FULL_MATCH",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    }
+  ]
+}

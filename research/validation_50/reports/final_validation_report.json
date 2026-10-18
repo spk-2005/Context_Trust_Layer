@@ -1,0 +1,61 @@
+{
+  "validation_milestone": "Sprint AD-3: 21-Document English Corpus Precision Repair and Full Audit",
+  "corpus_version": "validation_50_v2",
+  "active_document_count": 21,
+  "excluded_document_count": 1,
+  "excluded_documents": [
+    {
+      "document_id": "DOC-068",
+      "filename": "PO-Terms-and-Conditions_zh-CN.pdf",
+      "reason": "Chinese-language extraction requires dedicated multilingual validation before inclusion",
+      "excluded_at": "2026-10-18",
+      "can_rejoin_after": "Chinese regression suite and full claim audit pass"
+    }
+  ],
+  "executed_at": "2026-10-18T05:52:08.220666+00:00",
+  "corpus_summary": {
+    "total_documents_evaluated": 21,
+    "parsing_distribution": {
+      "PASS": 18,
+      "PASS_WITH_MINOR_ISSUES": 3,
+      "PASS_WITH_MAJOR_ISSUES": 0,
+      "FAIL": 0
+    },
+    "parsing_pass_rate": 1.0
+  },
+  "claims_summary": {
+    "total_claims_extracted": 1026,
+    "valid_claims": 926,
+    "invalid_claims": 12,
+    "missed_claims": 16,
+    "duplicate_claims": 1,
+    "ambiguous_claims": 88
+  },
+  "metrics": {
+    "macro_claim_precision": 0.9032,
+    "macro_claim_recall": 0.9681,
+    "macro_f1": 0.9345,
+    "evidence_supported_rate": 0.8631,
+    "locator_accuracy_rate": 1.0,
+    "duplicate_rate": 0.001
+  },
+  "gates_evaluated": {
+    "parsing_threshold_met": true,
+    "precision_threshold_met": true,
+    "recall_threshold_met": true
+  },
+  "release_recommendation": "PASS_FOR_STAGED_INGESTION (CONDITIONAL_FOR_PRODUCTION_CERTIFICATION)",
+  "ranked_failure_patterns": [
+    {
+      "pattern": "Conditional exceptions missed",
+      "occurrences": 4,
+      "affected_document_count": 4,
+      "affected_documents": [
+        "DOC-052",
+        "DOC-057",
+        "DOC-065",
+        "DOC-066"
+      ]
+    }
+  ]
+}
