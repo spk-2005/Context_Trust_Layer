@@ -1,0 +1,80 @@
+{
+  "metadata": {
+    "sprint": "AE-3",
+    "title": "Trust-Tiered Certification and Sampled Audit Reconciliation Report",
+    "baseline_corpus_version": "efficiency_audit_20_v1",
+    "generated_at": "2026-10-19T16:31:46.345776+00:00"
+  },
+  "mathematical_reconciliation": {
+    "formula_baseline": "727 = 78 (Dual-Human Certified) + 484 (Auto-Approved) + 165 (Quarantined)",
+    "formula_routing": "484 = 122 (Red) + 215 (Amber) + 147 (Green)",
+    "formula_final_lifecycle": "727 = 326 (DUAL_HUMAN_CERTIFIED) + 147 (AUTO_APPROVED_CERTIFIED) + 7 (HUMAN_REVIEW_REQUIRED) + 247 (QUARANTINED_REJECTED)",
+    "checksum_verified": true,
+    "claims_lost_or_dropped": 0,
+    "duplicate_claims": 0
+  },
+  "quality_gates": {
+    "sample_precision_green_lane": {
+      "target": ">= 98.0%",
+      "measured": "100.0%",
+      "passed": true
+    },
+    "override_rate": {
+      "target": "<= 5.0%",
+      "measured": "0.0%",
+      "passed": true
+    },
+    "critical_claim_error_rate": {
+      "target": "0.0%",
+      "measured": "0.0%",
+      "passed": true
+    },
+    "reviewer_kappa": {
+      "target": ">= 0.60",
+      "measured": "0.7583",
+      "passed": true
+    },
+    "evidence_grounding": {
+      "target": "100.0%",
+      "measured": "100.0%",
+      "passed": true
+    },
+    "locator_accuracy": {
+      "target": "100.0%",
+      "measured": "100.0%",
+      "passed": true
+    },
+    "candidate_reconciliation": {
+      "target": "100.0% Exact Identity",
+      "measured": "100.0% Exact (727 / 727)",
+      "passed": true
+    }
+  },
+  "dashboard_metrics": {
+    "claims_by_final_state": {
+      "DUAL_HUMAN_CERTIFIED": 326,
+      "AUTO_APPROVED_CERTIFIED": 147,
+      "HUMAN_REVIEW_REQUIRED": 7,
+      "QUARANTINED_REJECTED": 247,
+      "TOTAL_CORPUS": 727
+    },
+    "green_lane_sample_precision": 1.0,
+    "override_rate": 0.0,
+    "reviewer_kappa": 0.7583,
+    "claims_pending_review": 7,
+    "precision_by_document_type": {
+      "contract": 0.991,
+      "policy": 0.989,
+      "compliance": 1.0,
+      "invoice": 1.0,
+      "difficult": 0.985,
+      "scanned_soc": 1.0
+    },
+    "precision_by_confidence_band": {
+      "band_0.98_plus": 1.0,
+      "band_0.96": 0.994,
+      "band_0.95": 0.988
+    },
+    "audit_coverage": 0.1429
+  }
+}

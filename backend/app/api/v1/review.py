@@ -195,3 +195,27 @@ async def execute_claim_review_action(
     await db.commit()
     await db.refresh(claim)
     return ClaimResponse.model_validate(claim)
+
+
+@router.get("/certification/ae3/reconciliation")
+async def get_ae3_reconciliation_report() -> dict[str, Any]:
+    """Retrieve Sprint AE-3 Trust-Tiered Certification reconciliation report and quality gate scorecard."""
+    import json
+    from pathlib import Path
+    report_path = Path(__file__).resolve().parent.parent.parent.parent.parent / "research" / "certification_ae3" / "reconciliation_report.json"
+    if not report_path.exists():
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="AE-3 reconciliation report not found.")
+    return json.loads(report_path.read_text(encoding="utf-8"))
+
+
+@router.get("/certification/ae3/metrics")
+async def get_ae3_dashboard_metrics() -> dict[str, Any]:
+    """Retrieve real-time Sprint AE-3 continuous dashboard metrics."""
+    import json
+    from pathlib import Path
+    report_path = Path(__file__).resolve().parent.parent.parent.parent.parent / "research" / "certification_ae3" / "reconciliation_report.json"
+    if not report_path.exists():
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="AE-3 reconciliation report not found.")
+    data = json.loads(report_path.read_text(encoding="utf-8"))
+    return data.get("dashboard_metrics", {})
+

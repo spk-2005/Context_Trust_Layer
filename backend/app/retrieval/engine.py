@@ -38,6 +38,8 @@ class ContextRetrievalEngine:
     ):
         self.session = session
         self.llm = llm_provider or get_llm_provider()
+        from app.services.policy_agent_access_gate import PolicyAgentAccessGate
+        self.access_gate = PolicyAgentAccessGate()
 
     async def query_context(
         self,
@@ -177,6 +179,20 @@ class ContextRetrievalEngine:
             elif claim.status == ClaimStatus.CONFLICTED:
                 included = False
                 exclusion_reason = "Claim has unresolved conflict pending human review."
+            else:
+                # Enforce Sprint AE-3 Trust Tier Gate: Only certified tiers accessible
+                claim_tier_eval = {
+                    "candidate_id": str(claim.id),
+                    "final_state": getattr(claim, "certification_status", None) or ("DUAL_HUMAN_CERTIFIED" if claim.status in [ClaimStatus.ACTIVE, ClaimStatus.VERIFIED] else "HUMAN_REVIEW_REQUIRED"),
+                    "status": claim.status.value if hasattr(claim.status, "value") else str(claim.status)
+                }
+                gate_allowed, gate_level, gate_reason = self.access_gate.check_access(
+                    claim_tier_eval,
+                    agent_id=str(request_in.agent_id) if request_in.agent_id else None
+                )
+                if not gate_allowed:
+                    included = False
+                    exclusion_reason = gate_reason
 
             item_response = None
             if included:

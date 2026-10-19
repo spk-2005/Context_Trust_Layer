@@ -1,0 +1,29 @@
+{
+  "metadata": {
+    "sprint": "AE-3",
+    "scope": "Blinded Dual-Human Adjudication for Red and Amber Risk Lanes",
+    "target_kappa": 0.6,
+    "generated_at": "2026-10-19T16:31:46.341502+00:00"
+  },
+  "metrics": {
+    "total_claims_adjudicated": 337,
+    "both_approve": 240,
+    "both_reject": 67,
+    "reviewer_a_approve_reviewer_b_reject": 14,
+    "reviewer_a_reject_reviewer_b_approve": 16,
+    "observed_agreement_po": 0.911,
+    "expected_agreement_pe": 0.6317,
+    "cohens_kappa": 0.7583,
+    "gate_passed": true
+  },
+  "contingency_matrix": {
+    "Reviewer_A_Approve": {
+      "Reviewer_B_Approve": 240,
+      "Reviewer_B_Reject": 14
+    },
+    "Reviewer_A_Reject": {
+      "Reviewer_B_Approve": 16,
+      "Reviewer_B_Reject": 67
+    }
+  }
+}
