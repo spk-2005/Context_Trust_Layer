@@ -1,0 +1,237 @@
+{
+  "metadata": {
+    "document_id": "EFF-018",
+    "title": "Microsoft Store Refund and Return Policy (Multi-Column)",
+    "file_path": "research/validation_50/raw_documents/Microsoft Store Refund & Return Policy (Surface, Xbox, etc.).pdf",
+    "document_type": "difficult_multicolumn",
+    "category": "difficult",
+    "pages": 5,
+    "latency_seconds": 0.2196
+  },
+  "summary": {
+    "envelope_id": "3ca96016-aa9c-5e07-a627-937e637024d9",
+    "asset_id": "file://Microsoft Store Refund & Return Policy (Surface, Xbox, etc.).pdf",
+    "filename": "Microsoft Store Refund & Return Policy (Surface, Xbox, etc.).pdf",
+    "total_evidence_units": 51,
+    "candidates_discovered": 9,
+    "unique_claims_extracted": 8,
+    "claims_approved": 2,
+    "claims_review": 3,
+    "claims_rejected": 3,
+    "conflicts_detected": 0,
+    "persisted_claims_count": 0
+  },
+  "quality": {
+    "gold_claims": 6,
+    "true_positives": 6,
+    "false_positives": 2,
+    "false_negatives": 0,
+    "precision": 0.75,
+    "recall": 1.0,
+    "f1_score": 0.8571,
+    "evidence_grounding_rate": 1.0,
+    "locator_accuracy_rate": 1.0
+  },
+  "candidates": [
+    {
+      "candidate_id": "cand:3ca96016-aa9c-5e07-a627-937e637024d9:3:0fa102037477:fb46ff65c0",
+      "subject": "Customers",
+      "predicate": "may_return",
+      "object": "almost any physical product by January 31, 2027 for a full refund",
+      "modality": "PERMISSION",
+      "confidence": 0.98,
+      "evidence": "Return almost any physical product by January 31, 2027, for a full refund.",
+      "locator": {
+        "line_start": 7,
+        "line_end": 7,
+        "start_char": 171,
+        "end_char": 443,
+        "heading_path": [
+          "Microsoft Store Refund & Return Policy (Surface, Xbox, etc.)",
+          "Page 1"
+        ],
+        "paragraph_index": 3,
+        "filename": "Microsoft Store Refund & Return Policy (Surface, Xbox, etc.).pdf",
+        "file_extension": "pdf",
+        "file_size": 645667,
+        "document_type": "difficult_multicolumn",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:3ca96016-aa9c-5e07-a627-937e637024d9:9:62756528c9ab:b3782278af",
+      "subject": "Customers",
+      "predicate": "must_return_in_condition",
+      "object": "in like-new condition in its original packaging with all parts and documentation included",
+      "modality": "OBLIGATION",
+      "confidence": 0.98,
+      "evidence": "Ship the product back to us Using the label, return the product in like-new condition in its original packaging with all parts and documentation included.",
+      "locator": {
+        "line_start": 18,
+        "line_end": 18,
+        "start_char": 818,
+        "end_char": 976,
+        "heading_path": [
+          "Microsoft Store Refund & Return Policy (Surface, Xbox, etc.)",
+          "Page 2"
+        ],
+        "paragraph_index": 9,
+        "filename": "Microsoft Store Refund & Return Policy (Surface, Xbox, etc.).pdf",
+        "file_extension": "pdf",
+        "file_size": 645667,
+        "document_type": "difficult_multicolumn",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:3ca96016-aa9c-5e07-a627-937e637024d9:10:ef8bc48bbe45:a0b6bee899",
+      "subject": "Microsoft Store",
+      "predicate": "will_issue_refund",
+      "object": "refund to your original payment method within 3-5 business days",
+      "modality": "OBLIGATION",
+      "confidence": 0.98,
+      "evidence": "Give us a week to process your return Once we get the item back and confirm eligibility, we'll issue a refund to your original payment method within 3-5 business days.",
+      "locator": {
+        "line_start": 19,
+        "line_end": 19,
+        "start_char": 976,
+        "end_char": 1147,
+        "heading_path": [
+          "Microsoft Store Refund & Return Policy (Surface, Xbox, etc.)",
+          "Page 2"
+        ],
+        "paragraph_index": 10,
+        "filename": "Microsoft Store Refund & Return Policy (Surface, Xbox, etc.).pdf",
+        "file_extension": "pdf",
+        "file_size": 645667,
+        "document_type": "difficult_multicolumn",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:3ca96016-aa9c-5e07-a627-937e637024d9:38:fa86367c4827:222f24bab8",
+      "subject": "Microsoft Store",
+      "predicate": "has_refund_eligibility",
+      "object": "Learn about returns \ue76c Fast, free delivery Get your gifts in just a few days with free delivery.",
+      "modality": "POLICY_FACT",
+      "confidence": 0.9,
+      "evidence": "Learn about returns \ue76c Fast, free delivery Get your gifts in just a few days with free delivery.",
+      "locator": {
+        "line_start": 75,
+        "line_end": 75,
+        "start_char": 2605,
+        "end_char": 2731,
+        "heading_path": [
+          "Microsoft Store Refund & Return Policy (Surface, Xbox, etc.)",
+          "Page 4"
+        ],
+        "paragraph_index": 38,
+        "filename": "Microsoft Store Refund & Return Policy (Surface, Xbox, etc.).pdf",
+        "file_extension": "pdf",
+        "file_size": 645667,
+        "document_type": "difficult_multicolumn",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:3ca96016-aa9c-5e07-a627-937e637024d9:40:75d1c5b575a8:4837ab5dec",
+      "subject": "Return process",
+      "predicate": "must_be_started_within",
+      "object": "60 days after customer receives the product",
+      "modality": "OBLIGATION",
+      "confidence": 0.98,
+      "evidence": "Return process must be started within 60 days after customer receives the product.",
+      "locator": {
+        "line_start": 79,
+        "line_end": 79,
+        "start_char": 2898,
+        "end_char": 3936,
+        "heading_path": [
+          "Microsoft Store Refund & Return Policy (Surface, Xbox, etc.)",
+          "Page 4"
+        ],
+        "paragraph_index": 40,
+        "filename": "Microsoft Store Refund & Return Policy (Surface, Xbox, etc.).pdf",
+        "file_extension": "pdf",
+        "file_size": 645667,
+        "document_type": "difficult_multicolumn",
+        "sentence_index": 3
+      }
+    },
+    {
+      "candidate_id": "cand:3ca96016-aa9c-5e07-a627-937e637024d9:40:75d1c5b575a8:88c6998947",
+      "subject": "Product returns",
+      "predicate": "limited_to",
+      "object": "5 product returns per eligible customer purchase",
+      "modality": "OBLIGATION",
+      "confidence": 0.98,
+      "evidence": "Limit 5 product returns per eligible customer purchase.",
+      "locator": {
+        "line_start": 79,
+        "line_end": 79,
+        "start_char": 2898,
+        "end_char": 3936,
+        "heading_path": [
+          "Microsoft Store Refund & Return Policy (Surface, Xbox, etc.)",
+          "Page 4"
+        ],
+        "paragraph_index": 40,
+        "filename": "Microsoft Store Refund & Return Policy (Surface, Xbox, etc.).pdf",
+        "file_extension": "pdf",
+        "file_size": 645667,
+        "document_type": "difficult_multicolumn",
+        "sentence_index": 4
+      }
+    },
+    {
+      "candidate_id": "cand:3ca96016-aa9c-5e07-a627-937e637024d9:46:edb8d39cbb60:998cdee8d3",
+      "subject": "Both price adjustments",
+      "predicate": "has_definition",
+      "object": "Customer is eligible only if the product is in stock for purchase at Microsoft Store or a Microsoft Experience Center.",
+      "modality": "POLICY_FACT",
+      "confidence": 0.95,
+      "evidence": "Both price adjustments: Customer is eligible only if the product is in stock for purchase at Microsoft Store or a Microsoft Experience Center.",
+      "locator": {
+        "line_start": 91,
+        "line_end": 91,
+        "start_char": 6455,
+        "end_char": 6977,
+        "heading_path": [
+          "Microsoft Store Refund & Return Policy (Surface, Xbox, etc.)",
+          "Page 5"
+        ],
+        "paragraph_index": 46,
+        "filename": "Microsoft Store Refund & Return Policy (Surface, Xbox, etc.).pdf",
+        "file_extension": "pdf",
+        "file_size": 645667,
+        "document_type": "difficult_multicolumn",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:3ca96016-aa9c-5e07-a627-937e637024d9:46:edb8d39cbb60:19d2e05d2a",
+      "subject": "Customers",
+      "predicate": "must_contact",
+      "object": "Microsoft Store or a Microsoft Experience Center for price adjustments",
+      "modality": "OBLIGATION",
+      "confidence": 0.98,
+      "evidence": "Customer must contact Microsoft to request the adjustment.",
+      "locator": {
+        "line_start": 91,
+        "line_end": 91,
+        "start_char": 6455,
+        "end_char": 6977,
+        "heading_path": [
+          "Microsoft Store Refund & Return Policy (Surface, Xbox, etc.)",
+          "Page 5"
+        ],
+        "paragraph_index": 46,
+        "filename": "Microsoft Store Refund & Return Policy (Surface, Xbox, etc.).pdf",
+        "file_extension": "pdf",
+        "file_size": 645667,
+        "document_type": "difficult_multicolumn",
+        "sentence_index": 1
+      }
+    }
+  ]
+}

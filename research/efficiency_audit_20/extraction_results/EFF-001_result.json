@@ -1,0 +1,2003 @@
+{
+  "metadata": {
+    "document_id": "EFF-001",
+    "title": "Northwind Refund Policy Handbook",
+    "file_path": "docs/Northwind_Refund_Policy_Handbook.pdf",
+    "document_type": "policy",
+    "category": "policy",
+    "pages": 22,
+    "latency_seconds": 1.3597
+  },
+  "summary": {
+    "envelope_id": "402901c8-3509-5f0e-8a95-5efb3ca98fba",
+    "asset_id": "file://Northwind_Refund_Policy_Handbook.pdf",
+    "filename": "Northwind_Refund_Policy_Handbook.pdf",
+    "total_evidence_units": 282,
+    "candidates_discovered": 79,
+    "unique_claims_extracted": 77,
+    "claims_approved": 59,
+    "claims_review": 13,
+    "claims_rejected": 5,
+    "conflicts_detected": 0,
+    "persisted_claims_count": 0
+  },
+  "quality": {
+    "gold_claims": 83,
+    "true_positives": 72,
+    "false_positives": 1,
+    "false_negatives": 11,
+    "precision": 0.9863,
+    "recall": 0.8675,
+    "f1_score": 0.9231,
+    "evidence_grounding_rate": 1.0,
+    "locator_accuracy_rate": 1.0
+  },
+  "candidates": [
+    {
+      "candidate_id": "cand:402901c8-3509-5f0e-8a95-5efb3ca98fba:31:738a7e82443e:1aeb98956d",
+      "subject": "Business customer with standard account",
+      "predicate": "may_override_standard_terms",
+      "object": "override these terms)",
+      "modality": "PERMISSION",
+      "confidence": 0.96,
+      "evidence": "\u007f Business customers on standard accounts (custom contracts may override these terms).",
+      "locator": {
+        "line_start": 44,
+        "line_end": 44,
+        "start_char": 2267,
+        "end_char": 2354,
+        "heading_path": [
+          "Northwind",
+          "Page 3"
+        ],
+        "paragraph_index": 31,
+        "filename": "Northwind_Refund_Policy_Handbook.pdf",
+        "file_extension": "pdf",
+        "file_size": 43277,
+        "document_type": "policy",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:402901c8-3509-5f0e-8a95-5efb3ca98fba:34:6a3c40605e27:d25db711f7",
+      "subject": "Policy summary at a glance",
+      "predicate": "has_return_window",
+      "object": "30 days from delivery (60 days for Northwind Rewards Gold members) Refund speed 3-5 business days after we receive and inspect the return Return shipping Free for defective or incorrect items; $6.95 deducted otherwise Restocking fee None on most items; 15% on special-order and bulk items Final sale items Not eligible for refund or exchange",
+      "modality": "POLICY_FACT",
+      "confidence": 0.9,
+      "evidence": "30 days from delivery (60 days for Northwind Rewards Gold members) Refund speed 3-5 business days after we receive and inspect the return Return shipping Free for defective or incorrect items; $6.95 deducted otherwise Restocking fee None on most items; 15% on special-order and bulk items Final sale items Not eligible for refund or exchange",
+      "locator": {
+        "line_start": 48,
+        "line_end": 48,
+        "start_char": 2418,
+        "end_char": 2760,
+        "heading_path": [
+          "Northwind",
+          "Page 3",
+          "1.2 Policy summary at a glance"
+        ],
+        "paragraph_index": 34,
+        "filename": "Northwind_Refund_Policy_Handbook.pdf",
+        "file_extension": "pdf",
+        "file_size": 43277,
+        "document_type": "policy",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:402901c8-3509-5f0e-8a95-5efb3ca98fba:43:ffc3bfc3944d:6972f7d454",
+      "subject": "Northwind",
+      "predicate": "has_refund_eligibility",
+      "object": "RMA Return Merchandise Authorization number, e.g. RMA-2026-004815, required for mailed returns.",
+      "modality": "POLICY_FACT",
+      "confidence": 0.9,
+      "evidence": "RMA Return Merchandise Authorization number, e.g. RMA-2026-004815, required for mailed returns.",
+      "locator": {
+        "line_start": 66,
+        "line_end": 66,
+        "start_char": 3373,
+        "end_char": 3469,
+        "heading_path": [
+          "Northwind",
+          "Page 4"
+        ],
+        "paragraph_index": 43,
+        "filename": "Northwind_Refund_Policy_Handbook.pdf",
+        "file_extension": "pdf",
+        "file_size": 43277,
+        "document_type": "policy",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:402901c8-3509-5f0e-8a95-5efb3ca98fba:45:62ff00343dad:1136e311ca",
+      "subject": "Northwind",
+      "predicate": "has_refund_eligibility",
+      "object": "Final Sale Items marked 'Final Sale' at the time of purchase, which cannot be returned.",
+      "modality": "PROHIBITION",
+      "confidence": 0.85,
+      "evidence": "Final Sale Items marked 'Final Sale' at the time of purchase, which cannot be returned.",
+      "locator": {
+        "line_start": 70,
+        "line_end": 70,
+        "start_char": 3571,
+        "end_char": 3659,
+        "heading_path": [
+          "Northwind",
+          "Page 4"
+        ],
+        "paragraph_index": 45,
+        "filename": "Northwind_Refund_Policy_Handbook.pdf",
+        "file_extension": "pdf",
+        "file_size": 43277,
+        "document_type": "policy",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:402901c8-3509-5f0e-8a95-5efb3ca98fba:59:a0c531fe8458:a4a2656a17",
+      "subject": "Returns without a receipt",
+      "predicate": "has_return_channel_eligibility",
+      "object": "Returns without proof of purchase are accepted in-store only, for store credit at the lowest price the item was sold in the last 90 days.",
+      "modality": "POLICY_FACT",
+      "confidence": 0.9,
+      "evidence": "Returns without proof of purchase are accepted in-store only, for store credit at the lowest price the item was sold in the last 90 days.",
+      "locator": {
+        "line_start": 90,
+        "line_end": 90,
+        "start_char": 4734,
+        "end_char": 5006,
+        "heading_path": [
+          "Northwind",
+          "Page 5",
+          "3.2 Returns without a receipt"
+        ],
+        "paragraph_index": 59,
+        "filename": "Northwind_Refund_Policy_Handbook.pdf",
+        "file_extension": "pdf",
+        "file_size": 43277,
+        "document_type": "policy",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:402901c8-3509-5f0e-8a95-5efb3ca98fba:59:a0c531fe8458:27374c13a7",
+      "subject": "Returns without a receipt",
+      "predicate": "has_identity_verification_requirement",
+      "object": "A government-issued photo ID is required and scanned",
+      "modality": "POLICY_FACT",
+      "confidence": 0.9,
+      "evidence": "A government-issued photo ID is required and scanned.",
+      "locator": {
+        "line_start": 90,
+        "line_end": 90,
+        "start_char": 4734,
+        "end_char": 5006,
+        "heading_path": [
+          "Northwind",
+          "Page 5",
+          "3.2 Returns without a receipt"
+        ],
+        "paragraph_index": 59,
+        "filename": "Northwind_Refund_Policy_Handbook.pdf",
+        "file_extension": "pdf",
+        "file_size": 43277,
+        "document_type": "policy",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:402901c8-3509-5f0e-8a95-5efb3ca98fba:59:a0c531fe8458:6e3882238e",
+      "subject": "Returns without a receipt",
+      "predicate": "has_refund_eligibility",
+      "object": "A limit of three receipt-less returns per customer per 12-month period applies.",
+      "modality": "POLICY_FACT",
+      "confidence": 0.9,
+      "evidence": "A limit of three receipt-less returns per customer per 12-month period applies.",
+      "locator": {
+        "line_start": 90,
+        "line_end": 90,
+        "start_char": 4734,
+        "end_char": 5006,
+        "heading_path": [
+          "Northwind",
+          "Page 5",
+          "3.2 Returns without a receipt"
+        ],
+        "paragraph_index": 59,
+        "filename": "Northwind_Refund_Policy_Handbook.pdf",
+        "file_extension": "pdf",
+        "file_size": 43277,
+        "document_type": "policy",
+        "sentence_index": 2
+      }
+    },
+    {
+      "candidate_id": "cand:402901c8-3509-5f0e-8a95-5efb3ca98fba:64:19c2c94e74d7:5b1422b5d3",
+      "subject": "Support agents",
+      "predicate": "must_verify_refund_conditions",
+      "object": "verify each condition before approving a refund over $50.00",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "Support agents must verify each condition before approving a refund over $50.00.",
+      "locator": {
+        "line_start": 98,
+        "line_end": 98,
+        "start_char": 5398,
+        "end_char": 5584,
+        "heading_path": [
+          "Northwind",
+          "Page 6"
+        ],
+        "paragraph_index": 64,
+        "filename": "Northwind_Refund_Policy_Handbook.pdf",
+        "file_extension": "pdf",
+        "file_size": 43277,
+        "document_type": "policy",
+        "sentence_index": 2
+      }
+    },
+    {
+      "candidate_id": "cand:402901c8-3509-5f0e-8a95-5efb3ca98fba:68:71c0cf49fdee:45ecdf93bc",
+      "subject": "Refund request",
+      "predicate": "has_purchase_verification_requirement",
+      "object": "be verified in our systems",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "\u007f The order number or proof of purchase can be verified in our systems.",
+      "locator": {
+        "line_start": 106,
+        "line_end": 106,
+        "start_char": 5847,
+        "end_char": 5919,
+        "heading_path": [
+          "Northwind",
+          "Page 6"
+        ],
+        "paragraph_index": 68,
+        "filename": "Northwind_Refund_Policy_Handbook.pdf",
+        "file_extension": "pdf",
+        "file_size": 43277,
+        "document_type": "policy",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:402901c8-3509-5f0e-8a95-5efb3ca98fba:70:9b6bd53ed573:26c6b5e56a",
+      "subject": "Partial refunds A partial refund",
+      "predicate": "has_validity_rule",
+      "object": "be issued when an item shows signs of use beyond inspection, is missing parts, or is returned without original packaging",
+      "modality": "PERMISSION",
+      "confidence": 0.96,
+      "evidence": "4.1 Partial refunds A partial refund may be issued when an item shows signs of use beyond inspection, is missing parts, or is returned without original packaging.",
+      "locator": {
+        "line_start": 110,
+        "line_end": 110,
+        "start_char": 5980,
+        "end_char": 6179,
+        "heading_path": [
+          "Northwind",
+          "Page 6"
+        ],
+        "paragraph_index": 70,
+        "filename": "Northwind_Refund_Policy_Handbook.pdf",
+        "file_extension": "pdf",
+        "file_size": 43277,
+        "document_type": "policy",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:402901c8-3509-5f0e-8a95-5efb3ca98fba:72:7bac4628bfa4:adc0832fe8",
+      "subject": "Refund approval",
+      "predicate": "requires_approval_role",
+      "object": "Tier 1 Customer Support Agent",
+      "modality": "PERMISSION",
+      "confidence": 0.98,
+      "evidence": "4.2 Manager approval thresholds \u007f Up to $100: Tier 1 agent may approve.",
+      "locator": {
+        "line_start": 114,
+        "line_end": 114,
+        "start_char": 6531,
+        "end_char": 6603,
+        "heading_path": [
+          "Northwind",
+          "Page 6"
+        ],
+        "paragraph_index": 72,
+        "filename": "Northwind_Refund_Policy_Handbook.pdf",
+        "file_extension": "pdf",
+        "file_size": 43277,
+        "document_type": "policy",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:402901c8-3509-5f0e-8a95-5efb3ca98fba:73:ae588acbea28:7a7d35e593",
+      "subject": "Refund approval",
+      "predicate": "requires_approval_role",
+      "object": "Tier 2 Support Lead",
+      "modality": "OBLIGATION",
+      "confidence": 0.98,
+      "evidence": "\u007f $100.01 - $500: Tier 2 agent or team lead approval required.",
+      "locator": {
+        "line_start": 116,
+        "line_end": 116,
+        "start_char": 6604,
+        "end_char": 6667,
+        "heading_path": [
+          "Northwind",
+          "Page 6"
+        ],
+        "paragraph_index": 73,
+        "filename": "Northwind_Refund_Policy_Handbook.pdf",
+        "file_extension": "pdf",
+        "file_size": 43277,
+        "document_type": "policy",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:402901c8-3509-5f0e-8a95-5efb3ca98fba:74:84651033d052:c9dfe1f10c",
+      "subject": "Refund approval",
+      "predicate": "requires_approval_role",
+      "object": "Customer Experience Manager",
+      "modality": "OBLIGATION",
+      "confidence": 0.98,
+      "evidence": "\u007f Over $500: Customer Experience Manager approval required.",
+      "locator": {
+        "line_start": 118,
+        "line_end": 118,
+        "start_char": 6668,
+        "end_char": 6728,
+        "heading_path": [
+          "Northwind",
+          "Page 6"
+        ],
+        "paragraph_index": 74,
+        "filename": "Northwind_Refund_Policy_Handbook.pdf",
+        "file_extension": "pdf",
+        "file_size": 43277,
+        "document_type": "policy",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:402901c8-3509-5f0e-8a95-5efb3ca98fba:75:b50350774a90:0f0e3cc204",
+      "subject": "Refund approval",
+      "predicate": "requires_approval_role",
+      "object": "Finance Director",
+      "modality": "OBLIGATION",
+      "confidence": 0.98,
+      "evidence": "\u007f Over $2,000: Finance Director approval and fraud review required.",
+      "locator": {
+        "line_start": 120,
+        "line_end": 120,
+        "start_char": 6729,
+        "end_char": 6797,
+        "heading_path": [
+          "Northwind",
+          "Page 6"
+        ],
+        "paragraph_index": 75,
+        "filename": "Northwind_Refund_Policy_Handbook.pdf",
+        "file_extension": "pdf",
+        "file_size": 43277,
+        "document_type": "policy",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:402901c8-3509-5f0e-8a95-5efb3ca98fba:75:b50350774a90:5bbbe23a2c",
+      "subject": "Refund approval",
+      "predicate": "requires_fraud_review",
+      "object": "Secondary fraud review required",
+      "modality": "OBLIGATION",
+      "confidence": 0.98,
+      "evidence": "\u007f Over $2,000: Finance Director approval and fraud review required.",
+      "locator": {
+        "line_start": 120,
+        "line_end": 120,
+        "start_char": 6729,
+        "end_char": 6797,
+        "heading_path": [
+          "Northwind",
+          "Page 6"
+        ],
+        "paragraph_index": 75,
+        "filename": "Northwind_Refund_Policy_Handbook.pdf",
+        "file_extension": "pdf",
+        "file_size": 43277,
+        "document_type": "policy",
+        "sentence_index": 0,
+        "facet": "fraud_review"
+      }
+    },
+    {
+      "candidate_id": "cand:402901c8-3509-5f0e-8a95-5efb3ca98fba:85:fe68d28673cd:219554b655",
+      "subject": "Northwind",
+      "predicate": "has_refund_eligibility",
+      "object": "\u007f Perishable goods such as freeze-dried meals past 14 days from delivery.",
+      "modality": "POLICY_FACT",
+      "confidence": 0.9,
+      "evidence": "\u007f Perishable goods such as freeze-dried meals past 14 days from delivery.",
+      "locator": {
+        "line_start": 140,
+        "line_end": 140,
+        "start_char": 7521,
+        "end_char": 7595,
+        "heading_path": [
+          "Northwind",
+          "Page 7"
+        ],
+        "paragraph_index": 85,
+        "filename": "Northwind_Refund_Policy_Handbook.pdf",
+        "file_extension": "pdf",
+        "file_size": 43277,
+        "document_type": "policy",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:402901c8-3509-5f0e-8a95-5efb3ca98fba:87:0d9fa328ea85:00a52f075a",
+      "subject": "Northwind",
+      "predicate": "has_refund_eligibility",
+      "object": "\u007f Items returned more than 90 days after delivery.",
+      "modality": "POLICY_FACT",
+      "confidence": 0.9,
+      "evidence": "\u007f Items returned more than 90 days after delivery.",
+      "locator": {
+        "line_start": 144,
+        "line_end": 144,
+        "start_char": 7666,
+        "end_char": 7717,
+        "heading_path": [
+          "Northwind",
+          "Page 7"
+        ],
+        "paragraph_index": 87,
+        "filename": "Northwind_Refund_Policy_Handbook.pdf",
+        "file_extension": "pdf",
+        "file_size": 43277,
+        "document_type": "policy",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:402901c8-3509-5f0e-8a95-5efb3ca98fba:88:c12a80515311:f13883b726",
+      "subject": "Customers",
+      "predicate": "has_validity_rule",
+      "object": "be resold",
+      "modality": "PROHIBITION",
+      "confidence": 0.96,
+      "evidence": "Custom products are made specifically for the customer and cannot be resold.",
+      "locator": {
+        "line_start": 146,
+        "line_end": 146,
+        "start_char": 7718,
+        "end_char": 7972,
+        "heading_path": [
+          "Northwind",
+          "Page 7"
+        ],
+        "paragraph_index": 88,
+        "filename": "Northwind_Refund_Policy_Handbook.pdf",
+        "file_extension": "pdf",
+        "file_size": 43277,
+        "document_type": "policy",
+        "sentence_index": 2
+      }
+    },
+    {
+      "candidate_id": "cand:402901c8-3509-5f0e-8a95-5efb3ca98fba:90:23bfe8fedfdf:ff5aea89fd",
+      "subject": "Even for non-refundable items, a full refund or replacement",
+      "predicate": "will_issue_refund",
+      "object": "be provided if the item arrives damaged, is materially different from its description, or was shipped in error",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "Even for non-refundable items, a full refund or replacement will be provided if the item arrives damaged, is materially different from its description, or was shipped in error.",
+      "locator": {
+        "line_start": 148,
+        "line_end": 148,
+        "start_char": 7991,
+        "end_char": 8227,
+        "heading_path": [
+          "Northwind",
+          "Page 7",
+          "5.2 Exceptions"
+        ],
+        "paragraph_index": 90,
+        "filename": "Northwind_Refund_Policy_Handbook.pdf",
+        "file_extension": "pdf",
+        "file_size": 43277,
+        "document_type": "policy",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:402901c8-3509-5f0e-8a95-5efb3ca98fba:102:bb87dedb3bbe:0eb4cb5d2d",
+      "subject": "In store",
+      "predicate": "has_return_window",
+      "object": "In-store refunds to the original card are processed immediately; the bank may take 3-5 days to post the credit.",
+      "modality": "PERMISSION",
+      "confidence": 0.85,
+      "evidence": "In-store refunds to the original card are processed immediately; the bank may take 3-5 days to post the credit.",
+      "locator": {
+        "line_start": 168,
+        "line_end": 168,
+        "start_char": 9090,
+        "end_char": 9286,
+        "heading_path": [
+          "Northwind",
+          "Page 8",
+          "6.3 In store"
+        ],
+        "paragraph_index": 102,
+        "filename": "Northwind_Refund_Policy_Handbook.pdf",
+        "file_extension": "pdf",
+        "file_size": 43277,
+        "document_type": "policy",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:402901c8-3509-5f0e-8a95-5efb3ca98fba:109:c2be53c5d932:386dfd12b2",
+      "subject": "Northwind: Page 9",
+      "predicate": "has_refund_eligibility",
+      "object": "up to 1 hour by phone Return transit to warehouse 3-7 business days (domestic) Warehouse receipt and inspection 1-2 business days Refund approved and issued Within 1 business day of inspection Credit card refund posted by bank 3-5 business days Debit card / bank transfer 5-10 business days PayPal.",
+      "modality": "POLICY_FACT",
+      "confidence": 0.94,
+      "evidence": "up to 1 hour by phone Return transit to warehouse 3-7 business days (domestic) Warehouse receipt and inspection 1-2 business days Refund approved and issued Within 1 business day of inspection Credit card refund posted by bank 3-5 business days Debit card / bank transfer 5-10 business days PayPal.",
+      "locator": {
+        "line_start": 180,
+        "line_end": 180,
+        "start_char": 9845,
+        "end_char": 10309,
+        "heading_path": [
+          "Northwind",
+          "Page 9"
+        ],
+        "paragraph_index": 109,
+        "filename": "Northwind_Refund_Policy_Handbook.pdf",
+        "file_extension": "pdf",
+        "file_size": 43277,
+        "document_type": "policy"
+      }
+    },
+    {
+      "candidate_id": "cand:402901c8-3509-5f0e-8a95-5efb3ca98fba:116:e1cafb2b7590:e1702d7f72",
+      "subject": "Refund",
+      "predicate": "has_default_refund_destination",
+      "object": "Original payment method whenever possible",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "Original payment Refund method Notes Visa / Mastercard / Amex Original card 3-5 business days to post Debit card Original card Up to 10 business days PayPal PayPal balance Usually within 24 hours Apple Pay / Google Pay Underlying card Same as card Buy Now Pay Later (e.g. Klarna) Provider reduces balance Provider timelines apply Gift card New gift card or store credit Instant Cash (in-store) Cash up to $50, then store credit/card ID required over $50 Split payments Proportionally to each method Gift card portion first",
+      "locator": {
+        "line_start": 192,
+        "line_end": 192,
+        "start_char": 11135,
+        "end_char": 11658,
+        "heading_path": [
+          "Northwind",
+          "Page 10"
+        ],
+        "paragraph_index": 116,
+        "filename": "Northwind_Refund_Policy_Handbook.pdf",
+        "file_extension": "pdf",
+        "file_size": 43277,
+        "document_type": "policy",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:402901c8-3509-5f0e-8a95-5efb3ca98fba:118:d2060256ff89:35512d5a43",
+      "subject": "Bonus credit",
+      "predicate": "has_validity_rule",
+      "object": "be applied retroactively once a refund has been issued to the card",
+      "modality": "PROHIBITION",
+      "confidence": 0.96,
+      "evidence": "Bonus credit cannot be applied retroactively once a refund has been issued to the card.",
+      "locator": {
+        "line_start": 195,
+        "line_end": 195,
+        "start_char": 11686,
+        "end_char": 11967,
+        "heading_path": [
+          "Northwind",
+          "Page 10",
+          "8.1 Store credit bonus"
+        ],
+        "paragraph_index": 118,
+        "filename": "Northwind_Refund_Policy_Handbook.pdf",
+        "file_extension": "pdf",
+        "file_size": 43277,
+        "document_type": "policy",
+        "sentence_index": 2
+      }
+    },
+    {
+      "candidate_id": "cand:402901c8-3509-5f0e-8a95-5efb3ca98fba:125:7b749a6f3e0b:e502f9e7e6",
+      "subject": "Northwind",
+      "predicate": "has_refund_eligibility",
+      "object": "Return label cost Defective or damaged Yes, in full Free Wrong item sent Yes, in full Free Not as described Yes, in full Free Changed mind / wrong size No $6.95 deducted from refund Gold member, any reason No Free Exchange N/A Free both ways Order over $150, any reason No Free",
+      "modality": "POLICY_FACT",
+      "confidence": 0.9,
+      "evidence": "Return label cost Defective or damaged Yes, in full Free Wrong item sent Yes, in full Free Not as described Yes, in full Free Changed mind / wrong size No $6.95 deducted from refund Gold member, any reason No Free Exchange N/A Free both ways Order over $150, any reason No Free",
+      "locator": {
+        "line_start": 207,
+        "line_end": 207,
+        "start_char": 12475,
+        "end_char": 12753,
+        "heading_path": [
+          "Northwind",
+          "Page 11"
+        ],
+        "paragraph_index": 125,
+        "filename": "Northwind_Refund_Policy_Handbook.pdf",
+        "file_extension": "pdf",
+        "file_size": 43277,
+        "document_type": "policy",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:402901c8-3509-5f0e-8a95-5efb3ca98fba:127:5c7041a7d3aa:eab5b4923c",
+      "subject": "Oversize items",
+      "predicate": "has_refund_eligibility",
+      "object": "Return freight for change-of-mind returns is a flat $49.00, deducted from the refund.",
+      "modality": "POLICY_FACT",
+      "confidence": 0.9,
+      "evidence": "Return freight for change-of-mind returns is a flat $49.00, deducted from the refund.",
+      "locator": {
+        "line_start": 210,
+        "line_end": 210,
+        "start_char": 12777,
+        "end_char": 13027,
+        "heading_path": [
+          "Northwind",
+          "Page 11",
+          "9.1 Oversize items"
+        ],
+        "paragraph_index": 127,
+        "filename": "Northwind_Refund_Policy_Handbook.pdf",
+        "file_extension": "pdf",
+        "file_size": 43277,
+        "document_type": "policy",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:402901c8-3509-5f0e-8a95-5efb3ca98fba:127:5c7041a7d3aa:428666260e",
+      "subject": "Freight pickups",
+      "predicate": "scheduled",
+      "object": "with our logistics team at least 3 business days in advance",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "Freight pickups must be scheduled with our logistics team at least 3 business days in advance.",
+      "locator": {
+        "line_start": 210,
+        "line_end": 210,
+        "start_char": 12777,
+        "end_char": 13027,
+        "heading_path": [
+          "Northwind",
+          "Page 11",
+          "9.1 Oversize items"
+        ],
+        "paragraph_index": 127,
+        "filename": "Northwind_Refund_Policy_Handbook.pdf",
+        "file_extension": "pdf",
+        "file_size": 43277,
+        "document_type": "policy",
+        "sentence_index": 2
+      }
+    },
+    {
+      "candidate_id": "cand:402901c8-3509-5f0e-8a95-5efb3ca98fba:129:266249fc8f6a:3577553408",
+      "subject": "Customers",
+      "predicate": "use",
+      "object": "their own carrier",
+      "modality": "PERMISSION",
+      "confidence": 0.96,
+      "evidence": "Customers may use their own carrier.",
+      "locator": {
+        "line_start": 212,
+        "line_end": 212,
+        "start_char": 13058,
+        "end_char": 13313,
+        "heading_path": [
+          "Northwind",
+          "Page 11",
+          "9.2 Using your own carrier"
+        ],
+        "paragraph_index": 129,
+        "filename": "Northwind_Refund_Policy_Handbook.pdf",
+        "file_extension": "pdf",
+        "file_size": 43277,
+        "document_type": "policy",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:402901c8-3509-5f0e-8a95-5efb3ca98fba:129:266249fc8f6a:7f0319170e",
+      "subject": "Reimbursement for carrier costs is",
+      "predicate": "limited_to",
+      "object": "$12.00 and only for approved defective returns, with a receipt",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "Reimbursement for carrier costs is limited to $12.00 and only for approved defective returns, with a receipt.",
+      "locator": {
+        "line_start": 212,
+        "line_end": 212,
+        "start_char": 13058,
+        "end_char": 13313,
+        "heading_path": [
+          "Northwind",
+          "Page 11",
+          "9.2 Using your own carrier"
+        ],
+        "paragraph_index": 129,
+        "filename": "Northwind_Refund_Policy_Handbook.pdf",
+        "file_extension": "pdf",
+        "file_size": 43277,
+        "document_type": "policy",
+        "sentence_index": 2
+      }
+    },
+    {
+      "candidate_id": "cand:402901c8-3509-5f0e-8a95-5efb3ca98fba:131:9ad8389a2d33:be91d84dd2",
+      "subject": "Prepaid labels",
+      "predicate": "has_validity_rule",
+      "object": "be dropped at over 15,000 carrier locations and all Northwind stores",
+      "modality": "PERMISSION",
+      "confidence": 0.96,
+      "evidence": "Prepaid labels can be dropped at over 15,000 carrier locations and all Northwind stores.",
+      "locator": {
+        "line_start": 214,
+        "line_end": 214,
+        "start_char": 13340,
+        "end_char": 13493,
+        "heading_path": [
+          "Northwind",
+          "Page 11",
+          "9.3 Drop-off locations"
+        ],
+        "paragraph_index": 131,
+        "filename": "Northwind_Refund_Policy_Handbook.pdf",
+        "file_extension": "pdf",
+        "file_size": 43277,
+        "document_type": "policy",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:402901c8-3509-5f0e-8a95-5efb3ca98fba:131:9ad8389a2d33:508d9a3333",
+      "subject": "Drop-off locations",
+      "predicate": "has_refund_eligibility",
+      "object": "Keep the drop-off receipt until your refund has been confirmed.",
+      "modality": "POLICY_FACT",
+      "confidence": 0.9,
+      "evidence": "Keep the drop-off receipt until your refund has been confirmed.",
+      "locator": {
+        "line_start": 214,
+        "line_end": 214,
+        "start_char": 13340,
+        "end_char": 13493,
+        "heading_path": [
+          "Northwind",
+          "Page 11",
+          "9.3 Drop-off locations"
+        ],
+        "paragraph_index": 131,
+        "filename": "Northwind_Refund_Policy_Handbook.pdf",
+        "file_extension": "pdf",
+        "file_size": 43277,
+        "document_type": "policy",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:402901c8-3509-5f0e-8a95-5efb3ca98fba:142:35beda587494:83713fe38b",
+      "subject": "Damaged item valued under $40",
+      "predicate": "may_issue_refund_without_return",
+      "object": "Damaged items under $40 may be refunded without return",
+      "modality": "PERMISSION",
+      "confidence": 0.48,
+      "evidence": "Option Details Timeline Replacement Same item shipped with free expedited shipping 2-3 business days Full refund Item price plus shipping and tax 3-5 business days Partial refund (keep item) Offered for minor cosmetic flaws Immediate Repair For eligible products under warranty 7-14 business days For damaged items valued under $40.00, we may issue a refund without requiring the item to be returned (\"Keep It\" policy), at the agent's discretion.",
+      "locator": {
+        "line_start": 232,
+        "line_end": 232,
+        "start_char": 14294,
+        "end_char": 14797,
+        "heading_path": [
+          "Northwind",
+          "Page 12",
+          "10.3 Resolution options"
+        ],
+        "paragraph_index": 142,
+        "filename": "Northwind_Refund_Policy_Handbook.pdf",
+        "file_extension": "pdf",
+        "file_size": 43277,
+        "document_type": "policy",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:402901c8-3509-5f0e-8a95-5efb3ca98fba:142:35beda587494:60e4233f90",
+      "subject": "This is",
+      "predicate": "limited_to",
+      "object": "two instances per customer per year",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "This is limited to two instances per customer per year.",
+      "locator": {
+        "line_start": 232,
+        "line_end": 232,
+        "start_char": 14294,
+        "end_char": 14797,
+        "heading_path": [
+          "Northwind",
+          "Page 12",
+          "10.3 Resolution options"
+        ],
+        "paragraph_index": 142,
+        "filename": "Northwind_Refund_Policy_Handbook.pdf",
+        "file_extension": "pdf",
+        "file_size": 43277,
+        "document_type": "policy",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:402901c8-3509-5f0e-8a95-5efb3ca98fba:145:4b37106d99e5:f8051ec1c5",
+      "subject": "Northwind",
+      "predicate": "has_refund_eligibility",
+      "object": "Once an order has shipped, it must be handled as a return.",
+      "modality": "OBLIGATION",
+      "confidence": 0.85,
+      "evidence": "Once an order has shipped, it must be handled as a return.",
+      "locator": {
+        "line_start": 238,
+        "line_end": 238,
+        "start_char": 14894,
+        "end_char": 15030,
+        "heading_path": [
+          "Northwind",
+          "Page 13"
+        ],
+        "paragraph_index": 145,
+        "filename": "Northwind_Refund_Policy_Handbook.pdf",
+        "file_extension": "pdf",
+        "file_size": 43277,
+        "document_type": "policy",
+        "sentence_index": 2
+      }
+    },
+    {
+      "candidate_id": "cand:402901c8-3509-5f0e-8a95-5efb3ca98fba:147:cef586c4edcf:a3abd6eb09",
+      "subject": "Northwind",
+      "predicate": "has_return_window",
+      "object": "Refund Pending (within 1 hour) Yes - self-service Full refund, immediate release of authorisation Processing Yes - contact support Full refund within 3-5 days Packed, not shipped Attempted - not guaranteed Full refund if stopped, else return Shipped No Refuse delivery or return Delivered No Standard return policy Pre-order Yes, until 7 days before release Full refund Backordered Yes, anytime Full refund",
+      "modality": "POLICY_FACT",
+      "confidence": 0.9,
+      "evidence": "Refund Pending (within 1 hour) Yes - self-service Full refund, immediate release of authorisation Processing Yes - contact support Full refund within 3-5 days Packed, not shipped Attempted - not guaranteed Full refund if stopped, else return Shipped No Refuse delivery or return Delivered No Standard return policy Pre-order Yes, until 7 days before release Full refund Backordered Yes, anytime Full refund",
+      "locator": {
+        "line_start": 242,
+        "line_end": 242,
+        "start_char": 15066,
+        "end_char": 15473,
+        "heading_path": [
+          "Northwind",
+          "Page 13"
+        ],
+        "paragraph_index": 147,
+        "filename": "Northwind_Refund_Policy_Handbook.pdf",
+        "file_extension": "pdf",
+        "file_size": 43277,
+        "document_type": "policy",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:402901c8-3509-5f0e-8a95-5efb3ca98fba:149:91a93cf08ec3:129974081c",
+      "subject": "Northwind We",
+      "predicate": "cancel",
+      "object": "an order for reasons including stock errors, pricing errors, suspected fraud, or inability to verify payment",
+      "modality": "PERMISSION",
+      "confidence": 0.96,
+      "evidence": "Northwind We may cancel an order for reasons including stock errors, pricing errors, suspected fraud, or inability to verify payment.",
+      "locator": {
+        "line_start": 245,
+        "line_end": 245,
+        "start_char": 15500,
+        "end_char": 15796,
+        "heading_path": [
+          "Northwind",
+          "Page 13",
+          "11.1 Cancellations by"
+        ],
+        "paragraph_index": 149,
+        "filename": "Northwind_Refund_Policy_Handbook.pdf",
+        "file_extension": "pdf",
+        "file_size": 43277,
+        "document_type": "policy",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:402901c8-3509-5f0e-8a95-5efb3ca98fba:151:c0ba7b1b3cf1:b7813515cf",
+      "subject": "Price adjustments",
+      "predicate": "has_return_window",
+      "object": "If an item you purchased drops in price within 14 days of purchase, contact us for a one-time price adjustment refund of the difference.",
+      "modality": "POLICY_FACT",
+      "confidence": 0.9,
+      "evidence": "If an item you purchased drops in price within 14 days of purchase, contact us for a one-time price adjustment refund of the difference.",
+      "locator": {
+        "line_start": 247,
+        "line_end": 247,
+        "start_char": 15823,
+        "end_char": 16056,
+        "heading_path": [
+          "Northwind",
+          "Page 13",
+          "11.2 Price adjustments"
+        ],
+        "paragraph_index": 151,
+        "filename": "Northwind_Refund_Policy_Handbook.pdf",
+        "file_extension": "pdf",
+        "file_size": 43277,
+        "document_type": "policy",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:402901c8-3509-5f0e-8a95-5efb3ca98fba:155:f9a99eb2ccd2:ea4b7cb19d",
+      "subject": "Northwind",
+      "predicate": "has_return_window",
+      "object": "Subscription Billing Cancellation Refund rule Trailhead Box Monthly, 1st of month Anytime before the 25th Full refund if cancelled within 48 hours of renewal and box not shipped Rewards Plus Annual Anytime Pro-rated refund within 30 days of renewal; none afterwards Gear Care Plan Monthly Anytime No refund for current month; cancel effective next cycle",
+      "modality": "POLICY_FACT",
+      "confidence": 0.9,
+      "evidence": "Subscription Billing Cancellation Refund rule Trailhead Box Monthly, 1st of month Anytime before the 25th Full refund if cancelled within 48 hours of renewal and box not shipped Rewards Plus Annual Anytime Pro-rated refund within 30 days of renewal; none afterwards Gear Care Plan Monthly Anytime No refund for current month; cancel effective next cycle",
+      "locator": {
+        "line_start": 255,
+        "line_end": 255,
+        "start_char": 16342,
+        "end_char": 16696,
+        "heading_path": [
+          "Northwind",
+          "Page 14"
+        ],
+        "paragraph_index": 155,
+        "filename": "Northwind_Refund_Policy_Handbook.pdf",
+        "file_extension": "pdf",
+        "file_size": 43277,
+        "document_type": "policy",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:402901c8-3509-5f0e-8a95-5efb3ca98fba:157:a5aeba23b922:0b13894180",
+      "subject": "Users",
+      "predicate": "can_cancel_before_shipment",
+      "object": "be charged",
+      "modality": "PERMISSION",
+      "confidence": 0.96,
+      "evidence": "If you cancel before the trial ends, you will not be charged.",
+      "locator": {
+        "line_start": 258,
+        "line_end": 258,
+        "start_char": 16718,
+        "end_char": 16926,
+        "heading_path": [
+          "Northwind",
+          "Page 14",
+          "12.1 Free trials"
+        ],
+        "paragraph_index": 157,
+        "filename": "Northwind_Refund_Policy_Handbook.pdf",
+        "file_extension": "pdf",
+        "file_size": 43277,
+        "document_type": "policy",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:402901c8-3509-5f0e-8a95-5efb3ca98fba:157:a5aeba23b922:781bd93b02",
+      "subject": "Free trials",
+      "predicate": "has_return_window",
+      "object": "If you forget to cancel and are charged, contact us within 7 days for a full refund of the first charge.",
+      "modality": "POLICY_FACT",
+      "confidence": 0.9,
+      "evidence": "If you forget to cancel and are charged, contact us within 7 days for a full refund of the first charge.",
+      "locator": {
+        "line_start": 258,
+        "line_end": 258,
+        "start_char": 16718,
+        "end_char": 16926,
+        "heading_path": [
+          "Northwind",
+          "Page 14",
+          "12.1 Free trials"
+        ],
+        "paragraph_index": 157,
+        "filename": "Northwind_Refund_Policy_Handbook.pdf",
+        "file_extension": "pdf",
+        "file_size": 43277,
+        "document_type": "policy",
+        "sentence_index": 2
+      }
+    },
+    {
+      "candidate_id": "cand:402901c8-3509-5f0e-8a95-5efb3ca98fba:159:9c06edd5041e:2e03119eae",
+      "subject": "Users",
+      "predicate": "has_return_window",
+      "object": "a reminder due to an invalid email address, we will treat the renewal as accidental and refund in full within 30 days.",
+      "modality": "OBLIGATION",
+      "confidence": 0.94,
+      "evidence": "If you did not receive a reminder due to an invalid email address, we will treat the renewal as accidental and refund in full within 30 days.",
+      "locator": {
+        "line_start": 260,
+        "line_end": 260,
+        "start_char": 16955,
+        "end_char": 17154,
+        "heading_path": [
+          "Northwind",
+          "Page 14",
+          "12.2 Accidental renewals"
+        ],
+        "paragraph_index": 159,
+        "filename": "Northwind_Refund_Policy_Handbook.pdf",
+        "file_extension": "pdf",
+        "file_size": 43277,
+        "document_type": "policy"
+      }
+    },
+    {
+      "candidate_id": "cand:402901c8-3509-5f0e-8a95-5efb3ca98fba:161:37ee51f31f54:d988bf64fe",
+      "subject": "Trailhead Box subscribers",
+      "predicate": "pause",
+      "object": "for up to 3 months, once per year, from the account page",
+      "modality": "PERMISSION",
+      "confidence": 0.96,
+      "evidence": "Trailhead Box subscribers can pause for up to 3 months, once per year, from the account page.",
+      "locator": {
+        "line_start": 262,
+        "line_end": 262,
+        "start_char": 17193,
+        "end_char": 17324,
+        "heading_path": [
+          "Northwind",
+          "Page 14",
+          "12.3 Pausing instead of cancelling"
+        ],
+        "paragraph_index": 161,
+        "filename": "Northwind_Refund_Policy_Handbook.pdf",
+        "file_extension": "pdf",
+        "file_size": 43277,
+        "document_type": "policy",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:402901c8-3509-5f0e-8a95-5efb3ca98fba:166:732a25bc5fcb:96eccf76e4",
+      "subject": "Video course",
+      "predicate": "has_refund_window",
+      "object": "Refunded within 7 days if under 20% viewed",
+      "modality": "PERMISSION",
+      "confidence": 0.48,
+      "evidence": "Digital goods such as trail guides (PDF), camping-skills video courses, and map packs are non-refundable after download or streaming begins.",
+      "locator": {
+        "line_start": 270,
+        "line_end": 270,
+        "start_char": 17486,
+        "end_char": 17741,
+        "heading_path": [
+          "Northwind",
+          "13. Digital Products and Gift Cards",
+          "13.1 Digital products"
+        ],
+        "paragraph_index": 166,
+        "filename": "Northwind_Refund_Policy_Handbook.pdf",
+        "file_extension": "pdf",
+        "file_size": 43277,
+        "document_type": "policy",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:402901c8-3509-5f0e-8a95-5efb3ca98fba:166:732a25bc5fcb:a2fc054303",
+      "subject": "Corrupt or inaccessible digital product",
+      "predicate": "has_refund_window",
+      "object": "Full refund within 14 days for corrupt or inaccessible files",
+      "modality": "PERMISSION",
+      "confidence": 0.96,
+      "evidence": "If a file is corrupt or inaccessible, we will provide a working copy or a full refund within 14 days of purchase.",
+      "locator": {
+        "line_start": 270,
+        "line_end": 270,
+        "start_char": 17486,
+        "end_char": 17741,
+        "heading_path": [
+          "Northwind",
+          "13. Digital Products and Gift Cards",
+          "13.1 Digital products"
+        ],
+        "paragraph_index": 166,
+        "filename": "Northwind_Refund_Policy_Handbook.pdf",
+        "file_extension": "pdf",
+        "file_size": 43277,
+        "document_type": "policy",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:402901c8-3509-5f0e-8a95-5efb3ca98fba:168:a5e37126e34b:6e9acc01ee",
+      "subject": "Gift cards",
+      "predicate": "has_refund_eligibility",
+      "object": "13.2 Gift cards \u007f Gift cards are not refundable for cash, except where required by law (e.g. California, balances under $10).",
+      "modality": "POLICY_FACT",
+      "confidence": 0.9,
+      "evidence": "13.2 Gift cards \u007f Gift cards are not refundable for cash, except where required by law (e.g. California, balances under $10).",
+      "locator": {
+        "line_start": 274,
+        "line_end": 274,
+        "start_char": 17836,
+        "end_char": 17962,
+        "heading_path": [
+          "Northwind",
+          "13. Digital Products and Gift Cards",
+          "13.1 Digital products"
+        ],
+        "paragraph_index": 168,
+        "filename": "Northwind_Refund_Policy_Handbook.pdf",
+        "file_extension": "pdf",
+        "file_size": 43277,
+        "document_type": "policy",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:402901c8-3509-5f0e-8a95-5efb3ca98fba:169:114dccebd54c:aa3e600b4f",
+      "subject": "Gift cards",
+      "predicate": "has_expiration_and_fee_rule",
+      "object": "\u007f Gift cards never expire and carry no fees.",
+      "modality": "POLICY_FACT",
+      "confidence": 0.9,
+      "evidence": "\u007f Gift cards never expire and carry no fees.",
+      "locator": {
+        "line_start": 276,
+        "line_end": 276,
+        "start_char": 17963,
+        "end_char": 18008,
+        "heading_path": [
+          "Northwind",
+          "13. Digital Products and Gift Cards",
+          "13.1 Digital products"
+        ],
+        "paragraph_index": 169,
+        "filename": "Northwind_Refund_Policy_Handbook.pdf",
+        "file_extension": "pdf",
+        "file_size": 43277,
+        "document_type": "policy",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:402901c8-3509-5f0e-8a95-5efb3ca98fba:170:6f4315faf401:afb9093c6c",
+      "subject": "Gift cards",
+      "predicate": "has_replacement_eligibility",
+      "object": "Replaced with original proof of purchase and remaining balance verifiable",
+      "modality": "POLICY_FACT",
+      "confidence": 0.96,
+      "evidence": "\u007f Lost or stolen gift cards can be replaced if the card number is provided, minus any used balance.",
+      "locator": {
+        "line_start": 278,
+        "line_end": 278,
+        "start_char": 18009,
+        "end_char": 18109,
+        "heading_path": [
+          "Northwind",
+          "13. Digital Products and Gift Cards",
+          "13.1 Digital products"
+        ],
+        "paragraph_index": 170,
+        "filename": "Northwind_Refund_Policy_Handbook.pdf",
+        "file_extension": "pdf",
+        "file_size": 43277,
+        "document_type": "policy",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:402901c8-3509-5f0e-8a95-5efb3ca98fba:171:602a8c58fa03:63e118cc0f",
+      "subject": "Gift cards",
+      "predicate": "can_cancel_before_shipment",
+      "object": "be cancelled once the code is delivered by email",
+      "modality": "PERMISSION",
+      "confidence": 0.96,
+      "evidence": "\u007f Gift card purchases cannot be cancelled once the code is delivered by email.",
+      "locator": {
+        "line_start": 280,
+        "line_end": 280,
+        "start_char": 18110,
+        "end_char": 18189,
+        "heading_path": [
+          "Northwind",
+          "13. Digital Products and Gift Cards",
+          "13.1 Digital products"
+        ],
+        "paragraph_index": 171,
+        "filename": "Northwind_Refund_Policy_Handbook.pdf",
+        "file_extension": "pdf",
+        "file_size": 43277,
+        "document_type": "policy",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:402901c8-3509-5f0e-8a95-5efb3ca98fba:174:7a27f9e58d51:62e1176702",
+      "subject": "Gift receipt",
+      "predicate": "has_refund_method",
+      "object": "return items with a gift receipt for store credit equal to the price paid, or exchange for another item",
+      "modality": "PERMISSION",
+      "confidence": 0.96,
+      "evidence": "Gift recipients can return items with a gift receipt for store credit equal to the price paid, or exchange for another item.",
+      "locator": {
+        "line_start": 285,
+        "line_end": 285,
+        "start_char": 18328,
+        "end_char": 18575,
+        "heading_path": [
+          "Northwind",
+          "13. Digital Products and Gift Cards",
+          "13.3 Returning a gift"
+        ],
+        "paragraph_index": 174,
+        "filename": "Northwind_Refund_Policy_Handbook.pdf",
+        "file_extension": "pdf",
+        "file_size": 43277,
+        "document_type": "policy",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:402901c8-3509-5f0e-8a95-5efb3ca98fba:174:7a27f9e58d51:d3078f5fba",
+      "subject": "Gift receipt",
+      "predicate": "has_refund_eligibility",
+      "object": "The purchaser is not notified of the return.",
+      "modality": "POLICY_FACT",
+      "confidence": 0.9,
+      "evidence": "The purchaser is not notified of the return.",
+      "locator": {
+        "line_start": 285,
+        "line_end": 285,
+        "start_char": 18328,
+        "end_char": 18575,
+        "heading_path": [
+          "Northwind",
+          "13. Digital Products and Gift Cards",
+          "13.3 Returning a gift"
+        ],
+        "paragraph_index": 174,
+        "filename": "Northwind_Refund_Policy_Handbook.pdf",
+        "file_extension": "pdf",
+        "file_size": 43277,
+        "document_type": "policy",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:402901c8-3509-5f0e-8a95-5efb3ca98fba:174:7a27f9e58d51:c7a098d396",
+      "subject": "Gift receipt",
+      "predicate": "may_receive_store_credit",
+      "object": "Without a gift receipt, credit is issued at the lowest recent selling price.",
+      "modality": "POLICY_FACT",
+      "confidence": 0.9,
+      "evidence": "Without a gift receipt, credit is issued at the lowest recent selling price.",
+      "locator": {
+        "line_start": 285,
+        "line_end": 285,
+        "start_char": 18328,
+        "end_char": 18575,
+        "heading_path": [
+          "Northwind",
+          "13. Digital Products and Gift Cards",
+          "13.3 Returning a gift"
+        ],
+        "paragraph_index": 174,
+        "filename": "Northwind_Refund_Policy_Handbook.pdf",
+        "file_extension": "pdf",
+        "file_size": 43277,
+        "document_type": "policy",
+        "sentence_index": 2
+      }
+    },
+    {
+      "candidate_id": "cand:402901c8-3509-5f0e-8a95-5efb3ca98fba:181:38254ba76985:bb0da15e81",
+      "subject": "Northwind",
+      "predicate": "has_refund_eligibility",
+      "object": "2 years Repair, replace or refund Sleeping bags Lifetime (manufacturing defects) Repair or replace Backpacks",
+      "modality": "POLICY_FACT",
+      "confidence": 0.9,
+      "evidence": "2 years Repair, replace or refund Sleeping bags Lifetime (manufacturing defects) Repair or replace Backpacks",
+      "locator": {
+        "line_start": 297,
+        "line_end": 297,
+        "start_char": 19114,
+        "end_char": 19223,
+        "heading_path": [
+          "Northwind",
+          "Page 16"
+        ],
+        "paragraph_index": 181,
+        "filename": "Northwind_Refund_Policy_Handbook.pdf",
+        "file_extension": "pdf",
+        "file_size": 43277,
+        "document_type": "policy",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:402901c8-3509-5f0e-8a95-5efb3ca98fba:183:e70a27a2fc56:8f1db435b8",
+      "subject": "Northwind",
+      "predicate": "has_refund_eligibility",
+      "object": "1 year Replace or refund Apparel",
+      "modality": "POLICY_FACT",
+      "confidence": 0.9,
+      "evidence": "1 year Replace or refund Apparel",
+      "locator": {
+        "line_start": 299,
+        "line_end": 299,
+        "start_char": 19258,
+        "end_char": 19291,
+        "heading_path": [
+          "Northwind",
+          "Page 16"
+        ],
+        "paragraph_index": 183,
+        "filename": "Northwind_Refund_Policy_Handbook.pdf",
+        "file_extension": "pdf",
+        "file_size": 43277,
+        "document_type": "policy",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:402901c8-3509-5f0e-8a95-5efb3ca98fba:184:382b6303d531:fac14ed20c",
+      "subject": "Northwind",
+      "predicate": "has_refund_eligibility",
+      "object": "1 year Replace or refund Electronics (headlamps, GPS)",
+      "modality": "POLICY_FACT",
+      "confidence": 0.9,
+      "evidence": "1 year Replace or refund Electronics (headlamps, GPS)",
+      "locator": {
+        "line_start": 300,
+        "line_end": 300,
+        "start_char": 19291,
+        "end_char": 19345,
+        "heading_path": [
+          "Northwind",
+          "Page 16"
+        ],
+        "paragraph_index": 184,
+        "filename": "Northwind_Refund_Policy_Handbook.pdf",
+        "file_extension": "pdf",
+        "file_size": 43277,
+        "document_type": "policy",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:402901c8-3509-5f0e-8a95-5efb3ca98fba:193:b6ca0f38e9e1:b01f9900f4",
+      "subject": "Marketplace sellers",
+      "predicate": "has_refund_eligibility",
+      "object": "Items shipped directly by third-party sellers follow the seller's policy, but Northwind's A-to-Z Guarantee ensures a refund if the seller fails to respond within 5 business days.",
+      "modality": "POLICY_FACT",
+      "confidence": 0.9,
+      "evidence": "Items shipped directly by third-party sellers follow the seller's policy, but Northwind's A-to-Z Guarantee ensures a refund if the seller fails to respond within 5 business days.",
+      "locator": {
+        "line_start": 313,
+        "line_end": 313,
+        "start_char": 19748,
+        "end_char": 20016,
+        "heading_path": [
+          "Northwind",
+          "Page 16",
+          "14.2 Marketplace sellers"
+        ],
+        "paragraph_index": 193,
+        "filename": "Northwind_Refund_Policy_Handbook.pdf",
+        "file_extension": "pdf",
+        "file_size": 43277,
+        "document_type": "policy",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:402901c8-3509-5f0e-8a95-5efb3ca98fba:199:7ee7a0b4a382:f335ab3f6d",
+      "subject": "Northwind",
+      "predicate": "has_return_window",
+      "object": "30 days Customer pays unless defective Duties refunded on approved returns UK",
+      "modality": "POLICY_FACT",
+      "confidence": 0.9,
+      "evidence": "30 days Customer pays unless defective Duties refunded on approved returns UK",
+      "locator": {
+        "line_start": 324,
+        "line_end": 324,
+        "start_char": 20384,
+        "end_char": 20462,
+        "heading_path": [
+          "Northwind",
+          "Page 17"
+        ],
+        "paragraph_index": 199,
+        "filename": "Northwind_Refund_Policy_Handbook.pdf",
+        "file_extension": "pdf",
+        "file_size": 43277,
+        "document_type": "policy",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:402901c8-3509-5f0e-8a95-5efb3ca98fba:200:5064ff06d15a:7788f222bc",
+      "subject": "Northwind",
+      "predicate": "has_refund_eligibility",
+      "object": "30 days (14-day statutory minimum) Customer pays unless defective VAT refunded, duty via customs claim EU",
+      "modality": "POLICY_FACT",
+      "confidence": 0.9,
+      "evidence": "30 days (14-day statutory minimum) Customer pays unless defective VAT refunded, duty via customs claim EU",
+      "locator": {
+        "line_start": 325,
+        "line_end": 325,
+        "start_char": 20462,
+        "end_char": 20568,
+        "heading_path": [
+          "Northwind",
+          "Page 17"
+        ],
+        "paragraph_index": 200,
+        "filename": "Northwind_Refund_Policy_Handbook.pdf",
+        "file_extension": "pdf",
+        "file_size": 43277,
+        "document_type": "policy",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:402901c8-3509-5f0e-8a95-5efb3ca98fba:201:cb373f984d46:8c9e8c5001",
+      "subject": "Northwind",
+      "predicate": "has_refund_eligibility",
+      "object": "30 days (14-day statutory minimum) Customer pays unless defective VAT refunded Australia",
+      "modality": "POLICY_FACT",
+      "confidence": 0.9,
+      "evidence": "30 days (14-day statutory minimum) Customer pays unless defective VAT refunded Australia",
+      "locator": {
+        "line_start": 326,
+        "line_end": 326,
+        "start_char": 20568,
+        "end_char": 20657,
+        "heading_path": [
+          "Northwind",
+          "Page 17"
+        ],
+        "paragraph_index": 201,
+        "filename": "Northwind_Refund_Policy_Handbook.pdf",
+        "file_extension": "pdf",
+        "file_size": 43277,
+        "document_type": "policy",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:402901c8-3509-5f0e-8a95-5efb3ca98fba:202:f39b30b3e3ad:d8e484f7aa",
+      "subject": "Northwind",
+      "predicate": "has_refund_eligibility",
+      "object": "30 days Customer pays unless defective GST refunded Rest of world",
+      "modality": "POLICY_FACT",
+      "confidence": 0.9,
+      "evidence": "30 days Customer pays unless defective GST refunded Rest of world",
+      "locator": {
+        "line_start": 327,
+        "line_end": 327,
+        "start_char": 20657,
+        "end_char": 20723,
+        "heading_path": [
+          "Northwind",
+          "Page 17"
+        ],
+        "paragraph_index": 202,
+        "filename": "Northwind_Refund_Policy_Handbook.pdf",
+        "file_extension": "pdf",
+        "file_size": 43277,
+        "document_type": "policy",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:402901c8-3509-5f0e-8a95-5efb3ca98fba:203:bd42e23817b8:54f7366b5a",
+      "subject": "Northwind",
+      "predicate": "has_refund_eligibility",
+      "object": "14 days Customer pays Not refundable",
+      "modality": "POLICY_FACT",
+      "confidence": 0.9,
+      "evidence": "14 days Customer pays Not refundable",
+      "locator": {
+        "line_start": 328,
+        "line_end": 328,
+        "start_char": 20723,
+        "end_char": 20760,
+        "heading_path": [
+          "Northwind",
+          "Page 17"
+        ],
+        "paragraph_index": 203,
+        "filename": "Northwind_Refund_Policy_Handbook.pdf",
+        "file_extension": "pdf",
+        "file_size": 43277,
+        "document_type": "policy",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:402901c8-3509-5f0e-8a95-5efb3ca98fba:205:e7823c09f89f:72c7aa8814",
+      "subject": "International refund",
+      "predicate": "has_refund_eligibility",
+      "object": "Refunds are issued in the currency of the original charge.",
+      "modality": "POLICY_FACT",
+      "confidence": 0.9,
+      "evidence": "Refunds are issued in the currency of the original charge.",
+      "locator": {
+        "line_start": 330,
+        "line_end": 330,
+        "start_char": 20789,
+        "end_char": 21093,
+        "heading_path": [
+          "Northwind",
+          "Page 17",
+          "15.1 Currency conversion"
+        ],
+        "paragraph_index": 205,
+        "filename": "Northwind_Refund_Policy_Handbook.pdf",
+        "file_extension": "pdf",
+        "file_size": 43277,
+        "document_type": "policy",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:402901c8-3509-5f0e-8a95-5efb3ca98fba:205:e7823c09f89f:23503e325d",
+      "subject": "International refund",
+      "predicate": "has_currency_conversion_rule",
+      "object": "Refund currency follows original charge; exchange differences are not compensated",
+      "modality": "POLICY_FACT",
+      "confidence": 0.96,
+      "evidence": "Exchange rate differences between the purchase and refund date are not compensated; the bank's rate on the refund date applies.",
+      "locator": {
+        "line_start": 330,
+        "line_end": 330,
+        "start_char": 20789,
+        "end_char": 21093,
+        "heading_path": [
+          "Northwind",
+          "Page 17",
+          "15.1 Currency conversion"
+        ],
+        "paragraph_index": 205,
+        "filename": "Northwind_Refund_Policy_Handbook.pdf",
+        "file_extension": "pdf",
+        "file_size": 43277,
+        "document_type": "policy",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:402901c8-3509-5f0e-8a95-5efb3ca98fba:207:8ce08a2be4ff:2dc128be0b",
+      "subject": "Customers",
+      "predicate": "are_responsible_for",
+      "object": "filing customs duty drawback claims where available",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "Customers are responsible for filing customs duty drawback claims where available.",
+      "locator": {
+        "line_start": 332,
+        "line_end": 332,
+        "start_char": 21121,
+        "end_char": 21361,
+        "heading_path": [
+          "Northwind",
+          "Page 17",
+          "15.2 Customs and duties"
+        ],
+        "paragraph_index": 207,
+        "filename": "Northwind_Refund_Policy_Handbook.pdf",
+        "file_extension": "pdf",
+        "file_size": 43277,
+        "document_type": "policy",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:402901c8-3509-5f0e-8a95-5efb3ca98fba:207:8ce08a2be4ff:8ca4112d7f",
+      "subject": "Northwind",
+      "predicate": "requires_verifiable_order_or_purchase_proof",
+      "object": "provide a commercial invoice and proof of return upon request",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "Northwind will provide a commercial invoice and proof of return upon request.",
+      "locator": {
+        "line_start": 332,
+        "line_end": 332,
+        "start_char": 21121,
+        "end_char": 21361,
+        "heading_path": [
+          "Northwind",
+          "Page 17",
+          "15.2 Customs and duties"
+        ],
+        "paragraph_index": 207,
+        "filename": "Northwind_Refund_Policy_Handbook.pdf",
+        "file_extension": "pdf",
+        "file_size": 43277,
+        "document_type": "policy",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:402901c8-3509-5f0e-8a95-5efb3ca98fba:207:8ce08a2be4ff:f3f731343e",
+      "subject": "Customs and duties",
+      "predicate": "has_refund_eligibility",
+      "object": "Refused deliveries at customs are refunded minus outbound and return shipping.",
+      "modality": "POLICY_FACT",
+      "confidence": 0.9,
+      "evidence": "Refused deliveries at customs are refunded minus outbound and return shipping.",
+      "locator": {
+        "line_start": 332,
+        "line_end": 332,
+        "start_char": 21121,
+        "end_char": 21361,
+        "heading_path": [
+          "Northwind",
+          "Page 17",
+          "15.2 Customs and duties"
+        ],
+        "paragraph_index": 207,
+        "filename": "Northwind_Refund_Policy_Handbook.pdf",
+        "file_extension": "pdf",
+        "file_size": 43277,
+        "document_type": "policy",
+        "sentence_index": 2
+      }
+    },
+    {
+      "candidate_id": "cand:402901c8-3509-5f0e-8a95-5efb3ca98fba:213:a635e0d5e19b:3e816e5f8e",
+      "subject": "Northwind",
+      "predicate": "has_evidence_submission_deadline",
+      "object": "Submits dispute evidence within 7 days",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "\u007f We submit evidence (order record, delivery confirmation, communications) within 7 days.",
+      "locator": {
+        "line_start": 343,
+        "line_end": 343,
+        "start_char": 21794,
+        "end_char": 21884,
+        "heading_path": [
+          "Northwind",
+          "Page 18"
+        ],
+        "paragraph_index": 213,
+        "filename": "Northwind_Refund_Policy_Handbook.pdf",
+        "file_extension": "pdf",
+        "file_size": 43277,
+        "document_type": "policy",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:402901c8-3509-5f0e-8a95-5efb3ca98fba:214:8a8711059975:f7f73b1be6",
+      "subject": "Card issuer",
+      "predicate": "has_dispute_decision_timeline",
+      "object": "Decides dispute outcome within 30\u201390 days",
+      "modality": "POLICY_FACT",
+      "confidence": 0.96,
+      "evidence": "\u007f The issuer decides within 30-90 days.",
+      "locator": {
+        "line_start": 345,
+        "line_end": 345,
+        "start_char": 21885,
+        "end_char": 21925,
+        "heading_path": [
+          "Northwind",
+          "Page 18"
+        ],
+        "paragraph_index": 214,
+        "filename": "Northwind_Refund_Policy_Handbook.pdf",
+        "file_extension": "pdf",
+        "file_size": 43277,
+        "document_type": "policy",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:402901c8-3509-5f0e-8a95-5efb3ca98fba:215:f8884dd51bef:317641dc02",
+      "subject": "Dispute loss",
+      "predicate": "has_funds_debit_outcome",
+      "object": "Transaction funds are debited from Northwind account",
+      "modality": "POLICY_FACT",
+      "confidence": 0.98,
+      "evidence": "\u007f If the dispute is lost, funds are debited; a $15 administration fee may apply for fraudulent claims.",
+      "locator": {
+        "line_start": 347,
+        "line_end": 347,
+        "start_char": 21926,
+        "end_char": 22029,
+        "heading_path": [
+          "Northwind",
+          "Page 18"
+        ],
+        "paragraph_index": 215,
+        "filename": "Northwind_Refund_Policy_Handbook.pdf",
+        "file_extension": "pdf",
+        "file_size": 43277,
+        "document_type": "policy",
+        "sentence_index": 0,
+        "compound_branch": "debit"
+      }
+    },
+    {
+      "candidate_id": "cand:402901c8-3509-5f0e-8a95-5efb3ca98fba:215:f8884dd51bef:04de5c9520",
+      "subject": "Fraudulent dispute",
+      "predicate": "may_apply_administration_fee",
+      "object": "$15 administration fee may apply for fraudulent claims",
+      "modality": "PERMISSION",
+      "confidence": 0.98,
+      "evidence": "\u007f If the dispute is lost, funds are debited; a $15 administration fee may apply for fraudulent claims.",
+      "locator": {
+        "line_start": 347,
+        "line_end": 347,
+        "start_char": 21926,
+        "end_char": 22029,
+        "heading_path": [
+          "Northwind",
+          "Page 18"
+        ],
+        "paragraph_index": 215,
+        "filename": "Northwind_Refund_Policy_Handbook.pdf",
+        "file_extension": "pdf",
+        "file_size": 43277,
+        "document_type": "policy",
+        "sentence_index": 0,
+        "compound_branch": "fee"
+      }
+    },
+    {
+      "candidate_id": "cand:402901c8-3509-5f0e-8a95-5efb3ca98fba:230:aeff73a726c3:cdede8553a",
+      "subject": "Consequences",
+      "predicate": "may_receive_store_credit",
+      "object": "Level Trigger Action Notice Return rate 30-40% Email reminder of policy Restricted Return rate over 40% or one confirmed abuse case Store credit only; returns need manager approval Suspended Multiple confirmed abuse cases Account suspended for 12 months Permanent Fraud or counterfeit return Account closed; referral to law enforcement where appropriate",
+      "modality": "POLICY_FACT",
+      "confidence": 0.9,
+      "evidence": "Level Trigger Action Notice Return rate 30-40% Email reminder of policy Restricted Return rate over 40% or one confirmed abuse case Store credit only; returns need manager approval Suspended Multiple confirmed abuse cases Account suspended for 12 months Permanent Fraud or counterfeit return Account closed; referral to law enforcement where appropriate",
+      "locator": {
+        "line_start": 373,
+        "line_end": 373,
+        "start_char": 23352,
+        "end_char": 23706,
+        "heading_path": [
+          "Northwind",
+          "Page 19",
+          "17.1 Consequences"
+        ],
+        "paragraph_index": 230,
+        "filename": "Northwind_Refund_Policy_Handbook.pdf",
+        "file_extension": "pdf",
+        "file_size": 43277,
+        "document_type": "policy",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:402901c8-3509-5f0e-8a95-5efb3ca98fba:232:e3b2be1d1aa5:fc5e827670",
+      "subject": "Customers",
+      "predicate": "has_return_window",
+      "object": "appeal restrictions in writing to appeals@northwind-demo.example within 30 days",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "Customers may appeal restrictions in writing to appeals@northwind-demo.example within 30 days.",
+      "locator": {
+        "line_start": 375,
+        "line_end": 375,
+        "start_char": 23723,
+        "end_char": 23818,
+        "heading_path": [
+          "Northwind",
+          "Page 19",
+          "17.2 Appeals"
+        ],
+        "paragraph_index": 232,
+        "filename": "Northwind_Refund_Policy_Handbook.pdf",
+        "file_extension": "pdf",
+        "file_size": 43277,
+        "document_type": "policy",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:402901c8-3509-5f0e-8a95-5efb3ca98fba:235:e24d2a3aa07f:adff43094e",
+      "subject": "Privacy",
+      "predicate": "has_refund_eligibility",
+      "object": "Return history is stored per our Privacy Policy, retained for 7 years for audit purposes, and never sold to third parties.",
+      "modality": "POLICY_FACT",
+      "confidence": 0.9,
+      "evidence": "Return history is stored per our Privacy Policy, retained for 7 years for audit purposes, and never sold to third parties.",
+      "locator": {
+        "line_start": 380,
+        "line_end": 380,
+        "start_char": 23934,
+        "end_char": 24057,
+        "heading_path": [
+          "Northwind",
+          "Page 19",
+          "17.3 Privacy"
+        ],
+        "paragraph_index": 235,
+        "filename": "Northwind_Refund_Policy_Handbook.pdf",
+        "file_extension": "pdf",
+        "file_size": 43277,
+        "document_type": "policy",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:402901c8-3509-5f0e-8a95-5efb3ca98fba:239:cf7ca3026c81:d8cad64562",
+      "subject": "Standard returns",
+      "predicate": "has_return_window",
+      "object": "requested within 30 days",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "Standard returns must be requested within 30 days.",
+      "locator": {
+        "line_start": 388,
+        "line_end": 388,
+        "start_char": 24226,
+        "end_char": 24400,
+        "heading_path": [
+          "Northwind",
+          "Page 20"
+        ],
+        "paragraph_index": 239,
+        "filename": "Northwind_Refund_Policy_Handbook.pdf",
+        "file_extension": "pdf",
+        "file_size": 43277,
+        "document_type": "policy",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:402901c8-3509-5f0e-8a95-5efb3ca98fba:239:cf7ca3026c81:e4b4845021",
+      "subject": "Unused item returned after standard return window",
+      "predicate": "may_receive_store_credit",
+      "object": "offer store credit at a manager's discretion for unused items within 90 days",
+      "modality": "PERMISSION",
+      "confidence": 0.96,
+      "evidence": "After that we may offer store credit at a manager's discretion for unused items within 90 days.",
+      "locator": {
+        "line_start": 388,
+        "line_end": 388,
+        "start_char": 24226,
+        "end_char": 24400,
+        "heading_path": [
+          "Northwind",
+          "Page 20"
+        ],
+        "paragraph_index": 239,
+        "filename": "Northwind_Refund_Policy_Handbook.pdf",
+        "file_extension": "pdf",
+        "file_size": 43277,
+        "document_type": "policy",
+        "sentence_index": 2
+      }
+    },
+    {
+      "candidate_id": "cand:402901c8-3509-5f0e-8a95-5efb3ca98fba:247:e368b91d2ac4:5766a09251",
+      "subject": "Items bought in-store",
+      "predicate": "has_return_channel_eligibility",
+      "object": "be returned in any store or by mail using the RMA process with your receipt or loyalty account lookup",
+      "modality": "PERMISSION",
+      "confidence": 0.96,
+      "evidence": "Items bought in-store can be returned in any store or by mail using the RMA process with your receipt or loyalty account lookup.",
+      "locator": {
+        "line_start": 404,
+        "line_end": 404,
+        "start_char": 25058,
+        "end_char": 25192,
+        "heading_path": [
+          "Northwind",
+          "Page 20"
+        ],
+        "paragraph_index": 247,
+        "filename": "Northwind_Refund_Policy_Handbook.pdf",
+        "file_extension": "pdf",
+        "file_size": 43277,
+        "document_type": "policy",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:402901c8-3509-5f0e-8a95-5efb3ca98fba:252:2fc3a3c486dc:d1f5b3e814",
+      "subject": "Northwind",
+      "predicate": "has_return_window",
+      "object": "Please file a police report and contact us within 14 days.",
+      "modality": "POLICY_FACT",
+      "confidence": 0.9,
+      "evidence": "Please file a police report and contact us within 14 days.",
+      "locator": {
+        "line_start": 414,
+        "line_end": 414,
+        "start_char": 25504,
+        "end_char": 25644,
+        "heading_path": [
+          "Northwind",
+          "Page 20"
+        ],
+        "paragraph_index": 252,
+        "filename": "Northwind_Refund_Policy_Handbook.pdf",
+        "file_extension": "pdf",
+        "file_size": 43277,
+        "document_type": "policy",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:402901c8-3509-5f0e-8a95-5efb3ca98fba:252:2fc3a3c486dc:7f502aab54",
+      "subject": "Stolen package",
+      "predicate": "has_courtesy_replacement_rule",
+      "object": "One courtesy replacement per customer per year for packages under $200",
+      "modality": "PERMISSION",
+      "confidence": 0.96,
+      "evidence": "We offer one courtesy replacement per customer per year for packages under $200.",
+      "locator": {
+        "line_start": 414,
+        "line_end": 414,
+        "start_char": 25504,
+        "end_char": 25644,
+        "heading_path": [
+          "Northwind",
+          "Page 20"
+        ],
+        "paragraph_index": 252,
+        "filename": "Northwind_Refund_Policy_Handbook.pdf",
+        "file_extension": "pdf",
+        "file_size": 43277,
+        "document_type": "policy",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:402901c8-3509-5f0e-8a95-5efb3ca98fba:267:07bc24235e6f:71816beffd",
+      "subject": "Service-level commitments",
+      "predicate": "has_refund_eligibility",
+      "object": "24 hours First response by chat Under 2 minutes Resolution of standard refund query Within 3 business days Escalated complaint resolution",
+      "modality": "POLICY_FACT",
+      "confidence": 0.9,
+      "evidence": "24 hours First response by chat Under 2 minutes Resolution of standard refund query Within 3 business days Escalated complaint resolution",
+      "locator": {
+        "line_start": 442,
+        "line_end": 442,
+        "start_char": 26949,
+        "end_char": 27087,
+        "heading_path": [
+          "Northwind",
+          "Page 21",
+          "19.2 Service-level commitments"
+        ],
+        "paragraph_index": 267,
+        "filename": "Northwind_Refund_Policy_Handbook.pdf",
+        "file_extension": "pdf",
+        "file_size": 43277,
+        "document_type": "policy",
+        "sentence_index": 0
+      }
+    }
+  ]
+}

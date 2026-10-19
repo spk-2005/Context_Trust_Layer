@@ -41,6 +41,10 @@ class DeonticClassifier:
 
     DESCRIPTIVE_PATTERNS = [
         re.compile(r"\b(primary goal is|aims to|outlines the expected|purpose of this policy|is designed to|is intended to|serves as|provides guidance|promoting fairness|facilitating a comprehensive|expected duration an employee|our .* policy ensures)\b", re.IGNORECASE),
+        re.compile(r"\b(we recommend|it is recommended|strongly recommended|for more information,? see|see documentation)\b", re.IGNORECASE),
+        re.compile(r"\b(?:can help you|can help to|helps? you meet|help you meet and exceed)\b", re.IGNORECASE),
+        re.compile(r"\b(?:can lead to|can cause|can result in|may lead to|may result in|might result in)\b", re.IGNORECASE),
+        re.compile(r"^\[.*?\]\(#.*?\)$"),
     ]
 
     MACRO_SUMMARY_PATTERNS = [

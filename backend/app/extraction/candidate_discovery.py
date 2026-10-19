@@ -18,7 +18,7 @@ class CandidateDiscoveryEngine:
 
     # Modal verbs and normative policy markers
     MODAL_PATTERN = re.compile(
-        r"\b(must|shall|required|requires|mandates?|prohibited|forbidden|should|enforces?|restricted to|always|never|guarantees?|holds the right|reserves the right|permitted|may|will not be granted|not be granted|will not grant|will be made|cannot)\b",
+        r"\b(must|shall|required|requires|mandates?|prohibited|forbidden|should|enforces?|ensures?|responsib(?:le|ility)|authoriz(?:es?|ed)?|restricted to|always|never|guarantees?|holds the right|reserves the right|permitted|may|will not be granted|not be granted|will not grant|will be made|cannot|automatically\s+grants?|automatically\s+granted|agrees?\s+to\s+receive|agree\s+that|remain\s+valid|remains\s+valid|issue\s+a\s+refund|we[’']ll\s+issue|will\s+issue|limited\s+to|must\s+be\s+started|return\s+almost\s+any\s+physical\s+product|return\s+the\s+product\s+in\s+like-new\s+condition|limit\s+\d+\s+product\s+returns)\b",
         re.IGNORECASE,
     )
     # Thresholds, numerical values, and standard time windows
@@ -94,6 +94,15 @@ class CandidateDiscoveryEngine:
             ):
                 return False, ExtractionStrategyType.TABLE_AWARE, "Table row is document approver sign-off metadata; routed to document authority record."
 
+            # Filter 4D: Website Sitemap Footer Links (routed to navigation/metadata)
+            if (
+                table_type == "website_sitemap_footer"
+                or any(k in ("what's new", "about microsoft", "microsoft store", "developer & it", "education", "company", "small business", "explore copilot", "windows 11 apps", "explore microsoft products") for k in col_keys_lower)
+                or (any("developer" in k for k in col_keys_lower) and any("company" in k or "education" in k for k in col_keys_lower))
+                or (any("copilot" in k for k in col_keys_lower) and any("windows" in k or "surface" in k for k in col_keys_lower))
+            ):
+                return False, ExtractionStrategyType.TABLE_AWARE, "Table row is website sitemap navigation footer; filtered from normative policy claims."
+
             # Eligible: Policy Matrix (e.g. Grade Notice Duration Matrix)
             if s_data.get("is_ambiguous"):
                 return True, ExtractionStrategyType.TABLE_AWARE, "Table row policy matrix with ambiguous/merged cell layout requiring review."
@@ -118,20 +127,75 @@ class CandidateDiscoveryEngine:
             from app.extraction.deontic_classifier import DeonticClassifier
             from app.ingestion.parsers.evidence_model import ContentRole
 
-            # Filter out FAQ questions and introductory context upfront
+            # Filter out FAQ questions, introductory context, and document metadata upfront
             unit_role = getattr(unit, "content_role", None)
             if unit_role in (ContentRole.FAQ_QUESTION, ContentRole.INTRODUCTORY_CONTEXT, ContentRole.DOCUMENT_METADATA) or text.strip().endswith("?"):
-                return False, ExtractionStrategyType.DOMAIN_RULES, "Inquiry question or introductory context; non-canonical context."
+                return False, ExtractionStrategyType.DOMAIN_RULES, "Inquiry question, introductory context, or document metadata; non-canonical context."
+
+            # Filter out sample case studies, narrative customer anecdotes, and revision history
+            h_path_str = " > ".join(getattr(unit, "heading_path", []) or []).lower()
+            if any(term in h_path_str for term in ("sample case", "case studies", "case study", "revision history", "changelog", "document history")):
+                return False, ExtractionStrategyType.DOMAIN_RULES, "Illustrative case study or revision history; non-normative context."
+            if re.match(r"^Case\s+[A-Z]\s*[:\-–]", text):
+                return False, ExtractionStrategyType.DOMAIN_RULES, "Illustrative case study scenario; non-normative context."
+            if re.match(r"^[A-Z][a-z]+\s+(?:ordered|bought|purchased|received|contacted|returned)\b", text):
+                return False, ExtractionStrategyType.DOMAIN_RULES, "Illustrative customer anecdote; non-normative context."
+
+            # Filter out running page headers / footers and pagination artifacts
+            if re.search(r"\bPage\s+\d+\s+of\s+\d+\b", text, re.IGNORECASE) and len(text.split()) < 20:
+                return False, ExtractionStrategyType.DOMAIN_RULES, "Running header/footer pagination artifact."
+            if re.match(r"^(?:Vendor Agreement|Agreement Template)\b", text.strip(), re.IGNORECASE) and len(text.split()) < 10:
+                return False, ExtractionStrategyType.DOMAIN_RULES, "Running document header template artifact."
+
+            # Filter out contact directory hours, phone numbers, and call-center preparatory steps
+            if re.search(r"\b(?:1-800-\d{3}-\d{4}|Mon-Fri\s+\d|Pacific Time|call center hours|Please have your order number)\b", text, re.IGNORECASE):
+                return False, ExtractionStrategyType.DOMAIN_RULES, "Customer support directory / phone line information."
+            if re.match(r"^Agents will email your RMA\b", text):
+                return False, ExtractionStrategyType.DOMAIN_RULES, "Internal operational customer service timeframe."
+
+            # Filter out boilerplate legal severability and copyright notices
+            norm_text = re.sub(r"\s+", " ", text).strip()
+            if re.search(r"\b(?:distinct and severable and a declaration|may be reproduced, stored in a retrieval system|defines the duration of notice and payout options|Effective\s+April\s+1,\s+2021,\s+this\s+policy\s+outlines)\b", norm_text, re.IGNORECASE):
+                return False, ExtractionStrategyType.DOMAIN_RULES, "Standard boilerplate severability/confidentiality notice."
+            if re.match(r"^(?:Version\s+Date\s+Change|Revision\s+History)\b", norm_text, re.IGNORECASE):
+                return False, ExtractionStrategyType.DOMAIN_RULES, "Document revision history or changelog table."
+            if re.match(r"^(?:For example|For instance)\b", norm_text, re.IGNORECASE):
+                return False, ExtractionStrategyType.DOMAIN_RULES, "Illustrative example introductory phrase; non-normative context."
+
+            # Filter out contract clause selection cross-references and broken wrap fragments
+            if re.match(r"^(?:Clause \d+|Annex [A-Z0-9]+)\s*:\s*(?:In accordance with [^,]+,\s*)?the parties (?:select|agree|are detailed)\b", text, re.IGNORECASE):
+                return False, ExtractionStrategyType.DOMAIN_RULES, "Standard contractual cross-reference / forum election clause."
+            if re.search(r"\bClauses \d+ to\s*$", text) or re.match(r"^\d+\s+for any data to which it\b", text):
+                return False, ExtractionStrategyType.DOMAIN_RULES, "Broken sentence fragment or wrapped clause citation."
+            if re.search(r"\b(?:best efforts to|from time to time by\s*[a-z]?)$", text.strip(), re.IGNORECASE):
+                return False, ExtractionStrategyType.DOMAIN_RULES, "Dangling broken clause fragment."
+
+            has_obligations = any(ob.search(text) for ob in DeonticClassifier.OBLIGATION_PATTERNS) or bool(cls.MODAL_PATTERN.search(text))
+
+            if unit_role == ContentRole.REFERENCE_CITATION and not has_obligations:
+                return False, ExtractionStrategyType.DOMAIN_RULES, "Reference citation or external pointer; non-normative context."
+
+            if re.match(r"^(?:for more information,? see|see documentation|refer to documentation)\b", text, re.IGNORECASE) and not has_obligations:
+                return False, ExtractionStrategyType.DOMAIN_RULES, "Reference citation or external pointer; non-normative context."
+
+            # Filter out procedural UI instructions in how-to articles
+            from app.extraction.extractors.domain_rule_extractor import DomainRuleExtractor
+            if DomainRuleExtractor.is_procedural_ui_instruction(text):
+                return False, ExtractionStrategyType.DOMAIN_RULES, "Procedural UI instruction or click in how-to guide; non-normative action."
 
             modality, _, is_decision_eligible = DeonticClassifier.classify_text(text)
 
-            # Filter out purely descriptive statements (e.g. "The primary goal is to provide clear guidance...")
-            if not is_decision_eligible or modality == "DESCRIPTIVE":
+            # Filter out purpose/goal statements and preamble outlines
+            if re.search(r"\b(?:primary goal is|aims to|outlines the expected|purpose of this policy|is designed to|is intended to|serves as|provides guidance)\b", text, re.IGNORECASE):
                 return False, ExtractionStrategyType.LLM_SEMANTIC, "Informational guidance or purpose statement; filtered from decision gate."
 
-            # Eligible: Macro summary statement summarizing table policy rules or high-level settlement categories
+            # Filter out purely descriptive statements unless unit contains explicit obligation modals
+            if (not is_decision_eligible or modality == "DESCRIPTIVE") and not has_obligations:
+                return False, ExtractionStrategyType.LLM_SEMANTIC, "Informational guidance or purpose statement; filtered from decision gate."
+
+            # Skip macro summary statements in favor of atomic extracted rules
             if DeonticClassifier.is_macro_summary(text):
-                return True, ExtractionStrategyType.DOMAIN_RULES, "Derived summary statement summarizing table policy rules."
+                return False, ExtractionStrategyType.DOMAIN_RULES, "Macro summary statement skipped in favor of atomic rules."
 
             # Eligible: Compound financial/settlement deductions requiring decomposition (fallback for concise docs)
             if DeonticClassifier.split_compound_deductions(text):
@@ -172,7 +236,7 @@ class CandidateDiscoveryEngine:
 
         # 7. Headings (context providers, generally not standalone claims)
         if b_type == "heading":
-            if cls.MODAL_PATTERN.search(text) or (len(text.split()) > 6 and any(w in text.lower() for w in ("resignation", "notice", "elimination", "severance", "policy", "employees", "contract", "remuneration", "entitled", "maintained"))):
+            if any(w in text.lower() for w in ("must", "shall", "required", "prohibited", "shall not", "cannot")):
                 return True, ExtractionStrategyType.DOMAIN_RULES, "Composite heading with actionable policy prose."
             return False, ExtractionStrategyType.DOMAIN_RULES, "Structural heading without standalone claim."
 

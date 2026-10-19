@@ -74,33 +74,54 @@ class ClaimNormalizer:
 
     @classmethod
     def extract_scalar_and_unit(cls, object_text: str, claim_text: str) -> Tuple[Optional[float], Optional[str]]:
-        """Extracts numerical scalar and normalized measurement unit."""
+        """Extracts numerical scalar and normalized measurement unit, masking statutory citations."""
         search_corpus = f"{object_text} {claim_text}".lower()
-        match = re.search(r"\b(\d+(?:\.\d+)?)\s*(business\s+days?|business_days?|[a-zA-Z%]+)?\b", search_corpus)
-        if match:
+
+        # Mask statutory citations, standard identifiers, and years to prevent false numeric conflicts
+        masked_corpus = re.sub(r"\btitle\s+\d+\b", " ", search_corpus)
+        masked_corpus = re.sub(r"\b(?:nist\s+)?sp\s+\d+(?:-\d+[a-z]?)?\b", " ", masked_corpus)
+        masked_corpus = re.sub(r"\bfips\s+\d+(?:-\d+)?\b", " ", masked_corpus)
+        masked_corpus = re.sub(r"\bpart\s+\d+(?:\.\d+)?\b", " ", masked_corpus)
+        masked_corpus = re.sub(r"\bsection\s+\d+(?:\.\d+)?\b", " ", masked_corpus)
+        masked_corpus = re.sub(r"\b(?:security\s+)?level\s+[1234]\b", " ", masked_corpus)
+        masked_corpus = re.sub(r"\baal[123]\b", " ", masked_corpus)
+        masked_corpus = re.sub(r"\b(?:19|20)\d\d\b", " ", masked_corpus)  # Years like 2010
+
+        # Match numbers with explicit units or currency
+        currency_match = re.search(r"\$\s*(\d+(?:\.\d+)?)", masked_corpus)
+        if currency_match:
             try:
-                num = float(match.group(1))
+                return float(currency_match.group(1)), "USD"
+            except ValueError:
+                pass
+
+        unit_match = re.search(r"\b(\d+(?:\.\d+)?)\s*(calendar\s+days?|calendar_days?|business\s+days?|business_days?|days?|months?|years?|hours?|weeks?|%|percent)\b", masked_corpus)
+        if unit_match:
+            try:
+                num = float(unit_match.group(1))
             except ValueError:
                 num = None
-            raw_unit = match.group(2)
-            unit = None
-            if raw_unit:
-                u_clean = raw_unit.lower().strip()
-                if "business" in u_clean or "business" in search_corpus:
-                    unit = "business_days"
-                elif u_clean in ("day", "days"):
-                    unit = "days"
-                elif u_clean in ("month", "months"):
-                    unit = "months"
-                elif u_clean in ("year", "years"):
-                    unit = "years"
-                elif u_clean in ("hour", "hours"):
-                    unit = "hours"
-                elif u_clean in ("%", "percent"):
-                    unit = "%"
-                else:
-                    unit = u_clean
+            raw_unit = unit_match.group(2).lower().strip()
+            if "business" in raw_unit:
+                unit = "business_days"
+            elif "calendar" in raw_unit:
+                unit = "calendar_days"
+            elif raw_unit in ("day", "days"):
+                unit = "days"
+            elif raw_unit in ("month", "months"):
+                unit = "months"
+            elif raw_unit in ("year", "years"):
+                unit = "years"
+            elif raw_unit in ("hour", "hours"):
+                unit = "hours"
+            elif raw_unit in ("week", "weeks"):
+                unit = "weeks"
+            elif raw_unit in ("%", "percent"):
+                unit = "%"
+            else:
+                unit = raw_unit
             return num, unit
+
         return None, None
 
     @classmethod
@@ -307,6 +328,13 @@ class ClaimNormalizer:
 
         # Scalar and Unit
         scalar_val, unit_val = cls.extract_scalar_and_unit(raw_obj, raw_text)
+        if scalar_val is None and getattr(claim, "value", None) is not None:
+            try:
+                scalar_val = float(getattr(claim, "value"))
+            except (ValueError, TypeError):
+                pass
+        if unit_val is None and getattr(claim, "unit", None):
+            unit_val = str(getattr(claim, "unit"))
 
         # Modality
         modality = getattr(claim, "modality", "POLICY_FACT") or "POLICY_FACT"

@@ -55,7 +55,7 @@ class LLMSemanticExtractor:
                     unit_canonical = getattr(unit, "is_canonical", True)
 
                     for idx, c in enumerate(extraction_result.claims):
-                        evidence_span = c.evidence.exact_quote if c.evidence else text
+                        evidence_span = getattr(c, "evidence_text_span", None) or (c.evidence.exact_quote if hasattr(c, "evidence") and c.evidence else text)
                         modality, modal_op, is_decision_eligible = DeonticClassifier.classify_text(c.claim_text)
                         if not is_decision_eligible or modality == "DESCRIPTIVE":
                             continue

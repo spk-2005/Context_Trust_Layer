@@ -1,0 +1,387 @@
+{
+  "metadata": {
+    "document_id": "EFF-009",
+    "title": "Electronic Prescriptions for Controlled Substances (EPCS) - Azure Compliance",
+    "file_path": "research/validation_50/raw_documents/Electronic Prescriptions for Controlled Substances (EPCS) - Azure Compliance _ Microsoft Learn.pdf",
+    "document_type": "compliance",
+    "category": "compliance",
+    "pages": 4,
+    "latency_seconds": 0.2476
+  },
+  "summary": {
+    "envelope_id": "02b9e09d-bd34-52e0-a7ae-2d5a2b4b0d04",
+    "asset_id": "file://Electronic Prescriptions for Controlled Substances (EPCS) - Azure Compliance _ Microsoft Learn.pdf",
+    "filename": "Electronic Prescriptions for Controlled Substances (EPCS) - Azure Compliance _ Microsoft Learn.pdf",
+    "total_evidence_units": 41,
+    "candidates_discovered": 14,
+    "unique_claims_extracted": 14,
+    "claims_approved": 13,
+    "claims_review": 0,
+    "claims_rejected": 1,
+    "conflicts_detected": 0,
+    "persisted_claims_count": 0
+  },
+  "quality": {
+    "gold_claims": 13,
+    "true_positives": 13,
+    "false_positives": 1,
+    "false_negatives": 0,
+    "precision": 0.9286,
+    "recall": 1.0,
+    "f1_score": 0.963,
+    "evidence_grounding_rate": 1.0,
+    "locator_accuracy_rate": 1.0
+  },
+  "candidates": [
+    {
+      "candidate_id": "cand:02b9e09d-bd34-52e0-a7ae-2d5a2b4b0d04:2:db5c780d098f:b5830bd6d7",
+      "subject": "Prescribers",
+      "predicate": "digitally_sign",
+      "object": "electronic prescriptions for controlled substances",
+      "modality": "PERMISSION",
+      "confidence": 0.98,
+      "evidence": "Prescribers can digitally sign, transmit, report, and archive electronic prescriptions, while pharmacies can receive, dispense, and archive these electronic prescriptions.",
+      "locator": {
+        "line_start": 5,
+        "line_end": 5,
+        "start_char": 109,
+        "end_char": 823,
+        "heading_path": [
+          "Electronic Prescriptions for Controlled Substances (EPCS) - Azure Compliance _ Microsoft Learn",
+          "Page 1"
+        ],
+        "paragraph_index": 2,
+        "filename": "Electronic Prescriptions for Controlled Substances (EPCS) - Azure Compliance _ Microsoft Learn.pdf",
+        "file_extension": "pdf",
+        "file_size": 149210,
+        "document_type": "compliance",
+        "sentence_index": 3
+      }
+    },
+    {
+      "candidate_id": "cand:02b9e09d-bd34-52e0-a7ae-2d5a2b4b0d04:2:db5c780d098f:9774c98296",
+      "subject": "Prescribers",
+      "predicate": "transmit_report_and_archive",
+      "object": "electronic prescriptions for controlled substances",
+      "modality": "PERMISSION",
+      "confidence": 0.98,
+      "evidence": "Prescribers can digitally sign, transmit, report, and archive electronic prescriptions, while pharmacies can receive, dispense, and archive these electronic prescriptions.",
+      "locator": {
+        "line_start": 5,
+        "line_end": 5,
+        "start_char": 109,
+        "end_char": 823,
+        "heading_path": [
+          "Electronic Prescriptions for Controlled Substances (EPCS) - Azure Compliance _ Microsoft Learn",
+          "Page 1"
+        ],
+        "paragraph_index": 2,
+        "filename": "Electronic Prescriptions for Controlled Substances (EPCS) - Azure Compliance _ Microsoft Learn.pdf",
+        "file_extension": "pdf",
+        "file_size": 149210,
+        "document_type": "compliance",
+        "sentence_index": 3
+      }
+    },
+    {
+      "candidate_id": "cand:02b9e09d-bd34-52e0-a7ae-2d5a2b4b0d04:2:db5c780d098f:a25221c8ee",
+      "subject": "Pharmacies",
+      "predicate": "receive_dispense_and_archive",
+      "object": "electronic prescriptions for controlled substances",
+      "modality": "PERMISSION",
+      "confidence": 0.98,
+      "evidence": "Prescribers can digitally sign, transmit, report, and archive electronic prescriptions, while pharmacies can receive, dispense, and archive these electronic prescriptions.",
+      "locator": {
+        "line_start": 5,
+        "line_end": 5,
+        "start_char": 109,
+        "end_char": 823,
+        "heading_path": [
+          "Electronic Prescriptions for Controlled Substances (EPCS) - Azure Compliance _ Microsoft Learn",
+          "Page 1"
+        ],
+        "paragraph_index": 2,
+        "filename": "Electronic Prescriptions for Controlled Substances (EPCS) - Azure Compliance _ Microsoft Learn.pdf",
+        "file_extension": "pdf",
+        "file_size": 149210,
+        "document_type": "compliance",
+        "sentence_index": 3
+      }
+    },
+    {
+      "candidate_id": "cand:02b9e09d-bd34-52e0-a7ae-2d5a2b4b0d04:10:d3d8acb9b0ca:ce45d9da5e",
+      "subject": "Electronic system prescriber assignment",
+      "predicate": "requires_two_factor_authentication",
+      "object": "two-factor authentication to assign a prescriber within the electronic system",
+      "modality": "OBLIGATION",
+      "confidence": 0.98,
+      "evidence": "Two-factor authentication must be used to assign a prescriber within the electronic system, approve a prescription entry, and digitally sign a prescription.",
+      "locator": {
+        "line_start": 21,
+        "line_end": 21,
+        "start_char": 2036,
+        "end_char": 2193,
+        "heading_path": [
+          "Electronic Prescriptions for Controlled Substances (EPCS) - Azure Compliance _ Microsoft Learn",
+          "Page 2"
+        ],
+        "paragraph_index": 10,
+        "filename": "Electronic Prescriptions for Controlled Substances (EPCS) - Azure Compliance _ Microsoft Learn.pdf",
+        "file_extension": "pdf",
+        "file_size": 149210,
+        "document_type": "compliance",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:02b9e09d-bd34-52e0-a7ae-2d5a2b4b0d04:10:d3d8acb9b0ca:7cd003e108",
+      "subject": "Prescription entry approval",
+      "predicate": "requires_two_factor_authentication",
+      "object": "two-factor authentication to approve a prescription entry",
+      "modality": "OBLIGATION",
+      "confidence": 0.98,
+      "evidence": "Two-factor authentication must be used to assign a prescriber within the electronic system, approve a prescription entry, and digitally sign a prescription.",
+      "locator": {
+        "line_start": 21,
+        "line_end": 21,
+        "start_char": 2036,
+        "end_char": 2193,
+        "heading_path": [
+          "Electronic Prescriptions for Controlled Substances (EPCS) - Azure Compliance _ Microsoft Learn",
+          "Page 2"
+        ],
+        "paragraph_index": 10,
+        "filename": "Electronic Prescriptions for Controlled Substances (EPCS) - Azure Compliance _ Microsoft Learn.pdf",
+        "file_extension": "pdf",
+        "file_size": 149210,
+        "document_type": "compliance",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:02b9e09d-bd34-52e0-a7ae-2d5a2b4b0d04:10:d3d8acb9b0ca:da34efa1b2",
+      "subject": "Prescription digital signing",
+      "predicate": "requires_two_factor_authentication",
+      "object": "two-factor authentication to digitally sign a prescription",
+      "modality": "OBLIGATION",
+      "confidence": 0.98,
+      "evidence": "Two-factor authentication must be used to assign a prescriber within the electronic system, approve a prescription entry, and digitally sign a prescription.",
+      "locator": {
+        "line_start": 21,
+        "line_end": 21,
+        "start_char": 2036,
+        "end_char": 2193,
+        "heading_path": [
+          "Electronic Prescriptions for Controlled Substances (EPCS) - Azure Compliance _ Microsoft Learn",
+          "Page 2"
+        ],
+        "paragraph_index": 10,
+        "filename": "Electronic Prescriptions for Controlled Substances (EPCS) - Azure Compliance _ Microsoft Learn.pdf",
+        "file_extension": "pdf",
+        "file_size": 149210,
+        "document_type": "compliance",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:02b9e09d-bd34-52e0-a7ae-2d5a2b4b0d04:11:069ee508a3e0:9e6cd33e09",
+      "subject": "Two-factor authentication factors",
+      "predicate": "of",
+      "object": "the following three options: a username/password, a hard token, or a biometric identification",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "Two of the factors must be of the following three options: a username/password, a hard token, or a biometric identification.",
+      "locator": {
+        "line_start": 23,
+        "line_end": 23,
+        "start_char": 2194,
+        "end_char": 2477,
+        "heading_path": [
+          "Electronic Prescriptions for Controlled Substances (EPCS) - Azure Compliance _ Microsoft Learn",
+          "Page 2"
+        ],
+        "paragraph_index": 11,
+        "filename": "Electronic Prescriptions for Controlled Substances (EPCS) - Azure Compliance _ Microsoft Learn.pdf",
+        "file_extension": "pdf",
+        "file_size": 149210,
+        "document_type": "compliance",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:02b9e09d-bd34-52e0-a7ae-2d5a2b4b0d04:11:069ee508a3e0:a25f93181f",
+      "subject": "Token or OTP generator",
+      "predicate": "meet",
+      "object": "the same requirements as defined for a hard token under the current regulation",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "The DEA has stated that the use of a type of token or OTP generator must meet the same requirements as defined for a hard token under the current regulation.",
+      "locator": {
+        "line_start": 23,
+        "line_end": 23,
+        "start_char": 2194,
+        "end_char": 2477,
+        "heading_path": [
+          "Electronic Prescriptions for Controlled Substances (EPCS) - Azure Compliance _ Microsoft Learn",
+          "Page 2"
+        ],
+        "paragraph_index": 11,
+        "filename": "Electronic Prescriptions for Controlled Substances (EPCS) - Azure Compliance _ Microsoft Learn.pdf",
+        "file_extension": "pdf",
+        "file_size": 149210,
+        "document_type": "compliance",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:02b9e09d-bd34-52e0-a7ae-2d5a2b4b0d04:12:2c5f521b58ba:5884dd406c",
+      "subject": "Hard token",
+      "predicate": "meet",
+      "object": "FIPS 140 Security Level 1 for cryptographic devices or OTP devices",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "If a hard token is used, it must meet FIPS 140 Security Level 1 for cryptographic devices or OTP devices.",
+      "locator": {
+        "line_start": 25,
+        "line_end": 25,
+        "start_char": 2478,
+        "end_char": 2584,
+        "heading_path": [
+          "Electronic Prescriptions for Controlled Substances (EPCS) - Azure Compliance _ Microsoft Learn",
+          "Page 2"
+        ],
+        "paragraph_index": 12,
+        "filename": "Electronic Prescriptions for Controlled Substances (EPCS) - Azure Compliance _ Microsoft Learn.pdf",
+        "file_extension": "pdf",
+        "file_size": 149210,
+        "document_type": "compliance",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:02b9e09d-bd34-52e0-a7ae-2d5a2b4b0d04:13:837a0ed40951:a22899b526",
+      "subject": "Hard token",
+      "predicate": "stored",
+      "object": "on a device that is separate from the computer being used to access the application",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "The hard token must be stored on a device that is separate from the computer being used to access the application.",
+      "locator": {
+        "line_start": 27,
+        "line_end": 27,
+        "start_char": 2585,
+        "end_char": 2700,
+        "heading_path": [
+          "Electronic Prescriptions for Controlled Substances (EPCS) - Azure Compliance _ Microsoft Learn",
+          "Page 2"
+        ],
+        "paragraph_index": 13,
+        "filename": "Electronic Prescriptions for Controlled Substances (EPCS) - Azure Compliance _ Microsoft Learn.pdf",
+        "file_extension": "pdf",
+        "file_size": 149210,
+        "document_type": "compliance",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:02b9e09d-bd34-52e0-a7ae-2d5a2b4b0d04:16:1b69c31c3868:5b5ebae280",
+      "subject": "solutions for hard tokens",
+      "predicate": "use",
+      "object": "cryptographic modules validated at FIPS 140 Level 1 to ensure end users receive a high degree of security, assurance, and non-repudiation.",
+      "modality": "OBLIGATION",
+      "confidence": 0.98,
+      "evidence": "EPCS requires that solutions for hard tokens use cryptographic modules validated at FIPS 140 Level 1 to ensure end users receive a high degree of security, assurance, and non-repudiation.",
+      "locator": {
+        "line_start": 33,
+        "line_end": 33,
+        "start_char": 3267,
+        "end_char": 3750,
+        "heading_path": [
+          "Electronic Prescriptions for Controlled Substances (EPCS) - Azure Compliance _ Microsoft Learn",
+          "Page 2"
+        ],
+        "paragraph_index": 16,
+        "filename": "Electronic Prescriptions for Controlled Substances (EPCS) - Azure Compliance _ Microsoft Learn.pdf",
+        "file_extension": "pdf",
+        "file_size": 149210,
+        "document_type": "compliance",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:02b9e09d-bd34-52e0-a7ae-2d5a2b4b0d04:24:75778d65246b:c3fa1a82df",
+      "subject": "Users",
+      "predicate": "provide",
+      "object": "secondary verification for MFA scenarios to meet your EPCS MFA requirements",
+      "modality": "PERMISSION",
+      "confidence": 0.96,
+      "evidence": "With the Microsoft Authenticator app, you can provide secondary verification for MFA scenarios to meet your EPCS MFA requirements.",
+      "locator": {
+        "line_start": 47,
+        "line_end": 47,
+        "start_char": 4349,
+        "end_char": 5160,
+        "heading_path": [
+          "Electronic Prescriptions for Controlled Substances (EPCS) - Azure Compliance _ Microsoft Learn",
+          "Page 3"
+        ],
+        "paragraph_index": 24,
+        "filename": "Electronic Prescriptions for Controlled Substances (EPCS) - Azure Compliance _ Microsoft Learn.pdf",
+        "file_extension": "pdf",
+        "file_size": 149210,
+        "document_type": "compliance",
+        "sentence_index": 2
+      }
+    },
+    {
+      "candidate_id": "cand:02b9e09d-bd34-52e0-a7ae-2d5a2b4b0d04:25:eb84b3ee373a:686e482d93",
+      "subject": "Multi-factor authenticators at AAL3",
+      "predicate": "rely_on",
+      "object": "hardware cryptographic modules validated at FIPS 140 Level 2 overall with at least FIPS 140 Level 3 for physical security, which exceeds the EPCS MFA requirements",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "According to NIST SP 800-63B Section 4.3 , multi-factor authenticators used at AAL3 shall rely on hardware cryptographic modules validated at FIPS 140 Level 2 overall with at least FIPS 140 Level 3 for physical security, which exceeds the EPCS MFA requirements.",
+      "locator": {
+        "line_start": 49,
+        "line_end": 49,
+        "start_char": 5161,
+        "end_char": 5743,
+        "heading_path": [
+          "Electronic Prescriptions for Controlled Substances (EPCS) - Azure Compliance _ Microsoft Learn",
+          "Page 3"
+        ],
+        "paragraph_index": 25,
+        "filename": "Electronic Prescriptions for Controlled Substances (EPCS) - Azure Compliance _ Microsoft Learn.pdf",
+        "file_extension": "pdf",
+        "file_size": 149210,
+        "document_type": "compliance",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:02b9e09d-bd34-52e0-a7ae-2d5a2b4b0d04:25:eb84b3ee373a:3f1a3d5f62",
+      "subject": "Verifiers at AAL3",
+      "predicate": "must_be_validated_at",
+      "object": "be validated at FIPS 140 Level 1 or higher",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "Verifiers at AAL3 shall be validated at FIPS 140 Level 1 or higher.",
+      "locator": {
+        "line_start": 49,
+        "line_end": 49,
+        "start_char": 5161,
+        "end_char": 5743,
+        "heading_path": [
+          "Electronic Prescriptions for Controlled Substances (EPCS) - Azure Compliance _ Microsoft Learn",
+          "Page 3"
+        ],
+        "paragraph_index": 25,
+        "filename": "Electronic Prescriptions for Controlled Substances (EPCS) - Azure Compliance _ Microsoft Learn.pdf",
+        "file_extension": "pdf",
+        "file_size": 149210,
+        "document_type": "compliance",
+        "sentence_index": 2
+      }
+    }
+  ]
+}

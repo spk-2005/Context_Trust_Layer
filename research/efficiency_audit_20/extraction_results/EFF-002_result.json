@@ -1,0 +1,483 @@
+{
+  "metadata": {
+    "document_id": "EFF-002",
+    "title": "Wingify Employees Notice Period Policy",
+    "file_path": "docs/Employees Notice Period Policy- V 1.5 (1).pdf",
+    "document_type": "policy",
+    "category": "policy",
+    "pages": 6,
+    "latency_seconds": 0.3973
+  },
+  "summary": {
+    "envelope_id": "2ea1fe1a-1102-5857-96c4-b485c1150cf9",
+    "asset_id": "file://Employees Notice Period Policy- V 1.5 (1).pdf",
+    "filename": "Employees Notice Period Policy- V 1.5 (1).pdf",
+    "total_evidence_units": 75,
+    "candidates_discovered": 18,
+    "unique_claims_extracted": 17,
+    "claims_approved": 11,
+    "claims_review": 5,
+    "claims_rejected": 1,
+    "conflicts_detected": 0,
+    "persisted_claims_count": 0
+  },
+  "quality": {
+    "gold_claims": 15,
+    "true_positives": 15,
+    "false_positives": 2,
+    "false_negatives": 0,
+    "precision": 0.8824,
+    "recall": 1.0,
+    "f1_score": 0.9375,
+    "evidence_grounding_rate": 1.0,
+    "locator_accuracy_rate": 1.0
+  },
+  "candidates": [
+    {
+      "candidate_id": "cand:2ea1fe1a-1102-5857-96c4-b485c1150cf9:3:594c28d5b057:f01a76ee25",
+      "subject": "Unauthorized Use or Disclosure of Policy Information",
+      "predicate": "prohibited_in_any_media",
+      "object": "Any media",
+      "modality": "PROHIBITION",
+      "confidence": 0.95,
+      "evidence": "The unauthorized use or disclosure of this information in any media is prohibited.",
+      "locator": {
+        "line_start": 7,
+        "line_end": 7,
+        "start_char": 379,
+        "end_char": 462,
+        "heading_path": [
+          "Employees Notice Period Policy- V 1.5 (1)",
+          "Page 1"
+        ],
+        "paragraph_index": 3,
+        "filename": "Employees Notice Period Policy- V 1.5 (1).pdf",
+        "file_extension": "pdf",
+        "file_size": 344740,
+        "document_type": "policy",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:2ea1fe1a-1102-5857-96c4-b485c1150cf9:35:a0a967fa6cc9:2d0fe16e6c",
+      "subject": "Governance Policy",
+      "predicate": "has_effective_date",
+      "object": "2021-04-01",
+      "modality": "POLICY_FACT",
+      "confidence": 0.49,
+      "evidence": "Effective  April  1,  2021,  this  policy  provides  clear  guidelines  to  ensure  consistency, professionalism, and smooth transitions in all cases involving employee departures.",
+      "locator": {
+        "line_start": 71,
+        "line_end": 71,
+        "start_char": 3916,
+        "end_char": 4097,
+        "heading_path": [
+          "Employees Notice Period Policy- V 1.5 (1)",
+          "Page 4"
+        ],
+        "paragraph_index": 35,
+        "filename": "Employees Notice Period Policy- V 1.5 (1).pdf",
+        "file_extension": "pdf",
+        "file_size": 344740,
+        "document_type": "policy",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:2ea1fe1a-1102-5857-96c4-b485c1150cf9:37:f4b6c0b64e56:6a0d14fbc1",
+      "subject": "Notice",
+      "predicate": "has_validity_rule",
+      "object": "Periods Duration Wingify has defined a notice period duration for employees as per Wingify levels and grades framework; refer to the table below: Level & Grade Group Category Maximum Duration Confirmed Probationers A (A1 & A2) CXO 90 Days 15 days B (B1 & B2) SeniorManagement 90 Days C (C1, C2 & C3) Middle Management 60 Days D (D1, D2 & D3) Junior Management 30 Days E (E1, E2 & E3) Fellow 30 Days Internal, Wingify 4",
+      "modality": "POLICY_FACT",
+      "confidence": 0.9,
+      "evidence": "Periods Duration Wingify  has  defined  a  notice  period  duration  for  employees  as  per  Wingify  levels  and  grades  framework;  refer  to  the  table  below:    Level & Grade Group Category Maximum Duration Confirmed  Probationers A  (A1  &  A2)  CXO  90  Days    15  days B  (B1  &  B2)  SeniorManagement  90  Days  C  (C1,  C2  &  C3) Middle  Management  60  Days D  (D1,  D2  &  D3) Junior  Management   30  Days E  (E1,  E2  &  E3) Fellow  30  Days Internal, Wingify 4",
+      "locator": {
+        "line_start": 74,
+        "line_end": 74,
+        "start_char": 4113,
+        "end_char": 4594,
+        "heading_path": [
+          "Employees Notice Period Policy- V 1.5 (1)",
+          "Page 4",
+          "3.1 Notice"
+        ],
+        "paragraph_index": 37,
+        "filename": "Employees Notice Period Policy- V 1.5 (1).pdf",
+        "file_extension": "pdf",
+        "file_size": 344740,
+        "document_type": "policy",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:2ea1fe1a-1102-5857-96c4-b485c1150cf9:41:3ea43583a8f5:2c36176826",
+      "subject": "Employees (Leave During Notice Period)",
+      "predicate": "request_leave_during_notice_period",
+      "object": "Reporting manager prior written approval",
+      "modality": "PERMISSION",
+      "confidence": 0.96,
+      "evidence": "Employees may request leave during the notice period as an exception with prior approval from their reporting manager.",
+      "locator": {
+        "line_start": 82,
+        "line_end": 82,
+        "start_char": 4755,
+        "end_char": 4874,
+        "heading_path": [
+          "Employees Notice Period Policy- V 1.5 (1)",
+          "Page 5"
+        ],
+        "paragraph_index": 41,
+        "filename": "Employees Notice Period Policy- V 1.5 (1).pdf",
+        "file_extension": "pdf",
+        "file_size": 344740,
+        "document_type": "policy",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:2ea1fe1a-1102-5857-96c4-b485c1150cf9:45:5b5370323d0a:55b8d94a8c",
+      "subject": "Employees",
+      "predicate": "must_return_company_property",
+      "object": "All Wingify property",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "Employees must return all Wingify property upon offboarding.",
+      "locator": {
+        "line_start": 90,
+        "line_end": 90,
+        "start_char": 5124,
+        "end_char": 5185,
+        "heading_path": [
+          "Employees Notice Period Policy- V 1.5 (1)",
+          "Page 5"
+        ],
+        "paragraph_index": 45,
+        "filename": "Employees Notice Period Policy- V 1.5 (1).pdf",
+        "file_extension": "pdf",
+        "file_size": 344740,
+        "document_type": "policy",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:2ea1fe1a-1102-5857-96c4-b485c1150cf9:46:08281661c97e:8d507dd9b1",
+      "subject": "Wingify (Shipping Costs)",
+      "predicate": "covers_shipping_costs",
+      "object": "Shipping costs through a mutually agreed-upon method",
+      "modality": "POLICY_FACT",
+      "confidence": 0.96,
+      "evidence": "Shipping costs will be covered by Wingify through a mutually agreed-upon method.",
+      "locator": {
+        "line_start": 92,
+        "line_end": 92,
+        "start_char": 5186,
+        "end_char": 5267,
+        "heading_path": [
+          "Employees Notice Period Policy- V 1.5 (1)",
+          "Page 5"
+        ],
+        "paragraph_index": 46,
+        "filename": "Employees Notice Period Policy- V 1.5 (1).pdf",
+        "file_extension": "pdf",
+        "file_size": 344740,
+        "document_type": "policy",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:2ea1fe1a-1102-5857-96c4-b485c1150cf9:47:9e04f0173d01:b595bb4fd7",
+      "subject": "Company (Pay in Lieu of Notice)",
+      "predicate": "issues_pay_in_lieu_of_notice",
+      "object": "Payment for notice period upon discussion with Manager, HR, and Department Head (CEO informed)",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "Pay in place of Notice Period:",
+      "locator": {
+        "line_start": 94,
+        "line_end": 94,
+        "start_char": 5268,
+        "end_char": 5301,
+        "heading_path": [
+          "Employees Notice Period Policy- V 1.5 (1)",
+          "Page 5"
+        ],
+        "paragraph_index": 47,
+        "filename": "Employees Notice Period Policy- V 1.5 (1).pdf",
+        "file_extension": "pdf",
+        "file_size": 344740,
+        "document_type": "policy",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:2ea1fe1a-1102-5857-96c4-b485c1150cf9:50:2d39d59ec8da:bc18e2417a",
+      "subject": "Wingify",
+      "predicate": "will_not_grant_pay_in_lieu_of_notice",
+      "object": "dismissal due to misconduct, insubordination, fraud",
+      "modality": "PROHIBITION",
+      "confidence": 0.98,
+      "evidence": "Pay instead of notice will not be granted in cases of dismissal due to misconduct, insubordination, fraud, or other severe reasons warranting penal action as determined by Wingify.",
+      "locator": {
+        "line_start": 100,
+        "line_end": 100,
+        "start_char": 5574,
+        "end_char": 5755,
+        "heading_path": [
+          "Employees Notice Period Policy- V 1.5 (1)",
+          "Page 5"
+        ],
+        "paragraph_index": 50,
+        "filename": "Employees Notice Period Policy- V 1.5 (1).pdf",
+        "file_extension": "pdf",
+        "file_size": 344740,
+        "document_type": "policy",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:2ea1fe1a-1102-5857-96c4-b485c1150cf9:51:2ad36b15b5c3:11acec6fec",
+      "subject": "Company Laptop and Asset Retention",
+      "predicate": "deducted_per_asset_management_policy",
+      "object": "Full and Final Salary",
+      "modality": "POLICY_FACT",
+      "confidence": 0.96,
+      "evidence": "Deduction  from  Full  &  Final  Salary \u25cf If the employee retains the laptop and other company assets, their value will be deducted from  the  Full  and  Final  Salary  as  per  the  Asset  Management  Policy.",
+      "locator": {
+        "line_start": 102,
+        "line_end": 102,
+        "start_char": 5756,
+        "end_char": 5972,
+        "heading_path": [
+          "Employees Notice Period Policy- V 1.5 (1)",
+          "Page 5"
+        ],
+        "paragraph_index": 51,
+        "filename": "Employees Notice Period Policy- V 1.5 (1).pdf",
+        "file_extension": "pdf",
+        "file_size": 344740,
+        "document_type": "policy",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:2ea1fe1a-1102-5857-96c4-b485c1150cf9:52:f56c1b5bcdea:3d24dd7e3d",
+      "subject": "Outstanding Loans and Advances",
+      "predicate": "adjusted_from_full_and_final_salary",
+      "object": "Full and Final Salary",
+      "modality": "POLICY_FACT",
+      "confidence": 0.96,
+      "evidence": "Any outstanding loans or advances the employee takes will be fully adjusted from their Full and Final Salary.",
+      "locator": {
+        "line_start": 104,
+        "line_end": 104,
+        "start_char": 5973,
+        "end_char": 6085,
+        "heading_path": [
+          "Employees Notice Period Policy- V 1.5 (1)",
+          "Page 5"
+        ],
+        "paragraph_index": 52,
+        "filename": "Employees Notice Period Policy- V 1.5 (1).pdf",
+        "file_extension": "pdf",
+        "file_size": 344740,
+        "document_type": "policy",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:2ea1fe1a-1102-5857-96c4-b485c1150cf9:53:b5121447408c:4da77069e3",
+      "subject": "Exit Tax Deductions",
+      "predicate": "deducted_without_investment_proofs",
+      "object": "Exit Taxes",
+      "modality": "POLICY_FACT",
+      "confidence": 0.96,
+      "evidence": "If investment proofs, as declared on the HR Portal, are not provided during exit, taxes will be deducted accordingly.",
+      "locator": {
+        "line_start": 106,
+        "line_end": 106,
+        "start_char": 6086,
+        "end_char": 6206,
+        "heading_path": [
+          "Employees Notice Period Policy- V 1.5 (1)",
+          "Page 5"
+        ],
+        "paragraph_index": 53,
+        "filename": "Employees Notice Period Policy- V 1.5 (1).pdf",
+        "file_extension": "pdf",
+        "file_size": 344740,
+        "document_type": "policy",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:2ea1fe1a-1102-5857-96c4-b485c1150cf9:54:51ab487e8705:30576340ce",
+      "subject": "WFH Allowance Recovery",
+      "predicate": "recovered_upon_early_exit",
+      "object": "WFH Allowance",
+      "modality": "POLICY_FACT",
+      "confidence": 0.96,
+      "evidence": "WFH  Allowance  will  be  recovered  based  on  the  Home  Office   Allowance  Policy  if  the  exit  is  within  a  year  of  joining.",
+      "locator": {
+        "line_start": 108,
+        "line_end": 108,
+        "start_char": 6207,
+        "end_char": 6345,
+        "heading_path": [
+          "Employees Notice Period Policy- V 1.5 (1)",
+          "Page 5"
+        ],
+        "paragraph_index": 54,
+        "filename": "Employees Notice Period Policy- V 1.5 (1).pdf",
+        "file_extension": "pdf",
+        "file_size": 344740,
+        "document_type": "policy",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:2ea1fe1a-1102-5857-96c4-b485c1150cf9:55:0cf3aac612a8:2892c165aa",
+      "subject": "Excess Leave Recovery",
+      "predicate": "recovered_beyond_quota",
+      "object": "Excess leaves beyond allotted quota",
+      "modality": "POLICY_FACT",
+      "confidence": 0.96,
+      "evidence": "Recovery will be made for any excess leaves taken beyond the allotted quota.",
+      "locator": {
+        "line_start": 110,
+        "line_end": 110,
+        "start_char": 6346,
+        "end_char": 6425,
+        "heading_path": [
+          "Employees Notice Period Policy- V 1.5 (1)",
+          "Page 5"
+        ],
+        "paragraph_index": 55,
+        "filename": "Employees Notice Period Policy- V 1.5 (1).pdf",
+        "file_extension": "pdf",
+        "file_size": 344740,
+        "document_type": "policy",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:2ea1fe1a-1102-5857-96c4-b485c1150cf9:56:8b0d63b84b13:052190db89",
+      "subject": "Company",
+      "predicate": "may_recover_short_notice_amount",
+      "object": "Amount equivalent to the short notice period",
+      "modality": "PERMISSION",
+      "confidence": 0.96,
+      "evidence": "If the employee does not serve the full notice period, the company holds the right to recover the amount equivalent to the short notice period.",
+      "locator": {
+        "line_start": 112,
+        "line_end": 112,
+        "start_char": 6426,
+        "end_char": 6572,
+        "heading_path": [
+          "Employees Notice Period Policy- V 1.5 (1)",
+          "Page 5"
+        ],
+        "paragraph_index": 56,
+        "filename": "Employees Notice Period Policy- V 1.5 (1).pdf",
+        "file_extension": "pdf",
+        "file_size": 344740,
+        "document_type": "policy",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:2ea1fe1a-1102-5857-96c4-b485c1150cf9:57:47d17abe962b:5d8a7cc561",
+      "subject": "Joining Bonus Recovery",
+      "predicate": "governed_by_offer_letter_terms",
+      "object": "Terms mentioned in the offer letter",
+      "modality": "POLICY_FACT",
+      "confidence": 0.96,
+      "evidence": "Joining Bonus recovery will be as per the terms mentioned in the offer letter.",
+      "locator": {
+        "line_start": 114,
+        "line_end": 114,
+        "start_char": 6573,
+        "end_char": 6654,
+        "heading_path": [
+          "Employees Notice Period Policy- V 1.5 (1)",
+          "Page 5"
+        ],
+        "paragraph_index": 57,
+        "filename": "Employees Notice Period Policy- V 1.5 (1).pdf",
+        "file_extension": "pdf",
+        "file_size": 344740,
+        "document_type": "policy",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:2ea1fe1a-1102-5857-96c4-b485c1150cf9:58:f7c2d1eec8a9:d4aa483171",
+      "subject": "EPF and VPF Deductions",
+      "predicate": "made_and_deposited_into_account",
+      "object": "Employee's account",
+      "modality": "POLICY_FACT",
+      "confidence": 0.96,
+      "evidence": "EPF (Employee Provident Fund) and VPF (Voluntary Provident Fund) deductions will be made and deposited into the employee's account.",
+      "locator": {
+        "line_start": 116,
+        "line_end": 116,
+        "start_char": 6655,
+        "end_char": 6789,
+        "heading_path": [
+          "Employees Notice Period Policy- V 1.5 (1)",
+          "Page 5"
+        ],
+        "paragraph_index": 58,
+        "filename": "Employees Notice Period Policy- V 1.5 (1).pdf",
+        "file_extension": "pdf",
+        "file_size": 344740,
+        "document_type": "policy",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:2ea1fe1a-1102-5857-96c4-b485c1150cf9:62:e85e3e25d1b1:720a672592",
+      "subject": "Wingify level Internal, Wingify",
+      "predicate": "has_allowance_policy",
+      "object": "s and grades framework",
+      "modality": "POLICY_FACT",
+      "confidence": 0.98,
+      "evidence": "Home Office \u2756: Wingify level Internal, Wingify | Allowance Policy: s and grades framework",
+      "locator": {
+        "line_start": 126,
+        "line_end": 126,
+        "start_char": 6932,
+        "end_char": 6993,
+        "table_id": "table_line_124",
+        "table_start_line": 124,
+        "row_index": 1,
+        "heading_path": [
+          "Employees Notice Period Policy- V 1.5 (1)",
+          "Page 5"
+        ],
+        "paragraph_index": 62,
+        "filename": "Employees Notice Period Policy- V 1.5 (1).pdf",
+        "file_extension": "pdf",
+        "file_size": 344740,
+        "document_type": "policy",
+        "table_grid": {
+          "table_type": "policy_matrix",
+          "row_key": "Wingify level Internal, Wingify",
+          "row_scope": {
+            "Home Office \u2756": "Wingify level Internal, Wingify"
+          },
+          "col_header": "Allowance Policy",
+          "cell_value": "s and grades framework",
+          "unit": null,
+          "qualifiers": [],
+          "table_start_line": 124,
+          "row_line": 126
+        },
+        "grid_label": "Row 'Wingify level Internal, Wingify' \u2022 Col 'Allowance Policy' \u2022 Cell 's and grades framework'",
+        "section_context": [
+          "Employees Notice Period Policy- V 1.5 (1)",
+          "Page 5"
+        ]
+      }
+    }
+  ]
+}

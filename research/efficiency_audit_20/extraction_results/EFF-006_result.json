@@ -1,0 +1,437 @@
+{
+  "metadata": {
+    "document_id": "EFF-006",
+    "title": "DP&AR Guidelines for Engagement of Employees on Contract Basis",
+    "file_path": "docs/guidelines-for-engagement-of-employees-on-contract-basis.pdf",
+    "document_type": "contract",
+    "category": "contract",
+    "pages": 5,
+    "latency_seconds": 0.3512
+  },
+  "summary": {
+    "envelope_id": "e24dd6a7-490c-5888-948c-79ab9bc7587d",
+    "asset_id": "file://guidelines-for-engagement-of-employees-on-contract-basis.pdf",
+    "filename": "guidelines-for-engagement-of-employees-on-contract-basis.pdf",
+    "total_evidence_units": 64,
+    "candidates_discovered": 16,
+    "unique_claims_extracted": 16,
+    "claims_approved": 16,
+    "claims_review": 0,
+    "claims_rejected": 0,
+    "conflicts_detected": 0,
+    "persisted_claims_count": 0
+  },
+  "quality": {
+    "gold_claims": 16,
+    "true_positives": 16,
+    "false_positives": 0,
+    "false_negatives": 0,
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1_score": 1.0,
+    "evidence_grounding_rate": 1.0,
+    "locator_accuracy_rate": 1.0
+  },
+  "candidates": [
+    {
+      "candidate_id": "cand:e24dd6a7-490c-5888-948c-79ab9bc7587d:4:be90e80e33d2:c3d7e6ead6",
+      "subject": "All Administrative Departments and Heads of Departments",
+      "predicate": "scrupulously_follow",
+      "object": "the following terms and conditions while making engagements on contract basis",
+      "modality": "POLICY_FACT",
+      "confidence": 0.9,
+      "evidence": "All Administrative Departments and Heads of Departments should scrupulously follow the following terms and conditions while making engagements on contract basis :",
+      "locator": {
+        "line_start": 9,
+        "line_end": 9,
+        "start_char": 661,
+        "end_char": 824,
+        "heading_path": [
+          "guidelines-for-engagement-of-employees-on-contract-basis",
+          "Page 1"
+        ],
+        "paragraph_index": 4,
+        "filename": "guidelines-for-engagement-of-employees-on-contract-basis.pdf",
+        "file_extension": "pdf",
+        "file_size": 92573,
+        "document_type": "contract",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:e24dd6a7-490c-5888-948c-79ab9bc7587d:5:d369db3613db:cf7001283e",
+      "subject": "engagement on contract basis",
+      "predicate": "has_validity_rule",
+      "object": "be made except with prior approval of DP&AR and Finance Department, Government of Mizoram",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "No engagement on contract basis shall be made except with prior approval of DP&AR and Finance Department, Government of Mizoram.",
+      "locator": {
+        "line_start": 11,
+        "line_end": 11,
+        "start_char": 825,
+        "end_char": 1169,
+        "heading_path": [
+          "guidelines-for-engagement-of-employees-on-contract-basis",
+          "Page 1"
+        ],
+        "paragraph_index": 5,
+        "filename": "guidelines-for-engagement-of-employees-on-contract-basis.pdf",
+        "file_extension": "pdf",
+        "file_size": 92573,
+        "document_type": "contract",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:e24dd6a7-490c-5888-948c-79ab9bc7587d:7:c8fa57d2b9a4:c13948527c",
+      "subject": "contract employment",
+      "predicate": "has_validity_rule",
+      "object": "be resorted to by the Department with prior concurrence of the DP&AR and Finance Department and with final approval of the Chief Minister through Chief Secretary in the absence of specific sanctioned posts",
+      "modality": "PERMISSION",
+      "confidence": 0.96,
+      "evidence": "Provided that in certa in special circumstances, contract employment may be resorted to by the Department with prior concurrence of the DP&AR and Finance Department and with final approval of the Chief Minister through Chief Secretary in the absence of specific sanctioned posts.",
+      "locator": {
+        "line_start": 14,
+        "line_end": 14,
+        "start_char": 1325,
+        "end_char": 1605,
+        "heading_path": [
+          "guidelines-for-engagement-of-employees-on-contract-basis",
+          "Page 1"
+        ],
+        "paragraph_index": 7,
+        "filename": "guidelines-for-engagement-of-employees-on-contract-basis.pdf",
+        "file_extension": "pdf",
+        "file_size": 92573,
+        "document_type": "contract",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:e24dd6a7-490c-5888-948c-79ab9bc7587d:8:96b013bf1000:1d5d07f346",
+      "subject": "No formal appointment",
+      "predicate": "has_validity_rule",
+      "object": "be issued while making engagement on contract except after execution of Agreement in the prescribed form appended",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "No formal appointment shall be issued while making engagement on contract except after execution of Agreement in the prescribed form appended.",
+      "locator": {
+        "line_start": 16,
+        "line_end": 16,
+        "start_char": 1606,
+        "end_char": 1752,
+        "heading_path": [
+          "guidelines-for-engagement-of-employees-on-contract-basis",
+          "Page 1"
+        ],
+        "paragraph_index": 8,
+        "filename": "guidelines-for-engagement-of-employees-on-contract-basis.pdf",
+        "file_extension": "pdf",
+        "file_size": 92573,
+        "document_type": "contract",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:e24dd6a7-490c-5888-948c-79ab9bc7587d:9:3a895716809e:362b5c92c3",
+      "subject": "Period of engagement on contract basis",
+      "predicate": "has_duration_limit",
+      "object": "be for one year at the initial stage",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "Period of engagement on contract basis shall be for one year at the initial stage.",
+      "locator": {
+        "line_start": 17,
+        "line_end": 17,
+        "start_char": 1752,
+        "end_char": 1838,
+        "heading_path": [
+          "guidelines-for-engagement-of-employees-on-contract-basis",
+          "Page 1"
+        ],
+        "paragraph_index": 9,
+        "filename": "guidelines-for-engagement-of-employees-on-contract-basis.pdf",
+        "file_extension": "pdf",
+        "file_size": 92573,
+        "document_type": "contract",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:e24dd6a7-490c-5888-948c-79ab9bc7587d:10:52164e057ca5:4a17cb1426",
+      "subject": "the appointing authority",
+      "predicate": "extend",
+      "object": "their services for another period as it may deem fit and proper",
+      "modality": "PERMISSION",
+      "confidence": 0.96,
+      "evidence": "If they are found fit for further retention, the appointing authority may extend their services for another period as it may deem fit and proper.",
+      "locator": {
+        "line_start": 19,
+        "line_end": 19,
+        "start_char": 1839,
+        "end_char": 2120,
+        "heading_path": [
+          "guidelines-for-engagement-of-employees-on-contract-basis",
+          "Page 1"
+        ],
+        "paragraph_index": 10,
+        "filename": "guidelines-for-engagement-of-employees-on-contract-basis.pdf",
+        "file_extension": "pdf",
+        "file_size": 92573,
+        "document_type": "contract",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:e24dd6a7-490c-5888-948c-79ab9bc7587d:17:2fa9f1436eb6:7965b6e7c0",
+      "subject": "rate of monthly remuneration of contract employee",
+      "predicate": "has_attachment_requirement",
+      "object": "be equal to the minimum scale of pay attached to the post in which he/she in engaged plus 50% of that amount",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "The rate of monthly remuneration of contract employee shall be equal to the minimum scale of pay attached to the post in which he/she in engaged plus 50% of that amount.",
+      "locator": {
+        "line_start": 31,
+        "line_end": 31,
+        "start_char": 2804,
+        "end_char": 2977,
+        "heading_path": [
+          "guidelines-for-engagement-of-employees-on-contract-basis",
+          "Page 2"
+        ],
+        "paragraph_index": 17,
+        "filename": "guidelines-for-engagement-of-employees-on-contract-basis.pdf",
+        "file_extension": "pdf",
+        "file_size": 92573,
+        "document_type": "contract",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:e24dd6a7-490c-5888-948c-79ab9bc7587d:18:79de782d094f:4d37be52a4",
+      "subject": "Contract employees",
+      "predicate": "has_validity_rule",
+      "object": "be entitled to Medical Re -imbursement at par with other regular government servants",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "All Contract employees shall be entitled to Medical Re -imbursement at par with other regular government servants.",
+      "locator": {
+        "line_start": 32,
+        "line_end": 32,
+        "start_char": 2977,
+        "end_char": 3095,
+        "heading_path": [
+          "guidelines-for-engagement-of-employees-on-contract-basis",
+          "Page 2"
+        ],
+        "paragraph_index": 18,
+        "filename": "guidelines-for-engagement-of-employees-on-contract-basis.pdf",
+        "file_extension": "pdf",
+        "file_size": 92573,
+        "document_type": "contract",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:e24dd6a7-490c-5888-948c-79ab9bc7587d:22:3e7dd62ea94b:76c73d9725",
+      "subject": "Contract employees",
+      "predicate": "has_validity_rule",
+      "object": "be required to subscribe to special security scheme as may be introduced by the Government of Mizoram from time to time",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "Contract employees shall be required to subscribe to special security scheme as may be introduced by the Government of Mizoram from time to time.",
+      "locator": {
+        "line_start": 36,
+        "line_end": 36,
+        "start_char": 3690,
+        "end_char": 3840,
+        "heading_path": [
+          "guidelines-for-engagement-of-employees-on-contract-basis",
+          "Page 2"
+        ],
+        "paragraph_index": 22,
+        "filename": "guidelines-for-engagement-of-employees-on-contract-basis.pdf",
+        "file_extension": "pdf",
+        "file_size": 92573,
+        "document_type": "contract",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:e24dd6a7-490c-5888-948c-79ab9bc7587d:26:d12a588bcba1:c05982de2d",
+      "subject": "No household Peon",
+      "predicate": "has_validity_rule",
+      "object": "be provided to any contract employee",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "No household Peon shall be provided to any contract employee.",
+      "locator": {
+        "line_start": 42,
+        "line_end": 42,
+        "start_char": 4169,
+        "end_char": 4235,
+        "heading_path": [
+          "guidelines-for-engagement-of-employees-on-contract-basis",
+          "Page 2"
+        ],
+        "paragraph_index": 26,
+        "filename": "guidelines-for-engagement-of-employees-on-contract-basis.pdf",
+        "file_extension": "pdf",
+        "file_size": 92573,
+        "document_type": "contract",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:e24dd6a7-490c-5888-948c-79ab9bc7587d:27:c3e0b6e42faa:eac52d5534",
+      "subject": "No residential telephone",
+      "predicate": "has_validity_rule",
+      "object": "be provided to any contract employee",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "No residential telephone shall be provided to any contract employee.",
+      "locator": {
+        "line_start": 43,
+        "line_end": 43,
+        "start_char": 4235,
+        "end_char": 4308,
+        "heading_path": [
+          "guidelines-for-engagement-of-employees-on-contract-basis",
+          "Page 2"
+        ],
+        "paragraph_index": 27,
+        "filename": "guidelines-for-engagement-of-employees-on-contract-basis.pdf",
+        "file_extension": "pdf",
+        "file_size": 92573,
+        "document_type": "contract",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:e24dd6a7-490c-5888-948c-79ab9bc7587d:28:191842bb8f73:8d7427b201",
+      "subject": "The emolument s for this purpose",
+      "predicate": "has_validity_rule",
+      "object": "be restricted to the existing remuneration drawn by the employee at the time of death or discharge from service",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "The emolument s for this purpose shall be restricted to the existing remuneration drawn by the employee at the time of death or discharge from service.",
+      "locator": {
+        "line_start": 44,
+        "line_end": 44,
+        "start_char": 4308,
+        "end_char": 4799,
+        "heading_path": [
+          "guidelines-for-engagement-of-employees-on-contract-basis",
+          "Page 2"
+        ],
+        "paragraph_index": 28,
+        "filename": "guidelines-for-engagement-of-employees-on-contract-basis.pdf",
+        "file_extension": "pdf",
+        "file_size": 92573,
+        "document_type": "contract",
+        "sentence_index": 2
+      }
+    },
+    {
+      "candidate_id": "cand:e24dd6a7-490c-5888-948c-79ab9bc7587d:30:864439c91f8a:d292bfc410",
+      "subject": "The emoluments for this purpose",
+      "predicate": "has_validity_rule",
+      "object": "be restricted to the existing remuneration drawn by the employee at the time of death or discharge from service",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "The emoluments for this purpose shall be restricted to the existing remuneration drawn by the employee at the time of death or discharge from service.",
+      "locator": {
+        "line_start": 47,
+        "line_end": 47,
+        "start_char": 4964,
+        "end_char": 5115,
+        "heading_path": [
+          "guidelines-for-engagement-of-employees-on-contract-basis",
+          "Page 2"
+        ],
+        "paragraph_index": 30,
+        "filename": "guidelines-for-engagement-of-employees-on-contract-basis.pdf",
+        "file_extension": "pdf",
+        "file_size": 92573,
+        "document_type": "contract",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:e24dd6a7-490c-5888-948c-79ab9bc7587d:34:6ec45aa2a82d:ca36dade43",
+      "subject": "Moreover, TA/DA on official tour",
+      "predicate": "has_validity_rule",
+      "object": "also be admissible to all Contract employees at par with other regular Government servants",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "Moreover, TA/DA on official tour shall also be admissible to all Contract employees at par with other regular Government servants.",
+      "locator": {
+        "line_start": 55,
+        "line_end": 55,
+        "start_char": 5288,
+        "end_char": 5419,
+        "heading_path": [
+          "guidelines-for-engagement-of-employees-on-contract-basis",
+          "Page 3"
+        ],
+        "paragraph_index": 34,
+        "filename": "guidelines-for-engagement-of-employees-on-contract-basis.pdf",
+        "file_extension": "pdf",
+        "file_size": 92573,
+        "document_type": "contract",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:e24dd6a7-490c-5888-948c-79ab9bc7587d:35:b67b5bd2ea2f:09e007396f",
+      "subject": "Service book",
+      "predicate": "has_governing_rule",
+      "object": "be maintained for each contract employee",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "Service book shall be maintained for each contract employee.",
+      "locator": {
+        "line_start": 57,
+        "line_end": 57,
+        "start_char": 5420,
+        "end_char": 5486,
+        "heading_path": [
+          "guidelines-for-engagement-of-employees-on-contract-basis",
+          "Page 3"
+        ],
+        "paragraph_index": 35,
+        "filename": "guidelines-for-engagement-of-employees-on-contract-basis.pdf",
+        "file_extension": "pdf",
+        "file_size": 92573,
+        "document_type": "contract",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:e24dd6a7-490c-5888-948c-79ab9bc7587d:50:ac90cb6d8b3e:adb108a88f",
+      "subject": "The party of the first part",
+      "predicate": "has_validity_rule",
+      "object": "be entitled to a remuneration at the rate Rs. /- p.m",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "The party of the first part shall be entitled to a remuneration at the rate Rs.________ _________________/- p.m.",
+      "locator": {
+        "line_start": 79,
+        "line_end": 79,
+        "start_char": 7209,
+        "end_char": 7325,
+        "heading_path": [
+          "guidelines-for-engagement-of-employees-on-contract-basis",
+          "Page 4"
+        ],
+        "paragraph_index": 50,
+        "filename": "guidelines-for-engagement-of-employees-on-contract-basis.pdf",
+        "file_extension": "pdf",
+        "file_size": 92573,
+        "document_type": "contract",
+        "sentence_index": 1
+      }
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "document_id": "EFF-013",
+  "filename": "wordpress-pdf-invoice-plugin-sample.pdf",
+  "document_type": "invoice",
+  "claim_truth": [
+    {
+      "gold_id": "EFF-013-G01",
+      "claim_type": "policy",
+      "canonical": true,
+      "subject": "wordpress-pdf-invoice-plugin-sample",
+      "predicate": "has_due_date_period",
+      "object": "Invoice Payment is due within 30 days from date of invoice.",
+      "modality": "POLICY_FACT",
+      "conditions": [],
+      "page_number": 1,
+      "section": "",
+      "evidence_quote": "Invoice Payment is due within 30 days from date of invoice."
+    },
+    {
+      "gold_id": "EFF-013-G02",
+      "claim_type": "policy",
+      "canonical": true,
+      "subject": "wordpress-pdf-invoice-plugin-sample",
+      "predicate": "may_apply_administration_fee",
+      "object": "Late payment is subject to fees of 5% per month.",
+      "modality": "POLICY_FACT",
+      "conditions": [],
+      "page_number": 1,
+      "section": "",
+      "evidence_quote": "Late payment is subject to fees of 5% per month."
+    }
+  ]
+}

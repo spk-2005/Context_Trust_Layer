@@ -1,0 +1,3202 @@
+{
+  "adjudication_metadata": {
+    "sprint": "AE-2",
+    "scope": "Blinded Dual-Review with Arbitration for Pending Claims",
+    "total_claims_adjudicated": 145,
+    "agreement_statistics": {
+      "total_claims": 145,
+      "agreed_decisions": 138,
+      "disagreed_decisions": 7,
+      "observed_agreement_po": 0.9517,
+      "expected_agreement_pe": 0.4999,
+      "cohens_kappa": 0.9035,
+      "kappa_target": 0.6,
+      "kappa_gate_passed": true,
+      "disagreement_rate": 0.0483
+    },
+    "disposition_summary": {
+      "total_claims": 145,
+      "adjudicated_approved": 76,
+      "adjudicated_rejected": 69,
+      "approval_rate": 0.5241,
+      "rejection_rate": 0.4759
+    },
+    "document_breakdown": {
+      "EFF-001": {
+        "total_pending": 13,
+        "approved": 9,
+        "rejected": 4
+      },
+      "EFF-002": {
+        "total_pending": 5,
+        "approved": 3,
+        "rejected": 2
+      },
+      "EFF-003": {
+        "total_pending": 6,
+        "approved": 3,
+        "rejected": 3
+      },
+      "EFF-004": {
+        "total_pending": 5,
+        "approved": 3,
+        "rejected": 2
+      },
+      "EFF-005": {
+        "total_pending": 12,
+        "approved": 6,
+        "rejected": 6
+      },
+      "EFF-006": {
+        "total_pending": 0,
+        "approved": 0,
+        "rejected": 0
+      },
+      "EFF-007": {
+        "total_pending": 24,
+        "approved": 13,
+        "rejected": 11
+      },
+      "EFF-008": {
+        "total_pending": 20,
+        "approved": 12,
+        "rejected": 8
+      },
+      "EFF-009": {
+        "total_pending": 0,
+        "approved": 0,
+        "rejected": 0
+      },
+      "EFF-010": {
+        "total_pending": 2,
+        "approved": 2,
+        "rejected": 0
+      },
+      "EFF-011": {
+        "total_pending": 2,
+        "approved": 0,
+        "rejected": 2
+      },
+      "EFF-012": {
+        "total_pending": 3,
+        "approved": 0,
+        "rejected": 3
+      },
+      "EFF-013": {
+        "total_pending": 0,
+        "approved": 0,
+        "rejected": 0
+      },
+      "EFF-014": {
+        "total_pending": 7,
+        "approved": 2,
+        "rejected": 5
+      },
+      "EFF-015": {
+        "total_pending": 3,
+        "approved": 1,
+        "rejected": 2
+      },
+      "EFF-016": {
+        "total_pending": 1,
+        "approved": 0,
+        "rejected": 1
+      },
+      "EFF-017": {
+        "total_pending": 1,
+        "approved": 0,
+        "rejected": 1
+      },
+      "EFF-018": {
+        "total_pending": 3,
+        "approved": 0,
+        "rejected": 3
+      },
+      "EFF-019": {
+        "total_pending": 19,
+        "approved": 11,
+        "rejected": 8
+      },
+      "EFF-020": {
+        "total_pending": 19,
+        "approved": 11,
+        "rejected": 8
+      }
+    }
+  },
+  "adjudicated_claims": [
+    {
+      "candidate_id": "cand:402901c8-3509-5f0e-8a95-5efb3ca98fba:34:6a3c40605e27:d25db711f7",
+      "document_id": "EFF-001",
+      "subject": "Policy summary at a glance",
+      "predicate": "has_return_window",
+      "object": "30 days from delivery (60 days for Northwind Rewards Gold members) Refund speed 3-5 business days after we receive and inspect the return Return shipping Free for defective or incorrect items; $6.95 deducted otherwise Restocking fee None on most items; 15% on special-order and bulk items Final sale items Not eligible for refund or exchange",
+      "modality": "POLICY_FACT",
+      "trust_score": 0.9,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "APPROVE",
+        "rationale": "Legal perspective: Valid overarching policy summary establishing document scope."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "REJECT",
+        "rationale": "KG perspective: Redundant with atomic child rules in knowledge graph."
+      },
+      "arbitration": {
+        "arbitrator_persona": "Lead Legal Counsel & Chief Trust Architect",
+        "decision": "APPROVE",
+        "rationale": "Arbitrator Ruling: Retain as high-level policy container node linked to atomic clauses."
+      },
+      "final_disposition": "ADJUDICATED_APPROVE"
+    },
+    {
+      "candidate_id": "cand:402901c8-3509-5f0e-8a95-5efb3ca98fba:45:62ff00343dad:1136e311ca",
+      "document_id": "EFF-001",
+      "subject": "Northwind",
+      "predicate": "has_refund_eligibility",
+      "object": "Final Sale Items marked 'Final Sale' at the time of purchase, which cannot be returned.",
+      "modality": "PROHIBITION",
+      "trust_score": 0.8562,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "APPROVE",
+        "rationale": "Legally binding prohibition with clear deontic requirement."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "APPROVE",
+        "rationale": "Actionable prohibition with solid evidence grounding for decision gate."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_APPROVE"
+    },
+    {
+      "candidate_id": "cand:402901c8-3509-5f0e-8a95-5efb3ca98fba:90:23bfe8fedfdf:ff5aea89fd",
+      "document_id": "EFF-001",
+      "subject": "Even for non-refundable items, a full refund or replacement",
+      "predicate": "will_issue_refund",
+      "object": "be provided if the item arrives damaged, is materially different from its description, or was shipped in error",
+      "modality": "OBLIGATION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "APPROVE",
+        "rationale": "Legally binding obligation with clear deontic requirement."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "APPROVE",
+        "rationale": "Actionable obligation with solid evidence grounding for decision gate."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_APPROVE"
+    },
+    {
+      "candidate_id": "cand:402901c8-3509-5f0e-8a95-5efb3ca98fba:102:bb87dedb3bbe:0eb4cb5d2d",
+      "document_id": "EFF-001",
+      "subject": "In store",
+      "predicate": "has_return_window",
+      "object": "In-store refunds to the original card are processed immediately; the bank may take 3-5 days to post the credit.",
+      "modality": "PERMISSION",
+      "trust_score": 0.8562,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "APPROVE",
+        "rationale": "Explicit contractual entitlement or permission granted to party."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "APPROVE",
+        "rationale": "Actionable operational permission suitable for decisioning."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_APPROVE"
+    },
+    {
+      "candidate_id": "cand:402901c8-3509-5f0e-8a95-5efb3ca98fba:109:c2be53c5d932:386dfd12b2",
+      "document_id": "EFF-001",
+      "subject": "Northwind: Page 9",
+      "predicate": "has_refund_eligibility",
+      "object": "up to 1 hour by phone Return transit to warehouse 3-7 business days (domestic) Warehouse receipt and inspection 1-2 business days Refund approved and issued Within 1 business day of inspection Credit card refund posted by bank 3-5 business days Debit card / bank transfer 5-10 business days PayPal.",
+      "modality": "POLICY_FACT",
+      "trust_score": 0.91,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "REJECT",
+        "rationale": "Non-normative administrative contact, customer support directory, or illustrative example."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "REJECT",
+        "rationale": "Procedural guidance or illustrative example; non-decision-eligible."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_REJECT"
+    },
+    {
+      "candidate_id": "cand:402901c8-3509-5f0e-8a95-5efb3ca98fba:129:266249fc8f6a:7f0319170e",
+      "document_id": "EFF-001",
+      "subject": "Reimbursement for carrier costs is",
+      "predicate": "limited_to",
+      "object": "$12.00 and only for approved defective returns, with a receipt",
+      "modality": "OBLIGATION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "REJECT",
+        "rationale": "Insufficient legal normativity or ambiguous contractual force."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "REJECT",
+        "rationale": "Low operational utility or ambiguous predicate scope."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_REJECT"
+    },
+    {
+      "candidate_id": "cand:402901c8-3509-5f0e-8a95-5efb3ca98fba:142:35beda587494:60e4233f90",
+      "document_id": "EFF-001",
+      "subject": "This is",
+      "predicate": "limited_to",
+      "object": "two instances per customer per year",
+      "modality": "OBLIGATION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "REJECT",
+        "rationale": "Insufficient legal normativity or ambiguous contractual force."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "REJECT",
+        "rationale": "Low operational utility or ambiguous predicate scope."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_REJECT"
+    },
+    {
+      "candidate_id": "cand:402901c8-3509-5f0e-8a95-5efb3ca98fba:145:4b37106d99e5:f8051ec1c5",
+      "document_id": "EFF-001",
+      "subject": "Northwind",
+      "predicate": "has_refund_eligibility",
+      "object": "Once an order has shipped, it must be handled as a return.",
+      "modality": "OBLIGATION",
+      "trust_score": 0.8562,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "APPROVE",
+        "rationale": "Legally binding obligation with clear deontic requirement."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "APPROVE",
+        "rationale": "Actionable obligation with solid evidence grounding for decision gate."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_APPROVE"
+    },
+    {
+      "candidate_id": "cand:402901c8-3509-5f0e-8a95-5efb3ca98fba:149:91a93cf08ec3:129974081c",
+      "document_id": "EFF-001",
+      "subject": "Northwind We",
+      "predicate": "cancel",
+      "object": "an order for reasons including stock errors, pricing errors, suspected fraud, or inability to verify payment",
+      "modality": "PERMISSION",
+      "trust_score": 0.855,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "REJECT",
+        "rationale": "Insufficient legal normativity or ambiguous contractual force."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "REJECT",
+        "rationale": "Low operational utility or ambiguous predicate scope."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_REJECT"
+    },
+    {
+      "candidate_id": "cand:402901c8-3509-5f0e-8a95-5efb3ca98fba:159:9c06edd5041e:2e03119eae",
+      "document_id": "EFF-001",
+      "subject": "Users",
+      "predicate": "has_return_window",
+      "object": "a reminder due to an invalid email address, we will treat the renewal as accidental and refund in full within 30 days.",
+      "modality": "OBLIGATION",
+      "trust_score": 0.725,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "APPROVE",
+        "rationale": "Legally binding obligation with clear deontic requirement."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "APPROVE",
+        "rationale": "Actionable obligation with solid evidence grounding for decision gate."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_APPROVE"
+    },
+    {
+      "candidate_id": "cand:402901c8-3509-5f0e-8a95-5efb3ca98fba:207:8ce08a2be4ff:2dc128be0b",
+      "document_id": "EFF-001",
+      "subject": "Customers",
+      "predicate": "are_responsible_for",
+      "object": "filing customs duty drawback claims where available",
+      "modality": "OBLIGATION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "APPROVE",
+        "rationale": "Legally binding obligation with clear deontic requirement."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "APPROVE",
+        "rationale": "Actionable obligation with solid evidence grounding for decision gate."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_APPROVE"
+    },
+    {
+      "candidate_id": "cand:402901c8-3509-5f0e-8a95-5efb3ca98fba:213:a635e0d5e19b:3e816e5f8e",
+      "document_id": "EFF-001",
+      "subject": "Northwind",
+      "predicate": "has_evidence_submission_deadline",
+      "object": "Submits dispute evidence within 7 days",
+      "modality": "OBLIGATION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "APPROVE",
+        "rationale": "Legally binding obligation with clear deontic requirement."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "APPROVE",
+        "rationale": "Actionable obligation with solid evidence grounding for decision gate."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_APPROVE"
+    },
+    {
+      "candidate_id": "cand:402901c8-3509-5f0e-8a95-5efb3ca98fba:232:e3b2be1d1aa5:fc5e827670",
+      "document_id": "EFF-001",
+      "subject": "Customers",
+      "predicate": "has_return_window",
+      "object": "appeal restrictions in writing to appeals@northwind-demo.example within 30 days",
+      "modality": "OBLIGATION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "APPROVE",
+        "rationale": "Legally binding obligation with clear deontic requirement."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "APPROVE",
+        "rationale": "Actionable obligation with solid evidence grounding for decision gate."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_APPROVE"
+    },
+    {
+      "candidate_id": "cand:2ea1fe1a-1102-5857-96c4-b485c1150cf9:41:3ea43583a8f5:2c36176826",
+      "document_id": "EFF-002",
+      "subject": "Employees (Leave During Notice Period)",
+      "predicate": "request_leave_during_notice_period",
+      "object": "Reporting manager prior written approval",
+      "modality": "PERMISSION",
+      "trust_score": 0.9375,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "REJECT",
+        "rationale": "Insufficient legal normativity or ambiguous contractual force."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "APPROVE",
+        "rationale": "Actionable operational permission suitable for decisioning."
+      },
+      "arbitration": {
+        "arbitrator_persona": "Lead Legal Counsel & Chief Trust Architect",
+        "decision": "APPROVE",
+        "rationale": "Arbitrator Ruling: Contains binding normative terms; approved for production knowledge graph."
+      },
+      "final_disposition": "ADJUDICATED_APPROVE"
+    },
+    {
+      "candidate_id": "cand:2ea1fe1a-1102-5857-96c4-b485c1150cf9:47:9e04f0173d01:b595bb4fd7",
+      "document_id": "EFF-002",
+      "subject": "Company (Pay in Lieu of Notice)",
+      "predicate": "issues_pay_in_lieu_of_notice",
+      "object": "Payment for notice period upon discussion with Manager, HR, and Department Head (CEO informed)",
+      "modality": "OBLIGATION",
+      "trust_score": 0.7475,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "APPROVE",
+        "rationale": "Legally binding obligation with clear deontic requirement."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "APPROVE",
+        "rationale": "Actionable obligation with solid evidence grounding for decision gate."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_APPROVE"
+    },
+    {
+      "candidate_id": "cand:2ea1fe1a-1102-5857-96c4-b485c1150cf9:51:2ad36b15b5c3:11acec6fec",
+      "document_id": "EFF-002",
+      "subject": "Company Laptop and Asset Retention",
+      "predicate": "deducted_per_asset_management_policy",
+      "object": "Full and Final Salary",
+      "modality": "POLICY_FACT",
+      "trust_score": 0.9375,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "APPROVE",
+        "rationale": "Substantive policy condition or parameter defining operational terms."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "APPROVE",
+        "rationale": "Well-defined operational policy parameter."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_APPROVE"
+    },
+    {
+      "candidate_id": "cand:2ea1fe1a-1102-5857-96c4-b485c1150cf9:54:51ab487e8705:30576340ce",
+      "document_id": "EFF-002",
+      "subject": "WFH Allowance Recovery",
+      "predicate": "recovered_upon_early_exit",
+      "object": "WFH Allowance",
+      "modality": "POLICY_FACT",
+      "trust_score": 0.9375,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "APPROVE",
+        "rationale": "Substantive policy condition or parameter defining operational terms."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "REJECT",
+        "rationale": "Descriptive policy fact without explicit operative decision predicate."
+      },
+      "arbitration": {
+        "arbitrator_persona": "Lead Legal Counsel & Chief Trust Architect",
+        "decision": "REJECT",
+        "rationale": "Arbitrator Ruling: Fails strict normative threshold for autonomous decisioning."
+      },
+      "final_disposition": "ADJUDICATED_REJECT"
+    },
+    {
+      "candidate_id": "cand:2ea1fe1a-1102-5857-96c4-b485c1150cf9:55:0cf3aac612a8:2892c165aa",
+      "document_id": "EFF-002",
+      "subject": "Excess Leave Recovery",
+      "predicate": "recovered_beyond_quota",
+      "object": "Excess leaves beyond allotted quota",
+      "modality": "POLICY_FACT",
+      "trust_score": 0.9375,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "REJECT",
+        "rationale": "Insufficient legal normativity or ambiguous contractual force."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "REJECT",
+        "rationale": "Low operational utility or ambiguous predicate scope."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_REJECT"
+    },
+    {
+      "candidate_id": "cand:629ca5cb-7a37-571e-bd2c-7fa55214779c:4:24414e79d447:34433caa37",
+      "document_id": "EFF-003",
+      "subject": "This means that either the staff member or the University",
+      "predicate": "sever",
+      "object": "the employment relationship at any time with or without cause",
+      "modality": "PERMISSION",
+      "trust_score": 0.99,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "REJECT",
+        "rationale": "Insufficient legal normativity or ambiguous contractual force."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "REJECT",
+        "rationale": "Low operational utility or ambiguous predicate scope."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_REJECT"
+    },
+    {
+      "candidate_id": "cand:629ca5cb-7a37-571e-bd2c-7fa55214779c:6:67e90dd21b61:fd1e307d27",
+      "document_id": "EFF-003",
+      "subject": "Termination of Employment Policy",
+      "predicate": "has_validity_rule",
+      "object": "applies to all regular full-time and part-time staff employees",
+      "modality": "OBLIGATION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "APPROVE",
+        "rationale": "Legally binding obligation with clear deontic requirement."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "APPROVE",
+        "rationale": "Actionable obligation with solid evidence grounding for decision gate."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_APPROVE"
+    },
+    {
+      "candidate_id": "cand:629ca5cb-7a37-571e-bd2c-7fa55214779c:16:07bbbf6e678f:83449fd2b2",
+      "document_id": "EFF-003",
+      "subject": "final paycheck",
+      "predicate": "includes_compensation",
+      "object": "includes all unpaid wages, earned but unused paid leave time (PLT)",
+      "modality": "OBLIGATION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "REJECT",
+        "rationale": "Insufficient legal normativity or ambiguous contractual force."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "REJECT",
+        "rationale": "Low operational utility or ambiguous predicate scope."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_REJECT"
+    },
+    {
+      "candidate_id": "cand:629ca5cb-7a37-571e-bd2c-7fa55214779c:20:53f9b7391096:0ebd573283",
+      "document_id": "EFF-003",
+      "subject": "Staff members terminated for misconduct",
+      "predicate": "has_severance_eligibility",
+      "object": "not eligible for severance pay",
+      "modality": "PROHIBITION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "REJECT",
+        "rationale": "Insufficient legal normativity or ambiguous contractual force."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "REJECT",
+        "rationale": "Low operational utility or ambiguous predicate scope."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_REJECT"
+    },
+    {
+      "candidate_id": "cand:629ca5cb-7a37-571e-bd2c-7fa55214779c:30:e15e5a37c42c:68897b0db2",
+      "document_id": "EFF-003",
+      "subject": "Company (Pay in Lieu of Notice)",
+      "predicate": "issues_pay_in_lieu_of_notice",
+      "object": "Payment for notice period upon discussion with Manager, HR, and Department Head (CEO informed)",
+      "modality": "OBLIGATION",
+      "trust_score": 0.7475,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "APPROVE",
+        "rationale": "Legally binding obligation with clear deontic requirement."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "APPROVE",
+        "rationale": "Actionable obligation with solid evidence grounding for decision gate."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_APPROVE"
+    },
+    {
+      "candidate_id": "cand:629ca5cb-7a37-571e-bd2c-7fa55214779c:33:79994f52936b:8a1fc8f52d",
+      "document_id": "EFF-003",
+      "subject": "Employees",
+      "predicate": "has_validity_rule",
+      "object": "be offered severance pay under this policy if they are awarded any form of remuneration under other policies or agreements, such as if the University offers a v oluntary retirement incentive program",
+      "modality": "PROHIBITION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "APPROVE",
+        "rationale": "Legally binding prohibition with clear deontic requirement."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "APPROVE",
+        "rationale": "Actionable prohibition with solid evidence grounding for decision gate."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_APPROVE"
+    },
+    {
+      "candidate_id": "cand:8e5cba8a-7800-541c-a547-d926465ab9af:15:9884a61736a5:a876095a71",
+      "document_id": "EFF-004",
+      "subject": "Users",
+      "predicate": "inform",
+      "object": "Us of your decision by means of a clear statement",
+      "modality": "OBLIGATION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "REJECT",
+        "rationale": "Insufficient legal normativity or ambiguous contractual force."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "REJECT",
+        "rationale": "Low operational utility or ambiguous predicate scope."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_REJECT"
+    },
+    {
+      "candidate_id": "cand:8e5cba8a-7800-541c-a547-d926465ab9af:18:7e1445375a20:49e6925d29",
+      "document_id": "EFF-004",
+      "subject": "Company",
+      "predicate": "has_refund_reimbursement_window",
+      "object": "reimburse You no later than 14 days from the day on which We receive the returned Goods",
+      "modality": "OBLIGATION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "APPROVE",
+        "rationale": "Legally binding obligation with clear deontic requirement."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "APPROVE",
+        "rationale": "Actionable obligation with solid evidence grounding for decision gate."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_APPROVE"
+    },
+    {
+      "candidate_id": "cand:8e5cba8a-7800-541c-a547-d926465ab9af:18:7e1445375a20:a63fda06f7",
+      "document_id": "EFF-004",
+      "subject": "Company",
+      "predicate": "has_refund_reimbursement_window",
+      "object": "use the same means of payment as You used for the Order, and You will not incur any fees for such reimbursement",
+      "modality": "OBLIGATION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "APPROVE",
+        "rationale": "Legally binding obligation with clear deontic requirement."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "APPROVE",
+        "rationale": "Actionable obligation with solid evidence grounding for decision gate."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_APPROVE"
+    },
+    {
+      "candidate_id": "cand:8e5cba8a-7800-541c-a547-d926465ab9af:20:9f532bfd9767:8167aa1083",
+      "document_id": "EFF-004",
+      "subject": "sample-return-refund-policy-template",
+      "predicate": "has_refund_eligibility",
+      "object": "The Goods were purchased in the last 14 days \u25cf The Goods are in the original packaging \u25cf The following Goods cannot be returned:",
+      "modality": "PROHIBITION",
+      "trust_score": 0.8562,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "APPROVE",
+        "rationale": "Legally binding prohibition with clear deontic requirement."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "APPROVE",
+        "rationale": "Actionable prohibition with solid evidence grounding for decision gate."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_APPROVE"
+    },
+    {
+      "candidate_id": "cand:8e5cba8a-7800-541c-a547-d926465ab9af:21:106b3c6e11ef:2a2a84916d",
+      "document_id": "EFF-004",
+      "subject": "personalized Goods",
+      "predicate": "cannot_be_returned",
+      "object": "The supply of Goods made to Your specifications or clearly personalized cannot be returned",
+      "modality": "PROHIBITION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "REJECT",
+        "rationale": "Insufficient legal normativity or ambiguous contractual force."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "REJECT",
+        "rationale": "Low operational utility or ambiguous predicate scope."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_REJECT"
+    },
+    {
+      "candidate_id": "cand:b10dd662-7025-57a7-8820-f9cc20eebf3e:136:95d56ef46e67:dd31e7fbbc",
+      "document_id": "EFF-005",
+      "subject": "Due",
+      "predicate": "has_inspection_right",
+      "object": "3.6.2 Following a risk-based inspection by Tarion of a Home, Tarion may issue to the Vendor a list of deficiencies in the construction of a Home that must be resolved to bring the Home into compliance with the ONHWP Act.",
+      "modality": "OBLIGATION",
+      "trust_score": 0.8562,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "REJECT",
+        "rationale": "Insufficient legal normativity or ambiguous contractual force."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "REJECT",
+        "rationale": "Low operational utility or ambiguous predicate scope."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_REJECT"
+    },
+    {
+      "candidate_id": "cand:b10dd662-7025-57a7-8820-f9cc20eebf3e:153:16bb3358242b:7361b5ac1e",
+      "document_id": "EFF-005",
+      "subject": "Vendor Agreement Template-02.20212",
+      "predicate": "has_priority_rule",
+      "object": "Vendor Agreement February 2021 Page 10 of 20 the lender(s) providing construction financing for the Homes, and which assignment to the construction lender(s) shall take priority over any such assignment by the Vendor to and in favour of Tarion, regardless of when same have been respectively created [and Tarion shall correspondingly execute a financing change statement under the PPSA to evidence and confirm said postponement and subordination to and in favour of the construction lender(s)], and following any such assignment to the construction lender Tarion shall not pursue nor enforce any rights and/or claims under or pursuant to any such assignment so granted by the Vendor to Tarion whatsoever.",
+      "modality": "PROHIBITION",
+      "trust_score": 0.8562,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "REJECT",
+        "rationale": "Insufficient legal normativity or ambiguous contractual force."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "REJECT",
+        "rationale": "Low operational utility or ambiguous predicate scope."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_REJECT"
+    },
+    {
+      "candidate_id": "cand:b10dd662-7025-57a7-8820-f9cc20eebf3e:154:acc2472a36c6:90507ad582",
+      "document_id": "EFF-005",
+      "subject": "The Vendor",
+      "predicate": "upon",
+      "object": "request pay all such fees as are permitted under the ONHWP Act and communicated in writing to the Vendor in any manner, including in a Registrar Bulletin or other advisory",
+      "modality": "OBLIGATION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "REJECT",
+        "rationale": "Insufficient legal normativity or ambiguous contractual force."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "REJECT",
+        "rationale": "Low operational utility or ambiguous predicate scope."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_REJECT"
+    },
+    {
+      "candidate_id": "cand:b10dd662-7025-57a7-8820-f9cc20eebf3e:157:7dfeea9d4cf4:3563fa1795",
+      "document_id": "EFF-005",
+      "subject": "Vendor Agreement Template-02.20212",
+      "predicate": "has_interest_rate",
+      "object": "1.5 per cent (1.5%) per month, calculated daily (or such other interest rate as may be stipulated from time to time by regulation under the ONHWP Act).",
+      "modality": "PERMISSION",
+      "trust_score": 0.8562,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "REJECT",
+        "rationale": "Insufficient legal normativity or ambiguous contractual force."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "REJECT",
+        "rationale": "Low operational utility or ambiguous predicate scope."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_REJECT"
+    },
+    {
+      "candidate_id": "cand:b10dd662-7025-57a7-8820-f9cc20eebf3e:189:91df005b1379:a33bbfceae",
+      "document_id": "EFF-005",
+      "subject": "Use of Tarion Forms",
+      "predicate": "cannot_modify_addendum",
+      "object": "3.9.3.4 Except as noted in paragraphs 3.9.3.2 and 3.9.3.3 above, the Vendor shall not modify or amend the Addendum in any way and shall not create any derivative works that incorporate or make use of the Addendum, in whole or in part, without the express prior written consent of Tarion.",
+      "modality": "PROHIBITION",
+      "trust_score": 0.8562,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "REJECT",
+        "rationale": "Insufficient legal normativity or ambiguous contractual force."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "REJECT",
+        "rationale": "Low operational utility or ambiguous predicate scope."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_REJECT"
+    },
+    {
+      "candidate_id": "cand:b10dd662-7025-57a7-8820-f9cc20eebf3e:200:82734268a9d1:cd861df533",
+      "document_id": "EFF-005",
+      "subject": "Indemnity",
+      "predicate": "has_indemnification_obligation",
+      "object": "Provided that the Vendor shall have no obligation under this Agreement to indemnify Tarion for any losses or costs incurred related to matters that are not warranted or compensable by the Vendor under the ONHWP Act, but this exclusion does not affect Tarion's subrogation rights, or rights under an assignment of any cause of action from another person",
+      "modality": "OBLIGATION",
+      "trust_score": 0.8562,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "APPROVE",
+        "rationale": "Legally binding obligation with clear deontic requirement."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "APPROVE",
+        "rationale": "Actionable obligation with solid evidence grounding for decision gate."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_APPROVE"
+    },
+    {
+      "candidate_id": "cand:b10dd662-7025-57a7-8820-f9cc20eebf3e:203:aafaeee155de:f7c4e269f0",
+      "document_id": "EFF-005",
+      "subject": "Continuing Indemnity",
+      "predicate": "has_indemnification_obligation",
+      "object": "All payments received by Tarion from the Vendor or any other person in respect of the Indemnified Amounts shall be applied as payments in gross without any right on the part of the Vendor to claim the benefit of any such payments until payment in full of all Indemnified Amounts",
+      "modality": "OBLIGATION",
+      "trust_score": 0.8562,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "APPROVE",
+        "rationale": "Legally binding obligation with clear deontic requirement."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "APPROVE",
+        "rationale": "Actionable obligation with solid evidence grounding for decision gate."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_APPROVE"
+    },
+    {
+      "candidate_id": "cand:b10dd662-7025-57a7-8820-f9cc20eebf3e:214:aed90df9e95d:3d7b559805",
+      "document_id": "EFF-005",
+      "subject": "Tarion's Statement",
+      "predicate": "has_indemnification_obligation",
+      "object": "5.3.1 A statement in writing of Tarion as to the amount of the Vendor Obligations, the Indemnified Amounts and all other amounts payable hereunder shall be binding upon the Vendor and conclusive against it in the absence of manifest error",
+      "modality": "OBLIGATION",
+      "trust_score": 0.8562,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "APPROVE",
+        "rationale": "Legally binding obligation with clear deontic requirement."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "APPROVE",
+        "rationale": "Actionable obligation with solid evidence grounding for decision gate."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_APPROVE"
+    },
+    {
+      "candidate_id": "cand:b10dd662-7025-57a7-8820-f9cc20eebf3e:229:6e4fa9ccd418:f76cacbc18",
+      "document_id": "EFF-005",
+      "subject": "Defects in",
+      "predicate": "has_indemnification_obligation",
+      "object": "All obligations, liabilities and indebtedness purporting to be incurred by the Vendor in favour of Tarion shall be deemed to form part of the Vendor Obligations and/or Indemnified Amounts even though the Vendor may not be a legal entity or the incurring of such obligations, liabilities or indebtedness was irregularly, defectively or informally effected or in excess of the capacity or powers of the Vendor or its directors, officers, partners, employees or agents and notwithstanding that Tarion has specific notice of the capacity and powers of the Vendor or its directors, officers, partners, employees or agents",
+      "modality": "PROHIBITION",
+      "trust_score": 0.8562,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "APPROVE",
+        "rationale": "Legally binding prohibition with clear deontic requirement."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "APPROVE",
+        "rationale": "Actionable prohibition with solid evidence grounding for decision gate."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_APPROVE"
+    },
+    {
+      "candidate_id": "cand:b10dd662-7025-57a7-8820-f9cc20eebf3e:253:b082613161d9:3338ed70ab",
+      "document_id": "EFF-005",
+      "subject": "Dealings by",
+      "predicate": "has_indemnification_obligation",
+      "object": "7.3.2 No loss of or in respect of any Security or additional covenant relating to the Vendor Obligations, the Indemnified Amounts, or any part thereof, whether occasioned through the fault of Tarion or otherwise, shall discharge, diminish or in any way affect the liability of the Vendor hereunder",
+      "modality": "OBLIGATION",
+      "trust_score": 0.8562,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "APPROVE",
+        "rationale": "Legally binding obligation with clear deontic requirement."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "APPROVE",
+        "rationale": "Actionable obligation with solid evidence grounding for decision gate."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_APPROVE"
+    },
+    {
+      "candidate_id": "cand:b10dd662-7025-57a7-8820-f9cc20eebf3e:253:b082613161d9:0fcc2e9f53",
+      "document_id": "EFF-005",
+      "subject": "Dealings by",
+      "predicate": "has_indemnification_obligation",
+      "object": "Neither Tarion nor any of its directors, officers, employees or agents, or any receiver or receiver-manager appointed by it or by a court, shall have any liability, whether in tort, contract or otherwise, for any neglect or any act taken or omitted to be taken by Tarion or by any of such other persons (other than its own negligence or willful misconduct) in connection with the Vendor Obligations and/or Indemnified Amounts or any part thereof, or any Security or other covenant relating to the Vendor Obligations or any part thereof including without limitation any of the matters described above in this Section",
+      "modality": "OBLIGATION",
+      "trust_score": 0.8562,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "APPROVE",
+        "rationale": "Legally binding obligation with clear deontic requirement."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "APPROVE",
+        "rationale": "Actionable obligation with solid evidence grounding for decision gate."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_APPROVE"
+    },
+    {
+      "candidate_id": "cand:b10dd662-7025-57a7-8820-f9cc20eebf3e:257:2b326c8a7424:e69e5c4fed",
+      "document_id": "EFF-005",
+      "subject": "No action of Tarion permitted hereunder",
+      "predicate": "in",
+      "object": "any way impair or affect its rights, powers or remedies under this Agreement",
+      "modality": "OBLIGATION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "REJECT",
+        "rationale": "Insufficient legal normativity or ambiguous contractual force."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "REJECT",
+        "rationale": "Low operational utility or ambiguous predicate scope."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_REJECT"
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:8:95f60fb8a96c:655b43f11c",
+      "document_id": "EFF-007",
+      "subject": "\"SOW\" means any of the following",
+      "predicate": "has_definition",
+      "object": "(1) Microsoft purchase orders; (2) statements of work or other order forms signed by both parties' authorized representatives; or (3) written agreements signed by both parties' authorized representatives referencing, and subject to, these PO Terms.",
+      "modality": "POLICY_FACT",
+      "trust_score": 0.975,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "REJECT",
+        "rationale": "Insufficient legal normativity or ambiguous contractual force."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "REJECT",
+        "rationale": "Low operational utility or ambiguous predicate scope."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_REJECT"
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:28:31de67e42c23:9daa009757",
+      "document_id": "EFF-007",
+      "subject": "Microsoft",
+      "predicate": "are_responsible_for",
+      "object": "any loss caused by the gross negligence of its employees before acceptance",
+      "modality": "OBLIGATION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "APPROVE",
+        "rationale": "Legally binding obligation with clear deontic requirement."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "APPROVE",
+        "rationale": "Actionable obligation with solid evidence grounding for decision gate."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_APPROVE"
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:35:5c5a0379e510:7101368092",
+      "document_id": "EFF-007",
+      "subject": "Payee",
+      "predicate": "must_contact",
+      "object": "contact the Microsoft Accounts Payable Help Desk at https://www.microsoft.com/en- us/procurement/contracting-apsupport.aspx with any questions or utilize the self-help sections within SupplierWeb or the SAP Business Network for invoice guidance for price adjustments",
+      "modality": "OBLIGATION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "APPROVE",
+        "rationale": "Legally binding obligation with clear deontic requirement."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "APPROVE",
+        "rationale": "Actionable obligation with solid evidence grounding for decision gate."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_APPROVE"
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:35:5c5a0379e510:bb81d5dd32",
+      "document_id": "EFF-007",
+      "subject": "Supplier",
+      "predicate": "charge",
+      "object": "Microsoft for researching, reporting on, or correcting any errors relating to its invoices",
+      "modality": "PROHIBITION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "REJECT",
+        "rationale": "Insufficient legal normativity or ambiguous contractual force."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "REJECT",
+        "rationale": "Low operational utility or ambiguous predicate scope."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_REJECT"
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:36:aa818d673e03:121ddd327b",
+      "document_id": "EFF-007",
+      "subject": "Microsoft",
+      "predicate": "has_return_window",
+      "object": "make commercially reasonable efforts to notify Supplier in writing of any disputed amount within 30 days of receiving the applicable invoice",
+      "modality": "OBLIGATION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "APPROVE",
+        "rationale": "Legally binding obligation with clear deontic requirement."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "APPROVE",
+        "rationale": "Actionable obligation with solid evidence grounding for decision gate."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_APPROVE"
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:44:658a36a9a8a8:352878cf1a",
+      "document_id": "EFF-007",
+      "subject": "Supplier",
+      "predicate": "are_responsible_for",
+      "object": "all expenses incurred providing the Goods, Services, Deliverables, or Cloud Services and performing under these PO Terms",
+      "modality": "OBLIGATION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "APPROVE",
+        "rationale": "Legally binding obligation with clear deontic requirement."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "APPROVE",
+        "rationale": "Actionable obligation with solid evidence grounding for decision gate."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_APPROVE"
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:48:a6a1bffcec0f:690e445652",
+      "document_id": "EFF-007",
+      "subject": "Microsoft",
+      "predicate": "has_validity_rule",
+      "object": "be involved in the importation of the Goods, Services, Deliverables, or Cloud Services, and import taxes, including tariffs, are the responsibility of the Supplier unless otherwise agreed in a SOW",
+      "modality": "PROHIBITION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "APPROVE",
+        "rationale": "Legally binding prohibition with clear deontic requirement."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "APPROVE",
+        "rationale": "Actionable prohibition with solid evidence grounding for decision gate."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_APPROVE"
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:49:2b730acea03c:8061a85c77",
+      "document_id": "EFF-007",
+      "subject": "Supplier",
+      "predicate": "collect",
+      "object": "the taxes covered by such certificate",
+      "modality": "PROHIBITION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "REJECT",
+        "rationale": "Insufficient legal normativity or ambiguous contractual force."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "REJECT",
+        "rationale": "Low operational utility or ambiguous predicate scope."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_REJECT"
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:86:c2d65e20de96:efe0996c39",
+      "document_id": "EFF-007",
+      "subject": "Supplier",
+      "predicate": "modify",
+      "object": "reverse engineer, decompile, or disassemble Microsoft Materials except as allowed by Microsoft; (ii) Supplier will leave in place, and not alter or obscure proprietary notices and licenses contained in Microsoft Materials; (iii) Microsoft is not obligated to provide technical support, maintenance, or updates for Microsoft Materials; (iv) all Microsoft Materials are provided \"as-is\" without warranty; and (v) Supplier assumes the risk of loss, damage, unauthorized access or use, or theft or disappearance of Microsoft Materials in Supplier's (or subcontractor's) care, custody, or control",
+      "modality": "PROHIBITION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "APPROVE",
+        "rationale": "Legally binding prohibition with clear deontic requirement."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "APPROVE",
+        "rationale": "Actionable prohibition with solid evidence grounding for decision gate."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_APPROVE"
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:87:79ea190894f3:eb3a041fe7",
+      "document_id": "EFF-007",
+      "subject": "No Microsoft Materials, IP or Confidential Information",
+      "predicate": "has_validity_rule",
+      "object": "be used by Supplier or an AI Model to customize, train, or improve, directly or indirectly, any artificial intelligence model or product, including any AI Model, (collectively, \"AI Training\") without Microsoft's express prior written consent",
+      "modality": "PERMISSION",
+      "trust_score": 0.99,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "REJECT",
+        "rationale": "Insufficient legal normativity or ambiguous contractual force."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "APPROVE",
+        "rationale": "Actionable operational permission suitable for decisioning."
+      },
+      "arbitration": {
+        "arbitrator_persona": "Lead Legal Counsel & Chief Trust Architect",
+        "decision": "APPROVE",
+        "rationale": "Arbitrator Ruling: Contains binding normative terms; approved for production knowledge graph."
+      },
+      "final_disposition": "ADJUDICATED_APPROVE"
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:87:79ea190894f3:87f9a02923",
+      "document_id": "EFF-007",
+      "subject": "Parties",
+      "predicate": "enter",
+      "object": "into a separate written agreement that addresses the terms governing the AI Training",
+      "modality": "POLICY_FACT",
+      "trust_score": 0.975,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "REJECT",
+        "rationale": "Insufficient legal normativity or ambiguous contractual force."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "REJECT",
+        "rationale": "Low operational utility or ambiguous predicate scope."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_REJECT"
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:100:6243d67ad75b:319881d1fc",
+      "document_id": "EFF-007",
+      "subject": "Microsoft",
+      "predicate": "suspend",
+      "object": "or terminate these PO Terms immediately to the extent that Microsoft reasonably concludes that continued performance would violate Trade Laws or put it at risk of becoming subject to sanctions or penalties under Trade Laws",
+      "modality": "PERMISSION",
+      "trust_score": 0.99,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "REJECT",
+        "rationale": "Insufficient legal normativity or ambiguous contractual force."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "REJECT",
+        "rationale": "Low operational utility or ambiguous predicate scope."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_REJECT"
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:100:6243d67ad75b:ec73794191",
+      "document_id": "EFF-007",
+      "subject": "Supplier",
+      "predicate": "are_responsible_for",
+      "object": "ensuring compliance with the transfer or retransfer of intangible items, such as technology",
+      "modality": "OBLIGATION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "APPROVE",
+        "rationale": "Legally binding obligation with clear deontic requirement."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "APPROVE",
+        "rationale": "Actionable obligation with solid evidence grounding for decision gate."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_APPROVE"
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:100:6243d67ad75b:b76c53e641",
+      "document_id": "EFF-007",
+      "subject": "Supplier",
+      "predicate": "provide",
+      "object": "Microsoft with the import/export control classifications and information, including documentation, on the applicable import, export, or re -export authorizations, and all necessary information about the Items for any required import, export or re -export procedures and/or licenses, without additional cost to Microsoft",
+      "modality": "POLICY_FACT",
+      "trust_score": 0.975,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "REJECT",
+        "rationale": "Insufficient legal normativity or ambiguous contractual force."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "REJECT",
+        "rationale": "Low operational utility or ambiguous predicate scope."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_REJECT"
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:100:6243d67ad75b:5792b47399",
+      "document_id": "EFF-007",
+      "subject": "For additional information, see https",
+      "predicate": "has_definition",
+      "object": "//www.microsoft.com/en- us/exporting.",
+      "modality": "POLICY_FACT",
+      "trust_score": 0.975,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "REJECT",
+        "rationale": "Insufficient legal normativity or ambiguous contractual force."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "REJECT",
+        "rationale": "Low operational utility or ambiguous predicate scope."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_REJECT"
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:109:7bf79fb0c8a7:b43f63ff2b",
+      "document_id": "EFF-007",
+      "subject": "Supplier",
+      "predicate": "will_issue_refund",
+      "object": "(without prejudice to any other remedies Microsoft may have) provide a pro-rata refund to Microsoft for any prepaid unused fees",
+      "modality": "OBLIGATION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "APPROVE",
+        "rationale": "Legally binding obligation with clear deontic requirement."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "APPROVE",
+        "rationale": "Actionable obligation with solid evidence grounding for decision gate."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_APPROVE"
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:122:24e9db711320:b21f42a084",
+      "document_id": "EFF-007",
+      "subject": "Supplier",
+      "predicate": "prohibited_from_using",
+      "object": "use any AI System in connection with or incorporate any AI System into the Goods, Services, Cloud Services, or any Deliverable without Microsoft's prior written consent",
+      "modality": "PROHIBITION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "REJECT",
+        "rationale": "Insufficient legal normativity or ambiguous contractual force."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "REJECT",
+        "rationale": "Low operational utility or ambiguous predicate scope."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_REJECT"
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:141:e05095333404:bee664b975",
+      "document_id": "EFF-007",
+      "subject": "Supplier",
+      "predicate": "has_indemnification_obligation",
+      "object": "defend, indemnify and hold harmless Microsoft and Microsoft affiliates companies against all claims, demands, loss, costs, damages, and actions for: (1) actual or alleged infringements of any third-party IP or IP rights or Microsoft IP or IP Rights, which arise from the Goods, Services, Deliverables, or Cloud Services provided under these PO Terms; (2) any claim that, if true, would constitute a breach of Section 15, Exhibit A, or any Supplier warranty contained herein; (3) any act or omission of or failure to comply with tax obligations or Law by Supplier or Supplier's agents, employees, or subcontractors; (4) any breach by Supplier or its subcontractors of any artificial intelligence, confidentiality, security, or privacy, data protection, or publicity obligations under these PO Terms; (5) the negligent or willful acts or omissions of Supplier or its subcontractors, which results in any bodily injury, including mental injury, or death to any person or loss, disappearance or damage to tangible or intangible property; and (6) any claims of its employees, affiliated companies or subcontractors regardless of the basis, including, but not limited to, the payment of settlements, judgments, and reasonable attorneys' fees",
+      "modality": "OBLIGATION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "APPROVE",
+        "rationale": "Legally binding obligation with clear deontic requirement."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "APPROVE",
+        "rationale": "Actionable obligation with solid evidence grounding for decision gate."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_APPROVE"
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:152:74630fb32d62:bb15dc44ae",
+      "document_id": "EFF-007",
+      "subject": "Supplier",
+      "predicate": "has_validity_rule",
+      "object": "continue to comply with all terms of these PO Terms applicable to that Confidential Information, including all confidentiality obligations, and those applicable terms will survive such termination or expiration",
+      "modality": "OBLIGATION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "APPROVE",
+        "rationale": "Legally binding obligation with clear deontic requirement."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "APPROVE",
+        "rationale": "Actionable obligation with solid evidence grounding for decision gate."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_APPROVE"
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:156:5745697f93bb:ac3987362f",
+      "document_id": "EFF-007",
+      "subject": "Supplier",
+      "predicate": "has_refund_reimbursement_window",
+      "object": "reimburse Microsoft for any such overpayment",
+      "modality": "OBLIGATION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "APPROVE",
+        "rationale": "Legally binding obligation with clear deontic requirement."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "APPROVE",
+        "rationale": "Actionable obligation with solid evidence grounding for decision gate."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_APPROVE"
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:199:123c022a39ff:c3806c658d",
+      "document_id": "EFF-007",
+      "subject": "an entity transferring Personal Data to a recipient in another jurisdiction take extra measures to",
+      "predicate": "ensure",
+      "object": "that the Personal Data has special protections if the law of the recipient's jurisdiction does not protect Personal Data in a manner equivalent to the transferring entity's jurisdiction (an \"International Data Transfer Mechanism\").",
+      "modality": "OBLIGATION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "REJECT",
+        "rationale": "Insufficient legal normativity or ambiguous contractual force."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "REJECT",
+        "rationale": "Low operational utility or ambiguous predicate scope."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_REJECT"
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:222:62724e01d64a:d9c879a41d",
+      "document_id": "EFF-007",
+      "subject": "Supplier",
+      "predicate": "process",
+      "object": "Personal Data for any other purpose, unless required by applicable law, and will not Sell or Share Personal Data that it collects or obtains pursuant to the PO Terms",
+      "modality": "PROHIBITION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "REJECT",
+        "rationale": "Insufficient legal normativity or ambiguous contractual force."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "REJECT",
+        "rationale": "Low operational utility or ambiguous predicate scope."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_REJECT"
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:227:e12affb47aa1:f32f0a1e9c",
+      "document_id": "EFF-007",
+      "subject": "Supplier",
+      "predicate": "respond",
+      "object": "to such Data Subjects except to acknowledge their requests",
+      "modality": "PROHIBITION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "REJECT",
+        "rationale": "Insufficient legal normativity or ambiguous contractual force."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "REJECT",
+        "rationale": "Low operational utility or ambiguous predicate scope."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_REJECT"
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:298:4b722d072e56:20bbfe78d6",
+      "document_id": "EFF-007",
+      "subject": "Supplier",
+      "predicate": "remains_responsible_for",
+      "object": "compliance with Clauses 14 to 16 for any data to which it may otherwise be the data controller",
+      "modality": "OBLIGATION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "APPROVE",
+        "rationale": "Legally binding obligation with clear deontic requirement."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "APPROVE",
+        "rationale": "Actionable obligation with solid evidence grounding for decision gate."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_APPROVE"
+    },
+    {
+      "candidate_id": "cand:e63b400c-00db-5f4d-a78b-ab47c8430b20:8:8422f2bac9dc:5fe1f014e8",
+      "document_id": "EFF-008",
+      "subject": "\"SOW\" means any of the following",
+      "predicate": "has_definition",
+      "object": "(1) Microsoft purchase orders; (2) statements of work or other order forms signed by both parties' authorized representatives; or (3) written agreements signed by both parties' authorized representatives referencing, and subject to, these PO Terms.",
+      "modality": "POLICY_FACT",
+      "trust_score": 0.975,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "REJECT",
+        "rationale": "Insufficient legal normativity or ambiguous contractual force."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "REJECT",
+        "rationale": "Low operational utility or ambiguous predicate scope."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_REJECT"
+    },
+    {
+      "candidate_id": "cand:e63b400c-00db-5f4d-a78b-ab47c8430b20:28:5ba17cd9b25e:78883edc3d",
+      "document_id": "EFF-008",
+      "subject": "Microsoft",
+      "predicate": "are_responsible_for",
+      "object": "any loss caused by the gross negligence of its employees before acceptance",
+      "modality": "OBLIGATION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "APPROVE",
+        "rationale": "Legally binding obligation with clear deontic requirement."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "APPROVE",
+        "rationale": "Actionable obligation with solid evidence grounding for decision gate."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_APPROVE"
+    },
+    {
+      "candidate_id": "cand:e63b400c-00db-5f4d-a78b-ab47c8430b20:35:64b2f9821425:afd072e4a5",
+      "document_id": "EFF-008",
+      "subject": "Payee",
+      "predicate": "must_contact",
+      "object": "contact the Microsoft Accounts Payable Help Desk at https://www.microsoft.com/en- us/procurement/contracting-apsupport.aspx with any questions or utilize the self-help sections within SupplierWeb or the SAP Business Network for invoice guidance for price adjustments",
+      "modality": "OBLIGATION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "APPROVE",
+        "rationale": "Legally binding obligation with clear deontic requirement."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "APPROVE",
+        "rationale": "Actionable obligation with solid evidence grounding for decision gate."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_APPROVE"
+    },
+    {
+      "candidate_id": "cand:e63b400c-00db-5f4d-a78b-ab47c8430b20:35:64b2f9821425:c5d07b27fd",
+      "document_id": "EFF-008",
+      "subject": "Supplier",
+      "predicate": "charge",
+      "object": "Microsoft for researching, reporting on, or correcting any errors relating to its invoices",
+      "modality": "PROHIBITION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "REJECT",
+        "rationale": "Insufficient legal normativity or ambiguous contractual force."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "REJECT",
+        "rationale": "Low operational utility or ambiguous predicate scope."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_REJECT"
+    },
+    {
+      "candidate_id": "cand:e63b400c-00db-5f4d-a78b-ab47c8430b20:36:0af3b05c3d7c:6c59e99df7",
+      "document_id": "EFF-008",
+      "subject": "Microsoft",
+      "predicate": "has_return_window",
+      "object": "make commercially reasonable efforts to notify Supplier in writing of any disputed amount within 60 days of receiving the applicable invoice",
+      "modality": "OBLIGATION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "APPROVE",
+        "rationale": "Legally binding obligation with clear deontic requirement."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "APPROVE",
+        "rationale": "Actionable obligation with solid evidence grounding for decision gate."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_APPROVE"
+    },
+    {
+      "candidate_id": "cand:e63b400c-00db-5f4d-a78b-ab47c8430b20:44:c6b59b312077:3401baa542",
+      "document_id": "EFF-008",
+      "subject": "Supplier",
+      "predicate": "are_responsible_for",
+      "object": "all expenses incurred providing the Goods, Services, Deliverables, or Cloud Services and performing under these PO Terms",
+      "modality": "OBLIGATION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "APPROVE",
+        "rationale": "Legally binding obligation with clear deontic requirement."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "APPROVE",
+        "rationale": "Actionable obligation with solid evidence grounding for decision gate."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_APPROVE"
+    },
+    {
+      "candidate_id": "cand:e63b400c-00db-5f4d-a78b-ab47c8430b20:48:5ffb59860afb:ea2f3e1fee",
+      "document_id": "EFF-008",
+      "subject": "Microsoft",
+      "predicate": "has_validity_rule",
+      "object": "be involved in the importation of the Goods, Services, Deliverables, or Cloud Services, and import taxes, including tariffs, are the responsibility of the Supplier unless otherwise agreed in a SOW",
+      "modality": "PROHIBITION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "APPROVE",
+        "rationale": "Legally binding prohibition with clear deontic requirement."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "APPROVE",
+        "rationale": "Actionable prohibition with solid evidence grounding for decision gate."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_APPROVE"
+    },
+    {
+      "candidate_id": "cand:e63b400c-00db-5f4d-a78b-ab47c8430b20:49:919c69b58a50:535a5d9c23",
+      "document_id": "EFF-008",
+      "subject": "Supplier",
+      "predicate": "collect",
+      "object": "the taxes covered by such certificate",
+      "modality": "PROHIBITION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "REJECT",
+        "rationale": "Insufficient legal normativity or ambiguous contractual force."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "REJECT",
+        "rationale": "Low operational utility or ambiguous predicate scope."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_REJECT"
+    },
+    {
+      "candidate_id": "cand:e63b400c-00db-5f4d-a78b-ab47c8430b20:85:29886549778a:d3e2d1923e",
+      "document_id": "EFF-008",
+      "subject": "Supplier",
+      "predicate": "modify",
+      "object": "reverse engineer, decompile, or disassemble Microsoft Materials except as allowed by Microsoft; (ii) Supplier will leave in place, and not alter or obscure proprietary notices and licenses contained in Microsoft Materials; (iii) Microsoft is not obligated to provide technical support, maintenance, or updates for Microsoft Materials; (iv) all Microsoft Materials are provided \"as-is\" without warranty; and (v) Supplier assumes the risk of loss, damage, unauthorized access or use, or theft or disappearance of Microsoft Materials in Supplier's (or subcontractor's) care, custody, or control",
+      "modality": "PROHIBITION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "APPROVE",
+        "rationale": "Legally binding prohibition with clear deontic requirement."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "APPROVE",
+        "rationale": "Actionable prohibition with solid evidence grounding for decision gate."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_APPROVE"
+    },
+    {
+      "candidate_id": "cand:e63b400c-00db-5f4d-a78b-ab47c8430b20:87:06eff5a9fb51:b9a3c095e9",
+      "document_id": "EFF-008",
+      "subject": "Parties",
+      "predicate": "enter",
+      "object": "into a separate written agreement that addresses the terms governing the AI Training",
+      "modality": "POLICY_FACT",
+      "trust_score": 0.975,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "REJECT",
+        "rationale": "Insufficient legal normativity or ambiguous contractual force."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "REJECT",
+        "rationale": "Low operational utility or ambiguous predicate scope."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_REJECT"
+    },
+    {
+      "candidate_id": "cand:e63b400c-00db-5f4d-a78b-ab47c8430b20:99:081161bc481f:db194d21c6",
+      "document_id": "EFF-008",
+      "subject": "Supplier",
+      "predicate": "are_responsible_for",
+      "object": "ensuring compliance with the transfer or re -transfer of intangible items, such as technology",
+      "modality": "OBLIGATION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "APPROVE",
+        "rationale": "Legally binding obligation with clear deontic requirement."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "APPROVE",
+        "rationale": "Actionable obligation with solid evidence grounding for decision gate."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_APPROVE"
+    },
+    {
+      "candidate_id": "cand:e63b400c-00db-5f4d-a78b-ab47c8430b20:108:3763c903d776:ff05166529",
+      "document_id": "EFF-008",
+      "subject": "Supplier",
+      "predicate": "will_issue_refund",
+      "object": "(without prejudice to any other remedies Microsoft may have) provide a pro-rata refund to Microsoft for any prepaid unused fees",
+      "modality": "OBLIGATION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "APPROVE",
+        "rationale": "Legally binding obligation with clear deontic requirement."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "APPROVE",
+        "rationale": "Actionable obligation with solid evidence grounding for decision gate."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_APPROVE"
+    },
+    {
+      "candidate_id": "cand:e63b400c-00db-5f4d-a78b-ab47c8430b20:120:bf586b901cac:335be4e2da",
+      "document_id": "EFF-008",
+      "subject": "Supplier",
+      "predicate": "prohibited_from_using",
+      "object": "use any AI System in connection with or incorporate any AI System into the Goods, Services, Cloud Services, or any Deliverable without Microsoft's prior written consent",
+      "modality": "PROHIBITION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "REJECT",
+        "rationale": "Insufficient legal normativity or ambiguous contractual force."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "REJECT",
+        "rationale": "Low operational utility or ambiguous predicate scope."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_REJECT"
+    },
+    {
+      "candidate_id": "cand:e63b400c-00db-5f4d-a78b-ab47c8430b20:138:cea099e249b4:64249265f9",
+      "document_id": "EFF-008",
+      "subject": "Supplier",
+      "predicate": "has_indemnification_obligation",
+      "object": "defend, indemnify and hold harmless Microsoft and Microsoft affiliates companies against all claims, demands, loss, costs, damages, and actions for: (1) actual or alleged infringements of any third-party IP or IP rights or Microsoft IP or IP Rights, which arise from the Goods, Services, Deliverables, or Cloud Services provided under these PO Terms; (2) any claim that, if true, would constitute a breach of Section 15, Exhibit A, or any Supplier warranty contained herein; (3) any act or omission of or failure to comply with tax obligations or Law by Supplier or Supplier's agents, employees, or subcontractors; (4) any breach by Supplier or its subcontractors of any artificial intelligence, confidentiality, security, or privacy, data protection, or publicity obligations under these PO Terms; (5) the negligent or willful acts or omissions of Supplier or its subcontractors, which results in any bodily injury, including mental injury, or death to any person or loss, disappearance or damage to tangible or intangible property; and (6) any claims of its employees, affiliated companies or subcontractors regardless of the basis, including, but not limited to, the payment of settlements, judgments, and reasonable attorneys' fees",
+      "modality": "OBLIGATION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "APPROVE",
+        "rationale": "Legally binding obligation with clear deontic requirement."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "APPROVE",
+        "rationale": "Actionable obligation with solid evidence grounding for decision gate."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_APPROVE"
+    },
+    {
+      "candidate_id": "cand:e63b400c-00db-5f4d-a78b-ab47c8430b20:150:b684ddc0e24e:936890c16b",
+      "document_id": "EFF-008",
+      "subject": "Supplier",
+      "predicate": "has_validity_rule",
+      "object": "continue to comply with all terms of these PO Terms applicable to that Confidential Information, including all confidentiality obligations, and those applicable terms will survive such termination or expiration",
+      "modality": "OBLIGATION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "APPROVE",
+        "rationale": "Legally binding obligation with clear deontic requirement."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "APPROVE",
+        "rationale": "Actionable obligation with solid evidence grounding for decision gate."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_APPROVE"
+    },
+    {
+      "candidate_id": "cand:e63b400c-00db-5f4d-a78b-ab47c8430b20:153:495239fc5bdb:44ec717e17",
+      "document_id": "EFF-008",
+      "subject": "Supplier",
+      "predicate": "has_refund_reimbursement_window",
+      "object": "reimburse Microsoft for any such overpayment",
+      "modality": "OBLIGATION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "APPROVE",
+        "rationale": "Legally binding obligation with clear deontic requirement."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "APPROVE",
+        "rationale": "Actionable obligation with solid evidence grounding for decision gate."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_APPROVE"
+    },
+    {
+      "candidate_id": "cand:e63b400c-00db-5f4d-a78b-ab47c8430b20:198:e346b0ceabe7:45ef0edcdd",
+      "document_id": "EFF-008",
+      "subject": "an entity transferring Personal Data to a recipient in another jurisdiction take extra measures to",
+      "predicate": "ensure",
+      "object": "that the Personal Data has special protections if the law of the recipient's jurisdiction does not protect Personal Data in a manner equivalent to the transferring entity's jurisdiction (an \"International Data Transfer Mechanism\").",
+      "modality": "OBLIGATION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "REJECT",
+        "rationale": "Insufficient legal normativity or ambiguous contractual force."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "REJECT",
+        "rationale": "Low operational utility or ambiguous predicate scope."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_REJECT"
+    },
+    {
+      "candidate_id": "cand:e63b400c-00db-5f4d-a78b-ab47c8430b20:220:d38658e7f922:73b9c628e3",
+      "document_id": "EFF-008",
+      "subject": "Supplier",
+      "predicate": "process",
+      "object": "Personal Data for any other purpose, unless required by applicable law, and will not Sell or Share Personal Data that it collects or obtains pursuant to the PO Terms",
+      "modality": "PROHIBITION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "REJECT",
+        "rationale": "Insufficient legal normativity or ambiguous contractual force."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "REJECT",
+        "rationale": "Low operational utility or ambiguous predicate scope."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_REJECT"
+    },
+    {
+      "candidate_id": "cand:e63b400c-00db-5f4d-a78b-ab47c8430b20:295:ce3d8753e7a5:fa45aaab39",
+      "document_id": "EFF-008",
+      "subject": "Clause 4",
+      "predicate": "has_definition",
+      "object": "The Status of Parties are detailed in Schedule 1.",
+      "modality": "POLICY_FACT",
+      "trust_score": 0.9875,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "REJECT",
+        "rationale": "Procedural schedule cross-reference without substantive rights or obligations."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "REJECT",
+        "rationale": "Cross-reference pointer without operational logic."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_REJECT"
+    },
+    {
+      "candidate_id": "cand:e63b400c-00db-5f4d-a78b-ab47c8430b20:295:ce3d8753e7a5:9b84fd9724",
+      "document_id": "EFF-008",
+      "subject": "Supplier",
+      "predicate": "remains_responsible_for",
+      "object": "compliance with Clauses 14 to 16 for any data to which it may otherwise be the data controller",
+      "modality": "OBLIGATION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "APPROVE",
+        "rationale": "Legally binding obligation with clear deontic requirement."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "APPROVE",
+        "rationale": "Actionable obligation with solid evidence grounding for decision gate."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_APPROVE"
+    },
+    {
+      "candidate_id": "cand:df7b418e-b821-592e-92a2-83c2afb3fdd0:26:15c3d152cdf8:b9bd057c29",
+      "document_id": "EFF-010",
+      "subject": "Customers",
+      "predicate": "are_responsible_for",
+      "object": "ensuring that their applications meet FDA requirements",
+      "modality": "OBLIGATION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "APPROVE",
+        "rationale": "Legally binding obligation with clear deontic requirement."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "APPROVE",
+        "rationale": "Actionable obligation with solid evidence grounding for decision gate."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_APPROVE"
+    },
+    {
+      "candidate_id": "cand:df7b418e-b821-592e-92a2-83c2afb3fdd0:28:eec3b0fe3cc4:6ffdb01e0d",
+      "document_id": "EFF-010",
+      "subject": "Microsoft",
+      "predicate": "ensures",
+      "object": "its enterprise cloud services meet the terms defined within the governing Online Services Terms and applicable Service Level Agreements (SLAs)",
+      "modality": "OBLIGATION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "APPROVE",
+        "rationale": "Legally binding obligation with clear deontic requirement."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "APPROVE",
+        "rationale": "Actionable obligation with solid evidence grounding for decision gate."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_APPROVE"
+    },
+    {
+      "candidate_id": "cand:3c477418-c766-5045-9e4b-f69d13f557ec:5:1a8c5ad8cb22:a635610004",
+      "document_id": "EFF-011",
+      "subject": "service providers",
+      "predicate": "implement",
+      "object": "measures that keep personal health data secure, confidential, and accessible by patients.",
+      "modality": "OBLIGATION",
+      "trust_score": 0.995,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "REJECT",
+        "rationale": "Insufficient legal normativity or ambiguous contractual force."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "REJECT",
+        "rationale": "Low operational utility or ambiguous predicate scope."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_REJECT"
+    },
+    {
+      "candidate_id": "cand:3c477418-c766-5045-9e4b-f69d13f557ec:25:88f2c1b53302:c72976c3a0",
+      "document_id": "EFF-011",
+      "subject": "Contractual terms",
+      "predicate": "has_definition",
+      "object": "The French Public Health code requires the execution of specific contractual terms between the health data hosting service or cloud service provider and its Audits, reports, and certificates How to implement",
+      "modality": "POLICY_FACT",
+      "trust_score": 0.9875,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "REJECT",
+        "rationale": "Insufficient legal normativity or ambiguous contractual force."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "REJECT",
+        "rationale": "Low operational utility or ambiguous predicate scope."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_REJECT"
+    },
+    {
+      "candidate_id": "cand:23cfd5e1-bc7b-5ef0-bf4a-3f9da30bb6c3:5:c603c2526486:c8f42afd6f",
+      "document_id": "EFF-012",
+      "subject": "Covered entities",
+      "predicate": "must_enter_into_agreements_with",
+      "object": "business associates to ensure that PHI is adequately protected.",
+      "modality": "OBLIGATION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "REJECT",
+        "rationale": "Insufficient legal normativity or ambiguous contractual force."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "REJECT",
+        "rationale": "Low operational utility or ambiguous predicate scope."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_REJECT"
+    },
+    {
+      "candidate_id": "cand:23cfd5e1-bc7b-5ef0-bf4a-3f9da30bb6c3:17:c4a90b8329ec:e36e5b0486",
+      "document_id": "EFF-012",
+      "subject": "Microsoft",
+      "predicate": "prohibited_from_replicating",
+      "object": "replicate customer data outside the chosen geographic area",
+      "modality": "PROHIBITION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "REJECT",
+        "rationale": "Insufficient legal normativity or ambiguous contractual force."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "REJECT",
+        "rationale": "Low operational utility or ambiguous predicate scope."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_REJECT"
+    },
+    {
+      "candidate_id": "cand:23cfd5e1-bc7b-5ef0-bf4a-3f9da30bb6c3:40:39ea2fd40fe0:a77866ef35",
+      "document_id": "EFF-012",
+      "subject": "No, Microsoft",
+      "predicate": "prohibited_from_using",
+      "object": "use a customer's Business Associate Agreement",
+      "modality": "PROHIBITION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "REJECT",
+        "rationale": "Insufficient legal normativity or ambiguous contractual force."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "REJECT",
+        "rationale": "Low operational utility or ambiguous predicate scope."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_REJECT"
+    },
+    {
+      "candidate_id": "cand:e6341544-426f-54c2-ba64-54d9e98e4017:124:b63d2425f504:2f18f5fea3",
+      "document_id": "EFF-014",
+      "subject": "Users",
+      "predicate": "confirm",
+      "object": "who the Bill to contact is by going to Contracts > View contract details > Contacts",
+      "modality": "PERMISSION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "REJECT",
+        "rationale": "Insufficient legal normativity or ambiguous contractual force."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "REJECT",
+        "rationale": "Low operational utility or ambiguous predicate scope."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_REJECT"
+    },
+    {
+      "candidate_id": "cand:e6341544-426f-54c2-ba64-54d9e98e4017:138:ce6fc29a744b:83f1584436",
+      "document_id": "EFF-014",
+      "subject": "The Invoice created date",
+      "predicate": "november",
+      "object": "18, 2022, or later",
+      "modality": "OBLIGATION",
+      "trust_score": 0.99,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "REJECT",
+        "rationale": "Insufficient legal normativity or ambiguous contractual force."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "REJECT",
+        "rationale": "Low operational utility or ambiguous predicate scope."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_REJECT"
+    },
+    {
+      "candidate_id": "cand:e6341544-426f-54c2-ba64-54d9e98e4017:141:9025f7ff9461:c73eedb697",
+      "document_id": "EFF-014",
+      "subject": "The Invoice Reader role",
+      "predicate": "has_validity_rule",
+      "object": "be assigned or removed by another VL Administrator",
+      "modality": "PERMISSION",
+      "trust_score": 0.99,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "REJECT",
+        "rationale": "Insufficient legal normativity or ambiguous contractual force."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "APPROVE",
+        "rationale": "Actionable operational permission suitable for decisioning."
+      },
+      "arbitration": {
+        "arbitrator_persona": "Lead Legal Counsel & Chief Trust Architect",
+        "decision": "APPROVE",
+        "rationale": "Arbitrator Ruling: Contains binding normative terms; approved for production knowledge graph."
+      },
+      "final_disposition": "ADJUDICATED_APPROVE"
+    },
+    {
+      "candidate_id": "cand:e6341544-426f-54c2-ba64-54d9e98e4017:141:9025f7ff9461:5b0cfbf803",
+      "document_id": "EFF-014",
+      "subject": "To change the contact Bill To",
+      "predicate": "your",
+      "object": "Microsoft partner or seller to complete a Change of Contact Information Request to update the legal participants, or contacts",
+      "modality": "OBLIGATION",
+      "trust_score": 0.99,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "REJECT",
+        "rationale": "Insufficient legal normativity or ambiguous contractual force."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "REJECT",
+        "rationale": "Low operational utility or ambiguous predicate scope."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_REJECT"
+    },
+    {
+      "candidate_id": "cand:e6341544-426f-54c2-ba64-54d9e98e4017:143:b9601f1a74bc:86c33b8a85",
+      "document_id": "EFF-014",
+      "subject": "Volume Licensing Administrator",
+      "predicate": "view",
+      "object": "the invoices or assign the Invoice Reader role to any user",
+      "modality": "PERMISSION",
+      "trust_score": 0.99,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "REJECT",
+        "rationale": "Insufficient legal normativity or ambiguous contractual force."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "REJECT",
+        "rationale": "Low operational utility or ambiguous predicate scope."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_REJECT"
+    },
+    {
+      "candidate_id": "cand:e6341544-426f-54c2-ba64-54d9e98e4017:152:c66a16100ddd:1e621f187a",
+      "document_id": "EFF-014",
+      "subject": "Users",
+      "predicate": "must_verify_refund_conditions",
+      "object": "check the invoice recon file for the tax rate applied to each item",
+      "modality": "OBLIGATION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "APPROVE",
+        "rationale": "Legally binding obligation with clear deontic requirement."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "APPROVE",
+        "rationale": "Actionable obligation with solid evidence grounding for decision gate."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_APPROVE"
+    },
+    {
+      "candidate_id": "cand:e6341544-426f-54c2-ba64-54d9e98e4017:159:77397b5170dc:c8c33cec00",
+      "document_id": "EFF-014",
+      "subject": "Customers",
+      "predicate": "must_contact",
+      "object": "contact their Microsoft partner or seller for questions relating to the following issues for price adjustments",
+      "modality": "OBLIGATION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "REJECT",
+        "rationale": "Insufficient legal normativity or ambiguous contractual force."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "REJECT",
+        "rationale": "Low operational utility or ambiguous predicate scope."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_REJECT"
+    },
+    {
+      "candidate_id": "cand:3778f053-7d86-5caa-bf3b-453a6b8290f1:33:8cfcb0e7b183:eb1802a9b3",
+      "document_id": "EFF-015",
+      "subject": "Vendor",
+      "predicate": "remains_responsible_for",
+      "object": "the invoice and its value added tax and other tax implications towards competent tax authorities",
+      "modality": "OBLIGATION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "APPROVE",
+        "rationale": "Legally binding obligation with clear deontic requirement."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "APPROVE",
+        "rationale": "Actionable obligation with solid evidence grounding for decision gate."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_APPROVE"
+    },
+    {
+      "candidate_id": "cand:3778f053-7d86-5caa-bf3b-453a6b8290f1:41:98698598c3e4:c7d9943dc0",
+      "document_id": "EFF-015",
+      "subject": "Microsoft",
+      "predicate": "agrees_to_receive",
+      "object": "invoices in electronic form from Vendor and to treat these electronic invoices as originals for tax purposes",
+      "modality": "OBLIGATION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "REJECT",
+        "rationale": "Insufficient legal normativity or ambiguous contractual force."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "REJECT",
+        "rationale": "Low operational utility or ambiguous predicate scope."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_REJECT"
+    },
+    {
+      "candidate_id": "cand:3778f053-7d86-5caa-bf3b-453a6b8290f1:49:8837ef89dd0c:5cf32f66b2",
+      "document_id": "EFF-015",
+      "subject": "Invoicing Agreement",
+      "predicate": "remains_valid_until_terminated",
+      "object": "until terminated by either Microsoft or Vendor upon 30 business days notice to the other party",
+      "modality": "OBLIGATION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "REJECT",
+        "rationale": "Insufficient legal normativity or ambiguous contractual force."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "REJECT",
+        "rationale": "Low operational utility or ambiguous predicate scope."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_REJECT"
+    },
+    {
+      "candidate_id": "cand:5c305a2e-5332-5e1e-bf2f-fd5b9d03f398:14:dd9882872fa2:ce5be0dbeb",
+      "document_id": "EFF-016",
+      "subject": "Microsoft",
+      "predicate": "prohibited_from_replicating",
+      "object": "replicate customer data outside the chosen geographic area",
+      "modality": "PROHIBITION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "REJECT",
+        "rationale": "Insufficient legal normativity or ambiguous contractual force."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "REJECT",
+        "rationale": "Low operational utility or ambiguous predicate scope."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_REJECT"
+    },
+    {
+      "candidate_id": "cand:0d2de674-68f4-5c81-86e4-a9c118e31174:16:711e2d08aa3e:94b46e2fda",
+      "document_id": "EFF-017",
+      "subject": "Microsoft",
+      "predicate": "prohibited_from_replicating",
+      "object": "replicate customer data outside the chosen geographic area",
+      "modality": "PROHIBITION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "REJECT",
+        "rationale": "Insufficient legal normativity or ambiguous contractual force."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "REJECT",
+        "rationale": "Low operational utility or ambiguous predicate scope."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_REJECT"
+    },
+    {
+      "candidate_id": "cand:3ca96016-aa9c-5e07-a627-937e637024d9:40:75d1c5b575a8:4837ab5dec",
+      "document_id": "EFF-018",
+      "subject": "Return process",
+      "predicate": "must_be_started_within",
+      "object": "60 days after customer receives the product",
+      "modality": "OBLIGATION",
+      "trust_score": 0.9425,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "REJECT",
+        "rationale": "Insufficient legal normativity or ambiguous contractual force."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "REJECT",
+        "rationale": "Low operational utility or ambiguous predicate scope."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_REJECT"
+    },
+    {
+      "candidate_id": "cand:3ca96016-aa9c-5e07-a627-937e637024d9:40:75d1c5b575a8:88c6998947",
+      "document_id": "EFF-018",
+      "subject": "Product returns",
+      "predicate": "limited_to",
+      "object": "5 product returns per eligible customer purchase",
+      "modality": "OBLIGATION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "REJECT",
+        "rationale": "Insufficient legal normativity or ambiguous contractual force."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "REJECT",
+        "rationale": "Low operational utility or ambiguous predicate scope."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_REJECT"
+    },
+    {
+      "candidate_id": "cand:3ca96016-aa9c-5e07-a627-937e637024d9:46:edb8d39cbb60:998cdee8d3",
+      "document_id": "EFF-018",
+      "subject": "Both price adjustments",
+      "predicate": "has_definition",
+      "object": "Customer is eligible only if the product is in stock for purchase at Microsoft Store or a Microsoft Experience Center.",
+      "modality": "POLICY_FACT",
+      "trust_score": 0.9875,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "REJECT",
+        "rationale": "Insufficient legal normativity or ambiguous contractual force."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "REJECT",
+        "rationale": "Low operational utility or ambiguous predicate scope."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_REJECT"
+    },
+    {
+      "candidate_id": "cand:9d781756-92c9-559f-bafb-dfbf9f2e4263:8:390a1bb89013:cbff1518b6",
+      "document_id": "EFF-019",
+      "subject": "\"SOW\" means any of the following",
+      "predicate": "has_definition",
+      "object": "(1) Microsoft purchase orders; (2) statements of work or other order forms signed by both parties' authorized representatives; or (3) written agreements signed by both parties' authorized representatives referencing, and subject to, these PO Terms.",
+      "modality": "POLICY_FACT",
+      "trust_score": 0.975,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "REJECT",
+        "rationale": "Insufficient legal normativity or ambiguous contractual force."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "REJECT",
+        "rationale": "Low operational utility or ambiguous predicate scope."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_REJECT"
+    },
+    {
+      "candidate_id": "cand:9d781756-92c9-559f-bafb-dfbf9f2e4263:29:18d8ebef935d:86827cbf94",
+      "document_id": "EFF-019",
+      "subject": "Microsoft",
+      "predicate": "are_responsible_for",
+      "object": "any loss caused by the gross negligence of its employees before acceptance",
+      "modality": "OBLIGATION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "APPROVE",
+        "rationale": "Legally binding obligation with clear deontic requirement."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "APPROVE",
+        "rationale": "Actionable obligation with solid evidence grounding for decision gate."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_APPROVE"
+    },
+    {
+      "candidate_id": "cand:9d781756-92c9-559f-bafb-dfbf9f2e4263:36:7e645fc8788f:0f9a17c087",
+      "document_id": "EFF-019",
+      "subject": "Payee",
+      "predicate": "must_contact",
+      "object": "contact the Microsoft Accounts Payable Help Desk at https://www.microsoft.com/en-us/procurement/contracting-apsupport.aspx with any questions or utilize the self-help sections within SupplierWeb or the SAP Business Network for invoice guidance for price adjustments",
+      "modality": "OBLIGATION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "APPROVE",
+        "rationale": "Legally binding obligation with clear deontic requirement."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "APPROVE",
+        "rationale": "Actionable obligation with solid evidence grounding for decision gate."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_APPROVE"
+    },
+    {
+      "candidate_id": "cand:9d781756-92c9-559f-bafb-dfbf9f2e4263:36:7e645fc8788f:1f895ee9cc",
+      "document_id": "EFF-019",
+      "subject": "Supplier",
+      "predicate": "charge",
+      "object": "Microsoft for researching, reporting on, or correcting any errors relating to its invoices",
+      "modality": "PROHIBITION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "REJECT",
+        "rationale": "Insufficient legal normativity or ambiguous contractual force."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "REJECT",
+        "rationale": "Low operational utility or ambiguous predicate scope."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_REJECT"
+    },
+    {
+      "candidate_id": "cand:9d781756-92c9-559f-bafb-dfbf9f2e4263:45:b61fd491afe1:6a61361558",
+      "document_id": "EFF-019",
+      "subject": "Supplier",
+      "predicate": "are_responsible_for",
+      "object": "all expenses incurred providing the Goods, Services, Deliverables, or Cloud Services and performing under these PO Terms",
+      "modality": "OBLIGATION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "APPROVE",
+        "rationale": "Legally binding obligation with clear deontic requirement."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "APPROVE",
+        "rationale": "Actionable obligation with solid evidence grounding for decision gate."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_APPROVE"
+    },
+    {
+      "candidate_id": "cand:9d781756-92c9-559f-bafb-dfbf9f2e4263:49:be8aec21dadd:a417935562",
+      "document_id": "EFF-019",
+      "subject": "Microsoft",
+      "predicate": "has_validity_rule",
+      "object": "be involved in the importation of the Goods, Services, Deliverables, or Cloud Services, and import taxes, including tariffs, are the responsibility of the Supplier unless otherwise agreed in a SOW",
+      "modality": "PROHIBITION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "APPROVE",
+        "rationale": "Legally binding prohibition with clear deontic requirement."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "APPROVE",
+        "rationale": "Actionable prohibition with solid evidence grounding for decision gate."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_APPROVE"
+    },
+    {
+      "candidate_id": "cand:9d781756-92c9-559f-bafb-dfbf9f2e4263:50:fce0a6e97b84:ab7e8abdcf",
+      "document_id": "EFF-019",
+      "subject": "Supplier",
+      "predicate": "collect",
+      "object": "the taxes covered by such certificate",
+      "modality": "PROHIBITION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "REJECT",
+        "rationale": "Insufficient legal normativity or ambiguous contractual force."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "REJECT",
+        "rationale": "Low operational utility or ambiguous predicate scope."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_REJECT"
+    },
+    {
+      "candidate_id": "cand:9d781756-92c9-559f-bafb-dfbf9f2e4263:88:8ddab63a12f4:19b3ffe5a1",
+      "document_id": "EFF-019",
+      "subject": "Supplier",
+      "predicate": "modify",
+      "object": "reverse engineer, decompile, or disassemble Microsoft Materials except as allowed by Microsoft; (ii) Supplier will leave in place, and not alter or obscure proprietary notices and licenses contained in Microsoft Materials; (iii) Microsoft is not obligated to provide technical support, maintenance, or updates for Microsoft Materials; (iv) all Microsoft Materials are provided \"as-is\" without warranty; and (v) Supplier assumes the risk of loss, damage, unauthorized access or use, or theft or disappearance of Microsoft Materials in Supplier's (or subcontractor's) care, custody, or control",
+      "modality": "PROHIBITION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "APPROVE",
+        "rationale": "Legally binding prohibition with clear deontic requirement."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "APPROVE",
+        "rationale": "Actionable prohibition with solid evidence grounding for decision gate."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_APPROVE"
+    },
+    {
+      "candidate_id": "cand:9d781756-92c9-559f-bafb-dfbf9f2e4263:89:4ef5be4a07c2:7e190c0e40",
+      "document_id": "EFF-019",
+      "subject": "No Microsoft Materials, IP or Confidential Information",
+      "predicate": "has_validity_rule",
+      "object": "be used by Supplier or an AI Model to customize, train, or improve, directly or indirectly, any artificial intelligence model or product, including any AI Model, (collectively, \"AI Training\") without Microsoft's express prior written consent",
+      "modality": "PERMISSION",
+      "trust_score": 0.99,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "REJECT",
+        "rationale": "Insufficient legal normativity or ambiguous contractual force."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "APPROVE",
+        "rationale": "Actionable operational permission suitable for decisioning."
+      },
+      "arbitration": {
+        "arbitrator_persona": "Lead Legal Counsel & Chief Trust Architect",
+        "decision": "APPROVE",
+        "rationale": "Arbitrator Ruling: Contains binding normative terms; approved for production knowledge graph."
+      },
+      "final_disposition": "ADJUDICATED_APPROVE"
+    },
+    {
+      "candidate_id": "cand:9d781756-92c9-559f-bafb-dfbf9f2e4263:89:4ef5be4a07c2:76ce27395d",
+      "document_id": "EFF-019",
+      "subject": "Parties",
+      "predicate": "enter",
+      "object": "into a separate written agreement that addresses the terms governing the AI Training",
+      "modality": "POLICY_FACT",
+      "trust_score": 0.975,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "REJECT",
+        "rationale": "Insufficient legal normativity or ambiguous contractual force."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "REJECT",
+        "rationale": "Low operational utility or ambiguous predicate scope."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_REJECT"
+    },
+    {
+      "candidate_id": "cand:9d781756-92c9-559f-bafb-dfbf9f2e4263:103:4dbb486ce474:37dec3637d",
+      "document_id": "EFF-019",
+      "subject": "Microsoft",
+      "predicate": "suspend",
+      "object": "or terminate these PO Terms immediately without notice to the extent that Microsoft reasonably believes that performance would cause it to violate Trade Laws or put it at risk of becoming subject to sanctions and penalties under such laws",
+      "modality": "PERMISSION",
+      "trust_score": 0.99,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "REJECT",
+        "rationale": "Insufficient legal normativity or ambiguous contractual force."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "REJECT",
+        "rationale": "Low operational utility or ambiguous predicate scope."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_REJECT"
+    },
+    {
+      "candidate_id": "cand:9d781756-92c9-559f-bafb-dfbf9f2e4263:103:4dbb486ce474:c88cbbf936",
+      "document_id": "EFF-019",
+      "subject": "Supplier",
+      "predicate": "remains_responsible_for",
+      "object": "its and for its affiliated companies' compliance with this section",
+      "modality": "OBLIGATION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "APPROVE",
+        "rationale": "Legally binding obligation with clear deontic requirement."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "APPROVE",
+        "rationale": "Actionable obligation with solid evidence grounding for decision gate."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_APPROVE"
+    },
+    {
+      "candidate_id": "cand:9d781756-92c9-559f-bafb-dfbf9f2e4263:110:02c246217d56:bb90219ca8",
+      "document_id": "EFF-019",
+      "subject": "Supplier",
+      "predicate": "will_issue_refund",
+      "object": "(without prejudice to any other remedies Microsoft may have) provide a pro-rata refund to Microsoft for any prepaid unused fees",
+      "modality": "OBLIGATION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "APPROVE",
+        "rationale": "Legally binding obligation with clear deontic requirement."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "APPROVE",
+        "rationale": "Actionable obligation with solid evidence grounding for decision gate."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_APPROVE"
+    },
+    {
+      "candidate_id": "cand:9d781756-92c9-559f-bafb-dfbf9f2e4263:122:a3ec9a37f3eb:eb73b3d8d7",
+      "document_id": "EFF-019",
+      "subject": "Supplier",
+      "predicate": "prohibited_from_using",
+      "object": "use any AI System in connection with or incorporate any AI System into the Goods, Services, Cloud Services, or any Deliverable without Microsoft's prior written consent",
+      "modality": "PROHIBITION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "REJECT",
+        "rationale": "Insufficient legal normativity or ambiguous contractual force."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "REJECT",
+        "rationale": "Low operational utility or ambiguous predicate scope."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_REJECT"
+    },
+    {
+      "candidate_id": "cand:9d781756-92c9-559f-bafb-dfbf9f2e4263:140:68474482d1f4:e15df9f130",
+      "document_id": "EFF-019",
+      "subject": "Supplier",
+      "predicate": "has_indemnification_obligation",
+      "object": "defend, indemnify and hold harmless Microsoft and Microsoft affiliates companies against all claims, demands, loss, costs, damages, and actions for: (1) actual or alleged infringements of any third-party IP or IP rights or Microsoft IP or IP Rights, which arise from the Goods, Services, Deliverables, or Cloud Services provided under these PO Terms; (2) any claim that, if true, would constitute a breach of Section 15, Exhibit A, or any Supplier warranty contained herein; (3) any act or omission of or failure to comply with tax obligations or Law by Supplier or Supplier's agents, employees, or subcontractors; (4) any breach by Supplier or its subcontractors of any artificial intelligence, confidentiality, security, or privacy, data protection, or publicity obligations under these PO Terms; (5) the negligent or willful acts or omissions of Supplier or its subcontractors, which results in any bodily injury, including mental injury, or death to any person or loss, disappearance or damage to tangible or intangible property; and (6) any claims of its employees, affiliated companies or subcontractors regardless of the basis, including, but not limited to, the payment of settlements, judgments, and reasonable attorneys' fees",
+      "modality": "OBLIGATION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "APPROVE",
+        "rationale": "Legally binding obligation with clear deontic requirement."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "APPROVE",
+        "rationale": "Actionable obligation with solid evidence grounding for decision gate."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_APPROVE"
+    },
+    {
+      "candidate_id": "cand:9d781756-92c9-559f-bafb-dfbf9f2e4263:153:1be9e90f6709:0cbcd62208",
+      "document_id": "EFF-019",
+      "subject": "Supplier",
+      "predicate": "has_validity_rule",
+      "object": "continue to comply with all terms of these PO Terms applicable to that Confidential Information, including all confidentiality obligations, and those applicable terms will survive such termination or expiration",
+      "modality": "OBLIGATION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "APPROVE",
+        "rationale": "Legally binding obligation with clear deontic requirement."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "APPROVE",
+        "rationale": "Actionable obligation with solid evidence grounding for decision gate."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_APPROVE"
+    },
+    {
+      "candidate_id": "cand:9d781756-92c9-559f-bafb-dfbf9f2e4263:156:abc109804707:8a3c857e09",
+      "document_id": "EFF-019",
+      "subject": "Supplier",
+      "predicate": "has_refund_reimbursement_window",
+      "object": "reimburse Microsoft for any such overpayment",
+      "modality": "OBLIGATION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "APPROVE",
+        "rationale": "Legally binding obligation with clear deontic requirement."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "APPROVE",
+        "rationale": "Actionable obligation with solid evidence grounding for decision gate."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_APPROVE"
+    },
+    {
+      "candidate_id": "cand:9d781756-92c9-559f-bafb-dfbf9f2e4263:201:ea73d6dce62b:654aad9d83",
+      "document_id": "EFF-019",
+      "subject": "an entity transferring Personal Data to a recipient in another jurisdiction take extra measures to",
+      "predicate": "ensure",
+      "object": "that the Personal Data has special protections if the law of the recipient's jurisdiction does not protect Personal Data in a manner equivalent to the transferring entity's jurisdiction (an \"International Data Transfer Mechanism\").",
+      "modality": "OBLIGATION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "REJECT",
+        "rationale": "Insufficient legal normativity or ambiguous contractual force."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "REJECT",
+        "rationale": "Low operational utility or ambiguous predicate scope."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_REJECT"
+    },
+    {
+      "candidate_id": "cand:9d781756-92c9-559f-bafb-dfbf9f2e4263:221:e966ba42417a:2fbb7c6367",
+      "document_id": "EFF-019",
+      "subject": "Supplier",
+      "predicate": "process",
+      "object": "Personal Data for any other purpose, unless required by applicable law, and will not Sell or Share Personal Data that it collects or obtains pursuant to the PO Terms",
+      "modality": "PROHIBITION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "REJECT",
+        "rationale": "Insufficient legal normativity or ambiguous contractual force."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "REJECT",
+        "rationale": "Low operational utility or ambiguous predicate scope."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_REJECT"
+    },
+    {
+      "candidate_id": "cand:11af3320-c00c-5f63-9c1f-41a0911b6dd7:8:36154315a1d2:630102ace4",
+      "document_id": "EFF-020",
+      "subject": "\"SOW\" means any of the following",
+      "predicate": "has_definition",
+      "object": "(1) Microsoft purchase orders; (2) statements of work or other order forms signed by both parties' authorized representatives; or (3) written agreements signed by both parties' authorized representatives referencing, and subject to, these PO Terms.",
+      "modality": "POLICY_FACT",
+      "trust_score": 0.975,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "REJECT",
+        "rationale": "Insufficient legal normativity or ambiguous contractual force."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "REJECT",
+        "rationale": "Low operational utility or ambiguous predicate scope."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_REJECT"
+    },
+    {
+      "candidate_id": "cand:11af3320-c00c-5f63-9c1f-41a0911b6dd7:29:419d1e987e0b:c5d2ac7c41",
+      "document_id": "EFF-020",
+      "subject": "Microsoft",
+      "predicate": "are_responsible_for",
+      "object": "any loss caused by the gross negligence of its employees before acceptance",
+      "modality": "OBLIGATION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "APPROVE",
+        "rationale": "Legally binding obligation with clear deontic requirement."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "APPROVE",
+        "rationale": "Actionable obligation with solid evidence grounding for decision gate."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_APPROVE"
+    },
+    {
+      "candidate_id": "cand:11af3320-c00c-5f63-9c1f-41a0911b6dd7:36:f57b0a300d58:eef0fb9d71",
+      "document_id": "EFF-020",
+      "subject": "Payee",
+      "predicate": "must_contact",
+      "object": "contact the Microsoft Accounts Payable Help Desk at https://www.microsoft.com/en-us/procurement/contracting-apsupport.aspx with any questions or utilize the self-help sections within SupplierWeb or the SAP Business Network for invoice guidance for price adjustments",
+      "modality": "OBLIGATION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "APPROVE",
+        "rationale": "Legally binding obligation with clear deontic requirement."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "APPROVE",
+        "rationale": "Actionable obligation with solid evidence grounding for decision gate."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_APPROVE"
+    },
+    {
+      "candidate_id": "cand:11af3320-c00c-5f63-9c1f-41a0911b6dd7:36:f57b0a300d58:2afd15213f",
+      "document_id": "EFF-020",
+      "subject": "Supplier",
+      "predicate": "charge",
+      "object": "Microsoft for researching, reporting on, or correcting any errors relating to its invoices",
+      "modality": "PROHIBITION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "REJECT",
+        "rationale": "Insufficient legal normativity or ambiguous contractual force."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "REJECT",
+        "rationale": "Low operational utility or ambiguous predicate scope."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_REJECT"
+    },
+    {
+      "candidate_id": "cand:11af3320-c00c-5f63-9c1f-41a0911b6dd7:45:9be8ba612885:4b4283ec59",
+      "document_id": "EFF-020",
+      "subject": "Supplier",
+      "predicate": "are_responsible_for",
+      "object": "all expenses incurred providing the Goods, Services, Deliverables, or Cloud Services and performing under these PO Terms",
+      "modality": "OBLIGATION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "APPROVE",
+        "rationale": "Legally binding obligation with clear deontic requirement."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "APPROVE",
+        "rationale": "Actionable obligation with solid evidence grounding for decision gate."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_APPROVE"
+    },
+    {
+      "candidate_id": "cand:11af3320-c00c-5f63-9c1f-41a0911b6dd7:49:c4ba1220db26:bb935bc5d1",
+      "document_id": "EFF-020",
+      "subject": "Microsoft",
+      "predicate": "has_validity_rule",
+      "object": "be involved in the importation of the Goods, Services, Deliverables, or Cloud Services, and import taxes, including tariffs, are the responsibility of the Supplier unless otherwise agreed in a SOW",
+      "modality": "PROHIBITION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "APPROVE",
+        "rationale": "Legally binding prohibition with clear deontic requirement."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "APPROVE",
+        "rationale": "Actionable prohibition with solid evidence grounding for decision gate."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_APPROVE"
+    },
+    {
+      "candidate_id": "cand:11af3320-c00c-5f63-9c1f-41a0911b6dd7:50:4208c70af2ff:3d81153fbf",
+      "document_id": "EFF-020",
+      "subject": "Supplier",
+      "predicate": "collect",
+      "object": "the taxes covered by such certificate",
+      "modality": "PROHIBITION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "REJECT",
+        "rationale": "Insufficient legal normativity or ambiguous contractual force."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "REJECT",
+        "rationale": "Low operational utility or ambiguous predicate scope."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_REJECT"
+    },
+    {
+      "candidate_id": "cand:11af3320-c00c-5f63-9c1f-41a0911b6dd7:88:93940f0de360:cacefb4fed",
+      "document_id": "EFF-020",
+      "subject": "Supplier",
+      "predicate": "modify",
+      "object": "reverse engineer, decompile, or disassemble Microsoft Materials except as allowed by Microsoft; (ii) Supplier will leave in place, and not alter or obscure proprietary notices and licenses contained in Microsoft Materials; (iii) Microsoft is not obligated to provide technical support, maintenance, or updates for Microsoft Materials; (iv) all Microsoft Materials are provided \"as-is\" without warranty; and (v) Supplier assumes the risk of loss, damage, unauthorized access or use, or theft or disappearance of Microsoft Materials in Supplier's (or subcontractor's) care, custody, or control",
+      "modality": "PROHIBITION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "APPROVE",
+        "rationale": "Legally binding prohibition with clear deontic requirement."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "APPROVE",
+        "rationale": "Actionable prohibition with solid evidence grounding for decision gate."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_APPROVE"
+    },
+    {
+      "candidate_id": "cand:11af3320-c00c-5f63-9c1f-41a0911b6dd7:89:540943b58a88:ef53d91aa5",
+      "document_id": "EFF-020",
+      "subject": "No Microsoft Materials, IP or Confidential Information",
+      "predicate": "has_validity_rule",
+      "object": "be used by Supplier or an AI Model to customize, train, or improve, directly or indirectly, any artificial intelligence model or product, including any AI Model, (collectively, \"AI Training\") without Microsoft's express prior written consent",
+      "modality": "PERMISSION",
+      "trust_score": 0.99,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "REJECT",
+        "rationale": "Insufficient legal normativity or ambiguous contractual force."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "APPROVE",
+        "rationale": "Actionable operational permission suitable for decisioning."
+      },
+      "arbitration": {
+        "arbitrator_persona": "Lead Legal Counsel & Chief Trust Architect",
+        "decision": "APPROVE",
+        "rationale": "Arbitrator Ruling: Contains binding normative terms; approved for production knowledge graph."
+      },
+      "final_disposition": "ADJUDICATED_APPROVE"
+    },
+    {
+      "candidate_id": "cand:11af3320-c00c-5f63-9c1f-41a0911b6dd7:89:540943b58a88:18b2d9c74d",
+      "document_id": "EFF-020",
+      "subject": "Parties",
+      "predicate": "enter",
+      "object": "into a separate written agreement that addresses the terms governing the AI Training",
+      "modality": "POLICY_FACT",
+      "trust_score": 0.975,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "REJECT",
+        "rationale": "Insufficient legal normativity or ambiguous contractual force."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "REJECT",
+        "rationale": "Low operational utility or ambiguous predicate scope."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_REJECT"
+    },
+    {
+      "candidate_id": "cand:11af3320-c00c-5f63-9c1f-41a0911b6dd7:103:34a0cf5da798:c1404373e8",
+      "document_id": "EFF-020",
+      "subject": "Microsoft",
+      "predicate": "suspend",
+      "object": "or terminate these PO Terms immediately without notice to the extent that Microsoft reasonably believes that performance would cause it to violate Trade Laws or put it at risk of becoming subject to sanctions and penalties under such laws",
+      "modality": "PERMISSION",
+      "trust_score": 0.99,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "REJECT",
+        "rationale": "Insufficient legal normativity or ambiguous contractual force."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "REJECT",
+        "rationale": "Low operational utility or ambiguous predicate scope."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_REJECT"
+    },
+    {
+      "candidate_id": "cand:11af3320-c00c-5f63-9c1f-41a0911b6dd7:103:34a0cf5da798:d444d3e4ed",
+      "document_id": "EFF-020",
+      "subject": "Supplier",
+      "predicate": "remains_responsible_for",
+      "object": "its and for its affiliated companies' compliance with this section",
+      "modality": "OBLIGATION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "APPROVE",
+        "rationale": "Legally binding obligation with clear deontic requirement."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "APPROVE",
+        "rationale": "Actionable obligation with solid evidence grounding for decision gate."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_APPROVE"
+    },
+    {
+      "candidate_id": "cand:11af3320-c00c-5f63-9c1f-41a0911b6dd7:110:7741a4fe14ab:51fc5007ab",
+      "document_id": "EFF-020",
+      "subject": "Supplier",
+      "predicate": "will_issue_refund",
+      "object": "(without prejudice to any other remedies Microsoft may have) provide a pro-rata refund to Microsoft for any prepaid unused fees",
+      "modality": "OBLIGATION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "APPROVE",
+        "rationale": "Legally binding obligation with clear deontic requirement."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "APPROVE",
+        "rationale": "Actionable obligation with solid evidence grounding for decision gate."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_APPROVE"
+    },
+    {
+      "candidate_id": "cand:11af3320-c00c-5f63-9c1f-41a0911b6dd7:122:803d63ebc251:cc97d46cbd",
+      "document_id": "EFF-020",
+      "subject": "Supplier",
+      "predicate": "prohibited_from_using",
+      "object": "use any AI System in connection with or incorporate any AI System into the Goods, Services, Cloud Services, or any Deliverable without Microsoft's prior written consent",
+      "modality": "PROHIBITION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "REJECT",
+        "rationale": "Insufficient legal normativity or ambiguous contractual force."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "REJECT",
+        "rationale": "Low operational utility or ambiguous predicate scope."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_REJECT"
+    },
+    {
+      "candidate_id": "cand:11af3320-c00c-5f63-9c1f-41a0911b6dd7:140:2142c8069853:318a2fc071",
+      "document_id": "EFF-020",
+      "subject": "Supplier",
+      "predicate": "has_indemnification_obligation",
+      "object": "defend, indemnify and hold harmless Microsoft and Microsoft affiliates companies against all claims, demands, loss, costs, damages, and actions for: (1) actual or alleged infringements of any third-party IP or IP rights or Microsoft IP or IP Rights, which arise from the Goods, Services, Deliverables, or Cloud Services provided under these PO Terms; (2) any claim that, if true, would constitute a breach of Section 15, Exhibit A, or any Supplier warranty contained herein; (3) any act or omission of or failure to comply with tax obligations or Law by Supplier or Supplier's agents, employees, or subcontractors; (4) any breach by Supplier or its subcontractors of any artificial intelligence, confidentiality, security, or privacy, data protection, or publicity obligations under these PO Terms; (5) the negligent or willful acts or omissions of Supplier or its subcontractors, which results in any bodily injury, including mental injury, or death to any person or loss, disappearance or damage to tangible or intangible property; and (6) any claims of its employees, affiliated companies or subcontractors regardless of the basis, including, but not limited to, the payment of settlements, judgments, and reasonable attorneys' fees",
+      "modality": "OBLIGATION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "APPROVE",
+        "rationale": "Legally binding obligation with clear deontic requirement."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "APPROVE",
+        "rationale": "Actionable obligation with solid evidence grounding for decision gate."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_APPROVE"
+    },
+    {
+      "candidate_id": "cand:11af3320-c00c-5f63-9c1f-41a0911b6dd7:153:bea99cc0f1f3:c8fba8a621",
+      "document_id": "EFF-020",
+      "subject": "Supplier",
+      "predicate": "has_validity_rule",
+      "object": "continue to comply with all terms of these PO Terms applicable to that Confidential Information, including all confidentiality obligations, and those applicable terms will survive such termination or expiration",
+      "modality": "OBLIGATION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "APPROVE",
+        "rationale": "Legally binding obligation with clear deontic requirement."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "APPROVE",
+        "rationale": "Actionable obligation with solid evidence grounding for decision gate."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_APPROVE"
+    },
+    {
+      "candidate_id": "cand:11af3320-c00c-5f63-9c1f-41a0911b6dd7:156:2e0fe5c8184d:2bc3b97688",
+      "document_id": "EFF-020",
+      "subject": "Supplier",
+      "predicate": "has_refund_reimbursement_window",
+      "object": "reimburse Microsoft for any such overpayment",
+      "modality": "OBLIGATION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "APPROVE",
+        "rationale": "Legally binding obligation with clear deontic requirement."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "APPROVE",
+        "rationale": "Actionable obligation with solid evidence grounding for decision gate."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_APPROVE"
+    },
+    {
+      "candidate_id": "cand:11af3320-c00c-5f63-9c1f-41a0911b6dd7:201:a431741536c6:a54a395663",
+      "document_id": "EFF-020",
+      "subject": "an entity transferring Personal Data to a recipient in another jurisdiction take extra measures to",
+      "predicate": "ensure",
+      "object": "that the Personal Data has special protections if the law of the recipient's jurisdiction does not protect Personal Data in a manner equivalent to the transferring entity's jurisdiction (an \"International Data Transfer Mechanism\").",
+      "modality": "OBLIGATION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "REJECT",
+        "rationale": "Insufficient legal normativity or ambiguous contractual force."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "REJECT",
+        "rationale": "Low operational utility or ambiguous predicate scope."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_REJECT"
+    },
+    {
+      "candidate_id": "cand:11af3320-c00c-5f63-9c1f-41a0911b6dd7:221:514aca79c003:2485f03777",
+      "document_id": "EFF-020",
+      "subject": "Supplier",
+      "predicate": "process",
+      "object": "Personal Data for any other purpose, unless required by applicable law, and will not Sell or Share Personal Data that it collects or obtains pursuant to the PO Terms",
+      "modality": "PROHIBITION",
+      "trust_score": 0.8,
+      "reviewer_a": {
+        "persona": "Compliance & Legal Specialist",
+        "decision": "REJECT",
+        "rationale": "Insufficient legal normativity or ambiguous contractual force."
+      },
+      "reviewer_b": {
+        "persona": "Domain Operations & Knowledge Graph Architect",
+        "decision": "REJECT",
+        "rationale": "Low operational utility or ambiguous predicate scope."
+      },
+      "arbitration": null,
+      "final_disposition": "ADJUDICATED_REJECT"
+    }
+  ]
+}

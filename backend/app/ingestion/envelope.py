@@ -134,8 +134,11 @@ class EnvelopeFactory:
             except ValueError:
                 intent = SourceIntent.GOVERNANCE_POLICY
 
+        deterministic_seed = f"{organization_id}:{source_id}:{raw_asset.asset_id}:{content_hash}"
+        envelope_id = uuid.uuid5(uuid.NAMESPACE_URL, deterministic_seed)
+
         return CanonicalSourceEnvelope(
-            envelope_id=uuid.uuid4(),
+            envelope_id=envelope_id,
             organization_id=organization_id,
             source_id=source_id,
             asset_id=raw_asset.asset_id,
@@ -187,8 +190,11 @@ class EnvelopeFactory:
             SourceIntent.GOVERNANCE_POLICY if document_type == "policy" else SourceIntent.OPERATIONAL_DATA
         )
 
+        deterministic_seed = f"{organization_id}:{source_id}:file://{filename}:{content_hash}"
+        envelope_id = uuid.uuid5(uuid.NAMESPACE_URL, deterministic_seed)
+
         return CanonicalSourceEnvelope(
-            envelope_id=uuid.uuid4(),
+            envelope_id=envelope_id,
             organization_id=organization_id,
             source_id=source_id,
             asset_id=f"file://{filename}",

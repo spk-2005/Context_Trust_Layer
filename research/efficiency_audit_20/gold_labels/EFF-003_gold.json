@@ -1,0 +1,236 @@
+{
+  "document_id": "EFF-003",
+  "filename": "terminationofemploymentpolicy.pdf",
+  "document_type": "policy",
+  "claim_truth": [
+    {
+      "gold_id": "EFF-003-G01",
+      "claim_type": "policy",
+      "canonical": true,
+      "subject": "This means that either the staff member or the University",
+      "predicate": "sever",
+      "object": "the employment relationship at any time with or without cause",
+      "modality": "PERMISSION",
+      "conditions": [],
+      "page_number": 1,
+      "section": "",
+      "evidence_quote": "This means that either the staff member or the University may sever the employment relationship at any time with or without cause."
+    },
+    {
+      "gold_id": "EFF-003-G02",
+      "claim_type": "policy",
+      "canonical": true,
+      "subject": "Termination of Employment Policy",
+      "predicate": "has_validity_rule",
+      "object": "applies to all regular full-time and part-time staff employees, including those holding temporary appointments",
+      "modality": "OBLIGATION",
+      "conditions": [],
+      "page_number": 1,
+      "section": "",
+      "evidence_quote": "This policy applies to all regular full-time and part-time staff employees, including those holding temporary appointments."
+    },
+    {
+      "gold_id": "EFF-003-G03",
+      "claim_type": "policy",
+      "canonical": true,
+      "subject": "Others",
+      "predicate": "leave",
+      "object": "the University for a variety of reasons",
+      "modality": "PERMISSION",
+      "conditions": [],
+      "page_number": 1,
+      "section": "",
+      "evidence_quote": "Others may leave the University for a variety of reasons."
+    },
+    {
+      "gold_id": "EFF-003-G04",
+      "claim_type": "policy",
+      "canonical": true,
+      "subject": "Termination of employment",
+      "predicate": "result",
+      "object": "from a resignation, retirement, death, involuntary termination, staff reduction, or due to an employee's term ending",
+      "modality": "PERMISSION",
+      "conditions": [],
+      "page_number": 1,
+      "section": "",
+      "evidence_quote": "Termination of employment may result from a resignation, retirement, death, involuntary termination, staff reduction, or due to an employee's term ending."
+    },
+    {
+      "gold_id": "EFF-003-G05",
+      "claim_type": "policy",
+      "canonical": true,
+      "subject": "Supervisors",
+      "predicate": "notify",
+      "object": "the designated Human Resources partner as soon as they are aware an employee is voluntarily terminating",
+      "modality": "POLICY_FACT",
+      "conditions": [],
+      "page_number": 1,
+      "section": "",
+      "evidence_quote": "Supervisors should notify the designated Human Resources partner as soon as they are aware an employee is voluntarily terminating."
+    },
+    {
+      "gold_id": "EFF-003-G06",
+      "claim_type": "policy",
+      "canonical": true,
+      "subject": "final paycheck",
+      "predicate": "includes_compensation",
+      "object": "all unpaid wages, earned but unused paid leave time (PLT) for non-exempt employees",
+      "modality": "OBLIGATION",
+      "conditions": [],
+      "page_number": 1,
+      "section": "",
+      "evidence_quote": "The final paycheck includes all unpaid wages, earned but unused paid leave time (PLT) for non-exempt employees."
+    },
+    {
+      "gold_id": "EFF-003-G07",
+      "claim_type": "policy",
+      "canonical": true,
+      "subject": "Termination for serious misconduct",
+      "predicate": "occur",
+      "object": "without prior notice in accordance with the University's Corrective Action Policy for Staff Employees",
+      "modality": "PERMISSION",
+      "conditions": [],
+      "page_number": 1,
+      "section": "",
+      "evidence_quote": "Termination for serious misconduct may occur without prior notice in accordance with the University's Corrective Action Policy for Staff Employees; in other instances, termination for misconduct may follow corrective action."
+    },
+    {
+      "gold_id": "EFF-003-G08",
+      "claim_type": "policy",
+      "canonical": true,
+      "subject": "Staff members terminated for misconduct",
+      "predicate": "has_severance_eligibility",
+      "object": "not eligible for severance pay",
+      "modality": "PROHIBITION",
+      "conditions": [],
+      "page_number": 1,
+      "section": "",
+      "evidence_quote": "Staff members terminated for misconduct are not eligible for severance pay."
+    },
+    {
+      "gold_id": "EFF-003-G09",
+      "claim_type": "policy",
+      "canonical": true,
+      "subject": "These circumstances",
+      "predicate": "arise",
+      "object": "due to (1) financial considerations , (2) restructuring or reorganization of a unit resulting in the discontinuation of or significant changes to program (s), function(s), or job(s), or (3) other business requirements",
+      "modality": "PERMISSION",
+      "conditions": [],
+      "page_number": 1,
+      "section": "",
+      "evidence_quote": "These circumstances may arise due to (1) financial considerations , (2) restructuring or reorganization of a unit resulting in the discontinuation of or significant changes to program (s), function(s), or job(s), or (3) other business requirements."
+    },
+    {
+      "gold_id": "EFF-003-G10",
+      "claim_type": "policy",
+      "canonical": true,
+      "subject": "supervisors",
+      "predicate": "has_rehire_restriction",
+      "object": "may not rehire the position for a period of at least one year",
+      "modality": "PROHIBITION",
+      "conditions": [
+        "Position is eliminated through staff reduction or position elimination and employee receives severance"
+      ],
+      "page_number": 1,
+      "section": "",
+      "evidence_quote": "If a position is eliminated through a staff reduction or position elimination and the employee is receiving severance, supervisors may not rehire the position for a period of at least one year, except with the approval of the chief human resources officer."
+    },
+    {
+      "gold_id": "EFF-003-G11",
+      "claim_type": "policy",
+      "canonical": true,
+      "subject": "In some cases, an employee",
+      "predicate": "has_validity_rule",
+      "object": "have the opportunity to work during the period that the employee would otherwise receive severance pay, called the notice period",
+      "modality": "PERMISSION",
+      "conditions": [
+        "the period that the employee would otherwise receive severance pay"
+      ],
+      "page_number": 1,
+      "section": "",
+      "evidence_quote": "In some cases, an employee may have the opportunity to work during the period that the employee would otherwise receive severance pay, called the notice period."
+    },
+    {
+      "gold_id": "EFF-003-G12",
+      "claim_type": "policy",
+      "canonical": true,
+      "subject": "Company (Pay in Lieu of Notice)",
+      "predicate": "issues_pay_in_lieu_of_notice",
+      "object": "Payment for notice period upon discussion with Manager, HR, and Department Head",
+      "modality": "OBLIGATION",
+      "conditions": [],
+      "page_number": 1,
+      "section": "",
+      "evidence_quote": "When a University leader elects to offer severance pay in lieu of notice, the designated Human Resources partner coordinates the arrangement."
+    },
+    {
+      "gold_id": "EFF-003-G13",
+      "claim_type": "policy",
+      "canonical": true,
+      "subject": "Severance",
+      "predicate": "has_validity_rule",
+      "object": "be paid in accordance with the separation agreement in a lump sum minus applicable withholdings",
+      "modality": "POLICY_FACT",
+      "conditions": [],
+      "page_number": 1,
+      "section": "",
+      "evidence_quote": "Severance will be paid in accordance with the separation agreement in a lump sum minus applicable withholdings."
+    },
+    {
+      "gold_id": "EFF-003-G14",
+      "claim_type": "policy",
+      "canonical": true,
+      "subject": "Employees",
+      "predicate": "has_validity_rule",
+      "object": "be offered severance pay under this policy if they are awarded any form of remuneration",
+      "modality": "PROHIBITION",
+      "conditions": [],
+      "page_number": 1,
+      "section": "",
+      "evidence_quote": "Employees will not be offered severance pay under this policy if they are awarded any form of remuneration from another source."
+    },
+    {
+      "gold_id": "EFF-003-G15",
+      "claim_type": "policy",
+      "canonical": true,
+      "subject": "terminationofemploymentpolicy",
+      "predicate": "has_refund_eligibility",
+      "object": "Unless a separation agreement provides otherwise, employees who leave the University in good standing and later wish to return are eligible for consideration for rehire provided an appropriate position is available.",
+      "modality": "POLICY_FACT",
+      "conditions": [
+        "a separation agreement provides otherwise"
+      ],
+      "page_number": 1,
+      "section": "",
+      "evidence_quote": "Unless a separation agreement provides otherwise, employees who leave the University in good standing and later wish to return are eligible for consideration for rehire provided an appropriate position is available."
+    },
+    {
+      "gold_id": "EFF-003-G16",
+      "claim_type": "policy",
+      "canonical": true,
+      "subject": "A former employee who is rehired",
+      "predicate": "receive",
+      "object": "prior service credit for purposes of vacation or paid leave time accrual and other pertinent benefits if less than 12 months have elapsed between termination and start",
+      "modality": "OBLIGATION",
+      "conditions": [
+        "less than 12 months have elapsed between termination and start"
+      ],
+      "page_number": 1,
+      "section": "",
+      "evidence_quote": "A former employee who is rehired shall receive prior service credit for purposes of vacation or paid leave time accrual and other pertinent benefits if less than 12 months have elapsed between termination and start."
+    },
+    {
+      "gold_id": "EFF-003-G17",
+      "claim_type": "security_policy",
+      "canonical": true,
+      "subject": "Unauthorized Use or Disclosure of Policy Information",
+      "predicate": "prohibited_in_any_media",
+      "object": "Any media",
+      "modality": "PROHIBITION",
+      "conditions": [],
+      "page_number": 1,
+      "section": "",
+      "evidence_quote": "Terminating employees may not retain any documents or electronic files that contain confidential or proprietary information belonging to St."
+    }
+  ]
+}

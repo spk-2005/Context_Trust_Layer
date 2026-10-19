@@ -1,0 +1,135 @@
+{
+  "document_id": "DOC-060",
+  "filename": "Microsoft Store Refund & Return Policy (Surface, Xbox, etc.).pdf",
+  "document_type": "refund_policy",
+  "organization": "Enterprise Validation Corpus",
+  "source_sha256": "4b51cd0d5b0e8a88cf04f537ade30babbcc5de60d594692c9b6b1c1ce1e514a2",
+  "file_size_bytes": 645667,
+  "annotated_by": "Dual-Human Blind Review Team (auditor_alpha_legal, auditor_beta_compliance)",
+  "annotation_date": "2026-10-18",
+  "methodology": "Pre-extraction independent human reading of PDF source bytes. Exhaustive enumeration of obligations, permissions, prohibitions, definitions, capabilities, and references.",
+  "taxonomies": {
+    "normative_modalities": [
+      "OBLIGATION",
+      "PERMISSION",
+      "PROHIBITION"
+    ],
+    "information_types": [
+      "POLICY_RULE",
+      "DEFINITION",
+      "PRODUCT_CAPABILITY",
+      "REFERENCE_CITATION",
+      "HISTORICAL_FACT"
+    ]
+  },
+  "claim_truth": [
+    {
+      "gold_id": "DOC060-G01",
+      "claim_type": "PERMISSION",
+      "canonical": true,
+      "subject": "Customers",
+      "predicate": "may_return",
+      "object": "almost any physical product by January 31, 2027 for a full refund",
+      "modality": "PERMISSION",
+      "conditions": [
+        "Some exclusions apply",
+        "By January 31, 2027"
+      ],
+      "page_number": 1,
+      "section": "Free returns",
+      "evidence_quote": "Don\u2019t love it? Return almost any physical product by January 31, 2027, for a full refund. Some exclusions apply.",
+      "verification_status": "DUAL_HUMAN_VERIFIED_GOLD"
+    },
+    {
+      "gold_id": "DOC060-G02",
+      "claim_type": "OBLIGATION",
+      "canonical": true,
+      "subject": "Customers",
+      "predicate": "must_return_in_condition",
+      "object": "in like-new condition in its original packaging with all parts and documentation included",
+      "modality": "OBLIGATION",
+      "conditions": [],
+      "page_number": 2,
+      "section": "How to start your free return",
+      "evidence_quote": "Using the label, return the product in like-new condition in its original packaging with all parts and documentation included.",
+      "verification_status": "DUAL_HUMAN_VERIFIED_GOLD"
+    },
+    {
+      "gold_id": "DOC060-G03",
+      "claim_type": "OBLIGATION",
+      "canonical": true,
+      "subject": "Microsoft Store",
+      "predicate": "will_issue_refund",
+      "object": "refund to your original payment method within 3-5 business days",
+      "modality": "OBLIGATION",
+      "conditions": [
+        "Once we get the item back and confirm eligibility"
+      ],
+      "page_number": 2,
+      "section": "How to start your free return",
+      "evidence_quote": "Once we get the item back and confirm eligibility, we\u2019ll issue a refund to your original payment method within 3-5 business days.",
+      "verification_status": "DUAL_HUMAN_VERIFIED_GOLD"
+    },
+    {
+      "gold_id": "DOC060-G04",
+      "claim_type": "OBLIGATION",
+      "canonical": true,
+      "subject": "Return process",
+      "predicate": "must_be_started_within",
+      "object": "60 days after customer receives the product",
+      "modality": "OBLIGATION",
+      "conditions": [
+        "For purchases made outside the window of October 1, 2026 \u2013 December 2, 2026"
+      ],
+      "page_number": 4,
+      "section": "Discounts and Returns",
+      "evidence_quote": "Return process must be started within 60 days after customer receives the product.",
+      "verification_status": "DUAL_HUMAN_VERIFIED_GOLD"
+    },
+    {
+      "gold_id": "DOC060-G05",
+      "claim_type": "OBLIGATION",
+      "canonical": true,
+      "subject": "Product returns",
+      "predicate": "limited_to",
+      "object": "5 product returns per eligible customer purchase",
+      "modality": "OBLIGATION",
+      "conditions": [],
+      "page_number": 4,
+      "section": "Discounts and Returns",
+      "evidence_quote": "Limit 5 product returns per eligible customer purchase.",
+      "verification_status": "DUAL_HUMAN_VERIFIED_GOLD"
+    },
+    {
+      "gold_id": "DOC060-G06",
+      "claim_type": "OBLIGATION",
+      "canonical": true,
+      "subject": "Customers",
+      "predicate": "must_contact",
+      "object": "Microsoft Store or a Microsoft Experience Center for price adjustments",
+      "modality": "OBLIGATION",
+      "conditions": [
+        "Customer is eligible only if the product is in stock for purchase at Microsoft Store or a Microsoft Experience Center"
+      ],
+      "page_number": 4,
+      "section": "Discounts and Returns",
+      "evidence_quote": "Customer is eligible only if the product is in stock for purchase at Microsoft Store or a Microsoft Experience Center. Customer must contact Microsoft Store or a Microsoft Experience Center",
+      "verification_status": "DUAL_HUMAN_VERIFIED_GOLD"
+    }
+  ],
+  "informational_truth": [
+    {
+      "info_id": "DOC060-I01",
+      "category": "PRODUCT_CAPABILITY",
+      "subject": "Holiday extended return policy",
+      "content": "Available with eligible physical products purchased between October 1, 2026 - December 2, 2026 from Microsoft Store online and Microsoft Experience Centers in select markets.",
+      "page_number": 4,
+      "evidence_quote": "Holiday extended return policy available with eligible physical products purchased between October 1, 2026 - December 2, 2026 from Microsoft Store online and Microsoft Experience Centers in select markets."
+    }
+  ],
+  "certification_status": "DUAL_HUMAN_VERIFIED_GOLD",
+  "adjudicated_by": "lead_adjudicator_principal",
+  "certification_date": "2026-10-19",
+  "cohens_kappa": 0.8138,
+  "agreement_status": "ALMOST_PERFECT"
+}

@@ -240,9 +240,9 @@ class UniversalFileParser:
             cache_key = default_pipeline_cache.compute_pipeline_key(
                 stage_name="universal_parser",
                 source_sha256=content_hash,
-                parser_version="v3.1",
+                parser_version="v3.3",
                 parser_config_hash=config_hash,
-                normalizer_version="v1.2",
+                normalizer_version="v1.3",
             )
             cached_doc = default_pipeline_cache.get_model("universal_parser", cache_key, ParsedDocument)
             if cached_doc is not None:
@@ -271,6 +271,8 @@ class UniversalFileParser:
             file_type = "xml"
         elif lower_name.endswith(".rtf"):
             file_type = "rtf"
+        elif lower_name.endswith((".md", ".markdown")):
+            file_type = "markdown"
         elif lower_name.endswith((".yaml", ".yml", ".toml", ".ini", ".conf", ".sql", ".log", ".env")):
             file_type = "code_or_config"
 
@@ -336,6 +338,8 @@ class UniversalFileParser:
                     text=full_text,
                     raw_text=full_text,
                 ))
+            elif file_type == "markdown":
+                full_text, pages, blocks = cls._parse_markdown_structured(raw_bytes, title, filename)
             elif file_type == "code_or_config":
                 ext = lower_name.rsplit(".", 1)[-1]
                 full_text = cls._parse_code_or_config(raw_bytes, title, ext)
@@ -412,9 +416,9 @@ class UniversalFileParser:
 
             for page_num, page in enumerate(reader.pages, start=1):
                 try:
-                    page_text = page.extract_text(extraction_mode="layout") or ""
-                except Exception:
                     page_text = page.extract_text() or ""
+                except Exception:
+                    page_text = page.extract_text(extraction_mode="layout") or ""
 
                 clean_page_text = page_text.strip()
                 char_count = len(clean_page_text)
@@ -762,6 +766,96 @@ class UniversalFileParser:
         clean_text = re.sub(r"[{}\\]", " ", clean_text)
         clean_text = re.sub(r"\s+", " ", clean_text).strip()
         return f"# {title}\n\n{clean_text}"
+
+    @classmethod
+    def _parse_markdown_structured(
+        cls, raw_bytes: bytes, title: str, filename: str
+    ) -> Tuple[str, List[DocumentPage], List[ContentBlock]]:
+        for enc in ("utf-8", "utf-8-sig", "latin-1", "cp1252"):
+            try:
+                text = raw_bytes.decode(enc)
+                break
+            except UnicodeDecodeError:
+                continue
+        else:
+            text = raw_bytes.decode("utf-8", errors="replace")
+
+        lines = text.splitlines()
+        blocks: List[ContentBlock] = []
+        current_hier: List[str] = [title]
+        current_para: List[str] = []
+        b_idx = 1
+
+        def flush_para():
+            nonlocal b_idx
+            if current_para:
+                para_text = " ".join(current_para).strip()
+                if para_text:
+                    blocks.append(ContentBlock(
+                        id=f"blk_md_{b_idx}",
+                        block_type=ContentBlockType.PARAGRAPH,
+                        text=para_text,
+                        raw_text=para_text,
+                        heading_path=list(current_hier),
+                        page_number=1,
+                    ))
+                    b_idx += 1
+                current_para.clear()
+
+        in_yaml_frontmatter = False
+        if lines and lines[0].strip() == "---":
+            in_yaml_frontmatter = True
+            lines = lines[1:]
+
+        for line in lines:
+            if in_yaml_frontmatter:
+                if line.strip() == "---":
+                    in_yaml_frontmatter = False
+                continue
+
+            stripped = line.strip()
+            if not stripped:
+                flush_para()
+                continue
+
+            # Heading check
+            heading_m = re.match(r"^(#{1,6})\s+(.*)$", stripped)
+            if heading_m:
+                flush_para()
+                level = len(heading_m.group(1))
+                h_text = heading_m.group(2).strip()
+                current_hier = current_hier[:level] + [h_text]
+                blocks.append(ContentBlock(
+                    id=f"blk_md_{b_idx}",
+                    block_type=ContentBlockType.HEADING,
+                    text=h_text,
+                    raw_text=line,
+                    heading_path=list(current_hier),
+                    page_number=1,
+                ))
+                b_idx += 1
+                continue
+
+            # List items or quote notes
+            if re.match(r"^(?:>\s*\[!NOTE\]|>\s*|(?:\d+[\.\)]|[a-z][\.\)]|\*|-)\s+)", stripped):
+                flush_para()
+                clean_item = re.sub(r"^(?:>\s*\[!NOTE\]\s*|>\s*)", "", stripped).strip()
+                blocks.append(ContentBlock(
+                    id=f"blk_md_{b_idx}",
+                    block_type=ContentBlockType.LIST_ITEM if not stripped.startswith(">") else ContentBlockType.PARAGRAPH,
+                    text=clean_item,
+                    raw_text=line,
+                    heading_path=list(current_hier),
+                    page_number=1,
+                ))
+                b_idx += 1
+                continue
+
+            current_para.append(stripped)
+
+        flush_para()
+        pages = [DocumentPage(page_number=1, text=text, width=612.0, height=792.0)]
+        return text, pages, blocks
 
     @classmethod
     def _parse_code_or_config(cls, raw_bytes: bytes, title: str, lang: str) -> str:

@@ -1,0 +1,187 @@
+{
+  "metadata": {
+    "document_id": "EFF-017",
+    "title": "System and Organization Controls (SOC) 2 Type 2 Audit Report",
+    "file_path": "research/validation_50/raw_documents/System and Organization Controls (SOC) 2 Type 2 - Microsoft Compliance _ Microsoft Learn.pdf",
+    "document_type": "scanned_soc",
+    "category": "scanned_soc",
+    "pages": 6,
+    "latency_seconds": 0.3004
+  },
+  "summary": {
+    "envelope_id": "0d2de674-68f4-5c81-86e4-a9c118e31174",
+    "asset_id": "file://System and Organization Controls (SOC) 2 Type 2 - Microsoft Compliance _ Microsoft Learn.pdf",
+    "filename": "System and Organization Controls (SOC) 2 Type 2 - Microsoft Compliance _ Microsoft Learn.pdf",
+    "total_evidence_units": 61,
+    "candidates_discovered": 6,
+    "unique_claims_extracted": 6,
+    "claims_approved": 1,
+    "claims_review": 1,
+    "claims_rejected": 4,
+    "conflicts_detected": 0,
+    "persisted_claims_count": 0
+  },
+  "quality": {
+    "gold_claims": 6,
+    "true_positives": 6,
+    "false_positives": 0,
+    "false_negatives": 0,
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1_score": 1.0,
+    "evidence_grounding_rate": 1.0,
+    "locator_accuracy_rate": 1.0
+  },
+  "candidates": [
+    {
+      "candidate_id": "cand:0d2de674-68f4-5c81-86e4-a9c118e31174:16:711e2d08aa3e:972cd1b354",
+      "subject": "Microsoft",
+      "predicate": "may_replicate",
+      "object": "replicate customer data to other regions within the same geographic area (for example, the United States) for data resiliency",
+      "modality": "PERMISSION",
+      "confidence": 0.96,
+      "evidence": "Microsoft may replicate customer data to other regions within the same geographic area (for example, the United States) for data resiliency, but Microsoft will not replicate customer data outside the chosen geographic area.",
+      "locator": {
+        "line_start": 33,
+        "line_end": 33,
+        "start_char": 3035,
+        "end_char": 3529,
+        "heading_path": [
+          "System and Organization Controls (SOC) 2 Type 2 - Microsoft Compliance _ Microsoft Learn",
+          "Page 2"
+        ],
+        "paragraph_index": 16,
+        "filename": "System and Organization Controls (SOC) 2 Type 2 - Microsoft Compliance _ Microsoft Learn.pdf",
+        "file_extension": "pdf",
+        "file_size": 136040,
+        "document_type": "scanned_soc",
+        "sentence_index": 2
+      }
+    },
+    {
+      "candidate_id": "cand:0d2de674-68f4-5c81-86e4-a9c118e31174:16:711e2d08aa3e:94b46e2fda",
+      "subject": "Microsoft",
+      "predicate": "prohibited_from_replicating",
+      "object": "replicate customer data outside the chosen geographic area",
+      "modality": "PROHIBITION",
+      "confidence": 0.96,
+      "evidence": "Microsoft may replicate customer data to other regions within the same geographic area (for example, the United States) for data resiliency, but Microsoft will not replicate customer data outside the chosen geographic area.",
+      "locator": {
+        "line_start": 33,
+        "line_end": 33,
+        "start_char": 3035,
+        "end_char": 3529,
+        "heading_path": [
+          "System and Organization Controls (SOC) 2 Type 2 - Microsoft Compliance _ Microsoft Learn",
+          "Page 2"
+        ],
+        "paragraph_index": 16,
+        "filename": "System and Organization Controls (SOC) 2 Type 2 - Microsoft Compliance _ Microsoft Learn.pdf",
+        "file_extension": "pdf",
+        "file_size": 136040,
+        "document_type": "scanned_soc",
+        "sentence_index": 2
+      }
+    },
+    {
+      "candidate_id": "cand:0d2de674-68f4-5c81-86e4-a9c118e31174:27:8cb0f47ed815:d4a634f9b0",
+      "subject": "Customers",
+      "predicate": "are_responsible_for",
+      "object": "ensuring compliance with all applicable laws and regulations",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "Your organization is wholly responsible for ensuring compliance with all applicable laws and regulations.",
+      "locator": {
+        "line_start": 55,
+        "line_end": 55,
+        "start_char": 5117,
+        "end_char": 5404,
+        "heading_path": [
+          "System and Organization Controls (SOC) 2 Type 2 - Microsoft Compliance _ Microsoft Learn",
+          "Page 3"
+        ],
+        "paragraph_index": 27,
+        "filename": "System and Organization Controls (SOC) 2 Type 2 - Microsoft Compliance _ Microsoft Learn.pdf",
+        "file_extension": "pdf",
+        "file_size": 136040,
+        "document_type": "scanned_soc",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:0d2de674-68f4-5c81-86e4-a9c118e31174:32:be446044f2b0:3e49ebb2c8",
+      "subject": "Users",
+      "predicate": "has_validity_rule",
+      "object": "have an existing subscription or free trial account in Office 365 or Office 365 U.S. Government to download SOC 1 and SOC 2 attestation reports and any bridge letters as needed",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "In accordance with AICPA requirements, you must have an existing subscription or free trial account in Office 365 or Office 365 U.S. Government  to download SOC 1 and SOC 2 attestation reports and any bridge letters as needed.",
+      "locator": {
+        "line_start": 65,
+        "line_end": 65,
+        "start_char": 7272,
+        "end_char": 7499,
+        "heading_path": [
+          "System and Organization Controls (SOC) 2 Type 2 - Microsoft Compliance _ Microsoft Learn",
+          "Page 4"
+        ],
+        "paragraph_index": 32,
+        "filename": "System and Organization Controls (SOC) 2 Type 2 - Microsoft Compliance _ Microsoft Learn.pdf",
+        "file_extension": "pdf",
+        "file_size": 136040,
+        "document_type": "scanned_soc",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:0d2de674-68f4-5c81-86e4-a9c118e31174:47:a3846f1325af:69c125f361",
+      "subject": "Users",
+      "predicate": "has_validity_rule",
+      "object": "have an existing subscription or free trial account in Office 365 or Office 365 U.S",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "You must have an existing subscription or free trial account in Office 365 or Office 365 U.S.",
+      "locator": {
+        "line_start": 95,
+        "line_end": 95,
+        "start_char": 9844,
+        "end_char": 10031,
+        "heading_path": [
+          "System and Organization Controls (SOC) 2 Type 2 - Microsoft Compliance _ Microsoft Learn",
+          "Page 5"
+        ],
+        "paragraph_index": 47,
+        "filename": "System and Organization Controls (SOC) 2 Type 2 - Microsoft Compliance _ Microsoft Learn.pdf",
+        "file_extension": "pdf",
+        "file_size": 136040,
+        "document_type": "scanned_soc",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:0d2de674-68f4-5c81-86e4-a9c118e31174:48:17c05e15d9e8:591a92b236",
+      "subject": "Users",
+      "predicate": "download",
+      "object": "audit certificates, assessment reports, and other applicable documents to help you with your own regulatory requirements",
+      "modality": "PERMISSION",
+      "confidence": 0.96,
+      "evidence": "You can then download audit certificates, assessment reports, and other applicable documents to help you with your own regulatory requirements.",
+      "locator": {
+        "line_start": 97,
+        "line_end": 97,
+        "start_char": 10032,
+        "end_char": 10200,
+        "heading_path": [
+          "System and Organization Controls (SOC) 2 Type 2 - Microsoft Compliance _ Microsoft Learn",
+          "Page 5"
+        ],
+        "paragraph_index": 48,
+        "filename": "System and Organization Controls (SOC) 2 Type 2 - Microsoft Compliance _ Microsoft Learn.pdf",
+        "file_extension": "pdf",
+        "file_size": 136040,
+        "document_type": "scanned_soc",
+        "sentence_index": 1
+      }
+    }
+  ]
+}

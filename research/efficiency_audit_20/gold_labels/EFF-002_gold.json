@@ -1,0 +1,216 @@
+{
+  "document_id": "EFF-002",
+  "filename": "Employees Notice Period Policy- V 1.5 (1).pdf",
+  "document_type": "policy",
+  "claim_truth": [
+    {
+      "gold_id": "EFF-002-G01",
+      "claim_type": "security_policy",
+      "canonical": true,
+      "subject": "Unauthorized Use or Disclosure of Policy Information",
+      "predicate": "prohibited_in_any_media",
+      "object": "Any media",
+      "modality": "PROHIBITION",
+      "conditions": [],
+      "page_number": 1,
+      "section": "",
+      "evidence_quote": "The unauthorized use or disclosure of this information in any media is prohibited."
+    },
+    {
+      "gold_id": "EFF-002-G02",
+      "claim_type": "policy",
+      "canonical": true,
+      "subject": "Notice",
+      "predicate": "has_validity_rule",
+      "object": "Periods Duration Wingify has defined a notice period duration for employees as per Wingify levels and grades framework; refer to the table below: Level & Grade Group Category Maximum Duration Confirmed Probationers A (A1 & A2) CXO 90 Days 15 days B (B1 & B2) SeniorManagement 90 Days C (C1, C2 & C3) Middle Management 60 Days D (D1, D2 & D3) Junior Management 30 Days E (E1, E2 & E3) Fellow 30 Days Internal, Wingify 4",
+      "modality": "POLICY_FACT",
+      "conditions": [],
+      "page_number": 1,
+      "section": "",
+      "evidence_quote": "Periods Duration Wingify  has  defined  a  notice  period  duration  for  employees  as  per  Wingify  levels  and  grades  framework;  refer  to  the  table  below:    Level & Grade Group Category Maximum Duration Confirmed  Probationers A  (A1  &  A2)  CXO  90  Days    15  days B  (B1  &  B2)  SeniorManagement  90  Days  C  (C1,  C2  &  C3) Middle  Management  60  Days D  (D1,  D2  &  D3) Junior  Management   30  Days E  (E1,  E2  &  E3) Fellow  30  Days Internal, Wingify 4"
+    },
+    {
+      "gold_id": "EFF-002-G03",
+      "claim_type": "policy",
+      "canonical": true,
+      "subject": "Employees",
+      "predicate": "must_return_company_property",
+      "object": "All Wingify property",
+      "modality": "OBLIGATION",
+      "conditions": [
+        "Upon offboarding"
+      ],
+      "page_number": 1,
+      "section": "",
+      "evidence_quote": "Employees must return all Wingify property upon offboarding."
+    },
+    {
+      "gold_id": "EFF-002-G04",
+      "claim_type": "company_benefit",
+      "canonical": true,
+      "subject": "Wingify (Shipping Costs)",
+      "predicate": "covers_shipping_costs",
+      "object": "Shipping costs through a mutually agreed-upon method",
+      "modality": "POLICY_FACT",
+      "conditions": [
+        "Through a mutually agreed-upon method"
+      ],
+      "page_number": 1,
+      "section": "",
+      "evidence_quote": "Shipping costs will be covered by Wingify through a mutually agreed-upon method."
+    },
+    {
+      "gold_id": "EFF-002-G05",
+      "claim_type": "policy",
+      "canonical": true,
+      "subject": "Wingify",
+      "predicate": "will_not_grant_pay_in_lieu_of_notice",
+      "object": "dismissal due to misconduct, insubordination, fraud",
+      "modality": "PROHIBITION",
+      "conditions": [
+        "Dismissal due to misconduct, insubordination, fraud, or other severe reasons warranting penal action"
+      ],
+      "page_number": 1,
+      "section": "",
+      "evidence_quote": "Pay instead of notice will not be granted in cases of dismissal due to misconduct, insubordination, fraud, or other severe reasons warranting penal action as determined by Wingify."
+    },
+    {
+      "gold_id": "EFF-002-G06",
+      "claim_type": "payroll_deduction_policy",
+      "canonical": true,
+      "subject": "Outstanding Loans and Advances",
+      "predicate": "adjusted_from_full_and_final_salary",
+      "object": "Full and Final Salary",
+      "modality": "POLICY_FACT",
+      "conditions": [
+        "Outstanding loans or advances the employee takes"
+      ],
+      "page_number": 1,
+      "section": "",
+      "evidence_quote": "Any outstanding loans or advances the employee takes will be fully adjusted from their Full and Final Salary."
+    },
+    {
+      "gold_id": "EFF-002-G07",
+      "claim_type": "payroll_deduction_policy",
+      "canonical": true,
+      "subject": "Exit Tax Deductions",
+      "predicate": "deducted_without_investment_proofs",
+      "object": "Exit Taxes",
+      "modality": "POLICY_FACT",
+      "conditions": [
+        "Investment proofs declared on HR Portal not provided during exit"
+      ],
+      "page_number": 1,
+      "section": "",
+      "evidence_quote": "If investment proofs, as declared on the HR Portal, are not provided during exit, taxes will be deducted accordingly."
+    },
+    {
+      "gold_id": "EFF-002-G08",
+      "claim_type": "policy",
+      "canonical": true,
+      "subject": "Company",
+      "predicate": "may_recover_short_notice_amount",
+      "object": "Amount equivalent to the short notice period",
+      "modality": "PERMISSION",
+      "conditions": [
+        "Employee does not serve full notice period"
+      ],
+      "page_number": 1,
+      "section": "",
+      "evidence_quote": "If the employee does not serve the full notice period, the company holds the right to recover the amount equivalent to the short notice period."
+    },
+    {
+      "gold_id": "EFF-002-G09",
+      "claim_type": "payroll_deduction_policy",
+      "canonical": true,
+      "subject": "Joining Bonus Recovery",
+      "predicate": "governed_by_offer_letter_terms",
+      "object": "Terms mentioned in the offer letter",
+      "modality": "POLICY_FACT",
+      "conditions": [
+        "As per terms mentioned in the offer letter"
+      ],
+      "page_number": 1,
+      "section": "",
+      "evidence_quote": "Joining Bonus recovery will be as per the terms mentioned in the offer letter."
+    },
+    {
+      "gold_id": "EFF-002-G10",
+      "claim_type": "payroll_deduction_policy",
+      "canonical": true,
+      "subject": "EPF and VPF Deductions",
+      "predicate": "made_and_deposited_into_account",
+      "object": "Employee's account",
+      "modality": "POLICY_FACT",
+      "conditions": [],
+      "page_number": 1,
+      "section": "",
+      "evidence_quote": "EPF (Employee Provident Fund) and VPF (Voluntary Provident Fund) deductions will be made and deposited into the employee's account."
+    },
+    {
+      "gold_id": "EFF-002-G11",
+      "claim_type": "policy",
+      "canonical": true,
+      "subject": "Employees (Leave During Notice Period)",
+      "predicate": "request_leave_during_notice_period",
+      "object": "Reporting manager prior written approval",
+      "modality": "PERMISSION",
+      "conditions": [],
+      "page_number": 1,
+      "section": "",
+      "evidence_quote": "Employees may request leave during the notice period as an exception with prior approval from their reporting manager."
+    },
+    {
+      "gold_id": "EFF-002-G12",
+      "claim_type": "policy",
+      "canonical": true,
+      "subject": "Company (Pay in Lieu of Notice)",
+      "predicate": "issues_pay_in_lieu_of_notice",
+      "object": "Payment for notice period upon discussion with Manager, HR, and Department Head",
+      "modality": "OBLIGATION",
+      "conditions": [],
+      "page_number": 1,
+      "section": "",
+      "evidence_quote": "Pay in place of Notice Period upon discussion with Manager, HR, and Department Head."
+    },
+    {
+      "gold_id": "EFF-002-G13",
+      "claim_type": "payroll_deduction_policy",
+      "canonical": true,
+      "subject": "Company Laptop and Asset Retention",
+      "predicate": "deducted_per_asset_management_policy",
+      "object": "Full and Final Salary",
+      "modality": "POLICY_FACT",
+      "conditions": [],
+      "page_number": 1,
+      "section": "",
+      "evidence_quote": "If the employee retains the laptop and other company assets, cost will be deducted from Full and Final Salary."
+    },
+    {
+      "gold_id": "EFF-002-G14",
+      "claim_type": "payroll_deduction_policy",
+      "canonical": true,
+      "subject": "WFH Allowance Recovery",
+      "predicate": "recovered_upon_early_exit",
+      "object": "WFH Allowance",
+      "modality": "POLICY_FACT",
+      "conditions": [],
+      "page_number": 1,
+      "section": "",
+      "evidence_quote": "WFH Allowance will be recovered based on the Home Office Allowance Policy if exit occurs within one year."
+    },
+    {
+      "gold_id": "EFF-002-G15",
+      "claim_type": "payroll_deduction_policy",
+      "canonical": true,
+      "subject": "Excess Leave Recovery",
+      "predicate": "recovered_beyond_quota",
+      "object": "Excess leaves beyond allotted quota",
+      "modality": "POLICY_FACT",
+      "conditions": [],
+      "page_number": 1,
+      "section": "",
+      "evidence_quote": "Recovery will be made for any excess leaves taken beyond the allotted quota."
+    }
+  ]
+}

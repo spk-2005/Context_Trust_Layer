@@ -300,8 +300,13 @@ class CompatibilityGate:
                 if is_dur_compatible:
                     return False, "CONSISTENT_WITH_DIFFERENT_SEMANTICS"
 
-                # Same unit or units compatible
-                if not key_a.value_unit or not key_b.value_unit or key_a.value_unit == key_b.value_unit:
+                # Same unit or units compatible (including days vs calendar_days)
+                if (
+                    not key_a.value_unit
+                    or not key_b.value_unit
+                    or key_a.value_unit == key_b.value_unit
+                    or ({key_a.value_unit, key_b.value_unit} <= {"days", "calendar_days"})
+                ):
                     return True, "INCOMPATIBLE_NUMERIC_VALUE"
             else:
                 return False, "MATCHING_VALUES"

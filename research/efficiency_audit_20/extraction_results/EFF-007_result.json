@@ -1,0 +1,2437 @@
+{
+  "metadata": {
+    "document_id": "EFF-007",
+    "title": "Enterprise Purchase Order Terms and Conditions (en-AU)",
+    "file_path": "research/validation_50/raw_documents/PO-Terms-and-Conditions_en-AU.pdf",
+    "document_type": "contract",
+    "category": "contract",
+    "pages": 24,
+    "latency_seconds": 2.2883
+  },
+  "summary": {
+    "envelope_id": "5c2519b1-79d8-513e-84af-f938f88612c7",
+    "asset_id": "file://PO-Terms-and-Conditions_en-AU.pdf",
+    "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+    "total_evidence_units": 303,
+    "candidates_discovered": 96,
+    "unique_claims_extracted": 96,
+    "claims_approved": 71,
+    "claims_review": 24,
+    "claims_rejected": 1,
+    "conflicts_detected": 0,
+    "persisted_claims_count": 0
+  },
+  "quality": {
+    "gold_claims": 94,
+    "true_positives": 92,
+    "false_positives": 2,
+    "false_negatives": 2,
+    "precision": 0.9787,
+    "recall": 0.9787,
+    "f1_score": 0.9787,
+    "evidence_grounding_rate": 1.0,
+    "locator_accuracy_rate": 1.0
+  },
+  "candidates": [
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:8:95f60fb8a96c:655b43f11c",
+      "subject": "\"SOW\" means any of the following",
+      "predicate": "has_definition",
+      "object": "(1) Microsoft purchase orders; (2) statements of work or other order forms signed by both parties' authorized representatives; or (3) written agreements signed by both parties' authorized representatives referencing, and subject to, these PO Terms.",
+      "modality": "POLICY_FACT",
+      "confidence": 0.9,
+      "evidence": "\"SOW\" means any of the following: (1) Microsoft purchase orders; (2) statements of work or other order forms signed by both parties' authorized representatives; or (3) written agreements signed by both parties' authorized representatives referencing, and subject to, these PO Terms.",
+      "locator": {
+        "line_start": 12,
+        "line_end": 12,
+        "start_char": 1329,
+        "end_char": 1615,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 1"
+        ],
+        "paragraph_index": 8,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:12:f789a5068649:485bd00a5b",
+      "subject": "Parties",
+      "predicate": "apply_unless",
+      "object": "the result would be unreasonable, unconscionable, or prohibited by law",
+      "modality": "PROHIBITION",
+      "confidence": 0.96,
+      "evidence": "If multiple agreements with similar or contradictory provisions could apply to these PO Terms, the parties agree the terms most favorable to Microsoft will apply, unless the result would be unreasonable, unconscionable, or prohibited by law.",
+      "locator": {
+        "line_start": 18,
+        "line_end": 18,
+        "start_char": 2993,
+        "end_char": 3238,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 1"
+        ],
+        "paragraph_index": 12,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:17:bc28c1f5a73c:f196fcb171",
+      "subject": "Return Shipping Costs",
+      "predicate": "has_shipping_cost_rule",
+      "object": "(2) Supplier will not charge Microsoft for packaging or pre-shipping costs, such as boxing, crating, handling damage, drayage, or storage.",
+      "modality": "POLICY_FACT",
+      "confidence": 0.96,
+      "evidence": "(2) Supplier will not charge Microsoft for packaging or pre-shipping costs, such as boxing, crating, handling damage, drayage, or storage.",
+      "locator": {
+        "line_start": 25,
+        "line_end": 25,
+        "start_char": 3714,
+        "end_char": 3853,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 1"
+        ],
+        "paragraph_index": 17,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:25:dd18bc85651e:99b245c5f0",
+      "subject": "Goods and Deliverables",
+      "predicate": "has_validity_rule",
+      "object": "be delivered on the 10 day after the purchase order date",
+      "modality": "POLICY_FACT",
+      "confidence": 0.9,
+      "evidence": "(6) Unless otherwise agreed, Goods and Deliverables will be delivered on the 10 day after the purchase order date:",
+      "locator": {
+        "line_start": 41,
+        "line_end": 41,
+        "start_char": 4687,
+        "end_char": 4802,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 2"
+        ],
+        "paragraph_index": 25,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:28:31de67e42c23:9daa009757",
+      "subject": "Microsoft",
+      "predicate": "are_responsible_for",
+      "object": "any loss caused by the gross negligence of its employees before acceptance",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "Microsoft is responsible for any loss caused by the gross negligence of its employees before acceptance.",
+      "locator": {
+        "line_start": 47,
+        "line_end": 47,
+        "start_char": 5343,
+        "end_char": 5448,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 2"
+        ],
+        "paragraph_index": 28,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:35:5c5a0379e510:7101368092",
+      "subject": "Payee",
+      "predicate": "must_contact",
+      "object": "contact the Microsoft Accounts Payable Help Desk at https://www.microsoft.com/en- us/procurement/contracting-apsupport.aspx with any questions or utilize the self-help sections within SupplierWeb or the SAP Business Network for invoice guidance for price adjustments",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "Payee should contact the Microsoft Accounts Payable Help Desk at https://www.microsoft.com/en- us/procurement/contracting-apsupport.aspx with any questions or utilize the self-help sections within SupplierWeb or the SAP Business Network for invoice guidance.",
+      "locator": {
+        "line_start": 56,
+        "line_end": 56,
+        "start_char": 6056,
+        "end_char": 6955,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 2"
+        ],
+        "paragraph_index": 35,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:35:5c5a0379e510:7210f6972b",
+      "subject": "Invoices",
+      "predicate": "contain",
+      "object": "the following information: PO number, item number, description of item, quantities, unit prices, extended totals, packing slip number, shipping, ship to city and state, taxes, and any other information reasonably required by Microsoft",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "Invoices must contain the following information: PO number, item number, description of item, quantities, unit prices, extended totals, packing slip number, shipping, ship to city and state, taxes, and any other information reasonably required by Microsoft.",
+      "locator": {
+        "line_start": 56,
+        "line_end": 56,
+        "start_char": 6056,
+        "end_char": 6955,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 2"
+        ],
+        "paragraph_index": 35,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 2
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:35:5c5a0379e510:bb81d5dd32",
+      "subject": "Supplier",
+      "predicate": "charge",
+      "object": "Microsoft for researching, reporting on, or correcting any errors relating to its invoices",
+      "modality": "PROHIBITION",
+      "confidence": 0.96,
+      "evidence": "Supplier will not charge Microsoft for researching, reporting on, or correcting any errors relating to its invoices.",
+      "locator": {
+        "line_start": 56,
+        "line_end": 56,
+        "start_char": 6056,
+        "end_char": 6955,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 2"
+        ],
+        "paragraph_index": 35,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 3
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:36:aa818d673e03:30244669e3",
+      "subject": "Microsoft",
+      "predicate": "dispute",
+      "object": "any invoice by providing written notice or partial payment",
+      "modality": "PERMISSION",
+      "confidence": 0.96,
+      "evidence": "Microsoft may dispute any invoice by providing written notice or partial payment.",
+      "locator": {
+        "line_start": 58,
+        "line_end": 58,
+        "start_char": 6956,
+        "end_char": 7293,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 2"
+        ],
+        "paragraph_index": 36,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:36:aa818d673e03:121ddd327b",
+      "subject": "Microsoft",
+      "predicate": "has_return_window",
+      "object": "make commercially reasonable efforts to notify Supplier in writing of any disputed amount within 30 days of receiving the applicable invoice",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "Microsoft will make commercially reasonable efforts to notify Supplier in writing of any disputed amount within 30 days of receiving the applicable invoice.",
+      "locator": {
+        "line_start": 58,
+        "line_end": 58,
+        "start_char": 6956,
+        "end_char": 7293,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 2"
+        ],
+        "paragraph_index": 36,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 2
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:43:ff7292bc83e4:3131ace5e6",
+      "subject": "Microsoft",
+      "predicate": "set-off",
+      "object": "amounts owed to Microsoft against an amount Microsoft owes Supplier or Supplier's affiliated companies",
+      "modality": "PERMISSION",
+      "confidence": 0.96,
+      "evidence": "Microsoft may set-off amounts owed to Microsoft against an amount Microsoft owes Supplier or Supplier's affiliated companies.",
+      "locator": {
+        "line_start": 68,
+        "line_end": 68,
+        "start_char": 8080,
+        "end_char": 8295,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 3"
+        ],
+        "paragraph_index": 43,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:43:ff7292bc83e4:ef326da32b",
+      "subject": "Microsoft",
+      "predicate": "provide",
+      "object": "notice to Supplier within a reasonable time after the set-off",
+      "modality": "POLICY_FACT",
+      "confidence": 0.9,
+      "evidence": "Microsoft will provide notice to Supplier within a reasonable time after the set-off.",
+      "locator": {
+        "line_start": 68,
+        "line_end": 68,
+        "start_char": 8080,
+        "end_char": 8295,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 3"
+        ],
+        "paragraph_index": 43,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 2
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:44:658a36a9a8a8:352878cf1a",
+      "subject": "Supplier",
+      "predicate": "are_responsible_for",
+      "object": "all expenses incurred providing the Goods, Services, Deliverables, or Cloud Services and performing under these PO Terms",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "Unless otherwise agreed, Supplier is responsible for all expenses incurred providing the Goods, Services, Deliverables, or Cloud Services and performing under these PO Terms.",
+      "locator": {
+        "line_start": 69,
+        "line_end": 69,
+        "start_char": 8295,
+        "end_char": 8473,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 3"
+        ],
+        "paragraph_index": 44,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:47:4d1f189bb8c3:e14f433f3c",
+      "subject": "Microsoft",
+      "predicate": "pay",
+      "object": "Supplier any sales, use, goods and services, or value added taxes it owes due to these PO Terms and which the law requires Supplier to collect from Microsoft",
+      "modality": "POLICY_FACT",
+      "confidence": 0.9,
+      "evidence": "Microsoft will pay Supplier any sales, use, goods and services, or value added taxes it owes due to these PO Terms and which the law requires Supplier to collect from Microsoft.",
+      "locator": {
+        "line_start": 73,
+        "line_end": 73,
+        "start_char": 8687,
+        "end_char": 9056,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 3"
+        ],
+        "paragraph_index": 47,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:48:a6a1bffcec0f:690e445652",
+      "subject": "Microsoft",
+      "predicate": "has_validity_rule",
+      "object": "be involved in the importation of the Goods, Services, Deliverables, or Cloud Services, and import taxes, including tariffs, are the responsibility of the Supplier unless otherwise agreed in a SOW",
+      "modality": "PROHIBITION",
+      "confidence": 0.96,
+      "evidence": "Microsoft will not be involved in the importation of the Goods, Services, Deliverables, or Cloud Services, and import taxes, including tariffs, are the responsibility of the Supplier unless otherwise agreed in a SOW.",
+      "locator": {
+        "line_start": 75,
+        "line_end": 75,
+        "start_char": 9057,
+        "end_char": 9277,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 3"
+        ],
+        "paragraph_index": 48,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:49:2b730acea03c:8061a85c77",
+      "subject": "Supplier",
+      "predicate": "collect",
+      "object": "the taxes covered by such certificate",
+      "modality": "PROHIBITION",
+      "confidence": 0.96,
+      "evidence": "If Microsoft provides Supplier a valid exemption certificate, Supplier will not collect the taxes covered by such certificate.",
+      "locator": {
+        "line_start": 76,
+        "line_end": 76,
+        "start_char": 9277,
+        "end_char": 9407,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 3"
+        ],
+        "paragraph_index": 49,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:50:893132e5ef69:2e0ef04b81",
+      "subject": "Microsoft",
+      "predicate": "withhold",
+      "object": "those amounts and pay them to the appropriate governmental authority",
+      "modality": "PERMISSION",
+      "confidence": 0.96,
+      "evidence": "If the law requires Microsoft to withhold taxes or other regulatory charges from payments to Supplier, Microsoft may withhold those amounts and pay them to the appropriate governmental authority.",
+      "locator": {
+        "line_start": 77,
+        "line_end": 77,
+        "start_char": 9407,
+        "end_char": 9606,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 3"
+        ],
+        "paragraph_index": 50,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:53:306da850df66:5362f10027",
+      "subject": "Microsoft",
+      "predicate": "cancel",
+      "object": "these PO Terms or the applicable SOW if Supplier fails to comply with the standards and specifications in these PO Terms",
+      "modality": "PERMISSION",
+      "confidence": 0.96,
+      "evidence": "Microsoft may cancel these PO Terms or the applicable SOW if Supplier fails to comply with the standards and specifications in these PO Terms.",
+      "locator": {
+        "line_start": 82,
+        "line_end": 82,
+        "start_char": 9816,
+        "end_char": 9962,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 3"
+        ],
+        "paragraph_index": 53,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:54:77f38fc8f7c4:3e141813d9",
+      "subject": "All Goods and Services",
+      "predicate": "has_validity_rule",
+      "object": "be subject to Microsoft's inspection and testing, at any time and place, including the period of manufacture and before final acceptance",
+      "modality": "POLICY_FACT",
+      "confidence": 0.9,
+      "evidence": "All Goods and Services will be subject to Microsoft's inspection and testing, at any time and place, including the period of manufacture and before final acceptance.",
+      "locator": {
+        "line_start": 83,
+        "line_end": 83,
+        "start_char": 9962,
+        "end_char": 10539,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 3"
+        ],
+        "paragraph_index": 54,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:54:77f38fc8f7c4:3b336a0595",
+      "subject": "Supplier, without additional charge",
+      "predicate": "provide",
+      "object": "all reasonable facilities and assistance for the safety and convenience of Microsoft's inspectors",
+      "modality": "POLICY_FACT",
+      "confidence": 0.9,
+      "evidence": "If Microsoft inspects or tests at Supplier's premises, Supplier, without additional charge, will provide all reasonable facilities and assistance for the safety and convenience of Microsoft's inspectors.",
+      "locator": {
+        "line_start": 83,
+        "line_end": 83,
+        "start_char": 9962,
+        "end_char": 10539,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 3"
+        ],
+        "paragraph_index": 54,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 2
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:55:7ce187de8b64:0281ffee32",
+      "subject": "then Microsoft",
+      "predicate": "reject",
+      "object": "it without correction, require its correction within a specified time, accept it with an adjustment in price, or return it to Supplier for full credit",
+      "modality": "PERMISSION",
+      "confidence": 0.96,
+      "evidence": "If any item provided under these PO Terms is defective in materials or workmanship or not in conformity with the requirements, then Microsoft may reject it without correction, require its correction within a specified time, accept it with an adjustment in price, or return it to Supplier for full credit.",
+      "locator": {
+        "line_start": 84,
+        "line_end": 84,
+        "start_char": 10539,
+        "end_char": 11490,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 3"
+        ],
+        "paragraph_index": 55,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:55:7ce187de8b64:fd96bfcca3",
+      "subject": "Supplier",
+      "predicate": "promptly_replace",
+      "object": "or correct, at their expense, any item rejected or requiring correction",
+      "modality": "POLICY_FACT",
+      "confidence": 0.9,
+      "evidence": "When Microsoft provides notice to Supplier, Supplier will promptly replace or correct, at their expense, any item rejected or requiring correction.",
+      "locator": {
+        "line_start": 84,
+        "line_end": 84,
+        "start_char": 10539,
+        "end_char": 11490,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 3"
+        ],
+        "paragraph_index": 55,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 2
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:61:cd6be590d6c1:beb027d4b6",
+      "subject": "Supplier",
+      "predicate": "has_validity_rule",
+      "object": "be responsible for establishing, implementing, testing, and maintaining an effective enterprise-wide business continuity program (including disaster recovery and crisis management procedures) to provide continuous access to, and support for, the Cloud Services to Microsoft",
+      "modality": "POLICY_FACT",
+      "confidence": 0.9,
+      "evidence": "Supplier will be responsible for establishing, implementing, testing, and maintaining an effective enterprise-wide business continuity program (including disaster recovery and crisis management procedures) to provide continuous access to, and support for, the Cloud Services to Microsoft.",
+      "locator": {
+        "line_start": 93,
+        "line_end": 93,
+        "start_char": 12453,
+        "end_char": 13573,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 4"
+        ],
+        "paragraph_index": 61,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 2
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:61:cd6be590d6c1:02f237a2f2",
+      "subject": "On request, Supplier",
+      "predicate": "provide",
+      "object": "Microsoft with an overview of Supplier's enterprise business continuity program and will promptly and in good faith provide written responses to Microsoft's inquiries in connection with that program to enable Microsoft to review the adequacy of the program",
+      "modality": "POLICY_FACT",
+      "confidence": 0.9,
+      "evidence": "On request, Supplier will provide Microsoft with an overview of Supplier's enterprise business continuity program and will promptly and in good faith provide written responses to Microsoft's inquiries in connection with that program to enable Microsoft to review the adequacy of the program.",
+      "locator": {
+        "line_start": 93,
+        "line_end": 93,
+        "start_char": 12453,
+        "end_char": 13573,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 4"
+        ],
+        "paragraph_index": 61,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 4
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:62:e5b06e1f9b42:df5493d414",
+      "subject": "or if Microsoft requests in writing, Supplier",
+      "predicate": "provide:",
+      "object": "(1) backup media to Microsoft (as reasonably requested by Microsoft) containing all Microsoft Materials (unless the Cloud Services provide this as a self-service function to Microsoft); and (2) all assistance Microsoft reasonably requires (at Microsoft's expense) to timely and smoothly transition from the Cloud Services",
+      "modality": "POLICY_FACT",
+      "confidence": 0.9,
+      "evidence": "If the applicable SOW terminates or expires, or if Microsoft requests in writing, Supplier will provide: (1) backup media to Microsoft (as reasonably requested by Microsoft) containing all Microsoft Materials (unless the Cloud Services provide this as a self-service function to Microsoft); and (2) all assistance Microsoft reasonably requires (at Microsoft's expense) to timely and smoothly transition from the Cloud Services.",
+      "locator": {
+        "line_start": 94,
+        "line_end": 94,
+        "start_char": 13573,
+        "end_char": 14016,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 4"
+        ],
+        "paragraph_index": 62,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 2
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:74:073a5d722010:bb85895d9a",
+      "subject": "Microsoft",
+      "predicate": "transfer",
+      "object": "this license to a Microsoft affiliated company, or a successor owner by sale or lease",
+      "modality": "PERMISSION",
+      "confidence": 0.96,
+      "evidence": "Microsoft may transfer this license to a Microsoft affiliated company, or a successor owner by sale or lease.",
+      "locator": {
+        "line_start": 110,
+        "line_end": 110,
+        "start_char": 17871,
+        "end_char": 17981,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 5"
+        ],
+        "paragraph_index": 74,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:79:f304b738f57b:fca0edf63f",
+      "subject": "Supplier",
+      "predicate": "use",
+      "object": "\"Microsoft Materials,\" meaning any tangible or intangible materials, provided by or on behalf of Microsoft, any of its affiliated companies, or their respective end users, to Supplier to perform Services, Deliverables, or Cloud Services, or obtained or collected by Supplier in connection with the Goods, Services, Deliverables, or Cloud Services (e.g., usage data) (including hardware, software, source code, documentation, methodologies, know how, processes, techniques, ideas, concepts, technologies, reports and data)",
+      "modality": "PERMISSION",
+      "confidence": 0.96,
+      "evidence": "(1) Supplier may use \"Microsoft Materials,\" meaning any tangible or intangible materials, provided by or on behalf of Microsoft, any of its affiliated companies, or their respective end users, to Supplier to perform Services, Deliverables, or Cloud Services, or obtained or collected by Supplier in connection with the Goods, Services, Deliverables, or Cloud Services (e.g., usage data) (including hardware, software, source code, documentation, methodologies, know how, processes, techniques, ideas, concepts, technologies, reports and data).",
+      "locator": {
+        "line_start": 117,
+        "line_end": 117,
+        "start_char": 18874,
+        "end_char": 19852,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 5"
+        ],
+        "paragraph_index": 79,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:79:f304b738f57b:0e8ccfd67c",
+      "subject": "Microsoft Materials",
+      "predicate": "include",
+      "object": "any modifications to, or derivative works of, the foregoing materials, (i) Personal Data, (ii) trademarks, (iii) inputs and prompts to and outputs generated by an AI Model (as defined below), and any data entered into any Supplier database as part of the Services or Cloud Services",
+      "modality": "PERMISSION",
+      "confidence": 0.96,
+      "evidence": "Microsoft Materials may include any modifications to, or derivative works of, the foregoing materials, (i) Personal Data, (ii) trademarks, (iii) inputs and prompts to and outputs generated by an AI Model (as defined below), and any data entered into any Supplier database as part of the Services or Cloud Services.",
+      "locator": {
+        "line_start": 117,
+        "line_end": 117,
+        "start_char": 18874,
+        "end_char": 19852,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 5"
+        ],
+        "paragraph_index": 79,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:82:56090d450226:f20ffbe90b",
+      "subject": "the terms of that license",
+      "predicate": "apply_and",
+      "object": "those terms control in the case of conflict with these PO Terms",
+      "modality": "POLICY_FACT",
+      "confidence": 0.9,
+      "evidence": "If the Microsoft Materials come with a separate license, the terms of that license will apply and those terms control in the case of conflict with these PO Terms.",
+      "locator": {
+        "line_start": 123,
+        "line_end": 123,
+        "start_char": 20441,
+        "end_char": 21142,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 6"
+        ],
+        "paragraph_index": 82,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 2
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:82:56090d450226:f45a2f17af",
+      "subject": "Supplier",
+      "predicate": "obtain",
+      "object": "a separate license to any Microsoft products or services used in connection with the Good, Services, Deliverables, or Cloud Services",
+      "modality": "POLICY_FACT",
+      "confidence": 0.9,
+      "evidence": "Supplier will obtain a separate license to any Microsoft products or services used in connection with the Good, Services, Deliverables, or Cloud Services.",
+      "locator": {
+        "line_start": 123,
+        "line_end": 123,
+        "start_char": 20441,
+        "end_char": 21142,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 6"
+        ],
+        "paragraph_index": 82,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 3
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:83:fdaf874a5a67:db7b04990b",
+      "subject": "Supplier",
+      "predicate": "take",
+      "object": "reasonable precautions to protect and ensure against loss or damage, theft, or disappearance of Microsoft Materials",
+      "modality": "POLICY_FACT",
+      "confidence": 0.9,
+      "evidence": "(4) Supplier will take reasonable precautions to protect and ensure against loss or damage, theft, or disappearance of Microsoft Materials.",
+      "locator": {
+        "line_start": 125,
+        "line_end": 125,
+        "start_char": 21143,
+        "end_char": 21283,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 6"
+        ],
+        "paragraph_index": 83,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:84:b15e18e77261:3ea9b8ef81",
+      "subject": "Microsoft",
+      "predicate": "revoke",
+      "object": "the license to Microsoft Materials at any time for any reasonable business reason",
+      "modality": "PERMISSION",
+      "confidence": 0.96,
+      "evidence": "(5) Microsoft may revoke the license to Microsoft Materials at any time for any reasonable business reason.",
+      "locator": {
+        "line_start": 127,
+        "line_end": 127,
+        "start_char": 21284,
+        "end_char": 21624,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 6"
+        ],
+        "paragraph_index": 84,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:84:b15e18e77261:92a266c17d",
+      "subject": "The license",
+      "predicate": "terminate",
+      "object": "automatically on the earlier of the expiration or termination of these PO Terms or an applicable SOW",
+      "modality": "POLICY_FACT",
+      "confidence": 0.9,
+      "evidence": "The license will terminate automatically on the earlier of the expiration or termination of these PO Terms or an applicable SOW.",
+      "locator": {
+        "line_start": 127,
+        "line_end": 127,
+        "start_char": 21284,
+        "end_char": 21624,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 6"
+        ],
+        "paragraph_index": 84,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:84:b15e18e77261:23c2b92043",
+      "subject": "Supplier",
+      "predicate": "promptly_return",
+      "object": "any Microsoft Materials on request or termination of Supplier's license",
+      "modality": "POLICY_FACT",
+      "confidence": 0.9,
+      "evidence": "Supplier will promptly return any Microsoft Materials on request or termination of Supplier's license.",
+      "locator": {
+        "line_start": 127,
+        "line_end": 127,
+        "start_char": 21284,
+        "end_char": 21624,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 6"
+        ],
+        "paragraph_index": 84,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 2
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:86:c2d65e20de96:efe0996c39",
+      "subject": "Supplier",
+      "predicate": "modify",
+      "object": "reverse engineer, decompile, or disassemble Microsoft Materials except as allowed by Microsoft; (ii) Supplier will leave in place, and not alter or obscure proprietary notices and licenses contained in Microsoft Materials; (iii) Microsoft is not obligated to provide technical support, maintenance, or updates for Microsoft Materials; (iv) all Microsoft Materials are provided \"as-is\" without warranty; and (v) Supplier assumes the risk of loss, damage, unauthorized access or use, or theft or disappearance of Microsoft Materials in Supplier's (or subcontractor's) care, custody, or control",
+      "modality": "PROHIBITION",
+      "confidence": 0.96,
+      "evidence": "(i) Supplier will not modify, reverse engineer, decompile, or disassemble Microsoft Materials except as allowed by Microsoft; (ii) Supplier will leave in place, and not alter or obscure proprietary notices and licenses contained in Microsoft Materials; (iii) Microsoft is not obligated to provide technical support, maintenance, or updates for Microsoft Materials; (iv) all Microsoft Materials are provided \"as-is\" without warranty; and (v) Supplier assumes the risk of loss, damage, unauthorized access or use, or theft or disappearance of Microsoft Materials in Supplier's (or subcontractor's) care, custody, or control.",
+      "locator": {
+        "line_start": 131,
+        "line_end": 131,
+        "start_char": 21679,
+        "end_char": 22302,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 6"
+        ],
+        "paragraph_index": 86,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:87:79ea190894f3:eb3a041fe7",
+      "subject": "No Microsoft Materials, IP or Confidential Information",
+      "predicate": "has_validity_rule",
+      "object": "be used by Supplier or an AI Model to customize, train, or improve, directly or indirectly, any artificial intelligence model or product, including any AI Model, (collectively, \"AI Training\") without Microsoft's express prior written consent",
+      "modality": "PERMISSION",
+      "confidence": 0.96,
+      "evidence": "(7) No Microsoft Materials, IP or Confidential Information, may be used by Supplier or an AI Model to customize, train, or improve, directly or indirectly, any artificial intelligence model or product, including any AI Model, (collectively, \"AI Training\") without Microsoft's express prior written consent.",
+      "locator": {
+        "line_start": 133,
+        "line_end": 133,
+        "start_char": 22303,
+        "end_char": 23157,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 6"
+        ],
+        "paragraph_index": 87,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:87:79ea190894f3:87f9a02923",
+      "subject": "Parties",
+      "predicate": "enter",
+      "object": "into a separate written agreement that addresses the terms governing the AI Training",
+      "modality": "POLICY_FACT",
+      "confidence": 0.9,
+      "evidence": "If Microsoft provides such consent, the parties will first enter into a separate written agreement that addresses the terms governing the AI Training.",
+      "locator": {
+        "line_start": 133,
+        "line_end": 133,
+        "start_char": 22303,
+        "end_char": 23157,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 6"
+        ],
+        "paragraph_index": 87,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 2
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:91:237867993b21:5220a4d700",
+      "subject": "Goods, Services, Cloud Services, and Deliverables",
+      "predicate": "meet",
+      "object": "the standards and specifications in these PO Terms and be suitable for the intended use;",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "Goods, Services, Cloud Services, and Deliverables must meet the standards and specifications in these PO Terms and be suitable for the intended use;",
+      "locator": {
+        "line_start": 138,
+        "line_end": 138,
+        "start_char": 23534,
+        "end_char": 23686,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "13. Representations and Warranties. Supplier represents and warrants that:"
+        ],
+        "paragraph_index": 91,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:99:c0b1ad915f1b:b5c7b84234",
+      "subject": "Supplier",
+      "predicate": "comply_with",
+      "object": "all Laws, rules, and regulations, including Data Protection Law (as defined in Exhibit A), Trade Laws, AI Laws (as defined in Section 15(f)), and Anti -Corruption Laws (i.e., all Laws against fraud, bribery, corruption, inaccurate books and records, inadequate internal controls, and/or moneylaundering, including the U.S. Foreign Corrupt Practices Act), whether local, state, federal or foreign",
+      "modality": "POLICY_FACT",
+      "confidence": 0.9,
+      "evidence": "Supplier will comply with all Laws, rules, and regulations, including Data Protection Law (as defined in Exhibit A), Trade Laws, AI Laws (as defined in Section 15(f)), and Anti -Corruption Laws (i.e., all Laws against fraud, bribery, corruption, inaccurate books and records, inadequate internal controls, and/or moneylaundering, including the U.S. Foreign Corrupt Practices Act), whether local, state, federal or foreign.",
+      "locator": {
+        "line_start": 152,
+        "line_end": 152,
+        "start_char": 25481,
+        "end_char": 26519,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 7"
+        ],
+        "paragraph_index": 99,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:99:c0b1ad915f1b:1fd42672b0",
+      "subject": "The Supplier",
+      "predicate": "comply_with",
+      "object": "all relevant laws and regulations applicable to the import or export of the Items, including but not limited to, trade laws and regulations such as the U.S. Export Administration Regulations, International Traffic in Arms Regulations, the ILO Forced Labour Convention, or other end-user, end use, and destination restrictions by the U.S",
+      "modality": "POLICY_FACT",
+      "confidence": 0.9,
+      "evidence": "The Supplier will comply with all relevant laws and regulations applicable to the import or export of the Items, including but not limited to, trade laws and regulations such as the U.S. Export Administration Regulations,  International Traffic in Arms Regulations, the ILO Forced Labour Convention,  or other end-user, end use, and destination restrictions by the U.S.",
+      "locator": {
+        "line_start": 152,
+        "line_end": 152,
+        "start_char": 25481,
+        "end_char": 26519,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 7"
+        ],
+        "paragraph_index": 99,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 3
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:100:6243d67ad75b:319881d1fc",
+      "subject": "Microsoft",
+      "predicate": "suspend",
+      "object": "or terminate these PO Terms immediately to the extent that Microsoft reasonably concludes that continued performance would violate Trade Laws or put it at risk of becoming subject to sanctions or penalties under Trade Laws",
+      "modality": "PERMISSION",
+      "confidence": 0.96,
+      "evidence": "Microsoft may suspend or terminate these PO Terms immediately to the extent that Microsoft reasonably concludes that continued performance would violate Trade Laws or put it at risk of becoming subject to sanctions or penalties under Trade Laws.",
+      "locator": {
+        "line_start": 154,
+        "line_end": 154,
+        "start_char": 26520,
+        "end_char": 27686,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 7"
+        ],
+        "paragraph_index": 100,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:100:6243d67ad75b:ec73794191",
+      "subject": "Supplier",
+      "predicate": "are_responsible_for",
+      "object": "ensuring compliance with the transfer or retransfer of intangible items, such as technology",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "Supplier is responsible for ensuring compliance with the transfer or retransfer of intangible items, such as technology.",
+      "locator": {
+        "line_start": 154,
+        "line_end": 154,
+        "start_char": 26520,
+        "end_char": 27686,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 7"
+        ],
+        "paragraph_index": 100,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 2
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:100:6243d67ad75b:b76c53e641",
+      "subject": "Supplier",
+      "predicate": "provide",
+      "object": "Microsoft with the import/export control classifications and information, including documentation, on the applicable import, export, or re -export authorizations, and all necessary information about the Items for any required import, export or re -export procedures and/or licenses, without additional cost to Microsoft",
+      "modality": "POLICY_FACT",
+      "confidence": 0.9,
+      "evidence": "Supplier agrees to provide Microsoft with the import/export control classifications and information, including documentation, on the applicable  import, export, or re -export authorizations, and all necessary information about the Items for any required import, export or re -export procedures and/or licenses, without additional cost to Microsoft.",
+      "locator": {
+        "line_start": 154,
+        "line_end": 154,
+        "start_char": 26520,
+        "end_char": 27686,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 7"
+        ],
+        "paragraph_index": 100,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 3
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:100:6243d67ad75b:5792b47399",
+      "subject": "For additional information, see https",
+      "predicate": "has_definition",
+      "object": "//www.microsoft.com/en- us/exporting.",
+      "modality": "POLICY_FACT",
+      "confidence": 0.9,
+      "evidence": "For additional information, see  https://www.microsoft.com/en- us/exporting.",
+      "locator": {
+        "line_start": 154,
+        "line_end": 154,
+        "start_char": 26520,
+        "end_char": 27686,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 7"
+        ],
+        "paragraph_index": 100,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 4
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:109:7bf79fb0c8a7:b43f63ff2b",
+      "subject": "Supplier",
+      "predicate": "will_issue_refund",
+      "object": "(without prejudice to any other remedies Microsoft may have) provide a pro-rata refund to Microsoft for any prepaid unused fees",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "Supplier will (without prejudice to any other remedies Microsoft may have) provide a pro-rata refund to Microsoft for any prepaid unused fees.",
+      "locator": {
+        "line_start": 168,
+        "line_end": 168,
+        "start_char": 29339,
+        "end_char": 29612,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 8"
+        ],
+        "paragraph_index": 109,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 2
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:111:c0133ab4b4ac:059b01c6d5",
+      "subject": "Supplier",
+      "predicate": "(1)",
+      "object": "participate in the Microsoft Supplier Security and Privacy Assurance (\"SSPA\") program, as required by Microsoft, including by attesting to Supplier's compliance status with respect to all applicable portions of Microsoft's then current Supplier Data Protection Requirements (\"DPR\") on an annual basis (or more frequently if additional portions of the DPR become available), and (2) comply with Microsoft's then current DPR",
+      "modality": "POLICY_FACT",
+      "confidence": 0.9,
+      "evidence": "Without limiting Microsoft's audit rights in these PO Terms, Supplier will (1) participate in the Microsoft Supplier Security and Privacy Assurance (\"SSPA\") program, as required by Microsoft, including by attesting to Supplier's compliance status with respect to all applicable portions of Microsoft's then current Supplier Data Protection Requirements (\"DPR\") on an annual basis (or more frequently if additional portions of the DPR become available), and (2) comply with Microsoft's then current DPR.",
+      "locator": {
+        "line_start": 170,
+        "line_end": 170,
+        "start_char": 29750,
+        "end_char": 30256,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 8"
+        ],
+        "paragraph_index": 111,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:113:ad3e77e48507:fc4d5d9946",
+      "subject": "Supplier's security procedures",
+      "predicate": "include",
+      "object": "risk assessment and controls for: (1) system access; (2) system and application development and maintenance; (3) change management; (4) asset classification and control; (5) incident response, physical and environmental security; (6) disaster recovery/business continuity; and (7) employee training",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "Supplier's security procedures must include risk assessment and controls for: (1) system access; (2) system and application development and maintenance; (3) change management; (4) asset classification and control; (5) incident response, physical and environmental security; (6) disaster recovery/business continuity; and (7) employee training.",
+      "locator": {
+        "line_start": 174,
+        "line_end": 174,
+        "start_char": 30471,
+        "end_char": 31670,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 8"
+        ],
+        "paragraph_index": 113,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 2
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:113:ad3e77e48507:90a0070a60",
+      "subject": "Those measures",
+      "predicate": "has_validity_rule",
+      "object": "be set forth in a Supplier security policy",
+      "modality": "POLICY_FACT",
+      "confidence": 0.9,
+      "evidence": "Those measures will be set forth in a Supplier security policy.",
+      "locator": {
+        "line_start": 174,
+        "line_end": 174,
+        "start_char": 30471,
+        "end_char": 31670,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 8"
+        ],
+        "paragraph_index": 113,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 3
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:113:ad3e77e48507:f785b86007",
+      "subject": "Supplier",
+      "predicate": "has_validity_rule",
+      "object": "make that policy available to Microsoft, along with descriptions of the security controls in place for the Services and Cloud Services, and other information reasonably requested by Microsoft regarding Supplier security practices and policies",
+      "modality": "POLICY_FACT",
+      "confidence": 0.9,
+      "evidence": "Upon Microsoft's request, Supplier will make that policy available to Microsoft, along with descriptions of the security controls in place for the Services and Cloud Services, and other information reasonably requested by Microsoft regarding Supplier security practices and policies.",
+      "locator": {
+        "line_start": 174,
+        "line_end": 174,
+        "start_char": 30471,
+        "end_char": 31670,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 8"
+        ],
+        "paragraph_index": 113,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 4
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:114:347ea454ecfa:6c6f395298",
+      "subject": "Supplier",
+      "predicate": "maintain",
+      "object": "a valid certification under the International Organization for Standardization standard ISO 27001 or a valid SOC 2 Type II attestation report (\"Supplier Certification\")",
+      "modality": "POLICY_FACT",
+      "confidence": 0.9,
+      "evidence": "When Supplier provides Cloud Services: 1) At Supplier's cost, Supplier will maintain a valid certification under the International Organization for Standardization standard ISO 27001 or a valid SOC 2 Type II attestation report (\"Supplier Certification\").",
+      "locator": {
+        "line_start": 175,
+        "line_end": 175,
+        "start_char": 31670,
+        "end_char": 32645,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 8"
+        ],
+        "paragraph_index": 114,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:114:347ea454ecfa:e66ffcc611",
+      "subject": "Supplier",
+      "predicate": "promptly_provide",
+      "object": "to Microsoft upon Microsoft's request a full copy of the Supplier Certification",
+      "modality": "POLICY_FACT",
+      "confidence": 0.9,
+      "evidence": "Supplier will promptly provide to Microsoft upon Microsoft's request a full copy of the Supplier Certification.",
+      "locator": {
+        "line_start": 175,
+        "line_end": 175,
+        "start_char": 31670,
+        "end_char": 32645,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 8"
+        ],
+        "paragraph_index": 114,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 2
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:114:347ea454ecfa:234406a421",
+      "subject": "The Supplier Certification",
+      "predicate": "covers_expenses",
+      "object": "cover all Cloud Services, except cloud infrastructure services provided by cloud infrastructure providers other than Supplier or its affiliates",
+      "modality": "POLICY_FACT",
+      "confidence": 0.9,
+      "evidence": "The Supplier Certification will cover all Cloud Services, except cloud infrastructure services provided by cloud infrastructure providers other than Supplier or its affiliates.",
+      "locator": {
+        "line_start": 175,
+        "line_end": 175,
+        "start_char": 31670,
+        "end_char": 32645,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 8"
+        ],
+        "paragraph_index": 114,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 3
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:114:347ea454ecfa:bc797193de",
+      "subject": "Supplier",
+      "predicate": "use",
+      "object": "the cloud infrastructure provider (\"CIP\") identi fied in the applicable SOW in providing Cloud Services and will notify Microsoft at least 90 days before it changes, adds, or undertakes any plan to change, the CIP and at least 30 days before any change in location of Microsoft Materials",
+      "modality": "POLICY_FACT",
+      "confidence": 0.9,
+      "evidence": "(2) Supplier will only use the cloud infrastructure provider (\"CIP\") identi fied in the applicable SOW in providing Cloud Services and will notify Microsoft at least 90 days before it changes, adds, or undertakes any plan to change, the CIP and at least 30 days before any change in location of Microsoft Materials.",
+      "locator": {
+        "line_start": 175,
+        "line_end": 175,
+        "start_char": 31670,
+        "end_char": 32645,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 8"
+        ],
+        "paragraph_index": 114,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 4
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:121:16cea0d2894d:95bc2fc33d",
+      "subject": "Supplier",
+      "predicate": "obtain",
+      "object": "Microsoft's written approval before notifying any governmental entity, individual, the press, or other third party of a Security Incident that affected or reasonably could affect Microsoft, including any Confidential Information that Supplier received from Microsoft or Processed on behalf of Microsoft",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "Supplier must obtain Microsoft's written approval before notifying any governmental entity, individual, the press, or other third party of a Security Incident that affected or reasonably could affect Microsoft, including any Confidential Information that Supplier received from Microsoft or Processed on behalf of Microsoft.",
+      "locator": {
+        "line_start": 187,
+        "line_end": 187,
+        "start_char": 34736,
+        "end_char": 35061,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 9"
+        ],
+        "paragraph_index": 121,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:122:24e9db711320:b21f42a084",
+      "subject": "Supplier",
+      "predicate": "prohibited_from_using",
+      "object": "use any AI System in connection with or incorporate any AI System into the Goods, Services, Cloud Services, or any Deliverable without Microsoft's prior written consent",
+      "modality": "PROHIBITION",
+      "confidence": 0.96,
+      "evidence": "Supplier will not use any AI System in connection with or incorporate any AI System into the Goods, Services, Cloud Services, or any Deliverable without Microsoft's prior written consent.",
+      "locator": {
+        "line_start": 189,
+        "line_end": 189,
+        "start_char": 35062,
+        "end_char": 36849,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 9"
+        ],
+        "paragraph_index": 122,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 2
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:122:24e9db711320:65551cb9b6",
+      "subject": "Supplier's artificial intelligence program",
+      "predicate": "include",
+      "object": "processes and controls sufficient to meet the requirements mandated under applicable AI Laws and Policies",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "Supplier's artificial intelligence program must include processes and controls sufficient to meet the requirements mandated under applicable AI Laws and Policies.",
+      "locator": {
+        "line_start": 189,
+        "line_end": 189,
+        "start_char": 35062,
+        "end_char": 36849,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 9"
+        ],
+        "paragraph_index": 122,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 4
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:122:24e9db711320:54ed886841",
+      "subject": "Those measures",
+      "predicate": "has_validity_rule",
+      "object": "be set forth in a Supplier artificial intelligence policy, including all documentation needed to demonstrate compliance with AI Laws",
+      "modality": "POLICY_FACT",
+      "confidence": 0.9,
+      "evidence": "Those measures will be set forth in a Supplier artificial intelligence policy, including all documentation needed to demonstrate compliance with AI Laws.",
+      "locator": {
+        "line_start": 189,
+        "line_end": 189,
+        "start_char": 35062,
+        "end_char": 36849,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 9"
+        ],
+        "paragraph_index": 122,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 5
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:122:24e9db711320:5d3de0d5d8",
+      "subject": "Supplier",
+      "predicate": "has_validity_rule",
+      "object": "make that policy available to Microsoft on Microsoft's request along with descriptions of the controls in place for the artificial intelligence technology, and will provide any other information reasonably requested by Microsoft regarding Supplier's responsible artificial intelligence practices and policies",
+      "modality": "POLICY_FACT",
+      "confidence": 0.9,
+      "evidence": "Supplier will make that policy available to Microsoft on Microsoft's request along with descriptions of the controls in place for the artificial intelligence technology, and will provide any other information reasonably requested by Microsoft regarding Supplier's responsible artificial intelligence practices and policies.",
+      "locator": {
+        "line_start": 189,
+        "line_end": 189,
+        "start_char": 35062,
+        "end_char": 36849,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 9"
+        ],
+        "paragraph_index": 122,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 6
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:122:24e9db711320:816bcdd3e0",
+      "subject": "Supplier",
+      "predicate": "cooperate",
+      "object": "with Microsoft, upon request, to assist Microsoft in responding to an AI Inquiry, including providing Microsoft will all necessary information regarding (1) any AI System used or developed in connection with or incorporated into the Goods, Services, Cloud Services, or (2) any Deliverable, or any Goods, Services, Cloud Services, or Deliverables intended to be used with or incorporated into an AI System",
+      "modality": "POLICY_FACT",
+      "confidence": 0.9,
+      "evidence": "Supplier will cooperate with Microsoft, upon request, to assist Microsoft in responding to an AI Inquiry, including providing Microsoft will all necessary information regarding (1) any AI System used or developed in connection with or incorporated into the Goods, Services, Cloud Services, or (2) any Deliverable, or any Goods, Services, Cloud Services, or Deliverables intended to be used with or incorporated into an AI System.",
+      "locator": {
+        "line_start": 189,
+        "line_end": 189,
+        "start_char": 35062,
+        "end_char": 36849,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 9"
+        ],
+        "paragraph_index": 122,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 7
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:125:cda3d233dcb6:c5e97eb158",
+      "subject": "Supplier",
+      "predicate": "obtain",
+      "object": "Microsoft's written approval before (i) notifying any governmental entity, individual, the press, or other third party of a Security Incident that affected or reasonably could affect Microsoft, including any Confidential Information that Supplier received from Microsoft or Processed on behalf of Microsoft, or (ii) responding to, or notifying any governmental entity, individual, the press, or other third party of, an AI Inquiry",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "(1) Supplier must obtain Microsoft's written approval before (i) notifying any governmental entity, individual, the press, or other third party of a Security Incident that affected or reasonably could affect Microsoft, including any Confidential Information that Supplier received from Microsoft or Processed on behalf of Microsoft, or (ii) responding to, or notifying any governmental entity, individual, the press, or other third party of, an AI Inquiry.",
+      "locator": {
+        "line_start": 195,
+        "line_end": 195,
+        "start_char": 37854,
+        "end_char": 38521,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 9"
+        ],
+        "paragraph_index": 125,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:125:cda3d233dcb6:a00a2bbf76",
+      "subject": "As part of its notification to Microsoft, Supplier",
+      "predicate": "disclose",
+      "object": "the identity of the third party and provide a copy of the notification (if the notification to the third party has not been sent, Supplier will",
+      "modality": "POLICY_FACT",
+      "confidence": 0.9,
+      "evidence": "As part of its notification to Microsoft, Supplier will disclose the identity of the third party and provide a copy of the notification (if the notification to the third party has not been sent, Supplier will",
+      "locator": {
+        "line_start": 195,
+        "line_end": 195,
+        "start_char": 37854,
+        "end_char": 38521,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 9"
+        ],
+        "paragraph_index": 125,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:128:5cef3bfb3190:3a068692f8",
+      "subject": "Supplier",
+      "predicate": "notify",
+      "object": "a third party about a Security Incident affecting Personal Data if Supplier is under a legal obligation to do so, provided that Supplier makes every effort to give Microsoft prior notification, as soon as possible and if prior notification is not possible, notify Microsoft immediately once it becomes possible to give notification",
+      "modality": "PERMISSION",
+      "confidence": 0.96,
+      "evidence": "(2) Supplier may notify a third party about a Security Incident affecting Personal Data if Supplier is under a legal obligation to do so, provided that Supplier makes every effort to give Microsoft prior notification, as soon as possible and if prior notification is not possible, notify Microsoft immediately once it becomes possible to give notification.",
+      "locator": {
+        "line_start": 201,
+        "line_end": 201,
+        "start_char": 38760,
+        "end_char": 39117,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 10"
+        ],
+        "paragraph_index": 128,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:137:f90deabbfd99:121d208192",
+      "subject": "Additionally, Supplier",
+      "predicate": "ensure",
+      "object": "that the Policies, including the Policies in Sections 16 and 17 above, are applicable to all personnel and subcontractors",
+      "modality": "POLICY_FACT",
+      "confidence": 0.9,
+      "evidence": "Additionally, Supplier will ensure that the Policies, including the Policies in Sections 16 and 17 above, are applicable to all personnel and subcontractors.",
+      "locator": {
+        "line_start": 211,
+        "line_end": 211,
+        "start_char": 42634,
+        "end_char": 42846,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 10"
+        ],
+        "paragraph_index": 137,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:141:e05095333404:bee664b975",
+      "subject": "Supplier",
+      "predicate": "has_indemnification_obligation",
+      "object": "defend, indemnify and hold harmless Microsoft and Microsoft affiliates companies against all claims, demands, loss, costs, damages, and actions for: (1) actual or alleged infringements of any third-party IP or IP rights or Microsoft IP or IP Rights, which arise from the Goods, Services, Deliverables, or Cloud Services provided under these PO Terms; (2) any claim that, if true, would constitute a breach of Section 15, Exhibit A, or any Supplier warranty contained herein; (3) any act or omission of or failure to comply with tax obligations or Law by Supplier or Supplier's agents, employees, or subcontractors; (4) any breach by Supplier or its subcontractors of any artificial intelligence, confidentiality, security, or privacy, data protection, or publicity obligations under these PO Terms; (5) the negligent or willful acts or omissions of Supplier or its subcontractors, which results in any bodily injury, including mental injury, or death to any person or loss, disappearance or damage to tangible or intangible property; and (6) any claims of its employees, affiliated companies or subcontractors regardless of the basis, including, but not limited to, the payment of settlements, judgments, and reasonable attorneys' fees",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "Supplier will defend, indemnify and hold harmless Microsoft and Microsoft affiliates companies against all claims, demands, loss, costs, damages, and actions for: (1) actual or alleged infringements of any third-party IP or IP rights or Microsoft IP or IP Rights, which arise from the Goods, Services, Deliverables, or Cloud Services provided under these PO Terms; (2) any claim that, if true, would constitute a breach of Section 15, Exhibit A, or any Supplier warranty contained herein; (3) any act or omission of or failure to comply with tax obligations or Law by Supplier or Supplier's agents, employees, or subcontractors; (4) any breach by Supplier or its subcontractors of any artificial intelligence, confidentiality, security, or privacy, data protection, or publicity obligations under these PO Terms; (5) the negligent or willful acts or omissions of Supplier or its subcontractors, which results in any bodily injury, including mental injury, or death to any person or loss, disappearance or damage to tangible or intangible property; and (6) any claims of its employees, affiliated companies or subcontractors regardless of the basis, including, but not limited to, the payment of settlements, judgments, and reasonable attorneys' fees.",
+      "locator": {
+        "line_start": 218,
+        "line_end": 218,
+        "start_char": 43016,
+        "end_char": 44270,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 11"
+        ],
+        "paragraph_index": 141,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:142:92f0f7b0891e:851db37e16",
+      "subject": "or",
+      "predicate": "violate",
+      "object": "applicable law, Supplier, at its expense will notify Microsoft and immediately replace or modify such Goods, Services, Deliverables, and Cloud Services so they are non-infringing, compliant with applicable law, and useable to Microsoft's satisfaction",
+      "modality": "PERMISSION",
+      "confidence": 0.96,
+      "evidence": "In addition to all other remedies available to Microsoft, if use of the Goods, Services, Deliverables, or Cloud Services under these PO Terms are enjoined, injunction is threatened, or may violate applicable law, Supplier, at its expense will notify Microsoft and immediately replace or modify such Goods, Services, Deliverables, and Cloud Services so they are non-infringing, compliant with applicable law, and useable to Microsoft's satisfaction.",
+      "locator": {
+        "line_start": 219,
+        "line_end": 219,
+        "start_char": 44270,
+        "end_char": 45097,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 11"
+        ],
+        "paragraph_index": 142,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:149:e17c723ce6ec:d568fe8cfc",
+      "subject": "Supplier",
+      "predicate": "maintain",
+      "object": "active policy coverage or an extended reporting period providing coverage for claims first made and reported to the insurer within 12 months after these PO Terms terminate or expire or the applicable SOW or Order is fulfilled",
+      "modality": "POLICY_FACT",
+      "confidence": 0.9,
+      "evidence": "Supplier will maintain active policy coverage or an extended reporting period providing coverage for claims first made and reported to the insurer within 12 months after these PO Terms terminate or expire or the applicable SOW or Order is fulfilled.",
+      "locator": {
+        "line_start": 230,
+        "line_end": 230,
+        "start_char": 46732,
+        "end_char": 47100,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 12"
+        ],
+        "paragraph_index": 149,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:150:6a9abca37986:25a81b2fe3",
+      "subject": "Supplier",
+      "predicate": "obtain",
+      "object": "Microsoft's prior written approval for any deductible or retention in excess of $100,000 USD per occurrence or accident",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "Supplier must obtain Microsoft's prior written approval for any deductible or retention in excess of $100,000 USD per occurrence or accident.",
+      "locator": {
+        "line_start": 232,
+        "line_end": 232,
+        "start_char": 47101,
+        "end_char": 47535,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 12"
+        ],
+        "paragraph_index": 150,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:150:6a9abca37986:363eb48da3",
+      "subject": "Supplier",
+      "predicate": "deliver",
+      "object": "to Microsoft proof of the insurance coverage required under these PO Terms on request",
+      "modality": "POLICY_FACT",
+      "confidence": 0.9,
+      "evidence": "Supplier will deliver to Microsoft proof of the insurance coverage required under these PO Terms on request.",
+      "locator": {
+        "line_start": 232,
+        "line_end": 232,
+        "start_char": 47101,
+        "end_char": 47535,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 12"
+        ],
+        "paragraph_index": 150,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:150:6a9abca37986:57fcca67e5",
+      "subject": "Supplier",
+      "predicate": "promptly_buy",
+      "object": "additional coverage, and notify Microsoft in writing, if Microsoft reasonably determines Supplier's coverage is less than required to meet its obligations",
+      "modality": "POLICY_FACT",
+      "confidence": 0.9,
+      "evidence": "Supplier will promptly buy additional coverage, and notify Microsoft in writing, if Microsoft reasonably determines Supplier's coverage is less than required to meet its obligations.",
+      "locator": {
+        "line_start": 232,
+        "line_end": 232,
+        "start_char": 47101,
+        "end_char": 47535,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 12"
+        ],
+        "paragraph_index": 150,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 2
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:152:74630fb32d62:bb15dc44ae",
+      "subject": "Supplier",
+      "predicate": "has_validity_rule",
+      "object": "continue to comply with all terms of these PO Terms applicable to that Confidential Information, including all confidentiality obligations, and those applicable terms will survive such termination or expiration",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "Supplier will continue to comply with all terms of these PO Terms applicable to that Confidential Information, including all confidentiality obligations, and those applicable terms will survive such termination or expiration.",
+      "locator": {
+        "line_start": 236,
+        "line_end": 236,
+        "start_char": 49036,
+        "end_char": 50137,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 12"
+        ],
+        "paragraph_index": 152,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 2
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:156:5745697f93bb:7fd73bdc06",
+      "subject": "Supplier",
+      "predicate": "provide",
+      "object": "Microsoft's designated audit or inspection team reasonable access to the Supplier records and facilities",
+      "modality": "POLICY_FACT",
+      "confidence": 0.9,
+      "evidence": "Supplier agrees to provide Microsoft's designated audit or inspection team reasonable access to the Supplier records and facilities.",
+      "locator": {
+        "line_start": 243,
+        "line_end": 243,
+        "start_char": 51556,
+        "end_char": 52598,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 13"
+        ],
+        "paragraph_index": 156,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:156:5745697f93bb:ac3987362f",
+      "subject": "Supplier",
+      "predicate": "has_refund_reimbursement_window",
+      "object": "reimburse Microsoft for any such overpayment",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "If the auditors determine that Microsoft overpaid Supplier, Supplier will reimburse Microsoft for any such overpayment.",
+      "locator": {
+        "line_start": 243,
+        "line_end": 243,
+        "start_char": 51556,
+        "end_char": 52598,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 13"
+        ],
+        "paragraph_index": 156,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 2
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:156:5745697f93bb:595080a8da",
+      "subject": "Microsoft",
+      "predicate": "bear",
+      "object": "the expense of its auditors or inspection team",
+      "modality": "POLICY_FACT",
+      "confidence": 0.9,
+      "evidence": "Microsoft will bear the expense of its auditors or inspection team.",
+      "locator": {
+        "line_start": 243,
+        "line_end": 243,
+        "start_char": 51556,
+        "end_char": 52598,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 13"
+        ],
+        "paragraph_index": 156,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 4
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:158:4f967306d15d:3c29748d70",
+      "subject": "Microsoft",
+      "predicate": "assign",
+      "object": "its rights under these PO Terms",
+      "modality": "PERMISSION",
+      "confidence": 0.96,
+      "evidence": "Microsoft may assign its rights under these PO Terms.",
+      "locator": {
+        "line_start": 247,
+        "line_end": 247,
+        "start_char": 52820,
+        "end_char": 52874,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 13"
+        ],
+        "paragraph_index": 158,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:197:30c5694adc83:9ea116054f",
+      "subject": "Parties",
+      "predicate": "comply_with",
+      "object": "their respective obligations under applicable Data Protection Laws and their privacy notices, including by providing the same level of privacy protection that is required by applicable Data Protection Laws based on their respective processing roles",
+      "modality": "POLICY_FACT",
+      "confidence": 0.9,
+      "evidence": "(d) The parties will comply with their respective obligations under applicable Data Protection Laws and their privacy notices, including by providing the same level of privacy protection that is required by applicable Data Protection Laws based on their respective processing roles.",
+      "locator": {
+        "line_start": 320,
+        "line_end": 320,
+        "start_char": 64663,
+        "end_char": 64946,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 15"
+        ],
+        "paragraph_index": 197,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:199:123c022a39ff:c3806c658d",
+      "subject": "an entity transferring Personal Data to a recipient in another jurisdiction take extra measures to",
+      "predicate": "ensure",
+      "object": "that the Personal Data has special protections if the law of the recipient's jurisdiction does not protect Personal Data in a manner equivalent to the transferring entity's jurisdiction (an \"International Data Transfer Mechanism\").",
+      "modality": "OBLIGATION",
+      "confidence": 0.98,
+      "evidence": "(a) Some jurisdictions require that an entity transferring Personal Data to a recipient in another jurisdiction take extra measures to ensure that the Personal Data has special protections if the law of the recipient's jurisdiction does not protect Personal Data in a manner equivalent to the transferring entity's jurisdiction (an \"International Data Transfer Mechanism\").",
+      "locator": {
+        "line_start": 324,
+        "line_end": 324,
+        "start_char": 64986,
+        "end_char": 65421,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 15"
+        ],
+        "paragraph_index": 199,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:199:123c022a39ff:8e56e2bafa",
+      "subject": "Parties",
+      "predicate": "comply_with",
+      "object": "any International Data Transfer",
+      "modality": "POLICY_FACT",
+      "confidence": 0.9,
+      "evidence": "The parties will comply with any International Data Transfer",
+      "locator": {
+        "line_start": 324,
+        "line_end": 324,
+        "start_char": 64986,
+        "end_char": 65421,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 15"
+        ],
+        "paragraph_index": 199,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:206:29badd394024:25b99d615d",
+      "subject": "Supplier",
+      "predicate": "notify",
+      "object": "Microsoft if it determines that it can no longer meet its obligations under applicable Data Protection Law",
+      "modality": "PERMISSION",
+      "confidence": 0.96,
+      "evidence": "Supplier will notify Microsoft if it determines that it can no longer meet its obligations under applicable Data Protection Law.",
+      "locator": {
+        "line_start": 338,
+        "line_end": 338,
+        "start_char": 67395,
+        "end_char": 67543,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 16"
+        ],
+        "paragraph_index": 206,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:209:82a7af34ba87:d2c35622e2",
+      "subject": "Supplier",
+      "predicate": "ensure",
+      "object": "that persons authorized to Process the Personal Data have committed themselves to confidentiality obligations no less protective than those set forth in the PO Terms or are under an appropriate statutory obligation of confidentiality",
+      "modality": "POLICY_FACT",
+      "confidence": 0.9,
+      "evidence": "Supplier will ensure that persons authorized to Process the Personal Data have committed themselves to confidentiality obligations no less protective than those set forth in the PO Terms or are under an appropriate statutory obligation of confidentiality.",
+      "locator": {
+        "line_start": 344,
+        "line_end": 344,
+        "start_char": 68423,
+        "end_char": 68700,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 16"
+        ],
+        "paragraph_index": 209,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:210:300241f0400b:7f8a66ad52",
+      "subject": "Supplier",
+      "predicate": "abide",
+      "object": "by Schedule 2 and take all measures required in accordance with good industry practice and by Data Protection Law relating to data security (including pursuant to Article 32 of the GDPR)",
+      "modality": "POLICY_FACT",
+      "confidence": 0.9,
+      "evidence": "Supplier will abide by Schedule 2 and take all measures required in accordance with good industry practice and by Data Protection Law relating to data security (including pursuant to Article 32 of the GDPR).",
+      "locator": {
+        "line_start": 346,
+        "line_end": 346,
+        "start_char": 68701,
+        "end_char": 69220,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 16"
+        ],
+        "paragraph_index": 210,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:210:300241f0400b:eec4ed89cd",
+      "subject": "Supplier",
+      "predicate": "implement",
+      "object": "appropriate technical and organizational measures to ensure a level of security appropriate to the risk, considering as well any additional measures to ensure an appropriate level of protection with regards to Sensitive Data that may be subject to these PO Terms",
+      "modality": "PERMISSION",
+      "confidence": 0.96,
+      "evidence": "Supplier will implement appropriate technical and organizational measures to ensure a level of security appropriate to the risk, considering as well any additional measures to ensure an appropriate level of protection with regards to Sensitive Data that may be subject to these PO Terms.",
+      "locator": {
+        "line_start": 346,
+        "line_end": 346,
+        "start_char": 68701,
+        "end_char": 69220,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 16"
+        ],
+        "paragraph_index": 210,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 2
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:211:70f84b0ba69d:d40e94e428",
+      "subject": "Supplier",
+      "predicate": "has_validity_rule",
+      "object": "have a Business Associate Agreement and/or other required agreement in place with Microsoft",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "If Supplier's engagement involves the Processing of PHI, Supplier must have a Business Associate Agreement and/or other required agreement in place with Microsoft.",
+      "locator": {
+        "line_start": 348,
+        "line_end": 348,
+        "start_char": 69221,
+        "end_char": 69418,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 16"
+        ],
+        "paragraph_index": 211,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:222:62724e01d64a:5558e2be54",
+      "subject": "Supplier",
+      "predicate": "has_validity_rule",
+      "object": "have the obligations set forth in this Section 8 if it Processes the Personal Data of Data Subjects in its capacity as Microsoft's Processor, Contractor, or Service Provider; for clarity, these obligations do not apply to Supplier in its capacity as an Independent Controller, Business, or Third Party",
+      "modality": "POLICY_FACT",
+      "confidence": 0.9,
+      "evidence": "Supplier will have the obligations set forth in this Section 8 if it Processes the Personal Data of Data Subjects in its capacity as Microsoft's Processor, Contractor, or Service Provider; for clarity, these obligations do not apply to Supplier in its capacity as an Independent Controller, Business, or Third Party.",
+      "locator": {
+        "line_start": 370,
+        "line_end": 370,
+        "start_char": 71764,
+        "end_char": 72573,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 17"
+        ],
+        "paragraph_index": 222,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:222:62724e01d64a:f1bee2b3ba",
+      "subject": "Scope of Processing (1) Supplier",
+      "predicate": "process",
+      "object": "Personal Data solely to (i) provide Services to Microsoft and, where applicable, for the Business Purposes specified in the applicable SOW, (ii) carry out its obligations under the PO Terms, and (iii) carry out Microsoft's documented instructions",
+      "modality": "POLICY_FACT",
+      "confidence": 0.9,
+      "evidence": "(a)  Scope of Processing (1) Supplier will Process Personal Data solely to (i) provide Services to Microsoft and, where applicable, for the Business Purposes specified in the applicable SOW, (ii) carry out its obligations under the PO Terms, and (iii) carry out Microsoft's documented instructions.",
+      "locator": {
+        "line_start": 370,
+        "line_end": 370,
+        "start_char": 71764,
+        "end_char": 72573,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 17"
+        ],
+        "paragraph_index": 222,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:222:62724e01d64a:d9c879a41d",
+      "subject": "Supplier",
+      "predicate": "process",
+      "object": "Personal Data for any other purpose, unless required by applicable law, and will not Sell or Share Personal Data that it collects or obtains pursuant to the PO Terms",
+      "modality": "PROHIBITION",
+      "confidence": 0.96,
+      "evidence": "Supplier will not Process Personal Data for any other purpose, unless required by applicable law, and will not Sell or Share Personal Data that it collects or obtains pursuant to the PO Terms.",
+      "locator": {
+        "line_start": 370,
+        "line_end": 370,
+        "start_char": 71764,
+        "end_char": 72573,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 17"
+        ],
+        "paragraph_index": 222,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 2
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:224:4e24afa9c55b:522263eb98",
+      "subject": "Supplier",
+      "predicate": "notify",
+      "object": "Microsoft if it believes that it cannot follow Microsoft's instructions or fulfill its obligations under the PO Terms because of a legal obligation to which Supplier is subject, unless Supplier is prohibited by law from making such notification",
+      "modality": "PROHIBITION",
+      "confidence": 0.96,
+      "evidence": "(3) Supplier will notify Microsoft if it believes that it cannot follow Microsoft's instructions or fulfill its obligations under the PO Terms because of a legal obligation to which Supplier is subject, unless Supplier is prohibited by law from making such notification.",
+      "locator": {
+        "line_start": 374,
+        "line_end": 374,
+        "start_char": 72771,
+        "end_char": 73042,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 17"
+        ],
+        "paragraph_index": 224,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:225:b78e86bd9976:5cb81c1522",
+      "subject": "Supplier is",
+      "predicate": "retaining",
+      "object": "using, or disclosing the Personal Data (1) for any purpose other than the Business Purposes specified in the applicable SOW, including retaining, using, or disclosing the Personal Data for a commercial purpose other than carrying out Microsoft's instructions; (2) outside of the Parties' direct business relationship, unless permitted by applicable Data Protection Law, or (3) by combining Personal data that Supplier receives from, or on behalf of, Microsoft with Personal Data that it receives from, or on behalf of, another person or persons, or collects from its own interaction with the Data Subject, provided that Supplier may combine Personal Data to perform any Business Purposes permitted by applicable Data Protection Law",
+      "modality": "PROHIBITION",
+      "confidence": 0.96,
+      "evidence": "(4) Supplier is prohibited from retaining, using, or disclosing the Personal Data (1) for any purpose other than the Business Purposes specified in the applicable SOW, including retaining, using, or disclosing the Personal Data for a commercial purpose other than carrying out Microsoft's instructions; (2) outside of the Parties' direct business relationship, unless permitted by applicable Data Protection Law, or (3) by combining Personal data that Supplier receives from, or on behalf of, Microsoft with Personal Data that it receives from, or on behalf of, another person or persons, or collects from its own interaction with the Data Subject, provided that Supplier may combine Personal Data to perform any Business Purposes permitted by applicable Data Protection Law.",
+      "locator": {
+        "line_start": 376,
+        "line_end": 376,
+        "start_char": 73043,
+        "end_char": 73938,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 17"
+        ],
+        "paragraph_index": 225,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:225:b78e86bd9976:0a0aea0137",
+      "subject": "Supplier certifies that it understands with and",
+      "predicate": "comply_with",
+      "object": "the prohibitions set forth in this Section (8)(a)(4)",
+      "modality": "POLICY_FACT",
+      "confidence": 0.9,
+      "evidence": "Supplier certifies that it understands with and will comply with the prohibitions set forth in this Section (8)(a)(4).",
+      "locator": {
+        "line_start": 376,
+        "line_end": 376,
+        "start_char": 73043,
+        "end_char": 73938,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 17"
+        ],
+        "paragraph_index": 225,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:227:e12affb47aa1:8f6f3bf4c5",
+      "subject": "Supplier",
+      "predicate": "promptly_inform",
+      "object": "Microsoft if Supplier receives a request from a Data Subject to exercise their rights with respect to their Personal Data under applicable Data Protection Law",
+      "modality": "POLICY_FACT",
+      "confidence": 0.9,
+      "evidence": "Supplier will promptly inform Microsoft if Supplier receives a request from a Data Subject to exercise their rights with respect to their Personal Data under applicable Data Protection Law.",
+      "locator": {
+        "line_start": 380,
+        "line_end": 380,
+        "start_char": 74090,
+        "end_char": 74641,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 17"
+        ],
+        "paragraph_index": 227,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:227:e12affb47aa1:f32f0a1e9c",
+      "subject": "Supplier",
+      "predicate": "respond",
+      "object": "to such Data Subjects except to acknowledge their requests",
+      "modality": "PROHIBITION",
+      "confidence": 0.96,
+      "evidence": "Supplier will not respond to such Data Subjects except to acknowledge their requests.",
+      "locator": {
+        "line_start": 380,
+        "line_end": 380,
+        "start_char": 74090,
+        "end_char": 74641,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 17"
+        ],
+        "paragraph_index": 227,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 2
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:227:e12affb47aa1:52aef821e1",
+      "subject": "Supplier",
+      "predicate": "provide",
+      "object": "Microsoft with assistance, upon request, to help Microsoft to respond to a Data Subject's request, including by stopping the Processing of Personal Data where required in accordance with a Data Subject's",
+      "modality": "POLICY_FACT",
+      "confidence": 0.9,
+      "evidence": "Supplier will provide Microsoft with assistance, upon request, to help Microsoft to respond to a Data Subject's request, including by stopping the Processing of Personal Data where required in accordance with a Data Subject's",
+      "locator": {
+        "line_start": 380,
+        "line_end": 380,
+        "start_char": 74090,
+        "end_char": 74641,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 17"
+        ],
+        "paragraph_index": 227,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 3
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:229:5aa66be3a0f3:a67e3ed1eb",
+      "subject": "Microsoft",
+      "predicate": "notify",
+      "object": "the Supplier of any Data Subject request that the Supplier must comply with and will provide information necessary for compliance",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "Microsoft will notify the Supplier of any Data Subject request that the Supplier must comply with and will provide information necessary for compliance.",
+      "locator": {
+        "line_start": 384,
+        "line_end": 384,
+        "start_char": 74654,
+        "end_char": 74932,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 18"
+        ],
+        "paragraph_index": 229,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:281:5eea344adf9f:01e5a8e13e",
+      "subject": "Parties",
+      "predicate": "interpret",
+      "object": "the Standard Contractual Clauses so that Data Subjects in Switzerland are able to sue for their rights in Switzerland in accordance with Clause 18(c)",
+      "modality": "POLICY_FACT",
+      "confidence": 0.9,
+      "evidence": "The parties agree to interpret the Standard Contractual Clauses so that Data Subjects in Switzerland are able to sue for their rights in Switzerland in accordance with Clause 18(c).",
+      "locator": {
+        "line_start": 480,
+        "line_end": 480,
+        "start_char": 84825,
+        "end_char": 85091,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 22"
+        ],
+        "paragraph_index": 281,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:291:9bb48197e6b9:b8c0dd0cd3",
+      "subject": "Parties",
+      "predicate": "bring",
+      "object": "legal proceedings against either party in the courts of any country in the United Kingdom",
+      "modality": "PERMISSION",
+      "confidence": 0.96,
+      "evidence": "The parties agree that Data Subjects may bring legal proceedings against either party in the courts of any country in the United Kingdom.",
+      "locator": {
+        "line_start": 497,
+        "line_end": 497,
+        "start_char": 86885,
+        "end_char": 87141,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 22"
+        ],
+        "paragraph_index": 291,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:297:d0808401d315:ae88f3252b",
+      "subject": "o Clause 3.1",
+      "predicate": "use",
+      "object": "the Subprocessors listed in a statement of work or written agreement signed by the parties' authorized representatives when it acts as a Processor in accordance with this Exhibit",
+      "modality": "PERMISSION",
+      "confidence": 0.96,
+      "evidence": "o Clause 3.1:  As stated in Schedule 1, Supplier may use the Subprocessors listed in a statement of work or written agreement signed by the parties' authorized representatives when it acts as a Processor in accordance with this Exhibit.",
+      "locator": {
+        "line_start": 509,
+        "line_end": 509,
+        "start_char": 88072,
+        "end_char": 88670,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 23"
+        ],
+        "paragraph_index": 297,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:5c2519b1-79d8-513e-84af-f938f88612c7:298:4b722d072e56:20bbfe78d6",
+      "subject": "Supplier",
+      "predicate": "remains_responsible_for",
+      "object": "compliance with Clauses 14 to 16 for any data to which it may otherwise be the data controller",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "Supplier remains responsible for compliance with Clauses 14 to 16 for any data to which it may otherwise be the data controller.",
+      "locator": {
+        "line_start": 511,
+        "line_end": 511,
+        "start_char": 88671,
+        "end_char": 89064,
+        "heading_path": [
+          "PO-Terms-and-Conditions_en-AU",
+          "Page 23"
+        ],
+        "paragraph_index": 298,
+        "filename": "PO-Terms-and-Conditions_en-AU.pdf",
+        "file_extension": "pdf",
+        "file_size": 649871,
+        "document_type": "contract",
+        "sentence_index": 2
+      }
+    }
+  ]
+}

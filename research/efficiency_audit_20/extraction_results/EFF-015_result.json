@@ -1,0 +1,312 @@
+{
+  "metadata": {
+    "document_id": "EFF-015",
+    "title": "Enterprise Invoice Terms and Conditions (EN-CH)",
+    "file_path": "research/validation_50/raw_documents/Invoice-Terms-and-Conditions_EN-CH.pdf",
+    "document_type": "invoice",
+    "category": "invoice",
+    "pages": 5,
+    "latency_seconds": 0.3542
+  },
+  "summary": {
+    "envelope_id": "3778f053-7d86-5caa-bf3b-453a6b8290f1",
+    "asset_id": "file://Invoice-Terms-and-Conditions_EN-CH.pdf",
+    "filename": "Invoice-Terms-and-Conditions_EN-CH.pdf",
+    "total_evidence_units": 54,
+    "candidates_discovered": 11,
+    "unique_claims_extracted": 11,
+    "claims_approved": 8,
+    "claims_review": 3,
+    "claims_rejected": 0,
+    "conflicts_detected": 0,
+    "persisted_claims_count": 0
+  },
+  "quality": {
+    "gold_claims": 9,
+    "true_positives": 9,
+    "false_positives": 2,
+    "false_negatives": 0,
+    "precision": 0.8182,
+    "recall": 1.0,
+    "f1_score": 0.9,
+    "evidence_grounding_rate": 1.0,
+    "locator_accuracy_rate": 1.0
+  },
+  "candidates": [
+    {
+      "candidate_id": "cand:3778f053-7d86-5caa-bf3b-453a6b8290f1:3:e76592265015:7b589178a5",
+      "subject": "Vendor",
+      "predicate": "bind",
+      "object": "related and affiliated entities, by executing this agreement on behalf of those entities",
+      "modality": "PERMISSION",
+      "confidence": 0.96,
+      "evidence": "Vendor may bind related and affiliated entities, by executing this agreement on behalf of those entities.",
+      "locator": {
+        "line_start": 7,
+        "line_end": 7,
+        "start_char": 195,
+        "end_char": 790,
+        "heading_path": [
+          "Invoice-Terms-and-Conditions_EN-CH",
+          "Page 1"
+        ],
+        "paragraph_index": 3,
+        "filename": "Invoice-Terms-and-Conditions_EN-CH.pdf",
+        "file_extension": "pdf",
+        "file_size": 431303,
+        "document_type": "invoice",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:3778f053-7d86-5caa-bf3b-453a6b8290f1:27:76a3cc976546:87ccad3b09",
+      "subject": "Microsoft",
+      "predicate": "shall_provide",
+      "object": "provide E-invoicing functionality to Vendor for processing of invoices for payment for Services provided to Microsoft by Vendor under the Services Contracts between the parties",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "Microsoft shall provide E-invoicing functionality to Vendor for processing of invoices for payment for Services provided to Microsoft by Vendor under the Services Contracts between the parties.",
+      "locator": {
+        "line_start": 55,
+        "line_end": 55,
+        "start_char": 2516,
+        "end_char": 3104,
+        "heading_path": [
+          "Invoice-Terms-and-Conditions_EN-CH",
+          "Page 2"
+        ],
+        "paragraph_index": 27,
+        "filename": "Invoice-Terms-and-Conditions_EN-CH.pdf",
+        "file_extension": "pdf",
+        "file_size": 431303,
+        "document_type": "invoice",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:3778f053-7d86-5caa-bf3b-453a6b8290f1:27:76a3cc976546:0cf1efea6d",
+      "subject": "Microsoft",
+      "predicate": "shall_provide",
+      "object": "provide the E-invoicing functionality to Vendor through a third party provider (\"E-invoicing Provider\")",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "Microsoft shall provide the E-invoicing functionality to Vendor through a third party provider (\"E-invoicing Provider\").",
+      "locator": {
+        "line_start": 55,
+        "line_end": 55,
+        "start_char": 2516,
+        "end_char": 3104,
+        "heading_path": [
+          "Invoice-Terms-and-Conditions_EN-CH",
+          "Page 2"
+        ],
+        "paragraph_index": 27,
+        "filename": "Invoice-Terms-and-Conditions_EN-CH.pdf",
+        "file_extension": "pdf",
+        "file_size": 431303,
+        "document_type": "invoice",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:3778f053-7d86-5caa-bf3b-453a6b8290f1:29:2f4b791a2fc8:9699138208",
+      "subject": "Vendor",
+      "predicate": "authorizes",
+      "object": "E-invoicing Provider to receive Vendor's invoice data not yet constituting an original invoice and subsequently to apply an electronic signature to the invoice data to issue electronic invoices \"in the name and on behalf of\" Vendor",
+      "modality": "PERMISSION",
+      "confidence": 0.96,
+      "evidence": "Vendor hereby authorizes E-invoicing Provider to receive Vendor's invoice data not yet constituting an original invoice and subsequently to apply an electronic signature to the invoice data to issue electronic invoices \"in the name and on behalf of\" Vendor.",
+      "locator": {
+        "line_start": 59,
+        "line_end": 59,
+        "start_char": 3175,
+        "end_char": 3481,
+        "heading_path": [
+          "Invoice-Terms-and-Conditions_EN-CH",
+          "Page 2"
+        ],
+        "paragraph_index": 29,
+        "filename": "Invoice-Terms-and-Conditions_EN-CH.pdf",
+        "file_extension": "pdf",
+        "file_size": 431303,
+        "document_type": "invoice",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:3778f053-7d86-5caa-bf3b-453a6b8290f1:30:5c69121e7399:f0efcb10a8",
+      "subject": "E-invoicing Provider",
+      "predicate": "apply_such",
+      "object": "electronic signatures with private keys corresponding to certificates issued by third party certification service providers to E-invoicing Provider; and (b) Vendor's e-invoices may include language specifying this outsourced e-invoice issuance relationship",
+      "modality": "PERMISSION",
+      "confidence": 0.96,
+      "evidence": "(a) E-invoicing Provider will apply such electronic signatures with private keys corresponding to certificates issued by third party certification service providers to E-invoicing Provider; and (b) Vendor's e-invoices may include language specifying this outsourced e-invoice issuance relationship.",
+      "locator": {
+        "line_start": 61,
+        "line_end": 61,
+        "start_char": 3482,
+        "end_char": 3781,
+        "heading_path": [
+          "Invoice-Terms-and-Conditions_EN-CH",
+          "Page 2"
+        ],
+        "paragraph_index": 30,
+        "filename": "Invoice-Terms-and-Conditions_EN-CH.pdf",
+        "file_extension": "pdf",
+        "file_size": 431303,
+        "document_type": "invoice",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:3778f053-7d86-5caa-bf3b-453a6b8290f1:33:8cfcb0e7b183:eb1802a9b3",
+      "subject": "Vendor",
+      "predicate": "remains_responsible_for",
+      "object": "the invoice and its value added tax and other tax implications towards competent tax authorities",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "(a) Vendor remains fully responsible towards competent tax authorities for the invoice and its value added tax and other tax implications.",
+      "locator": {
+        "line_start": 67,
+        "line_end": 67,
+        "start_char": 4241,
+        "end_char": 5073,
+        "heading_path": [
+          "Invoice-Terms-and-Conditions_EN-CH",
+          "Page 2"
+        ],
+        "paragraph_index": 33,
+        "filename": "Invoice-Terms-and-Conditions_EN-CH.pdf",
+        "file_extension": "pdf",
+        "file_size": 431303,
+        "document_type": "invoice",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:3778f053-7d86-5caa-bf3b-453a6b8290f1:33:8cfcb0e7b183:fb8d871949",
+      "subject": "Vendor",
+      "predicate": "prohibited_from_submitting",
+      "object": "invoice data to E-invoicing Provider that under applicable law may not be used by a third party for issuing invoices in the name and on behalf of Vendors",
+      "modality": "PROHIBITION",
+      "confidence": 0.98,
+      "evidence": "Among other things, Vendor remains fully responsible for, where relevant, reporting and paying value added tax and other applicable taxes as though the invoices were issued directly by Vendor; (b) Vendor shall not directly or indirectly submit invoice data to E-invoicing Provider that under applicable law may not be used by a third party for issuing invoices \"in the name and on behalf of\" Vendors; (c) Once Vendor has submitted its original invoice data to Microsoft, Vendor will receive a copy of the signed e-invoice, issued in its name and on its behalf by E-invoicing Provider, and/or will receive notification from Microsoft that it has been granted on-line access to the same.",
+      "locator": {
+        "line_start": 67,
+        "line_end": 67,
+        "start_char": 4241,
+        "end_char": 5073,
+        "heading_path": [
+          "Invoice-Terms-and-Conditions_EN-CH",
+          "Page 2"
+        ],
+        "paragraph_index": 33,
+        "filename": "Invoice-Terms-and-Conditions_EN-CH.pdf",
+        "file_extension": "pdf",
+        "file_size": 431303,
+        "document_type": "invoice",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:3778f053-7d86-5caa-bf3b-453a6b8290f1:35:6a0329be969e:79f0ad2772",
+      "subject": "Vendor",
+      "predicate": "shall_signal_apparent_errors",
+      "object": "in such e-invoice to Microsoft within 48 hours from the moment that the signed e-invoice has become available to Vendor",
+      "modality": "OBLIGATION",
+      "confidence": 0.98,
+      "evidence": "Invoicing Process Change Agreement (01/21/11)  - 3 - shall within 48 hours from the moment that the signed e-invoice has become available to Vendor, signal any apparent errors in such e-invoice to Microsoft; (d) If Vendor has not within the time limits stated in Section 5(c) above signaled an apparent error in the invoice, the invoice will be deemed to have been validly issued.",
+      "locator": {
+        "line_start": 71,
+        "line_end": 71,
+        "start_char": 5085,
+        "end_char": 6208,
+        "heading_path": [
+          "Invoice-Terms-and-Conditions_EN-CH",
+          "Page 3"
+        ],
+        "paragraph_index": 35,
+        "filename": "Invoice-Terms-and-Conditions_EN-CH.pdf",
+        "file_extension": "pdf",
+        "file_size": 431303,
+        "document_type": "invoice",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:3778f053-7d86-5caa-bf3b-453a6b8290f1:41:98698598c3e4:c7d9943dc0",
+      "subject": "Microsoft",
+      "predicate": "agrees_to_receive",
+      "object": "invoices in electronic form from Vendor and to treat these electronic invoices as originals for tax purposes",
+      "modality": "OBLIGATION",
+      "confidence": 0.98,
+      "evidence": "Microsoft agrees to receive invoices in electronic form from Vendor and to treat these electronic invoices as originals for tax purposes.",
+      "locator": {
+        "line_start": 83,
+        "line_end": 83,
+        "start_char": 7435,
+        "end_char": 7573,
+        "heading_path": [
+          "Invoice-Terms-and-Conditions_EN-CH",
+          "Page 3"
+        ],
+        "paragraph_index": 41,
+        "filename": "Invoice-Terms-and-Conditions_EN-CH.pdf",
+        "file_extension": "pdf",
+        "file_size": 431303,
+        "document_type": "invoice",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:3778f053-7d86-5caa-bf3b-453a6b8290f1:43:f022aeb07a78:d36971ecc7",
+      "subject": "Parties",
+      "predicate": "agree_all_invoices_shall_be_in_electronic_form",
+      "object": "all invoices submitted under the Services Contracts between the parties shall be in electronic form",
+      "modality": "OBLIGATION",
+      "confidence": 0.98,
+      "evidence": "The parties further agree that all invoices submitted under the Services Contracts between the parties shall be in electronic form, unless otherwise specified and agreed to between the parties.",
+      "locator": {
+        "line_start": 87,
+        "line_end": 87,
+        "start_char": 7600,
+        "end_char": 7996,
+        "heading_path": [
+          "Invoice-Terms-and-Conditions_EN-CH",
+          "Page 3"
+        ],
+        "paragraph_index": 43,
+        "filename": "Invoice-Terms-and-Conditions_EN-CH.pdf",
+        "file_extension": "pdf",
+        "file_size": 431303,
+        "document_type": "invoice",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:3778f053-7d86-5caa-bf3b-453a6b8290f1:49:8837ef89dd0c:5cf32f66b2",
+      "subject": "Invoicing Agreement",
+      "predicate": "remains_valid_until_terminated",
+      "object": "until terminated by either Microsoft or Vendor upon 30 business days notice to the other party",
+      "modality": "OBLIGATION",
+      "confidence": 0.98,
+      "evidence": "This Invoicing Agreement will remain valid until terminated by either Microsoft or Vendor upon 30 business days notice to the other party.",
+      "locator": {
+        "line_start": 99,
+        "line_end": 99,
+        "start_char": 8607,
+        "end_char": 8812,
+        "heading_path": [
+          "Invoice-Terms-and-Conditions_EN-CH",
+          "Page 4"
+        ],
+        "paragraph_index": 49,
+        "filename": "Invoice-Terms-and-Conditions_EN-CH.pdf",
+        "file_extension": "pdf",
+        "file_size": 431303,
+        "document_type": "invoice",
+        "sentence_index": 0
+      }
+    }
+  ]
+}

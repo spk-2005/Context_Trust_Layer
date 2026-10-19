@@ -44,8 +44,27 @@ class SubjectNormalizer:
         "license position reader": "License Position Reader",
         "microsoft 365 admin center role": "Microsoft 365 Admin Center Role",
         "global administrator": "Global Administrator",
+        "global admins": "Admins",
+        "user, license and global admins": "Admins",
         "vl administrator": "Volume Licensing Administrator",
         "vl admin": "Volume Licensing Administrator",
+        "subject companies": "Subject companies",
+        "covered entities": "Covered entities",
+        "technology system governing gxp processes": "Technology system governing GxP processes",
+        "any technology system that governs such gxp processes": "Technology system governing GxP processes",
+        "microsoft store": "Microsoft Store",
+        "return process": "Return process",
+        "product returns": "Product returns",
+        "the system": "System",
+        "system": "System",
+        "this invoicing agreement": "Invoicing Agreement",
+        "invoicing agreement": "Invoicing Agreement",
+        "the parties": "Parties",
+        "parties": "Parties",
+        "customer": "Customers",
+        "customers": "Customers",
+        "auto-claim policy": "Auto-claim policy",
+        "an auto-claim policy": "Auto-claim policy",
         # Business customers
         "business customers on standard accounts (custom contracts": "Business customer with standard account",
         "business customers on standard accounts (custom contracts may override these terms)": "Business customer with standard account",
@@ -54,6 +73,15 @@ class SubjectNormalizer:
         # Order / Proof of purchase
         "the order number or proof of purchase": "Refund request",
         "order number or proof of purchase": "Refund request",
+        
+        # EPCS regulatory entities
+        "the use of a type of token or otp generator": "Token or OTP generator",
+        "the hard token": "Hard token",
+        "moreover, azure": "Azure",
+        "multi-factor authenticators used at aal3": "Multi-factor authenticators at AAL3",
+        "pharmacies": "Pharmacies",
+        "you": "Users",
+        "two of the factors": "Two-factor authentication factors",
         
         # After that we / Late return
         "after that we": "Unused item returned after standard return window",
@@ -275,21 +303,44 @@ class SubjectNormalizer:
             elif pattern in cleaned_lower:
                 return replacement, True
 
-        # 3. Handle threshold / amount colon prefixes
+        # 3. Document title / header artifact rejection
+        if re.search(r"(?:invoice-terms|terms-and-conditions|invoicetermsandconditions|\.pdf|\.md|\.docx)", cleaned_lower):
+            return "Document Header", False
+
+        if any(cleaned_lower.endswith(w) for w in (" policy", " policies", " handbook", " manual", " terms and conditions", " agreement", " guidelines")):
+            if any(w in cleaned_lower for w in ("refund", "return", "cancellation", "store")):
+                return "Customers" if any(w in ctx_lower or w in cleaned_lower for w in ("return", "refund", "exchange", "credit")) else "Microsoft Store", True
+            if any(w in cleaned_lower for w in ("invoicing", "invoice", "vendor", "services")):
+                return "Vendor", True
+
+        # 4. Contextual Pronoun & Second-Person Enterprise Entity Resolution
+        if cleaned_lower in ("you", "your organization", "we", "we'll", "we’ll", "they"):
+            if any(w in ctx_lower for w in ("auto-claim", "admin center", "manage licenses", "admin roles", "admin")):
+                return "Admins", True
+            if any(w in ctx_lower for w in ("hipaa", "fda", "cfr", "compliance", "regulatory")):
+                return "Customers", True
+            if any(w in ctx_lower for w in ("store", "refund", "return", "retail")):
+                if cleaned_lower in ("we", "we'll", "we’ll"):
+                    return "Microsoft Store", True
+                return "Customers", True
+            if any(w in ctx_lower for w in ("invoice", "vendor", "agreement", "contract")):
+                return "Vendor", True
+
+        # 5. Handle threshold / amount colon prefixes
         if re.match(r"^(?:up to|\$|over)\s*[\d,.]+", cleaned_lower) and any(w in cleaned_lower for w in ("100", "500", "2000", "2,000")):
             return "Refund approval", True
 
-        # 4. Check for pronoun fragment beginnings that indicate an incomplete conversational subject
+        # 6. Check for pronoun fragment beginnings that indicate an incomplete conversational subject
         if any(cleaned_lower.startswith(p) for p in cls.DISALLOWED_PRONOUN_STARTS):
             return cleaned, False
 
-        # 5. Check if subject is overly verbose narrative (> 12 words)
+        # 7. Check if subject is overly verbose narrative (> 12 words)
         words = cleaned.split()
         if len(words) > 12:
             return cleaned, False
 
-        # 6. Check single-word conversational pronouns
-        if cleaned_lower in ("it", "they", "we", "our", "us", "he", "she", "this", "that"):
+        # 8. Check single-word conversational pronouns that could not be contextually resolved
+        if cleaned_lower in ("it", "they", "we", "our", "us", "he", "she", "this", "that", "you"):
             return cleaned, False
 
         return cleaned, True

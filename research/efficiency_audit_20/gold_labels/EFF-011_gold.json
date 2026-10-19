@@ -1,0 +1,74 @@
+{
+  "document_id": "EFF-011",
+  "filename": "Health Data Hosting (HDS) France - Microsoft Compliance _ Microsoft Learn.pdf",
+  "document_type": "compliance",
+  "claim_truth": [
+    {
+      "gold_id": "EFF-011-G01",
+      "claim_type": "policy",
+      "canonical": true,
+      "subject": "Hosting candidates",
+      "predicate": "submit",
+      "object": "their certification application to a certification body accredited by the French Accreditation Committee (COFRAC), the sole accreditation body at the national level, or any equivalent body at the European level",
+      "modality": "OBLIGATION",
+      "conditions": [],
+      "page_number": 1,
+      "section": "Microsoft and HDS",
+      "evidence_quote": "Hosting candidates must submit their certification application to a certification body accredited by the French Accreditation Committee (COFRAC), the sole accreditation body at the national level, or any equivalent body at the European level."
+    },
+    {
+      "gold_id": "EFF-011-G02",
+      "claim_type": "policy",
+      "canonical": true,
+      "subject": "service providers",
+      "predicate": "implement",
+      "object": "measures that keep personal health data secure, confidential, and accessible by patients",
+      "modality": "OBLIGATION",
+      "conditions": [],
+      "page_number": 1,
+      "section": "Microsoft and HDS",
+      "evidence_quote": "HDS certification framework version 1.1, dating from 2018, requires that service providers implement measures that keep personal health data secure, confidential, and accessible by patients."
+    },
+    {
+      "gold_id": "EFF-011-G03",
+      "claim_type": "policy",
+      "canonical": true,
+      "subject": "a new certification in accordance with the set of requirements",
+      "predicate": "has_validity_rule",
+      "object": "be obtained by May 16, 2026 at the latest",
+      "modality": "PERMISSION",
+      "conditions": [
+        "With the new standard in place"
+      ],
+      "page_number": 2,
+      "section": "Microsoft and HDS",
+      "evidence_quote": "With the new standard in place, a new certification in accordance with the set of requirements should be obtained by May 16, 2026 at the latest."
+    },
+    {
+      "gold_id": "EFF-011-G04",
+      "claim_type": "policy",
+      "canonical": true,
+      "subject": "Contractual terms",
+      "predicate": "has_definition",
+      "object": "The French Public Health code requires the execution of specific contractual terms between the health data hosting service or cloud service provider and its customers.",
+      "modality": "POLICY_FACT",
+      "conditions": [],
+      "page_number": 3,
+      "section": "Audits, reports, and certificates",
+      "evidence_quote": "Contractual terms: The French Public Health code requires the execution of specific contractual terms between the health data hosting service or cloud service provider and its customers."
+    },
+    {
+      "gold_id": "EFF-011-G05",
+      "claim_type": "policy",
+      "canonical": true,
+      "subject": "Customers",
+      "predicate": "reach",
+      "object": "out to their Microsoft licensing point of contact to enter into these specific contractual terms before hosting health personal data on Microsoft online services",
+      "modality": "OBLIGATION",
+      "conditions": [],
+      "page_number": 4,
+      "section": "How to implement",
+      "evidence_quote": "Eligible customers must reach out to their Microsoft licensing point of contact to enter into these specific contractual terms before hosting health personal data on Microsoft online services."
+    }
+  ]
+}

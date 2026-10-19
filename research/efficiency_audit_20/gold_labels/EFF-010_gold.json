@@ -1,0 +1,90 @@
+{
+  "document_id": "EFF-010",
+  "legacy_id": "DOC-052",
+  "filename": "Food and Drug Administration CFR Title 21 Part 11 - Microsoft Compliance _ Microsoft Learn.pdf",
+  "document_type": "compliance",
+  "claim_truth": [
+    {
+      "gold_id": "EFF-010-G01",
+      "claim_type": "OBLIGATION",
+      "canonical": true,
+      "subject": "Technology system governing GxP processes",
+      "predicate": "requires_validation_of_adherence_to",
+      "object": "GxP adherence validation for systems governing Good Laboratory Practices, Good Clinical Practices, and Good Manufacturing Practices",
+      "modality": "OBLIGATION",
+      "conditions": [],
+      "page_number": 1,
+      "section": "FDA CFR Title 21 overview",
+      "evidence_quote": "Any technology system that governs such GxP processes as Good Laboratory Practices (GLP), Good Clinical Practices (GCP), and Good Manufacturing Practices (GMP) also requires validation of its adherence to GxP."
+    },
+    {
+      "gold_id": "EFF-010-G02",
+      "claim_type": "OBLIGATION",
+      "canonical": true,
+      "subject": "Subject companies",
+      "predicate": "must_prove",
+      "object": "that their processes and products work as they're designed to",
+      "modality": "OBLIGATION",
+      "conditions": [],
+      "page_number": 1,
+      "section": "FDA CFR Title 21 overview",
+      "evidence_quote": "Subject companies must prove that their processes and products work as they're designed to, and if these process and products change, they must revalidate that proof."
+    },
+    {
+      "gold_id": "EFF-010-G03",
+      "claim_type": "OBLIGATION",
+      "canonical": true,
+      "subject": "Subject companies",
+      "predicate": "must_revalidate",
+      "object": "proof that their processes and products work as designed",
+      "modality": "OBLIGATION",
+      "conditions": [
+        "If these process and products change"
+      ],
+      "page_number": 1,
+      "section": "FDA CFR Title 21 overview",
+      "evidence_quote": "and if these process and products change, they must revalidate that proof."
+    },
+    {
+      "gold_id": "EFF-010-G04",
+      "claim_type": "PERMISSION",
+      "canonical": true,
+      "subject": "Customers",
+      "predicate": "may_request_access",
+      "object": "compliance reports through their Microsoft account representative, or through the Service Trust Portal",
+      "modality": "PERMISSION",
+      "conditions": [
+        "Subject to nondisclosure agreement terms and conditions"
+      ],
+      "page_number": 2,
+      "section": "Microsoft and FDA CFR Title 21",
+      "evidence_quote": "Customers can request access to the compliance reports, subject to nondisclosure agreement terms and conditions, through their Microsoft account representative, or through the Service Trust Portal."
+    },
+    {
+      "gold_id": "EFF-010-G05",
+      "claim_type": "OBLIGATION",
+      "canonical": true,
+      "subject": "Customers who build and deploy applications subject to FDA regulation",
+      "predicate": "are_responsible_for",
+      "object": "ensuring that their applications meet FDA requirements",
+      "modality": "OBLIGATION",
+      "conditions": [],
+      "page_number": 3,
+      "section": "Frequently asked questions",
+      "evidence_quote": "Customers who build and deploy applications subject to FDA regulation are responsible for ensuring that their applications meet FDA requirements."
+    },
+    {
+      "gold_id": "EFF-010-G06",
+      "claim_type": "OBLIGATION",
+      "canonical": true,
+      "subject": "Microsoft",
+      "predicate": "ensures",
+      "object": "that its enterprise cloud services meet the terms defined within the governing Online Services Terms and applicable Service Level Agreements (SLAs)",
+      "modality": "OBLIGATION",
+      "conditions": [],
+      "page_number": 3,
+      "section": "Frequently asked questions",
+      "evidence_quote": "Microsoft ensures that its enterprise cloud services meet the terms defined within the governing Online Services Terms and applicable Service Level Agreements (SLAs)."
+    }
+  ]
+}

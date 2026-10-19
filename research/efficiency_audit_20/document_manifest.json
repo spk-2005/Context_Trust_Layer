@@ -1,0 +1,236 @@
+{
+  "corpus_version": "efficiency_audit_20_v1",
+  "audit_scope": "20-Document Extraction Efficiency and Quality Benchmark",
+  "created_at": "2026-10-19",
+  "archetype_distribution": {
+    "policy": 4,
+    "contract": 4,
+    "compliance": 4,
+    "invoice": 3,
+    "scanned_soc": 2,
+    "difficult": 3
+  },
+  "total_documents": 20,
+  "documents": [
+    {
+      "document_id": "EFF-001",
+      "legacy_id": "DOC-009",
+      "title": "Northwind Refund Policy Handbook",
+      "file_path": "docs/Northwind_Refund_Policy_Handbook.pdf",
+      "document_type": "policy",
+      "category": "policy",
+      "expected_difficulty": "medium",
+      "source_sha256": "a0a5ae7bffabede3639b78caa5e318872577e7464da399ca6c8e23ce5efe04dd",
+      "file_size_bytes": 43277
+    },
+    {
+      "document_id": "EFF-002",
+      "legacy_id": "DOC-008",
+      "title": "Wingify Employees Notice Period Policy",
+      "file_path": "docs/Employees Notice Period Policy- V 1.5 (1).pdf",
+      "document_type": "policy",
+      "category": "policy",
+      "expected_difficulty": "low",
+      "source_sha256": "45dfae85a80a6985e7e48153526a83fcfef2ed96fb416917467a0ff48d6851f8",
+      "file_size_bytes": 344740
+    },
+    {
+      "document_id": "EFF-003",
+      "legacy_id": "DOC-003",
+      "title": "University of St. Thomas Termination of Employment Policy",
+      "file_path": "docs/terminationofemploymentpolicy.pdf",
+      "document_type": "policy",
+      "category": "policy",
+      "expected_difficulty": "low",
+      "source_sha256": "2a2ccbbdcf0597d6693845e44fe912626c57f90cae1529b0f29ab54724ecbc4a",
+      "file_size_bytes": 102670
+    },
+    {
+      "document_id": "EFF-004",
+      "legacy_id": "DOC-004",
+      "title": "TermsFeed Sample Return and Refund Policy Template",
+      "file_path": "docs/sample-return-refund-policy-template.pdf",
+      "document_type": "policy",
+      "category": "policy",
+      "expected_difficulty": "low",
+      "source_sha256": "9e8349c1a3b3bc0299c6bea1be401d799c1d8be64ebcf1c23084638deaba07ec",
+      "file_size_bytes": 53252
+    },
+    {
+      "document_id": "EFF-005",
+      "legacy_id": "DOC-005",
+      "title": "Tarion Warranty Commercial Vendor Agreement",
+      "file_path": "docs/Vendor Agreement Template-02.2021_2.pdf",
+      "document_type": "contract",
+      "category": "contract",
+      "expected_difficulty": "medium",
+      "source_sha256": "53c8cc27edc8682320f6d49f9849452f57f0b089535191526f5536d4e0ad0ebe",
+      "file_size_bytes": 402747
+    },
+    {
+      "document_id": "EFF-006",
+      "legacy_id": "DOC-002",
+      "title": "DP&AR Guidelines for Engagement of Employees on Contract Basis",
+      "file_path": "docs/guidelines-for-engagement-of-employees-on-contract-basis.pdf",
+      "document_type": "contract",
+      "category": "contract",
+      "expected_difficulty": "medium",
+      "source_sha256": "abf5f0de01415f5f2b47c93fe4f81fe54b02b9dee8647dd11a41992fa9c3cdd1",
+      "file_size_bytes": 92573
+    },
+    {
+      "document_id": "EFF-007",
+      "legacy_id": "DOC-061",
+      "title": "Enterprise Purchase Order Terms and Conditions (en-AU)",
+      "file_path": "research/validation_50/raw_documents/PO-Terms-and-Conditions_en-AU.pdf",
+      "document_type": "contract",
+      "category": "contract",
+      "expected_difficulty": "high",
+      "source_sha256": "7e701d83578295bc61134211374120dc12b438cca895540f4aa5e866d0e51ba2",
+      "file_size_bytes": 649871
+    },
+    {
+      "document_id": "EFF-008",
+      "legacy_id": "DOC-064",
+      "title": "Enterprise Purchase Order Terms and Conditions (en-CN)",
+      "file_path": "research/validation_50/raw_documents/PO-Terms-and-Conditions_en-CN.pdf",
+      "document_type": "contract",
+      "category": "contract",
+      "expected_difficulty": "high",
+      "source_sha256": "5128ec2d936ef1799bb267ef21fa96fa25e3c1b2fdf5a7a3cb38580eedfe1c56",
+      "file_size_bytes": 538913
+    },
+    {
+      "document_id": "EFF-009",
+      "legacy_id": "DOC-051",
+      "title": "Electronic Prescriptions for Controlled Substances (EPCS) - Azure Compliance",
+      "file_path": "research/validation_50/raw_documents/Electronic Prescriptions for Controlled Substances (EPCS) - Azure Compliance _ Microsoft Learn.pdf",
+      "document_type": "compliance",
+      "category": "compliance",
+      "expected_difficulty": "medium",
+      "source_sha256": "57396e771870bccb8b8addf2a70917a5fc730affa2d42e8aa7fb3297c3c5175e",
+      "file_size_bytes": 149210
+    },
+    {
+      "document_id": "EFF-010",
+      "legacy_id": "DOC-052",
+      "title": "FDA CFR Title 21 Part 11 - Electronic Records & Signatures Compliance",
+      "file_path": "research/validation_50/raw_documents/Food and Drug Administration CFR Title 21 Part 11 - Microsoft Compliance _ Microsoft Learn.pdf",
+      "document_type": "compliance",
+      "category": "compliance",
+      "expected_difficulty": "medium",
+      "source_sha256": "9862b69f3f3a11a3362ab66400b7d9e2b67d7214629d737f1d9c6f468f1c12d6",
+      "file_size_bytes": 90608
+    },
+    {
+      "document_id": "EFF-011",
+      "legacy_id": "DOC-054",
+      "title": "Health Data Hosting (HDS) France - Microsoft Compliance",
+      "file_path": "research/validation_50/raw_documents/Health Data Hosting (HDS) France - Microsoft Compliance _ Microsoft Learn.pdf",
+      "document_type": "compliance",
+      "category": "compliance",
+      "expected_difficulty": "medium",
+      "source_sha256": "69467a9f383e208d2246dbbf01fd768c04fc5154ddfd21b200eb19a5c3a577c3",
+      "file_size_bytes": 109049
+    },
+    {
+      "document_id": "EFF-012",
+      "legacy_id": "DOC-056",
+      "title": "HIPAA & HITECH Act Compliance - Microsoft Learn",
+      "file_path": "research/validation_50/raw_documents/Health Insurance Portability and Accountability Act (HIPAA) & Health Information Technology for Economic and Clinical Health (HITECH) Act - Microsoft Compliance _ Microsoft Learn.pdf",
+      "document_type": "compliance",
+      "category": "compliance",
+      "expected_difficulty": "medium",
+      "source_sha256": "0dee9574dd98672fac6baf24536f8953c3062150ac7890b2ea2cbdb1a8df019b",
+      "file_size_bytes": 112878
+    },
+    {
+      "document_id": "EFF-013",
+      "legacy_id": "DOC-006",
+      "title": "DEMO Sliced Commercial Billing Invoice",
+      "file_path": "docs/wordpress-pdf-invoice-plugin-sample.pdf",
+      "document_type": "invoice",
+      "category": "invoice",
+      "expected_difficulty": "low",
+      "source_sha256": "c2de358a0974f9b047aed8e457def7d4b1b39170f44819ec3152b42db787d72e",
+      "file_size_bytes": 43627
+    },
+    {
+      "document_id": "EFF-014",
+      "legacy_id": "DOC-072",
+      "title": "Enterprise Volume Licensing Invoices and Billing Policy",
+      "file_path": "research/validation_50/raw_documents/volume-licensing-invoices.md",
+      "document_type": "invoice",
+      "category": "invoice",
+      "expected_difficulty": "medium",
+      "source_sha256": "56c38d2fcdaac1fe34c9400c9fd18eead659d6917a122381a9fb23725943a13c",
+      "file_size_bytes": 15737
+    },
+    {
+      "document_id": "EFF-015",
+      "legacy_id": "DOC-057",
+      "title": "Enterprise Invoice Terms and Conditions (EN-CH)",
+      "file_path": "research/validation_50/raw_documents/Invoice-Terms-and-Conditions_EN-CH.pdf",
+      "document_type": "invoice",
+      "category": "invoice",
+      "expected_difficulty": "high",
+      "source_sha256": "c093d6c8ebc5d93dcf04dae7c2e3592691c738e5a8bf76f52a94222a81383cd2",
+      "file_size_bytes": 431303
+    },
+    {
+      "document_id": "EFF-016",
+      "legacy_id": "DOC-069",
+      "title": "System and Organization Controls (SOC) 1 Type 2 Audit Report",
+      "file_path": "research/validation_50/raw_documents/System and Organization Controls (SOC) 1 Type 2 - Microsoft Compliance _ Microsoft Learn.pdf",
+      "document_type": "scanned_soc",
+      "category": "scanned_soc",
+      "expected_difficulty": "medium",
+      "source_sha256": "0023d612e4965e8deaaaf164f293ff6e460fbc4e989c85478e42375276624882",
+      "file_size_bytes": 130033
+    },
+    {
+      "document_id": "EFF-017",
+      "legacy_id": "DOC-070",
+      "title": "System and Organization Controls (SOC) 2 Type 2 Audit Report",
+      "file_path": "research/validation_50/raw_documents/System and Organization Controls (SOC) 2 Type 2 - Microsoft Compliance _ Microsoft Learn.pdf",
+      "document_type": "scanned_soc",
+      "category": "scanned_soc",
+      "expected_difficulty": "medium",
+      "source_sha256": "efdf2ef9e7f31f9d1a75ccf9a30a6ed5ae88e4689a1af34d903fb8dd394ee70f",
+      "file_size_bytes": 136040
+    },
+    {
+      "document_id": "EFF-018",
+      "legacy_id": "DOC-060",
+      "title": "Microsoft Store Refund and Return Policy (Multi-Column)",
+      "file_path": "research/validation_50/raw_documents/Microsoft Store Refund & Return Policy (Surface, Xbox, etc.).pdf",
+      "document_type": "difficult_multicolumn",
+      "category": "difficult",
+      "expected_difficulty": "very_high",
+      "source_sha256": "4b51cd0d5b0e8a88cf04f537ade30babbcc5de60d594692c9b6b1c1ce1e514a2",
+      "file_size_bytes": 645667
+    },
+    {
+      "document_id": "EFF-019",
+      "legacy_id": "DOC-062",
+      "title": "Enterprise Purchase Order Terms (en-BD, Dense Tables & Liability Clauses)",
+      "file_path": "research/validation_50/raw_documents/PO-Terms-and-Conditions_en-BD.pdf",
+      "document_type": "difficult_tables",
+      "category": "difficult",
+      "expected_difficulty": "very_high",
+      "source_sha256": "6573de2b19f845121c3d1542faa940bec851d6e8e5f34779a9e08d64d9a66af6",
+      "file_size_bytes": 591248
+    },
+    {
+      "document_id": "EFF-020",
+      "legacy_id": "DOC-067",
+      "title": "Enterprise Purchase Order Terms (en-LK, Multi-Clause Penalty & Termination Matrix)",
+      "file_path": "research/validation_50/raw_documents/PO-Terms-and-Conditions_en-LK.pdf",
+      "document_type": "difficult_clauses",
+      "category": "difficult",
+      "expected_difficulty": "very_high",
+      "source_sha256": "02361b0705047f5340fbaede69561f84f6a5a8ed974785911818fa4f55a0e330",
+      "file_size_bytes": 591295
+    }
+  ]
+}

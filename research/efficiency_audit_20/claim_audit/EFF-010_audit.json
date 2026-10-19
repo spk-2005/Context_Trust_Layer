@@ -1,0 +1,112 @@
+{
+  "document_id": "EFF-010",
+  "filename": "Food and Drug Administration CFR Title 21 Part 11 - Microsoft Compliance _ Microsoft Learn.pdf",
+  "category": "compliance",
+  "risk_tier": "STANDARD",
+  "review_coverage": {
+    "total_claims": 7,
+    "first_pass_review_rate": 1.0,
+    "dual_review_sample_rate": 0.3,
+    "claims_dual_reviewed": 3,
+    "low_confidence_review_rate": 1.0,
+    "conflicts_conditions_review_rate": 1.0
+  },
+  "adjudication_summary": {
+    "certified_valid": 4,
+    "pending_review": 2,
+    "rejected": 1
+  },
+  "claims": [
+    {
+      "candidate_id": "cand:df7b418e-b821-592e-92a2-83c2afb3fdd0:3:b2495f81810c:902c4fe538",
+      "subject": "Technology system governing GxP processes",
+      "predicate": "requires_validation_of_adherence_to",
+      "object": "GxP adherence validation",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "trust_score": 0.99,
+      "disposition": "CERTIFIED_VALID",
+      "review_decision": "approve",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "candidate_id": "cand:df7b418e-b821-592e-92a2-83c2afb3fdd0:5:bf47a14ff51b:6dace32e5a",
+      "subject": "Subject companies",
+      "predicate": "must_prove",
+      "object": "prove that their processes and products work as they're designed to",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "trust_score": 0.84,
+      "disposition": "REJECTED_UNGROUNDED",
+      "review_decision": "reject",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "candidate_id": "cand:df7b418e-b821-592e-92a2-83c2afb3fdd0:5:bf47a14ff51b:f0f6341cd7",
+      "subject": "Subject companies",
+      "predicate": "must_revalidate",
+      "object": "proof that their processes and products work as designed",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "trust_score": 0.99,
+      "disposition": "CERTIFIED_VALID",
+      "review_decision": "approve",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "candidate_id": "cand:df7b418e-b821-592e-92a2-83c2afb3fdd0:13:e06638ff745b:b75eaf26ab",
+      "subject": "Customers",
+      "predicate": "request",
+      "object": "access to the compliance reports, subject to nondisclosure agreement terms and conditions, through their Microsoft account representative, or through the Service Trust Portal",
+      "modality": "PERMISSION",
+      "confidence": 0.96,
+      "trust_score": 0.99,
+      "disposition": "CERTIFIED_VALID",
+      "review_decision": "approve",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "candidate_id": "cand:df7b418e-b821-592e-92a2-83c2afb3fdd0:26:15c3d152cdf8:4fe5069340",
+      "subject": "Customers",
+      "predicate": "use",
+      "object": "the audited controls described in these related reports as part of their own CFR Title 21 Part 11 risk analysis and qualification efforts",
+      "modality": "PERMISSION",
+      "confidence": 0.96,
+      "trust_score": 0.99,
+      "disposition": "CERTIFIED_VALID",
+      "review_decision": "approve",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "candidate_id": "cand:df7b418e-b821-592e-92a2-83c2afb3fdd0:26:15c3d152cdf8:b9bd057c29",
+      "subject": "Customers",
+      "predicate": "are_responsible_for",
+      "object": "ensuring that their applications meet FDA requirements",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "trust_score": 0.8,
+      "disposition": "AMBIGUOUS_REVIEW_REQUIRED",
+      "review_decision": "review",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "candidate_id": "cand:df7b418e-b821-592e-92a2-83c2afb3fdd0:28:eec3b0fe3cc4:6ffdb01e0d",
+      "subject": "Microsoft",
+      "predicate": "ensures",
+      "object": "its enterprise cloud services meet the terms defined within the governing Online Services Terms and applicable Service Level Agreements (SLAs)",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "trust_score": 0.8,
+      "disposition": "AMBIGUOUS_REVIEW_REQUIRED",
+      "review_decision": "review",
+      "evidence_supported": true,
+      "locator_valid": true
+    }
+  ]
+}

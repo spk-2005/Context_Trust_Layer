@@ -37,3 +37,6 @@ postgres_data/
 backend/storage/
 # Pipeline Cache
 .pipeline_cache/
+
+# Scratch workspace
+scratch/

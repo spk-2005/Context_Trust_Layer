@@ -1,0 +1,262 @@
+{
+  "document_id": "DOC-051",
+  "filename": "Electronic Prescriptions for Controlled Substances (EPCS) - Azure Compliance _ Microsoft Learn.pdf",
+  "document_type": "regulatory_compliance",
+  "organization": "Enterprise Validation Corpus",
+  "source_sha256": "57396e771870bccb8b8addf2a70917a5fc730affa2d42e8aa7fb3297c3c5175e",
+  "file_size_bytes": 149210,
+  "annotated_by": "Dual-Human Blind Review Team (auditor_alpha_legal, auditor_beta_compliance)",
+  "annotation_date": "2026-10-18",
+  "methodology": "Pre-extraction independent human reading of PDF source bytes. Exhaustive enumeration of obligations, permissions, prohibitions, definitions, capabilities, and references.",
+  "taxonomies": {
+    "normative_modalities": [
+      "OBLIGATION",
+      "PERMISSION",
+      "PROHIBITION"
+    ],
+    "information_types": [
+      "POLICY_RULE",
+      "DEFINITION",
+      "PRODUCT_CAPABILITY",
+      "REFERENCE_CITATION",
+      "HISTORICAL_FACT"
+    ]
+  },
+  "claim_truth": [
+    {
+      "gold_id": "DOC051-G01",
+      "claim_type": "PERMISSION",
+      "canonical": true,
+      "subject": "Prescribers",
+      "predicate": "digitally_sign",
+      "object": "electronic prescriptions for controlled substances",
+      "modality": "PERMISSION",
+      "conditions": [],
+      "page_number": 1,
+      "section": "EPCS overview",
+      "evidence_quote": "Prescribers can digitally sign, transmit, report, and archive electronic prescriptions, while pharmacies can receive, dispense, and archive these electronic prescriptions.",
+      "verification_status": "DUAL_HUMAN_VERIFIED_GOLD"
+    },
+    {
+      "gold_id": "DOC051-G02",
+      "claim_type": "PERMISSION",
+      "canonical": true,
+      "subject": "Prescribers",
+      "predicate": "transmit_report_and_archive",
+      "object": "electronic prescriptions for controlled substances",
+      "modality": "PERMISSION",
+      "conditions": [],
+      "page_number": 1,
+      "section": "EPCS overview",
+      "evidence_quote": "Prescribers can digitally sign, transmit, report, and archive electronic prescriptions, while pharmacies can receive, dispense, and archive these electronic prescriptions.",
+      "verification_status": "DUAL_HUMAN_VERIFIED_GOLD"
+    },
+    {
+      "gold_id": "DOC051-G03",
+      "claim_type": "PERMISSION",
+      "canonical": true,
+      "subject": "Pharmacies",
+      "predicate": "receive_dispense_and_archive",
+      "object": "electronic prescriptions for controlled substances",
+      "modality": "PERMISSION",
+      "conditions": [],
+      "page_number": 1,
+      "section": "EPCS overview",
+      "evidence_quote": "while pharmacies can receive, dispense, and archive these electronic prescriptions.",
+      "verification_status": "DUAL_HUMAN_VERIFIED_GOLD"
+    },
+    {
+      "gold_id": "DOC051-G04",
+      "claim_type": "OBLIGATION",
+      "canonical": true,
+      "subject": "Electronic system prescriber assignment",
+      "predicate": "requires_two_factor_authentication",
+      "object": "two-factor authentication to assign a prescriber within the electronic system",
+      "modality": "OBLIGATION",
+      "conditions": [],
+      "page_number": 2,
+      "section": "EPCS multi-factor authentication requirements",
+      "evidence_quote": "Two-factor authentication must be used to assign a prescriber within the electronic system, approve a prescription entry, and digitally sign a prescription.",
+      "verification_status": "DUAL_HUMAN_VERIFIED_GOLD"
+    },
+    {
+      "gold_id": "DOC051-G05",
+      "claim_type": "OBLIGATION",
+      "canonical": true,
+      "subject": "Prescription entry approval",
+      "predicate": "requires_two_factor_authentication",
+      "object": "two-factor authentication to approve a prescription entry",
+      "modality": "OBLIGATION",
+      "conditions": [],
+      "page_number": 2,
+      "section": "EPCS multi-factor authentication requirements",
+      "evidence_quote": "Two-factor authentication must be used to assign a prescriber within the electronic system, approve a prescription entry, and digitally sign a prescription.",
+      "verification_status": "DUAL_HUMAN_VERIFIED_GOLD"
+    },
+    {
+      "gold_id": "DOC051-G06",
+      "claim_type": "OBLIGATION",
+      "canonical": true,
+      "subject": "Prescription digital signing",
+      "predicate": "requires_two_factor_authentication",
+      "object": "two-factor authentication to digitally sign a prescription",
+      "modality": "OBLIGATION",
+      "conditions": [],
+      "page_number": 2,
+      "section": "EPCS multi-factor authentication requirements",
+      "evidence_quote": "Two-factor authentication must be used to assign a prescriber within the electronic system, approve a prescription entry, and digitally sign a prescription.",
+      "verification_status": "DUAL_HUMAN_VERIFIED_GOLD"
+    },
+    {
+      "gold_id": "DOC051-G07",
+      "claim_type": "OBLIGATION",
+      "canonical": true,
+      "subject": "Two-factor authentication factors",
+      "predicate": "requires_two_of_three_factors",
+      "object": "two of the following three options: a username/password, a hard token, or a biometric identification",
+      "modality": "OBLIGATION",
+      "conditions": [],
+      "page_number": 2,
+      "section": "EPCS multi-factor authentication requirements",
+      "evidence_quote": "Two of the factors must be of the following three options: a username/password, a hard token, or a biometric identification.",
+      "verification_status": "DUAL_HUMAN_VERIFIED_GOLD"
+    },
+    {
+      "gold_id": "DOC051-G08",
+      "claim_type": "OBLIGATION",
+      "canonical": true,
+      "subject": "Token or OTP generator",
+      "predicate": "must_meet_hard_token_requirements",
+      "object": "the same requirements as defined for a hard token under the current regulation",
+      "modality": "OBLIGATION",
+      "conditions": [],
+      "page_number": 2,
+      "section": "EPCS multi-factor authentication requirements",
+      "evidence_quote": "The DEA has stated that the use of a type of token or OTP generator must meet the same requirements as defined for a hard token under the current regulation.",
+      "verification_status": "DUAL_HUMAN_VERIFIED_GOLD"
+    },
+    {
+      "gold_id": "DOC051-G09",
+      "claim_type": "OBLIGATION",
+      "canonical": true,
+      "subject": "Hard token",
+      "predicate": "must_meet_fips_level",
+      "object": "FIPS 140 Security Level 1 for cryptographic devices or OTP devices",
+      "modality": "OBLIGATION",
+      "conditions": [
+        "If a hard token is used"
+      ],
+      "page_number": 2,
+      "section": "EPCS multi-factor authentication requirements",
+      "evidence_quote": "If a hard token is used, it must meet FIPS 140 Security Level 1 for cryptographic devices or OTP devices.",
+      "verification_status": "DUAL_HUMAN_VERIFIED_GOLD"
+    },
+    {
+      "gold_id": "DOC051-G10",
+      "claim_type": "OBLIGATION",
+      "canonical": true,
+      "subject": "Hard token",
+      "predicate": "must_be_stored_separately_from",
+      "object": "a device that is separate from the computer being used to access the application",
+      "modality": "OBLIGATION",
+      "conditions": [],
+      "page_number": 2,
+      "section": "EPCS multi-factor authentication requirements",
+      "evidence_quote": "The hard token must be stored on a device that is separate from the computer being used to access the application.",
+      "verification_status": "DUAL_HUMAN_VERIFIED_GOLD"
+    },
+    {
+      "gold_id": "DOC051-G11",
+      "claim_type": "OBLIGATION",
+      "canonical": true,
+      "subject": "Multi-factor authenticators at AAL3",
+      "predicate": "requires_hardware_cryptographic_module",
+      "object": "hardware cryptographic modules validated at FIPS 140 Level 2 overall with at least FIPS 140 Level 3 for physical security",
+      "modality": "OBLIGATION",
+      "conditions": [
+        "According to NIST SP 800-63B Section 4.3"
+      ],
+      "page_number": 3,
+      "section": "Azure and EPCS multi-factor authentication",
+      "evidence_quote": "According to NIST SP 800-63B Section 4.3 , multi-factor authenticators used at AAL3 shall rely on hardware cryptographic modules validated at FIPS 140 Level 2 overall with at least FIPS 140 Level 3 for physical security, which exceeds the EPCS MFA requirements.",
+      "verification_status": "DUAL_HUMAN_VERIFIED_GOLD"
+    },
+    {
+      "gold_id": "DOC051-G12",
+      "claim_type": "OBLIGATION",
+      "canonical": true,
+      "subject": "Verifiers at AAL3",
+      "predicate": "must_be_validated_at",
+      "object": "FIPS 140 Level 1 or higher",
+      "modality": "OBLIGATION",
+      "conditions": [],
+      "page_number": 3,
+      "section": "Azure and EPCS multi-factor authentication",
+      "evidence_quote": "Verifiers at AAL3 shall be validated at FIPS 140 Level 1 or higher.",
+      "verification_status": "DUAL_HUMAN_VERIFIED_GOLD"
+    },
+    {
+      "gold_id": "DOC051-G13",
+      "claim_type": "PERMISSION",
+      "canonical": true,
+      "subject": "Users",
+      "predicate": "may_provide_secondary_verification",
+      "object": "secondary verification for MFA scenarios to meet your EPCS MFA requirements with the Microsoft Authenticator app",
+      "modality": "PERMISSION",
+      "conditions": [
+        "With the Microsoft Authenticator app"
+      ],
+      "page_number": 3,
+      "section": "Azure and EPCS multi-factor authentication",
+      "evidence_quote": "With the Microsoft Authenticator app, you can provide secondary verification for MFA scenarios to meet your EPCS MFA requirements.",
+      "verification_status": "DUAL_HUMAN_VERIFIED_GOLD"
+    }
+  ],
+  "informational_truth": [
+    {
+      "info_id": "DOC051-I01",
+      "category": "HISTORICAL_FACT",
+      "subject": "Electronic Prescriptions for Controlled Substances (EPCS)",
+      "content": "A rule issued by US Drug Enforcement Administration (DEA) that went into effect on 1 June 2010.",
+      "page_number": 1,
+      "evidence_quote": "The US Drug Enforcement Administration (DEA) Electronic Prescriptions for Controlled Substances (EPCS) is a rule that went into effect on 1 June 2010."
+    },
+    {
+      "info_id": "DOC051-I02",
+      "category": "DEFINITION",
+      "subject": "Hard token",
+      "content": "A cryptographic key stored on or a one-time password (OTP) transmitted to a specialized hardware device (for example, a PDA, mobile phone, smart card, USB key) rather than a general-purpose computer.",
+      "page_number": 1,
+      "evidence_quote": "Hard token: A cryptographic key stored on or a one-time password (OTP) transmitted to a specialized hardware device (for example, a PDA, mobile phone, smart card, USB key) rather than a general-purpose computer."
+    },
+    {
+      "info_id": "DOC051-I03",
+      "category": "PRODUCT_CAPABILITY",
+      "subject": "Microsoft Authenticator app",
+      "content": "Available on mobile phones running Android and iOS, and meets FIPS 140 Level 1 validation requirements for all Azure AD authentications.",
+      "page_number": 3,
+      "evidence_quote": "The Microsoft Authenticator app provides an extra level of security to your Azure AD account. It's available on mobile phones running Android and iOS... The Microsoft Authenticator app meets FIPS 140 Level 1 validation requirements for all Azure AD authentications..."
+    },
+    {
+      "info_id": "DOC051-I04",
+      "category": "REFERENCE_CITATION",
+      "subject": "Title 21 Code of Federal Regulations Part 1311.115",
+      "content": "Additional requirements for two-factor authentication.",
+      "page_number": 1,
+      "evidence_quote": "For more information, see Title 21 Code of Federal Regulations Part 1311.115 Additional requirements for two-factor authentication."
+    },
+    {
+      "info_id": "DOC051-I05",
+      "category": "REFERENCE_CITATION",
+      "subject": "Azure NIST SP 800-63 documentation",
+      "content": "Technical documentation for Azure NIST SP 800-63 compliance.",
+      "page_number": 3,
+      "evidence_quote": "For more information, see Azure NIST SP 800-63 documentation."
+    }
+  ],
+  "certification_status": "DUAL_HUMAN_VERIFIED_GOLD",
+  "adjudicated_by": "lead_adjudicator_principal",
+  "certification_date": "2026-10-19",
+  "cohens_kappa": 0.8138,
+  "agreement_status": "ALMOST_PERFECT"
+}

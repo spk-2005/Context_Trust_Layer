@@ -1,0 +1,491 @@
+
+================================================================================
+TRIAGE FOR EFF-001 (Northwind Refund Policy Handbook):
+  Gold Rules: 70 | Extracted: 97 | TP: 48 | FP: 35 | FN: 22
+  Precision: 57.8% | Recall: 68.6% | F1: 62.7%
+================================================================================
+
+>> UNMATCHED EXTRACTIONS (False Positives: 35):
+  [01] Northwind | has_refund_eligibility | PROHIBITION
+       Obj: Final Sale Items marked 'Final Sale' at the time of purchase, which cannot be re
+       Ev:  Final Sale Items marked 'Final Sale' at the time of purchase, which cannot be returned.
+  [02] Refund request | has_purchase_verification_requirement | OBLIGATION
+       Obj: be verified in our systems
+       Ev:   The order number or proof of purchase can be verified in our systems.
+  [03] we | resell | PROHIBITION
+       Obj: opened pressurised canisters
+       Ev:  For example, we cannot resell opened pressurised canisters.
+  [04] Customers | has_validity_rule | PROHIBITION
+       Obj: be resold
+       Ev:  Custom products are made specifically for the customer and cannot be resold.
+  [05] Even for non-refundable items, a full refund or replacement | will_issue_refund | OBLIGATION
+       Obj: be provided if the item arrives damaged, is materially different from its descri
+       Ev:  Even for non-refundable items, a full refund or replacement will be provided if the item arrives dam
+  [06] Northwind: Page 8 > 6.2 By phone or chat | has_validity_rule | POLICY_FACT
+       Obj: Please have your order number and email address ready.
+       Ev:  Please have your order number and email address ready.
+  [07] Northwind: Page 8 > 6.2 By phone or chat | has_validity_rule | POLICY_FACT
+       Obj: Agents will email your RMA and label within 1 hour.
+       Ev:  Agents will email your RMA and label within 1 hour.
+  [08] In store | has_return_window | PERMISSION
+       Obj: In-store refunds to the original card are processed immediately; the bank may ta
+       Ev:  In-store refunds to the original card are processed immediately; the bank may take 3-5 days to post 
+  [09] Northwind: Page 9 | has_refund_eligibility | POLICY_FACT
+       Obj: up to 1 hour by phone Return transit to warehouse 3-7 business days (domestic) W
+       Ev:  up to 1 hour by phone Return transit to warehouse 3-7 business days (domestic) Warehouse receipt and
+  [10] Reimbursement for carrier costs is | limited_to | OBLIGATION
+       Obj: $12.00 and only for approved defective returns, with a receipt
+       Ev:  Reimbursement for carrier costs is limited to $12.00 and only for approved defective returns, with a
+  [11] Damaged item valued under $40 | may_issue_refund_without_return | PERMISSION
+       Obj: Damaged items under $40 may be refunded without return
+       Ev:  Option Details Timeline Replacement Same item shipped with free expedited shipping 2-3 business days
+  [12] This is | limited_to | OBLIGATION
+       Obj: two instances per customer per year
+       Ev:  This is limited to two instances per customer per year.
+  [13] Northwind | has_refund_eligibility | OBLIGATION
+       Obj: Once an order has shipped, it must be handled as a return.
+       Ev:  Once an order has shipped, it must be handled as a return.
+  [14] Northwind We | cancel | PERMISSION
+       Obj: an order for reasons including stock errors, pricing errors, suspected fraud, or
+       Ev:  Northwind We may cancel an order for reasons including stock errors, pricing errors, suspected fraud
+  [15] Users | can_cancel_before_shipment | PERMISSION
+       Obj: be charged
+       Ev:  If you cancel before the trial ends, you will not be charged.
+  [16] Users | has_return_window | OBLIGATION
+       Obj: a reminder due to an invalid email address, we will treat the renewal as acciden
+       Ev:  If you did not receive a reminder due to an invalid email address, we will treat the renewal as acci
+  [17] Video course | has_refund_window | PERMISSION
+       Obj: Refunded within 7 days if under 20% viewed
+       Ev:  Digital goods such as trail guides (PDF), camping-skills video courses, and map packs are non-refund
+  [18] Customers | are_responsible_for | OBLIGATION
+       Obj: filing customs duty drawback claims where available
+       Ev:  Customers are responsible for filing customs duty drawback claims where available.
+  [19] Northwind | has_evidence_submission_deadline | OBLIGATION
+       Obj: Submits dispute evidence within 7 days
+       Ev:   We submit evidence (order record, delivery confirmation, communications) within 7 days.
+  [20] Customers | has_return_window | OBLIGATION
+       Obj: appeal restrictions in writing to appeals@northwind-demo.example within 30 days
+       Ev:  Customers may appeal restrictions in writing to appeals@northwind-demo.example within 30 days.
+  [21] Northwind | has_refund_eligibility | POLICY_FACT
+       Obj: Channel Details Hours (Pacific Time) Phone (US/Canada) 1-800-555-0142 Mon-Fri 8a
+       Ev:  Channel Details Hours (Pacific Time) Phone (US/Canada) 1-800-555-0142 Mon-Fri 8am-8pm; Sat 9am-5pm P
+  [22] Revision history | has_resolution_path | POLICY_FACT
+       Obj: Version Date Change 4.2 Jan 1, 2026 Extended holiday window; added Keep It polic
+       Ev:  Version Date Change 4.2 Jan 1, 2026 Extended holiday window; added Keep It policy under $40 4.1 Aug 
+  [23] Case A: Wrong size, within window | has_resolution_path | POLICY_FACT
+       Obj: Case A - Wrong size, within window.
+       Ev:  Case A - Wrong size, within window.
+  [24] Sample case studies | has_resolution_path | POLICY_FACT
+       Obj: Maria ordered a $120 jacket (order NW-10482391) and received it on June 3.
+       Ev:  Maria ordered a $120 jacket (order NW-10482391) and received it on June 3.
+  [25] Sample case studies | has_resolution_path | POLICY_FACT
+       Obj: On June 20 she requested a return as it did not fit.
+       Ev:  On June 20 she requested a return as it did not fit.
+  [26] Sample case studies | has_resolution_path | POLICY_FACT
+       Obj: She used the prepaid label ($6.95 deducted).
+       Ev:  She used the prepaid label ($6.95 deducted).
+  [27] Case B: Defective tent zipper | has_resolution_path | POLICY_FACT
+       Obj: Case B - Defective tent zipper.
+       Ev:  Case B - Defective tent zipper.
+  [28] Case B: Defective tent zipper | has_resolution_path | PERMISSION
+       Obj: Daniel bought a $349 tent on May 1 and discovered a broken zipper on May 12.
+       Ev:  Daniel bought a $349 tent on May 1 and discovered a broken zipper on May 12.
+  [29] Sample case studies | has_resolution_path | POLICY_FACT
+       Obj: He reported it with photos.
+       Ev:  He reported it with photos.
+  [30] Sample case studies | has_resolution_path | POLICY_FACT
+       Obj: Northwind issued a free label and sent a replacement tent with expedited shippin
+       Ev:  Northwind issued a free label and sent a replacement tent with expedited shipping.
+  [31] Case C: Late return, Gold member | has_return_window | POLICY_FACT
+       Obj: Because Gold members have 60 days, a full refund of $79 was issued with free ret
+       Ev:  Because Gold members have 60 days, a full refund of $79 was issued with free return shipping.
+  [32] Northwind: 20. Revision History and Sample Case Studies > 20.2 Sample case studies | has_validity_rule | POLICY_FACT
+       Obj: The request was declined under Section 5.
+       Ev:  The request was declined under Section 5.
+  [33] Northwind: 20. Revision History and Sample Case Studies > 20.2 Sample case studies | has_validity_rule | POLICY_FACT
+       Obj: As a goodwill gesture, a 10% discount code was offered.
+       Ev:  As a goodwill gesture, a 10% discount code was offered.
+  [34] Case F: International return | has_validity_rule | POLICY_FACT
+       Obj: VAT was refunded
+       Ev:  VAT was refunded
+  [35] Case F: International return | has_validity_rule | POLICY_FACT
+       Obj: return shipping of EUR 18 was paid by the customer.
+       Ev:  return shipping of EUR 18 was paid by the customer.
+
+>> UNMATCHED GOLD (False Negatives: 22):
+  [01] EFF-001-G03: Extended windows | has_return_window
+  [02] EFF-001-G04: Extended windows | has_return_window
+  [03] EFF-001-G05: Extended windows | has_return_window
+  [04] EFF-001-G06: Extended windows | has_return_window
+  [05] EFF-001-G17: Northwind | has_return_window
+  [06] EFF-001-G18: Northwind | has_return_window
+  [07] EFF-001-G19: Exceptions | has_return_window
+  [08] EFF-001-G29: Reporting window | has_return_window
+  [09] EFF-001-G30: Reporting window | has_return_window
+  [10] EFF-001-G32: Price adjustments | has_return_window
+  [11] EFF-001-G33: Northwind | has_return_window
+  [12] EFF-001-G34: Free trials | has_return_window
+  [13] EFF-001-G47: Marketplace sellers | has_return_window
+  [14] EFF-001-G48: Northwind | has_return_window
+  [15] EFF-001-G49: Northwind | has_return_window
+  [16] EFF-001-G50: Northwind | has_return_window
+  [17] EFF-001-G51: Northwind | has_return_window
+  [18] EFF-001-G52: Northwind | has_return_window
+  [19] EFF-001-G53: Northwind | has_return_window
+  [20] EFF-001-G65: Northwind | has_return_window
+  [21] EFF-001-G68: Northwind | has_return_window
+  [22] EFF-001-G70: Service-level commitments | has_return_window
+
+================================================================================
+TRIAGE FOR EFF-002 (Wingify Employees Notice Period Policy):
+  Gold Rules: 11 | Extracted: 21 | TP: 10 | FP: 10 | FN: 1
+  Precision: 50.0% | Recall: 90.9% | F1: 64.5%
+================================================================================
+
+>> UNMATCHED EXTRACTIONS (False Positives: 10):
+  [01] Document Confidentiality & Reproduction | prohibited_except_internal_confidential_use | PROHIBITION
+       Obj: Customer internal use for business purposes under confidentiality obligations
+       Ev:  No part of this document, in whole or in part, may be reproduced, stored in a retrieval system, or t
+  [02] Governance Policy | has_effective_date | POLICY_FACT
+       Obj: 2021-04-01
+       Ev:  Effective April 1, 2021, this policy outlines various aspects:
+  [03] Employees Notice Period Policy- V 1.5 (1) | has_validity_rule | PROHIBITION
+       Obj: It defines the duration of notice and payout options if notice cannot be served 
+       Ev:  It  defines  the  duration  of  notice  and  payout  options  if  notice  cannot  be  served  and  a
+  [04] Settlement Deductions Summary | summarizes_deduction_categories | POLICY_FACT
+       Obj: Deductions from Full & Final Salary may include laptop and asset values, loan ad
+       Ev:  Deductions  from  Full  &  Final  Salary  may  include  laptop  and  asset  values,  loan  adjustmen
+  [05] Grade Matrix Overview | summarizes_grade_tenures | POLICY_FACT
+       Obj: Notice periods vary based on Wingify levels and grades, with Grade A&B having a 
+       Ev:  Notice  periods  vary  based  on  Wingify  levels  and  grades,  with  Grade  A&B  having  a  maximu
+  [06] Employees (Leave During Notice Period) | request_leave_during_notice_period | PERMISSION
+       Obj: Reporting manager prior written approval
+       Ev:  Employees may request leave during the notice period as an exception with prior approval from their 
+  [07] Company (Pay in Lieu of Notice) | issues_pay_in_lieu_of_notice | OBLIGATION
+       Obj: Payment for notice period upon discussion with Manager, HR, and Department Head 
+       Ev:  Pay in place of Notice Period:
+  [08] Company Laptop and Asset Retention | deducted_per_asset_management_policy | POLICY_FACT
+       Obj: Full and Final Salary
+       Ev:  Deduction  from  Full  &  Final  Salary ● If the employee retains the laptop and other company asset
+  [09] WFH Allowance Recovery | recovered_upon_early_exit | POLICY_FACT
+       Obj: WFH Allowance
+       Ev:  WFH  Allowance  will  be  recovered  based  on  the  Home  Office   Allowance  Policy  if  the  exit
+  [10] Excess Leave Recovery | recovered_beyond_quota | POLICY_FACT
+       Obj: Excess leaves beyond allotted quota
+       Ev:  Recovery will be made for any excess leaves taken beyond the allotted quota.
+
+>> UNMATCHED GOLD (False Negatives: 1):
+  [01] EFF-002-G02: Notice | has_return_window
+
+================================================================================
+TRIAGE FOR EFF-003 (University of St. Thomas Termination of Employment Policy):
+  Gold Rules: 14 | Extracted: 17 | TP: 11 | FP: 6 | FN: 3
+  Precision: 64.7% | Recall: 78.6% | F1: 71.0%
+================================================================================
+
+>> UNMATCHED EXTRACTIONS (False Positives: 6):
+  [01] This means that either the staff member or the University | sever | PERMISSION
+       Obj: the employment relationship at any time with or without cause
+       Ev:  This means that either the staff member or the University may sever the employment relationship at a
+  [02] Termination of Employment Policy | has_validity_rule | OBLIGATION
+       Obj: applies to all regular full-time and part-time staff employees
+       Ev:  This policy applies to all regular full-time and part-time staff employees, including those holding 
+  [03] final paycheck | includes_compensation | OBLIGATION
+       Obj: includes all unpaid wages, earned but unused paid leave time (PLT)
+       Ev:  The final paycheck includes all unpaid wages, earned but unused paid leave time (PLT) for non-exempt
+  [04] Staff members terminated for misconduct | has_severance_eligibility | PROHIBITION
+       Obj: not eligible for severance pay
+       Ev:  Staff members terminated for misconduct are not eligible for severance pay.
+  [05] Company (Pay in Lieu of Notice) | issues_pay_in_lieu_of_notice | OBLIGATION
+       Obj: Payment for notice period upon discussion with Manager, HR, and Department Head 
+       Ev:  When a University leader elects to offer severance pay in lieu of notice, the designated Human Resou
+  [06] Employees | has_validity_rule | PROHIBITION
+       Obj: be offered severance pay under this policy if they are awarded any form of remun
+       Ev:  Employees will not be offered severance pay under this policy if they are awarded any form of remune
+
+>> UNMATCHED GOLD (False Negatives: 3):
+  [01] EFF-003-G09: terminationofemploymentpolicy | has_return_window
+  [02] EFF-003-G11: terminationofemploymentpolicy | has_refund_eligibility
+  [03] EFF-003-G14: Failure to return University property | result
+
+================================================================================
+TRIAGE FOR EFF-005 (Tarion Warranty Commercial Vendor Agreement):
+  Gold Rules: 54 | Extracted: 78 | TP: 54 | FP: 24 | FN: 0
+  Precision: 69.2% | Recall: 100.0% | F1: 81.8%
+================================================================================
+
+>> UNMATCHED EXTRACTIONS (False Positives: 24):
+  [01] Invalidity of Provisions | has_validity_rule | PROHIBITION
+       Obj: 1.8.1 Each of the provisions contained in this Agreement is distinct and severab
+       Ev:  1.8.1 Each of the provisions contained in this Agreement is distinct and severable and a declaration
+  [02] Due | has_inspection_right | OBLIGATION
+       Obj: 3.6.2 Following a risk-based inspection by Tarion of a Home, Tarion may issue to
+       Ev:  3.6.2 Following a risk-based inspection by Tarion of a Home, Tarion may issue to the Vendor a list o
+  [03] The Vendor | comply_with | OBLIGATION
+       Obj: all conditions applicable to the Homes including the requirement that the Vendor
+       Ev:  3.6.3 The Vendor shall comply with all conditions applicable to the Homes including the requirement 
+  [04] Vendor | commence | PROHIBITION
+       Obj: to construct Homes in excess of the maximum number permitted to be constructed,
+       Ev:  3.6.3.1 shall not commence to construct Homes in excess of the maximum number permitted to be constr
+  [05] Vendor | commence | PROHIBITION
+       Obj: to construct homes of any class for which the construction is restricted,
+       Ev:  3.6.3.2 shall not commence to construct homes of any class for which the construction is restricted,
+  [06] Vendor | replace | OBLIGATION
+       Obj: one form of Security previously provided to Tarion with another, as required,
+       Ev:  3.6.3.3 shall replace one form of Security previously provided to Tarion with another, as required,
+  [07] Vendor | provide | OBLIGATION
+       Obj: Security to Tarion in addition to that already provided, in the amount and in th
+       Ev:  3.6.3.4 shall provide Security to Tarion in addition to that already provided, in the amount and in 
+  [08] The Vendor | preserve | OBLIGATION
+       Obj: all assignable rights and claims that the Vendor may have against manufacturers,
+       Ev:  3.6.7 The Vendor shall preserve all assignable rights and claims that the Vendor may have against ma
+  [09] Vendor Agreement Template-02.20212 | has_priority_rule | PROHIBITION
+       Obj: Vendor Agreement February 2021 Page 10 of 20 the lender(s) providing constructio
+       Ev:  Vendor Agreement February 2021                                                                      
+  [10] The Vendor | upon | OBLIGATION
+       Obj: request pay all such fees as are permitted under the ONHWP Act and communicated 
+       Ev:  The Vendor shall upon request pay all such fees as are permitted under the ONHWP Act and communicate
+  [11] The Vendor | has_interest_rate | OBLIGATION
+       Obj: pay to Tarion interest on any amounts owed to Tarion by the Vendor, due to any n
+       Ev:  3.6.10 The Vendor shall pay to Tarion interest on any amounts owed to Tarion by the Vendor, due to a
+  [12] Vendor Agreement Template-02.20212 | has_interest_rate | PERMISSION
+       Obj: 1.5 per cent (1.5%) per month, calculated daily (or such other interest rate as 
+       Ev:  1.5 per cent (1.5%) per month, calculated daily (or such other interest rate as may be stipulated fr
+  [13] Security | has_inspection_right | PERMISSION
+       Obj: 3.8.2 If the results of an examination or interview by Tarion or an inspection b
+       Ev:  3.8.2 If the results of an examination or interview by Tarion or an inspection by Tarion demonstrate
+  [14] Use of Tarion Forms | cannot_modify_addendum | PROHIBITION
+       Obj: 3.9.3.4 Except as noted in paragraphs 3.9.3.2 and 3.9.3.3 above, the Vendor shal
+       Ev:  3.9.3.4 Except as noted in paragraphs 3.9.3.2 and 3.9.3.3 above, the Vendor shall not modify or amen
+  [15] Tarion | use | POLICY_FACT
+       Obj: best efforts to
+       Ev:  Tarion will use best efforts to
+  [16] Indemnity | has_indemnification_obligation | OBLIGATION
+       Obj: Provided that the Vendor shall have no obligation under this Agreement to indemn
+       Ev:  Provided that the Vendor shall have no obligation under this Agreement to indemnify Tarion for any l
+  [17] Continuing Indemnity | has_indemnification_obligation | OBLIGATION
+       Obj: All payments received by Tarion from the Vendor or any other person in respect o
+       Ev:  All payments received by Tarion from the Vendor or any other person in respect of the Indemnified Am
+  [18] Tarion's Statement | has_indemnification_obligation | OBLIGATION
+       Obj: 5.3.1 A statement in writing of Tarion as to the amount of the Vendor Obligation
+       Ev:  5.3.1 A statement in writing of Tarion as to the amount of the Vendor Obligations, the Indemnified A
+  [19] Defects in | has_indemnification_obligation | PROHIBITION
+       Obj: All obligations, liabilities and indebtedness purporting to be incurred by the V
+       Ev:  All obligations, liabilities and indebtedness purporting to be incurred by the Vendor in favour of T
+  [20] The liability of the Vendor hereunder | has_validity_rule | OBLIGATION
+       Obj: be absolute and unconditional and shall not be discharged, diminished or in any 
+       Ev:  7.2.1 The liability of the Vendor hereunder shall be absolute and unconditional and shall not be dis
+  [21] Dealings by | has_indemnification_obligation | OBLIGATION
+       Obj: 7.3.2 No loss of or in respect of any Security or additional covenant relating t
+       Ev:  7.3.2 No loss of or in respect of any Security or additional covenant relating to the Vendor Obligat
+  [22] Dealings by | has_indemnification_obligation | OBLIGATION
+       Obj: Neither Tarion nor any of its directors, officers, employees or agents, or any r
+       Ev:  Neither Tarion nor any of its directors, officers, employees or agents, or any receiver or receiver-
+  [23] No action of Tarion permitted hereunder | in | OBLIGATION
+       Obj: any way impair or affect its rights, powers or remedies under this Agreement
+       Ev:  No action of Tarion permitted hereunder shall in any way impair or affect its rights, powers or reme
+  [24] The Vendor | pay | OBLIGATION
+       Obj: to Tarion on demand all reasonable costs and expenses (on a full indemnity basis
+       Ev:  9.1.1 The Vendor shall pay to Tarion on demand all reasonable costs and expenses (on a full indemnit
+
+================================================================================
+TRIAGE FOR EFF-019 (Enterprise Purchase Order Terms (en-BD, Dense Tables & Liability Clauses)):
+  Gold Rules: 69 | Extracted: 100 | TP: 69 | FP: 31 | FN: 0
+  Precision: 69.0% | Recall: 100.0% | F1: 81.7%
+================================================================================
+
+>> UNMATCHED EXTRACTIONS (False Positives: 31):
+  [01] "SOW" means any of the following | has_definition | POLICY_FACT
+       Obj: (1) Microsoft purchase orders; (2) statements of work or other order forms signe
+       Ev:  "SOW" means any of the following: (1) Microsoft purchase orders; (2) statements of work or other ord
+  [02] Microsoft | are_responsible_for | OBLIGATION
+       Obj: any loss caused by the gross negligence of its employees before acceptance
+       Ev:  Microsoft is responsible for any loss caused by the gross negligence of its employees before accepta
+  [03] Payee | must_contact | OBLIGATION
+       Obj: contact the Microsoft Accounts Payable Help Desk at https://www.microsoft.com/en
+       Ev:  Payee should contact the Microsoft Accounts Payable Help Desk at https://www.microsoft.com/en-us/pro
+  [04] Supplier | charge | PROHIBITION
+       Obj: Microsoft for researching, reporting on, or correcting any errors relating to it
+       Ev:  Supplier will not charge Microsoft for researching, reporting on, or correcting any errors relating 
+  [05] Microsoft | has_return_window | OBLIGATION
+       Obj: make commercially reasonable efforts to notify Supplier in writing of any disput
+       Ev:  Microsoft will make commercially reasonable efforts to notify Supplier in writing of any disputed am
+  [06] Supplier | are_responsible_for | OBLIGATION
+       Obj: all expenses incurred providing the Goods, Services, Deliverables, or Cloud Serv
+       Ev:  Unless otherwise agreed, Supplier is responsible for all expenses incurred providing the Goods, Serv
+  [07] Microsoft | has_validity_rule | PROHIBITION
+       Obj: be involved in the importation of the Goods, Services, Deliverables, or Cloud Se
+       Ev:  Microsoft will not be involved in the importation of the Goods, Services, Deliverables, or Cloud Ser
+  [08] Supplier | collect | PROHIBITION
+       Obj: the taxes covered by such certificate
+       Ev:  If Microsoft provides Supplier a valid exemption certificate, Supplier will not collect the taxes co
+  [09] Supplier | use | PERMISSION
+       Obj: "Microsoft Materials," meaning any tangible or intangible materials, provided by
+       Ev:  (1) Supplier may use "Microsoft Materials," meaning any tangible or intangible materials, provided b
+  [10] Supplier | modify | PROHIBITION
+       Obj: reverse engineer, decompile, or disassemble Microsoft Materials except as allowe
+       Ev:  (i) Supplier will not modify, reverse engineer, decompile, or disassemble Microsoft Materials except
+  [11] No Microsoft Materials, IP or Confidential Information | has_validity_rule | PERMISSION
+       Obj: be used by Supplier or an AI Model to customize, train, or improve, directly or 
+       Ev:  (7) No Microsoft Materials, IP or Confidential Information, may be used by Supplier or an AI Model t
+  [12] Parties | enter | POLICY_FACT
+       Obj: into a separate written agreement that addresses the terms governing the AI Trai
+       Ev:  If Microsoft provides such consent, the parties will first enter into a separate written agreement t
+  [13] Goods, Services, Cloud Services, and Deliverables | meet | OBLIGATION
+       Obj: the standards and specifications in these PO Terms and be suitable for the inten
+       Ev:  Goods, Services, Cloud Services, and Deliverables must meet the standards and specifications in thes
+  [14] Microsoft | suspend | PERMISSION
+       Obj: or terminate these PO Terms immediately without notice to the extent that Micros
+       Ev:  Microsoft may suspend or terminate these PO Terms immediately without notice to the extent that Micr
+  [15] Supplier | remains_responsible_for | OBLIGATION
+       Obj: its and for its affiliated companies' compliance with this section
+       Ev:  Supplier remains responsible for its and for its affiliated companies' compliance with this section.
+  [16] Supplier | will_issue_refund | OBLIGATION
+       Obj: (without prejudice to any other remedies Microsoft may have) provide a pro-rata 
+       Ev:  Supplier will (without prejudice to any other remedies Microsoft may have) provide a pro-rata refund
+  [17] Supplier | prohibited_from_using | PROHIBITION
+       Obj: use any AI System in connection with or incorporate any AI System into the Goods
+       Ev:  Supplier will not use any AI System in connection with or incorporate any AI System into the Goods, 
+  [18] Those measures | has_validity_rule | POLICY_FACT
+       Obj: be set forth in a Supplier artificial intelligence policy, including all documen
+       Ev:  Those measures will be set forth in a Supplier artificial intelligence policy, including all documen
+  [19] Supplier | has_indemnification_obligation | OBLIGATION
+       Obj: defend, indemnify and hold harmless Microsoft and Microsoft affiliates companies
+       Ev:  Supplier will defend, indemnify and hold harmless Microsoft and Microsoft affiliates companies again
+  [20] Supplier | has_validity_rule | OBLIGATION
+       Obj: continue to comply with all terms of these PO Terms applicable to that Confident
+       Ev:  Supplier will continue to comply with all terms of these PO Terms applicable to that Confidential In
+  [21] Supplier | has_refund_reimbursement_window | OBLIGATION
+       Obj: reimburse Microsoft for any such overpayment
+       Ev:  If the auditors determine that Microsoft overpaid Supplier, Supplier will reimburse Microsoft for an
+  [22] an entity transferring Personal Data to a recipient in another jurisdiction take extra measures to | ensure | OBLIGATION
+       Obj: that the Personal Data has special protections if the law of the recipient's jur
+       Ev:  (a) Some jurisdictions require that an entity transferring Personal Data to a recipient in another j
+  [23] Supplier | process | PROHIBITION
+       Obj: Personal Data for any other purpose, unless required by applicable law, and will
+       Ev:  Supplier will not Process Personal Data for any other purpose, unless required by applicable law, an
+  [24] Clause 17 | has_definition | POLICY_FACT
+       Obj: The parties select Option 1.
+       Ev:  Clause 17: The parties select Option 1.
+  [25] Clause 18 | has_definition | POLICY_FACT
+       Obj: The parties agree that the forum is the High Court in Dublin, Ireland.
+       Ev:  Clause 18: The parties agree that the forum is the High Court in Dublin, Ireland.
+  [26] Annex II | has_definition | POLICY_FACT
+       Obj: The parties agree that Schedule 2 describes the technical and organizational mea
+       Ev:  Annex II: The parties agree that Schedule 2 describes the technical and organizational measures appl
+  [27] Clause 2 | has_definition | POLICY_FACT
+       Obj: The parties agree that Schedule 1 of these PO Terms describes the transfer.
+       Ev:  Clause 2: The parties agree that Schedule 1 of these PO Terms describes the transfer.
+  [28] Clause 4 | has_definition | POLICY_FACT
+       Obj: The Status of Parties are detailed in Schedule 1.
+       Ev:  Clause 4: The Status of Parties are detailed in Schedule 1.
+  [29] Supplier | remains_responsible_for | OBLIGATION
+       Obj: compliance with Clauses 14 to
+       Ev:  Supplier remains responsible for compliance with Clauses 14 to
+  [30] for any data to which it | otherwise | PERMISSION
+       Obj: be the data controller
+       Ev:  16 for any data to which it may otherwise be the data controller.
+  [31] Clause 24 | has_definition | POLICY_FACT
+       Obj: In accordance with SECTION IV, the parties agree that the governing forum is São
+       Ev:  Clause 24:  In accordance with SECTION IV, the parties agree that the governing forum is São Paulo.
+
+================================================================================
+TRIAGE FOR EFF-020 (Enterprise Purchase Order Terms (en-LK, Multi-Clause Penalty & Termination Matrix)):
+  Gold Rules: 69 | Extracted: 100 | TP: 69 | FP: 31 | FN: 0
+  Precision: 69.0% | Recall: 100.0% | F1: 81.7%
+================================================================================
+
+>> UNMATCHED EXTRACTIONS (False Positives: 31):
+  [01] "SOW" means any of the following | has_definition | POLICY_FACT
+       Obj: (1) Microsoft purchase orders; (2) statements of work or other order forms signe
+       Ev:  "SOW" means any of the following: (1) Microsoft purchase orders; (2) statements of work or other ord
+  [02] Microsoft | are_responsible_for | OBLIGATION
+       Obj: any loss caused by the gross negligence of its employees before acceptance
+       Ev:  Microsoft is responsible for any loss caused by the gross negligence of its employees before accepta
+  [03] Payee | must_contact | OBLIGATION
+       Obj: contact the Microsoft Accounts Payable Help Desk at https://www.microsoft.com/en
+       Ev:  Payee should contact the Microsoft Accounts Payable Help Desk at https://www.microsoft.com/en-us/pro
+  [04] Supplier | charge | PROHIBITION
+       Obj: Microsoft for researching, reporting on, or correcting any errors relating to it
+       Ev:  Supplier will not charge Microsoft for researching, reporting on, or correcting any errors relating 
+  [05] Microsoft | has_return_window | OBLIGATION
+       Obj: make commercially reasonable efforts to notify Supplier in writing of any disput
+       Ev:  Microsoft will make commercially reasonable efforts to notify Supplier in writing of any disputed am
+  [06] Supplier | are_responsible_for | OBLIGATION
+       Obj: all expenses incurred providing the Goods, Services, Deliverables, or Cloud Serv
+       Ev:  Unless otherwise agreed, Supplier is responsible for all expenses incurred providing the Goods, Serv
+  [07] Microsoft | has_validity_rule | PROHIBITION
+       Obj: be involved in the importation of the Goods, Services, Deliverables, or Cloud Se
+       Ev:  Microsoft will not be involved in the importation of the Goods, Services, Deliverables, or Cloud Ser
+  [08] Supplier | collect | PROHIBITION
+       Obj: the taxes covered by such certificate
+       Ev:  If Microsoft provides Supplier a valid exemption certificate, Supplier will not collect the taxes co
+  [09] Supplier | use | PERMISSION
+       Obj: "Microsoft Materials," meaning any tangible or intangible materials, provided by
+       Ev:  (1) Supplier may use "Microsoft Materials," meaning any tangible or intangible materials, provided b
+  [10] Supplier | modify | PROHIBITION
+       Obj: reverse engineer, decompile, or disassemble Microsoft Materials except as allowe
+       Ev:  (i) Supplier will not modify, reverse engineer, decompile, or disassemble Microsoft Materials except
+  [11] No Microsoft Materials, IP or Confidential Information | has_validity_rule | PERMISSION
+       Obj: be used by Supplier or an AI Model to customize, train, or improve, directly or 
+       Ev:  (7) No Microsoft Materials, IP or Confidential Information, may be used by Supplier or an AI Model t
+  [12] Parties | enter | POLICY_FACT
+       Obj: into a separate written agreement that addresses the terms governing the AI Trai
+       Ev:  If Microsoft provides such consent, the parties will first enter into a separate written agreement t
+  [13] Goods, Services, Cloud Services, and Deliverables | meet | OBLIGATION
+       Obj: the standards and specifications in these PO Terms and be suitable for the inten
+       Ev:  Goods, Services, Cloud Services, and Deliverables must meet the standards and specifications in thes
+  [14] Microsoft | suspend | PERMISSION
+       Obj: or terminate these PO Terms immediately without notice to the extent that Micros
+       Ev:  Microsoft may suspend or terminate these PO Terms immediately without notice to the extent that Micr
+  [15] Supplier | remains_responsible_for | OBLIGATION
+       Obj: its and for its affiliated companies' compliance with this section
+       Ev:  Supplier remains responsible for its and for its affiliated companies' compliance with this section.
+  [16] Supplier | will_issue_refund | OBLIGATION
+       Obj: (without prejudice to any other remedies Microsoft may have) provide a pro-rata 
+       Ev:  Supplier will (without prejudice to any other remedies Microsoft may have) provide a pro-rata refund
+  [17] Supplier | prohibited_from_using | PROHIBITION
+       Obj: use any AI System in connection with or incorporate any AI System into the Goods
+       Ev:  Supplier will not use any AI System in connection with or incorporate any AI System into the Goods, 
+  [18] Those measures | has_validity_rule | POLICY_FACT
+       Obj: be set forth in a Supplier artificial intelligence policy, including all documen
+       Ev:  Those measures will be set forth in a Supplier artificial intelligence policy, including all documen
+  [19] Supplier | has_indemnification_obligation | OBLIGATION
+       Obj: defend, indemnify and hold harmless Microsoft and Microsoft affiliates companies
+       Ev:  Supplier will defend, indemnify and hold harmless Microsoft and Microsoft affiliates companies again
+  [20] Supplier | has_validity_rule | OBLIGATION
+       Obj: continue to comply with all terms of these PO Terms applicable to that Confident
+       Ev:  Supplier will continue to comply with all terms of these PO Terms applicable to that Confidential In
+  [21] Supplier | has_refund_reimbursement_window | OBLIGATION
+       Obj: reimburse Microsoft for any such overpayment
+       Ev:  If the auditors determine that Microsoft overpaid Supplier, Supplier will reimburse Microsoft for an
+  [22] an entity transferring Personal Data to a recipient in another jurisdiction take extra measures to | ensure | OBLIGATION
+       Obj: that the Personal Data has special protections if the law of the recipient's jur
+       Ev:  (a) Some jurisdictions require that an entity transferring Personal Data to a recipient in another j
+  [23] Supplier | process | PROHIBITION
+       Obj: Personal Data for any other purpose, unless required by applicable law, and will
+       Ev:  Supplier will not Process Personal Data for any other purpose, unless required by applicable law, an
+  [24] Clause 17 | has_definition | POLICY_FACT
+       Obj: The parties select Option 1.
+       Ev:  Clause 17: The parties select Option 1.
+  [25] Clause 18 | has_definition | POLICY_FACT
+       Obj: The parties agree that the forum is the High Court in Dublin, Ireland.
+       Ev:  Clause 18: The parties agree that the forum is the High Court in Dublin, Ireland.
+  [26] Annex II | has_definition | POLICY_FACT
+       Obj: The parties agree that Schedule 2 describes the technical and organizational mea
+       Ev:  Annex II: The parties agree that Schedule 2 describes the technical and organizational measures appl
+  [27] Clause 2 | has_definition | POLICY_FACT
+       Obj: The parties agree that Schedule 1 of these PO Terms describes the transfer.
+       Ev:  Clause 2: The parties agree that Schedule 1 of these PO Terms describes the transfer.
+  [28] Clause 4 | has_definition | POLICY_FACT
+       Obj: The Status of Parties are detailed in Schedule 1.
+       Ev:  Clause 4: The Status of Parties are detailed in Schedule 1.
+  [29] Supplier | remains_responsible_for | OBLIGATION
+       Obj: compliance with Clauses 14 to
+       Ev:  Supplier remains responsible for compliance with Clauses 14 to
+  [30] for any data to which it | otherwise | PERMISSION
+       Obj: be the data controller
+       Ev:  16 for any data to which it may otherwise be the data controller.
+  [31] Clause 24 | has_definition | POLICY_FACT
+       Obj: In accordance with SECTION IV, the parties agree that the governing forum is São
+       Ev:  Clause 24:  In accordance with SECTION IV, the parties agree that the governing forum is São Paulo.

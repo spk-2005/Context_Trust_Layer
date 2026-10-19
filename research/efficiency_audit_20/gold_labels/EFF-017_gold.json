@@ -1,0 +1,85 @@
+{
+  "document_id": "EFF-017",
+  "filename": "System and Organization Controls (SOC) 2 Type 2 - Microsoft Compliance _ Microsoft Learn.pdf",
+  "document_type": "scanned_soc",
+  "claim_truth": [
+    {
+      "gold_id": "EFF-017-G01",
+      "claim_type": "policy",
+      "canonical": true,
+      "subject": "Microsoft",
+      "predicate": "may_replicate",
+      "object": "replicate customer data to other regions within the same geographic area (for example, the United States) for data resiliency",
+      "modality": "PERMISSION",
+      "conditions": [],
+      "page_number": 2,
+      "section": "Microsoft 365 environments",
+      "evidence_quote": "Microsoft may replicate customer data to other regions within the same geographic area (for example, the United States) for data resiliency, but Microsoft will not replicate customer data outside the chosen geographic area."
+    },
+    {
+      "gold_id": "EFF-017-G02",
+      "claim_type": "policy",
+      "canonical": true,
+      "subject": "Microsoft",
+      "predicate": "prohibited_from_replicating",
+      "object": "replicate customer data outside the chosen geographic area",
+      "modality": "PROHIBITION",
+      "conditions": [],
+      "page_number": 2,
+      "section": "Microsoft 365 environments",
+      "evidence_quote": "Microsoft may replicate customer data to other regions within the same geographic area (for example, the United States) for data resiliency, but Microsoft will not replicate customer data outside the chosen geographic area."
+    },
+    {
+      "gold_id": "EFF-017-G03",
+      "claim_type": "policy",
+      "canonical": true,
+      "subject": "Customers",
+      "predicate": "are_responsible_for",
+      "object": "ensuring compliance with all applicable laws and regulations",
+      "modality": "OBLIGATION",
+      "conditions": [],
+      "page_number": 3,
+      "section": "Microsoft 365 environments",
+      "evidence_quote": "Your organization is wholly responsible for ensuring compliance with all applicable laws and regulations."
+    },
+    {
+      "gold_id": "EFF-017-G04",
+      "claim_type": "policy",
+      "canonical": true,
+      "subject": "Users",
+      "predicate": "has_validity_rule",
+      "object": "have an existing subscription or free trial account in Microsoft 365 or Microsoft 365 U.S. Government to download SOC 1 and SOC 2 attestation reports and any bridge letters",
+      "modality": "OBLIGATION",
+      "conditions": [],
+      "page_number": 4,
+      "section": "Frequently asked questions",
+      "evidence_quote": "In accordance with AICPA requirements, you must have an existing subscription or free trial account in Microsoft 365 or Microsoft 365 U.S. Government to download SOC 1 and SOC 2 attestation reports and any bridge letters."
+    },
+    {
+      "gold_id": "EFF-017-G05",
+      "claim_type": "policy",
+      "canonical": true,
+      "subject": "Users",
+      "predicate": "has_validity_rule",
+      "object": "have an existing subscription or free trial account in Microsoft 365 or Microsoft 365 U.S. Government to sign in",
+      "modality": "OBLIGATION",
+      "conditions": [],
+      "page_number": 5,
+      "section": "Frequently asked questions",
+      "evidence_quote": "You must have an existing subscription or free trial account in Microsoft 365 or Microsoft 365 U.S. Government to sign in."
+    },
+    {
+      "gold_id": "EFF-017-G06",
+      "claim_type": "policy",
+      "canonical": true,
+      "subject": "Users",
+      "predicate": "download",
+      "object": "audit certificates, assessment reports, and other applicable documents to help you with your own regulatory requirements",
+      "modality": "PERMISSION",
+      "conditions": [],
+      "page_number": 5,
+      "section": "Frequently asked questions",
+      "evidence_quote": "You can then download audit certificates, assessment reports, and other applicable documents to help you with your own regulatory requirements."
+    }
+  ]
+}

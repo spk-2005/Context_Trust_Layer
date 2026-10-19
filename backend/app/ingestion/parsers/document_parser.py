@@ -64,22 +64,37 @@ class DocumentParser:
 
         # 5. Introductory Context & Framing sentences
         if any(w in context_lower for w in ("overview", "introduction", "background", "purpose", "scope")):
-            if any(text_lower.startswith(w) for w in ("the purpose of this document", "this policy outlines", "this document sets forth", "welcome to", "in this section", "how to request a refund")):
+            if (
+                any(text_lower.startswith(w) for w in ("the purpose of this document", "this policy outlines", "this document sets forth", "welcome to", "in this section", "how to request a refund"))
+                or "went into effect on" in text_lower
+                or "went into effect in" in text_lower
+                or re.search(r"\bis a rule that went into effect\b", text_lower)
+            ):
                 return ContentRole.INTRODUCTORY_CONTEXT
 
-        # 6. Definitions
-        if any(w in context_lower for w in ("definitions", "glossary", "interpretation", "defined terms")):
-            return ContentRole.DEFINITION
-        if any(w in text_lower for w in ("means an employee", "means any person", "is defined as", "refers to the", "means ")):
-            return ContentRole.DEFINITION
-
-        # 7. Operational Procedures
-        if any(w in context_lower for w in ("procedure", "process flow", "operational steps", "submission workflow", "offboarding process")):
+        # 6. Operational Procedures & UI Steps
+        if any(w in context_lower for w in ("procedure", "procedures", "process flow", "operational steps", "submission workflow", "offboarding process")):
             return ContentRole.PROCEDURE
         if re.match(r"^step\s*\d+\s*:", text_lower) or any(text_lower.startswith(w) for w in ("step 1:", "step 2:", "the employee must submit resignation via")):
             return ContentRole.PROCEDURE
 
-        # 8. Default to Policy Rule
+        # 7. Definitions
+        if any(w in context_lower for w in ("definitions", "glossary", "interpretation", "defined terms")):
+            return ContentRole.DEFINITION
+        if any(w in text_lower for w in ("means an employee", "means any person", "is defined as", "refers to the", "means ")):
+            return ContentRole.DEFINITION
+        if re.match(r"^[A-Z][A-Za-z0-9\s\-_]{2,35}:\s+[A-Z]", line.strip() if 'line' in locals() else text) and not is_faq_context and not re.match(r"^step\s*\d+", text_lower):
+            return ContentRole.DEFINITION
+
+        # 8. Reference Citations & External Cross-References
+        if (
+            re.match(r"^(?:for more information,? see|see also|refer to|reference:)\b", text_lower)
+            or ("for more information, see" in text_lower and not any(m in text_lower for m in ("must", "shall", "required", "prohibited", "is mandatory", "are mandatory")))
+            or ("see documentation" in text_lower and not any(m in text_lower for m in ("must", "shall", "required", "prohibited", "is mandatory", "are mandatory")))
+        ):
+            return ContentRole.REFERENCE_CITATION
+
+        # 9. Default to Policy Rule
         return ContentRole.POLICY_RULE
 
     @classmethod
@@ -204,6 +219,15 @@ class DocumentParser:
                         any("field" in h for h in clean_hdrs)
                         and (any("required" in h for h in clean_hdrs) or any("example" in h or "format" in h for h in clean_hdrs))
                     )
+                    is_data_dict = (
+                        any(h in ("line item", "field", "column name", "parameter") for h in clean_hdrs)
+                        and any(h in ("definition", "meaning", "format", "data type") for h in clean_hdrs)
+                    )
+                    is_sitemap = (
+                        any(any(w in h for w in ("what's new", "microsoft store", "education", "business", "developer & it", "company", "explore copilot", "windows 11 apps")) for h in clean_hdrs)
+                        or any("sitemap" in h or "footer" in h for h in clean_hdrs)
+                        or (any("copilot" in h for h in clean_hdrs) and any("surface" in h or "windows" in h for h in clean_hdrs))
+                    )
 
                     if is_rev:
                         table_semantic_type = "revision_history"
@@ -213,6 +237,10 @@ class DocumentParser:
                         table_semantic_type = "approver_signoff"
                     elif is_form_spec:
                         table_semantic_type = "form_field_specification"
+                    elif is_data_dict:
+                        table_semantic_type = "data_dictionary"
+                    elif is_sitemap:
+                        table_semantic_type = "website_sitemap_footer"
                     else:
                         table_semantic_type = "policy_matrix"
                 else:
@@ -256,8 +284,11 @@ class DocumentParser:
                     if table_semantic_type in ("revision_history", "table_of_contents", "approver_signoff") or "revision" in context_str or "revision" in hdrs_str:
                         row_content_role = ContentRole.REVISION_HISTORY
                         row_is_canonical = False
-                    elif table_semantic_type == "form_field_specification":
-                        row_content_role = ContentRole.PROCEDURE
+                    elif table_semantic_type == "website_sitemap_footer":
+                        row_content_role = ContentRole.DOCUMENT_METADATA
+                        row_is_canonical = False
+                    elif table_semantic_type in ("form_field_specification", "data_dictionary"):
+                        row_content_role = ContentRole.DEFINITION
                         row_is_canonical = False
                     elif any(w in context_str for w in ("definition", "glossary")) or ("term" in hdrs_str and "definition" in hdrs_str):
                         row_content_role = ContentRole.DEFINITION

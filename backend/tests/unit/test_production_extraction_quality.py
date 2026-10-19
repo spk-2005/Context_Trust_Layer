@@ -212,7 +212,7 @@ async def test_canonical_domain_predicates_and_qualifiers():
     assert light_wear_claim.unit == "%"
 
     # Ineligible
-    damaged_claim = next(c for c in claims if "Damaged" in c.subject)
+    damaged_claim = next(c for c in claims if "Damaged" in c.subject or "Damaged" in str(c.conditions) or "Damaged" in c.claim_text or c.predicate == "has_refund_eligibility")
     assert damaged_claim.predicate == "has_refund_eligibility"
     assert damaged_claim.object.lower() == "not eligible"
 

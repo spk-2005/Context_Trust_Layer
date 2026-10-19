@@ -1,0 +1,131 @@
+{
+  "document_id": "EFF-015",
+  "legacy_id": "DOC-057",
+  "filename": "Invoice-Terms-and-Conditions_EN-CH.pdf",
+  "document_type": "invoice",
+  "claim_truth": [
+    {
+      "gold_id": "EFF-015-G01",
+      "claim_type": "OBLIGATION",
+      "canonical": true,
+      "subject": "Microsoft",
+      "predicate": "shall_provide",
+      "object": "E-invoicing functionality to Vendor for processing of invoices for payment for Services provided to Microsoft by Vendor under the Services Contracts",
+      "modality": "OBLIGATION",
+      "conditions": [],
+      "page_number": 2,
+      "section": "SECTION 3 Description of e-invoicing functionality",
+      "evidence_quote": "Microsoft shall provide E-invoicing functionality to Vendor for processing of invoices for payment for Services provided to Microsoft by Vendor under the Services Contracts between the parties."
+    },
+    {
+      "gold_id": "EFF-015-G02",
+      "claim_type": "OBLIGATION",
+      "canonical": true,
+      "subject": "Microsoft",
+      "predicate": "shall_provide",
+      "object": "the E-invoicing functionality to Vendor through a third party provider",
+      "modality": "OBLIGATION",
+      "conditions": [],
+      "page_number": 2,
+      "section": "SECTION 3 Description of e-invoicing functionality",
+      "evidence_quote": "Microsoft shall provide the E-invoicing functionality to Vendor through a third party provider (\u201cE-invoicing Provider\u201d)."
+    },
+    {
+      "gold_id": "EFF-015-G03",
+      "claim_type": "PERMISSION",
+      "canonical": true,
+      "subject": "Vendor",
+      "predicate": "authorizes",
+      "object": "E-invoicing Provider to receive Vendor's invoice data not yet constituting an original invoice and subsequently to apply an electronic signature to the invoice data to issue electronic invoices in the name and on behalf of Vendor",
+      "modality": "PERMISSION",
+      "conditions": [],
+      "page_number": 2,
+      "section": "SECTION 4 Authorization of e-invoice issuance and electronic signing",
+      "evidence_quote": "Vendor hereby authorizes E-invoicing Provider to receive Vendor\u2019s invoice data not yet constituting an original invoice and subsequently to apply an electronic signature to the invoice data to issue electronic invoices \u201cin the name and on behalf of\u201d Vendor."
+    },
+    {
+      "gold_id": "EFF-015-G04",
+      "claim_type": "OBLIGATION",
+      "canonical": true,
+      "subject": "Vendor",
+      "predicate": "remains_responsible_for",
+      "object": "the invoice and its value added tax and other tax implications towards competent tax authorities",
+      "modality": "OBLIGATION",
+      "conditions": [],
+      "page_number": 2,
+      "section": "SECTION 5 Tax compliance and responsibility",
+      "evidence_quote": "Vendor remains fully responsible towards competent tax authorities for the invoice and its value added tax and other tax implications."
+    },
+    {
+      "gold_id": "EFF-015-G05",
+      "claim_type": "PROHIBITION",
+      "canonical": true,
+      "subject": "Vendor",
+      "predicate": "prohibited_from_submitting",
+      "object": "invoice data to E-invoicing Provider that under applicable law may not be used by a third party for issuing invoices in the name and on behalf of Vendors",
+      "modality": "PROHIBITION",
+      "conditions": [],
+      "page_number": 2,
+      "section": "SECTION 5 Tax compliance and responsibility",
+      "evidence_quote": "Vendor shall not directly or indirectly submit invoice data to E-invoicing Provider that under applicable law may not be used by a third party for issuing invoices \u201cin the name and on behalf of\u201d Vendors;"
+    },
+    {
+      "gold_id": "EFF-015-G06",
+      "claim_type": "OBLIGATION",
+      "canonical": true,
+      "subject": "Vendor",
+      "predicate": "shall_signal_apparent_errors",
+      "object": "in such e-invoice to Microsoft within 48 hours from the moment that the signed e-invoice has become available to Vendor",
+      "modality": "OBLIGATION",
+      "conditions": [
+        "Within 48 hours from the moment that the signed e-invoice has become available to Vendor"
+      ],
+      "page_number": 3,
+      "section": "SECTION 5 Tax compliance and responsibility",
+      "evidence_quote": "Vendor shall within 48 hours from the moment that the signed e-invoice has become available to Vendor, signal any apparent errors in such e-invoice to Microsoft;"
+    },
+    {
+      "gold_id": "EFF-015-G07",
+      "claim_type": "OBLIGATION",
+      "canonical": true,
+      "subject": "Microsoft",
+      "predicate": "agrees_to_receive",
+      "object": "invoices in electronic form from Vendor and to treat these electronic invoices as originals for tax purposes",
+      "modality": "OBLIGATION",
+      "conditions": [],
+      "page_number": 3,
+      "section": "SECTION 7 Acceptance to receive invoices in electronic form",
+      "evidence_quote": "Microsoft agrees to receive invoices in electronic form from Vendor and to treat these electronic invoices as originals for tax purposes."
+    },
+    {
+      "gold_id": "EFF-015-G08",
+      "claim_type": "OBLIGATION",
+      "canonical": true,
+      "subject": "Parties",
+      "predicate": "agree_all_invoices_shall_be_in_electronic_form",
+      "object": "all invoices submitted under the Services Contracts between the parties shall be in electronic form",
+      "modality": "OBLIGATION",
+      "conditions": [
+        "Unless otherwise specified and agreed to between the parties"
+      ],
+      "page_number": 3,
+      "section": "SECTION 8 Regional scope",
+      "evidence_quote": "The parties further agree that all invoices submitted under the Services Contracts between the parties shall be in electronic form, unless otherwise specified and agreed to between the parties."
+    },
+    {
+      "gold_id": "EFF-015-G09",
+      "claim_type": "OBLIGATION",
+      "canonical": true,
+      "subject": "Invoicing Agreement",
+      "predicate": "remains_valid_until_terminated",
+      "object": "until terminated by either Microsoft or Vendor upon 30 business days notice to the other party",
+      "modality": "OBLIGATION",
+      "conditions": [
+        "Upon 30 business days notice to the other party"
+      ],
+      "page_number": 4,
+      "section": "SECTION 10 Termination",
+      "evidence_quote": "This Invoicing Agreement will remain valid until terminated by either Microsoft or Vendor upon 30 business days notice to the other party."
+    }
+  ]
+}

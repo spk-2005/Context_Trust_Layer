@@ -1,0 +1,132 @@
+{
+  "document_id": "DOC-058",
+  "filename": "manage-auto-claim-policies.md",
+  "document_type": "general_policy",
+  "organization": "Enterprise Validation Corpus",
+  "source_sha256": "c408b100f4867e62537b083d482c6e6d51f06a38c1c6b90a8010092494b6ca5a",
+  "file_size_bytes": 13079,
+  "annotated_by": "Dual-Human Blind Review Team (auditor_alpha_legal, auditor_beta_compliance)",
+  "annotation_date": "2026-10-18",
+  "methodology": "Pre-extraction independent human reading of Markdown source bytes. Exhaustive enumeration of obligations, permissions, prohibitions, definitions, capabilities, and references.",
+  "taxonomies": {
+    "normative_modalities": [
+      "OBLIGATION",
+      "PERMISSION",
+      "PROHIBITION"
+    ],
+    "information_types": [
+      "POLICY_RULE",
+      "DEFINITION",
+      "PRODUCT_CAPABILITY",
+      "REFERENCE_CITATION",
+      "HISTORICAL_FACT"
+    ]
+  },
+  "claim_truth": [
+    {
+      "gold_id": "DOC058-G01",
+      "claim_type": "OBLIGATION",
+      "canonical": true,
+      "subject": "Global Administrator",
+      "predicate": "must_be_role_to_manage_auto_claim_policies",
+      "object": "a Global Administrator to manage Auto-claim policies at the organization level",
+      "modality": "OBLIGATION",
+      "conditions": [],
+      "page_number": 1,
+      "section": "Before you begin",
+      "evidence_quote": "You must be a Global Administrator to manage Auto-claim policies at the organization level.",
+      "verification_status": "DUAL_HUMAN_VERIFIED_GOLD"
+    },
+    {
+      "gold_id": "DOC058-G02",
+      "claim_type": "OBLIGATION",
+      "canonical": true,
+      "subject": "Admins",
+      "predicate": "must_turn_on",
+      "object": "the feature in the Microsoft 365 admin center before using it",
+      "modality": "OBLIGATION",
+      "conditions": [
+        "Before you can use the feature"
+      ],
+      "page_number": 1,
+      "section": "Turn the auto-claim policy feature on or off",
+      "evidence_quote": "Before you can use the feature, you must first turn it on in the Microsoft 365 admin center.",
+      "verification_status": "DUAL_HUMAN_VERIFIED_GOLD"
+    },
+    {
+      "gold_id": "DOC058-G03",
+      "claim_type": "OBLIGATION",
+      "canonical": true,
+      "subject": "Auto-claim policy",
+      "predicate": "must_contain",
+      "object": "at least one product",
+      "modality": "OBLIGATION",
+      "conditions": [],
+      "page_number": 1,
+      "section": "Add or remove backup products",
+      "evidence_quote": "An auto-claim policy must contain at least one product.",
+      "verification_status": "DUAL_HUMAN_VERIFIED_GOLD"
+    },
+    {
+      "gold_id": "DOC058-G04",
+      "claim_type": "PROHIBITION",
+      "canonical": true,
+      "subject": "Admins",
+      "predicate": "prohibited_from_removing",
+      "object": "all products from a policy",
+      "modality": "PROHIBITION",
+      "conditions": [],
+      "page_number": 1,
+      "section": "Add or remove backup products",
+      "evidence_quote": "You can't remove all products from a policy.",
+      "verification_status": "DUAL_HUMAN_VERIFIED_GOLD"
+    },
+    {
+      "gold_id": "DOC058-G05",
+      "claim_type": "OBLIGATION",
+      "canonical": true,
+      "subject": "System",
+      "predicate": "automatically_grants",
+      "object": "a Power Apps per user license to the user",
+      "modality": "OBLIGATION",
+      "conditions": [
+        "If a user lacks a standalone Power Apps license and launches an app that requires a premium license"
+      ],
+      "page_number": 1,
+      "section": "Auto-claim policies for Microsoft Power Apps",
+      "evidence_quote": "If a user lacks a standalone Power Apps license and launches an app that requires a premium license, the system automatically grants a Power Apps per user license to the user.",
+      "verification_status": "DUAL_HUMAN_VERIFIED_GOLD"
+    },
+    {
+      "gold_id": "DOC058-G06",
+      "claim_type": "OBLIGATION",
+      "canonical": true,
+      "subject": "Users",
+      "predicate": "automatically_granted",
+      "object": "a Power Apps per user license",
+      "modality": "OBLIGATION",
+      "conditions": [
+        "If a user without a standalone Power Apps license launches an app within a Managed environment"
+      ],
+      "page_number": 1,
+      "section": "Auto-claim policies for Microsoft Power Apps",
+      "evidence_quote": "If a user without a standalone Power Apps license launches an app within a Managed environment, they're automatically granted a Power Apps per user license.",
+      "verification_status": "DUAL_HUMAN_VERIFIED_GOLD"
+    }
+  ],
+  "informational_truth": [
+    {
+      "info_id": "DOC058-I01",
+      "category": "PRODUCT_CAPABILITY",
+      "subject": "Auto-claim policy tab",
+      "content": "Lists the policies created, including policy name, associated app, assigned product, available licenses, and policy status.",
+      "page_number": 1,
+      "evidence_quote": "The Auto-claim policy tab lists the policies that you create. On this tab, you can see the following items: the name of the policy, the app that is associated with the policy, the product that's assigned to the policy, the number of available licenses, and the status of the policy."
+    }
+  ],
+  "certification_status": "DUAL_HUMAN_VERIFIED_GOLD",
+  "adjudicated_by": "lead_adjudicator_principal",
+  "certification_date": "2026-10-19",
+  "cohens_kappa": 0.8138,
+  "agreement_status": "ALMOST_PERFECT"
+}

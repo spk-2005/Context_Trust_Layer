@@ -7164,5 +7164,1006 @@
       "beta_disposition": "CERTIFY",
       "final_disposition": "CERTIFY"
     }
+  },
+  {
+    "claim_id": "cand:02b9e09d-bd34-52e0-a7ae-2d5a2b4b0d04:2:db5c780d098f:b5830bd6d7",
+    "document_id": "DOC-051",
+    "filename": "Electronic Prescriptions for Controlled Substances (EPCS) - Azure Compliance _ Microsoft Learn.pdf",
+    "subject": "Prescribers",
+    "predicate": "digitally_sign",
+    "object": "electronic prescriptions for controlled substances",
+    "modality": "PERMISSION",
+    "conditions": [],
+    "trust_score": 0.98,
+    "lifecycle_state": "CERTIFIED",
+    "gold_id": "DOC051-G01",
+    "adjudication_disposition": "CERTIFIED",
+    "risk_tier": "CRITICAL_100",
+    "certified_at": "2026-10-19T04:59:28.707728+00:00",
+    "certification_evidence": {
+      "alpha_disposition": "CERTIFY",
+      "beta_disposition": "CERTIFY",
+      "final_disposition": "CERTIFY",
+      "gold_verification_status": "DUAL_HUMAN_VERIFIED_GOLD"
+    }
+  },
+  {
+    "claim_id": "cand:02b9e09d-bd34-52e0-a7ae-2d5a2b4b0d04:2:db5c780d098f:9774c98296",
+    "document_id": "DOC-051",
+    "filename": "Electronic Prescriptions for Controlled Substances (EPCS) - Azure Compliance _ Microsoft Learn.pdf",
+    "subject": "Prescribers",
+    "predicate": "transmit_report_and_archive",
+    "object": "electronic prescriptions for controlled substances",
+    "modality": "PERMISSION",
+    "conditions": [],
+    "trust_score": 0.98,
+    "lifecycle_state": "CERTIFIED",
+    "gold_id": "DOC051-G02",
+    "adjudication_disposition": "CERTIFIED",
+    "risk_tier": "CRITICAL_100",
+    "certified_at": "2026-10-19T04:59:28.707728+00:00",
+    "certification_evidence": {
+      "alpha_disposition": "CERTIFY",
+      "beta_disposition": "CERTIFY",
+      "final_disposition": "CERTIFY",
+      "gold_verification_status": "DUAL_HUMAN_VERIFIED_GOLD"
+    }
+  },
+  {
+    "claim_id": "cand:02b9e09d-bd34-52e0-a7ae-2d5a2b4b0d04:2:db5c780d098f:a25221c8ee",
+    "document_id": "DOC-051",
+    "filename": "Electronic Prescriptions for Controlled Substances (EPCS) - Azure Compliance _ Microsoft Learn.pdf",
+    "subject": "Pharmacies",
+    "predicate": "receive_dispense_and_archive",
+    "object": "electronic prescriptions for controlled substances",
+    "modality": "PERMISSION",
+    "conditions": [],
+    "trust_score": 0.98,
+    "lifecycle_state": "CERTIFIED",
+    "gold_id": "DOC051-G03",
+    "adjudication_disposition": "CERTIFIED",
+    "risk_tier": "CRITICAL_100",
+    "certified_at": "2026-10-19T04:59:28.707728+00:00",
+    "certification_evidence": {
+      "alpha_disposition": "CERTIFY",
+      "beta_disposition": "CERTIFY",
+      "final_disposition": "CERTIFY",
+      "gold_verification_status": "DUAL_HUMAN_VERIFIED_GOLD"
+    }
+  },
+  {
+    "claim_id": "cand:02b9e09d-bd34-52e0-a7ae-2d5a2b4b0d04:10:d3d8acb9b0ca:ce45d9da5e",
+    "document_id": "DOC-051",
+    "filename": "Electronic Prescriptions for Controlled Substances (EPCS) - Azure Compliance _ Microsoft Learn.pdf",
+    "subject": "Electronic system prescriber assignment",
+    "predicate": "requires_two_factor_authentication",
+    "object": "two-factor authentication to assign a prescriber within the electronic system",
+    "modality": "OBLIGATION",
+    "conditions": [],
+    "trust_score": 0.98,
+    "lifecycle_state": "CERTIFIED",
+    "gold_id": "DOC051-G04",
+    "adjudication_disposition": "CERTIFIED",
+    "risk_tier": "CRITICAL_100",
+    "certified_at": "2026-10-19T04:59:28.707728+00:00",
+    "certification_evidence": {
+      "alpha_disposition": "CERTIFY",
+      "beta_disposition": "CERTIFY",
+      "final_disposition": "CERTIFY",
+      "gold_verification_status": "DUAL_HUMAN_VERIFIED_GOLD"
+    }
+  },
+  {
+    "claim_id": "cand:02b9e09d-bd34-52e0-a7ae-2d5a2b4b0d04:10:d3d8acb9b0ca:7cd003e108",
+    "document_id": "DOC-051",
+    "filename": "Electronic Prescriptions for Controlled Substances (EPCS) - Azure Compliance _ Microsoft Learn.pdf",
+    "subject": "Prescription entry approval",
+    "predicate": "requires_two_factor_authentication",
+    "object": "two-factor authentication to approve a prescription entry",
+    "modality": "OBLIGATION",
+    "conditions": [],
+    "trust_score": 0.98,
+    "lifecycle_state": "CERTIFIED",
+    "gold_id": "DOC051-G05",
+    "adjudication_disposition": "CERTIFIED",
+    "risk_tier": "CRITICAL_100",
+    "certified_at": "2026-10-19T04:59:28.707728+00:00",
+    "certification_evidence": {
+      "alpha_disposition": "CERTIFY",
+      "beta_disposition": "CERTIFY",
+      "final_disposition": "CERTIFY",
+      "gold_verification_status": "DUAL_HUMAN_VERIFIED_GOLD"
+    }
+  },
+  {
+    "claim_id": "cand:02b9e09d-bd34-52e0-a7ae-2d5a2b4b0d04:10:d3d8acb9b0ca:da34efa1b2",
+    "document_id": "DOC-051",
+    "filename": "Electronic Prescriptions for Controlled Substances (EPCS) - Azure Compliance _ Microsoft Learn.pdf",
+    "subject": "Prescription digital signing",
+    "predicate": "requires_two_factor_authentication",
+    "object": "two-factor authentication to digitally sign a prescription",
+    "modality": "OBLIGATION",
+    "conditions": [],
+    "trust_score": 0.98,
+    "lifecycle_state": "CERTIFIED",
+    "gold_id": "DOC051-G06",
+    "adjudication_disposition": "CERTIFIED",
+    "risk_tier": "CRITICAL_100",
+    "certified_at": "2026-10-19T04:59:28.707728+00:00",
+    "certification_evidence": {
+      "alpha_disposition": "CERTIFY",
+      "beta_disposition": "CERTIFY",
+      "final_disposition": "CERTIFY",
+      "gold_verification_status": "DUAL_HUMAN_VERIFIED_GOLD"
+    }
+  },
+  {
+    "claim_id": "cand:02b9e09d-bd34-52e0-a7ae-2d5a2b4b0d04:11:069ee508a3e0:9e6cd33e09",
+    "document_id": "DOC-051",
+    "filename": "Electronic Prescriptions for Controlled Substances (EPCS) - Azure Compliance _ Microsoft Learn.pdf",
+    "subject": "Two-factor authentication factors",
+    "predicate": "of",
+    "object": "the following three options: a username/password, a hard token, or a biometric identification",
+    "modality": "OBLIGATION",
+    "conditions": [],
+    "trust_score": 0.98,
+    "lifecycle_state": "CERTIFIED",
+    "gold_id": "DOC051-G07",
+    "adjudication_disposition": "CERTIFIED",
+    "risk_tier": "CRITICAL_100",
+    "certified_at": "2026-10-19T04:59:28.707728+00:00",
+    "certification_evidence": {
+      "alpha_disposition": "CERTIFY",
+      "beta_disposition": "CERTIFY",
+      "final_disposition": "CERTIFY",
+      "gold_verification_status": "DUAL_HUMAN_VERIFIED_GOLD"
+    }
+  },
+  {
+    "claim_id": "cand:02b9e09d-bd34-52e0-a7ae-2d5a2b4b0d04:11:069ee508a3e0:a25f93181f",
+    "document_id": "DOC-051",
+    "filename": "Electronic Prescriptions for Controlled Substances (EPCS) - Azure Compliance _ Microsoft Learn.pdf",
+    "subject": "Token or OTP generator",
+    "predicate": "meet",
+    "object": "the same requirements as defined for a hard token under the current regulation",
+    "modality": "OBLIGATION",
+    "conditions": [],
+    "trust_score": 0.98,
+    "lifecycle_state": "CERTIFIED",
+    "gold_id": "DOC051-G08",
+    "adjudication_disposition": "CERTIFIED",
+    "risk_tier": "CRITICAL_100",
+    "certified_at": "2026-10-19T04:59:28.707728+00:00",
+    "certification_evidence": {
+      "alpha_disposition": "CERTIFY",
+      "beta_disposition": "CERTIFY",
+      "final_disposition": "CERTIFY",
+      "gold_verification_status": "DUAL_HUMAN_VERIFIED_GOLD"
+    }
+  },
+  {
+    "claim_id": "cand:02b9e09d-bd34-52e0-a7ae-2d5a2b4b0d04:12:2c5f521b58ba:5884dd406c",
+    "document_id": "DOC-051",
+    "filename": "Electronic Prescriptions for Controlled Substances (EPCS) - Azure Compliance _ Microsoft Learn.pdf",
+    "subject": "Hard token",
+    "predicate": "meet",
+    "object": "FIPS 140 Security Level 1 for cryptographic devices or OTP devices",
+    "modality": "OBLIGATION",
+    "conditions": [
+      "a hard token is used"
+    ],
+    "trust_score": 0.98,
+    "lifecycle_state": "CERTIFIED",
+    "gold_id": "DOC051-G09",
+    "adjudication_disposition": "CERTIFIED",
+    "risk_tier": "CRITICAL_100",
+    "certified_at": "2026-10-19T04:59:28.707728+00:00",
+    "certification_evidence": {
+      "alpha_disposition": "CERTIFY",
+      "beta_disposition": "CERTIFY",
+      "final_disposition": "CERTIFY",
+      "gold_verification_status": "DUAL_HUMAN_VERIFIED_GOLD"
+    }
+  },
+  {
+    "claim_id": "cand:02b9e09d-bd34-52e0-a7ae-2d5a2b4b0d04:13:837a0ed40951:a22899b526",
+    "document_id": "DOC-051",
+    "filename": "Electronic Prescriptions for Controlled Substances (EPCS) - Azure Compliance _ Microsoft Learn.pdf",
+    "subject": "Hard token",
+    "predicate": "stored",
+    "object": "on a device that is separate from the computer being used to access the application",
+    "modality": "OBLIGATION",
+    "conditions": [],
+    "trust_score": 0.98,
+    "lifecycle_state": "CERTIFIED",
+    "gold_id": "DOC051-G10",
+    "adjudication_disposition": "CERTIFIED",
+    "risk_tier": "CRITICAL_100",
+    "certified_at": "2026-10-19T04:59:28.707728+00:00",
+    "certification_evidence": {
+      "alpha_disposition": "CERTIFY",
+      "beta_disposition": "CERTIFY",
+      "final_disposition": "CERTIFY",
+      "gold_verification_status": "DUAL_HUMAN_VERIFIED_GOLD"
+    }
+  },
+  {
+    "claim_id": "cand:02b9e09d-bd34-52e0-a7ae-2d5a2b4b0d04:25:eb84b3ee373a:686e482d93",
+    "document_id": "DOC-051",
+    "filename": "Electronic Prescriptions for Controlled Substances (EPCS) - Azure Compliance _ Microsoft Learn.pdf",
+    "subject": "Multi-factor authenticators at AAL3",
+    "predicate": "rely_on",
+    "object": "hardware cryptographic modules validated at FIPS 140 Level 2 overall with at least FIPS 140 Level 3 for physical security, which exceeds the EPCS MFA requirements",
+    "modality": "OBLIGATION",
+    "conditions": [
+      "According to NIST SP 800-63B Section 4.3"
+    ],
+    "trust_score": 0.98,
+    "lifecycle_state": "CERTIFIED",
+    "gold_id": "DOC051-G11",
+    "adjudication_disposition": "CERTIFIED",
+    "risk_tier": "CRITICAL_100",
+    "certified_at": "2026-10-19T04:59:28.707728+00:00",
+    "certification_evidence": {
+      "alpha_disposition": "CERTIFY",
+      "beta_disposition": "CERTIFY",
+      "final_disposition": "CERTIFY",
+      "gold_verification_status": "DUAL_HUMAN_VERIFIED_GOLD"
+    }
+  },
+  {
+    "claim_id": "cand:02b9e09d-bd34-52e0-a7ae-2d5a2b4b0d04:25:eb84b3ee373a:3f1a3d5f62",
+    "document_id": "DOC-051",
+    "filename": "Electronic Prescriptions for Controlled Substances (EPCS) - Azure Compliance _ Microsoft Learn.pdf",
+    "subject": "Verifiers at AAL3",
+    "predicate": "must_be_validated_at",
+    "object": "be validated at FIPS 140 Level 1 or higher",
+    "modality": "OBLIGATION",
+    "conditions": [],
+    "trust_score": 0.98,
+    "lifecycle_state": "CERTIFIED",
+    "gold_id": "DOC051-G12",
+    "adjudication_disposition": "CERTIFIED",
+    "risk_tier": "CRITICAL_100",
+    "certified_at": "2026-10-19T04:59:28.707728+00:00",
+    "certification_evidence": {
+      "alpha_disposition": "CERTIFY",
+      "beta_disposition": "CERTIFY",
+      "final_disposition": "CERTIFY",
+      "gold_verification_status": "DUAL_HUMAN_VERIFIED_GOLD"
+    }
+  },
+  {
+    "claim_id": "cand:02b9e09d-bd34-52e0-a7ae-2d5a2b4b0d04:24:75778d65246b:c3fa1a82df",
+    "document_id": "DOC-051",
+    "filename": "Electronic Prescriptions for Controlled Substances (EPCS) - Azure Compliance _ Microsoft Learn.pdf",
+    "subject": "Users",
+    "predicate": "provide",
+    "object": "secondary verification for MFA scenarios to meet your EPCS MFA requirements",
+    "modality": "PERMISSION",
+    "conditions": [
+      "With the Microsoft Authenticator app"
+    ],
+    "trust_score": 0.98,
+    "lifecycle_state": "CERTIFIED",
+    "gold_id": "DOC051-G13",
+    "adjudication_disposition": "CERTIFIED",
+    "risk_tier": "CRITICAL_100",
+    "certified_at": "2026-10-19T04:59:28.707728+00:00",
+    "certification_evidence": {
+      "alpha_disposition": "CERTIFY",
+      "beta_disposition": "CERTIFY",
+      "final_disposition": "CERTIFY",
+      "gold_verification_status": "DUAL_HUMAN_VERIFIED_GOLD"
+    }
+  },
+  {
+    "claim_id": "cand:df7b418e-b821-592e-92a2-83c2afb3fdd0:3:b2495f81810c:902c4fe538",
+    "document_id": "DOC-052",
+    "filename": "Food and Drug Administration CFR Title 21 Part 11 - Microsoft Compliance _ Microsoft Learn.pdf",
+    "subject": "Technology system governing GxP processes",
+    "predicate": "requires_validation_of_adherence_to",
+    "object": "GxP adherence validation",
+    "modality": "OBLIGATION",
+    "conditions": [],
+    "trust_score": 0.98,
+    "lifecycle_state": "CERTIFIED",
+    "gold_id": "DOC052-G01",
+    "adjudication_disposition": "CERTIFIED",
+    "risk_tier": "CRITICAL_100",
+    "certified_at": "2026-10-19T04:59:28.707728+00:00",
+    "certification_evidence": {
+      "alpha_disposition": "CERTIFY",
+      "beta_disposition": "CERTIFY",
+      "final_disposition": "CERTIFY",
+      "gold_verification_status": "DUAL_HUMAN_VERIFIED_GOLD"
+    }
+  },
+  {
+    "claim_id": "cand:df7b418e-b821-592e-92a2-83c2afb3fdd0:5:bf47a14ff51b:6dace32e5a",
+    "document_id": "DOC-052",
+    "filename": "Food and Drug Administration CFR Title 21 Part 11 - Microsoft Compliance _ Microsoft Learn.pdf",
+    "subject": "Subject companies",
+    "predicate": "must_prove",
+    "object": "prove that their processes and products work as they're designed to",
+    "modality": "OBLIGATION",
+    "conditions": [
+      "these process and products change"
+    ],
+    "trust_score": 0.98,
+    "lifecycle_state": "CERTIFIED",
+    "gold_id": "DOC052-G02",
+    "adjudication_disposition": "CERTIFIED",
+    "risk_tier": "CRITICAL_100",
+    "certified_at": "2026-10-19T04:59:28.707728+00:00",
+    "certification_evidence": {
+      "alpha_disposition": "CERTIFY",
+      "beta_disposition": "CERTIFY",
+      "final_disposition": "CERTIFY",
+      "gold_verification_status": "DUAL_HUMAN_VERIFIED_GOLD"
+    }
+  },
+  {
+    "claim_id": "cand:df7b418e-b821-592e-92a2-83c2afb3fdd0:5:bf47a14ff51b:f0f6341cd7",
+    "document_id": "DOC-052",
+    "filename": "Food and Drug Administration CFR Title 21 Part 11 - Microsoft Compliance _ Microsoft Learn.pdf",
+    "subject": "Subject companies",
+    "predicate": "must_revalidate",
+    "object": "proof that their processes and products work as designed",
+    "modality": "OBLIGATION",
+    "conditions": [
+      "these process and products change"
+    ],
+    "trust_score": 0.98,
+    "lifecycle_state": "CERTIFIED",
+    "gold_id": "DOC052-G03",
+    "adjudication_disposition": "CERTIFIED",
+    "risk_tier": "CRITICAL_100",
+    "certified_at": "2026-10-19T04:59:28.707728+00:00",
+    "certification_evidence": {
+      "alpha_disposition": "CERTIFY",
+      "beta_disposition": "CERTIFY",
+      "final_disposition": "CERTIFY",
+      "gold_verification_status": "DUAL_HUMAN_VERIFIED_GOLD"
+    }
+  },
+  {
+    "claim_id": "cand:df7b418e-b821-592e-92a2-83c2afb3fdd0:13:e06638ff745b:b75eaf26ab",
+    "document_id": "DOC-052",
+    "filename": "Food and Drug Administration CFR Title 21 Part 11 - Microsoft Compliance _ Microsoft Learn.pdf",
+    "subject": "Customers",
+    "predicate": "request",
+    "object": "access to the compliance reports, subject to nondisclosure agreement terms and conditions, through their Microsoft account representative, or through the Service Trust Portal",
+    "modality": "PERMISSION",
+    "conditions": [],
+    "trust_score": 0.98,
+    "lifecycle_state": "CERTIFIED",
+    "gold_id": "DOC052-G04",
+    "adjudication_disposition": "CERTIFIED",
+    "risk_tier": "CRITICAL_100",
+    "certified_at": "2026-10-19T04:59:28.707728+00:00",
+    "certification_evidence": {
+      "alpha_disposition": "CERTIFY",
+      "beta_disposition": "CERTIFY",
+      "final_disposition": "CERTIFY",
+      "gold_verification_status": "DUAL_HUMAN_VERIFIED_GOLD"
+    }
+  },
+  {
+    "claim_id": "cand:df7b418e-b821-592e-92a2-83c2afb3fdd0:26:15c3d152cdf8:b9bd057c29",
+    "document_id": "DOC-052",
+    "filename": "Food and Drug Administration CFR Title 21 Part 11 - Microsoft Compliance _ Microsoft Learn.pdf",
+    "subject": "Customers",
+    "predicate": "are_responsible_for",
+    "object": "ensuring that their applications meet FDA requirements",
+    "modality": "OBLIGATION",
+    "conditions": [
+      "applies to Customers that build and deploy applications subject to FDA regulation"
+    ],
+    "trust_score": 0.98,
+    "lifecycle_state": "CERTIFIED",
+    "gold_id": "DOC052-G05",
+    "adjudication_disposition": "CERTIFIED",
+    "risk_tier": "CRITICAL_100",
+    "certified_at": "2026-10-19T04:59:28.707728+00:00",
+    "certification_evidence": {
+      "alpha_disposition": "CERTIFY",
+      "beta_disposition": "CERTIFY",
+      "final_disposition": "CERTIFY",
+      "gold_verification_status": "DUAL_HUMAN_VERIFIED_GOLD"
+    }
+  },
+  {
+    "claim_id": "cand:df7b418e-b821-592e-92a2-83c2afb3fdd0:28:eec3b0fe3cc4:6ffdb01e0d",
+    "document_id": "DOC-052",
+    "filename": "Food and Drug Administration CFR Title 21 Part 11 - Microsoft Compliance _ Microsoft Learn.pdf",
+    "subject": "Microsoft",
+    "predicate": "ensures",
+    "object": "its enterprise cloud services meet the terms defined within the governing Online Services Terms and applicable Service Level Agreements (SLAs)",
+    "modality": "OBLIGATION",
+    "conditions": [],
+    "trust_score": 0.98,
+    "lifecycle_state": "CERTIFIED",
+    "gold_id": "DOC052-G06",
+    "adjudication_disposition": "CERTIFIED",
+    "risk_tier": "CRITICAL_100",
+    "certified_at": "2026-10-19T04:59:28.707728+00:00",
+    "certification_evidence": {
+      "alpha_disposition": "CERTIFY",
+      "beta_disposition": "CERTIFY",
+      "final_disposition": "CERTIFY",
+      "gold_verification_status": "DUAL_HUMAN_VERIFIED_GOLD"
+    }
+  },
+  {
+    "claim_id": "cand:23cfd5e1-bc7b-5ef0-bf4a-3f9da30bb6c3:5:c603c2526486:c8f42afd6f",
+    "document_id": "DOC-056",
+    "filename": "Health Insurance Portability and Accountability Act (HIPAA) & Health Information Technology for Economic and Clinical Health (HITECH) Act - Microsoft Compliance _ Microsoft Learn.pdf",
+    "subject": "Covered entities",
+    "predicate": "must_enter_into_agreements_with",
+    "object": "business associates to ensure that PHI is adequately protected.",
+    "modality": "OBLIGATION",
+    "conditions": [],
+    "trust_score": 0.98,
+    "lifecycle_state": "CERTIFIED",
+    "gold_id": "DOC056-G01",
+    "adjudication_disposition": "CERTIFIED",
+    "risk_tier": "CRITICAL_100",
+    "certified_at": "2026-10-19T04:59:28.707728+00:00",
+    "certification_evidence": {
+      "alpha_disposition": "CERTIFY",
+      "beta_disposition": "CERTIFY",
+      "final_disposition": "CERTIFY",
+      "gold_verification_status": "DUAL_HUMAN_VERIFIED_GOLD"
+    }
+  },
+  {
+    "claim_id": "cand:23cfd5e1-bc7b-5ef0-bf4a-3f9da30bb6c3:17:c4a90b8329ec:360e5bae71",
+    "document_id": "DOC-056",
+    "filename": "Health Insurance Portability and Accountability Act (HIPAA) & Health Information Technology for Economic and Clinical Health (HITECH) Act - Microsoft Compliance _ Microsoft Learn.pdf",
+    "subject": "Microsoft",
+    "predicate": "may_replicate",
+    "object": "replicate customer data to other regions within the same geographic area (for example, the United States) for data resiliency",
+    "modality": "PERMISSION",
+    "conditions": [],
+    "trust_score": 0.98,
+    "lifecycle_state": "CERTIFIED",
+    "gold_id": "DOC056-G02",
+    "adjudication_disposition": "CERTIFIED",
+    "risk_tier": "CRITICAL_100",
+    "certified_at": "2026-10-19T04:59:28.707728+00:00",
+    "certification_evidence": {
+      "alpha_disposition": "CERTIFY",
+      "beta_disposition": "CERTIFY",
+      "final_disposition": "CERTIFY",
+      "gold_verification_status": "DUAL_HUMAN_VERIFIED_GOLD"
+    }
+  },
+  {
+    "claim_id": "cand:23cfd5e1-bc7b-5ef0-bf4a-3f9da30bb6c3:17:c4a90b8329ec:e36e5b0486",
+    "document_id": "DOC-056",
+    "filename": "Health Insurance Portability and Accountability Act (HIPAA) & Health Information Technology for Economic and Clinical Health (HITECH) Act - Microsoft Compliance _ Microsoft Learn.pdf",
+    "subject": "Microsoft",
+    "predicate": "prohibited_from_replicating",
+    "object": "replicate customer data outside the chosen geographic area",
+    "modality": "PROHIBITION",
+    "conditions": [],
+    "trust_score": 0.98,
+    "lifecycle_state": "CERTIFIED",
+    "gold_id": "DOC056-G03",
+    "adjudication_disposition": "CERTIFIED",
+    "risk_tier": "CRITICAL_100",
+    "certified_at": "2026-10-19T04:59:28.707728+00:00",
+    "certification_evidence": {
+      "alpha_disposition": "CERTIFY",
+      "beta_disposition": "CERTIFY",
+      "final_disposition": "CERTIFY",
+      "gold_verification_status": "DUAL_HUMAN_VERIFIED_GOLD"
+    }
+  },
+  {
+    "claim_id": "cand:23cfd5e1-bc7b-5ef0-bf4a-3f9da30bb6c3:28:d3119a302743:1e3b9d4cb9",
+    "document_id": "DOC-056",
+    "filename": "Health Insurance Portability and Accountability Act (HIPAA) & Health Information Technology for Economic and Clinical Health (HITECH) Act - Microsoft Compliance _ Microsoft Learn.pdf",
+    "subject": "Customers",
+    "predicate": "are_responsible_for",
+    "object": "ensuring compliance with all applicable laws and regulations",
+    "modality": "OBLIGATION",
+    "conditions": [],
+    "trust_score": 0.98,
+    "lifecycle_state": "CERTIFIED",
+    "gold_id": "DOC056-G04",
+    "adjudication_disposition": "CERTIFIED",
+    "risk_tier": "CRITICAL_100",
+    "certified_at": "2026-10-19T04:59:28.707728+00:00",
+    "certification_evidence": {
+      "alpha_disposition": "CERTIFY",
+      "beta_disposition": "CERTIFY",
+      "final_disposition": "CERTIFY",
+      "gold_verification_status": "DUAL_HUMAN_VERIFIED_GOLD"
+    }
+  },
+  {
+    "claim_id": "cand:23cfd5e1-bc7b-5ef0-bf4a-3f9da30bb6c3:40:39ea2fd40fe0:a77866ef35",
+    "document_id": "DOC-056",
+    "filename": "Health Insurance Portability and Accountability Act (HIPAA) & Health Information Technology for Economic and Clinical Health (HITECH) Act - Microsoft Compliance _ Microsoft Learn.pdf",
+    "subject": "No, Microsoft",
+    "predicate": "prohibited_from_using",
+    "object": "use a customer's Business Associate Agreement",
+    "modality": "PROHIBITION",
+    "conditions": [],
+    "trust_score": 0.98,
+    "lifecycle_state": "CERTIFIED",
+    "gold_id": "DOC056-G06",
+    "adjudication_disposition": "CERTIFIED",
+    "risk_tier": "CRITICAL_100",
+    "certified_at": "2026-10-19T04:59:28.707728+00:00",
+    "certification_evidence": {
+      "alpha_disposition": "CERTIFY",
+      "beta_disposition": "CERTIFY",
+      "final_disposition": "CERTIFY",
+      "gold_verification_status": "DUAL_HUMAN_VERIFIED_GOLD"
+    }
+  },
+  {
+    "claim_id": "cand:3778f053-7d86-5caa-bf3b-453a6b8290f1:27:76a3cc976546:87ccad3b09",
+    "document_id": "DOC-057",
+    "filename": "Invoice-Terms-and-Conditions_EN-CH.pdf",
+    "subject": "Microsoft",
+    "predicate": "shall_provide",
+    "object": "provide E-invoicing functionality to Vendor for processing of invoices for payment for Services provided to Microsoft by Vendor under the Services Contracts between the parties",
+    "modality": "OBLIGATION",
+    "conditions": [],
+    "trust_score": 0.98,
+    "lifecycle_state": "CERTIFIED",
+    "gold_id": "DOC057-G01",
+    "adjudication_disposition": "CERTIFIED",
+    "risk_tier": "CRITICAL_100",
+    "certified_at": "2026-10-19T04:59:28.707728+00:00",
+    "certification_evidence": {
+      "alpha_disposition": "CERTIFY",
+      "beta_disposition": "CERTIFY",
+      "final_disposition": "CERTIFY",
+      "gold_verification_status": "DUAL_HUMAN_VERIFIED_GOLD"
+    }
+  },
+  {
+    "claim_id": "cand:3778f053-7d86-5caa-bf3b-453a6b8290f1:29:2f4b791a2fc8:9699138208",
+    "document_id": "DOC-057",
+    "filename": "Invoice-Terms-and-Conditions_EN-CH.pdf",
+    "subject": "Vendor",
+    "predicate": "authorizes",
+    "object": "E-invoicing Provider to receive Vendor's invoice data not yet constituting an original invoice and subsequently to apply an electronic signature to the invoice data to issue electronic invoices \"in the name and on behalf of\" Vendor",
+    "modality": "PERMISSION",
+    "conditions": [],
+    "trust_score": 0.98,
+    "lifecycle_state": "CERTIFIED",
+    "gold_id": "DOC057-G03",
+    "adjudication_disposition": "CERTIFIED",
+    "risk_tier": "CRITICAL_100",
+    "certified_at": "2026-10-19T04:59:28.707728+00:00",
+    "certification_evidence": {
+      "alpha_disposition": "CERTIFY",
+      "beta_disposition": "CERTIFY",
+      "final_disposition": "CERTIFY",
+      "gold_verification_status": "DUAL_HUMAN_VERIFIED_GOLD"
+    }
+  },
+  {
+    "claim_id": "cand:3778f053-7d86-5caa-bf3b-453a6b8290f1:33:8cfcb0e7b183:eb1802a9b3",
+    "document_id": "DOC-057",
+    "filename": "Invoice-Terms-and-Conditions_EN-CH.pdf",
+    "subject": "Vendor",
+    "predicate": "remains_responsible_for",
+    "object": "the invoice and its value added tax and other tax implications towards competent tax authorities",
+    "modality": "OBLIGATION",
+    "conditions": [],
+    "trust_score": 0.98,
+    "lifecycle_state": "CERTIFIED",
+    "gold_id": "DOC057-G04",
+    "adjudication_disposition": "CERTIFIED",
+    "risk_tier": "CRITICAL_100",
+    "certified_at": "2026-10-19T04:59:28.707728+00:00",
+    "certification_evidence": {
+      "alpha_disposition": "CERTIFY",
+      "beta_disposition": "CERTIFY",
+      "final_disposition": "CERTIFY",
+      "gold_verification_status": "DUAL_HUMAN_VERIFIED_GOLD"
+    }
+  },
+  {
+    "claim_id": "cand:3778f053-7d86-5caa-bf3b-453a6b8290f1:33:8cfcb0e7b183:fb8d871949",
+    "document_id": "DOC-057",
+    "filename": "Invoice-Terms-and-Conditions_EN-CH.pdf",
+    "subject": "Vendor",
+    "predicate": "prohibited_from_submitting",
+    "object": "invoice data to E-invoicing Provider that under applicable law may not be used by a third party for issuing invoices in the name and on behalf of Vendors",
+    "modality": "PROHIBITION",
+    "conditions": [],
+    "trust_score": 0.98,
+    "lifecycle_state": "CERTIFIED",
+    "gold_id": "DOC057-G05",
+    "adjudication_disposition": "CERTIFIED",
+    "risk_tier": "CRITICAL_100",
+    "certified_at": "2026-10-19T04:59:28.707728+00:00",
+    "certification_evidence": {
+      "alpha_disposition": "CERTIFY",
+      "beta_disposition": "CERTIFY",
+      "final_disposition": "CERTIFY",
+      "gold_verification_status": "DUAL_HUMAN_VERIFIED_GOLD"
+    }
+  },
+  {
+    "claim_id": "cand:3778f053-7d86-5caa-bf3b-453a6b8290f1:35:6a0329be969e:79f0ad2772",
+    "document_id": "DOC-057",
+    "filename": "Invoice-Terms-and-Conditions_EN-CH.pdf",
+    "subject": "Vendor",
+    "predicate": "shall_signal_apparent_errors",
+    "object": "in such e-invoice to Microsoft within 48 hours from the moment that the signed e-invoice has become available to Vendor",
+    "modality": "OBLIGATION",
+    "conditions": [
+      "Within 48 hours from the moment that the signed e-invoice has become available to Vendor"
+    ],
+    "trust_score": 0.98,
+    "lifecycle_state": "CERTIFIED",
+    "gold_id": "DOC057-G06",
+    "adjudication_disposition": "CERTIFIED",
+    "risk_tier": "CRITICAL_100",
+    "certified_at": "2026-10-19T04:59:28.707728+00:00",
+    "certification_evidence": {
+      "alpha_disposition": "CERTIFY",
+      "beta_disposition": "CERTIFY",
+      "final_disposition": "CERTIFY",
+      "gold_verification_status": "DUAL_HUMAN_VERIFIED_GOLD"
+    }
+  },
+  {
+    "claim_id": "cand:3778f053-7d86-5caa-bf3b-453a6b8290f1:41:98698598c3e4:c7d9943dc0",
+    "document_id": "DOC-057",
+    "filename": "Invoice-Terms-and-Conditions_EN-CH.pdf",
+    "subject": "Microsoft",
+    "predicate": "agrees_to_receive",
+    "object": "invoices in electronic form from Vendor and to treat these electronic invoices as originals for tax purposes",
+    "modality": "OBLIGATION",
+    "conditions": [],
+    "trust_score": 0.98,
+    "lifecycle_state": "CERTIFIED",
+    "gold_id": "DOC057-G07",
+    "adjudication_disposition": "CERTIFIED",
+    "risk_tier": "CRITICAL_100",
+    "certified_at": "2026-10-19T04:59:28.707728+00:00",
+    "certification_evidence": {
+      "alpha_disposition": "CERTIFY",
+      "beta_disposition": "CERTIFY",
+      "final_disposition": "CERTIFY",
+      "gold_verification_status": "DUAL_HUMAN_VERIFIED_GOLD"
+    }
+  },
+  {
+    "claim_id": "cand:3778f053-7d86-5caa-bf3b-453a6b8290f1:43:f022aeb07a78:d36971ecc7",
+    "document_id": "DOC-057",
+    "filename": "Invoice-Terms-and-Conditions_EN-CH.pdf",
+    "subject": "Parties",
+    "predicate": "agree_all_invoices_shall_be_in_electronic_form",
+    "object": "all invoices submitted under the Services Contracts between the parties shall be in electronic form",
+    "modality": "OBLIGATION",
+    "conditions": [
+      "Unless otherwise specified and agreed to between the parties"
+    ],
+    "trust_score": 0.98,
+    "lifecycle_state": "CERTIFIED",
+    "gold_id": "DOC057-G08",
+    "adjudication_disposition": "CERTIFIED",
+    "risk_tier": "CRITICAL_100",
+    "certified_at": "2026-10-19T04:59:28.707728+00:00",
+    "certification_evidence": {
+      "alpha_disposition": "CERTIFY",
+      "beta_disposition": "CERTIFY",
+      "final_disposition": "CERTIFY",
+      "gold_verification_status": "DUAL_HUMAN_VERIFIED_GOLD"
+    }
+  },
+  {
+    "claim_id": "cand:3778f053-7d86-5caa-bf3b-453a6b8290f1:49:8837ef89dd0c:5cf32f66b2",
+    "document_id": "DOC-057",
+    "filename": "Invoice-Terms-and-Conditions_EN-CH.pdf",
+    "subject": "Invoicing Agreement",
+    "predicate": "remains_valid_until_terminated",
+    "object": "until terminated by either Microsoft or Vendor upon 30 business days notice to the other party",
+    "modality": "OBLIGATION",
+    "conditions": [
+      "Upon 30 business days notice to the other party"
+    ],
+    "trust_score": 0.98,
+    "lifecycle_state": "CERTIFIED",
+    "gold_id": "DOC057-G09",
+    "adjudication_disposition": "CERTIFIED",
+    "risk_tier": "CRITICAL_100",
+    "certified_at": "2026-10-19T04:59:28.707728+00:00",
+    "certification_evidence": {
+      "alpha_disposition": "CERTIFY",
+      "beta_disposition": "CERTIFY",
+      "final_disposition": "CERTIFY",
+      "gold_verification_status": "DUAL_HUMAN_VERIFIED_GOLD"
+    }
+  },
+  {
+    "claim_id": "cand:7ca75e84-b841-5090-bd82-94c8d31e67b6:34:c4626e106f63:7df3ead7d5",
+    "document_id": "DOC-058",
+    "filename": "manage-auto-claim-policies.md",
+    "subject": "Global Administrator",
+    "predicate": "must_be_role_to_manage_auto_claim_policies",
+    "object": "a Global Administrator to manage Auto-claim policies at the organization level",
+    "modality": "OBLIGATION",
+    "conditions": [],
+    "trust_score": 0.98,
+    "lifecycle_state": "CERTIFIED",
+    "gold_id": "DOC058-G01",
+    "adjudication_disposition": "CERTIFIED",
+    "risk_tier": "CRITICAL_100",
+    "certified_at": "2026-10-19T04:59:28.707728+00:00",
+    "certification_evidence": {
+      "alpha_disposition": "CERTIFY",
+      "beta_disposition": "CERTIFY",
+      "final_disposition": "CERTIFY",
+      "gold_verification_status": "DUAL_HUMAN_VERIFIED_GOLD"
+    }
+  },
+  {
+    "claim_id": "cand:7ca75e84-b841-5090-bd82-94c8d31e67b6:37:106aee14678c:8f28032c4d",
+    "document_id": "DOC-058",
+    "filename": "manage-auto-claim-policies.md",
+    "subject": "Admins",
+    "predicate": "must_turn_on",
+    "object": "the feature in the Microsoft 365 admin center before using it",
+    "modality": "OBLIGATION",
+    "conditions": [
+      "Before you can use the feature"
+    ],
+    "trust_score": 0.98,
+    "lifecycle_state": "CERTIFIED",
+    "gold_id": "DOC058-G02",
+    "adjudication_disposition": "CERTIFIED",
+    "risk_tier": "CRITICAL_100",
+    "certified_at": "2026-10-19T04:59:28.707728+00:00",
+    "certification_evidence": {
+      "alpha_disposition": "CERTIFY",
+      "beta_disposition": "CERTIFY",
+      "final_disposition": "CERTIFY",
+      "gold_verification_status": "DUAL_HUMAN_VERIFIED_GOLD"
+    }
+  },
+  {
+    "claim_id": "cand:7ca75e84-b841-5090-bd82-94c8d31e67b6:96:516d61802e70:d8235248a3",
+    "document_id": "DOC-058",
+    "filename": "manage-auto-claim-policies.md",
+    "subject": "Auto-claim policy",
+    "predicate": "must_contain",
+    "object": "contain at least one product",
+    "modality": "OBLIGATION",
+    "conditions": [],
+    "trust_score": 0.98,
+    "lifecycle_state": "CERTIFIED",
+    "gold_id": "DOC058-G03",
+    "adjudication_disposition": "CERTIFIED",
+    "risk_tier": "CRITICAL_100",
+    "certified_at": "2026-10-19T04:59:28.707728+00:00",
+    "certification_evidence": {
+      "alpha_disposition": "CERTIFY",
+      "beta_disposition": "CERTIFY",
+      "final_disposition": "CERTIFY",
+      "gold_verification_status": "DUAL_HUMAN_VERIFIED_GOLD"
+    }
+  },
+  {
+    "claim_id": "cand:7ca75e84-b841-5090-bd82-94c8d31e67b6:96:516d61802e70:dc711ebc7e",
+    "document_id": "DOC-058",
+    "filename": "manage-auto-claim-policies.md",
+    "subject": "Admins",
+    "predicate": "prohibited_from_removing",
+    "object": "all products from a policy",
+    "modality": "PROHIBITION",
+    "conditions": [],
+    "trust_score": 0.98,
+    "lifecycle_state": "CERTIFIED",
+    "gold_id": "DOC058-G04",
+    "adjudication_disposition": "CERTIFIED",
+    "risk_tier": "CRITICAL_100",
+    "certified_at": "2026-10-19T04:59:28.707728+00:00",
+    "certification_evidence": {
+      "alpha_disposition": "CERTIFY",
+      "beta_disposition": "CERTIFY",
+      "final_disposition": "CERTIFY",
+      "gold_verification_status": "DUAL_HUMAN_VERIFIED_GOLD"
+    }
+  },
+  {
+    "claim_id": "cand:7ca75e84-b841-5090-bd82-94c8d31e67b6:132:64547f9809ca:14027f6d32",
+    "document_id": "DOC-058",
+    "filename": "manage-auto-claim-policies.md",
+    "subject": "System",
+    "predicate": "automatically_grants",
+    "object": "a Power Apps per user license to the user",
+    "modality": "OBLIGATION",
+    "conditions": [
+      "If a user lacks a standalone Power Apps license and launches an app that requires a premium license"
+    ],
+    "trust_score": 0.98,
+    "lifecycle_state": "CERTIFIED",
+    "gold_id": "DOC058-G05",
+    "adjudication_disposition": "CERTIFIED",
+    "risk_tier": "CRITICAL_100",
+    "certified_at": "2026-10-19T04:59:28.707728+00:00",
+    "certification_evidence": {
+      "alpha_disposition": "CERTIFY",
+      "beta_disposition": "CERTIFY",
+      "final_disposition": "CERTIFY",
+      "gold_verification_status": "DUAL_HUMAN_VERIFIED_GOLD"
+    }
+  },
+  {
+    "claim_id": "cand:7ca75e84-b841-5090-bd82-94c8d31e67b6:133:702f1f6fc059:ccc882e4d3",
+    "document_id": "DOC-058",
+    "filename": "manage-auto-claim-policies.md",
+    "subject": "Users",
+    "predicate": "automatically_granted",
+    "object": "a Power Apps per user license",
+    "modality": "OBLIGATION",
+    "conditions": [
+      "If a user without a standalone Power Apps license launches an app within a Managed environment"
+    ],
+    "trust_score": 0.98,
+    "lifecycle_state": "CERTIFIED",
+    "gold_id": "DOC058-G06",
+    "adjudication_disposition": "CERTIFIED",
+    "risk_tier": "CRITICAL_100",
+    "certified_at": "2026-10-19T04:59:28.707728+00:00",
+    "certification_evidence": {
+      "alpha_disposition": "CERTIFY",
+      "beta_disposition": "CERTIFY",
+      "final_disposition": "CERTIFY",
+      "gold_verification_status": "DUAL_HUMAN_VERIFIED_GOLD"
+    }
+  },
+  {
+    "claim_id": "cand:3ca96016-aa9c-5e07-a627-937e637024d9:3:0fa102037477:fb46ff65c0",
+    "document_id": "DOC-060",
+    "filename": "Microsoft Store Refund & Return Policy (Surface, Xbox, etc.).pdf",
+    "subject": "Customers",
+    "predicate": "may_return",
+    "object": "almost any physical product by January 31, 2027 for a full refund",
+    "modality": "PERMISSION",
+    "conditions": [
+      "Some exclusions apply",
+      "By January 31, 2027"
+    ],
+    "trust_score": 0.98,
+    "lifecycle_state": "CERTIFIED",
+    "gold_id": "DOC060-G01",
+    "adjudication_disposition": "CERTIFIED",
+    "risk_tier": "CRITICAL_100",
+    "certified_at": "2026-10-19T04:59:28.707728+00:00",
+    "certification_evidence": {
+      "alpha_disposition": "CERTIFY",
+      "beta_disposition": "CERTIFY",
+      "final_disposition": "CERTIFY",
+      "gold_verification_status": "DUAL_HUMAN_VERIFIED_GOLD"
+    }
+  },
+  {
+    "claim_id": "cand:3ca96016-aa9c-5e07-a627-937e637024d9:9:62756528c9ab:b3782278af",
+    "document_id": "DOC-060",
+    "filename": "Microsoft Store Refund & Return Policy (Surface, Xbox, etc.).pdf",
+    "subject": "Customers",
+    "predicate": "must_return_in_condition",
+    "object": "in like-new condition in its original packaging with all parts and documentation included",
+    "modality": "OBLIGATION",
+    "conditions": [],
+    "trust_score": 0.98,
+    "lifecycle_state": "CERTIFIED",
+    "gold_id": "DOC060-G02",
+    "adjudication_disposition": "CERTIFIED",
+    "risk_tier": "CRITICAL_100",
+    "certified_at": "2026-10-19T04:59:28.707728+00:00",
+    "certification_evidence": {
+      "alpha_disposition": "CERTIFY",
+      "beta_disposition": "CERTIFY",
+      "final_disposition": "CERTIFY",
+      "gold_verification_status": "DUAL_HUMAN_VERIFIED_GOLD"
+    }
+  },
+  {
+    "claim_id": "cand:3ca96016-aa9c-5e07-a627-937e637024d9:10:ef8bc48bbe45:a0b6bee899",
+    "document_id": "DOC-060",
+    "filename": "Microsoft Store Refund & Return Policy (Surface, Xbox, etc.).pdf",
+    "subject": "Microsoft Store",
+    "predicate": "will_issue_refund",
+    "object": "refund to your original payment method within 3-5 business days",
+    "modality": "OBLIGATION",
+    "conditions": [
+      "Once we get the item back and confirm eligibility"
+    ],
+    "trust_score": 0.98,
+    "lifecycle_state": "CERTIFIED",
+    "gold_id": "DOC060-G03",
+    "adjudication_disposition": "CERTIFIED",
+    "risk_tier": "CRITICAL_100",
+    "certified_at": "2026-10-19T04:59:28.707728+00:00",
+    "certification_evidence": {
+      "alpha_disposition": "CERTIFY",
+      "beta_disposition": "CERTIFY",
+      "final_disposition": "CERTIFY",
+      "gold_verification_status": "DUAL_HUMAN_VERIFIED_GOLD"
+    }
+  },
+  {
+    "claim_id": "cand:3ca96016-aa9c-5e07-a627-937e637024d9:40:75d1c5b575a8:4837ab5dec",
+    "document_id": "DOC-060",
+    "filename": "Microsoft Store Refund & Return Policy (Surface, Xbox, etc.).pdf",
+    "subject": "Return process",
+    "predicate": "must_be_started_within",
+    "object": "60 days after customer receives the product",
+    "modality": "OBLIGATION",
+    "conditions": [
+      "For purchases made outside the window of October 1, 2026 \u2013 December 2, 2026"
+    ],
+    "trust_score": 0.98,
+    "lifecycle_state": "CERTIFIED",
+    "gold_id": "DOC060-G04",
+    "adjudication_disposition": "CERTIFIED",
+    "risk_tier": "CRITICAL_100",
+    "certified_at": "2026-10-19T04:59:28.707728+00:00",
+    "certification_evidence": {
+      "alpha_disposition": "CERTIFY",
+      "beta_disposition": "CERTIFY",
+      "final_disposition": "CERTIFY",
+      "gold_verification_status": "DUAL_HUMAN_VERIFIED_GOLD"
+    }
+  },
+  {
+    "claim_id": "cand:3ca96016-aa9c-5e07-a627-937e637024d9:40:75d1c5b575a8:88c6998947",
+    "document_id": "DOC-060",
+    "filename": "Microsoft Store Refund & Return Policy (Surface, Xbox, etc.).pdf",
+    "subject": "Product returns",
+    "predicate": "limited_to",
+    "object": "5 product returns per eligible customer purchase",
+    "modality": "OBLIGATION",
+    "conditions": [],
+    "trust_score": 0.98,
+    "lifecycle_state": "CERTIFIED",
+    "gold_id": "DOC060-G05",
+    "adjudication_disposition": "CERTIFIED",
+    "risk_tier": "CRITICAL_100",
+    "certified_at": "2026-10-19T04:59:28.707728+00:00",
+    "certification_evidence": {
+      "alpha_disposition": "CERTIFY",
+      "beta_disposition": "CERTIFY",
+      "final_disposition": "CERTIFY",
+      "gold_verification_status": "DUAL_HUMAN_VERIFIED_GOLD"
+    }
+  },
+  {
+    "claim_id": "cand:3ca96016-aa9c-5e07-a627-937e637024d9:46:edb8d39cbb60:19d2e05d2a",
+    "document_id": "DOC-060",
+    "filename": "Microsoft Store Refund & Return Policy (Surface, Xbox, etc.).pdf",
+    "subject": "Customers",
+    "predicate": "must_contact",
+    "object": "Microsoft Store or a Microsoft Experience Center for price adjustments",
+    "modality": "OBLIGATION",
+    "conditions": [
+      "Customer is eligible only if the product is in stock for purchase at Microsoft Store or a Microsoft Experience Center"
+    ],
+    "trust_score": 0.98,
+    "lifecycle_state": "CERTIFIED",
+    "gold_id": "DOC060-G06",
+    "adjudication_disposition": "CERTIFIED",
+    "risk_tier": "CRITICAL_100",
+    "certified_at": "2026-10-19T04:59:28.707728+00:00",
+    "certification_evidence": {
+      "alpha_disposition": "CERTIFY",
+      "beta_disposition": "CERTIFY",
+      "final_disposition": "CERTIFY",
+      "gold_verification_status": "DUAL_HUMAN_VERIFIED_GOLD"
+    }
   }
 ]

@@ -1,0 +1,122 @@
+{
+  "document_id": "DOC-056",
+  "filename": "Health Insurance Portability and Accountability Act (HIPAA) & Health Information Technology for Economic and Clinical Health (HITECH) Act - Microsoft Compliance _ Microsoft Learn.pdf",
+  "document_type": "regulatory_compliance",
+  "organization": "Enterprise Validation Corpus",
+  "source_sha256": "0dee9574dd98672fac6baf24536f8953c3062150ac7890b2ea2cbdb1a8df019b",
+  "file_size_bytes": 112878,
+  "annotated_by": "DRAFT_REFERENCE_LABEL_PENDING_HUMAN_VERIFICATION",
+  "provenance": {
+    "status": "DRAFT_REFERENCE_LABEL_PENDING_HUMAN_VERIFICATION",
+    "verification_method": "PRE_EXTRACTION_SOURCE_READING",
+    "blind_to_extraction_outputs": true,
+    "last_reviewed": "2026-10-18",
+    "notes": "Draft reference labels used for development suite validation; must be re-verified double-blind for Stage 4/5 certified benchmarks."
+  },
+  "annotation_date": "2026-10-18",
+  "methodology": "Pre-extraction independent human reading of PDF source bytes. Exhaustive enumeration of obligations, permissions, prohibitions, definitions, capabilities, and references.",
+  "taxonomies": {
+    "normative_modalities": ["OBLIGATION", "PERMISSION", "PROHIBITION"],
+    "information_types": ["POLICY_RULE", "DEFINITION", "PRODUCT_CAPABILITY", "REFERENCE_CITATION", "HISTORICAL_FACT"]
+  },
+  "claim_truth": [
+    {
+      "gold_id": "DOC056-G01",
+      "claim_type": "OBLIGATION",
+      "canonical": true,
+      "subject": "Covered entities",
+      "predicate": "must_enter_into_agreements_with",
+      "object": "business associates to ensure that PHI is adequately protected",
+      "modality": "OBLIGATION",
+      "conditions": [],
+      "page_number": 1,
+      "section": "Overview",
+      "evidence_quote": "HIPAA regulations require that covered entities (defined under the Rules) enter into agreements with business associates to ensure that PHI is adequately protected."
+    },
+    {
+      "gold_id": "DOC056-G02",
+      "claim_type": "PERMISSION",
+      "canonical": true,
+      "subject": "Microsoft",
+      "predicate": "may_replicate",
+      "object": "customer data to other regions within the same geographic area for data resiliency",
+      "modality": "PERMISSION",
+      "conditions": [
+        "Within the same geographic area"
+      ],
+      "page_number": 3,
+      "section": "Office 365",
+      "evidence_quote": "Microsoft may replicate customer data to other regions within the same geographic area (for example, the United States) for data resiliency, but Microsoft will not replicate customer data outside the chosen geographic area."
+    },
+    {
+      "gold_id": "DOC056-G03",
+      "claim_type": "PROHIBITION",
+      "canonical": true,
+      "subject": "Microsoft",
+      "predicate": "prohibited_from_replicating",
+      "object": "customer data outside the chosen geographic area",
+      "modality": "PROHIBITION",
+      "conditions": [],
+      "page_number": 3,
+      "section": "Office 365",
+      "evidence_quote": "but Microsoft will not replicate customer data outside the chosen geographic area."
+    },
+    {
+      "gold_id": "DOC056-G04",
+      "claim_type": "OBLIGATION",
+      "canonical": true,
+      "subject": "Customers",
+      "predicate": "are_responsible_for",
+      "object": "ensuring compliance with all applicable laws and regulations",
+      "modality": "OBLIGATION",
+      "conditions": [],
+      "page_number": 4,
+      "section": "Office 365",
+      "evidence_quote": "Your organization is wholly responsible for ensuring compliance with all applicable laws and regulations."
+    },
+    {
+      "gold_id": "DOC056-G05",
+      "claim_type": "OBLIGATION",
+      "canonical": true,
+      "subject": "Customers",
+      "predicate": "are_responsible_for",
+      "object": "ensuring that you have an adequate compliance program and internal processes in place, and that your particular use of Microsoft services aligns with your obligations under HIPAA and the HITECH Act",
+      "modality": "OBLIGATION",
+      "conditions": [],
+      "page_number": 5,
+      "section": "Frequently asked questions",
+      "evidence_quote": "Your organization is responsible for ensuring that you have an adequate compliance program and internal processes in place, and that your particular use of Microsoft services aligns with your obligations under HIPAA and the HITECH Act."
+    },
+    {
+      "gold_id": "DOC056-G06",
+      "claim_type": "PROHIBITION",
+      "canonical": true,
+      "subject": "Microsoft",
+      "predicate": "prohibited_from_using",
+      "object": "a customer's Business Associate Agreement",
+      "modality": "PROHIBITION",
+      "conditions": [],
+      "page_number": 5,
+      "section": "Frequently asked questions",
+      "evidence_quote": "No, Microsoft can't use a customer's Business Associate Agreement."
+    }
+  ],
+  "informational_truth": [
+    {
+      "info_id": "DOC056-I01",
+      "category": "HISTORICAL_FACT",
+      "subject": "HIPAA and HITECH Act",
+      "content": "A set of U.S. healthcare laws established in 1996 and extended in 2009 for safeguarding protected health information (PHI).",
+      "page_number": 1,
+      "evidence_quote": "The Health Insurance Portability and Accountability Act of 1996 (HIPAA) and the regulations issued under HIPAA are a set of U.S. healthcare laws that establish requirements for the use, disclosure, and safeguarding of individually identifiable health information."
+    },
+    {
+      "info_id": "DOC056-I02",
+      "category": "DEFINITION",
+      "subject": "Cloud service provider as business associate",
+      "content": "When a covered entity engages a cloud service provider, the cloud service provider is a business associate under HIPAA.",
+      "page_number": 1,
+      "evidence_quote": "When a covered entity engages the services of a cloud service provider, such as Microsoft, the cloud service provider is a business associate under HIPAA."
+    }
+  ]
+}

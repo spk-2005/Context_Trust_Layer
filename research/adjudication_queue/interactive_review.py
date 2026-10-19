@@ -40,121 +40,145 @@ class InteractiveReviewCLI:
         return data.get("sampled_claims", data.get("claims", []))
 
     @classmethod
-    def rater_alpha_eval(cls, claim: Dict[str, Any]) -> Tuple[str, str]:
+    def automated_heuristic_alpha(cls, claim: Dict[str, Any]) -> Tuple[str, str]:
         """
-        Rater Alpha: Senior Enterprise Legal Auditor.
-        Focus: Strict normative obligation, actor grounding, contract legality.
+        Automated Heuristic Gate Alpha (Structural & Actor Grounding).
+        NOTE: This is an automated algorithmic check, NOT a human certification.
         """
         subj = (claim.get("subject") or claim.get("normalized_subject") or "").strip()
         obj = str(claim.get("object") or claim.get("predicate_object") or "").strip()
         trust = claim.get("trust_score", 0.99)
-        tier = claim.get("risk_tier", RiskTier.STANDARD_20)
 
         # Fatal subject defects
         if not subj or subj.lower() in ("it", "this", "they", "then, they", "governance policy"):
-            return "REJECT_NON_POLICY", "Ungrounded or synthetic actor subject"
+            return "REJECT_NON_POLICY", "Automated check: Ungrounded or synthetic actor subject"
         if len(obj) < 3 or obj.lower().startswith(("table ", "col0")):
-            return "REJECT_MALFORMED", "Truncated or malformed table object"
+            return "REJECT_MALFORMED", "Automated check: Truncated or malformed table object"
 
-        # High confidence standard or rescued
         if trust >= 0.92 and len(subj.split()) <= 4:
-            return "CERTIFY", "Legitimate normative requirement verified with exact locator and clear actor"
+            return "AUTOMATED_CHECKS_PASSED", "Automated check: Grounding and locator verified against schema"
 
-        # Edge cases: long objects with multiple conditions
         if len(obj.split()) > 25 and ("unless" in obj.lower() or "provided that" in obj.lower()):
-            return "CORRECT_WITH_EDIT", "Suggest isolating conditional exception into condition field"
+            return "AMBIGUOUS_NEEDS_REVIEW", "Automated check: Long clause with conditions requires human review"
 
         if trust < 0.90:
-            return "SEND_TO_ADJUDICATION", "Borderline automated trust score requires multi-party arbitration"
+            return "AMBIGUOUS_NEEDS_REVIEW", "Automated check: Borderline trust score requires human adjudication"
 
-        return "CERTIFY", "Grounding, modality, and locator verified against source document"
+        return "AUTOMATED_CHECKS_PASSED", "Automated check: Grounding, modality, and locator verified"
 
     @classmethod
-    def rater_beta_eval(cls, claim: Dict[str, Any], seed_bias: float = 0.0) -> Tuple[str, str]:
+    def automated_heuristic_beta(cls, claim: Dict[str, Any]) -> Tuple[str, str]:
         """
-        Rater Beta: Independent Healthcare & Regulatory Compliance Officer.
-        Focus: Regulatory precision, scope clarity, data privacy protections.
+        Automated Heuristic Gate Beta (Regulatory Precision & Boundary Checks).
+        NOTE: This is an automated algorithmic check, NOT a human certification.
         """
         subj = (claim.get("subject") or claim.get("normalized_subject") or "").strip()
         obj = str(claim.get("object") or claim.get("predicate_object") or "").strip()
-        doc_id = claim.get("document_id", "")
         trust = claim.get("trust_score", 0.99)
 
         if not subj or subj.lower() in ("it", "this", "they", "then, they", "governance policy"):
-            return "REJECT_NON_POLICY", "Non-normative narrative fragment lacking legal actor"
+            return "REJECT_NON_POLICY", "Automated check: Non-normative narrative fragment lacking legal actor"
         if len(obj) < 3:
-            return "REJECT_MALFORMED", "Incomplete clause object"
+            return "REJECT_MALFORMED", "Automated check: Incomplete clause object"
 
-        # Rater Beta scrutinizes admin center UI descriptions and payment deadlines more closely
         if "admin center" in str(claim).lower() or "portal" in str(claim).lower():
             if "manage" in subj.lower():
-                return "REJECT_NON_POLICY", "Administrative UI portal setting rather than statutory obligation"
-            return "CORRECT_WITH_EDIT", "Refine predicate to clarify online portal interface"
+                return "REJECT_NON_POLICY", "Automated check: Administrative UI portal setting rather than policy obligation"
+            return "AMBIGUOUS_NEEDS_REVIEW", "Automated check: Refine predicate to clarify online portal interface"
 
         if "within" in obj.lower() and "days" in obj.lower() and trust < 0.95:
-            return "CORRECT_WITH_EDIT", "Confirm whether calendar days or business days apply"
+            return "AMBIGUOUS_NEEDS_REVIEW", "Automated check: Confirm whether calendar days or business days apply"
 
         if trust >= 0.90:
-            return "CERTIFY", "Regulatory policy rule verified across evidence span"
+            return "AUTOMATED_CHECKS_PASSED", "Automated check: Regulatory policy rule verified across evidence span"
 
-        return "SEND_TO_ADJUDICATION", "Complex clause requiring lead adjudicator ruling"
+        return "AMBIGUOUS_NEEDS_REVIEW", "Automated check: Complex clause requiring human review"
+
+    def record_genuine_human_review(
+        self,
+        claim_id: str,
+        reviewer_id: str,
+        decision: str,  # "APPROVE", "REJECT", "CORRECT"
+        rationale: str,
+        correction: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        """
+        Records an authentic decision made by an identified human reviewer.
+        Advances lifecycle state from AUTOMATED_CHECKS_PASSED to HUMAN_REVIEWED.
+        """
+        now_iso = datetime.datetime.now(datetime.timezone.utc).isoformat()
+        return {
+            "claim_id": claim_id,
+            "reviewer_id": reviewer_id,
+            "lifecycle_state": "HUMAN_REVIEWED",
+            "decision": decision,
+            "rationale": rationale,
+            "correction": correction,
+            "reviewed_at": now_iso,
+            "is_human": True,
+        }
 
     def execute_dual_independent_review(self) -> Dict[str, Any]:
-        """Executes blinded dual-review, chance-adjusted Cohen's Kappa, and arbitration."""
+        """
+        Executes automated heuristic verification across risk-stratified claims.
+        Claims passing automated checks receive 'AUTOMATED_CHECKS_PASSED'.
+        Sampling estimates batch quality, but does NOT silently promote unreviewed
+        claims to 'CERTIFIED' or 'HUMAN_REVIEWED'.
+        """
         claims = self.load_queue()
-        print(f"Beginning Blinded Dual-Independent Review across {len(claims)} risk-stratified claims...")
+        print(f"Beginning Automated Dual-Heuristic Verification across {len(claims)} risk-stratified claims...")
 
         records = []
         alpha_disps = []
         beta_disps = []
         agreed_count = 0
         disagreed_count = 0
-        certified_set = []
-        rejected_set = []
+        automated_passed_set = []
+        needs_review_set = []
 
         now_iso = datetime.datetime.now(datetime.timezone.utc).isoformat()
 
         for idx, c in enumerate(claims, start=1):
             c_id = c.get("claim_id") or c.get("clause_id") or f"claim:{c.get('document_id')}:{idx}"
             
-            # Reviewer Alpha (Blinded)
-            a_disp, a_rat = self.rater_alpha_eval(c)
+            # Automated Gate Alpha
+            a_disp, a_rat = self.automated_heuristic_alpha(c)
             alpha_assessment = {
-                "reviewer_id": "auditor_alpha_legal",
+                "checker_id": "automated_gate_alpha_structural",
                 "disposition": a_disp,
                 "rationale": a_rat,
                 "timestamp": now_iso,
+                "is_human": False,
             }
 
-            # Reviewer Beta (Blinded)
-            b_disp, b_rat = self.rater_beta_eval(c)
+            # Automated Gate Beta
+            b_disp, b_rat = self.automated_heuristic_beta(c)
             beta_assessment = {
-                "reviewer_id": "auditor_beta_compliance",
+                "checker_id": "automated_gate_beta_regulatory",
                 "disposition": b_disp,
                 "rationale": b_rat,
                 "timestamp": now_iso,
+                "is_human": False,
             }
 
             alpha_disps.append(a_disp)
             beta_disps.append(b_disp)
 
-            if a_disp == b_disp:
+            if a_disp == b_disp and a_disp == "AUTOMATED_CHECKS_PASSED":
                 agreed_count += 1
-                final_disp = a_disp
+                final_disp = "AUTOMATED_CHECKS_PASSED"
+                lifecycle_status = "AUTOMATED_CHECKS_PASSED"
                 arbitration = None
             else:
                 disagreed_count += 1
-                # Lead Adjudicator arbitration
-                lead_disp = a_disp if a_disp in ("CERTIFY", "CORRECT_WITH_EDIT") else b_disp
+                final_disp = "AMBIGUOUS_NEEDS_REVIEW"
+                lifecycle_status = "UNREVIEWED_NEEDS_HUMAN_ADJUDICATION"
                 arbitration = {
-                    "adjudicator_id": "lead_adjudicator_principal",
+                    "adjudication_required": True,
                     "alpha_disposition": a_disp,
                     "beta_disposition": b_disp,
-                    "final_disposition": lead_disp,
-                    "rationale": f"Arbitrated after examining raw evidence span. Upheld {lead_disp}.",
-                    "timestamp": now_iso,
+                    "notes": "Automated checks diverged; routed to human review queue",
                 }
-                final_disp = lead_disp
 
             rec = {
                 "claim_id": c_id,
@@ -163,34 +187,30 @@ class InteractiveReviewCLI:
                 "subject": c.get("subject") or c.get("normalized_subject"),
                 "predicate": c.get("predicate"),
                 "object": c.get("object") or c.get("predicate_object"),
-                "reviewer_alpha": alpha_assessment,
-                "reviewer_beta": beta_assessment,
+                "gate_alpha": alpha_assessment,
+                "gate_beta": beta_assessment,
                 "agreement_status": "AGREED" if a_disp == b_disp else "DISAGREED",
+                "lifecycle_state": lifecycle_status,
                 "arbitration": arbitration,
-                "final_certified_disposition": final_disp,
+                "disposition": final_disp,
             }
             records.append(rec)
 
-            if final_disp in ("CERTIFY", "CORRECT_WITH_EDIT"):
+            if lifecycle_status == "AUTOMATED_CHECKS_PASSED":
                 c_out = dict(c)
-                c_out["lifecycle_state"] = "CERTIFIED"
-                c_out["certified_at"] = now_iso
-                c_out["certification_evidence"] = {
-                    "alpha_disposition": a_disp,
-                    "beta_disposition": b_disp,
-                    "final_disposition": final_disp,
-                }
-                certified_set.append(c_out)
+                c_out["lifecycle_state"] = "AUTOMATED_CHECKS_PASSED"
+                c_out["automated_verified_at"] = now_iso
+                automated_passed_set.append(c_out)
             else:
-                rejected_set.append(c)
+                needs_review_set.append(c)
 
         # Compute chance-adjusted Cohen's Kappa
         kappa_res = compute_cohens_kappa(alpha_disps, beta_disps)
 
-        observed_precision = len(certified_set) / max(len(claims), 1)
+        observed_precision = len(automated_passed_set) / max(len(claims), 1)
 
         summary = {
-            "sprint": "AD-7: Risk-Based Human Adjudication & Certification Completion",
+            "sprint": "AD-7: Risk-Based Automated Verification & Human Review Triage",
             "audited_at": now_iso,
             "total_claims_in_session": len(claims),
             "inter_annotator_agreement": {
@@ -203,32 +223,33 @@ class InteractiveReviewCLI:
                 "interpretation": kappa_res["interpretation"],
                 "confusion_matrix": kappa_res["confusion_matrix"],
             },
-            "adjudication_metrics": {
-                "certified_claims_count": len(certified_set),
-                "rejected_or_escalated_count": len(rejected_set),
-                "override_rate_pct": round((disagreed_count / max(len(claims), 1)) * 100, 2),
-                "observed_sample_precision_pct": round(observed_precision * 100, 2),
+            "gate_metrics": {
+                "automated_passed_count": len(automated_passed_set),
+                "needs_human_adjudication_count": len(needs_review_set),
+                "disagreement_rate_pct": round((disagreed_count / max(len(claims), 1)) * 100, 2),
+                "automated_pass_rate_pct": round(observed_precision * 100, 2),
+                "human_certified_claims_count": 0,  # Strict: Unreviewed claims cannot be labeled certified
             },
             "records": records,
         }
 
         # Write reports
-        (self.output_dir / "ad7_dual_human_adjudication_report.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
+        (self.output_dir / "ad7_automated_verification_report.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
         
-        # Save certified claims
+        # Save claims passing automated checks
         staged_dir = Path("B:/Context_Layer_Ai/research/validation_50/staged_ingestion")
         staged_dir.mkdir(parents=True, exist_ok=True)
-        (staged_dir / "certified_claims.json").write_text(json.dumps(certified_set, indent=2), encoding="utf-8")
+        (staged_dir / "automated_passed_claims.json").write_text(json.dumps(automated_passed_set, indent=2), encoding="utf-8")
 
         print("\n" + "=" * 65)
-        print("AD-7 Risk-Based Adjudication Complete!")
+        print("AD-7 Risk-Based Automated Verification Complete!")
         print(f"Total Evaluated: {len(claims)}")
         print(f"Observed Agreement: {kappa_res['observed_agreement_pct']}%")
         print(f"Chance-Expected Agreement: {kappa_res['chance_expected_agreement_pct']}%")
         print(f"Cohen's Kappa (kappa): {kappa_res['cohens_kappa']} ({kappa_res['interpretation']})")
-        print(f"Human Override / Arbitration Rate: {summary['adjudication_metrics']['override_rate_pct']}%")
-        print(f"Observed Sample Precision: {summary['adjudication_metrics']['observed_sample_precision_pct']}%")
-        print(f"Certified Claims Staged for Production: {len(certified_set)}")
+        print(f"Automated Checks Passed: {len(automated_passed_set)}")
+        print(f"Routing to Human Adjudication Queue: {len(needs_review_set)}")
+        print("Note: Unreviewed claims are kept distinct from Human Certified claims.")
         print("=" * 65 + "\n")
 
         return summary

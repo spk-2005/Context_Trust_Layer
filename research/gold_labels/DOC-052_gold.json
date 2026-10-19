@@ -1,0 +1,124 @@
+{
+  "document_id": "DOC-052",
+  "filename": "Food and Drug Administration CFR Title 21 Part 11 - Microsoft Compliance _ Microsoft Learn.pdf",
+  "document_type": "regulatory_compliance",
+  "organization": "Enterprise Validation Corpus",
+  "source_sha256": "9862b69f3f3a11a3362ab66400b7d9e2b67d7214629d737f1d9c6f468f1c12d6",
+  "file_size_bytes": 90608,
+  "annotated_by": "DRAFT_REFERENCE_LABEL_PENDING_HUMAN_VERIFICATION",
+  "provenance": {
+    "status": "DRAFT_REFERENCE_LABEL_PENDING_HUMAN_VERIFICATION",
+    "verification_method": "PRE_EXTRACTION_SOURCE_READING",
+    "blind_to_extraction_outputs": true,
+    "last_reviewed": "2026-10-18",
+    "notes": "Draft reference labels used for development suite validation; must be re-verified double-blind for Stage 4/5 certified benchmarks."
+  },
+  "annotation_date": "2026-10-18",
+  "methodology": "Pre-extraction independent human reading of PDF source bytes. Exhaustive enumeration of obligations, permissions, prohibitions, definitions, capabilities, and references.",
+  "taxonomies": {
+    "normative_modalities": ["OBLIGATION", "PERMISSION", "PROHIBITION"],
+    "information_types": ["POLICY_RULE", "DEFINITION", "PRODUCT_CAPABILITY", "REFERENCE_CITATION", "HISTORICAL_FACT"]
+  },
+  "claim_truth": [
+    {
+      "gold_id": "DOC052-G01",
+      "claim_type": "OBLIGATION",
+      "canonical": true,
+      "subject": "Technology system governing GxP processes",
+      "predicate": "requires_validation_of_adherence_to",
+      "object": "GxP adherence validation for systems governing Good Laboratory Practices, Good Clinical Practices, and Good Manufacturing Practices",
+      "modality": "OBLIGATION",
+      "conditions": [],
+      "page_number": 1,
+      "section": "FDA CFR Title 21 overview",
+      "evidence_quote": "Any technology system that governs such GxP processes as Good Laboratory Practices (GLP), Good Clinical Practices (GCP), and Good Manufacturing Practices (GMP) also requires validation of its adherence to GxP."
+    },
+    {
+      "gold_id": "DOC052-G02",
+      "claim_type": "OBLIGATION",
+      "canonical": true,
+      "subject": "Subject companies",
+      "predicate": "must_prove",
+      "object": "that their processes and products work as they're designed to",
+      "modality": "OBLIGATION",
+      "conditions": [],
+      "page_number": 1,
+      "section": "FDA CFR Title 21 overview",
+      "evidence_quote": "Subject companies must prove that their processes and products work as they're designed to, and if these process and products change, they must revalidate that proof."
+    },
+    {
+      "gold_id": "DOC052-G03",
+      "claim_type": "OBLIGATION",
+      "canonical": true,
+      "subject": "Subject companies",
+      "predicate": "must_revalidate",
+      "object": "proof that their processes and products work as designed",
+      "modality": "OBLIGATION",
+      "conditions": [
+        "If these process and products change"
+      ],
+      "page_number": 1,
+      "section": "FDA CFR Title 21 overview",
+      "evidence_quote": "and if these process and products change, they must revalidate that proof."
+    },
+    {
+      "gold_id": "DOC052-G04",
+      "claim_type": "PERMISSION",
+      "canonical": true,
+      "subject": "Customers",
+      "predicate": "may_request_access",
+      "object": "compliance reports through their Microsoft account representative, or through the Service Trust Portal",
+      "modality": "PERMISSION",
+      "conditions": [
+        "Subject to nondisclosure agreement terms and conditions"
+      ],
+      "page_number": 2,
+      "section": "Microsoft and FDA CFR Title 21",
+      "evidence_quote": "Customers can request access to the compliance reports, subject to nondisclosure agreement terms and conditions, through their Microsoft account representative, or through the Service Trust Portal."
+    },
+    {
+      "gold_id": "DOC052-G05",
+      "claim_type": "OBLIGATION",
+      "canonical": true,
+      "subject": "Customers who build and deploy applications subject to FDA regulation",
+      "predicate": "are_responsible_for",
+      "object": "ensuring that their applications meet FDA requirements",
+      "modality": "OBLIGATION",
+      "conditions": [],
+      "page_number": 3,
+      "section": "Frequently asked questions",
+      "evidence_quote": "Customers who build and deploy applications subject to FDA regulation are responsible for ensuring that their applications meet FDA requirements."
+    },
+    {
+      "gold_id": "DOC052-G06",
+      "claim_type": "OBLIGATION",
+      "canonical": true,
+      "subject": "Microsoft",
+      "predicate": "ensures",
+      "object": "that its enterprise cloud services meet the terms defined within the governing Online Services Terms and applicable Service Level Agreements (SLAs)",
+      "modality": "OBLIGATION",
+      "conditions": [],
+      "page_number": 3,
+      "section": "Frequently asked questions",
+      "evidence_quote": "Microsoft ensures that its enterprise cloud services meet the terms defined within the governing Online Services Terms and applicable Service Level Agreements (SLAs)."
+    }
+  ],
+  "informational_truth": [
+    {
+      "info_id": "DOC052-I01",
+      "category": "DEFINITION",
+      "subject": "FDA CFR Title 21",
+      "content": "Regulates food and drugs manufactured or consumed in the United States under the jurisdiction of FDA, DEA, and ONDCP.",
+      "page_number": 1,
+      "evidence_quote": "FDA CFR Title 21 regulates food and drugs manufactured or consumed in the United States, under the jurisdiction of the Food and Drug Administration (FDA), the Drug Enforcement Administration, and the Office of National Drug Control Policy."
+    },
+    {
+      "info_id": "DOC052-I02",
+      "category": "PRODUCT_CAPABILITY",
+      "subject": "Microsoft enterprise cloud services",
+      "content": "Undergo regular independent third-party SOC 1 Type 2 and SOC 2 Type 2 audits and are certified according to ISO/IEC 27001 and ISO/IEC 27018.",
+      "page_number": 1,
+      "evidence_quote": "Microsoft enterprise cloud services undergo regular independent third-party SOC 1 Type 2 and SOC 2 Type 2 audits and are certified according to ISO/IEC 27001 and ISO/IEC 27018 standards."
+    }
+  ]
+}

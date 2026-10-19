@@ -1,0 +1,47 @@
+{
+  "document_id": "EFF-013",
+  "filename": "wordpress-pdf-invoice-plugin-sample.pdf",
+  "category": "invoice",
+  "risk_tier": "STANDARD",
+  "review_coverage": {
+    "total_claims": 2,
+    "first_pass_review_rate": 1.0,
+    "dual_review_sample_rate": 0.3,
+    "claims_dual_reviewed": 1,
+    "low_confidence_review_rate": 1.0,
+    "conflicts_conditions_review_rate": 1.0
+  },
+  "adjudication_summary": {
+    "certified_valid": 2,
+    "pending_review": 0,
+    "rejected": 0
+  },
+  "claims": [
+    {
+      "candidate_id": "cand:c76a532c-6121-5432-9797-f9fed5f8d1f2:2:92dd7aac9b9a:6542696795",
+      "subject": "wordpress-pdf-invoice-plugin-sample",
+      "predicate": "has_due_date_period",
+      "object": "Invoice Payment is due within 30 days from date of invoice.",
+      "modality": "POLICY_FACT",
+      "confidence": 0.9,
+      "trust_score": 0.975,
+      "disposition": "CERTIFIED_VALID",
+      "review_decision": "approve",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "candidate_id": "cand:c76a532c-6121-5432-9797-f9fed5f8d1f2:2:92dd7aac9b9a:3092c4d058",
+      "subject": "wordpress-pdf-invoice-plugin-sample",
+      "predicate": "may_apply_administration_fee",
+      "object": "Late payment is subject to fees of 5% per month.",
+      "modality": "POLICY_FACT",
+      "confidence": 0.9,
+      "trust_score": 0.975,
+      "disposition": "CERTIFIED_VALID",
+      "review_decision": "approve",
+      "evidence_supported": true,
+      "locator_valid": true
+    }
+  ]
+}

@@ -1,0 +1,462 @@
+{
+  "metadata": {
+    "document_id": "EFF-003",
+    "title": "University of St. Thomas Termination of Employment Policy",
+    "file_path": "docs/terminationofemploymentpolicy.pdf",
+    "document_type": "policy",
+    "category": "policy",
+    "pages": 4,
+    "latency_seconds": 0.3764
+  },
+  "summary": {
+    "envelope_id": "629ca5cb-7a37-571e-bd2c-7fa55214779c",
+    "asset_id": "file://terminationofemploymentpolicy.pdf",
+    "filename": "terminationofemploymentpolicy.pdf",
+    "total_evidence_units": 38,
+    "candidates_discovered": 17,
+    "unique_claims_extracted": 17,
+    "claims_approved": 11,
+    "claims_review": 6,
+    "claims_rejected": 0,
+    "conflicts_detected": 0,
+    "persisted_claims_count": 0
+  },
+  "quality": {
+    "gold_claims": 17,
+    "true_positives": 17,
+    "false_positives": 0,
+    "false_negatives": 0,
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1_score": 1.0,
+    "evidence_grounding_rate": 1.0,
+    "locator_accuracy_rate": 1.0
+  },
+  "candidates": [
+    {
+      "candidate_id": "cand:629ca5cb-7a37-571e-bd2c-7fa55214779c:4:24414e79d447:34433caa37",
+      "subject": "This means that either the staff member or the University",
+      "predicate": "sever",
+      "object": "the employment relationship at any time with or without cause",
+      "modality": "PERMISSION",
+      "confidence": 0.96,
+      "evidence": "This means that either the staff member or the University may sever the employment relationship at any time with or without cause.",
+      "locator": {
+        "line_start": 9,
+        "line_end": 9,
+        "start_char": 276,
+        "end_char": 747,
+        "heading_path": [
+          "terminationofemploymentpolicy",
+          "Page 1"
+        ],
+        "paragraph_index": 4,
+        "filename": "terminationofemploymentpolicy.pdf",
+        "file_extension": "pdf",
+        "file_size": 102670,
+        "document_type": "policy",
+        "sentence_index": 3
+      }
+    },
+    {
+      "candidate_id": "cand:629ca5cb-7a37-571e-bd2c-7fa55214779c:6:67e90dd21b61:fd1e307d27",
+      "subject": "Termination of Employment Policy",
+      "predicate": "has_validity_rule",
+      "object": "applies to all regular full-time and part-time staff employees",
+      "modality": "OBLIGATION",
+      "confidence": 0.98,
+      "evidence": "This policy applies to all regular full-time and part-time staff employees, including those holding term appointments.",
+      "locator": {
+        "line_start": 13,
+        "line_end": 13,
+        "start_char": 785,
+        "end_char": 1279,
+        "heading_path": [
+          "terminationofemploymentpolicy",
+          "Page 1"
+        ],
+        "paragraph_index": 6,
+        "filename": "terminationofemploymentpolicy.pdf",
+        "file_extension": "pdf",
+        "file_size": 102670,
+        "document_type": "policy",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:629ca5cb-7a37-571e-bd2c-7fa55214779c:9:52031bb2b7dd:0f0668bcdc",
+      "subject": "Others",
+      "predicate": "leave",
+      "object": "the University for a variety of reasons",
+      "modality": "PERMISSION",
+      "confidence": 0.96,
+      "evidence": "Others may leave the University for a variety of reasons.",
+      "locator": {
+        "line_start": 19,
+        "line_end": 19,
+        "start_char": 1439,
+        "end_char": 1652,
+        "heading_path": [
+          "terminationofemploymentpolicy",
+          "Page 1"
+        ],
+        "paragraph_index": 9,
+        "filename": "terminationofemploymentpolicy.pdf",
+        "file_extension": "pdf",
+        "file_size": 102670,
+        "document_type": "policy",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:629ca5cb-7a37-571e-bd2c-7fa55214779c:9:52031bb2b7dd:81bcaea2be",
+      "subject": "Termination of employment",
+      "predicate": "result",
+      "object": "from a resignation, retirement, death, involuntary termination, staff reduction, or due to an employee's term ending",
+      "modality": "PERMISSION",
+      "confidence": 0.96,
+      "evidence": "Termination of employment may result from a resignation, retirement, death, involuntary termination, staff reduction, or due to an employee's term ending.",
+      "locator": {
+        "line_start": 19,
+        "line_end": 19,
+        "start_char": 1439,
+        "end_char": 1652,
+        "heading_path": [
+          "terminationofemploymentpolicy",
+          "Page 1"
+        ],
+        "paragraph_index": 9,
+        "filename": "terminationofemploymentpolicy.pdf",
+        "file_extension": "pdf",
+        "file_size": 102670,
+        "document_type": "policy",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:629ca5cb-7a37-571e-bd2c-7fa55214779c:10:5c9c1eaa2961:1aaf7b160c",
+      "subject": "Supervisors",
+      "predicate": "notify",
+      "object": "the designated Human Resources partner as soon as they are aware an employee is voluntarily terminating",
+      "modality": "POLICY_FACT",
+      "confidence": 0.9,
+      "evidence": "Supervisors should notify the designated Human Resources partner as soon as they are aware an employee is voluntarily terminating.",
+      "locator": {
+        "line_start": 21,
+        "line_end": 21,
+        "start_char": 1653,
+        "end_char": 1931,
+        "heading_path": [
+          "terminationofemploymentpolicy",
+          "Page 1"
+        ],
+        "paragraph_index": 10,
+        "filename": "terminationofemploymentpolicy.pdf",
+        "file_extension": "pdf",
+        "file_size": 102670,
+        "document_type": "policy",
+        "sentence_index": 2
+      }
+    },
+    {
+      "candidate_id": "cand:629ca5cb-7a37-571e-bd2c-7fa55214779c:16:07bbbf6e678f:83449fd2b2",
+      "subject": "final paycheck",
+      "predicate": "includes_compensation",
+      "object": "includes all unpaid wages, earned but unused paid leave time (PLT)",
+      "modality": "OBLIGATION",
+      "confidence": 0.98,
+      "evidence": "The final paycheck includes all unpaid wages, earned but unused paid leave time (PLT) for non-exempt staff, and any vacation payable under the Vacation Time for Exempt (Salaried) Staff Policy.",
+      "locator": {
+        "line_start": 30,
+        "line_end": 30,
+        "start_char": 2735,
+        "end_char": 3111,
+        "heading_path": [
+          "terminationofemploymentpolicy",
+          "Page 2"
+        ],
+        "paragraph_index": 16,
+        "filename": "terminationofemploymentpolicy.pdf",
+        "file_extension": "pdf",
+        "file_size": 102670,
+        "document_type": "policy",
+        "sentence_index": 2
+      }
+    },
+    {
+      "candidate_id": "cand:629ca5cb-7a37-571e-bd2c-7fa55214779c:20:53f9b7391096:401f658709",
+      "subject": "Termination for serious misconduct",
+      "predicate": "occur",
+      "object": "without prior notice in accordance with the University's Corrective Action Policy for Staff Employees; in other instances, termination for misconduct may follow corrective action",
+      "modality": "PERMISSION",
+      "confidence": 0.96,
+      "evidence": "Termination for serious misconduct may occur without prior notice in accordance with the University's Corrective Action Policy for Staff Employees; in other instances, termination for misconduct may follow corrective action.",
+      "locator": {
+        "line_start": 36,
+        "line_end": 36,
+        "start_char": 4674,
+        "end_char": 5157,
+        "heading_path": [
+          "terminationofemploymentpolicy",
+          "Page 2"
+        ],
+        "paragraph_index": 20,
+        "filename": "terminationofemploymentpolicy.pdf",
+        "file_extension": "pdf",
+        "file_size": 102670,
+        "document_type": "policy",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:629ca5cb-7a37-571e-bd2c-7fa55214779c:20:53f9b7391096:0ebd573283",
+      "subject": "Staff members terminated for misconduct",
+      "predicate": "has_severance_eligibility",
+      "object": "not eligible for severance pay",
+      "modality": "PROHIBITION",
+      "confidence": 0.98,
+      "evidence": "Staff members terminated for misconduct are not eligible for severance pay.",
+      "locator": {
+        "line_start": 36,
+        "line_end": 36,
+        "start_char": 4674,
+        "end_char": 5157,
+        "heading_path": [
+          "terminationofemploymentpolicy",
+          "Page 2"
+        ],
+        "paragraph_index": 20,
+        "filename": "terminationofemploymentpolicy.pdf",
+        "file_extension": "pdf",
+        "file_size": 102670,
+        "document_type": "policy",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:629ca5cb-7a37-571e-bd2c-7fa55214779c:24:b15547aa3df9:e226c7c9c7",
+      "subject": "These circumstances",
+      "predicate": "arise",
+      "object": "due to (1) financial considerations , (2) restructuring or reorganization of a unit resulting in the discontinuation of or significant changes to program (s), function(s), or job(s), or (3) other business requirements",
+      "modality": "PERMISSION",
+      "confidence": 0.96,
+      "evidence": "These circumstances may arise due to (1) financial considerations , (2) restructuring or reorganization of a unit resulting in the discontinuation of or significant changes to program (s), function(s), or job(s), or (3) other business requirements.",
+      "locator": {
+        "line_start": 43,
+        "line_end": 43,
+        "start_char": 5954,
+        "end_char": 7258,
+        "heading_path": [
+          "terminationofemploymentpolicy",
+          "Page 3"
+        ],
+        "paragraph_index": 24,
+        "filename": "terminationofemploymentpolicy.pdf",
+        "file_extension": "pdf",
+        "file_size": 102670,
+        "document_type": "policy",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:629ca5cb-7a37-571e-bd2c-7fa55214779c:24:b15547aa3df9:ca5171c885",
+      "subject": "supervisors",
+      "predicate": "has_rehire_restriction",
+      "object": "may not rehire the position for a period of at least one year",
+      "modality": "PROHIBITION",
+      "confidence": 0.98,
+      "evidence": "If a position is eliminated through a staff reduction or position elimination and the employee is receiving severance, supervisors may not rehire the position for a period of at least one year, except with the approval of the chief human resources officer.",
+      "locator": {
+        "line_start": 43,
+        "line_end": 43,
+        "start_char": 5954,
+        "end_char": 7258,
+        "heading_path": [
+          "terminationofemploymentpolicy",
+          "Page 3"
+        ],
+        "paragraph_index": 24,
+        "filename": "terminationofemploymentpolicy.pdf",
+        "file_extension": "pdf",
+        "file_size": 102670,
+        "document_type": "policy",
+        "sentence_index": 5
+      }
+    },
+    {
+      "candidate_id": "cand:629ca5cb-7a37-571e-bd2c-7fa55214779c:26:cd92af84c02e:24820d33a7",
+      "subject": "In some cases, an employee",
+      "predicate": "has_validity_rule",
+      "object": "have the opportunity to work during the period that the employee would otherwise receive severance pay, called the notice period",
+      "modality": "PERMISSION",
+      "confidence": 0.96,
+      "evidence": "In some cases, an employee may have the opportunity to work during the period that the employee would otherwise receive severance pay, called the notice period.",
+      "locator": {
+        "line_start": 47,
+        "line_end": 47,
+        "start_char": 7297,
+        "end_char": 7649,
+        "heading_path": [
+          "terminationofemploymentpolicy",
+          "Page 3"
+        ],
+        "paragraph_index": 26,
+        "filename": "terminationofemploymentpolicy.pdf",
+        "file_extension": "pdf",
+        "file_size": 102670,
+        "document_type": "policy",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:629ca5cb-7a37-571e-bd2c-7fa55214779c:30:e15e5a37c42c:68897b0db2",
+      "subject": "Company (Pay in Lieu of Notice)",
+      "predicate": "issues_pay_in_lieu_of_notice",
+      "object": "Payment for notice period upon discussion with Manager, HR, and Department Head (CEO informed)",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "When a University leader elects to offer severance pay in lieu of notice, the designated Human Resources partner calculates the amount",
+      "locator": {
+        "line_start": 55,
+        "line_end": 55,
+        "start_char": 9358,
+        "end_char": 9661,
+        "heading_path": [
+          "terminationofemploymentpolicy",
+          "Page 3"
+        ],
+        "paragraph_index": 30,
+        "filename": "terminationofemploymentpolicy.pdf",
+        "file_extension": "pdf",
+        "file_size": 102670,
+        "document_type": "policy",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:629ca5cb-7a37-571e-bd2c-7fa55214779c:32:61033b09f0c0:ae0f60d2e5",
+      "subject": "Severance",
+      "predicate": "has_validity_rule",
+      "object": "be paid in accordance with the separation agreement in a lump sum minus applicable withholdings",
+      "modality": "POLICY_FACT",
+      "confidence": 0.9,
+      "evidence": "Severance will be paid in accordance with the separation agreement in a lump sum minus applicable withholdings.",
+      "locator": {
+        "line_start": 59,
+        "line_end": 59,
+        "start_char": 9673,
+        "end_char": 10084,
+        "heading_path": [
+          "terminationofemploymentpolicy",
+          "Page 4"
+        ],
+        "paragraph_index": 32,
+        "filename": "terminationofemploymentpolicy.pdf",
+        "file_extension": "pdf",
+        "file_size": 102670,
+        "document_type": "policy",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:629ca5cb-7a37-571e-bd2c-7fa55214779c:33:79994f52936b:8a1fc8f52d",
+      "subject": "Employees",
+      "predicate": "has_validity_rule",
+      "object": "be offered severance pay under this policy if they are awarded any form of remuneration under other policies or agreements, such as if the University offers a v oluntary retirement incentive program",
+      "modality": "PROHIBITION",
+      "confidence": 0.96,
+      "evidence": "Employees will not be offered severance pay under this policy if they are awarded any form of remuneration under other policies or agreements, such as if the University offers a v oluntary retirement incentive program.",
+      "locator": {
+        "line_start": 61,
+        "line_end": 61,
+        "start_char": 10085,
+        "end_char": 10304,
+        "heading_path": [
+          "terminationofemploymentpolicy",
+          "Page 4"
+        ],
+        "paragraph_index": 33,
+        "filename": "terminationofemploymentpolicy.pdf",
+        "file_extension": "pdf",
+        "file_size": 102670,
+        "document_type": "policy",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:629ca5cb-7a37-571e-bd2c-7fa55214779c:35:a55db108434e:909879d5b6",
+      "subject": "terminationofemploymentpolicy",
+      "predicate": "has_refund_eligibility",
+      "object": "Unless a separation agreement provides otherwise, employees who leave the University in good standing and later wish to return are eligible for consideration for rehire provided an appropriate position is available.",
+      "modality": "POLICY_FACT",
+      "confidence": 0.9,
+      "evidence": "Unless a separation agreement provides otherwise, employees who leave the University in good standing and later wish to return are eligible for consideration for rehire provided an appropriate position is available.",
+      "locator": {
+        "line_start": 65,
+        "line_end": 65,
+        "start_char": 10324,
+        "end_char": 10756,
+        "heading_path": [
+          "terminationofemploymentpolicy",
+          "Page 4"
+        ],
+        "paragraph_index": 35,
+        "filename": "terminationofemploymentpolicy.pdf",
+        "file_extension": "pdf",
+        "file_size": 102670,
+        "document_type": "policy",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:629ca5cb-7a37-571e-bd2c-7fa55214779c:35:a55db108434e:f098573b5e",
+      "subject": "A former employee who is rehired",
+      "predicate": "receive",
+      "object": "prior service credit for purposes of vacation or paid leave time accrual and other pertinent benefits if less than 12 months have elapsed between termination and start",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "A former employee who is rehired shall receive prior service credit for purposes of vacation or paid leave time accrual and other pertinent benefits if less than 12 months have elapsed between termination and start.",
+      "locator": {
+        "line_start": 65,
+        "line_end": 65,
+        "start_char": 10324,
+        "end_char": 10756,
+        "heading_path": [
+          "terminationofemploymentpolicy",
+          "Page 4"
+        ],
+        "paragraph_index": 35,
+        "filename": "terminationofemploymentpolicy.pdf",
+        "file_extension": "pdf",
+        "file_size": 102670,
+        "document_type": "policy",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:629ca5cb-7a37-571e-bd2c-7fa55214779c:37:debb4106bec2:a3e2da0c01",
+      "subject": "Unauthorized Use or Disclosure of Policy Information",
+      "predicate": "prohibited_in_any_media",
+      "object": "Any media",
+      "modality": "PROHIBITION",
+      "confidence": 0.95,
+      "evidence": "Terminating employees may not retain any documents or electronic files that contain confidential or proprietary information belonging to St.",
+      "locator": {
+        "line_start": 69,
+        "line_end": 69,
+        "start_char": 10800,
+        "end_char": 11382,
+        "heading_path": [
+          "terminationofemploymentpolicy",
+          "Page 4"
+        ],
+        "paragraph_index": 37,
+        "filename": "terminationofemploymentpolicy.pdf",
+        "file_extension": "pdf",
+        "file_size": 102670,
+        "document_type": "policy",
+        "sentence_index": 1
+      }
+    }
+  ]
+}

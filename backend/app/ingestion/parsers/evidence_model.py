@@ -33,6 +33,7 @@ class ContentRole(str, Enum):
     INTRODUCTORY_CONTEXT = "introductory_context" # Descriptive preface, non-normative framing
     DOCUMENT_METADATA = "document_metadata" # Document title, author, scope metadata
     FORM_SPECIFICATION = "form_specification" # Form field requirements
+    REFERENCE_CITATION = "reference_citation" # Citation of external statutes, regulatory references, or documentation links (non-normative)
 
 
 class ParsedEvidenceUnit(BaseModel):

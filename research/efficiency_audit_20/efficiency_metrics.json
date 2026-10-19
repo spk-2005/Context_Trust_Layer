@@ -1,0 +1,36 @@
+{
+  "benchmark_corpus": "efficiency_audit_20_v1",
+  "total_documents_processed": 20,
+  "total_wall_clock_time_seconds": 23.8886,
+  "latency_statistics_seconds": {
+    "average_parsing_time": 0.0128,
+    "average_extraction_time": 0.8024,
+    "average_total_latency": 0.8152,
+    "median_p50_latency": 0.3583,
+    "p95_latency": 2.7682,
+    "min_latency": 0.042,
+    "max_latency": 2.7682
+  },
+  "token_and_cost": {
+    "estimated_equivalent_input_tokens_per_doc": 7187.0,
+    "estimated_equivalent_output_tokens_per_doc": 1693.5,
+    "average_cost_per_doc_usd": 0.0,
+    "total_corpus_cost_usd": 0.0,
+    "actual_external_api_cost_usd": 0.0,
+    "cost_notes": "Local deterministic rule extraction operates on-premise with $0.000 external API spend and 100% data sovereignty."
+  },
+  "throughput": {
+    "claims_per_second": 41.4,
+    "documents_per_minute": 50.23
+  },
+  "targets_vs_actuals": {
+    "parsing_time_target_seconds": "< 10.0s",
+    "parsing_time_actual_seconds": "0.01s",
+    "extraction_time_target_seconds": "< 15.0s",
+    "extraction_time_actual_seconds": "0.80s",
+    "total_latency_target_seconds": "< 30.0s",
+    "total_latency_actual_seconds": "0.82s",
+    "throughput_target": ">= 2.0 docs/min",
+    "throughput_actual": "50.2 docs/min"
+  }
+}

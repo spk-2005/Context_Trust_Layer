@@ -12,7 +12,7 @@
       "can_rejoin_after": "Chinese regression suite and full claim audit pass"
     }
   ],
-  "executed_at": "2026-10-18T05:52:08.220666+00:00",
+  "executed_at": "2026-10-19T05:00:53.278139+00:00",
   "corpus_summary": {
     "total_documents_evaluated": 21,
     "parsing_distribution": {
@@ -24,37 +24,98 @@
     "parsing_pass_rate": 1.0
   },
   "claims_summary": {
-    "total_claims_extracted": 1026,
-    "valid_claims": 926,
-    "invalid_claims": 12,
-    "missed_claims": 16,
+    "total_claims_extracted": 876,
+    "valid_claims": 577,
+    "invalid_claims": 58,
+    "missed_claims": 0,
     "duplicate_claims": 1,
-    "ambiguous_claims": 88
+    "ambiguous_claims": 241
   },
   "metrics": {
-    "macro_claim_precision": 0.9032,
-    "macro_claim_recall": 0.9681,
-    "macro_f1": 0.9345,
-    "evidence_supported_rate": 0.8631,
+    "macro_claim_precision": 0.6228,
+    "macro_claim_recall": 1.0,
+    "macro_f1": 0.7676,
+    "evidence_supported_rate": 0.9371,
     "locator_accuracy_rate": 1.0,
-    "duplicate_rate": 0.001
+    "duplicate_rate": 0.0011
   },
   "gates_evaluated": {
     "parsing_threshold_met": true,
-    "precision_threshold_met": true,
+    "precision_threshold_met": false,
     "recall_threshold_met": true
   },
-  "release_recommendation": "PASS_FOR_STAGED_INGESTION (CONDITIONAL_FOR_PRODUCTION_CERTIFICATION)",
+  "release_recommendation": "FAIL_REQUIRES_REPAIR_SPRINT",
   "ranked_failure_patterns": [
     {
-      "pattern": "Conditional exceptions missed",
-      "occurrences": 4,
-      "affected_document_count": 4,
+      "pattern": "Spurious False Positive: no more users | claim",
+      "occurrences": 2,
+      "affected_document_count": 1,
       "affected_documents": [
-        "DOC-052",
-        "DOC-057",
-        "DOC-065",
-        "DOC-066"
+        "DOC-058"
+      ]
+    },
+    {
+      "pattern": "Spurious False Positive: solutions for hard tokens | use",
+      "occurrences": 1,
+      "affected_document_count": 1,
+      "affected_documents": [
+        "DOC-051"
+      ]
+    },
+    {
+      "pattern": "Spurious False Positive: Customers | use",
+      "occurrences": 1,
+      "affected_document_count": 1,
+      "affected_documents": [
+        "DOC-052"
+      ]
+    },
+    {
+      "pattern": "Spurious False Positive: Company | operate",
+      "occurrences": 1,
+      "affected_document_count": 1,
+      "affected_documents": [
+        "DOC-056"
+      ]
+    },
+    {
+      "pattern": "Spurious False Positive: Vendor | bind",
+      "occurrences": 1,
+      "affected_document_count": 1,
+      "affected_documents": [
+        "DOC-057"
+      ]
+    },
+    {
+      "pattern": "Spurious False Positive: E-invoicing Provider | apply_such",
+      "occurrences": 1,
+      "affected_document_count": 1,
+      "affected_documents": [
+        "DOC-057"
+      ]
+    },
+    {
+      "pattern": "Spurious False Positive: no new users | receive",
+      "occurrences": 1,
+      "affected_document_count": 1,
+      "affected_documents": [
+        "DOC-058"
+      ]
+    },
+    {
+      "pattern": "Spurious False Positive: Microsoft Store | has_return_window",
+      "occurrences": 1,
+      "affected_document_count": 1,
+      "affected_documents": [
+        "DOC-060"
+      ]
+    },
+    {
+      "pattern": "Spurious False Positive: Both price adjustments | has_definition",
+      "occurrences": 1,
+      "affected_document_count": 1,
+      "affected_documents": [
+        "DOC-060"
       ]
     }
   ]

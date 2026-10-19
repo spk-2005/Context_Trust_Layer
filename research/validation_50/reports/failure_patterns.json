@@ -1,13 +1,74 @@
 [
   {
-    "pattern": "Conditional exceptions missed",
-    "occurrences": 4,
-    "affected_document_count": 4,
+    "pattern": "Spurious False Positive: no more users | claim",
+    "occurrences": 2,
+    "affected_document_count": 1,
     "affected_documents": [
-      "DOC-052",
-      "DOC-057",
-      "DOC-065",
-      "DOC-066"
+      "DOC-058"
+    ]
+  },
+  {
+    "pattern": "Spurious False Positive: solutions for hard tokens | use",
+    "occurrences": 1,
+    "affected_document_count": 1,
+    "affected_documents": [
+      "DOC-051"
+    ]
+  },
+  {
+    "pattern": "Spurious False Positive: Customers | use",
+    "occurrences": 1,
+    "affected_document_count": 1,
+    "affected_documents": [
+      "DOC-052"
+    ]
+  },
+  {
+    "pattern": "Spurious False Positive: Company | operate",
+    "occurrences": 1,
+    "affected_document_count": 1,
+    "affected_documents": [
+      "DOC-056"
+    ]
+  },
+  {
+    "pattern": "Spurious False Positive: Vendor | bind",
+    "occurrences": 1,
+    "affected_document_count": 1,
+    "affected_documents": [
+      "DOC-057"
+    ]
+  },
+  {
+    "pattern": "Spurious False Positive: E-invoicing Provider | apply_such",
+    "occurrences": 1,
+    "affected_document_count": 1,
+    "affected_documents": [
+      "DOC-057"
+    ]
+  },
+  {
+    "pattern": "Spurious False Positive: no new users | receive",
+    "occurrences": 1,
+    "affected_document_count": 1,
+    "affected_documents": [
+      "DOC-058"
+    ]
+  },
+  {
+    "pattern": "Spurious False Positive: Microsoft Store | has_return_window",
+    "occurrences": 1,
+    "affected_document_count": 1,
+    "affected_documents": [
+      "DOC-060"
+    ]
+  },
+  {
+    "pattern": "Spurious False Positive: Both price adjustments | has_definition",
+    "occurrences": 1,
+    "affected_document_count": 1,
+    "affected_documents": [
+      "DOC-060"
     ]
   }
 ]

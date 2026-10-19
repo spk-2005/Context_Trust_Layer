@@ -1,0 +1,125 @@
+{
+  "document_id": "EFF-018",
+  "filename": "Microsoft Store Refund & Return Policy (Surface, Xbox, etc.).pdf",
+  "category": "difficult",
+  "risk_tier": "HIGH_RISK",
+  "review_coverage": {
+    "total_claims": 8,
+    "first_pass_review_rate": 1.0,
+    "dual_review_sample_rate": 1.0,
+    "claims_dual_reviewed": 8,
+    "low_confidence_review_rate": 1.0,
+    "conflicts_conditions_review_rate": 1.0
+  },
+  "adjudication_summary": {
+    "certified_valid": 2,
+    "pending_review": 3,
+    "rejected": 3
+  },
+  "claims": [
+    {
+      "candidate_id": "cand:3ca96016-aa9c-5e07-a627-937e637024d9:3:0fa102037477:fb46ff65c0",
+      "subject": "Customers",
+      "predicate": "may_return",
+      "object": "almost any physical product by January 31, 2027 for a full refund",
+      "modality": "PERMISSION",
+      "confidence": 0.98,
+      "trust_score": 0.7475,
+      "disposition": "REJECTED_UNGROUNDED",
+      "review_decision": "reject",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "candidate_id": "cand:3ca96016-aa9c-5e07-a627-937e637024d9:9:62756528c9ab:b3782278af",
+      "subject": "Customers",
+      "predicate": "must_return_in_condition",
+      "object": "in like-new condition in its original packaging with all parts and documentation included",
+      "modality": "OBLIGATION",
+      "confidence": 0.98,
+      "trust_score": 0.8,
+      "disposition": "REJECTED_UNGROUNDED",
+      "review_decision": "reject",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "candidate_id": "cand:3ca96016-aa9c-5e07-a627-937e637024d9:10:ef8bc48bbe45:a0b6bee899",
+      "subject": "Microsoft Store",
+      "predicate": "will_issue_refund",
+      "object": "refund to your original payment method within 3-5 business days",
+      "modality": "OBLIGATION",
+      "confidence": 0.98,
+      "trust_score": 0.995,
+      "disposition": "CERTIFIED_VALID",
+      "review_decision": "approve",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "candidate_id": "cand:3ca96016-aa9c-5e07-a627-937e637024d9:38:fa86367c4827:222f24bab8",
+      "subject": "Microsoft Store",
+      "predicate": "has_refund_eligibility",
+      "object": "Learn about returns \ue76c Fast, free delivery Get your gifts in just a few days with free delivery.",
+      "modality": "POLICY_FACT",
+      "confidence": 0.9,
+      "trust_score": 0.975,
+      "disposition": "CERTIFIED_VALID",
+      "review_decision": "approve",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "candidate_id": "cand:3ca96016-aa9c-5e07-a627-937e637024d9:40:75d1c5b575a8:4837ab5dec",
+      "subject": "Return process",
+      "predicate": "must_be_started_within",
+      "object": "60 days after customer receives the product",
+      "modality": "OBLIGATION",
+      "confidence": 0.98,
+      "trust_score": 0.9425,
+      "disposition": "AMBIGUOUS_REVIEW_REQUIRED",
+      "review_decision": "review",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "candidate_id": "cand:3ca96016-aa9c-5e07-a627-937e637024d9:40:75d1c5b575a8:88c6998947",
+      "subject": "Product returns",
+      "predicate": "limited_to",
+      "object": "5 product returns per eligible customer purchase",
+      "modality": "OBLIGATION",
+      "confidence": 0.98,
+      "trust_score": 0.8,
+      "disposition": "AMBIGUOUS_REVIEW_REQUIRED",
+      "review_decision": "review",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "candidate_id": "cand:3ca96016-aa9c-5e07-a627-937e637024d9:46:edb8d39cbb60:998cdee8d3",
+      "subject": "Both price adjustments",
+      "predicate": "has_definition",
+      "object": "Customer is eligible only if the product is in stock for purchase at Microsoft Store or a Microsoft Experience Center.",
+      "modality": "POLICY_FACT",
+      "confidence": 0.95,
+      "trust_score": 0.9875,
+      "disposition": "AMBIGUOUS_REVIEW_REQUIRED",
+      "review_decision": "review",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "candidate_id": "cand:3ca96016-aa9c-5e07-a627-937e637024d9:46:edb8d39cbb60:19d2e05d2a",
+      "subject": "Customers",
+      "predicate": "must_contact",
+      "object": "Microsoft Store or a Microsoft Experience Center for price adjustments",
+      "modality": "OBLIGATION",
+      "confidence": 0.98,
+      "trust_score": 0.7475,
+      "disposition": "REJECTED_UNGROUNDED",
+      "review_decision": "reject",
+      "evidence_supported": true,
+      "locator_valid": true
+    }
+  ]
+}

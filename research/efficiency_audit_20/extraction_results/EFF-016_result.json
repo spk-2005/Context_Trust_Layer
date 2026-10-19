@@ -1,0 +1,187 @@
+{
+  "metadata": {
+    "document_id": "EFF-016",
+    "title": "System and Organization Controls (SOC) 1 Type 2 Audit Report",
+    "file_path": "research/validation_50/raw_documents/System and Organization Controls (SOC) 1 Type 2 - Microsoft Compliance _ Microsoft Learn.pdf",
+    "document_type": "scanned_soc",
+    "category": "scanned_soc",
+    "pages": 6,
+    "latency_seconds": 0.3583
+  },
+  "summary": {
+    "envelope_id": "5c305a2e-5332-5e1e-bf2f-fd5b9d03f398",
+    "asset_id": "file://System and Organization Controls (SOC) 1 Type 2 - Microsoft Compliance _ Microsoft Learn.pdf",
+    "filename": "System and Organization Controls (SOC) 1 Type 2 - Microsoft Compliance _ Microsoft Learn.pdf",
+    "total_evidence_units": 59,
+    "candidates_discovered": 6,
+    "unique_claims_extracted": 6,
+    "claims_approved": 2,
+    "claims_review": 1,
+    "claims_rejected": 3,
+    "conflicts_detected": 0,
+    "persisted_claims_count": 0
+  },
+  "quality": {
+    "gold_claims": 6,
+    "true_positives": 6,
+    "false_positives": 0,
+    "false_negatives": 0,
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1_score": 1.0,
+    "evidence_grounding_rate": 1.0,
+    "locator_accuracy_rate": 1.0
+  },
+  "candidates": [
+    {
+      "candidate_id": "cand:5c305a2e-5332-5e1e-bf2f-fd5b9d03f398:14:dd9882872fa2:08cdb6dac6",
+      "subject": "Microsoft",
+      "predicate": "may_replicate",
+      "object": "replicate customer data to other regions within the same geographic area (for example, the United States) for data resiliency",
+      "modality": "PERMISSION",
+      "confidence": 0.96,
+      "evidence": "Microsoft may replicate customer data to other regions within the same geographic area (for example, the United States) for data resiliency, but Microsoft will not replicate customer data outside the chosen geographic area.",
+      "locator": {
+        "line_start": 29,
+        "line_end": 29,
+        "start_char": 2449,
+        "end_char": 2943,
+        "heading_path": [
+          "System and Organization Controls (SOC) 1 Type 2 - Microsoft Compliance _ Microsoft Learn",
+          "Page 2"
+        ],
+        "paragraph_index": 14,
+        "filename": "System and Organization Controls (SOC) 1 Type 2 - Microsoft Compliance _ Microsoft Learn.pdf",
+        "file_extension": "pdf",
+        "file_size": 130033,
+        "document_type": "scanned_soc",
+        "sentence_index": 2
+      }
+    },
+    {
+      "candidate_id": "cand:5c305a2e-5332-5e1e-bf2f-fd5b9d03f398:14:dd9882872fa2:ce5be0dbeb",
+      "subject": "Microsoft",
+      "predicate": "prohibited_from_replicating",
+      "object": "replicate customer data outside the chosen geographic area",
+      "modality": "PROHIBITION",
+      "confidence": 0.96,
+      "evidence": "Microsoft may replicate customer data to other regions within the same geographic area (for example, the United States) for data resiliency, but Microsoft will not replicate customer data outside the chosen geographic area.",
+      "locator": {
+        "line_start": 29,
+        "line_end": 29,
+        "start_char": 2449,
+        "end_char": 2943,
+        "heading_path": [
+          "System and Organization Controls (SOC) 1 Type 2 - Microsoft Compliance _ Microsoft Learn",
+          "Page 2"
+        ],
+        "paragraph_index": 14,
+        "filename": "System and Organization Controls (SOC) 1 Type 2 - Microsoft Compliance _ Microsoft Learn.pdf",
+        "file_extension": "pdf",
+        "file_size": 130033,
+        "document_type": "scanned_soc",
+        "sentence_index": 2
+      }
+    },
+    {
+      "candidate_id": "cand:5c305a2e-5332-5e1e-bf2f-fd5b9d03f398:25:939ab5519271:cf2624cdc9",
+      "subject": "Customers",
+      "predicate": "are_responsible_for",
+      "object": "ensuring compliance with all applicable laws and regulations",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "Your organization is wholly responsible for ensuring compliance with all applicable laws and regulations.",
+      "locator": {
+        "line_start": 51,
+        "line_end": 51,
+        "start_char": 4537,
+        "end_char": 4824,
+        "heading_path": [
+          "System and Organization Controls (SOC) 1 Type 2 - Microsoft Compliance _ Microsoft Learn",
+          "Page 3"
+        ],
+        "paragraph_index": 25,
+        "filename": "System and Organization Controls (SOC) 1 Type 2 - Microsoft Compliance _ Microsoft Learn.pdf",
+        "file_extension": "pdf",
+        "file_size": 130033,
+        "document_type": "scanned_soc",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:5c305a2e-5332-5e1e-bf2f-fd5b9d03f398:47:504ef61bfc4b:c3adeb9f65",
+      "subject": "Customers",
+      "predicate": "use",
+      "object": "the Microsoft 365 SOC 1 Type 2 attestation when pursuing their own financial industry-specific compliance requirements such as Sarbanes-Oxley (SOX), Federal Financial Institutions Examination Council (FFIEC), Gramm-Leach-Bliley Act (GLBA), and others",
+      "modality": "PERMISSION",
+      "confidence": 0.96,
+      "evidence": "Customers can use the Microsoft 365 SOC 1 Type 2 attestation when pursuing their own financial industry-specific compliance requirements such as Sarbanes-Oxley (SOX), Federal Financial Institutions Examination Council (FFIEC), Gramm-Leach-Bliley Act (GLBA), and others.",
+      "locator": {
+        "line_start": 95,
+        "line_end": 95,
+        "start_char": 12867,
+        "end_char": 13137,
+        "heading_path": [
+          "System and Organization Controls (SOC) 1 Type 2 - Microsoft Compliance _ Microsoft Learn",
+          "Page 5"
+        ],
+        "paragraph_index": 47,
+        "filename": "System and Organization Controls (SOC) 1 Type 2 - Microsoft Compliance _ Microsoft Learn.pdf",
+        "file_extension": "pdf",
+        "file_size": 130033,
+        "document_type": "scanned_soc",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:5c305a2e-5332-5e1e-bf2f-fd5b9d03f398:49:ef3c6b02edf3:555b8661a7",
+      "subject": "Users",
+      "predicate": "has_validity_rule",
+      "object": "have an existing subscription or free trial account in Microsoft 365 or Microsoft 365 U.S",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "You must have an existing subscription or free trial account in Microsoft 365 or Microsoft 365 U.S.",
+      "locator": {
+        "line_start": 99,
+        "line_end": 99,
+        "start_char": 13235,
+        "end_char": 13428,
+        "heading_path": [
+          "System and Organization Controls (SOC) 1 Type 2 - Microsoft Compliance _ Microsoft Learn",
+          "Page 5"
+        ],
+        "paragraph_index": 49,
+        "filename": "System and Organization Controls (SOC) 1 Type 2 - Microsoft Compliance _ Microsoft Learn.pdf",
+        "file_extension": "pdf",
+        "file_size": 130033,
+        "document_type": "scanned_soc",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:5c305a2e-5332-5e1e-bf2f-fd5b9d03f398:50:9c05028859eb:46d30f7019",
+      "subject": "Users",
+      "predicate": "download",
+      "object": "audit certificates, assessment reports, and other applicable documents to help you with your own regulatory requirements",
+      "modality": "PERMISSION",
+      "confidence": 0.96,
+      "evidence": "You can then download audit certificates, assessment reports, and other applicable documents to help you with your own regulatory requirements.",
+      "locator": {
+        "line_start": 101,
+        "line_end": 101,
+        "start_char": 13429,
+        "end_char": 13596,
+        "heading_path": [
+          "System and Organization Controls (SOC) 1 Type 2 - Microsoft Compliance _ Microsoft Learn",
+          "Page 5"
+        ],
+        "paragraph_index": 50,
+        "filename": "System and Organization Controls (SOC) 1 Type 2 - Microsoft Compliance _ Microsoft Learn.pdf",
+        "file_extension": "pdf",
+        "file_size": 130033,
+        "document_type": "scanned_soc",
+        "sentence_index": 1
+      }
+    }
+  ]
+}

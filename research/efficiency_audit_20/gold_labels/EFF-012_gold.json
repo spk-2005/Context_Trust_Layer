@@ -1,0 +1,88 @@
+{
+  "document_id": "EFF-012",
+  "legacy_id": "DOC-056",
+  "filename": "Health Insurance Portability and Accountability Act (HIPAA) & Health Information Technology for Economic and Clinical Health (HITECH) Act - Microsoft Compliance _ Microsoft Learn.pdf",
+  "document_type": "compliance",
+  "claim_truth": [
+    {
+      "gold_id": "EFF-012-G01",
+      "claim_type": "OBLIGATION",
+      "canonical": true,
+      "subject": "Covered entities",
+      "predicate": "must_enter_into_agreements_with",
+      "object": "business associates to ensure that PHI is adequately protected",
+      "modality": "OBLIGATION",
+      "conditions": [],
+      "page_number": 1,
+      "section": "Overview",
+      "evidence_quote": "HIPAA regulations require that covered entities (defined under the Rules) enter into agreements with business associates to ensure that PHI is adequately protected."
+    },
+    {
+      "gold_id": "EFF-012-G02",
+      "claim_type": "PERMISSION",
+      "canonical": true,
+      "subject": "Microsoft",
+      "predicate": "may_replicate",
+      "object": "customer data to other regions within the same geographic area for data resiliency",
+      "modality": "PERMISSION",
+      "conditions": [
+        "Within the same geographic area"
+      ],
+      "page_number": 3,
+      "section": "Office 365",
+      "evidence_quote": "Microsoft may replicate customer data to other regions within the same geographic area (for example, the United States) for data resiliency, but Microsoft will not replicate customer data outside the chosen geographic area."
+    },
+    {
+      "gold_id": "EFF-012-G03",
+      "claim_type": "PROHIBITION",
+      "canonical": true,
+      "subject": "Microsoft",
+      "predicate": "prohibited_from_replicating",
+      "object": "customer data outside the chosen geographic area",
+      "modality": "PROHIBITION",
+      "conditions": [],
+      "page_number": 3,
+      "section": "Office 365",
+      "evidence_quote": "but Microsoft will not replicate customer data outside the chosen geographic area."
+    },
+    {
+      "gold_id": "EFF-012-G04",
+      "claim_type": "OBLIGATION",
+      "canonical": true,
+      "subject": "Customers",
+      "predicate": "are_responsible_for",
+      "object": "ensuring compliance with all applicable laws and regulations",
+      "modality": "OBLIGATION",
+      "conditions": [],
+      "page_number": 4,
+      "section": "Office 365",
+      "evidence_quote": "Your organization is wholly responsible for ensuring compliance with all applicable laws and regulations."
+    },
+    {
+      "gold_id": "EFF-012-G05",
+      "claim_type": "OBLIGATION",
+      "canonical": true,
+      "subject": "Customers",
+      "predicate": "are_responsible_for",
+      "object": "ensuring that you have an adequate compliance program and internal processes in place, and that your particular use of Microsoft services aligns with your obligations under HIPAA and the HITECH Act",
+      "modality": "OBLIGATION",
+      "conditions": [],
+      "page_number": 5,
+      "section": "Frequently asked questions",
+      "evidence_quote": "Your organization is responsible for ensuring that you have an adequate compliance program and internal processes in place, and that your particular use of Microsoft services aligns with your obligations under HIPAA and the HITECH Act."
+    },
+    {
+      "gold_id": "EFF-012-G06",
+      "claim_type": "PROHIBITION",
+      "canonical": true,
+      "subject": "Microsoft",
+      "predicate": "prohibited_from_using",
+      "object": "a customer's Business Associate Agreement",
+      "modality": "PROHIBITION",
+      "conditions": [],
+      "page_number": 5,
+      "section": "Frequently asked questions",
+      "evidence_quote": "No, Microsoft can't use a customer's Business Associate Agreement."
+    }
+  ]
+}

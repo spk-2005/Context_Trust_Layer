@@ -1,0 +1,99 @@
+{
+  "document_id": "EFF-016",
+  "filename": "System and Organization Controls (SOC) 1 Type 2 - Microsoft Compliance _ Microsoft Learn.pdf",
+  "category": "scanned_soc",
+  "risk_tier": "STANDARD",
+  "review_coverage": {
+    "total_claims": 6,
+    "first_pass_review_rate": 1.0,
+    "dual_review_sample_rate": 0.3,
+    "claims_dual_reviewed": 2,
+    "low_confidence_review_rate": 1.0,
+    "conflicts_conditions_review_rate": 1.0
+  },
+  "adjudication_summary": {
+    "certified_valid": 2,
+    "pending_review": 1,
+    "rejected": 3
+  },
+  "claims": [
+    {
+      "candidate_id": "cand:5c305a2e-5332-5e1e-bf2f-fd5b9d03f398:14:dd9882872fa2:08cdb6dac6",
+      "subject": "Microsoft",
+      "predicate": "may_replicate",
+      "object": "replicate customer data to other regions within the same geographic area (for example, the United States) for data resiliency",
+      "modality": "PERMISSION",
+      "confidence": 0.96,
+      "trust_score": 0.99,
+      "disposition": "CERTIFIED_VALID",
+      "review_decision": "approve",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "candidate_id": "cand:5c305a2e-5332-5e1e-bf2f-fd5b9d03f398:14:dd9882872fa2:ce5be0dbeb",
+      "subject": "Microsoft",
+      "predicate": "prohibited_from_replicating",
+      "object": "replicate customer data outside the chosen geographic area",
+      "modality": "PROHIBITION",
+      "confidence": 0.96,
+      "trust_score": 0.8,
+      "disposition": "AMBIGUOUS_REVIEW_REQUIRED",
+      "review_decision": "review",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "candidate_id": "cand:5c305a2e-5332-5e1e-bf2f-fd5b9d03f398:25:939ab5519271:cf2624cdc9",
+      "subject": "Customers",
+      "predicate": "are_responsible_for",
+      "object": "ensuring compliance with all applicable laws and regulations",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "trust_score": 0.8,
+      "disposition": "REJECTED_UNGROUNDED",
+      "review_decision": "reject",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "candidate_id": "cand:5c305a2e-5332-5e1e-bf2f-fd5b9d03f398:47:504ef61bfc4b:c3adeb9f65",
+      "subject": "Customers",
+      "predicate": "use",
+      "object": "the Microsoft 365 SOC 1 Type 2 attestation when pursuing their own financial industry-specific compliance requirements such as Sarbanes-Oxley (SOX), Federal Financial Institutions Examination Council (FFIEC), Gramm-Leach-Bliley Act (GLBA), and others",
+      "modality": "PERMISSION",
+      "confidence": 0.96,
+      "trust_score": 0.99,
+      "disposition": "CERTIFIED_VALID",
+      "review_decision": "approve",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "candidate_id": "cand:5c305a2e-5332-5e1e-bf2f-fd5b9d03f398:49:ef3c6b02edf3:555b8661a7",
+      "subject": "Users",
+      "predicate": "has_validity_rule",
+      "object": "have an existing subscription or free trial account in Microsoft 365 or Microsoft 365 U.S",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "trust_score": 0.8,
+      "disposition": "REJECTED_UNGROUNDED",
+      "review_decision": "reject",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "candidate_id": "cand:5c305a2e-5332-5e1e-bf2f-fd5b9d03f398:50:9c05028859eb:46d30f7019",
+      "subject": "Users",
+      "predicate": "download",
+      "object": "audit certificates, assessment reports, and other applicable documents to help you with your own regulatory requirements",
+      "modality": "PERMISSION",
+      "confidence": 0.96,
+      "trust_score": 0.8,
+      "disposition": "REJECTED_UNGROUNDED",
+      "review_decision": "reject",
+      "evidence_supported": true,
+      "locator_valid": true
+    }
+  ]
+}

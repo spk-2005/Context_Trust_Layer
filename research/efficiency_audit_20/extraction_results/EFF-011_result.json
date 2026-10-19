@@ -1,0 +1,162 @@
+{
+  "metadata": {
+    "document_id": "EFF-011",
+    "title": "Health Data Hosting (HDS) France - Microsoft Compliance",
+    "file_path": "research/validation_50/raw_documents/Health Data Hosting (HDS) France - Microsoft Compliance _ Microsoft Learn.pdf",
+    "document_type": "compliance",
+    "category": "compliance",
+    "pages": 4,
+    "latency_seconds": 0.2195
+  },
+  "summary": {
+    "envelope_id": "3c477418-c766-5045-9e4b-f69d13f557ec",
+    "asset_id": "file://Health Data Hosting (HDS) France - Microsoft Compliance _ Microsoft Learn.pdf",
+    "filename": "Health Data Hosting (HDS) France - Microsoft Compliance _ Microsoft Learn.pdf",
+    "total_evidence_units": 33,
+    "candidates_discovered": 5,
+    "unique_claims_extracted": 5,
+    "claims_approved": 3,
+    "claims_review": 2,
+    "claims_rejected": 0,
+    "conflicts_detected": 0,
+    "persisted_claims_count": 0
+  },
+  "quality": {
+    "gold_claims": 5,
+    "true_positives": 5,
+    "false_positives": 0,
+    "false_negatives": 0,
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1_score": 1.0,
+    "evidence_grounding_rate": 1.0,
+    "locator_accuracy_rate": 1.0
+  },
+  "candidates": [
+    {
+      "candidate_id": "cand:3c477418-c766-5045-9e4b-f69d13f557ec:4:f07cb9c65aa9:b1fd34e191",
+      "subject": "Hosting candidates",
+      "predicate": "submit",
+      "object": "their certification application to a certification body accredited by the French Accreditation Committee (COFRAC), the sole accreditation body at the national level, or any equivalent body at the European level",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "Hosting candidates must submit their certification application to a certification body accredited by the French Accreditation Committee (COFRAC), the sole accreditation body at the national level, or any equivalent body at the European level.",
+      "locator": {
+        "line_start": 9,
+        "line_end": 9,
+        "start_char": 1325,
+        "end_char": 1615,
+        "heading_path": [
+          "Health Data Hosting (HDS) France - Microsoft Compliance _ Microsoft Learn",
+          "Page 1"
+        ],
+        "paragraph_index": 4,
+        "filename": "Health Data Hosting (HDS) France - Microsoft Compliance _ Microsoft Learn.pdf",
+        "file_extension": "pdf",
+        "file_size": 109049,
+        "document_type": "compliance",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:3c477418-c766-5045-9e4b-f69d13f557ec:5:1a8c5ad8cb22:a635610004",
+      "subject": "service providers",
+      "predicate": "implement",
+      "object": "measures that keep personal health data secure, confidential, and accessible by patients.",
+      "modality": "OBLIGATION",
+      "confidence": 0.98,
+      "evidence": "HDS certification framework version 1.1, dating from 2018, requires that service providers implement measures that keep personal health data secure, confidential, and accessible by patients.",
+      "locator": {
+        "line_start": 11,
+        "line_end": 11,
+        "start_char": 1616,
+        "end_char": 2392,
+        "heading_path": [
+          "Health Data Hosting (HDS) France - Microsoft Compliance _ Microsoft Learn",
+          "Page 1"
+        ],
+        "paragraph_index": 5,
+        "filename": "Health Data Hosting (HDS) France - Microsoft Compliance _ Microsoft Learn.pdf",
+        "file_extension": "pdf",
+        "file_size": 109049,
+        "document_type": "compliance",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:3c477418-c766-5045-9e4b-f69d13f557ec:10:41166ab48c5f:3371b0feb2",
+      "subject": "a new certification in accordance with the set of requirements",
+      "predicate": "has_validity_rule",
+      "object": "be obtained by May 16, 2026 at the latest",
+      "modality": "PERMISSION",
+      "confidence": 0.96,
+      "evidence": "With the new standard in place, a new certification in accordance with the set of requirements should be obtained by May 16, 2026 at the latest.",
+      "locator": {
+        "line_start": 21,
+        "line_end": 21,
+        "start_char": 3081,
+        "end_char": 3503,
+        "heading_path": [
+          "Health Data Hosting (HDS) France - Microsoft Compliance _ Microsoft Learn",
+          "Page 2"
+        ],
+        "paragraph_index": 10,
+        "filename": "Health Data Hosting (HDS) France - Microsoft Compliance _ Microsoft Learn.pdf",
+        "file_extension": "pdf",
+        "file_size": 109049,
+        "document_type": "compliance",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:3c477418-c766-5045-9e4b-f69d13f557ec:25:88f2c1b53302:c72976c3a0",
+      "subject": "Contractual terms",
+      "predicate": "has_definition",
+      "object": "The French Public Health code requires the execution of specific contractual terms between the health data hosting service or cloud service provider and its Audits, reports, and certificates How to implement",
+      "modality": "POLICY_FACT",
+      "confidence": 0.95,
+      "evidence": "Contractual terms: The French Public Health code requires the execution of specific contractual terms between the health data hosting service or cloud service provider and its Audits, reports, and certificates How to implement",
+      "locator": {
+        "line_start": 51,
+        "line_end": 51,
+        "start_char": 7038,
+        "end_char": 7265,
+        "heading_path": [
+          "Health Data Hosting (HDS) France - Microsoft Compliance _ Microsoft Learn",
+          "Page 3"
+        ],
+        "paragraph_index": 25,
+        "filename": "Health Data Hosting (HDS) France - Microsoft Compliance _ Microsoft Learn.pdf",
+        "file_extension": "pdf",
+        "file_size": 109049,
+        "document_type": "compliance",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:3c477418-c766-5045-9e4b-f69d13f557ec:27:c4c8fe59f558:1738b41215",
+      "subject": "Customers",
+      "predicate": "reach",
+      "object": "out to their Microsoft licensing point of contact to enter into these specific contractual terms before hosting health personal data on Microsoft online services",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "Eligible customers must reach out to their Microsoft licensing point of contact to enter into these specific contractual terms before hosting health personal data on Microsoft online services.",
+      "locator": {
+        "line_start": 55,
+        "line_end": 55,
+        "start_char": 7277,
+        "end_char": 7481,
+        "heading_path": [
+          "Health Data Hosting (HDS) France - Microsoft Compliance _ Microsoft Learn",
+          "Page 4"
+        ],
+        "paragraph_index": 27,
+        "filename": "Health Data Hosting (HDS) France - Microsoft Compliance _ Microsoft Learn.pdf",
+        "file_extension": "pdf",
+        "file_size": 109049,
+        "document_type": "compliance",
+        "sentence_index": 1
+      }
+    }
+  ]
+}

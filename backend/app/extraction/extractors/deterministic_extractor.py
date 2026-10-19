@@ -148,7 +148,7 @@ class DeterministicSchemaExtractor:
                     return claims
                 if DocumentNormalizer.is_table_of_contents_block(unit.content_text) or any("table of contents" in str(ctx).lower() for ctx in unit.hierarchical_context):
                     return claims
-                if s_data.get("table_type") in ("table_of_contents", "revision_history", "approver_signoff"):
+                if s_data.get("table_type") in ("table_of_contents", "revision_history", "approver_signoff", "form_field_specification", "data_dictionary"):
                     return claims
 
                 from app.extraction.deontic_classifier import DeonticClassifier

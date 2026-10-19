@@ -1,0 +1,1941 @@
+{
+  "metadata": {
+    "document_id": "EFF-005",
+    "title": "Tarion Warranty Commercial Vendor Agreement",
+    "file_path": "docs/Vendor Agreement Template-02.2021_2.pdf",
+    "document_type": "contract",
+    "category": "contract",
+    "pages": 20,
+    "latency_seconds": 1.5522
+  },
+  "summary": {
+    "envelope_id": "b10dd662-7025-57a7-8820-f9cc20eebf3e",
+    "asset_id": "file://Vendor Agreement Template-02.2021_2.pdf",
+    "filename": "Vendor Agreement Template-02.2021_2.pdf",
+    "total_evidence_units": 314,
+    "candidates_discovered": 74,
+    "unique_claims_extracted": 74,
+    "claims_approved": 52,
+    "claims_review": 12,
+    "claims_rejected": 10,
+    "conflicts_detected": 0,
+    "persisted_claims_count": 0
+  },
+  "quality": {
+    "gold_claims": 74,
+    "true_positives": 72,
+    "false_positives": 0,
+    "false_negatives": 2,
+    "precision": 1.0,
+    "recall": 0.973,
+    "f1_score": 0.9863,
+    "evidence_grounding_rate": 1.0,
+    "locator_accuracy_rate": 1.0
+  },
+  "candidates": [
+    {
+      "candidate_id": "cand:b10dd662-7025-57a7-8820-f9cc20eebf3e:8:7138bdb165d7:a1ece6acf5",
+      "subject": "in order to offer to sell",
+      "predicate": "has_licensing_requirement",
+      "object": "sell or sell new homes the Vendor must: be licensed under the New Home Construction Licensing Act, 2017; and must ensure that any such homes are qualified to be enrolled and/or enrolled in the Ontario New Home Warranties and Protection Plan",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "The Vendor acknowledges that in order to offer to sell, agree to sell or sell new homes the Vendor must: be licensed under the New Home Construction Licensing Act, 2017; and must ensure that any such homes are qualified to be enrolled and/or enrolled  in the Ontario New Home Warranties and Protection Plan.",
+      "locator": {
+        "line_start": 15,
+        "line_end": 15,
+        "start_char": 807,
+        "end_char": 1118,
+        "heading_path": [
+          "Vendor Agreement Template-02.2021_2",
+          "Page 1"
+        ],
+        "paragraph_index": 8,
+        "filename": "Vendor Agreement Template-02.2021_2.pdf",
+        "file_extension": "pdf",
+        "file_size": 402747,
+        "document_type": "contract",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:b10dd662-7025-57a7-8820-f9cc20eebf3e:70:0f3df87fb9e6:380c8b3a98",
+      "subject": "No amendment or waiver of this Agreement",
+      "predicate": "has_validity_rule",
+      "object": "be binding unless executed in writing by the party to be bound thereby",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "1.10.1 No amendment or waiver of this Agreement shall be binding unless executed in writing by the party to be bound thereby.",
+      "locator": {
+        "line_start": 93,
+        "line_end": 93,
+        "start_char": 9066,
+        "end_char": 9410,
+        "heading_path": [
+          "Vendor Agreement Template-02.2021_2",
+          "Page 4",
+          "1.10 Amendment, Waiver"
+        ],
+        "paragraph_index": 70,
+        "filename": "Vendor Agreement Template-02.2021_2.pdf",
+        "file_extension": "pdf",
+        "file_size": 402747,
+        "document_type": "contract",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:b10dd662-7025-57a7-8820-f9cc20eebf3e:70:0f3df87fb9e6:41a41ddf8f",
+      "subject": "No waiver of any provision of this Agreement",
+      "predicate": "constitute",
+      "object": "a waiver of any other provision nor shall any waiver of any provision of this Agreement constitute a continuing waiver unless otherwise expressly provided",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "No waiver of any provision of this Agreement shall constitute a waiver of any other provision nor shall any waiver of any provision of this Agreement constitute a continuing waiver unless otherwise expressly provided.",
+      "locator": {
+        "line_start": 93,
+        "line_end": 93,
+        "start_char": 9066,
+        "end_char": 9410,
+        "heading_path": [
+          "Vendor Agreement Template-02.2021_2",
+          "Page 4",
+          "1.10 Amendment, Waiver"
+        ],
+        "paragraph_index": 70,
+        "filename": "Vendor Agreement Template-02.2021_2.pdf",
+        "file_extension": "pdf",
+        "file_size": 402747,
+        "document_type": "contract",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:b10dd662-7025-57a7-8820-f9cc20eebf3e:74:237d64b84f3f:45b32f4490",
+      "subject": "This Agreement",
+      "predicate": "has_jurisdiction_rule",
+      "object": "be governed by and construed in accordance with the laws of the Province of Ontario and the laws of Canada applicable therein and the Vendor hereby irrevocably attorns to the non-exclusive jurisdiction of the courts of Ontario",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "1.11.1 This Agreement shall be governed by and construed in accordance with the laws of the Province of Ontario and the laws of Canada applicable therein and the Vendor hereby irrevocably attorns to the non-exclusive jurisdiction of the courts of Ontario.",
+      "locator": {
+        "line_start": 100,
+        "line_end": 100,
+        "start_char": 9605,
+        "end_char": 9861,
+        "heading_path": [
+          "Vendor Agreement Template-02.2021_2",
+          "Page 5",
+          "1.11 Governing Law, Attornment"
+        ],
+        "paragraph_index": 74,
+        "filename": "Vendor Agreement Template-02.2021_2.pdf",
+        "file_extension": "pdf",
+        "file_size": 402747,
+        "document_type": "contract",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:b10dd662-7025-57a7-8820-f9cc20eebf3e:79:4172ad51cec2:f6c97653b0",
+      "subject": "The Vendor represents and warrants to",
+      "predicate": "has_jurisdiction_rule",
+      "object": "2.1.1.2 if the Vendor is other than a natural person, it has been duly formed and is existing and correspondingly licensed or otherwise authorized to carry on business under the laws of the Province of Ontario.",
+      "modality": "POLICY_FACT",
+      "confidence": 0.9,
+      "evidence": "2.1.1.2 if the Vendor is other than a natural person, it has been duly formed and is existing and correspondingly licensed or otherwise authorized to carry on business under the laws of the Province of Ontario.",
+      "locator": {
+        "line_start": 107,
+        "line_end": 107,
+        "start_char": 10074,
+        "end_char": 10285,
+        "heading_path": [
+          "Vendor Agreement Template-02.2021_2",
+          "Page 5",
+          "2.1 Representations and Warranties",
+          "2.1.1 The Vendor represents and warrants to Tarion as follows:"
+        ],
+        "paragraph_index": 79,
+        "filename": "Vendor Agreement Template-02.2021_2.pdf",
+        "file_extension": "pdf",
+        "file_size": 402747,
+        "document_type": "contract",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:b10dd662-7025-57a7-8820-f9cc20eebf3e:103:6b833b529b37:e41778714f",
+      "subject": "any other information or documents Tarion",
+      "predicate": "reasonably_require",
+      "object": "from time",
+      "modality": "PERMISSION",
+      "confidence": 0.96,
+      "evidence": "3.2.2.4 any other information or documents Tarion may reasonably require from time",
+      "locator": {
+        "line_start": 136,
+        "line_end": 136,
+        "start_char": 15190,
+        "end_char": 15273,
+        "heading_path": [
+          "Vendor Agreement Template-02.2021_2",
+          "Page 6",
+          "3.2 Vendor to"
+        ],
+        "paragraph_index": 103,
+        "filename": "Vendor Agreement Template-02.2021_2.pdf",
+        "file_extension": "pdf",
+        "file_size": 402747,
+        "document_type": "contract",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:b10dd662-7025-57a7-8820-f9cc20eebf3e:106:4bad573c12ad:ae45e22914",
+      "subject": "The Vendor",
+      "predicate": "provide",
+      "object": "Tarion with information satisfactory to Tarion that the Vendor and the builder (if the builder is not the Vendor) and any other interested persons are qualified and suited for the work they will do in connection with the Homes having regard to prior conduct, including history of claims made, claims resolved, claims paid by Tarion, chargeable conciliations and after-sales service",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "3.2.3 The Vendor shall provide Tarion with information satisfactory to Tarion that the Vendor and the builder (if the builder is not the Vendor) and any other interested persons are qualified and suited for the work they will do in connection with the Homes having regard to prior conduct, including history of claims made, claims resolved, claims paid by Tarion, chargeable conciliations and after-sales service.",
+      "locator": {
+        "line_start": 142,
+        "line_end": 142,
+        "start_char": 15526,
+        "end_char": 15940,
+        "heading_path": [
+          "Vendor Agreement Template-02.2021_2",
+          "Page 7"
+        ],
+        "paragraph_index": 106,
+        "filename": "Vendor Agreement Template-02.2021_2.pdf",
+        "file_extension": "pdf",
+        "file_size": 402747,
+        "document_type": "contract",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:b10dd662-7025-57a7-8820-f9cc20eebf3e:108:31adccf649c9:5109e64f45",
+      "subject": "The Vendor",
+      "predicate": "has_validity_rule",
+      "object": "make representatives of the Vendor available to Tarion for interviews during normal business hours, and provide reasonable access to information, documents, things, books, records (including electronic records), plans and other materials, for the purpose of confirming matters relating to the Vendor Obligations",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "3.2.5 The Vendor shall make representatives of the Vendor available to Tarion for interviews during normal business hours, and provide reasonable access to information, documents, things, books, records (including electronic records), plans and other materials, for the purpose of confirming matters relating to the Vendor Obligations.",
+      "locator": {
+        "line_start": 144,
+        "line_end": 144,
+        "start_char": 16392,
+        "end_char": 16728,
+        "heading_path": [
+          "Vendor Agreement Template-02.2021_2",
+          "Page 7"
+        ],
+        "paragraph_index": 108,
+        "filename": "Vendor Agreement Template-02.2021_2.pdf",
+        "file_extension": "pdf",
+        "file_size": 402747,
+        "document_type": "contract",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:b10dd662-7025-57a7-8820-f9cc20eebf3e:113:0095996857a4:df80647ffd",
+      "subject": "The Vendor",
+      "predicate": "has_inspection_right",
+      "object": "permit representatives of Tarion to inspect a Home that is the subject of an application for QFE or Enrolment at any time after a builder has commenced construction",
+      "modality": "PERMISSION",
+      "confidence": 0.96,
+      "evidence": "3.2.7 The Vendor shall permit representatives of Tarion to inspect a Home that is the subject of an application for QFE or Enrolment at any time after a builder has commenced construction.",
+      "locator": {
+        "line_start": 149,
+        "line_end": 149,
+        "start_char": 17378,
+        "end_char": 17567,
+        "heading_path": [
+          "Vendor Agreement Template-02.2021_2",
+          "Page 7"
+        ],
+        "paragraph_index": 113,
+        "filename": "Vendor Agreement Template-02.2021_2.pdf",
+        "file_extension": "pdf",
+        "file_size": 402747,
+        "document_type": "contract",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:b10dd662-7025-57a7-8820-f9cc20eebf3e:116:c7d4508d8763:19fae1bfc3",
+      "subject": "The Vendor",
+      "predicate": "has_material_change_notice_requirement",
+      "object": "provide prompt written notice to Tarion if there is a Material Change",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "3.3.2 The Vendor shall provide prompt written notice to Tarion if there is a Material Change.",
+      "locator": {
+        "line_start": 152,
+        "line_end": 152,
+        "start_char": 17735,
+        "end_char": 17829,
+        "heading_path": [
+          "Vendor Agreement Template-02.2021_2",
+          "Page 7",
+          "3.3 Change in Circumstance"
+        ],
+        "paragraph_index": 116,
+        "filename": "Vendor Agreement Template-02.2021_2.pdf",
+        "file_extension": "pdf",
+        "file_size": 402747,
+        "document_type": "contract",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:b10dd662-7025-57a7-8820-f9cc20eebf3e:117:f7cb24b97c59:c6a1d11fa9",
+      "subject": "The Vendor",
+      "predicate": "provide",
+      "object": "prompt written notice to Tarion of any proposal: (i) to reorganize, amalgamate, merge, consolidate or otherwise enter into any form of business combination with any person; and/or (ii) to liquidate, dissolve or wind up or take any steps or proceedings in connection therewith",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "3.3.3 The Vendor shall provide prompt written notice to Tarion of any proposal: (i) to reorganize, amalgamate, merge, consolidate or otherwise enter into any form of business combination with any person; and/or (ii) to liquidate, dissolve or wind up or take any steps or proceedings in connection therewith.",
+      "locator": {
+        "line_start": 153,
+        "line_end": 153,
+        "start_char": 17829,
+        "end_char": 18137,
+        "heading_path": [
+          "Vendor Agreement Template-02.2021_2",
+          "Page 7",
+          "3.3 Change in Circumstance"
+        ],
+        "paragraph_index": 117,
+        "filename": "Vendor Agreement Template-02.2021_2.pdf",
+        "file_extension": "pdf",
+        "file_size": 402747,
+        "document_type": "contract",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:b10dd662-7025-57a7-8820-f9cc20eebf3e:120:b4061a7eb6b5:83217af07f",
+      "subject": "The Vendor",
+      "predicate": "authorizes",
+      "object": "and consents to Tarion procuring and utilizing, from time to time, credit information in respect of the Vendor, its affiliates and guarantors",
+      "modality": "PERMISSION",
+      "confidence": 0.96,
+      "evidence": "3.4.1 The Vendor hereby authorizes and consents to Tarion procuring and utilizing, from time to time, credit information in respect of the Vendor, its affiliates and guarantors.",
+      "locator": {
+        "line_start": 156,
+        "line_end": 156,
+        "start_char": 18195,
+        "end_char": 18373,
+        "heading_path": [
+          "Vendor Agreement Template-02.2021_2",
+          "Page 7",
+          "3.4 Consent and"
+        ],
+        "paragraph_index": 120,
+        "filename": "Vendor Agreement Template-02.2021_2.pdf",
+        "file_extension": "pdf",
+        "file_size": 402747,
+        "document_type": "contract",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:b10dd662-7025-57a7-8820-f9cc20eebf3e:129:d56e1fcb6df7:b226fd8160",
+      "subject": "The Vendor",
+      "predicate": "duly_and",
+      "object": "diligently perform",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "3.6.1 The Vendor shall duly and diligently perform:",
+      "locator": {
+        "line_start": 168,
+        "line_end": 168,
+        "start_char": 19437,
+        "end_char": 19489,
+        "heading_path": [
+          "Vendor Agreement Template-02.2021_2",
+          "Page 8",
+          "3.6 Due"
+        ],
+        "paragraph_index": 129,
+        "filename": "Vendor Agreement Template-02.2021_2.pdf",
+        "file_extension": "pdf",
+        "file_size": 402747,
+        "document_type": "contract",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:b10dd662-7025-57a7-8820-f9cc20eebf3e:136:95d56ef46e67:dd31e7fbbc",
+      "subject": "Due",
+      "predicate": "has_inspection_right",
+      "object": "3.6.2 Following a risk-based inspection by Tarion of a Home, Tarion may issue to the Vendor a list of deficiencies in the construction of a Home that must be resolved to bring the Home into compliance with the ONHWP Act.",
+      "modality": "OBLIGATION",
+      "confidence": 0.85,
+      "evidence": "3.6.2 Following a risk-based inspection by Tarion of a Home, Tarion may issue to the Vendor a list of deficiencies in the construction of a Home that must be resolved to bring the Home into compliance with the ONHWP Act.",
+      "locator": {
+        "line_start": 175,
+        "line_end": 175,
+        "start_char": 20518,
+        "end_char": 21150,
+        "heading_path": [
+          "Vendor Agreement Template-02.2021_2",
+          "Page 8",
+          "3.6 Due"
+        ],
+        "paragraph_index": 136,
+        "filename": "Vendor Agreement Template-02.2021_2.pdf",
+        "file_extension": "pdf",
+        "file_size": 402747,
+        "document_type": "contract",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:b10dd662-7025-57a7-8820-f9cc20eebf3e:136:95d56ef46e67:583f893a38",
+      "subject": "The Vendor upon receipt",
+      "predicate": "resolve",
+      "object": "the deficiencies according to its obligations under the ONHWP Act within a reasonable period of time, failing which the unresolved items will be treated as warranty claims and any rights to challenge the assessment of the deficiencies as determined by Tarion (e.g. Builder Arbitration Forum) and possible sanctions for the Vendor (e.g. chargeable conciliation) will apply",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "The Vendor upon receipt shall resolve the deficiencies according to its obligations under the ONHWP Act within a reasonable period of time, failing which the unresolved items will be treated as warranty claims and any rights to challenge the assessment of the deficiencies as determined by Tarion (e.g. Builder Arbitration Forum) and possible sanctions for the Vendor (e.g. chargeable conciliation) will apply.",
+      "locator": {
+        "line_start": 175,
+        "line_end": 175,
+        "start_char": 20518,
+        "end_char": 21150,
+        "heading_path": [
+          "Vendor Agreement Template-02.2021_2",
+          "Page 8",
+          "3.6 Due"
+        ],
+        "paragraph_index": 136,
+        "filename": "Vendor Agreement Template-02.2021_2.pdf",
+        "file_extension": "pdf",
+        "file_size": 402747,
+        "document_type": "contract",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:b10dd662-7025-57a7-8820-f9cc20eebf3e:137:115ab1487eb2:1c594a7c44",
+      "subject": "The Vendor",
+      "predicate": "comply_with",
+      "object": "all conditions applicable to the Homes including the requirement that the Vendor or builder, as the case may be,",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "3.6.3 The Vendor shall comply with all conditions applicable to the Homes including the requirement that the Vendor or builder, as the case may be,",
+      "locator": {
+        "line_start": 176,
+        "line_end": 176,
+        "start_char": 21150,
+        "end_char": 21298,
+        "heading_path": [
+          "Vendor Agreement Template-02.2021_2",
+          "Page 8",
+          "3.6 Due"
+        ],
+        "paragraph_index": 137,
+        "filename": "Vendor Agreement Template-02.2021_2.pdf",
+        "file_extension": "pdf",
+        "file_size": 402747,
+        "document_type": "contract",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:b10dd662-7025-57a7-8820-f9cc20eebf3e:138:650833759157:7a42446578",
+      "subject": "Vendor",
+      "predicate": "commence",
+      "object": "to construct Homes in excess of the maximum number permitted to be constructed,",
+      "modality": "PROHIBITION",
+      "confidence": 0.96,
+      "evidence": "3.6.3.1 shall not commence to construct Homes in excess of the maximum number permitted to be constructed,",
+      "locator": {
+        "line_start": 177,
+        "line_end": 177,
+        "start_char": 21298,
+        "end_char": 21405,
+        "heading_path": [
+          "Vendor Agreement Template-02.2021_2",
+          "Page 8",
+          "3.6 Due"
+        ],
+        "paragraph_index": 138,
+        "filename": "Vendor Agreement Template-02.2021_2.pdf",
+        "file_extension": "pdf",
+        "file_size": 402747,
+        "document_type": "contract",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:b10dd662-7025-57a7-8820-f9cc20eebf3e:141:29a698d379c4:2396c138be",
+      "subject": "Vendor",
+      "predicate": "commence",
+      "object": "to construct homes of any class for which the construction is restricted,",
+      "modality": "PROHIBITION",
+      "confidence": 0.96,
+      "evidence": "3.6.3.2 shall not commence to construct homes of any class for which the construction is restricted,",
+      "locator": {
+        "line_start": 183,
+        "line_end": 183,
+        "start_char": 21565,
+        "end_char": 21666,
+        "heading_path": [
+          "Vendor Agreement Template-02.2021_2",
+          "Page 9"
+        ],
+        "paragraph_index": 141,
+        "filename": "Vendor Agreement Template-02.2021_2.pdf",
+        "file_extension": "pdf",
+        "file_size": 402747,
+        "document_type": "contract",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:b10dd662-7025-57a7-8820-f9cc20eebf3e:142:ab1e2e0fb5d9:ba9f4ec8b1",
+      "subject": "Vendor",
+      "predicate": "replace",
+      "object": "one form of Security previously provided to Tarion with another, as required,",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "3.6.3.3 shall replace one form of Security previously provided to Tarion with another, as required,",
+      "locator": {
+        "line_start": 184,
+        "line_end": 184,
+        "start_char": 21666,
+        "end_char": 21766,
+        "heading_path": [
+          "Vendor Agreement Template-02.2021_2",
+          "Page 9"
+        ],
+        "paragraph_index": 142,
+        "filename": "Vendor Agreement Template-02.2021_2.pdf",
+        "file_extension": "pdf",
+        "file_size": 402747,
+        "document_type": "contract",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:b10dd662-7025-57a7-8820-f9cc20eebf3e:143:d09f867a1bd8:99470d497a",
+      "subject": "Vendor",
+      "predicate": "provide",
+      "object": "Security to Tarion in addition to that already provided, in the amount and in the form determined by Tarion, and",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "3.6.3.4 shall provide Security to Tarion in addition to that already provided, in the amount and in the form determined by Tarion, and",
+      "locator": {
+        "line_start": 185,
+        "line_end": 185,
+        "start_char": 21766,
+        "end_char": 21901,
+        "heading_path": [
+          "Vendor Agreement Template-02.2021_2",
+          "Page 9"
+        ],
+        "paragraph_index": 143,
+        "filename": "Vendor Agreement Template-02.2021_2.pdf",
+        "file_extension": "pdf",
+        "file_size": 402747,
+        "document_type": "contract",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:b10dd662-7025-57a7-8820-f9cc20eebf3e:144:46b9b07401c5:8276d093ee",
+      "subject": "Vendor",
+      "predicate": "promptly_fulfil",
+      "object": "any term and condition imposed upon the Vendor by Tarion in connection with the release by Tarion of the whole or any part of any Security provided to Tarion by the Vendor",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "3.6.3.5 shall promptly fulfil any term and condition imposed upon the Vendor by Tarion in connection with the release by Tarion of the whole or any part of any Security provided to Tarion by the Vendor.",
+      "locator": {
+        "line_start": 186,
+        "line_end": 186,
+        "start_char": 21901,
+        "end_char": 22104,
+        "heading_path": [
+          "Vendor Agreement Template-02.2021_2",
+          "Page 9"
+        ],
+        "paragraph_index": 144,
+        "filename": "Vendor Agreement Template-02.2021_2.pdf",
+        "file_extension": "pdf",
+        "file_size": 402747,
+        "document_type": "contract",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:b10dd662-7025-57a7-8820-f9cc20eebf3e:147:b554314fd30b:08040ed718",
+      "subject": "The agreement(s)",
+      "predicate": "has_validity_rule",
+      "object": "provide for the builder to complete the Homes, and to perform the work required to meet the warranty and protection obligations of the Vendor under the ONHWP Act",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "The agreement(s) shall provide for the builder to complete the Homes, and to perform the work required to meet the warranty and protection obligations of the Vendor under the ONHWP Act.",
+      "locator": {
+        "line_start": 189,
+        "line_end": 189,
+        "start_char": 22578,
+        "end_char": 23123,
+        "heading_path": [
+          "Vendor Agreement Template-02.2021_2",
+          "Page 9"
+        ],
+        "paragraph_index": 147,
+        "filename": "Vendor Agreement Template-02.2021_2.pdf",
+        "file_extension": "pdf",
+        "file_size": 402747,
+        "document_type": "contract",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:b10dd662-7025-57a7-8820-f9cc20eebf3e:151:ece9261f2efa:6384be1855",
+      "subject": "The Vendor",
+      "predicate": "preserve",
+      "object": "all assignable rights and claims that the Vendor may have against manufacturers, suppliers, vendors, builders, contractors, sub-contractors and others in respect of any breach of warranty or other defect in respect of the Homes, and shall, forthwith upon the request of Tarion, assign and transfer all such rights and claims to and in favour of Tarion, or as it may direct, and shall execute and deliver such assignments and other instruments and do such acts and things as Tarion may reasonably require in order to enable Tarion or its designate to prosecute and enforce such rights and claims as fully and effectually as the same could be prosecuted and enforced by the Vendor subject however to the overriding provisions of any assignment of such rights, claims and/or interests involving any manufacturers, suppliers, builders, contractors and/or sub-contractors heretofore or hereafter made by the Vendor to and in favour of",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "3.6.7 The Vendor shall preserve all assignable rights and claims that the Vendor may have against manufacturers, suppliers, vendors, builders, contractors, sub-contractors and others in respect of any breach of warranty or other defect in respect of the Homes, and shall, forthwith upon the request of Tarion, assign and transfer all such rights and claims to and in favour of Tarion, or as it may direct, and shall execute and deliver such assignments and other instruments and do such acts and things as Tarion may reasonably require in order to enable Tarion or its designate to prosecute and enforce such rights and claims as fully and effectually as the same could be prosecuted and enforced by the Vendor subject however to the overriding provisions of any assignment of such rights, claims and/or interests involving any manufacturers, suppliers, builders, contractors and/or sub-contractors heretofore or hereafter made by the Vendor to and in favour of",
+      "locator": {
+        "line_start": 193,
+        "line_end": 193,
+        "start_char": 23887,
+        "end_char": 24849,
+        "heading_path": [
+          "Vendor Agreement Template-02.2021_2",
+          "Page 9"
+        ],
+        "paragraph_index": 151,
+        "filename": "Vendor Agreement Template-02.2021_2.pdf",
+        "file_extension": "pdf",
+        "file_size": 402747,
+        "document_type": "contract",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:b10dd662-7025-57a7-8820-f9cc20eebf3e:153:16bb3358242b:7361b5ac1e",
+      "subject": "Vendor Agreement Template-02.20212",
+      "predicate": "has_priority_rule",
+      "object": "Vendor Agreement February 2021 Page 10 of 20 the lender(s) providing construction financing for the Homes, and which assignment to the construction lender(s) shall take priority over any such assignment by the Vendor to and in favour of Tarion, regardless of when same have been respectively created [and Tarion shall correspondingly execute a financing change statement under the PPSA to evidence and confirm said postponement and subordination to and in favour of the construction lender(s)], and following any such assignment to the construction lender Tarion shall not pursue nor enforce any rights and/or claims under or pursuant to any such assignment so granted by the Vendor to Tarion whatsoever.",
+      "modality": "PROHIBITION",
+      "confidence": 0.85,
+      "evidence": "Vendor Agreement February 2021                                                                                                        Page 10 of 20 the lender(s) providing construction financing for the Homes, and which assignment to the construction lender(s) shall take priority over any such assignment by the Vendor to and in favour of Tarion, regardless of when same have been respectively created [and Tarion shall correspondingly execute a financing change statement under the PPSA to evidence and confirm said postponement and subordination to and in favour of the construction lender(s)], and following any such assignment to the construction lender Tarion shall not pursue nor enforce any rights and/or claims under or pursuant to any such assignment so granted by the Vendor to Tarion whatsoever.",
+      "locator": {
+        "line_start": 197,
+        "line_end": 197,
+        "start_char": 24862,
+        "end_char": 25670,
+        "heading_path": [
+          "Vendor Agreement Template-02.2021_2",
+          "Page 10"
+        ],
+        "paragraph_index": 153,
+        "filename": "Vendor Agreement Template-02.2021_2.pdf",
+        "file_extension": "pdf",
+        "file_size": 402747,
+        "document_type": "contract",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:b10dd662-7025-57a7-8820-f9cc20eebf3e:154:acc2472a36c6:b4cda9143f",
+      "subject": "The Vendor",
+      "predicate": "has_inspection_right",
+      "object": "co-operate with Tarion in connection with requests for sales status reports, requests for construction status, and inspections under the ONHWP Act",
+      "modality": "PERMISSION",
+      "confidence": 0.96,
+      "evidence": "3.6.8 The Vendor shall co-operate with Tarion in connection with requests for sales status reports, requests for construction status, and inspections under the ONHWP Act.",
+      "locator": {
+        "line_start": 199,
+        "line_end": 199,
+        "start_char": 25671,
+        "end_char": 26037,
+        "heading_path": [
+          "Vendor Agreement Template-02.2021_2",
+          "Page 10"
+        ],
+        "paragraph_index": 154,
+        "filename": "Vendor Agreement Template-02.2021_2.pdf",
+        "file_extension": "pdf",
+        "file_size": 402747,
+        "document_type": "contract",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:b10dd662-7025-57a7-8820-f9cc20eebf3e:154:acc2472a36c6:90507ad582",
+      "subject": "The Vendor",
+      "predicate": "upon",
+      "object": "request pay all such fees as are permitted under the ONHWP Act and communicated in writing to the Vendor in any manner, including in a Registrar Bulletin or other advisory",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "The Vendor shall upon request pay all such fees as are permitted under the ONHWP Act and communicated in writing to the Vendor in any manner, including in a Registrar Bulletin or other advisory.",
+      "locator": {
+        "line_start": 199,
+        "line_end": 199,
+        "start_char": 25671,
+        "end_char": 26037,
+        "heading_path": [
+          "Vendor Agreement Template-02.2021_2",
+          "Page 10"
+        ],
+        "paragraph_index": 154,
+        "filename": "Vendor Agreement Template-02.2021_2.pdf",
+        "file_extension": "pdf",
+        "file_size": 402747,
+        "document_type": "contract",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:b10dd662-7025-57a7-8820-f9cc20eebf3e:155:b205f3f473fe:e77e694506",
+      "subject": "The Vendor",
+      "predicate": "pay",
+      "object": "to Tarion an administration fee equivalent to fifteen per cent (15%) (or such other per cent as may be stipulated from time to time by regulation under the ONHWP Act) of each amount paid out by Tarion to any purchaser(s), homeowner(s) or third party contractor(s)/consultant(s) in respect of the Vendor Obligations",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "3.6.9 The Vendor shall pay to Tarion an administration fee equivalent to fifteen per cent (15%) (or such other per cent as may be stipulated from time to time by regulation under the ONHWP Act) of each amount paid out by Tarion to any purchaser(s), homeowner(s) or third party contractor(s)/consultant(s) in respect of the Vendor Obligations.",
+      "locator": {
+        "line_start": 200,
+        "line_end": 200,
+        "start_char": 26037,
+        "end_char": 26380,
+        "heading_path": [
+          "Vendor Agreement Template-02.2021_2",
+          "Page 10"
+        ],
+        "paragraph_index": 155,
+        "filename": "Vendor Agreement Template-02.2021_2.pdf",
+        "file_extension": "pdf",
+        "file_size": 402747,
+        "document_type": "contract",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:b10dd662-7025-57a7-8820-f9cc20eebf3e:156:0dee3e29c7f1:907cbe003d",
+      "subject": "The Vendor",
+      "predicate": "has_interest_rate",
+      "object": "pay to Tarion interest on any amounts owed to Tarion by the Vendor, due to any non-compliance with the Vendor Obligations, which interest shall accrue at the rate of",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "3.6.10 The Vendor shall pay to Tarion interest on any amounts owed to Tarion by the Vendor, due to any non-compliance with the Vendor Obligations, which interest shall accrue at the rate of",
+      "locator": {
+        "line_start": 201,
+        "line_end": 201,
+        "start_char": 26380,
+        "end_char": 26570,
+        "heading_path": [
+          "Vendor Agreement Template-02.2021_2",
+          "Page 10"
+        ],
+        "paragraph_index": 156,
+        "filename": "Vendor Agreement Template-02.2021_2.pdf",
+        "file_extension": "pdf",
+        "file_size": 402747,
+        "document_type": "contract",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:b10dd662-7025-57a7-8820-f9cc20eebf3e:157:7dfeea9d4cf4:3563fa1795",
+      "subject": "Vendor Agreement Template-02.20212",
+      "predicate": "has_interest_rate",
+      "object": "1.5 per cent (1.5%) per month, calculated daily (or such other interest rate as may be stipulated from time to time by regulation under the ONHWP Act).",
+      "modality": "PERMISSION",
+      "confidence": 0.85,
+      "evidence": "1.5 per cent (1.5%) per month, calculated daily (or such other interest rate as may be stipulated from time to time by regulation under the ONHWP Act).",
+      "locator": {
+        "line_start": 202,
+        "line_end": 202,
+        "start_char": 26570,
+        "end_char": 26915,
+        "heading_path": [
+          "Vendor Agreement Template-02.2021_2",
+          "Page 10"
+        ],
+        "paragraph_index": 157,
+        "filename": "Vendor Agreement Template-02.2021_2.pdf",
+        "file_extension": "pdf",
+        "file_size": 402747,
+        "document_type": "contract",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:b10dd662-7025-57a7-8820-f9cc20eebf3e:157:7dfeea9d4cf4:0d0dcdd2c7",
+      "subject": "The Vendor",
+      "predicate": "has_payment_obligation",
+      "object": "make the interest payment referenced above on the first day of each month following the date of default in repaying the amounts owed until the amounts owed are repaid in full",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "The Vendor shall make the interest payment referenced above on the first day of each month following the date of default in repaying the amounts owed until the amounts owed are repaid in full.",
+      "locator": {
+        "line_start": 202,
+        "line_end": 202,
+        "start_char": 26570,
+        "end_char": 26915,
+        "heading_path": [
+          "Vendor Agreement Template-02.2021_2",
+          "Page 10"
+        ],
+        "paragraph_index": 157,
+        "filename": "Vendor Agreement Template-02.2021_2.pdf",
+        "file_extension": "pdf",
+        "file_size": 402747,
+        "document_type": "contract",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:b10dd662-7025-57a7-8820-f9cc20eebf3e:159:c39e598198bc:0c3bc50510",
+      "subject": "Such consent",
+      "predicate": "require",
+      "object": "an assumption agreement acceptable to the parties each acting reasonable",
+      "modality": "PERMISSION",
+      "confidence": 0.96,
+      "evidence": "Such consent may require an assumption agreement acceptable to the parties each acting reasonable.",
+      "locator": {
+        "line_start": 204,
+        "line_end": 204,
+        "start_char": 27268,
+        "end_char": 27991,
+        "heading_path": [
+          "Vendor Agreement Template-02.2021_2",
+          "Page 10"
+        ],
+        "paragraph_index": 159,
+        "filename": "Vendor Agreement Template-02.2021_2.pdf",
+        "file_extension": "pdf",
+        "file_size": 402747,
+        "document_type": "contract",
+        "sentence_index": 2
+      }
+    },
+    {
+      "candidate_id": "cand:b10dd662-7025-57a7-8820-f9cc20eebf3e:159:c39e598198bc:5b36f1bf0e",
+      "subject": "The Vendor",
+      "predicate": "state",
+      "object": "or hold out that a home has QFE Confirmation or Enrolment Confirmation if it does not",
+      "modality": "PROHIBITION",
+      "confidence": 0.96,
+      "evidence": "The Vendor shall not state or hold out that a home has QFE Confirmation or Enrolment Confirmation if it does not.",
+      "locator": {
+        "line_start": 204,
+        "line_end": 204,
+        "start_char": 27268,
+        "end_char": 27991,
+        "heading_path": [
+          "Vendor Agreement Template-02.2021_2",
+          "Page 10"
+        ],
+        "paragraph_index": 159,
+        "filename": "Vendor Agreement Template-02.2021_2.pdf",
+        "file_extension": "pdf",
+        "file_size": 402747,
+        "document_type": "contract",
+        "sentence_index": 3
+      }
+    },
+    {
+      "candidate_id": "cand:b10dd662-7025-57a7-8820-f9cc20eebf3e:161:28e131e9455e:d0eb1a21a9",
+      "subject": "The Vendor",
+      "predicate": "authorizes",
+      "object": "Tarion to: (a) report on the Vendor's performance and/or compliance status relating to homes in respect of which the Vendor acted as Vendor (or that were enrolled by the Vendor) in any publication whether print, electronic or otherwise; (b) disclose information to the general public concerning the Vendor's ability to sell homes and carry out any requisite after sales service and warranty work, where Tarion believes it advisable to do so in furtherance of the ONHWP Act; and (c) disclose as necessary any information required by law and in particular required to support the Ontario Builder Directory (or any successor directory) maintained under NHCL Act",
+      "modality": "PERMISSION",
+      "confidence": 0.96,
+      "evidence": "3.7.1 The Vendor authorizes Tarion to: (a) report on the Vendor's performance and/or compliance status relating to homes in respect of which the Vendor acted as Vendor (or that were enrolled by the Vendor) in any publication whether print, electronic or otherwise; (b) disclose information to the general public concerning the Vendor's ability to sell homes and carry out any requisite after sales service and warranty work, where Tarion believes it advisable to do so in furtherance of the ONHWP Act; and (c) disclose as necessary any information required by law and in particular required to support the Ontario Builder Directory (or any successor directory) maintained under NHCL Act.",
+      "locator": {
+        "line_start": 206,
+        "line_end": 206,
+        "start_char": 28018,
+        "end_char": 28706,
+        "heading_path": [
+          "Vendor Agreement Template-02.2021_2",
+          "Page 10",
+          "3.7 Use of Information"
+        ],
+        "paragraph_index": 161,
+        "filename": "Vendor Agreement Template-02.2021_2.pdf",
+        "file_extension": "pdf",
+        "file_size": 402747,
+        "document_type": "contract",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:b10dd662-7025-57a7-8820-f9cc20eebf3e:162:0ba69fc7c7e8:aabc94d434",
+      "subject": "The Vendor",
+      "predicate": "authorizes",
+      "object": "Tarion to provide the name and contact information of the Vendor from time to time, and to anyone desiring to contact the Vendor",
+      "modality": "PERMISSION",
+      "confidence": 0.96,
+      "evidence": "3.7.2 The Vendor authorizes Tarion to provide the name and contact information of the Vendor from time to time, and to anyone desiring to contact the Vendor.",
+      "locator": {
+        "line_start": 207,
+        "line_end": 207,
+        "start_char": 28706,
+        "end_char": 28864,
+        "heading_path": [
+          "Vendor Agreement Template-02.2021_2",
+          "Page 10",
+          "3.7 Use of Information"
+        ],
+        "paragraph_index": 162,
+        "filename": "Vendor Agreement Template-02.2021_2.pdf",
+        "file_extension": "pdf",
+        "file_size": 402747,
+        "document_type": "contract",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:b10dd662-7025-57a7-8820-f9cc20eebf3e:170:e3f536bd7f83:08f82d89d1",
+      "subject": "Security",
+      "predicate": "has_inspection_right",
+      "object": "3.8.2 If the results of an examination or interview by Tarion or an inspection by Tarion demonstrate that the Vendor or builder does not have the necessary skills, qualifications, technical expertise or experience to sell or transfer and build the Homes that are the subject of the application for QFE or Enrolment to which this Agreement relates, Tarion may require the Vendor or builder to,",
+      "modality": "PERMISSION",
+      "confidence": 0.85,
+      "evidence": "3.8.2 If the results of an examination or interview by Tarion or an inspection by Tarion demonstrate that the Vendor or builder does not have the necessary skills, qualifications, technical expertise or experience to sell or transfer and build the Homes that are the subject of the application for QFE or Enrolment to which this Agreement relates, Tarion may require the Vendor or builder to,",
+      "locator": {
+        "line_start": 218,
+        "line_end": 218,
+        "start_char": 30112,
+        "end_char": 30505,
+        "heading_path": [
+          "Vendor Agreement Template-02.2021_2",
+          "Page 11",
+          "3.8 Security"
+        ],
+        "paragraph_index": 170,
+        "filename": "Vendor Agreement Template-02.2021_2.pdf",
+        "file_extension": "pdf",
+        "file_size": 402747,
+        "document_type": "contract",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:b10dd662-7025-57a7-8820-f9cc20eebf3e:180:9e8d482eaf36:d19c8af0cc",
+      "subject": "In the event the Vendor seeks such relief, this provision",
+      "predicate": "has_validity_rule",
+      "object": "be relied upon by Tarion as a complete defence or response in order to defeat the seeking of such relief",
+      "modality": "PERMISSION",
+      "confidence": 0.96,
+      "evidence": "In the event the Vendor seeks such relief, this provision may be relied upon by Tarion as a complete defence or response in order to defeat the seeking of such relief.",
+      "locator": {
+        "line_start": 232,
+        "line_end": 232,
+        "start_char": 33185,
+        "end_char": 33353,
+        "heading_path": [
+          "Vendor Agreement Template-02.2021_2",
+          "Page 12"
+        ],
+        "paragraph_index": 180,
+        "filename": "Vendor Agreement Template-02.2021_2.pdf",
+        "file_extension": "pdf",
+        "file_size": 402747,
+        "document_type": "contract",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:b10dd662-7025-57a7-8820-f9cc20eebf3e:181:d93e96e6d6ac:2e89c8e0a0",
+      "subject": "Any claim by the Vendor against Tarion",
+      "predicate": "has_validity_rule",
+      "object": "be asserted as a claim for damages only",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "Any claim by the Vendor against Tarion shall be asserted as a claim for damages only.",
+      "locator": {
+        "line_start": 234,
+        "line_end": 234,
+        "start_char": 33354,
+        "end_char": 33623,
+        "heading_path": [
+          "Vendor Agreement Template-02.2021_2",
+          "Page 12"
+        ],
+        "paragraph_index": 181,
+        "filename": "Vendor Agreement Template-02.2021_2.pdf",
+        "file_extension": "pdf",
+        "file_size": 402747,
+        "document_type": "contract",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:b10dd662-7025-57a7-8820-f9cc20eebf3e:183:999120e75890:33f0d3f7f1",
+      "subject": "The Warranty Information Sheet referred to in Regulation 892",
+      "predicate": "has_attachment_requirement",
+      "object": "be attached to every agreement of purchase and sale or construction contract with an owner entered into on or after February 1, 2021",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "3.9.1 The Warranty Information Sheet referred to in Regulation 892 shall be attached to every agreement of purchase and sale or construction contract with an owner entered into on or after February 1, 2021.",
+      "locator": {
+        "line_start": 236,
+        "line_end": 236,
+        "start_char": 33651,
+        "end_char": 33858,
+        "heading_path": [
+          "Vendor Agreement Template-02.2021_2",
+          "Page 12",
+          "3.9 Use of Tarion Forms"
+        ],
+        "paragraph_index": 183,
+        "filename": "Vendor Agreement Template-02.2021_2.pdf",
+        "file_extension": "pdf",
+        "file_size": 402747,
+        "document_type": "contract",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:b10dd662-7025-57a7-8820-f9cc20eebf3e:184:f926764023c7:4759a01b9d",
+      "subject": "Every agreement of purchase and sale",
+      "predicate": "has_attachment_requirement",
+      "object": "have the appropriate Addendum attached to it in accordance with the requirements set out in Regulation 892",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "3.9.2 Every agreement of purchase and sale shall have the appropriate Addendum attached to it in accordance with the requirements set out in Regulation 892.",
+      "locator": {
+        "line_start": 237,
+        "line_end": 237,
+        "start_char": 33858,
+        "end_char": 34015,
+        "heading_path": [
+          "Vendor Agreement Template-02.2021_2",
+          "Page 12",
+          "3.9 Use of Tarion Forms"
+        ],
+        "paragraph_index": 184,
+        "filename": "Vendor Agreement Template-02.2021_2.pdf",
+        "file_extension": "pdf",
+        "file_size": 402747,
+        "document_type": "contract",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:b10dd662-7025-57a7-8820-f9cc20eebf3e:186:8b856b8644c1:cf8a9fd3a6",
+      "subject": "The source document",
+      "predicate": "has_validity_rule",
+      "object": "be in the forms supplied by Tarion on its website - tarion.com",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "3.9.3.1 The source document shall be in the forms supplied by Tarion on its website - tarion.com.",
+      "locator": {
+        "line_start": 239,
+        "line_end": 239,
+        "start_char": 34331,
+        "end_char": 34429,
+        "heading_path": [
+          "Vendor Agreement Template-02.2021_2",
+          "Page 12",
+          "3.9 Use of Tarion Forms"
+        ],
+        "paragraph_index": 186,
+        "filename": "Vendor Agreement Template-02.2021_2.pdf",
+        "file_extension": "pdf",
+        "file_size": 402747,
+        "document_type": "contract",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:b10dd662-7025-57a7-8820-f9cc20eebf3e:187:e34f4d655e13:cb553be557",
+      "subject": "The Vendor",
+      "predicate": "cannot_alter_document_format",
+      "object": "amend or alter the format, logos or text of the Warranty Information Sheet or Addendum other than, in the case of the Addendum filling in blanks or fields, checkmarks, dates, addresses, names or other text or additions contemplated by such blanks or fields with accurate information",
+      "modality": "PROHIBITION",
+      "confidence": 0.96,
+      "evidence": "3.9.3.2 The Vendor shall  not amend or alter the format, logos or text of the Warranty Information Sheet or Addendum other than, in the case of the Addendum filling in blanks or fields, checkmarks, dates, addresses, names or other text or additions contemplated by such blanks or fields with accurate information.",
+      "locator": {
+        "line_start": 240,
+        "line_end": 240,
+        "start_char": 34429,
+        "end_char": 34743,
+        "heading_path": [
+          "Vendor Agreement Template-02.2021_2",
+          "Page 12",
+          "3.9 Use of Tarion Forms"
+        ],
+        "paragraph_index": 187,
+        "filename": "Vendor Agreement Template-02.2021_2.pdf",
+        "file_extension": "pdf",
+        "file_size": 402747,
+        "document_type": "contract",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:b10dd662-7025-57a7-8820-f9cc20eebf3e:188:2c084eb203af:2170dd0a1b",
+      "subject": "The Addendum",
+      "predicate": "has_attachment_requirement",
+      "object": "be attached to and forms part of the agreement of purchase and sale",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "The Addendum shall be attached to and forms part of the agreement of purchase and sale.",
+      "locator": {
+        "line_start": 241,
+        "line_end": 241,
+        "start_char": 34743,
+        "end_char": 35084,
+        "heading_path": [
+          "Vendor Agreement Template-02.2021_2",
+          "Page 12",
+          "3.9 Use of Tarion Forms"
+        ],
+        "paragraph_index": 188,
+        "filename": "Vendor Agreement Template-02.2021_2.pdf",
+        "file_extension": "pdf",
+        "file_size": 402747,
+        "document_type": "contract",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:b10dd662-7025-57a7-8820-f9cc20eebf3e:189:91df005b1379:a33bbfceae",
+      "subject": "Use of Tarion Forms",
+      "predicate": "cannot_modify_addendum",
+      "object": "3.9.3.4 Except as noted in paragraphs 3.9.3.2 and 3.9.3.3 above, the Vendor shall not modify or amend the Addendum in any way and shall not create any derivative works that incorporate or make use of the Addendum, in whole or in part, without the express prior written consent of Tarion.",
+      "modality": "PROHIBITION",
+      "confidence": 0.85,
+      "evidence": "3.9.3.4 Except as noted in paragraphs 3.9.3.2 and 3.9.3.3 above, the Vendor shall not modify or amend the Addendum in any way and shall not create any derivative works that incorporate or make use of the Addendum, in whole or in part, without the express prior written consent of Tarion.",
+      "locator": {
+        "line_start": 242,
+        "line_end": 242,
+        "start_char": 35084,
+        "end_char": 35372,
+        "heading_path": [
+          "Vendor Agreement Template-02.2021_2",
+          "Page 12",
+          "3.9 Use of Tarion Forms"
+        ],
+        "paragraph_index": 189,
+        "filename": "Vendor Agreement Template-02.2021_2.pdf",
+        "file_extension": "pdf",
+        "file_size": 402747,
+        "document_type": "contract",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:b10dd662-7025-57a7-8820-f9cc20eebf3e:190:eb277787251d:23cdf68704",
+      "subject": "The Vendor",
+      "predicate": "has_liability_rule",
+      "object": "be responsible for any improper changes whatsoever made to the Addendum or Warranty Information Sheet and the accuracy and sufficiency of the information inserted in the Addendum",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "3.9.3.5 The Vendor shall be responsible for any improper changes whatsoever made to the Addendum or Warranty Information Sheet and the accuracy and sufficiency of the information inserted in the Addendum.",
+      "locator": {
+        "line_start": 243,
+        "line_end": 243,
+        "start_char": 35372,
+        "end_char": 35577,
+        "heading_path": [
+          "Vendor Agreement Template-02.2021_2",
+          "Page 12",
+          "3.9 Use of Tarion Forms"
+        ],
+        "paragraph_index": 190,
+        "filename": "Vendor Agreement Template-02.2021_2.pdf",
+        "file_extension": "pdf",
+        "file_size": 402747,
+        "document_type": "contract",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:b10dd662-7025-57a7-8820-f9cc20eebf3e:196:05d1afb145c6:b1c1d18118",
+      "subject": "The Vendor",
+      "predicate": "has_indemnification_obligation",
+      "object": "fully indemnify and save Tarion harmless from and against any losses, costs, claims, damages and/or liabilities",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "4.1.1 The Vendor shall fully indemnify and save Tarion harmless from and against any losses, costs, claims, damages and/or liabilities which may arise resulting from or by virtue of:",
+      "locator": {
+        "line_start": 253,
+        "line_end": 253,
+        "start_char": 36361,
+        "end_char": 36544,
+        "heading_path": [
+          "Vendor Agreement Template-02.2021_2",
+          "Page 13",
+          "4.1 Indemnity"
+        ],
+        "paragraph_index": 196,
+        "filename": "Vendor Agreement Template-02.2021_2.pdf",
+        "file_extension": "pdf",
+        "file_size": 402747,
+        "document_type": "contract",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:b10dd662-7025-57a7-8820-f9cc20eebf3e:200:82734268a9d1:cd861df533",
+      "subject": "Indemnity",
+      "predicate": "has_indemnification_obligation",
+      "object": "Provided that the Vendor shall have no obligation under this Agreement to indemnify Tarion for any losses or costs incurred related to matters that are not warranted or compensable by the Vendor under the ONHWP Act, but this exclusion does not affect Tarion's subrogation rights, or rights under an assignment of any cause of action from another person",
+      "modality": "OBLIGATION",
+      "confidence": 0.85,
+      "evidence": "Provided that the Vendor shall have no obligation under this Agreement to indemnify Tarion for any losses or costs incurred related to matters that are not warranted or compensable by the Vendor under the ONHWP Act, but this exclusion does not affect Tarion's subrogation rights, or rights under an assignment of any cause of action from another person.",
+      "locator": {
+        "line_start": 258,
+        "line_end": 258,
+        "start_char": 37016,
+        "end_char": 37370,
+        "heading_path": [
+          "Vendor Agreement Template-02.2021_2",
+          "Page 13",
+          "4.1 Indemnity"
+        ],
+        "paragraph_index": 200,
+        "filename": "Vendor Agreement Template-02.2021_2.pdf",
+        "file_extension": "pdf",
+        "file_size": 402747,
+        "document_type": "contract",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:b10dd662-7025-57a7-8820-f9cc20eebf3e:203:aafaeee155de:c026b25099",
+      "subject": "The indemnity herein",
+      "predicate": "has_indemnification_obligation",
+      "object": "be a continuing indemnity for the payment of all Indemnified Amounts and shall apply to and secure any ultimate balance thereof due or remaining unpaid to Tarion",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "4.2.1 The indemnity herein shall be a continuing indemnity for the payment of all Indemnified Amounts and shall apply to and secure any ultimate balance thereof due or remaining unpaid to Tarion.",
+      "locator": {
+        "line_start": 263,
+        "line_end": 263,
+        "start_char": 37465,
+        "end_char": 38122,
+        "heading_path": [
+          "Vendor Agreement Template-02.2021_2",
+          "Page 13",
+          "4.2 Continuing Indemnity"
+        ],
+        "paragraph_index": 203,
+        "filename": "Vendor Agreement Template-02.2021_2.pdf",
+        "file_extension": "pdf",
+        "file_size": 402747,
+        "document_type": "contract",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:b10dd662-7025-57a7-8820-f9cc20eebf3e:203:aafaeee155de:135d75905c",
+      "subject": "The indemnity herein",
+      "predicate": "has_indemnification_obligation",
+      "object": "be considered as wholly or partially satisfied by the intermediate payment or satisfaction at any time of all or any part of the Indemnified Amounts",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "The indemnity herein shall not be considered as wholly or partially satisfied by the intermediate payment or satisfaction at any time of all or any part of the Indemnified Amounts.",
+      "locator": {
+        "line_start": 263,
+        "line_end": 263,
+        "start_char": 37465,
+        "end_char": 38122,
+        "heading_path": [
+          "Vendor Agreement Template-02.2021_2",
+          "Page 13",
+          "4.2 Continuing Indemnity"
+        ],
+        "paragraph_index": 203,
+        "filename": "Vendor Agreement Template-02.2021_2.pdf",
+        "file_extension": "pdf",
+        "file_size": 402747,
+        "document_type": "contract",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:b10dd662-7025-57a7-8820-f9cc20eebf3e:203:aafaeee155de:f7c4e269f0",
+      "subject": "Continuing Indemnity",
+      "predicate": "has_indemnification_obligation",
+      "object": "All payments received by Tarion from the Vendor or any other person in respect of the Indemnified Amounts shall be applied as payments in gross without any right on the part of the Vendor to claim the benefit of any such payments until payment in full of all Indemnified Amounts",
+      "modality": "OBLIGATION",
+      "confidence": 0.85,
+      "evidence": "All payments received by Tarion from the Vendor or any other person in respect of the Indemnified Amounts shall be applied as payments in gross without any right on the part of the Vendor to claim the benefit of any such payments until payment in full of all Indemnified Amounts.",
+      "locator": {
+        "line_start": 263,
+        "line_end": 263,
+        "start_char": 37465,
+        "end_char": 38122,
+        "heading_path": [
+          "Vendor Agreement Template-02.2021_2",
+          "Page 13",
+          "4.2 Continuing Indemnity"
+        ],
+        "paragraph_index": 203,
+        "filename": "Vendor Agreement Template-02.2021_2.pdf",
+        "file_extension": "pdf",
+        "file_size": 402747,
+        "document_type": "contract",
+        "sentence_index": 2
+      }
+    },
+    {
+      "candidate_id": "cand:b10dd662-7025-57a7-8820-f9cc20eebf3e:205:41a55bbe62d7:325a5d968f",
+      "subject": "The indemnity herein",
+      "predicate": "has_indemnification_obligation",
+      "object": "be reinstated if at any time any payment of any Indemnified Amounts is rescinded or must otherwise be returned by Tarion upon any Insolvency Proceeding of or affecting the Vendor or for any other reason whatsoever, all as though such payment had not been made",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "4.3.1 The indemnity herein shall be reinstated if at any time any payment of any Indemnified Amounts is rescinded or must otherwise be returned by Tarion upon any Insolvency Proceeding of or affecting the Vendor or for any other reason whatsoever, all as though such payment had not been made.",
+      "locator": {
+        "line_start": 265,
+        "line_end": 265,
+        "start_char": 38144,
+        "end_char": 38670,
+        "heading_path": [
+          "Vendor Agreement Template-02.2021_2",
+          "Page 13",
+          "4.3 Reinstatement"
+        ],
+        "paragraph_index": 205,
+        "filename": "Vendor Agreement Template-02.2021_2.pdf",
+        "file_extension": "pdf",
+        "file_size": 402747,
+        "document_type": "contract",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:b10dd662-7025-57a7-8820-f9cc20eebf3e:205:41a55bbe62d7:44025fa197",
+      "subject": "Tarion",
+      "predicate": "concede",
+      "object": "or compromise any claim that such payment ought to be rescinded or otherwise returned, without discharging, diminishing or in any way affecting the liability of the Vendor hereunder or the effect of this Section",
+      "modality": "PERMISSION",
+      "confidence": 0.96,
+      "evidence": "Tarion may concede or compromise any claim that such payment ought to be rescinded or otherwise returned, without discharging, diminishing or in any way affecting the liability of the Vendor hereunder or the effect of this Section.",
+      "locator": {
+        "line_start": 265,
+        "line_end": 265,
+        "start_char": 38144,
+        "end_char": 38670,
+        "heading_path": [
+          "Vendor Agreement Template-02.2021_2",
+          "Page 13",
+          "4.3 Reinstatement"
+        ],
+        "paragraph_index": 205,
+        "filename": "Vendor Agreement Template-02.2021_2.pdf",
+        "file_extension": "pdf",
+        "file_size": 402747,
+        "document_type": "contract",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:b10dd662-7025-57a7-8820-f9cc20eebf3e:209:937317c955ac:757a785b12",
+      "subject": "All Indemnified Amounts",
+      "predicate": "has_indemnification_obligation",
+      "object": "be payable by the Vendor to Tarion, forthwith upon demand being made by Tarion",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "All Indemnified Amounts shall be payable by the Vendor to Tarion, forthwith upon demand being made by Tarion.",
+      "locator": {
+        "line_start": 272,
+        "line_end": 272,
+        "start_char": 38869,
+        "end_char": 39231,
+        "heading_path": [
+          "Vendor Agreement Template-02.2021_2",
+          "Page 14",
+          "5.1 Demand"
+        ],
+        "paragraph_index": 209,
+        "filename": "Vendor Agreement Template-02.2021_2.pdf",
+        "file_extension": "pdf",
+        "file_size": 402747,
+        "document_type": "contract",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:b10dd662-7025-57a7-8820-f9cc20eebf3e:212:32a255ebae70:ebf3d180ad",
+      "subject": "Tarion",
+      "predicate": "has_indemnification_obligation",
+      "object": "be bound to make any demand on or to seek or exhaust its recourse against the Vendor or any other person or to realize on any Security or assurances held by Tarion in respect of the Indemnified Amounts before being entitled to demand payment from or performance by the Vendor and enforce its rights under this Agreement and the Vendor hereby renounces all benefits of discussion and division",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "5.2.1 Tarion shall not be bound to make any demand on or to seek or exhaust its recourse against the Vendor or any other person or to realize on any Security or assurances held by Tarion in respect of the Indemnified Amounts before being entitled to demand payment from or performance by the Vendor and enforce its rights under this Agreement and the Vendor hereby renounces all benefits of discussion and division.",
+      "locator": {
+        "line_start": 275,
+        "line_end": 275,
+        "start_char": 39281,
+        "end_char": 39697,
+        "heading_path": [
+          "Vendor Agreement Template-02.2021_2",
+          "Page 14",
+          "5.2 Right to"
+        ],
+        "paragraph_index": 212,
+        "filename": "Vendor Agreement Template-02.2021_2.pdf",
+        "file_extension": "pdf",
+        "file_size": 402747,
+        "document_type": "contract",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:b10dd662-7025-57a7-8820-f9cc20eebf3e:214:aed90df9e95d:3d7b559805",
+      "subject": "Tarion's Statement",
+      "predicate": "has_indemnification_obligation",
+      "object": "5.3.1 A statement in writing of Tarion as to the amount of the Vendor Obligations, the Indemnified Amounts and all other amounts payable hereunder shall be binding upon the Vendor and conclusive against it in the absence of manifest error",
+      "modality": "OBLIGATION",
+      "confidence": 0.85,
+      "evidence": "5.3.1 A statement in writing of Tarion as to the amount of the Vendor Obligations, the Indemnified Amounts and all other amounts payable hereunder shall be binding upon the Vendor and conclusive against it in the absence of manifest error.",
+      "locator": {
+        "line_start": 277,
+        "line_end": 277,
+        "start_char": 39724,
+        "end_char": 39964,
+        "heading_path": [
+          "Vendor Agreement Template-02.2021_2",
+          "Page 14",
+          "5.3 Tarion's Statement"
+        ],
+        "paragraph_index": 214,
+        "filename": "Vendor Agreement Template-02.2021_2.pdf",
+        "file_extension": "pdf",
+        "file_size": 402747,
+        "document_type": "contract",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:b10dd662-7025-57a7-8820-f9cc20eebf3e:217:be74c115cd0d:c3bdfd4b85",
+      "subject": "Tarion",
+      "predicate": "has_indemnification_obligation",
+      "object": "be at liberty to appropriate or to refrain from appropriating any payment made by, or monies received by Tarion from, the Vendor or others to any portion of the Indemnified Amounts and from time to time to revoke or alter any such appropriation, all as Tarion may from time to time in its sole and sole and absolute discretion determine but excluding for greater certainty the HCRA Licensee fees if collected by Tarion",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "6.1.1 Tarion shall be at liberty to appropriate or to refrain from appropriating any payment made by, or monies received by Tarion from, the Vendor or others to any portion of the Indemnified Amounts and from time to time to revoke or alter any such appropriation, all as Tarion may from time to time in its sole and sole and absolute discretion determine but excluding for greater certainty the HCRA Licensee fees if collected by Tarion.",
+      "locator": {
+        "line_start": 282,
+        "line_end": 282,
+        "start_char": 40034,
+        "end_char": 40473,
+        "heading_path": [
+          "Vendor Agreement Template-02.2021_2",
+          "Page 14",
+          "6.1 Appropriation by Tarion"
+        ],
+        "paragraph_index": 217,
+        "filename": "Vendor Agreement Template-02.2021_2.pdf",
+        "file_extension": "pdf",
+        "file_size": 402747,
+        "document_type": "contract",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:b10dd662-7025-57a7-8820-f9cc20eebf3e:221:0b5eab5100dd:ade28a5db6",
+      "subject": "Tarion",
+      "predicate": "convert",
+      "object": "either amount into the other currency on the day as of which that set-off is being effected, or if that day is not a business day then on the business day preceding the day as of which that set-off is being effected",
+      "modality": "PERMISSION",
+      "confidence": 0.96,
+      "evidence": "If the amounts being set-off are not payable in the same currency, Tarion may convert either amount into the other currency on the day as of which that set-off is being effected, or if that day is not a business day then on the business day preceding the day as of which that set-off is being effected.",
+      "locator": {
+        "line_start": 286,
+        "line_end": 286,
+        "start_char": 40769,
+        "end_char": 41320,
+        "heading_path": [
+          "Vendor Agreement Template-02.2021_2",
+          "Page 14",
+          "6.2 Set-Off by Tarion"
+        ],
+        "paragraph_index": 221,
+        "filename": "Vendor Agreement Template-02.2021_2.pdf",
+        "file_extension": "pdf",
+        "file_size": 402747,
+        "document_type": "contract",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:b10dd662-7025-57a7-8820-f9cc20eebf3e:225:daec4b39121f:b96a333084",
+      "subject": "Vendor",
+      "predicate": "has_validity_rule",
+      "object": "be paid without set-off or counterclaim and without any deduction or withholding whatsoever unless and to the extent that the Vendor shall be prohibited by law from doing so, in which case the Vendor shall pay to Tarion such additional amount as shall be necessary to ensure that Tarion receives the full amount it would have received if no such deduction or withholding had been made",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "6.3.1 All amounts payable by the Vendor under this Agreement shall be paid without set-off or counterclaim and without any deduction or withholding whatsoever unless and to the extent that the Vendor shall be prohibited by law from doing so, in which case the Vendor shall pay to Tarion such additional amount as shall be necessary to ensure that Tarion receives the full amount it would have received if no such deduction or withholding had been made.",
+      "locator": {
+        "line_start": 293,
+        "line_end": 293,
+        "start_char": 41511,
+        "end_char": 41964,
+        "heading_path": [
+          "Vendor Agreement Template-02.2021_2",
+          "Page 15",
+          "6.3 No Set-Off by Vendor"
+        ],
+        "paragraph_index": 225,
+        "filename": "Vendor Agreement Template-02.2021_2.pdf",
+        "file_extension": "pdf",
+        "file_size": 402747,
+        "document_type": "contract",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:b10dd662-7025-57a7-8820-f9cc20eebf3e:229:6e4fa9ccd418:acecb86d34",
+      "subject": "Tarion",
+      "predicate": "has_validity_rule",
+      "object": "be concerned to see or required to enquire into the capacity and powers of the Vendor or, as applicable, its directors, officers, partners, employees, or agents acting or purporting to act on its behalf",
+      "modality": "PROHIBITION",
+      "confidence": 0.96,
+      "evidence": "7.1.1 Tarion shall not be concerned to see or required to enquire into the capacity and powers of the Vendor or, as applicable, its directors, officers, partners, employees, or agents acting or purporting to act on its behalf.",
+      "locator": {
+        "line_start": 299,
+        "line_end": 299,
+        "start_char": 42078,
+        "end_char": 42923,
+        "heading_path": [
+          "Vendor Agreement Template-02.2021_2",
+          "Page 15",
+          "7.1 Defects in"
+        ],
+        "paragraph_index": 229,
+        "filename": "Vendor Agreement Template-02.2021_2.pdf",
+        "file_extension": "pdf",
+        "file_size": 402747,
+        "document_type": "contract",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:b10dd662-7025-57a7-8820-f9cc20eebf3e:229:6e4fa9ccd418:f76cacbc18",
+      "subject": "Defects in",
+      "predicate": "has_indemnification_obligation",
+      "object": "All obligations, liabilities and indebtedness purporting to be incurred by the Vendor in favour of Tarion shall be deemed to form part of the Vendor Obligations and/or Indemnified Amounts even though the Vendor may not be a legal entity or the incurring of such obligations, liabilities or indebtedness was irregularly, defectively or informally effected or in excess of the capacity or powers of the Vendor or its directors, officers, partners, employees or agents and notwithstanding that Tarion has specific notice of the capacity and powers of the Vendor or its directors, officers, partners, employees or agents",
+      "modality": "PROHIBITION",
+      "confidence": 0.85,
+      "evidence": "All obligations, liabilities and indebtedness purporting to be incurred by the Vendor in favour of Tarion shall be deemed to form part of the Vendor Obligations and/or Indemnified Amounts even though the Vendor may not be a legal entity or the incurring of such obligations, liabilities or indebtedness was irregularly, defectively or informally effected or in excess of the capacity or powers of the Vendor or its directors, officers, partners, employees or agents and notwithstanding that Tarion has specific notice of the capacity and powers of the Vendor or its directors, officers, partners, employees or agents.",
+      "locator": {
+        "line_start": 299,
+        "line_end": 299,
+        "start_char": 42078,
+        "end_char": 42923,
+        "heading_path": [
+          "Vendor Agreement Template-02.2021_2",
+          "Page 15",
+          "7.1 Defects in"
+        ],
+        "paragraph_index": 229,
+        "filename": "Vendor Agreement Template-02.2021_2.pdf",
+        "file_extension": "pdf",
+        "file_size": 402747,
+        "document_type": "contract",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:b10dd662-7025-57a7-8820-f9cc20eebf3e:232:2d1ac8eca701:69294b6e7b",
+      "subject": "The liability of the Vendor hereunder",
+      "predicate": "has_validity_rule",
+      "object": "be absolute and unconditional and shall not be discharged, diminished or in any way affected by",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "7.2.1 The liability of the Vendor hereunder shall be absolute and unconditional and shall not be discharged, diminished or in any way affected by:",
+      "locator": {
+        "line_start": 302,
+        "line_end": 302,
+        "start_char": 42967,
+        "end_char": 43114,
+        "heading_path": [
+          "Vendor Agreement Template-02.2021_2",
+          "Page 15",
+          "7.2 Liability of the"
+        ],
+        "paragraph_index": 232,
+        "filename": "Vendor Agreement Template-02.2021_2.pdf",
+        "file_extension": "pdf",
+        "file_size": 402747,
+        "document_type": "contract",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:b10dd662-7025-57a7-8820-f9cc20eebf3e:244:ed70e7fd55c4:95d248c97a",
+      "subject": "Tarion",
+      "predicate": "from",
+      "object": "time to time in its sole and absolute discretion without discharging, diminishing or in any way affecting the liability of the Vendor hereunder",
+      "modality": "PERMISSION",
+      "confidence": 0.96,
+      "evidence": "7.3.1 Tarion may from time to time in its sole and absolute discretion without discharging, diminishing or in any way affecting the liability of the Vendor hereunder:",
+      "locator": {
+        "line_start": 317,
+        "line_end": 317,
+        "start_char": 44663,
+        "end_char": 44830,
+        "heading_path": [
+          "Vendor Agreement Template-02.2021_2",
+          "Page 16",
+          "7.3 Dealings by"
+        ],
+        "paragraph_index": 244,
+        "filename": "Vendor Agreement Template-02.2021_2.pdf",
+        "file_extension": "pdf",
+        "file_size": 402747,
+        "document_type": "contract",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:b10dd662-7025-57a7-8820-f9cc20eebf3e:253:b082613161d9:3338ed70ab",
+      "subject": "Dealings by",
+      "predicate": "has_indemnification_obligation",
+      "object": "7.3.2 No loss of or in respect of any Security or additional covenant relating to the Vendor Obligations, the Indemnified Amounts, or any part thereof, whether occasioned through the fault of Tarion or otherwise, shall discharge, diminish or in any way affect the liability of the Vendor hereunder",
+      "modality": "OBLIGATION",
+      "confidence": 0.85,
+      "evidence": "7.3.2 No loss of or in respect of any Security or additional covenant relating to the Vendor Obligations, the Indemnified Amounts, or any part thereof, whether occasioned through the fault of Tarion or otherwise, shall discharge, diminish or in any way affect the liability of the Vendor hereunder.",
+      "locator": {
+        "line_start": 326,
+        "line_end": 326,
+        "start_char": 47050,
+        "end_char": 47972,
+        "heading_path": [
+          "Vendor Agreement Template-02.2021_2",
+          "Page 16",
+          "7.3 Dealings by"
+        ],
+        "paragraph_index": 253,
+        "filename": "Vendor Agreement Template-02.2021_2.pdf",
+        "file_extension": "pdf",
+        "file_size": 402747,
+        "document_type": "contract",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:b10dd662-7025-57a7-8820-f9cc20eebf3e:253:b082613161d9:0fcc2e9f53",
+      "subject": "Dealings by",
+      "predicate": "has_indemnification_obligation",
+      "object": "Neither Tarion nor any of its directors, officers, employees or agents, or any receiver or receiver-manager appointed by it or by a court, shall have any liability, whether in tort, contract or otherwise, for any neglect or any act taken or omitted to be taken by Tarion or by any of such other persons (other than its own negligence or willful misconduct) in connection with the Vendor Obligations and/or Indemnified Amounts or any part thereof, or any Security or other covenant relating to the Vendor Obligations or any part thereof including without limitation any of the matters described above in this Section",
+      "modality": "OBLIGATION",
+      "confidence": 0.85,
+      "evidence": "Neither Tarion nor any of its directors, officers, employees or agents, or any receiver or receiver-manager appointed by it or by a court, shall have any liability, whether in tort, contract or otherwise, for any neglect or any act taken or omitted to be taken by Tarion or by any of such other persons (other than its own   negligence or willful misconduct) in connection with the Vendor Obligations and/or Indemnified Amounts or any part thereof, or any Security or other covenant relating to the Vendor Obligations or any part thereof including without limitation any of the matters described above in this Section 7.3.",
+      "locator": {
+        "line_start": 326,
+        "line_end": 326,
+        "start_char": 47050,
+        "end_char": 47972,
+        "heading_path": [
+          "Vendor Agreement Template-02.2021_2",
+          "Page 16",
+          "7.3 Dealings by"
+        ],
+        "paragraph_index": 253,
+        "filename": "Vendor Agreement Template-02.2021_2.pdf",
+        "file_extension": "pdf",
+        "file_size": 402747,
+        "document_type": "contract",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:b10dd662-7025-57a7-8820-f9cc20eebf3e:257:2b326c8a7424:e69e5c4fed",
+      "subject": "No action of Tarion permitted hereunder",
+      "predicate": "in",
+      "object": "any way impair or affect its rights, powers or remedies under this Agreement",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "No action of Tarion permitted hereunder shall in any way impair or affect its rights, powers or remedies under this Agreement.",
+      "locator": {
+        "line_start": 333,
+        "line_end": 333,
+        "start_char": 48152,
+        "end_char": 48596,
+        "heading_path": [
+          "Vendor Agreement Template-02.2021_2",
+          "Page 17",
+          "7.4 No Waiver"
+        ],
+        "paragraph_index": 257,
+        "filename": "Vendor Agreement Template-02.2021_2.pdf",
+        "file_extension": "pdf",
+        "file_size": 402747,
+        "document_type": "contract",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:b10dd662-7025-57a7-8820-f9cc20eebf3e:262:2aa0e766361e:871f0efcc3",
+      "subject": "This Agreement",
+      "predicate": "has_indemnification_obligation",
+      "object": "be in full force and effect from the Effective Date until all Vendor Obligations have been duly discharged and all Indemnified Amounts have been paid to Tarion",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "8.1.1 This Agreement shall be in full force and effect from the Effective Date until all Vendor Obligations have been duly discharged and all Indemnified Amounts have been paid to Tarion.",
+      "locator": {
+        "line_start": 340,
+        "line_end": 340,
+        "start_char": 48875,
+        "end_char": 49063,
+        "heading_path": [
+          "Vendor Agreement Template-02.2021_2",
+          "Page 17",
+          "8.1 Term"
+        ],
+        "paragraph_index": 262,
+        "filename": "Vendor Agreement Template-02.2021_2.pdf",
+        "file_extension": "pdf",
+        "file_size": 402747,
+        "document_type": "contract",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:b10dd662-7025-57a7-8820-f9cc20eebf3e:267:60b2557a4deb:76b8d37bab",
+      "subject": "The Vendor",
+      "predicate": "pay",
+      "object": "to Tarion on demand all reasonable costs and expenses (on a full indemnity basis) of Tarion, its officers, employees and agents and any receiver or receiver- manager appointed by it or by a court in connection with this Agreement, including, without limitation, in connection with",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "9.1.1 The Vendor shall pay to Tarion on demand all reasonable costs and expenses (on a full indemnity basis) of Tarion, its officers, employees and agents and any receiver or receiver- manager appointed by it or by a court in connection with this Agreement, including, without limitation, in connection with:",
+      "locator": {
+        "line_start": 348,
+        "line_end": 348,
+        "start_char": 49373,
+        "end_char": 49682,
+        "heading_path": [
+          "Vendor Agreement Template-02.2021_2",
+          "Page 17",
+          "9.1 Payment of"
+        ],
+        "paragraph_index": 267,
+        "filename": "Vendor Agreement Template-02.2021_2.pdf",
+        "file_extension": "pdf",
+        "file_size": 402747,
+        "document_type": "contract",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:b10dd662-7025-57a7-8820-f9cc20eebf3e:273:08b304053d87:dcc57fee66",
+      "subject": "This Agreement",
+      "predicate": "has_validity_rule",
+      "object": "be in addition to, shall not in any way be prejudiced by, and shall not prejudice: (i) any other Security now or hereafter held by Tarion; and (ii) the endorsement by the Vendor of any notes or other documents, and Tarion's rights under this Agreement shall not be merged in any such other Security or endorsement",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "9.2.1 This Agreement shall be in addition to, shall not in any way be prejudiced by, and shall not prejudice: (i) any other Security now or hereafter held by Tarion; and (ii) the endorsement by the Vendor of any notes or other documents, and Tarion's rights under this Agreement shall not be merged in any such other Security or endorsement.",
+      "locator": {
+        "line_start": 357,
+        "line_end": 357,
+        "start_char": 50599,
+        "end_char": 50941,
+        "heading_path": [
+          "Vendor Agreement Template-02.2021_2",
+          "Page 18",
+          "9.2 Additional Security"
+        ],
+        "paragraph_index": 273,
+        "filename": "Vendor Agreement Template-02.2021_2.pdf",
+        "file_extension": "pdf",
+        "file_size": 402747,
+        "document_type": "contract",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:b10dd662-7025-57a7-8820-f9cc20eebf3e:277:f17db9c3d6bc:6d08eaffeb",
+      "subject": "This Agreement",
+      "predicate": "has_validity_rule",
+      "object": "be binding on the Vendor and its successors and shall enure to the benefit of Tarion and its successors and assigns",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "9.4.1 This Agreement shall be binding on the Vendor and its successors and shall enure to the benefit of Tarion and its successors and assigns.",
+      "locator": {
+        "line_start": 361,
+        "line_end": 361,
+        "start_char": 51462,
+        "end_char": 51903,
+        "heading_path": [
+          "Vendor Agreement Template-02.2021_2",
+          "Page 18",
+          "9.4 Successors and Assigns"
+        ],
+        "paragraph_index": 277,
+        "filename": "Vendor Agreement Template-02.2021_2.pdf",
+        "file_extension": "pdf",
+        "file_size": 402747,
+        "document_type": "contract",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:b10dd662-7025-57a7-8820-f9cc20eebf3e:277:f17db9c3d6bc:02b2789089",
+      "subject": "This Agreement",
+      "predicate": "has_validity_rule",
+      "object": "be assignable by Tarion but the Vendor may assert as against a successor or assign any set-off, counter-claim or equities between the Vendor and Tarion, and any claim or defence that the Vendor has against Tarion",
+      "modality": "PERMISSION",
+      "confidence": 0.96,
+      "evidence": "This Agreement may be assignable by Tarion but the Vendor may assert as against a successor or assign any set-off, counter-claim or equities between the Vendor and Tarion, and any claim or defence that the Vendor has against Tarion.",
+      "locator": {
+        "line_start": 361,
+        "line_end": 361,
+        "start_char": 51462,
+        "end_char": 51903,
+        "heading_path": [
+          "Vendor Agreement Template-02.2021_2",
+          "Page 18",
+          "9.4 Successors and Assigns"
+        ],
+        "paragraph_index": 277,
+        "filename": "Vendor Agreement Template-02.2021_2.pdf",
+        "file_extension": "pdf",
+        "file_size": 402747,
+        "document_type": "contract",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:b10dd662-7025-57a7-8820-f9cc20eebf3e:277:f17db9c3d6bc:f34ba5d67f",
+      "subject": "The Vendor",
+      "predicate": "assign",
+      "object": "its obligations under this Agreement",
+      "modality": "PROHIBITION",
+      "confidence": 0.96,
+      "evidence": "The Vendor may not assign its obligations under this Agreement.",
+      "locator": {
+        "line_start": 361,
+        "line_end": 361,
+        "start_char": 51462,
+        "end_char": 51903,
+        "heading_path": [
+          "Vendor Agreement Template-02.2021_2",
+          "Page 18",
+          "9.4 Successors and Assigns"
+        ],
+        "paragraph_index": 277,
+        "filename": "Vendor Agreement Template-02.2021_2.pdf",
+        "file_extension": "pdf",
+        "file_size": 402747,
+        "document_type": "contract",
+        "sentence_index": 2
+      }
+    },
+    {
+      "candidate_id": "cand:b10dd662-7025-57a7-8820-f9cc20eebf3e:279:c8eb00fa4fc3:136d7a475c",
+      "subject": "Each party",
+      "predicate": "establish",
+      "object": "a new address including email address from time to time by written notice to the other given in accordance with this Section, provided however, that no such change of address will be effective until written notice thereof is actually received by the party to whom such change of address is sent",
+      "modality": "PERMISSION",
+      "confidence": 0.96,
+      "evidence": "Each party may establish a new address including email address from time to time by written notice to the other given in accordance with this Section, provided however, that no such change of address will be effective until written notice thereof is actually received by the party to whom such change of address is sent.",
+      "locator": {
+        "line_start": 363,
+        "line_end": 363,
+        "start_char": 51919,
+        "end_char": 52584,
+        "heading_path": [
+          "Vendor Agreement Template-02.2021_2",
+          "Page 18",
+          "9.5 Notices"
+        ],
+        "paragraph_index": 279,
+        "filename": "Vendor Agreement Template-02.2021_2.pdf",
+        "file_extension": "pdf",
+        "file_size": 402747,
+        "document_type": "contract",
+        "sentence_index": 1
+      }
+    },
+    {
+      "candidate_id": "cand:b10dd662-7025-57a7-8820-f9cc20eebf3e:282:30ece031a897:d97a747c9c",
+      "subject": "The Vendor",
+      "predicate": "at",
+      "object": "its own expense from time to time do, execute and deliver, or cause to be done, executed and delivered, all such financing statements, further assignments, documents, acts, matters and things as may be reasonably requested by Tarion for the purpose of giving effect to this Agreement or for the purpose of establishing compliance with the representations, warranties and covenants herein contained",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "9.6.1 The Vendor must at its own expense from time to time do, execute and deliver, or cause to be done, executed and delivered, all such financing statements, further assignments, documents, acts, matters and things as may be reasonably requested by Tarion for the purpose of giving effect to this Agreement or for the purpose of establishing compliance with the representations, warranties and covenants herein contained.",
+      "locator": {
+        "line_start": 366,
+        "line_end": 366,
+        "start_char": 52995,
+        "end_char": 53419,
+        "heading_path": [
+          "Vendor Agreement Template-02.2021_2",
+          "Page 18",
+          "9.6 Further Assurances"
+        ],
+        "paragraph_index": 282,
+        "filename": "Vendor Agreement Template-02.2021_2.pdf",
+        "file_extension": "pdf",
+        "file_size": 402747,
+        "document_type": "contract",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:b10dd662-7025-57a7-8820-f9cc20eebf3e:285:09320d0a3ffc:e201c079e7",
+      "subject": "This document",
+      "predicate": "has_validity_rule",
+      "object": "be executed by any of the parties in an electronic format, by way of an electronic signature in accordance with the provisions of the Electronic Commerce Act, 2000, S.O",
+      "modality": "PERMISSION",
+      "confidence": 0.96,
+      "evidence": "9.7.1 This document may be executed by any of the parties in an electronic format, by way of an electronic signature in accordance with the provisions of the Electronic Commerce Act, 2000, S.O.",
+      "locator": {
+        "line_start": 369,
+        "line_end": 369,
+        "start_char": 53459,
+        "end_char": 53744,
+        "heading_path": [
+          "Vendor Agreement Template-02.2021_2",
+          "Page 18",
+          "9.7 Electronic"
+        ],
+        "paragraph_index": 285,
+        "filename": "Vendor Agreement Template-02.2021_2.pdf",
+        "file_extension": "pdf",
+        "file_size": 402747,
+        "document_type": "contract",
+        "sentence_index": 0
+      }
+    },
+    {
+      "candidate_id": "cand:b10dd662-7025-57a7-8820-f9cc20eebf3e:290:bfad5bc3aebd:8f99c8b42f",
+      "subject": "Delivery of the executed Agreement by electronic medium",
+      "predicate": "has_validity_rule",
+      "object": "be as effective as delivery of a manually executed copy of this Agreement",
+      "modality": "OBLIGATION",
+      "confidence": 0.96,
+      "evidence": "9.8.1 Delivery of the executed Agreement by electronic medium shall be as effective as delivery of a manually executed copy of this Agreement.",
+      "locator": {
+        "line_start": 377,
+        "line_end": 377,
+        "start_char": 54985,
+        "end_char": 55128,
+        "heading_path": [
+          "Vendor Agreement Template-02.2021_2",
+          "Page 19",
+          "9.8 Electronic Delivery"
+        ],
+        "paragraph_index": 290,
+        "filename": "Vendor Agreement Template-02.2021_2.pdf",
+        "file_extension": "pdf",
+        "file_size": 402747,
+        "document_type": "contract",
+        "sentence_index": 0
+      }
+    }
+  ]
+}

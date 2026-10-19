@@ -11,7 +11,7 @@ import logging
 import uuid
 from typing import List, Optional
 
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.database import AsyncSessionLocal
@@ -29,10 +29,10 @@ from app.validation_gate.models import CandidateGateEvaluation, ClaimLifecycleDe
 logger = logging.getLogger(__name__)
 
 
-def _generate_deterministic_claim_uuid(candidate_id: str) -> uuid.UUID:
-    """Generates a reproducible UUID from candidate identifier to enable idempotent upserts."""
-    hash_bytes = hashlib.sha256(candidate_id.encode("utf-8")).digest()
-    return uuid.UUID(bytes=hash_bytes[:16], version=4)
+def _generate_deterministic_claim_uuid(doc_version_id: uuid.UUID, candidate: CandidateClaim) -> uuid.UUID:
+    """Generates a reproducible UUID from document version and candidate claim identity to enable idempotent upserts."""
+    seed = f"{doc_version_id}:{(candidate.subject or '').strip().lower()}:{(candidate.predicate or '').strip().lower()}:{(candidate.claim_text or '').strip().lower()}"
+    return uuid.uuid5(uuid.NAMESPACE_URL, seed)
 
 
 class EnterpriseClaimStore:
@@ -130,12 +130,18 @@ class EnterpriseClaimStore:
             await session.flush()
 
         # 2. Persist Claims and Supporting Records
+        # Ensure idempotency for this document version by removing previous claim extractions
+        await session.execute(
+            delete(Claim).where(Claim.document_version_id == doc_version.id)
+        )
+        await session.flush()
+
         for eval_record in evaluations:
             candidate = candidates_map.get(eval_record.candidate_id)
             if not candidate:
                 continue
 
-            claim_uuid = _generate_deterministic_claim_uuid(candidate.candidate_id)
+            claim_uuid = _generate_deterministic_claim_uuid(doc_version.id, candidate)
             eval_record.persisted_claim_id = claim_uuid
 
             # Map Lifecycle Decision to DB ClaimStatus
@@ -175,11 +181,21 @@ class EnterpriseClaimStore:
                 session.add(claim)
                 await session.flush()
 
-            # 3. Create Evidence Record
+            # 3. Create Evidence Record with exact spatial and section locators
+            loc = candidate.locator or {}
+            raw_page = loc.get("page_number") or loc.get("page")
+            sec_heading = loc.get("section_heading") or loc.get("section")
+            start_off = loc.get("start_offset") or loc.get("char_start")
+            end_off = loc.get("end_offset") or loc.get("char_end")
+
             evidence = ClaimEvidence(
                 claim_id=claim.id,
                 document_id=document.id,
                 evidence_type=(candidate.verification_plugin or "source_evidence")[:50],
+                page_number=int(raw_page) if (raw_page is not None and str(raw_page).isdigit() and int(raw_page) > 0) else None,
+                section=(str(sec_heading)[:500] if sec_heading else None),
+                start_offset=int(start_off) if (start_off is not None and isinstance(start_off, int)) else None,
+                end_offset=int(end_off) if (end_off is not None and isinstance(end_off, int)) else None,
                 text_span=candidate.evidence_text_span,
                 evidence_hash=candidate.content_hash,
             )

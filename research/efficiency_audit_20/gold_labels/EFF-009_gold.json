@@ -1,0 +1,183 @@
+{
+  "document_id": "EFF-009",
+  "legacy_id": "DOC-051",
+  "filename": "Electronic Prescriptions for Controlled Substances (EPCS) - Azure Compliance _ Microsoft Learn.pdf",
+  "document_type": "compliance",
+  "claim_truth": [
+    {
+      "gold_id": "EFF-009-G01",
+      "claim_type": "PERMISSION",
+      "canonical": true,
+      "subject": "Prescribers",
+      "predicate": "digitally_sign",
+      "object": "electronic prescriptions for controlled substances",
+      "modality": "PERMISSION",
+      "conditions": [],
+      "page_number": 1,
+      "section": "EPCS overview",
+      "evidence_quote": "Prescribers can digitally sign, transmit, report, and archive electronic prescriptions, while pharmacies can receive, dispense, and archive these electronic prescriptions."
+    },
+    {
+      "gold_id": "EFF-009-G02",
+      "claim_type": "PERMISSION",
+      "canonical": true,
+      "subject": "Prescribers",
+      "predicate": "transmit_report_and_archive",
+      "object": "electronic prescriptions for controlled substances",
+      "modality": "PERMISSION",
+      "conditions": [],
+      "page_number": 1,
+      "section": "EPCS overview",
+      "evidence_quote": "Prescribers can digitally sign, transmit, report, and archive electronic prescriptions, while pharmacies can receive, dispense, and archive these electronic prescriptions."
+    },
+    {
+      "gold_id": "EFF-009-G03",
+      "claim_type": "PERMISSION",
+      "canonical": true,
+      "subject": "Pharmacies",
+      "predicate": "receive_dispense_and_archive",
+      "object": "electronic prescriptions for controlled substances",
+      "modality": "PERMISSION",
+      "conditions": [],
+      "page_number": 1,
+      "section": "EPCS overview",
+      "evidence_quote": "while pharmacies can receive, dispense, and archive these electronic prescriptions."
+    },
+    {
+      "gold_id": "EFF-009-G04",
+      "claim_type": "OBLIGATION",
+      "canonical": true,
+      "subject": "Electronic system prescriber assignment",
+      "predicate": "requires_two_factor_authentication",
+      "object": "two-factor authentication to assign a prescriber within the electronic system",
+      "modality": "OBLIGATION",
+      "conditions": [],
+      "page_number": 2,
+      "section": "EPCS multi-factor authentication requirements",
+      "evidence_quote": "Two-factor authentication must be used to assign a prescriber within the electronic system, approve a prescription entry, and digitally sign a prescription."
+    },
+    {
+      "gold_id": "EFF-009-G05",
+      "claim_type": "OBLIGATION",
+      "canonical": true,
+      "subject": "Prescription entry approval",
+      "predicate": "requires_two_factor_authentication",
+      "object": "two-factor authentication to approve a prescription entry",
+      "modality": "OBLIGATION",
+      "conditions": [],
+      "page_number": 2,
+      "section": "EPCS multi-factor authentication requirements",
+      "evidence_quote": "Two-factor authentication must be used to assign a prescriber within the electronic system, approve a prescription entry, and digitally sign a prescription."
+    },
+    {
+      "gold_id": "EFF-009-G06",
+      "claim_type": "OBLIGATION",
+      "canonical": true,
+      "subject": "Prescription digital signing",
+      "predicate": "requires_two_factor_authentication",
+      "object": "two-factor authentication to digitally sign a prescription",
+      "modality": "OBLIGATION",
+      "conditions": [],
+      "page_number": 2,
+      "section": "EPCS multi-factor authentication requirements",
+      "evidence_quote": "Two-factor authentication must be used to assign a prescriber within the electronic system, approve a prescription entry, and digitally sign a prescription."
+    },
+    {
+      "gold_id": "EFF-009-G07",
+      "claim_type": "OBLIGATION",
+      "canonical": true,
+      "subject": "Two-factor authentication factors",
+      "predicate": "requires_two_of_three_factors",
+      "object": "two of the following three options: a username/password, a hard token, or a biometric identification",
+      "modality": "OBLIGATION",
+      "conditions": [],
+      "page_number": 2,
+      "section": "EPCS multi-factor authentication requirements",
+      "evidence_quote": "Two of the factors must be of the following three options: a username/password, a hard token, or a biometric identification."
+    },
+    {
+      "gold_id": "EFF-009-G08",
+      "claim_type": "OBLIGATION",
+      "canonical": true,
+      "subject": "Token or OTP generator",
+      "predicate": "must_meet_hard_token_requirements",
+      "object": "the same requirements as defined for a hard token under the current regulation",
+      "modality": "OBLIGATION",
+      "conditions": [],
+      "page_number": 2,
+      "section": "EPCS multi-factor authentication requirements",
+      "evidence_quote": "The DEA has stated that the use of a type of token or OTP generator must meet the same requirements as defined for a hard token under the current regulation."
+    },
+    {
+      "gold_id": "EFF-009-G09",
+      "claim_type": "OBLIGATION",
+      "canonical": true,
+      "subject": "Hard token",
+      "predicate": "must_meet_fips_level",
+      "object": "FIPS 140 Security Level 1 for cryptographic devices or OTP devices",
+      "modality": "OBLIGATION",
+      "conditions": [
+        "If a hard token is used"
+      ],
+      "page_number": 2,
+      "section": "EPCS multi-factor authentication requirements",
+      "evidence_quote": "If a hard token is used, it must meet FIPS 140 Security Level 1 for cryptographic devices or OTP devices."
+    },
+    {
+      "gold_id": "EFF-009-G10",
+      "claim_type": "OBLIGATION",
+      "canonical": true,
+      "subject": "Hard token",
+      "predicate": "must_be_stored_separately_from",
+      "object": "a device that is separate from the computer being used to access the application",
+      "modality": "OBLIGATION",
+      "conditions": [],
+      "page_number": 2,
+      "section": "EPCS multi-factor authentication requirements",
+      "evidence_quote": "The hard token must be stored on a device that is separate from the computer being used to access the application."
+    },
+    {
+      "gold_id": "EFF-009-G11",
+      "claim_type": "OBLIGATION",
+      "canonical": true,
+      "subject": "Multi-factor authenticators at AAL3",
+      "predicate": "requires_hardware_cryptographic_module",
+      "object": "hardware cryptographic modules validated at FIPS 140 Level 2 overall with at least FIPS 140 Level 3 for physical security",
+      "modality": "OBLIGATION",
+      "conditions": [
+        "According to NIST SP 800-63B Section 4.3"
+      ],
+      "page_number": 3,
+      "section": "Azure and EPCS multi-factor authentication",
+      "evidence_quote": "According to NIST SP 800-63B Section 4.3 , multi-factor authenticators used at AAL3 shall rely on hardware cryptographic modules validated at FIPS 140 Level 2 overall with at least FIPS 140 Level 3 for physical security, which exceeds the EPCS MFA requirements."
+    },
+    {
+      "gold_id": "EFF-009-G12",
+      "claim_type": "OBLIGATION",
+      "canonical": true,
+      "subject": "Verifiers at AAL3",
+      "predicate": "must_be_validated_at",
+      "object": "FIPS 140 Level 1 or higher",
+      "modality": "OBLIGATION",
+      "conditions": [],
+      "page_number": 3,
+      "section": "Azure and EPCS multi-factor authentication",
+      "evidence_quote": "Verifiers at AAL3 shall be validated at FIPS 140 Level 1 or higher."
+    },
+    {
+      "gold_id": "EFF-009-G13",
+      "claim_type": "PERMISSION",
+      "canonical": true,
+      "subject": "Users",
+      "predicate": "may_provide_secondary_verification",
+      "object": "secondary verification for MFA scenarios to meet your EPCS MFA requirements with the Microsoft Authenticator app",
+      "modality": "PERMISSION",
+      "conditions": [
+        "With the Microsoft Authenticator app"
+      ],
+      "page_number": 3,
+      "section": "Azure and EPCS multi-factor authentication",
+      "evidence_quote": "With the Microsoft Authenticator app, you can provide secondary verification for MFA scenarios to meet your EPCS MFA requirements."
+    }
+  ]
+}

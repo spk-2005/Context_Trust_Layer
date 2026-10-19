@@ -1,0 +1,12 @@
+{
+  "metadata": {
+    "title": "Provisional Knowledge Graph Staging Claims",
+    "total_candidates": 727,
+    "certified_count": 562,
+    "quarantined_count": 165,
+    "reconciliation_formula": "727 = 484 (Auto-Approved) + 176 (Pending Review) + 67 (Quarantined)",
+    "post_adjudication_formula": "727 = 562 (Certified Production) + 165 (Quarantined Rejections)",
+    "exact_reconciliation_verified": true,
+    "generated_at": "2026-10-19T12:48:31.890328+00:00"
+  }
+}

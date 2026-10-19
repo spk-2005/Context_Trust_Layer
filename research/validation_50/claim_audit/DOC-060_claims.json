@@ -2,195 +2,219 @@
   "document_id": "DOC-060",
   "filename": "Microsoft Store Refund & Return Policy (Surface, Xbox, etc.).pdf",
   "document_type": "refund_policy",
+  "evaluation_methodology": "INDEPENDENT_HUMAN_GOLD_REFERENCE",
+  "gold_reference_path": "B:\\Context_Layer_Ai\\research\\gold_labels\\DOC-060_gold.json",
   "claim_counts": {
-    "candidate_claims": 17,
-    "valid": 11,
-    "invalid": 0,
+    "total_gold_claims": 6,
+    "candidate_claims": 8,
+    "valid": 6,
+    "invalid": 2,
     "missed": 0,
     "duplicate": 1,
-    "ambiguous": 6,
+    "ambiguous": 0,
     "malformed": 0
   },
   "metrics": {
-    "claim_precision": 0.6471,
+    "claim_precision": 0.75,
     "claim_recall": 1.0,
-    "f1": 0.7857,
-    "evidence_supported_rate": 0.9412,
+    "f1": 0.8571,
+    "subject_accuracy": 1.0,
+    "predicate_accuracy": 1.0,
+    "object_accuracy": 1.0,
+    "modality_accuracy": 1.0,
+    "condition_preservation_rate": 1.0,
+    "evidence_supported_rate": 1.0,
     "locator_accuracy_rate": 1.0,
-    "duplicate_rate": 0.0556
+    "duplicate_rate": 0.1111
+  },
+  "part_level_accuracy": {
+    "subject_accuracy": 1.0,
+    "predicate_accuracy": 1.0,
+    "object_accuracy": 1.0,
+    "modality_accuracy": 1.0,
+    "condition_preservation_rate": 1.0,
+    "evidence_support_rate": 1.0,
+    "locator_correctness_rate": 1.0
   },
   "human_review_required": true,
-  "failure_patterns": [],
+  "failure_patterns": [
+    "Spurious False Positive: Microsoft Store | has_return_window",
+    "Spurious False Positive: Both price adjustments | has_definition"
+  ],
   "claims": [
     {
-      "subject": "Returns",
-      "predicate": "has_definition",
-      "object": "Holiday extended return policy available with eligible physical products purchased between October 1, 2026 - December 2, 2026 from Microsoft Store online and Microsoft Experience Centers in select markets.",
-      "disposition": "AMBIGUOUS_NEEDS_REVIEW",
-      "trust_score": 0.9875,
-      "decision_reason": "NON-CANONICAL CONTEXT: Retained for overview display; excluded from active decision gate to prevent duplicate evaluation against atomic row claims.",
+      "gold_id": "DOC060-G01",
+      "gold_subject": "Customers",
+      "gold_predicate": "may_return",
+      "gold_object": "almost any physical product by January 31, 2027 for a full refund",
+      "gold_modality": "PERMISSION",
+      "gold_conditions": [
+        "Some exclusions apply",
+        "By January 31, 2027"
+      ],
+      "matched_candidate_id": "cand:3ca96016-aa9c-5e07-a627-937e637024d9:3:0fa102037477:fb46ff65c0",
+      "extracted_subject": "Customers",
+      "extracted_predicate": "may_return",
+      "extracted_object": "almost any physical product by January 31, 2027 for a full refund",
+      "extracted_modality": "PERMISSION",
+      "extracted_conditions": [
+        "Some exclusions apply",
+        "By January 31, 2027"
+      ],
+      "subject_correct": true,
+      "predicate_correct": true,
+      "object_correct": true,
+      "modality_correct": true,
+      "conditions_correct": true,
       "evidence_supported": true,
-      "locator_valid": true
+      "locator_correct": true,
+      "is_true_positive": true,
+      "notes": "Matched to gold claim"
     },
     {
-      "subject": "Holiday purchases made during that window",
-      "predicate": "has_validity_rule",
-      "object": "be returned through January 31, 2027",
-      "disposition": "CORRECT_FULL_MATCH",
-      "trust_score": 0.99,
-      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "gold_id": "DOC060-G02",
+      "gold_subject": "Customers",
+      "gold_predicate": "must_return_in_condition",
+      "gold_object": "in like-new condition in its original packaging with all parts and documentation included",
+      "gold_modality": "OBLIGATION",
+      "gold_conditions": [],
+      "matched_candidate_id": "cand:3ca96016-aa9c-5e07-a627-937e637024d9:9:62756528c9ab:b3782278af",
+      "extracted_subject": "Customers",
+      "extracted_predicate": "must_return_in_condition",
+      "extracted_object": "in like-new condition in its original packaging with all parts and documentation included",
+      "extracted_modality": "OBLIGATION",
+      "extracted_conditions": [],
+      "subject_correct": true,
+      "predicate_correct": true,
+      "object_correct": true,
+      "modality_correct": true,
+      "conditions_correct": true,
       "evidence_supported": true,
-      "locator_valid": true
+      "locator_correct": true,
+      "is_true_positive": true,
+      "notes": "Matched to gold claim"
     },
     {
-      "subject": "Return process",
+      "gold_id": "DOC060-G03",
+      "gold_subject": "Microsoft Store",
+      "gold_predicate": "will_issue_refund",
+      "gold_object": "refund to your original payment method within 3-5 business days",
+      "gold_modality": "OBLIGATION",
+      "gold_conditions": [
+        "Once we get the item back and confirm eligibility"
+      ],
+      "matched_candidate_id": "cand:3ca96016-aa9c-5e07-a627-937e637024d9:10:ef8bc48bbe45:a0b6bee899",
+      "extracted_subject": "Microsoft Store",
+      "extracted_predicate": "will_issue_refund",
+      "extracted_object": "refund to your original payment method within 3-5 business days",
+      "extracted_modality": "OBLIGATION",
+      "extracted_conditions": [
+        "Once we get the item back and confirm eligibility"
+      ],
+      "subject_correct": true,
+      "predicate_correct": true,
+      "object_correct": true,
+      "modality_correct": true,
+      "conditions_correct": true,
+      "evidence_supported": true,
+      "locator_correct": true,
+      "is_true_positive": true,
+      "notes": "Matched to gold claim"
+    },
+    {
+      "gold_id": "DOC060-G04",
+      "gold_subject": "Return process",
+      "gold_predicate": "must_be_started_within",
+      "gold_object": "60 days after customer receives the product",
+      "gold_modality": "OBLIGATION",
+      "gold_conditions": [
+        "For purchases made outside the window of October 1, 2026 \u2013 December 2, 2026"
+      ],
+      "matched_candidate_id": "cand:3ca96016-aa9c-5e07-a627-937e637024d9:40:75d1c5b575a8:4837ab5dec",
+      "extracted_subject": "Return process",
+      "extracted_predicate": "must_be_started_within",
+      "extracted_object": "60 days after customer receives the product",
+      "extracted_modality": "OBLIGATION",
+      "extracted_conditions": [
+        "For purchases made outside the window of October 1, 2026 \u2013 December 2, 2026"
+      ],
+      "subject_correct": true,
+      "predicate_correct": true,
+      "object_correct": true,
+      "modality_correct": true,
+      "conditions_correct": true,
+      "evidence_supported": true,
+      "locator_correct": true,
+      "is_true_positive": true,
+      "notes": "Matched to gold claim"
+    },
+    {
+      "gold_id": "DOC060-G05",
+      "gold_subject": "Product returns",
+      "gold_predicate": "limited_to",
+      "gold_object": "5 product returns per eligible customer purchase",
+      "gold_modality": "OBLIGATION",
+      "gold_conditions": [],
+      "matched_candidate_id": "cand:3ca96016-aa9c-5e07-a627-937e637024d9:40:75d1c5b575a8:88c6998947",
+      "extracted_subject": "Product returns",
+      "extracted_predicate": "limited_to",
+      "extracted_object": "5 product returns per eligible customer purchase",
+      "extracted_modality": "OBLIGATION",
+      "extracted_conditions": [],
+      "subject_correct": true,
+      "predicate_correct": true,
+      "object_correct": true,
+      "modality_correct": true,
+      "conditions_correct": true,
+      "evidence_supported": true,
+      "locator_correct": true,
+      "is_true_positive": true,
+      "notes": "Matched to gold claim"
+    },
+    {
+      "gold_id": "DOC060-G06",
+      "gold_subject": "Customers",
+      "gold_predicate": "must_contact",
+      "gold_object": "Microsoft Store or a Microsoft Experience Center for price adjustments",
+      "gold_modality": "OBLIGATION",
+      "gold_conditions": [
+        "Customer is eligible only if the product is in stock for purchase at Microsoft Store or a Microsoft Experience Center"
+      ],
+      "matched_candidate_id": "cand:3ca96016-aa9c-5e07-a627-937e637024d9:46:edb8d39cbb60:19d2e05d2a",
+      "extracted_subject": "Customers",
+      "extracted_predicate": "must_contact",
+      "extracted_object": "Microsoft Store or a Microsoft Experience Center for price adjustments",
+      "extracted_modality": "OBLIGATION",
+      "extracted_conditions": [
+        "Customer is eligible only if the product is in stock for purchase at Microsoft Store or a Microsoft Experience Center"
+      ],
+      "subject_correct": true,
+      "predicate_correct": true,
+      "object_correct": true,
+      "modality_correct": true,
+      "conditions_correct": true,
+      "evidence_supported": true,
+      "locator_correct": true,
+      "is_true_positive": true,
+      "notes": "Matched to gold claim"
+    }
+  ],
+  "unmatched_extractions": [
+    {
+      "candidate_id": "cand:3ca96016-aa9c-5e07-a627-937e637024d9:38:fa86367c4827:8d597bb69c",
+      "subject": "Microsoft Store",
       "predicate": "has_return_window",
-      "object": "be started within 60 days after customer receives the product",
-      "disposition": "CORRECT_FULL_MATCH",
-      "trust_score": 0.99,
-      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
-      "evidence_supported": true,
-      "locator_valid": true
+      "object": "Learn about returns \ue76c Fast, free delivery Get your gifts in just a few days with free delivery.",
+      "modality": "POLICY_FACT",
+      "evidence": "Learn about returns \ue76c Fast, free delivery Get your gifts in just a few days with free delivery."
     },
     {
-      "subject": "Microsoft",
-      "predicate": "modify",
-      "object": "or discontinue offers at any time",
-      "disposition": "CORRECT_FULL_MATCH",
-      "trust_score": 0.99,
-      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
-      "evidence_supported": true,
-      "locator_valid": true
-    },
-    {
-      "subject": "Price protection",
-      "predicate": "has_definition",
-      "object": "Microsoft Store Price Adjustment: Holiday extended price protection valid on purchases of qualifying physical consumer products purchased from Microsoft Store online and Microsoft Experience centers in select markets between October 1, 2026 \u2013 December 2, 2026.",
-      "disposition": "AMBIGUOUS_NEEDS_REVIEW",
-      "trust_score": 0.9875,
-      "decision_reason": "NON-CANONICAL CONTEXT: Retained for overview display; excluded from active decision gate to prevent duplicate evaluation against atomic row claims.",
-      "evidence_supported": true,
-      "locator_valid": true
-    },
-    {
-      "subject": "Holiday purchase price adjustment",
-      "predicate": "has_return_deadline",
-      "object": "be requested until January 31, 2027",
-      "disposition": "AMBIGUOUS_NEEDS_REVIEW",
-      "trust_score": 0.8,
-      "decision_reason": "REVIEW: Human review recommended. Deontic mismatch: claim claims OBLIGATION but underlying source evidence reflects discretionary/permissive phrasing or lacks normative imperative verbs.; Trust score 0.80 is below 0.88 auto-approval threshold",
-      "evidence_supported": true,
-      "locator_valid": true
-    },
-    {
-      "subject": "An Eligible RetailerLet's chat Price Adjustment",
-      "predicate": "has_validity_rule",
-      "object": "be requested at time of purchase",
-      "disposition": "CORRECT_FULL_MATCH",
-      "trust_score": 0.99,
-      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
-      "evidence_supported": true,
-      "locator_valid": true
-    },
-    {
-      "subject": "Microsoft",
-      "predicate": "must_verify_refund_conditions",
-      "object": "verify an eligible retailer\u2019s advertised price and availability of the product",
-      "disposition": "AMBIGUOUS_NEEDS_REVIEW",
-      "trust_score": 0.8,
-      "decision_reason": "REVIEW: Human review recommended. Deontic mismatch: claim claims OBLIGATION but underlying source evidence reflects discretionary/permissive phrasing or lacks normative imperative verbs.; Trust score 0.80 is below 0.88 auto-approval threshold",
-      "evidence_supported": false,
-      "locator_valid": true
-    },
-    {
-      "subject": "sold by the eligible retailer",
-      "predicate": "has_refund_eligibility",
-      "object": "be identical to the product sold by Microsoft and must be in stock for purchase at the eligible retailer at the reduced price",
-      "disposition": "CORRECT_FULL_MATCH",
-      "trust_score": 0.975,
-      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 97.5%.",
-      "evidence_supported": true,
-      "locator_valid": true
-    },
-    {
+      "candidate_id": "cand:3ca96016-aa9c-5e07-a627-937e637024d9:46:edb8d39cbb60:998cdee8d3",
       "subject": "Both price adjustments",
       "predicate": "has_definition",
       "object": "Customer is eligible only if the product is in stock for purchase at Microsoft Store or a Microsoft Experience Center.",
-      "disposition": "AMBIGUOUS_NEEDS_REVIEW",
-      "trust_score": 0.9875,
-      "decision_reason": "NON-CANONICAL CONTEXT: Retained for overview display; excluded from active decision gate to prevent duplicate evaluation against atomic row claims.",
-      "evidence_supported": true,
-      "locator_valid": true
-    },
-    {
-      "subject": "Customer",
-      "predicate": "contact",
-      "object": "Microsoft to request the adjustment",
-      "disposition": "CORRECT_FULL_MATCH",
-      "trust_score": 0.99,
-      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
-      "evidence_supported": true,
-      "locator_valid": true
-    },
-    {
-      "subject": "For purchases from a Microsoft Experience Center, you",
-      "predicate": "has_validity_rule",
-      "object": "return to the location with your receipt",
-      "disposition": "CORRECT_FULL_MATCH",
-      "trust_score": 0.99,
-      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
-      "evidence_supported": true,
-      "locator_valid": true
-    },
-    {
-      "subject": "Trade-In",
-      "predicate": "has_definition",
-      "object": "Available only through the Microsoft Store online in the United States.",
-      "disposition": "AMBIGUOUS_NEEDS_REVIEW",
-      "trust_score": 0.9875,
-      "decision_reason": "NON-CANONICAL CONTEXT: Retained for overview display; excluded from active decision gate to prevent duplicate evaluation against atomic row claims.",
-      "evidence_supported": true,
-      "locator_valid": true
-    },
-    {
-      "subject": "To be eligible for trade in, (i) you",
-      "predicate": "own",
-      "object": "the qualifying device, (ii) the device must power on, (iii) the battery must hold a charge (the device must not be required to be plugged in to operate), and (iv) the device must be in fully-functional, working condition and not have broken or missing components, a cracked display or screen, liquid damage, modification(s) or the device warranty seal broken",
-      "disposition": "CORRECT_FULL_MATCH",
-      "trust_score": 0.99,
-      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
-      "evidence_supported": true,
-      "locator_valid": true
-    },
-    {
-      "subject": "The device",
-      "predicate": "has_validity_rule",
-      "object": "be password protected and must include its original chargers, accessories, and hard drive",
-      "disposition": "CORRECT_FULL_MATCH",
-      "trust_score": 0.99,
-      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
-      "evidence_supported": true,
-      "locator_valid": true
-    },
-    {
-      "subject": "Customer",
-      "predicate": "has_refund_reimbursement_window",
-      "object": "mail in the qualifying trade-in device to be eligible for reimbursement",
-      "disposition": "CORRECT_FULL_MATCH",
-      "trust_score": 0.99,
-      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
-      "evidence_supported": true,
-      "locator_valid": true
-    },
-    {
-      "subject": "Devices determined to not meet eligibility criteria",
-      "predicate": "has_validity_rule",
-      "object": "be shipped back to the customer or recycled",
-      "disposition": "CORRECT_FULL_MATCH",
-      "trust_score": 0.99,
-      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
-      "evidence_supported": true,
-      "locator_valid": true
+      "modality": "POLICY_FACT",
+      "evidence": "Both price adjustments: Customer is eligible only if the product is in stock for purchase at Microsoft Store or a Microsoft Experience Center."
     }
   ]
 }
