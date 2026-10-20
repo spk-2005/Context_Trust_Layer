@@ -1,0 +1,137 @@
+{
+  "document_id": "DOC-073",
+  "filename": "Microsoft volume licensing invoices _ Microsoft Learn.pdf",
+  "document_type": "invoice",
+  "evaluation_methodology": "AUTOMATED_GATE_HEURISTIC (Awaiting Human Gold Reference)",
+  "claim_counts": {
+    "candidate_claims": 11,
+    "valid": 5,
+    "invalid": 5,
+    "missed": 0,
+    "duplicate": 0,
+    "ambiguous": 1,
+    "malformed": 0
+  },
+  "metrics": {
+    "claim_precision": 0.4545,
+    "claim_recall": 1.0,
+    "f1": 0.4545,
+    "evidence_supported_rate": 1.0,
+    "locator_accuracy_rate": 1.0,
+    "duplicate_rate": 0.0
+  },
+  "human_review_required": true,
+  "failure_patterns": [],
+  "claims": [
+    {
+      "subject": "Users",
+      "predicate": "meet",
+      "object": "one of the following conditions",
+      "disposition": "AUTOMATED_CHECKS_FAILED",
+      "trust_score": 0.8,
+      "decision_reason": "REJECTED: Semantic grounding failure. Subject-Evidence mismatch: asserted subject 'Users' has no grounding in the underlying evidence span.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Users",
+      "predicate": "the",
+      "object": "Bill To contact or have the Invoice Reader role for the corresponding contracts",
+      "disposition": "AUTOMATED_CHECKS_FAILED",
+      "trust_score": 0.695,
+      "decision_reason": "REJECTED: Fragment discarded. Fragment detected: Predicate 'the' lacks normative relation or semantic action.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Users",
+      "predicate": "a",
+      "object": "VL Administrator or an Invoice Reader for the corresponding contracts",
+      "disposition": "AUTOMATED_CHECKS_FAILED",
+      "trust_score": 0.695,
+      "decision_reason": "REJECTED: Fragment discarded. Fragment detected: Predicate 'a' lacks normative relation or semantic action.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "The PO number",
+      "predicate": "has_validity_rule",
+      "object": "be updated on an invoice that is already paid",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Users",
+      "predicate": "confirm",
+      "object": "who the Bill to contact is by going to Contracts > View contract details > Contacts",
+      "disposition": "AUTOMATED_CHECKS_FAILED",
+      "trust_score": 0.8,
+      "decision_reason": "REJECTED: Semantic grounding failure. Subject-Evidence mismatch: asserted subject 'Users' has no grounding in the underlying evidence span.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "The Invoice created date",
+      "predicate": "november",
+      "object": "18, 2022, or later",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "The Invoice Reader role",
+      "predicate": "has_validity_rule",
+      "object": "be assigned or removed by another VL Administrator",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "To change the contact Bill To",
+      "predicate": "your",
+      "object": "Microsoft partner or seller to complete a Change of Contact Information Request to update the legal participants, or contacts",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Volume Licensing Administrator",
+      "predicate": "view",
+      "object": "the invoices or assign the Invoice Reader role to any user",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Users",
+      "predicate": "must_verify_refund_conditions",
+      "object": "check the invoice recon file for the tax rate applied to each item",
+      "disposition": "AUTOMATED_CHECKS_FAILED",
+      "trust_score": 0.8,
+      "decision_reason": "REJECTED: Semantic grounding failure. Subject-Evidence mismatch: asserted subject 'Users' has no grounding in the underlying evidence span.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Customers",
+      "predicate": "must_contact",
+      "object": "contact their Microsoft partner or seller for questions relating to the following issues for price adjustments",
+      "disposition": "AMBIGUOUS_NEEDS_REVIEW",
+      "trust_score": 0.8,
+      "decision_reason": "REVIEW: Human review recommended. Deontic mismatch: claim claims OBLIGATION but underlying source evidence reflects discretionary/permissive phrasing or lacks normative imperative verbs.; Trust score 0.80 is below 0.88 auto-approval threshold",
+      "evidence_supported": true,
+      "locator_valid": true
+    }
+  ]
+}

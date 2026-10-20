@@ -1,52 +1,32 @@
 {
   "document_id": "DOC-071",
-  "filename": "System and Organization Controls (SOC) 3 - Microsoft Compliance _ Microsoft Learn.pdf",
-  "document_type": "regulatory_compliance",
+  "filename": "SupplierComm Refresh July 2024 WebVersion.pdf",
+  "document_type": "hr_policy",
   "evaluation_methodology": "AUTOMATED_GATE_HEURISTIC (Awaiting Human Gold Reference)",
   "claim_counts": {
-    "candidate_claims": 8,
-    "valid": 2,
-    "invalid": 3,
+    "candidate_claims": 3,
+    "valid": 3,
+    "invalid": 0,
     "missed": 0,
     "duplicate": 0,
-    "ambiguous": 3,
+    "ambiguous": 0,
     "malformed": 0
   },
   "metrics": {
-    "claim_precision": 0.25,
+    "claim_precision": 1.0,
     "claim_recall": 1.0,
-    "f1": 0.25,
+    "f1": 1.0,
     "evidence_supported_rate": 1.0,
     "locator_accuracy_rate": 1.0,
     "duplicate_rate": 0.0
   },
-  "human_review_required": true,
+  "human_review_required": false,
   "failure_patterns": [],
   "claims": [
     {
-      "subject": "SOC 3 for Service Organizations",
-      "predicate": "has_definition",
-      "object": "Trust Services Criteria for General Use Report is a short, public- facing summary of the SOC 2 Type 2 attestation report for users who need assurances about service organization's controls, but don't need a full SOC 2 report or aren't eligible under SOC 2 to receive one.",
-      "disposition": "AMBIGUOUS_NEEDS_REVIEW",
-      "trust_score": 0.975,
-      "decision_reason": "NON-CANONICAL CONTEXT: Retained for overview display; excluded from active decision gate to prevent duplicate evaluation against atomic row claims.",
-      "evidence_supported": true,
-      "locator_valid": true
-    },
-    {
-      "subject": "Users",
-      "predicate": "freely_distribute",
-      "object": "them",
-      "disposition": "AMBIGUOUS_NEEDS_REVIEW",
-      "trust_score": 0.8,
-      "decision_reason": "NON-CANONICAL CONTEXT: Retained for overview display; excluded from active decision gate to prevent duplicate evaluation against atomic row claims.",
-      "evidence_supported": true,
-      "locator_valid": true
-    },
-    {
-      "subject": "Microsoft",
-      "predicate": "may_replicate",
-      "object": "replicate customer data to other regions within the same geographic area (for example, the United States) for data resiliency",
+      "subject": "The SCoC is a contractual requirement; suppliers",
+      "predicate": "has_return_window",
+      "object": "comply with the changes within 30 days of this notice",
       "disposition": "AUTOMATED_CHECKS_PASSED",
       "trust_score": 0.99,
       "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
@@ -54,29 +34,9 @@
       "locator_valid": true
     },
     {
-      "subject": "Microsoft",
-      "predicate": "prohibited_from_replicating",
-      "object": "replicate customer data outside the chosen geographic area",
-      "disposition": "AMBIGUOUS_NEEDS_REVIEW",
-      "trust_score": 0.8,
-      "decision_reason": "REVIEW: Human review recommended. Deontic mismatch: claim claims PROHIBITION but underlying source evidence reflects discretionary/permissive phrasing or lacks normative imperative verbs.; Trust score 0.80 is below 0.88 auto-approval threshold",
-      "evidence_supported": true,
-      "locator_valid": true
-    },
-    {
-      "subject": "Customers",
-      "predicate": "are_responsible_for",
-      "object": "ensuring compliance with all applicable laws and regulations",
-      "disposition": "AUTOMATED_CHECKS_FAILED",
-      "trust_score": 0.8,
-      "decision_reason": "REJECTED: Semantic grounding failure. Subject-Evidence mismatch: asserted subject 'Customers' has no grounding in the underlying evidence span.",
-      "evidence_supported": true,
-      "locator_valid": true
-    },
-    {
-      "subject": "This large scope",
-      "predicate": "lead",
-      "object": "to examination completion delays",
+      "subject": "Non-Compliance with these requirements",
+      "predicate": "affect",
+      "object": "your ability to do business with Microsoft",
       "disposition": "AUTOMATED_CHECKS_PASSED",
       "trust_score": 0.99,
       "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
@@ -84,22 +44,12 @@
       "locator_valid": true
     },
     {
-      "subject": "Users",
+      "subject": "Answers to frequently asked SCoC questions",
       "predicate": "has_validity_rule",
-      "object": "have an existing subscription or free trial account in Office 365 or Office 365 U.S",
-      "disposition": "AUTOMATED_CHECKS_FAILED",
-      "trust_score": 0.8,
-      "decision_reason": "REJECTED: Semantic grounding failure. Subject-Evidence mismatch: asserted subject 'Users' has no grounding in the underlying evidence span.",
-      "evidence_supported": true,
-      "locator_valid": true
-    },
-    {
-      "subject": "Users",
-      "predicate": "download",
-      "object": "audit certificates, assessment reports, and other applicable documents to help you with your own regulatory requirements",
-      "disposition": "AUTOMATED_CHECKS_FAILED",
-      "trust_score": 0.8,
-      "decision_reason": "REJECTED: Semantic grounding failure. Subject-Evidence mismatch: asserted subject 'Users' has no grounding in the underlying evidence span.",
+      "object": "be found in the FAQ section of the SCoC page",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
       "evidence_supported": true,
       "locator_valid": true
     }

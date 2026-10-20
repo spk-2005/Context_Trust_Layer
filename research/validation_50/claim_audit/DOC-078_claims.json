@@ -1,0 +1,57 @@
+{
+  "document_id": "DOC-078",
+  "filename": "Can't get a refund on apps and games from Microsoft Store _ Microsoft Support.pdf",
+  "document_type": "refund_policy",
+  "evaluation_methodology": "AUTOMATED_GATE_HEURISTIC (Awaiting Human Gold Reference)",
+  "claim_counts": {
+    "candidate_claims": 3,
+    "valid": 0,
+    "invalid": 0,
+    "missed": 0,
+    "duplicate": 0,
+    "ambiguous": 3,
+    "malformed": 0
+  },
+  "metrics": {
+    "claim_precision": 0.0,
+    "claim_recall": 1.0,
+    "f1": 0.0,
+    "evidence_supported_rate": 1.0,
+    "locator_accuracy_rate": 1.0,
+    "duplicate_rate": 0.0
+  },
+  "human_review_required": true,
+  "failure_patterns": [],
+  "claims": [
+    {
+      "subject": "Can'T Get A Refund On Apps",
+      "predicate": "has_refund_eligibility",
+      "object": "Purchases and downloads Manage your billing Help with purchases Gift cards and account balance Refunds and exchanges Games and apps Hardware Refund or cancel a subscription Cancel an order or pre-order Status of a return and refund Can't get a refund on apps and games Errors & troubleshooting Consumer and Regulatory Information Can't get a refund on apps and games from Microsoft Store Applies To You can only get a refund on Xbox One games and Microsoft Store apps if:",
+      "disposition": "AMBIGUOUS_NEEDS_REVIEW",
+      "trust_score": 0.8562,
+      "decision_reason": "REVIEW: Human review recommended. Sub-threshold semantic confidence (85% < 88%).; Trust score 0.86 is below 0.88 auto-approval threshold",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Can'T Get A Refund On Apps",
+      "predicate": "has_refund_eligibility",
+      "object": "Note Support Microsoft 365 Office Products\ue70d Devices\ue70d Account & billing Resources\ue70d Buy Microsoft 365 All Microsoft\ue70d Search \ue721 Get help with Copilot Tell me about can't get a refund on apps and games Tell me about investigate a billing charge from Microsoft.",
+      "disposition": "AMBIGUOUS_NEEDS_REVIEW",
+      "trust_score": 0.8562,
+      "decision_reason": "REVIEW: Human review recommended. Sub-threshold semantic confidence (85% < 88%).; Trust score 0.86 is below 0.88 auto-approval threshold",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Can'T Get A Refund On Apps",
+      "predicate": "has_refund_eligibility",
+      "object": "Manage your Microsoft account Help with subscriptions In Australia this refund information does not affect any remedy you may have under the Australian Consumer Law.",
+      "disposition": "AMBIGUOUS_NEEDS_REVIEW",
+      "trust_score": 0.8562,
+      "decision_reason": "REVIEW: Human review recommended. Sub-threshold semantic confidence (85% < 88%).; Trust score 0.86 is below 0.88 auto-approval threshold",
+      "evidence_supported": true,
+      "locator_valid": true
+    }
+  ]
+}

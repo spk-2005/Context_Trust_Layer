@@ -1,21 +1,21 @@
 {
   "document_id": "DOC-070",
-  "filename": "System and Organization Controls (SOC) 2 Type 2 - Microsoft Compliance _ Microsoft Learn.pdf",
-  "document_type": "regulatory_compliance",
+  "filename": "Privacy in Microsoft Cloud Services.pdf",
+  "document_type": "hr_policy",
   "evaluation_methodology": "AUTOMATED_GATE_HEURISTIC (Awaiting Human Gold Reference)",
   "claim_counts": {
-    "candidate_claims": 8,
-    "valid": 3,
-    "invalid": 4,
+    "candidate_claims": 87,
+    "valid": 55,
+    "invalid": 12,
     "missed": 0,
     "duplicate": 0,
-    "ambiguous": 1,
+    "ambiguous": 20,
     "malformed": 0
   },
   "metrics": {
-    "claim_precision": 0.375,
+    "claim_precision": 0.6322,
     "claim_recall": 1.0,
-    "f1": 0.375,
+    "f1": 0.6322,
     "evidence_supported_rate": 1.0,
     "locator_accuracy_rate": 1.0,
     "duplicate_rate": 0.0
@@ -24,39 +24,9 @@
   "failure_patterns": [],
   "claims": [
     {
-      "subject": "Microsoft",
-      "predicate": "may_replicate",
-      "object": "replicate customer data to other regions within the same geographic area (for example, the United States) for data resiliency",
-      "disposition": "AUTOMATED_CHECKS_PASSED",
-      "trust_score": 0.99,
-      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
-      "evidence_supported": true,
-      "locator_valid": true
-    },
-    {
-      "subject": "Microsoft",
-      "predicate": "prohibited_from_replicating",
-      "object": "replicate customer data outside the chosen geographic area",
-      "disposition": "AMBIGUOUS_NEEDS_REVIEW",
-      "trust_score": 0.8,
-      "decision_reason": "REVIEW: Human review recommended. Deontic mismatch: claim claims PROHIBITION but underlying source evidence reflects discretionary/permissive phrasing or lacks normative imperative verbs.; Trust score 0.80 is below 0.88 auto-approval threshold",
-      "evidence_supported": true,
-      "locator_valid": true
-    },
-    {
-      "subject": "Customers",
-      "predicate": "are_responsible_for",
-      "object": "ensuring compliance with all applicable laws and regulations",
-      "disposition": "AUTOMATED_CHECKS_FAILED",
-      "trust_score": 0.8,
-      "decision_reason": "REJECTED: Semantic grounding failure. Subject-Evidence mismatch: asserted subject 'Customers' has no grounding in the underlying evidence span.",
-      "evidence_supported": true,
-      "locator_valid": true
-    },
-    {
-      "subject": "System",
-      "predicate": "has_return_window",
-      "object": "Applicability In-scope services Commercial Compliance Manager, Customer Lockbox, Delve, Exchange Online, Exchange Online Protection, Forms, Griffin, Identity Manager, Lockbox (Torus), Microsoft Teams, Microsoft Viva Topics, MyAnalytics, Office 365 Customer Portal, Office 365 Microservices (including but not limited to ObjectStore, Sway, PowerPoint Online Document Service, Query Annotation Service, School Data Sync, Siphon, Speech, eXtensible Application Program), Office Online, Office Services Infrastructure, OneDrive, Planner, Power Apps, Power Automate, Power BI, Project Online, Service Encryption with Microsoft Purview Customer Key, SharePoint Online, Windows 365 GCC Compliance Manager, Delve, Exchange Online, Forms, Microsoft Defender for Office 365, Microsoft Entra ID, Microsoft Purview portal, Microsoft Teams, Microsoft Viva Topics, MyAnalytics, Office 365 Advanced Compliance add-on, Office Online, Office Pro Plus, OneDrive, Planner, Power Apps, Power Automate, Power BI, SharePoint Online, Stream, Windows 365 Office 365 applicability and in-scope services \uff89 Expand table",
+      "subject": "Privacy in Microsoft Cloud Services",
+      "predicate": "has_intellectual_property_ownership",
+      "object": "This document does not provide you with any legal rights to any intellectual property in any Microsoft product.",
       "disposition": "AUTOMATED_CHECKS_PASSED",
       "trust_score": 0.975,
       "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 97.5%.",
@@ -65,8 +35,8 @@
     },
     {
       "subject": "Users",
-      "predicate": "has_validity_rule",
-      "object": "have an existing subscription or free trial account in Office 365 or Office 365 U.S. Government to download SOC 1 and SOC 2 attestation reports and any bridge letters as needed",
+      "predicate": "copy",
+      "object": "and use this document for your internal, reference purposes",
       "disposition": "AUTOMATED_CHECKS_FAILED",
       "trust_score": 0.8,
       "decision_reason": "REJECTED: Semantic grounding failure. Subject-Evidence mismatch: asserted subject 'Users' has no grounding in the underlying evidence span.",
@@ -74,9 +44,9 @@
       "locator_valid": true
     },
     {
-      "subject": "This scope",
-      "predicate": "lead",
-      "object": "to examination completion delays simply due to scale",
+      "subject": "It is disclosed and",
+      "predicate": "has_validity_rule",
+      "object": "be used only pursuant to a non-disclosure agreement",
       "disposition": "AUTOMATED_CHECKS_PASSED",
       "trust_score": 0.99,
       "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
@@ -86,7 +56,7 @@
     {
       "subject": "Users",
       "predicate": "has_validity_rule",
-      "object": "have an existing subscription or free trial account in Office 365 or Office 365 U.S",
+      "object": "be protected and that it will be used only in a way that is consistent with your expectations",
       "disposition": "AUTOMATED_CHECKS_FAILED",
       "trust_score": 0.8,
       "decision_reason": "REJECTED: Semantic grounding failure. Subject-Evidence mismatch: asserted subject 'Users' has no grounding in the underlying evidence span.",
@@ -94,12 +64,832 @@
       "locator_valid": true
     },
     {
+      "subject": "Transparency We",
+      "predicate": "has_validity_rule",
+      "object": "be transparent about data collection and use so you can make informed decisions",
+      "disposition": "AMBIGUOUS_NEEDS_REVIEW",
+      "trust_score": 0.855,
+      "decision_reason": "REVIEW: SUBJECT_NORMALIZATION_FAILED: Subject 'Transparency We' contains unnormalized fragment, conversational pronoun phrase, or unclosed parenthesis.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "but individual organizations",
+      "predicate": "are_responsible_for",
+      "object": "determining how best to meet those goals",
+      "disposition": "AMBIGUOUS_NEEDS_REVIEW",
+      "trust_score": 0.725,
+      "decision_reason": "REVIEW: CONTACT_INFO_NON_CANONICAL: Operational contact information metadata is non-normative and excluded from active policy execution.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
       "subject": "Users",
-      "predicate": "download",
-      "object": "audit certificates, assessment reports, and other applicable documents to help you with your own regulatory requirements",
+      "predicate": "rely_on",
+      "object": "Microsoft enterprise cloud services are independently validated through certifications and attestations, as well as third-party audits",
       "disposition": "AUTOMATED_CHECKS_FAILED",
       "trust_score": 0.8,
       "decision_reason": "REJECTED: Semantic grounding failure. Subject-Evidence mismatch: asserted subject 'Users' has no grounding in the underlying evidence span.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "As a global provider of cloud services, we",
+      "predicate": "run",
+      "object": "our services with common operational practices and features that span multiple customers and jurisdictions",
+      "disposition": "AMBIGUOUS_NEEDS_REVIEW",
+      "trust_score": 0.855,
+      "decision_reason": "REVIEW: SUBJECT_NORMALIZATION_FAILED: Subject 'As a global provider of cloud services, we' contains unnormalized fragment, conversational pronoun phrase, or unclosed parenthesis.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Customers",
+      "predicate": "view",
+      "object": "by service, location, and industry, all the global standards to which Microsoft cloud services conform on the Compliance page of the Microsoft Trust Center",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Going forward, any data which we",
+      "predicate": "transfer",
+      "object": "from Europe to the United States will be protected by the Privacy Shield's safeguards.2 General Data Protection Regulation In May 2018, a European data privacy law is due to take effect that will require big changes, and potentially significant investments, by organizations all over the world\u2014including Microsoft and our customers",
+      "disposition": "AMBIGUOUS_NEEDS_REVIEW",
+      "trust_score": 0.915,
+      "decision_reason": "REVIEW: CONTACT_INFO_NON_CANONICAL: Operational contact information metadata is non-normative and excluded from active policy execution.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Customers",
+      "predicate": "locate",
+      "object": "information about the certifications held by our cloud services and the Microsoft datacenters that host those services",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Users",
+      "predicate": "take",
+      "object": "your customer data with you if you end your subscription",
+      "disposition": "AMBIGUOUS_NEEDS_REVIEW",
+      "trust_score": 0.725,
+      "decision_reason": "REVIEW: CONTACT_INFO_NON_CANONICAL: Operational contact information metadata is non-normative and excluded from active policy execution.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Administrators",
+      "predicate": "choose",
+      "object": "to receive updates to changes in datacenter locations",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Microsoft",
+      "predicate": "try",
+      "object": "to redirect the entity to the customer to respond",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.975,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 97.5%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Company",
+      "predicate": "disclose",
+      "object": "data hosted in Microsoft business cloud services to a government agency unless required by law",
+      "disposition": "AUTOMATED_CHECKS_FAILED",
+      "trust_score": 0.8,
+      "decision_reason": "REJECTED: Semantic grounding failure. Subject-Evidence mismatch: asserted subject 'Company' has no grounding in the underlying evidence span.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Company",
+      "predicate": "promptly_notify",
+      "object": "the customer and provide a copy of the request, unless we are legally prohibited from doing so.3 Microsoft publishes its law enforcement requests report to identify the number and types of requests it receives and its compliance with those requests",
+      "disposition": "AUTOMATED_CHECKS_FAILED",
+      "trust_score": 0.8,
+      "decision_reason": "REJECTED: Semantic grounding failure. Subject-Evidence mismatch: asserted subject 'Company' has no grounding in the underlying evidence span.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Data Processing",
+      "predicate": "has_validity_rule",
+      "object": "be performed without the data owner's consent",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "However, for this purpose a DTA",
+      "predicate": "has_validity_rule",
+      "object": "be executed between the database responsible (data exporter) and the data processor (data importer) pursuant to the regulations of the PDPA (Section 25) and the several specifications of the National Data Protection Agency on this matter",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "In case of infringement, sanctions",
+      "predicate": "vary",
+      "object": "from warnings to significant monetary fines",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Save specific exceptions, the PDPA",
+      "predicate": "written",
+      "object": "and express data owner consent to transfer personal data",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "In addition, such data owners",
+      "predicate": "has_validity_rule",
+      "object": "be informed about the assignment\u00b4s purpose and the assignee\u00b4s identity",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "The Office of the Australian Information Commissioner",
+      "predicate": "are_responsible_for",
+      "object": "administering the Privacy Act 1988",
+      "disposition": "AMBIGUOUS_NEEDS_REVIEW",
+      "trust_score": 0.8,
+      "decision_reason": "NON-CANONICAL CONTEXT: Retained for overview display; excluded from active decision gate to prevent duplicate evaluation against atomic row claims.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "An entity",
+      "predicate": "has_validity_rule",
+      "object": "have a clearly expressed and up-to-date privacy policy containing information about how the entity collects, Each customer remains responsible for maintaining and making available a privacy policy of its own that complies with the APPs",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "An entity",
+      "predicate": "has_validity_rule",
+      "object": "make this privacy policy available free of charge and in an appropriate form",
+      "disposition": "AMBIGUOUS_NEEDS_REVIEW",
+      "trust_score": 0.915,
+      "decision_reason": "REVIEW: CONTACT_INFO_NON_CANONICAL: Operational contact information metadata is non-normative and excluded from active policy execution.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Entities",
+      "predicate": "not",
+      "object": "adopt a government-related identifier nor use or disclose a Commonwealth identifier unless certain limited exceptions apply",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Customers",
+      "predicate": "remains_responsible_for",
+      "object": "ensuring its use of personal information does not adopt, use or disclose unique identifiers, except within the limited parameters prescribed by the APPs",
+      "disposition": "AUTOMATED_CHECKS_FAILED",
+      "trust_score": 0.8,
+      "decision_reason": "REJECTED: Semantic grounding failure. Subject-Evidence mismatch: asserted subject 'Customers' has no grounding in the underlying evidence span.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Collection principles 2-5 Outline when an entity",
+      "predicate": "collect",
+      "object": "personal information",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Customers",
+      "predicate": "remains_responsible_for",
+      "object": "collecting personal information (including sensitive information) in a manner compliant with the APPs, including providing notification to the individual of prescribed matters",
+      "disposition": "AUTOMATED_CHECKS_FAILED",
+      "trust_score": 0.8,
+      "decision_reason": "REJECTED: Semantic grounding failure. Subject-Evidence mismatch: asserted subject 'Customers' has no grounding in the underlying evidence span.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "and 7 Outline the parameters within which an entity",
+      "predicate": "use",
+      "object": "or disclose personal information that it holds",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Customers",
+      "predicate": "remains_responsible_for",
+      "object": "ensuring its use and disclosure of personal information stored within or used via our cloud services is consistent with the APPs",
+      "disposition": "AUTOMATED_CHECKS_FAILED",
+      "trust_score": 0.8,
+      "decision_reason": "REJECTED: Semantic grounding failure. Subject-Evidence mismatch: asserted subject 'Customers' has no grounding in the underlying evidence span.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Customers",
+      "predicate": "use",
+      "object": "this information in obtaining the necessary consents from individuals for transfers of personal or sensitive information",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "The development of PIAs",
+      "predicate": "health",
+      "object": "information in Alberta and for all public-sector projects subject to the British Columbia Freedom of Information and Protection of Privacy Act",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Customers",
+      "predicate": "request",
+      "object": "these Foundational PIAs from their Microsoft Canada account team",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Customers",
+      "predicate": "ensure",
+      "object": "that they implement solutions to address the principles codified in the public and private sector focused legislation (e.g., Notice, Consent, Accuracy)",
+      "disposition": "AUTOMATED_CHECKS_FAILED",
+      "trust_score": 0.8,
+      "decision_reason": "REJECTED: Semantic grounding failure. Subject-Evidence mismatch: asserted subject 'Customers' has no grounding in the underlying evidence span.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "The Personal Data Act",
+      "predicate": "duty",
+      "object": "of care, a defined purpose for processing personal data, and exclusivity of purpose, and it lays out general prerequisites for processing, data quality, and documentation of the data processing",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "The measures",
+      "predicate": "has_validity_rule",
+      "object": "be executed in a manner that informs and guides employees about proper handling of personal data and that ensures maximal transparency of the automated measures that the service takes on their behalf",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.975,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 97.5%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "System",
+      "predicate": "fulfil",
+      "object": "the material requirements regarding technical interoperability, data security, data protection and functionality (\"Material Requirements\")",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Class A IT systems",
+      "predicate": "has_validity_rule",
+      "object": "have a certificate of conformity and Class B IT systems must fulfil the Material Requirements if the system is used on or after January 1, 2017",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Only IT systems used for social welfare and health care",
+      "predicate": "has_validity_rule",
+      "object": "be recorded in the register",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "The guidelines",
+      "predicate": "reduce",
+      "object": "concerns around using cloud services and promote secure use of cloud services, and are expected to be published around mid-2017",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.975,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 97.5%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "As a prerequisite, it",
+      "predicate": "that",
+      "object": "cloud providers have data protection policies equivalent to the legal standards",
+      "disposition": "AMBIGUOUS_NEEDS_REVIEW",
+      "trust_score": 0.855,
+      "decision_reason": "REVIEW: SUBJECT_NORMALIZATION_FAILED: Subject 'As a prerequisite, it' contains unnormalized fragment, conversational pronoun phrase, or unclosed parenthesis.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Data controller",
+      "predicate": "contract",
+      "object": "or adhere to cloud services, applications and infrastructure, or other means that imply processing personal information, insofar as the external provider guarantees policies on protection of personal data equivalent to the principles and duties set forth in this law and other applicable provisions on the matter",
+      "disposition": "AMBIGUOUS_NEEDS_REVIEW",
+      "trust_score": 0.99,
+      "decision_reason": "NON-CANONICAL CONTEXT: Retained for overview display; excluded from active decision gate to prevent duplicate evaluation against atomic row claims.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "As",
+      "predicate": "has_validity_rule",
+      "object": "be the case, data controller must limit the processing of personal data by the external provider, by means of contractual clauses or other legal instruments.\"",
+      "disposition": "AMBIGUOUS_NEEDS_REVIEW",
+      "trust_score": 0.99,
+      "decision_reason": "NON-CANONICAL CONTEXT: Retained for overview display; excluded from active decision gate to prevent duplicate evaluation against atomic row claims.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "In any event, the data controller",
+      "predicate": "adhere",
+      "object": "to services that do not guarantee the appropriate protection of personal data, according to this law and other applicable provisions on the matter.\" Public Sector \u2013 Archives As indicated by its name, the General Law on Protection of Personal Data in Possession of Public Institutions deals exclusively with the processing of personal information",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "However, public institutions",
+      "predicate": "has_validity_rule",
+      "object": "also be subjected to other provisions on processing of information in general, particularly for public archives",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Public institutions",
+      "predicate": "assure",
+      "object": "compliance with applicable law provisions on transparency, protection of personal data, administrative procedures and processing of public archives, in the utilization of collaborative tools and data conservation in cloud services.\" The Guidelines provide for general requisites applicable to the contracting of cloud services for the processing public archives",
+      "disposition": "AMBIGUOUS_NEEDS_REVIEW",
+      "trust_score": 0.915,
+      "decision_reason": "REVIEW: CONTACT_INFO_NON_CANONICAL: Operational contact information metadata is non-normative and excluded from active policy execution.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Cloud services for processing public archives",
+      "predicate": "has_validity_rule",
+      "object": "be used by the public institutions, by taking into consideration the following",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "The conditions of use of the contracted service",
+      "predicate": "regulate",
+      "object": "the event of disappearance of the provider with or without prior notice, to avoid the loss of stored information; and IV",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "The providers",
+      "predicate": "ruled",
+      "object": "by the applicable Mexican law, regardless of the geographical location of the servers, or the location of the services provider.\" The use of private clouds is also allowed, although in this case public institutions must comply with additional measures",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Public institutions",
+      "predicate": "process",
+      "object": "documents in electronic files within a private cloud \u2013 a service that is not shared with other parties\u2013 by allowing",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "In any case, the data controller",
+      "predicate": "prohibited_from_using",
+      "object": "use services that do not ensure the proper protection of personal data",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "For purposes of these Regulations, cloud computing",
+      "predicate": "mean",
+      "object": "the model for the external provision of computer services on demand that involves the supply of infrastructure, platform, or software distributed in a flexible manner, using virtual procedures, on resources dynamically shared",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Outsourcing Data controllers",
+      "predicate": "use",
+      "object": "subcontractors that provide sufficient guarantees regarding technical and organizational security measures related to the processing of data and must ensure compliance with those measures",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Outsourcing",
+      "predicate": "has_validity_rule",
+      "object": "also be governed by a contract or legal act binding the subcontractor to the data controller which includes that the subcontractor acts only under the direction of the data controller and that they are obliged to technical and organizational security measures",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "As part of this process, they",
+      "predicate": "undertake",
+      "object": "a due diligence process focused on security and privacy considerations",
+      "disposition": "AMBIGUOUS_NEEDS_REVIEW",
+      "trust_score": 0.855,
+      "decision_reason": "REVIEW: SUBJECT_NORMALIZATION_FAILED: Subject 'As part of this process, they' contains unnormalized fragment, conversational pronoun phrase, or unclosed parenthesis.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Regarding privacy matters, agencies",
+      "predicate": "clear",
+      "object": "about the type of data they wish to store and process in the cloud service under evaluation, and how the privacy of personal information can be protected",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "The Directive and other pan-EU acts and regulations",
+      "predicate": "has_validity_rule",
+      "object": "be replaced by the GDPR",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.975,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 97.5%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "The GDPR",
+      "predicate": "has_validity_rule",
+      "object": "be directly implemented in Poland and its provisions will be executed from May 25, 2018",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "UODO",
+      "predicate": "has_validity_rule",
+      "object": "be replaced by the new Data Protection Act, which is under preparation",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.975,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 97.5%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Industry-specific provisions (examples) The personal data processing provisions one",
+      "predicate": "find",
+      "object": "in",
+      "disposition": "AUTOMATED_CHECKS_FAILED",
+      "trust_score": 0.84,
+      "decision_reason": "REJECTED: INCOMPLETE_ASSERTION: Incomplete syntactic clause, headless fragment, bare heading, or missing measurement unit: 'in'. Complete assertion required.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "The Banking Act regulates how the personal information",
+      "predicate": "has_validity_rule",
+      "object": "be processed under the contract and during negotiations with consumers;",
+      "disposition": "AUTOMATED_CHECKS_FAILED",
+      "trust_score": 0.855,
+      "decision_reason": "REJECTED: DEFINITION_FRAGMENT: Incomplete assertion ending in abbreviation or conjunction: 'be processed under the contract and during negotiations with consumers;'. Complete definition required.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "However, information",
+      "predicate": "has_validity_rule",
+      "object": "be considered personal data if it appears together with other information, which can be related to a specific person",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "The personal data processing requirements The data controller",
+      "predicate": "protect",
+      "object": "the interests of the data subjects with duty of care, and ensure that the data is",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.975,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 97.5%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Security Requirements The data controller",
+      "predicate": "implement",
+      "object": "technical and organizational measures, which are appropriate to the risks and category of data being protected, to protect personal data from",
+      "disposition": "AUTOMATED_CHECKS_FAILED",
+      "trust_score": 0.84,
+      "decision_reason": "REJECTED: INCOMPLETE_ASSERTION: Incomplete syntactic clause, headless fragment, bare heading, or missing measurement unit: 'technical and organizational measures, which are appropriate to the risks and category of data being protected, to protect personal data from'. Complete assertion required.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "The controller",
+      "predicate": "appoint",
+      "object": "the Data Protection Officer (Administrator Bezpiecze\u0144stwa Informacji, ABI) who should ensure the compliance with the provisions of UODO",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "The data processor",
+      "predicate": "process",
+      "object": "data within the scope of and for the purpose(s) determined in the contract",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Before processing the personal data, the processor",
+      "predicate": "implement",
+      "object": "appropriate security measures",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "The PDPA",
+      "predicate": "organizations",
+      "object": "to comply with nine main obligations in the PDPA: Consent, Purpose Limitation, Notification, Access and Correction, Accuracy, Protection, Retention Limitation, Transfer Limitation, and Openness",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "and MTCS",
+      "predicate": "pdpa",
+      "object": "compliance, all the above-mentioned Microsoft Cloud Services have been certified under MTCS as being compliant with the Singapore PDPA",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "the data controller",
+      "predicate": "abide",
+      "object": "by all the following points",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "A data controller",
+      "predicate": "has_validity_rule",
+      "object": "have the express written permission of the data subject for the collection, collation, processing or disclosure of any personal information on that data subject unless he or she is permitted or required to do so by law",
+      "disposition": "AMBIGUOUS_NEEDS_REVIEW",
+      "trust_score": 0.8,
+      "decision_reason": "REVIEW: Human review recommended. Deontic mismatch: claim claims OBLIGATION but underlying source evidence reflects discretionary/permissive phrasing or lacks normative imperative verbs.; Trust score 0.80 is below 0.88 auto-approval threshold",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "A data controller",
+      "predicate": "electronically_request",
+      "object": "collect, collate, process or store personal information on a data subject which is not necessary for the lawful purpose for which the personal information is required",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "The data controller",
+      "predicate": "disclose",
+      "object": "in writing to the data subject the specific purpose for which any personal information is being requested, collected, collated, processed or stored",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "The data controller",
+      "predicate": "prohibited_from_using",
+      "object": "use the personal information for any other purpose than the disclosed purpose without the express written permission of the data subject, unless he or she is permitted or required to do so by law",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "A data controller",
+      "predicate": "disclose",
+      "object": "any of the personal information held by it to a third party, unless required or permitted by law or specifically authorized to do so in writing by the data subject",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "The data controller",
+      "predicate": "delete",
+      "object": "or destroy all personal information which has become obsolete",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "A party controlling personal information",
+      "predicate": "use",
+      "object": "that personal information to compile profiles for statistical purposes and may freely trade with such profiles and statistical data, as",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "The delay in its enactment",
+      "predicate": "has_validity_rule",
+      "object": "be attributed in part to the publication of the draft EU GDPR as the POPIA drafting Committee paused to consider some of the proposed innovations in that Regulation",
+      "disposition": "AMBIGUOUS_NEEDS_REVIEW",
+      "trust_score": 0.915,
+      "decision_reason": "REVIEW: CONTACT_INFO_NON_CANONICAL: Operational contact information metadata is non-normative and excluded from active policy execution.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "A responsible party",
+      "predicate": "take",
+      "object": "reasonably practicable steps to notify a data subject when collecting personal information, including the purpose of the collection, whether the supply of information is voluntary or mandatory, and whether the responsible party intends to transfer the information to a third country",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Notification",
+      "predicate": "take",
+      "object": "place \"as soon as reasonably possible,\" but more exact time periods may be delineated in further regulations",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "In what",
+      "predicate": "has_validity_rule",
+      "object": "be construed as a \"right to be forgotten,\" a data subject may request the deletion of personal information that is \"inaccurate, irrelevant, excessive, out of data, incomplete, misleading or obtained unlawfully.\" These grounds for deletion are independent of the conditions for lawful processing",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "It is unclear how \"adequacy\"",
+      "predicate": "has_validity_rule",
+      "object": "be determined and indeed whether it may be assessed independently of the Information Regulator",
+      "disposition": "AMBIGUOUS_NEEDS_REVIEW",
+      "trust_score": 0.795,
+      "decision_reason": "REVIEW: CONTACT_INFO_NON_CANONICAL: Operational contact information metadata is non-normative and excluded from active policy execution.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Financial Services",
+      "predicate": "has_definition",
+      "object": "The Ministry of Finance and the Bank of Thailand (BOT) have issued regulations with respect to outsourcing by FSIs.",
+      "disposition": "AMBIGUOUS_NEEDS_REVIEW",
+      "trust_score": 0.9875,
+      "decision_reason": "NON-CANONICAL CONTEXT: Retained for overview display; excluded from active decision gate to prevent duplicate evaluation against atomic row claims.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "In brief, an FSI",
+      "predicate": "arrange",
+      "object": "to have a contract in writing kept at the FSI for inspection by the BOT",
+      "disposition": "AMBIGUOUS_NEEDS_REVIEW",
+      "trust_score": 0.99,
+      "decision_reason": "NON-CANONICAL CONTEXT: Retained for overview display; excluded from active decision gate to prevent duplicate evaluation against atomic row claims.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Healthcare",
+      "predicate": "has_definition",
+      "object": "The law provides generally that personal health information must be kept confidential, and that no person may disclose it in such a manner as to cause damage to the data subject.",
+      "disposition": "AMBIGUOUS_NEEDS_REVIEW",
+      "trust_score": 0.9875,
+      "decision_reason": "NON-CANONICAL CONTEXT: Retained for overview display; excluded from active decision gate to prevent duplicate evaluation against atomic row claims.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Accrediting bodies",
+      "predicate": "impose",
+      "object": "requirements that are more specific and more stringent",
+      "disposition": "AMBIGUOUS_NEEDS_REVIEW",
+      "trust_score": 0.99,
+      "decision_reason": "NON-CANONICAL CONTEXT: Retained for overview display; excluded from active decision gate to prevent duplicate evaluation against atomic row claims.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "In brief, an FSI",
+      "predicate": "arrange",
+      "object": "to have a contract in writing kept at the FSI for inspection by the Bank of Thailand",
+      "disposition": "AMBIGUOUS_NEEDS_REVIEW",
+      "trust_score": 0.915,
+      "decision_reason": "REVIEW: CONTACT_INFO_NON_CANONICAL: Operational contact information metadata is non-normative and excluded from active policy execution.",
       "evidence_supported": true,
       "locator_valid": true
     }

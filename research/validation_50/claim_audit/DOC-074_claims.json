@@ -1,0 +1,77 @@
+{
+  "document_id": "DOC-074",
+  "filename": "Understand IRS tax forms issued by Microsoft - Marketplace publisher _ Microsoft Learn.pdf",
+  "document_type": "invoice",
+  "evaluation_methodology": "AUTOMATED_GATE_HEURISTIC (Awaiting Human Gold Reference)",
+  "claim_counts": {
+    "candidate_claims": 5,
+    "valid": 2,
+    "invalid": 2,
+    "missed": 0,
+    "duplicate": 0,
+    "ambiguous": 1,
+    "malformed": 0
+  },
+  "metrics": {
+    "claim_precision": 0.4,
+    "claim_recall": 1.0,
+    "f1": 0.4,
+    "evidence_supported_rate": 1.0,
+    "locator_accuracy_rate": 1.0,
+    "duplicate_rate": 0.0
+  },
+  "human_review_required": true,
+  "failure_patterns": [],
+  "claims": [
+    {
+      "subject": "Microsoft",
+      "predicate": "has_validity_rule",
+      "object": "issue these forms and file them with the Internal Revenue Service (IRS)",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Users",
+      "predicate": "visit",
+      "object": "Partner Center at any time to submit an updated W8 form",
+      "disposition": "AUTOMATED_CHECKS_FAILED",
+      "trust_score": 0.8,
+      "decision_reason": "REJECTED: Semantic grounding failure. Subject-Evidence mismatch: asserted subject 'Users' has no grounding in the underlying evidence span.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Understand IRS tax forms issued by",
+      "predicate": "has_refund_eligibility",
+      "object": "After tax has been withheld, it can't be refunded.",
+      "disposition": "AMBIGUOUS_NEEDS_REVIEW",
+      "trust_score": 0.8562,
+      "decision_reason": "REVIEW: Human review recommended. Sub-threshold semantic confidence (85% < 88%).; Trust score 0.86 is below 0.88 auto-approval threshold",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Users",
+      "predicate": "claim",
+      "object": "a local credit for these taxes, or whether you can seek a refund from the IRS",
+      "disposition": "AUTOMATED_CHECKS_FAILED",
+      "trust_score": 0.8,
+      "decision_reason": "REJECTED: Semantic grounding failure. Subject-Evidence mismatch: asserted subject 'Users' has no grounding in the underlying evidence span.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Microsoft",
+      "predicate": "answer",
+      "object": "questions related to your specific tax circumstances",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    }
+  ]
+}

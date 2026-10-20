@@ -1,0 +1,97 @@
+{
+  "document_id": "DOC-090",
+  "filename": "What is Microsoft Entra_ - Microsoft Entra _ Microsoft Learn.pdf",
+  "document_type": "technical_documentation",
+  "evaluation_methodology": "AUTOMATED_GATE_HEURISTIC (Awaiting Human Gold Reference)",
+  "claim_counts": {
+    "candidate_claims": 7,
+    "valid": 5,
+    "invalid": 2,
+    "missed": 0,
+    "duplicate": 0,
+    "ambiguous": 0,
+    "malformed": 0
+  },
+  "metrics": {
+    "claim_precision": 0.7143,
+    "claim_recall": 1.0,
+    "f1": 0.7143,
+    "evidence_supported_rate": 1.0,
+    "locator_accuracy_rate": 1.0,
+    "duplicate_rate": 0.0
+  },
+  "human_review_required": true,
+  "failure_patterns": [],
+  "claims": [
+    {
+      "subject": "Users",
+      "predicate": "has_validity_rule",
+      "object": "start managing access to your integrated cloud apps right away",
+      "disposition": "AUTOMATED_CHECKS_FAILED",
+      "trust_score": 0.8,
+      "decision_reason": "REJECTED: Semantic grounding failure. Subject-Evidence mismatch: asserted subject 'Users' has no grounding in the underlying evidence span.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Scenario",
+      "predicate": "create",
+      "object": "a managed domain where Microsoft deploys and maintains the core service components",
+      "disposition": "AUTOMATED_CHECKS_FAILED",
+      "trust_score": 0.84,
+      "decision_reason": "REJECTED: EXAMPLE_NON_CANONICAL: Illustrative example or case study 'Scenario' cannot be verified as a canonical governing policy claim.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Remote users",
+      "predicate": "connect",
+      "object": "to internal resources from any device and network without a VPN",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Administrators",
+      "predicate": "investigate",
+      "object": "and automatically remediate risks using tools like risk-based Conditional Access policies",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Organizations",
+      "predicate": "has_validity_rule",
+      "object": "issue verifiable credentials \u2014 digital signatures that prove the validity of information \u2014 to users, who store the credentials on their personal devices and present them when needed",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Administrators",
+      "predicate": "use",
+      "object": "the Microsoft Entra admin center and Microsoft Graph API to manage identity and network access resources",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Developers",
+      "predicate": "use",
+      "object": "the Microsoft identity platform to build identity-aware applications",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    }
+  ]
+}

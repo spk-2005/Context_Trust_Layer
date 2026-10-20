@@ -1,21 +1,21 @@
 {
   "document_id": "DOC-053",
-  "filename": "Good Clinical, Laboratory, and Manufacturing Practices (GxP) - Microsoft Compliance _ Microsoft Learn.pdf",
-  "document_type": "regulatory_compliance",
+  "filename": "Enterprise Agreement.pdf",
+  "document_type": "contract",
   "evaluation_methodology": "AUTOMATED_GATE_HEURISTIC (Awaiting Human Gold Reference)",
   "claim_counts": {
-    "candidate_claims": 3,
-    "valid": 2,
-    "invalid": 0,
+    "candidate_claims": 46,
+    "valid": 27,
+    "invalid": 8,
     "missed": 0,
     "duplicate": 0,
-    "ambiguous": 1,
+    "ambiguous": 11,
     "malformed": 0
   },
   "metrics": {
-    "claim_precision": 0.6667,
+    "claim_precision": 0.587,
     "claim_recall": 1.0,
-    "f1": 0.6667,
+    "f1": 0.587,
     "evidence_supported_rate": 1.0,
     "locator_accuracy_rate": 1.0,
     "duplicate_rate": 0.0
@@ -24,9 +24,159 @@
   "failure_patterns": [],
   "claims": [
     {
-      "subject": "Good Clinical, Laboratory, and Manufacturing Practices",
-      "predicate": "requires_validation_of_adherence_to",
-      "object": "GxP adherence validation",
+      "subject": "Please note",
+      "predicate": "has_definition",
+      "object": "Documents referenced in this agreement but not attached to the signature form may be found at http://www.microsoft.com/licensing/contracts and are incorporated in this agreement by reference, including the Product Terms and Qualifying Government Entity Addendum.",
+      "disposition": "AMBIGUOUS_NEEDS_REVIEW",
+      "trust_score": 0.9875,
+      "decision_reason": "NON-CANONICAL CONTEXT: Retained for overview display; excluded from active decision gate to prevent duplicate evaluation against atomic row claims.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "These documents",
+      "predicate": "has_licensing_requirement",
+      "object": "contain additional terms and conditions for Products licensed under this agreement and may be changed from time to time",
+      "disposition": "AMBIGUOUS_NEEDS_REVIEW",
+      "trust_score": 0.8,
+      "decision_reason": "NON-CANONICAL CONTEXT: Retained for overview display; excluded from active decision gate to prevent duplicate evaluation against atomic row claims.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Customers",
+      "predicate": "review",
+      "object": "such documents carefully, both at the time of signing and periodically thereafter, and fully understand all terms and conditions applicable to Products licensed and Services ordered",
+      "disposition": "AMBIGUOUS_NEEDS_REVIEW",
+      "trust_score": 0.8,
+      "decision_reason": "NON-CANONICAL CONTEXT: Retained for overview display; excluded from active decision gate to prevent duplicate evaluation against atomic row claims.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "For certain Products, a License",
+      "predicate": "has_validity_rule",
+      "object": "be available on a fixed term or subscription basis (\"Subscription License\")",
+      "disposition": "AMBIGUOUS_NEEDS_REVIEW",
+      "trust_score": 0.99,
+      "decision_reason": "NON-CANONICAL CONTEXT: Retained for overview display; excluded from active decision gate to prevent duplicate evaluation against atomic row claims.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Licenses for Online Services",
+      "predicate": "has_validity_rule",
+      "object": "be considered Subscription Licenses",
+      "disposition": "AMBIGUOUS_NEEDS_REVIEW",
+      "trust_score": 0.975,
+      "decision_reason": "NON-CANONICAL CONTEXT: Retained for overview display; excluded from active decision gate to prevent duplicate evaluation against atomic row claims.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Software",
+      "predicate": "has_validity_rule",
+      "object": "be part of an Online Service",
+      "disposition": "AMBIGUOUS_NEEDS_REVIEW",
+      "trust_score": 0.99,
+      "decision_reason": "NON-CANONICAL CONTEXT: Retained for overview display; excluded from active decision gate to prevent duplicate evaluation against atomic row claims.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Enrolled Affiliate",
+      "predicate": "order",
+      "object": "and maintain continuous Software Assurance coverage for each License ordered",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Enrolled Affiliate",
+      "predicate": "has_validity_rule",
+      "object": "make as many copies of Products as it needs to distribute them within the Enterprise",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Copies",
+      "predicate": "true",
+      "object": "and complete (including copyright and trademark notices) from master copies obtained from a Microsoft approved fulfillment source",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Enrolled Affiliate",
+      "predicate": "use",
+      "object": "a third party to make these copies",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Enrolled Affiliate agrees it",
+      "predicate": "has_validity_rule",
+      "object": "be responsible for any third party's actions",
+      "disposition": "AMBIGUOUS_NEEDS_REVIEW",
+      "trust_score": 0.855,
+      "decision_reason": "REVIEW: SUBJECT_NORMALIZATION_FAILED: Subject 'Enrolled Affiliate agrees it' contains unnormalized fragment, conversational pronoun phrase, or unclosed parenthesis.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Enrolled Affiliate",
+      "predicate": "has_validity_rule",
+      "object": "make reasonable efforts to notify its employees, agents, and any other individuals who use the Products that the Products are licensed from Microsoft and subject to the terms of this agreement",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.975,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 97.5%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "For all Products other than Online Services, Enrolled Affiliate",
+      "predicate": "(1)",
+      "object": "use up to 20 complimentary copies of any licensed Products in a dedicated training facility on its premises for purposes of training on that particular Product, (2) use up to 10 complimentary copies of any Products for a 60 day evaluation period, and (3) use one complimentary copy of any licensed Product for back-up or archival purposes for each of its distinct geographic locations",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Trials for Online Services",
+      "predicate": "has_validity_rule",
+      "object": "be available if specified in the Use Rights",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Separate Licenses",
+      "predicate": "acquired",
+      "object": "from the separate source for each Product that is re-imaged",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Enterprise Agreement",
+      "predicate": "has_licensing_requirement",
+      "object": "(iii) Except for copies of an operating system and copies of Products licensed under another Microsoft program, the Product type (e.g., Upgrade or full License) re-imaged must be identical to the Product type licensed from the separate source.",
       "disposition": "AMBIGUOUS_NEEDS_REVIEW",
       "trust_score": 0.8562,
       "decision_reason": "REVIEW: Human review recommended. Sub-threshold semantic confidence (85% < 88%).; Trust score 0.86 is below 0.88 auto-approval threshold",
@@ -34,9 +184,9 @@
       "locator_valid": true
     },
     {
-      "subject": "Microsoft",
-      "predicate": "help",
-      "object": "organizations that deal with regulated aspects of the research, clinical study, maintenance, manufacturing, and distribution of life science products and services to meet their requirements under Good Clinical, Laboratory, and Manufacturing Practices (GxP)",
+      "subject": "Enrolled Affiliate",
+      "predicate": "adhere",
+      "object": "to any Product-specific processes or requirements for re-imaging identified in the Product Terms",
       "disposition": "AUTOMATED_CHECKS_PASSED",
       "trust_score": 0.99,
       "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
@@ -45,11 +195,291 @@
     },
     {
       "subject": "Customers",
-      "predicate": "determine",
-      "object": "the GxP requirements that apply to their computerized systems based on the intended use",
+      "predicate": "uninstall",
+      "object": "and discontinue using the licensed Product and render any copies unusable",
+      "disposition": "AUTOMATED_CHECKS_FAILED",
+      "trust_score": 0.8,
+      "decision_reason": "REJECTED: Semantic grounding failure. Subject-Evidence mismatch: asserted subject 'Customers' has no grounding in the underlying evidence span.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Customers",
+      "predicate": "notify",
+      "object": "Microsoft of a License transfer by completing a License transfer form, which can be obtained from http://www.microsoft.com/licensing/contracts, and sending the completed form to Microsoft before the License transfer",
+      "disposition": "AUTOMATED_CHECKS_FAILED",
+      "trust_score": 0.8,
+      "decision_reason": "REJECTED: Semantic grounding failure. Subject-Evidence mismatch: asserted subject 'Customers' has no grounding in the underlying evidence span.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "No License transfer",
+      "predicate": "has_validity_rule",
+      "object": "be valid unless Customer or Enrolled Affiliate provides to the transferee, and the transferee accepts in writing, documents sufficient to enable the transferee to ascertain the scope, purpose and limitations of the rights granted by Microsoft under the Licenses being transferred (including, without limitation, the applicable Use Rights, use and transfer restrictions, warranties and limitations of liability)",
       "disposition": "AUTOMATED_CHECKS_PASSED",
       "trust_score": 0.975,
       "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 97.5%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Any License transfer not made in compliance with this section",
+      "predicate": "has_validity_rule",
+      "object": "be void",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.975,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 97.5%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Licenses and Software Assurance",
+      "predicate": "assigned",
+      "object": "to a single user or device within the Enterprise",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Licenses and Software Assurance",
+      "predicate": "has_validity_rule",
+      "object": "be reassigned within the Enterprise as described in the Use Rights",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "This agreement",
+      "predicate": "remain",
+      "object": "in effect unless terminated by either party as described below",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.975,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 97.5%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Each Enrollment",
+      "predicate": "has_validity_rule",
+      "object": "have the term provided in that Enrollment",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.975,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 97.5%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Microsoft",
+      "predicate": "change",
+      "object": "or discontinue certain Online Services as further described in the Product Terms",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Parties",
+      "predicate": "terminate",
+      "object": "this agreement, without cause, upon 60 days' written notice",
+      "disposition": "AUTOMATED_CHECKS_FAILED",
+      "trust_score": 0.8,
+      "decision_reason": "REJECTED: Semantic grounding failure. Subject-Evidence mismatch: asserted subject 'Parties' has no grounding in the underlying evidence span.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "new Enrollments",
+      "predicate": "has_validity_rule",
+      "object": "be accepted",
+      "disposition": "AMBIGUOUS_NEEDS_REVIEW",
+      "trust_score": 0.8,
+      "decision_reason": "REVIEW: Human review recommended. Deontic mismatch: claim claims PROHIBITION but underlying source evidence reflects discretionary/permissive phrasing or lacks normative imperative verbs.; Trust score 0.80 is below 0.88 auto-approval threshold",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "any existing Enrollment",
+      "predicate": "continue",
+      "object": "for the term of such Enrollment and will continue to be governed by this agreement",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.975,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 97.5%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Without limiting any other remedies it",
+      "predicate": "has_validity_rule",
+      "object": "have, either party may terminate an Enrollment if the other party materially breaches its obligations under this agreement, including any obligation to submit orders or pay invoices",
+      "disposition": "AMBIGUOUS_NEEDS_REVIEW",
+      "trust_score": 0.855,
+      "decision_reason": "REVIEW: SUBJECT_NORMALIZATION_FAILED: Subject 'Without limiting any other remedies it' contains unnormalized fragment, conversational pronoun phrase, or unclosed parenthesis.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Enterprise Agreement",
+      "predicate": "has_return_window",
+      "object": "Except where the breach is by its nature not curable within 30 days, the terminating party must give the other party 30 days' notice of its intent to terminate and an opportunity to cure the breach.",
+      "disposition": "AMBIGUOUS_NEEDS_REVIEW",
+      "trust_score": 0.8562,
+      "decision_reason": "REVIEW: Human review recommended. Sub-threshold semantic confidence (85% < 88%).; Trust score 0.86 is below 0.88 auto-approval threshold",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Microsoft also",
+      "predicate": "give",
+      "object": "Customer a copy of the notice, and Customer agrees to help resolve the breach",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.975,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 97.5%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Microsoft",
+      "predicate": "terminate",
+      "object": "this agreement and all Enrollments under it",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Customers",
+      "predicate": "promptly_notify",
+      "object": "Microsoft, and Microsoft may terminate the former Affiliate's Enrollment",
+      "disposition": "AUTOMATED_CHECKS_FAILED",
+      "trust_score": 0.8,
+      "decision_reason": "REJECTED: Semantic grounding failure. Subject-Evidence mismatch: asserted subject 'Customers' has no grounding in the underlying evidence span.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Microsoft",
+      "predicate": "modify",
+      "object": "or terminate an Online Service in any country or jurisdiction where there is any current or future government requirement or obligation that (1) subjects Microsoft to any regulation or requirement not generally applicable to businesses operating there, (2) presents a hardship for Microsoft to continue operating the Online Service without modification, and/or (3) causes Microsoft to believe these terms or the Online Service may conflict with any such requirement or obligation",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Microsoft",
+      "predicate": "has_validity_rule",
+      "object": "make changes to this program that will make it necessary for Customer and its Enrolled Affiliates to enter into new agreements and Enrollments at the time of an Enrollment renewal",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Notices, authorizations, and requests in connection with this agreement",
+      "predicate": "sent",
+      "object": "by regular or overnight mail or express courier to the addresses and numbers listed on the signature form",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Notices",
+      "predicate": "has_validity_rule",
+      "object": "be treated as delivered on the date shown on the return receipt or on the courier confirmation of delivery",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.975,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 97.5%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Microsoft",
+      "predicate": "provide",
+      "object": "information about Enrollment deadlines and Online Services by email to contacts provided by Enrolled Affiliate under an Enrollment or through a web site Microsoft identifies",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Enrolled Affiliate",
+      "predicate": "provide",
+      "object": "and manage account details (e.g., contacts, orders, Licenses, software downloads) at https://www.microsoft.com/licensing/servicecenter (or a successor site)",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Any payments made to Microsoft",
+      "predicate": "in",
+      "object": "the Microsoft approved currency for the respective locale",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Customers",
+      "predicate": "pay",
+      "object": "any applicable value added, goods and services, sales, gross receipts, or other transaction taxes, fees, charges or surcharges, or any regulatory cost recovery surcharges or similar amounts that are owed under this agreement and which Microsoft is permitted to collect from Customer",
+      "disposition": "AUTOMATED_CHECKS_FAILED",
+      "trust_score": 0.8,
+      "decision_reason": "REJECTED: Semantic grounding failure. Subject-Evidence mismatch: asserted subject 'Customers' has no grounding in the underlying evidence span.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Customers",
+      "predicate": "has_validity_rule",
+      "object": "also be responsible for any applicable stamp taxes and for all other taxes that it is legally obligated to pay, including any taxes that arise on the distribution or provision of Products or Professional Services by Customer to its Affiliates",
+      "disposition": "AUTOMATED_CHECKS_FAILED",
+      "trust_score": 0.8,
+      "decision_reason": "REJECTED: Semantic grounding failure. Subject-Evidence mismatch: asserted subject 'Customers' has no grounding in the underlying evidence span.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Microsoft",
+      "predicate": "has_validity_rule",
+      "object": "be responsible for payment of all taxes based on its net income, gross receipts taxes imposed in lieu of taxes on income or profits, or taxes on property ownership",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Customers",
+      "predicate": "deduct",
+      "object": "such taxes from the amount owed and pay them to the appropriate taxing authority; provided, however, that Customer shall promptly secure and deliver an official receipt for those withholdings and other documents reasonably requested by Microsoft to claim a foreign tax credit or refund",
+      "disposition": "AUTOMATED_CHECKS_FAILED",
+      "trust_score": 0.8,
+      "decision_reason": "REJECTED: Semantic grounding failure. Subject-Evidence mismatch: asserted subject 'Customers' has no grounding in the underlying evidence span.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Customers",
+      "predicate": "ensure",
+      "object": "that any taxes withheld are minimized to the extent possible under applicable law",
+      "disposition": "AUTOMATED_CHECKS_FAILED",
+      "trust_score": 0.8,
+      "decision_reason": "REJECTED: Semantic grounding failure. Subject-Evidence mismatch: asserted subject 'Customers' has no grounding in the underlying evidence span.",
       "evidence_supported": true,
       "locator_valid": true
     }

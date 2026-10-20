@@ -1,0 +1,67 @@
+{
+  "document_id": "DOC-075",
+  "filename": "Understand your invoice for your Microsoft MOSA billing account _ Microsoft Learn.pdf",
+  "document_type": "invoice",
+  "evaluation_methodology": "AUTOMATED_GATE_HEURISTIC (Awaiting Human Gold Reference)",
+  "claim_counts": {
+    "candidate_claims": 4,
+    "valid": 2,
+    "invalid": 2,
+    "missed": 0,
+    "duplicate": 1,
+    "ambiguous": 0,
+    "malformed": 0
+  },
+  "metrics": {
+    "claim_precision": 0.5,
+    "claim_recall": 1.0,
+    "f1": 0.5,
+    "evidence_supported_rate": 1.0,
+    "locator_accuracy_rate": 1.0,
+    "duplicate_rate": 0.2
+  },
+  "human_review_required": true,
+  "failure_patterns": [],
+  "claims": [
+    {
+      "subject": "Users",
+      "predicate": "at",
+      "object": "least a Billing Administrator to do the steps described in this article",
+      "disposition": "AUTOMATED_CHECKS_FAILED",
+      "trust_score": 0.8,
+      "decision_reason": "REJECTED: Semantic grounding failure. Subject-Evidence mismatch: asserted subject 'Users' has no grounding in the underlying evidence span.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Understand your invoice for your Microsoft",
+      "predicate": "may_apply_administration_fee",
+      "object": "The amount billed for your subscription reflects the license price multiplied by the number of licenses purchased and any required taxes or fees.",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.975,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 97.5%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Users",
+      "predicate": "add",
+      "object": "a PO number to an existing invoice",
+      "disposition": "AUTOMATED_CHECKS_FAILED",
+      "trust_score": 0.8,
+      "decision_reason": "REJECTED: Semantic grounding failure. Subject-Evidence mismatch: asserted subject 'Users' has no grounding in the underlying evidence span.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "The PO number",
+      "predicate": "appear",
+      "object": "on all future invoices",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.975,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 97.5%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    }
+  ]
+}

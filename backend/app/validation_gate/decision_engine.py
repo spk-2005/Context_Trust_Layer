@@ -150,6 +150,72 @@ class ClaimLifecycleDecisionEngine:
                 decision_code=DecisionCode.FRAGMENT_ASSERTION_DISCARDED,
                 reason="REJECTED: Generic page header subject is not canonical.",
             )
+
+        # Invariant Knockout 0C: Non-canonical Prepositional / Document Title Subject
+        cand_subj = (getattr(candidate, "subject", "") or "").strip()
+        cand_subj_lower = cand_subj.lower()
+        if (
+            cand_subj_lower in (
+                "in no event", "under no circumstances", "for the avoidance of doubt",
+                "in the event", "to the extent", "in addition", "document header",
+                "neither party", "either party", "as a result", "furthermore"
+            )
+            or re.search(r"(?:mcaps|commercial-supplier|-agreement-terms|agreement_for_leasing|\.pdf$|\.docx$|\.md$|terms-and-conditions)", cand_subj_lower)
+        ):
+            return cls._create_evaluation(
+                candidate=candidate,
+                envelope=envelope,
+                claim_type=claim_type,
+                source_match=source_match,
+                completeness=completeness,
+                meaning=DimensionEvaluation(
+                    dimension_name="meaning",
+                    status="fail",
+                    score=0.0,
+                    passed=False,
+                    reason=f"Non-canonical subject entity '{cand_subj}' rejected.",
+                ),
+                scope=scope,
+                time_eval=time_eval,
+                authority=authority,
+                review_trigger=review_trigger,
+                composite_score=0.0,
+                decision=ClaimLifecycleDecision.REJECT,
+                decision_code=DecisionCode.FRAGMENT_ASSERTION_DISCARDED,
+                reason=f"REJECTED: Non-canonical subject entity '{cand_subj}'.",
+            )
+
+        # Invariant Knockout 0D: Non-semantic Bullet Glyph / Symbol Object or Subject
+        cand_obj_str = str(getattr(candidate, "object", "") or "").strip()
+        if (
+            any(b in cand_subj or b in cand_obj_str for b in ("●", "❖", "✔", "✓", "•"))
+            or (cand_obj_str and not re.sub(r"[\s•●❖\-_|*✓✔✗✘\.]+", "", cand_obj_str))
+            or (cand_subj and not re.sub(r"[\s•●❖\-_|*✓✔✗✘\.]+", "", cand_subj))
+            or cand_subj in ("N/A", "n/a", "NA", "-")
+            or cand_obj_str in ("N/A", "n/a", "NA", "-")
+        ):
+            return cls._create_evaluation(
+                candidate=candidate,
+                envelope=envelope,
+                claim_type=claim_type,
+                source_match=source_match,
+                completeness=completeness,
+                meaning=DimensionEvaluation(
+                    dimension_name="meaning",
+                    status="fail",
+                    score=0.0,
+                    passed=False,
+                    reason="Matrix bullet/glyph symbol object has no textual semantic content.",
+                ),
+                scope=scope,
+                time_eval=time_eval,
+                authority=authority,
+                review_trigger=review_trigger,
+                composite_score=0.0,
+                decision=ClaimLifecycleDecision.REJECT,
+                decision_code=DecisionCode.FRAGMENT_ASSERTION_DISCARDED,
+                reason="REJECTED: Non-semantic matrix bullet symbol object.",
+            )
         # Invariant Knockout 1: Evidence-Candidate Association Mismatch
         source_uid = getattr(candidate, "source_unit_id", None) or getattr(candidate, "unit_id", None)
         ev_id = getattr(candidate, "evidence_id", None)

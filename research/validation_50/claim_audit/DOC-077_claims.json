@@ -1,0 +1,26 @@
+{
+  "document_id": "DOC-077",
+  "filename": "View your Microsoft Store order history _ Microsoft Support.pdf",
+  "document_type": "invoice",
+  "evaluation_methodology": "AUTOMATED_GATE_HEURISTIC (Awaiting Human Gold Reference)",
+  "claim_counts": {
+    "candidate_claims": 0,
+    "valid": 0,
+    "invalid": 0,
+    "missed": 0,
+    "duplicate": 0,
+    "ambiguous": 0,
+    "malformed": 0
+  },
+  "metrics": {
+    "claim_precision": 0.0,
+    "claim_recall": 1.0,
+    "f1": 0.0,
+    "evidence_supported_rate": 0.0,
+    "locator_accuracy_rate": 0.0,
+    "duplicate_rate": 0.0
+  },
+  "human_review_required": false,
+  "failure_patterns": [],
+  "claims": []
+}

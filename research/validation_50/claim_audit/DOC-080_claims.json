@@ -1,0 +1,37 @@
+{
+  "document_id": "DOC-080",
+  "filename": "Check the status of your Microsoft Store return or refund _ Microsoft Support.pdf",
+  "document_type": "refund_policy",
+  "evaluation_methodology": "AUTOMATED_GATE_HEURISTIC (Awaiting Human Gold Reference)",
+  "claim_counts": {
+    "candidate_claims": 1,
+    "valid": 0,
+    "invalid": 0,
+    "missed": 0,
+    "duplicate": 0,
+    "ambiguous": 1,
+    "malformed": 0
+  },
+  "metrics": {
+    "claim_precision": 0.0,
+    "claim_recall": 1.0,
+    "f1": 0.0,
+    "evidence_supported_rate": 1.0,
+    "locator_accuracy_rate": 1.0,
+    "duplicate_rate": 0.0
+  },
+  "human_review_required": true,
+  "failure_patterns": [],
+  "claims": [
+    {
+      "subject": "Check the status of your Microsoft",
+      "predicate": "has_refund_eligibility",
+      "object": "Purchases and downloads Manage your billing Help with purchases Gift cards and account balance Refunds and exchanges Games and apps Hardware Refund or cancel a subscription Cancel an order or pre-order Status of a return and refund Can't get a refund on apps and games Errors & troubleshooting Consumer and Regulatory Information Check the status of your Microsoft Store return or refund Applies To When you request a refund for something you purchased from Microsoft Store, you can track its status online.",
+      "disposition": "AMBIGUOUS_NEEDS_REVIEW",
+      "trust_score": 0.8562,
+      "decision_reason": "REVIEW: Human review recommended. Sub-threshold semantic confidence (85% < 88%).; Trust score 0.86 is below 0.88 auto-approval threshold",
+      "evidence_supported": true,
+      "locator_valid": true
+    }
+  ]
+}

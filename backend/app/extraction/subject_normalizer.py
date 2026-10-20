@@ -202,7 +202,7 @@ class SubjectNormalizer:
         s = re.sub(r"^(?:(?:Section|Article|Clause|Rule)\s+)?(?:\d+(?:\.\d+)*|[A-Z]\.|\([a-z0-9]+\))\s*[:.-]?\s+(?=[A-Za-z])", "", s, flags=re.IGNORECASE)
         s = re.sub(r"^(?:Except as (?:noted|provided|set forth|stated)[^,]+,\s*)", "", s, flags=re.IGNORECASE)
         s = re.sub(r"^(?:For example,\s*)", "", s, flags=re.IGNORECASE)
-        s = re.sub(r"^(?:(?:At a minimum|To the extent permitted by [^,]+|Under no circumstances|In addition to [^,]+|Subject to [^,]+|Notwithstanding [^,]+|Unless otherwise [^,]+),\s*)+", "", s, flags=re.IGNORECASE)
+        s = re.sub(r"^(?:(?:At a minimum|To the extent permitted by [^,]+|To the maximum extent permitted by [^,]+|Under no circumstances|In addition to [^,]+|Subject to [^,]+|Notwithstanding [^,]+|Unless otherwise [^,]+|For the avoidance of doubt|In no event(?: will| shall)?|In the event that|In the event of [^,]+),\s*)+", "", s, flags=re.IGNORECASE)
         s = re.sub(r"^.*?\b(?:acknowledges that|agrees that|confirms that|states that)\s+(?:in order to .*?\b(?:the|a|an)\b\s*)?", "", s, flags=re.IGNORECASE)
         # Strip trailing punctuation
         s = s.rstrip(":,;.-").strip()
@@ -303,8 +303,18 @@ class SubjectNormalizer:
             elif pattern in cleaned_lower:
                 return replacement, True
 
+        # 2B. Direct rejection of residual adverbial or prepositional fragments
+        if cleaned_lower in (
+            "in no event", "under no circumstances", "for the avoidance of doubt",
+            "in the event", "to the extent", "in addition", "as a result", "furthermore",
+            "neither party", "either party"  # Will be mapped below if kept, but check fragments
+        ):
+            if cleaned_lower in ("neither party", "either party"):
+                return "Parties", True
+            return cleaned, False
+
         # 3. Document title / header artifact rejection
-        if re.search(r"(?:invoice-terms|terms-and-conditions|invoicetermsandconditions|\.pdf|\.md|\.docx)", cleaned_lower):
+        if re.search(r"(?:invoice-terms|terms-and-conditions|invoicetermsandconditions|mcaps|commercial-supplier|-agreement-terms|agreement_for_leasing|\.pdf$|\.md$|\.docx$)", cleaned_lower):
             return "Document Header", False
 
         if any(cleaned_lower.endswith(w) for w in (" policy", " policies", " handbook", " manual", " terms and conditions", " agreement", " guidelines")):

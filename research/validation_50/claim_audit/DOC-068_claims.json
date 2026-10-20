@@ -1,0 +1,37 @@
+{
+  "document_id": "DOC-068",
+  "filename": "How-Microsoft-is-reinventing-HR-with-Microsoft-Copilot.pdf",
+  "document_type": "hr_policy",
+  "evaluation_methodology": "AUTOMATED_GATE_HEURISTIC (Awaiting Human Gold Reference)",
+  "claim_counts": {
+    "candidate_claims": 1,
+    "valid": 1,
+    "invalid": 0,
+    "missed": 0,
+    "duplicate": 0,
+    "ambiguous": 0,
+    "malformed": 0
+  },
+  "metrics": {
+    "claim_precision": 1.0,
+    "claim_recall": 1.0,
+    "f1": 1.0,
+    "evidence_supported_rate": 1.0,
+    "locator_accuracy_rate": 1.0,
+    "duplicate_rate": 0.0
+  },
+  "human_review_required": false,
+  "failure_patterns": [],
+  "claims": [
+    {
+      "subject": "Enhanced Candidate Engagement (HR Recruiters)\u2014Copilot",
+      "predicate": "help",
+      "object": "draft communications and recruiters can accelerate sourcing via LinkedIn AI-assisted InMail",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    }
+  ]
+}

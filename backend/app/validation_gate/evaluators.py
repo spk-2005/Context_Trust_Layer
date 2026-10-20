@@ -502,9 +502,20 @@ class MeaningEvaluator:
                 )
         elif subj_words and not has_table_grid and not is_derived_summary and not is_structured_schema:
             loc_headings = ' '.join((getattr(candidate, 'locator', {}) or {}).get('heading_path') or []).lower()
-            matched_subj = any(w in ev_lower or w in loc_headings for w in subj_words)
+            ev_words = set(re.findall(r'[a-zA-Z]{3,}', ev_lower))
+            matched_subj = any(
+                w in ev_lower
+                or w.rstrip('s') in ev_lower
+                or any(ew.startswith(w.rstrip('s')) or w.startswith(ew.rstrip('s')) for ew in ev_words)
+                or w in loc_headings
+                for w in subj_words
+            )
+            is_pronoun_grounded = bool(
+                {'you', 'your', 'we', 'our', 'us', 'company', 'agreement'}.intersection(ev_words)
+                and any(w in {'customer', 'customers', 'admin', 'admins', 'vendor', 'microsoft', 'supplier', 'parties', 'employer', 'employee'} for w in subj_words)
+            )
             is_doc_meta_subj = any(w in {'policy', 'governance', 'document'} for w in subj_words) and ('policy' in ev_lower or 'guideline' in ev_lower or 'policy' in loc_headings)
-            if not matched_subj and not is_doc_meta_subj:
+            if not matched_subj and not is_doc_meta_subj and not is_pronoun_grounded:
                 return DimensionEvaluation(
                     dimension_name='meaning',
                     status=MeaningStatus.UNSUPPORTED.value,

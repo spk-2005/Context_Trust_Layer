@@ -1,72 +1,32 @@
 {
   "document_id": "DOC-054",
-  "filename": "Health Data Hosting (HDS) France - Microsoft Compliance _ Microsoft Learn.pdf",
-  "document_type": "regulatory_compliance",
+  "filename": "Enterprise Subscription Enrollment (Indirect).pdf",
+  "document_type": "contract",
   "evaluation_methodology": "AUTOMATED_GATE_HEURISTIC (Awaiting Human Gold Reference)",
   "claim_counts": {
-    "candidate_claims": 7,
-    "valid": 3,
-    "invalid": 0,
+    "candidate_claims": 76,
+    "valid": 62,
+    "invalid": 3,
     "missed": 0,
-    "duplicate": 0,
-    "ambiguous": 4,
+    "duplicate": 4,
+    "ambiguous": 11,
     "malformed": 0
   },
   "metrics": {
-    "claim_precision": 0.4286,
+    "claim_precision": 0.8158,
     "claim_recall": 1.0,
-    "f1": 0.4286,
+    "f1": 0.8158,
     "evidence_supported_rate": 1.0,
     "locator_accuracy_rate": 1.0,
-    "duplicate_rate": 0.0
+    "duplicate_rate": 0.05
   },
   "human_review_required": true,
   "failure_patterns": [],
   "claims": [
     {
-      "subject": "Hosting candidates",
-      "predicate": "submit",
-      "object": "their certification application to a certification body accredited by the French Accreditation Committee (COFRAC), the sole accreditation body at the national level, or any equivalent body at the European level",
-      "disposition": "AUTOMATED_CHECKS_PASSED",
-      "trust_score": 0.99,
-      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
-      "evidence_supported": true,
-      "locator_valid": true
-    },
-    {
-      "subject": "service providers",
-      "predicate": "implement",
-      "object": "measures that keep personal health data secure, confidential, and accessible by patients.",
-      "disposition": "AMBIGUOUS_NEEDS_REVIEW",
-      "trust_score": 0.995,
-      "decision_reason": "NON-CANONICAL CONTEXT: Retained for overview display; excluded from active decision gate to prevent duplicate evaluation against atomic row claims.",
-      "evidence_supported": true,
-      "locator_valid": true
-    },
-    {
-      "subject": "Health Data Hosting (HDS) France",
-      "predicate": "has_return_window",
-      "object": "The 2024 update of the HDS certification framework additionally mandates service providers to locate data within the European Economic Area (EEA), along with more stringent requirements for the protection of personal data in relation to data transfers outside the European Union (EU).",
-      "disposition": "AMBIGUOUS_NEEDS_REVIEW",
-      "trust_score": 0.975,
-      "decision_reason": "NON-CANONICAL CONTEXT: Retained for overview display; excluded from active decision gate to prevent duplicate evaluation against atomic row claims.",
-      "evidence_supported": true,
-      "locator_valid": true
-    },
-    {
-      "subject": "a new certification in accordance with the set of requirements",
-      "predicate": "has_validity_rule",
-      "object": "be obtained by May 16, 2026 at the latest",
-      "disposition": "AUTOMATED_CHECKS_PASSED",
-      "trust_score": 0.99,
-      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
-      "evidence_supported": true,
-      "locator_valid": true
-    },
-    {
-      "subject": "Health Data Hosting (HDS) France",
-      "predicate": "has_return_window",
-      "object": "HDS certification imposes advanced security and privacy requirements on hosting services and cloud providers to ensure that the confidentiality and integrity of sensitive data that must be located within the EEA is adequately protected.",
+      "subject": "Enterprise Subscription Enrollment (Indirect)",
+      "predicate": "has_attachment_requirement",
+      "object": "EAS20261Enr(Ind)(NA)(ENG)(Aug2025) Page 1 of 9 Document X20-11093 Enterprise Subscription Enrollment (Indirect) Corporate Enterprise Subscription Enrollment number Microsoft to complete Previous Enrollment number Reseller to complete This Enrollment must be attached to a signature form to be valid.",
       "disposition": "AMBIGUOUS_NEEDS_REVIEW",
       "trust_score": 0.8562,
       "decision_reason": "REVIEW: Human review recommended. Sub-threshold semantic confidence (85% < 88%).; Trust score 0.86 is below 0.88 auto-approval threshold",
@@ -74,19 +34,749 @@
       "locator_valid": true
     },
     {
-      "subject": "Contractual terms",
-      "predicate": "has_definition",
-      "object": "The French Public Health code requires the execution of specific contractual terms between the health data hosting service or cloud service provider and its Audits, reports, and certificates How to implement",
+      "subject": "This Enrollment",
+      "predicate": "has_validity_rule",
+      "object": "only be entered into under a 2011 or later Enterprise Agreement",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "By entering into this Enrollment, Enrolled Affiliate",
+      "predicate": "has_validity_rule",
+      "object": "be bound by the terms and conditions of the Enterprise Agreement and the Primary Agreement",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.975,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 97.5%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "then the effective date",
+      "predicate": "has_validity_rule",
+      "object": "be the day after the first Enrollment or agreement expires or terminates",
       "disposition": "AMBIGUOUS_NEEDS_REVIEW",
-      "trust_score": 0.9875,
+      "trust_score": 0.975,
       "decision_reason": "NON-CANONICAL CONTEXT: Retained for overview display; excluded from active decision gate to prevent duplicate evaluation against atomic row claims.",
       "evidence_supported": true,
       "locator_valid": true
     },
     {
+      "subject": "the effective date of the renewal term",
+      "predicate": "has_validity_rule",
+      "object": "be the day after the Expiration Date of the initial term",
+      "disposition": "AMBIGUOUS_NEEDS_REVIEW",
+      "trust_score": 0.975,
+      "decision_reason": "NON-CANONICAL CONTEXT: Retained for overview display; excluded from active decision gate to prevent duplicate evaluation against atomic row claims.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Otherwise, the effective date",
+      "predicate": "has_validity_rule",
+      "object": "be the date this Enroll ment is accepted by Microsoft",
+      "disposition": "AMBIGUOUS_NEEDS_REVIEW",
+      "trust_score": 0.975,
+      "decision_reason": "NON-CANONICAL CONTEXT: Retained for overview display; excluded from active decision gate to prevent duplicate evaluation against atomic row claims.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "The initial term of t his Enrollment",
+      "predicate": "expire",
+      "object": "on the last day of the month, 36 full calendar months from the effective date of the initial term",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.975,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 97.5%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "The renewal term",
+      "predicate": "expire",
+      "object": "36 full calendar months after the effective date of the renewal term",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.975,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 97.5%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Any reference in this Enrollment to \"day\"",
+      "predicate": "has_validity_rule",
+      "object": "be a calendar day",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.975,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 97.5%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "the previous Enrollment or agreement number",
+      "predicate": "identified",
+      "object": "in the appropriate box above",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Enterprise Products",
+      "predicate": "has_licensing_requirement",
+      "object": "licensed for all Qualified Devices and Qualified Users on an Enterprise -wide basis under this program",
+      "disposition": "AMBIGUOUS_NEEDS_REVIEW",
+      "trust_score": 0.99,
+      "decision_reason": "NON-CANONICAL CONTEXT: Retained for overview display; excluded from active decision gate to prevent duplicate evaluation against atomic row claims.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "The device",
+      "predicate": "include",
+      "object": "features and functions derived from Microsoft software or third -party software",
+      "disposition": "AMBIGUOUS_NEEDS_REVIEW",
+      "trust_score": 0.99,
+      "decision_reason": "NON-CANONICAL CONTEXT: Retained for overview display; excluded from active decision gate to prevent duplicate evaluation against atomic row claims.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Examples of Managed Devices",
+      "predicate": "has_validity_rule",
+      "object": "be found in the Product Terms",
+      "disposition": "AMBIGUOUS_NEEDS_REVIEW",
+      "trust_score": 0.99,
+      "decision_reason": "NON-CANONICAL CONTEXT: Retained for overview display; excluded from active decision gate to prevent duplicate evaluation against atomic row claims.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "At its option, the Enrolled Affiliate",
+      "predicate": "designate",
+      "object": "any device excluded above (e.g., Industry Device) that is used by or for the benefit of the Enrolled Affiliate's Enterprise as a Qualified Device for all or a subset of Enterprise Products or Online Services the Enrolled Affiliate has selected",
+      "disposition": "AMBIGUOUS_NEEDS_REVIEW",
+      "trust_score": 0.99,
+      "decision_reason": "NON-CANONICAL CONTEXT: Retained for overview display; excluded from active decision gate to prevent duplicate evaluation against atomic row claims.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Software",
+      "predicate": "has_validity_rule",
+      "object": "be part of an Online Service",
+      "disposition": "AMBIGUOUS_NEEDS_REVIEW",
+      "trust_score": 0.99,
+      "decision_reason": "NON-CANONICAL CONTEXT: Retained for overview display; excluded from active decision gate to prevent duplicate evaluation against atomic row claims.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Enrolled Affiliate's Enterprise",
+      "predicate": "has_validity_rule",
+      "object": "have a minimum of 500 Qualified Users or Qualified Devices",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "The initial order",
+      "predicate": "include",
+      "object": "at least 500 Subscription Licenses in a single Product pool for Enterprise Products or Enterprise Online Services",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Enrolled Affiliate",
+      "predicate": "order",
+      "object": "enough Licenses from the Product pool for each Enterprise Product ordered to cover all Qualified Users and/or all Qualified Devices",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Enrolled Affiliate",
+      "predicate": "elect",
+      "object": "to mix Enterprise Products and Enterprise Online Services within a Product pool as long as all Qualified Devices not covered by a License are only used by users covered with a user License",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Enrolled Affiliate",
+      "predicate": "order",
+      "object": "Additional Products and Services",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Enrolled Affiliate",
+      "predicate": "specify",
+      "object": "the countries where Licenses will be used on its initial order and on any additional orders",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Orders",
+      "predicate": "submitted",
+      "object": "to an authorized Reseller who will transmit the order to Microsoft",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "New Enterprise Products or Enterprise Online Services",
+      "predicate": "has_validity_rule",
+      "object": "be added at any time by contacting a Microsoft Account Manager or Reseller",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "New Additional Products, other than Online Services",
+      "predicate": "has_validity_rule",
+      "object": "be used if an order is placed in the month the Product is first used",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Additional quantities of Additional Products other than Online Services",
+      "predicate": "has_validity_rule",
+      "object": "be used at any time provided an order is placed in the month the Product is first used",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Additional Licenses for Online Services",
+      "predicate": "ordered",
+      "object": "prior to use unless the Online Services are (1) identified as eligible for the annual order process in the Product Terms or (2) included as part of other Licenses",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Enrolled Affiliate",
+      "predicate": "submit",
+      "object": "an annual order that accounts for any changes since the initial order or last annual order",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "For Enterprise Products, Enrolled Affiliate",
+      "predicate": "determine",
+      "object": "the number of Qualified Devices and Qualified Users (if ordering user -based Licenses) at the time the annual order is placed and must order additional Licenses for all Qualified Devices and Qualified Users that are not alr eady covered by existing Licenses, including any Enterprise Online Services",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "EAS20261Enr(Ind)(NA)(ENG)(Aug2025) Page 4 of 9 Document X20-11093 and payment",
+      "predicate": "has_validity_rule",
+      "object": "be deferred until the next annual order",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Microsoft",
+      "predicate": "provide",
+      "object": "a report of Reserved Licenses ordered but not yet invoiced to Enrolled Affiliate and its Reseller",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.975,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 97.5%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Enrolled Affiliate",
+      "predicate": "reduce",
+      "object": "the quantity of Subscription Licenses at the enrollment anniversary date on a prospective basis as follows",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "An Enrolled Affiliate",
+      "predicate": "reduce",
+      "object": "Licenses for Online Services on or before the Enrollment anniversary date and place a reservation order for such licenses within 90 days after the anniversary date; however, any licenses ordered as described in this section will be invoiced to the Enrolled Affiliate for the time period the licenses were made available",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Subscription Licenses ordered upfront",
+      "predicate": "has_validity_rule",
+      "object": "be reduced",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "2) For Additional Products, Enrolled Affiliate",
+      "predicate": "reduce",
+      "object": "the Licenses",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "then Enrolled Affiliate's use of the applicable Subscription License",
+      "predicate": "can_cancel_before_shipment",
+      "object": "be cancelled",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "The annual order",
+      "predicate": "received",
+      "object": "by Microsoft between 60 and",
+      "disposition": "AUTOMATED_CHECKS_FAILED",
+      "trust_score": 0.84,
+      "decision_reason": "REJECTED: INCOMPLETE_ASSERTION: Incomplete syntactic clause, headless fragment, bare heading, or missing measurement unit: 'by Microsoft between 60 and'. Complete assertion required.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Enterprise Subscription Enrollment (Indirect)",
+      "predicate": "has_due_date_period",
+      "object": "The last year anniversary annual order during an Enrollment term is due within 30 days prior to the Expiration Date, and any license reservations within this 30 -day period will not be accepted.",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.975,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 97.5%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Enrolled Affiliate",
+      "predicate": "order",
+      "object": "more often than at each Enrollment anniversary date except for Subscription License reductions",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "1) Microsoft",
+      "predicate": "invoice",
+      "object": "Reseller for the following year for (1) the quantity of Subscription Licenses ordered in the prior year and (2) Reserved Licenses in excess of the quantity previously invoiced, and 2) License reductions cannot be reported until the following Enrollment anniversary date (or at Enrollment renewal, as applicable)",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Enrolled Affiliate",
+      "predicate": "buy",
+      "object": "out active Subscription Licenses acquired under this Enrollment for Products other than Online Services (if permitted) and acquire perpetual Licenses for the latest version of the Product as of the Expiration Date by placing an order for such Licenses",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Microsoft",
+      "predicate": "receive",
+      "object": "the buy -out order no more than 30 days prior to the Expiration Date",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "The Expiration Date",
+      "predicate": "has_validity_rule",
+      "object": "be the invoice date for the buy -out order",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.975,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 97.5%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "The buy- out order",
+      "predicate": "include",
+      "object": "Subscription Licenses for : (1) Qualified Devices and Qualified Users",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Microsoft",
+      "predicate": "correct",
+      "object": "clerical errors in this Enrollment, and any documents submitted with or under this Enrollment, by providing notice by email and a reasonable opportunity for Enrolled Affiliate to object to the correction",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Enrolled Affiliate's prices for each Product or Service",
+      "predicate": "has_validity_rule",
+      "object": "be established by its Reseller",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.975,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 97.5%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Microsoft's prices to Reseller for each Product or Service ordered",
+      "predicate": "has_validity_rule",
+      "object": "be fixed throughout the applicable initial or renewal Enrollment term , provided that Enrolled Affiliate qualifies for the same price level for the entire term",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.975,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 97.5%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Microsoft",
+      "predicate": "at",
+      "object": "its discretion establish a new price level for future new orders either upon Enrolled Affiliate's request or on its own initiative",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Any changes",
+      "predicate": "has_validity_rule",
+      "object": "be based upon price level rules in the Product Selection Form",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.975,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 97.5%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "At the Expiration Date, Enrolled Affiliate",
+      "predicate": "immediately_order",
+      "object": "and pay for Licenses for Products it has used but has not previously submitted an order, except as otherwise provided in this Enrollment",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Enterprise Subscription Enrollment (Indirect)",
+      "predicate": "has_return_window",
+      "object": "A final order for any Reserved Licenses for Online Services not previously paid for must be made within 30 days prior to the Expiration Date.",
+      "disposition": "AMBIGUOUS_NEEDS_REVIEW",
+      "trust_score": 0.8562,
+      "decision_reason": "REVIEW: Human review recommended. Sub-threshold semantic confidence (85% < 88%).; Trust score 0.86 is below 0.88 auto-approval threshold",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "At the Expiration Date of the initial term, Enrolled Affiliate",
+      "predicate": "request",
+      "object": "to renew Products and Services under this Enrollment for one additional 36 -month term",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Microsoft",
+      "predicate": "has_validity_rule",
+      "object": "make changes to this program that will make it necessary for Customer and its Enrolled Affiliates to enter into new agreements or Enrollments in order to renew",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "In order for a renewal request to be considered, Microsoft",
+      "predicate": "receive",
+      "object": "a Renewal Form, Product Selection Form, and renewal request prior to or at the Expiration Date",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Microsoft",
+      "predicate": "review",
+      "object": "a renewal request made under this section in good faith and may accept or reject such request in its sole discretion",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Enrolled Affiliate",
+      "predicate": "elect",
+      "object": "to obtain perpetual Licenses as described in the Section titled \" Buy-out option\" for Licenses for which a buy -out is available",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Enrolled Affiliate",
+      "predicate": "submit",
+      "object": "a request to Microsoft at least 30 days prior to the Expiration Date",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Thereafter, Microsoft",
+      "predicate": "condition",
+      "object": "the continued use of each O nline Service on the acceptance of new terms by the Enrolled Affiliate",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Enrolled Affiliate",
+      "predicate": "has_validity_rule",
+      "object": "be notified in writing of any new terms at least 60 days before any such changes take effect",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.975,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 97.5%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Enrolled Affiliate's termination under this section",
+      "predicate": "has_validity_rule",
+      "object": "be effective at the end of the month following 30 days after Microsoft has received the notice",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.975,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 97.5%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "the Licenses",
+      "predicate": "can_cancel_before_shipment",
+      "object": "be cancelled and will terminate as of the Expiration Date",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Any associated media",
+      "predicate": "uninstalled",
+      "object": "and destroyed and Enrolled Affiliate's Enterprise must discontinue use",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Microsoft",
+      "predicate": "request",
+      "object": "written certification to verify compliance",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Enrolled Affiliate",
+      "predicate": "has_return_window",
+      "object": "obtain perpetual Licenses as described in the section titled \"Buy-out option,\" provided that Microsoft receives the buy -out order for those Licenses within 60 days after Enrolled Affiliate provides notice of termination",
+      "disposition": "AMBIGUOUS_NEEDS_REVIEW",
+      "trust_score": 0.8,
+      "decision_reason": "REVIEW: Human review recommended. Deontic mismatch: claim claims OBLIGATION but underlying source evidence reflects discretionary/permissive phrasing or lacks normative imperative verbs.; Trust score 0.80 is below 0.88 auto-approval threshold",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Enrolled Affiliate",
+      "predicate": "order",
+      "object": "Products for use by its Affiliates",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "the licenses granted to Enrolled Affiliate under this Enrollment",
+      "predicate": "apply_to",
+      "object": "such Affiliates",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.975,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 97.5%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Enrolled Affiliate",
+      "predicate": "has_validity_rule",
+      "object": "have the sole right to enforce the Agreement and this E nrollment against Microsoft",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.975,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 97.5%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Enrolled Affiliate",
+      "predicate": "remain",
+      "object": "responsible for all obligations under this Enrollment and for its Affiliates' compliance with this Enrollment",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.975,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 97.5%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Only the Enrolled Affiliate and the Affiliates listed below",
+      "predicate": "has_validity_rule",
+      "object": "be included in the Enterprise",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.975,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 97.5%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
       "subject": "Customers",
-      "predicate": "reach",
-      "object": "out to their Microsoft licensing point of contact to enter into these specific contractual terms before hosting health personal data on Microsoft online services",
+      "predicate": "not",
+      "object": "and will ensure its Affiliates will not, take any action that causes Microsoft to violate applicable Trade Laws",
+      "disposition": "AUTOMATED_CHECKS_FAILED",
+      "trust_score": 0.8,
+      "decision_reason": "REJECTED: Semantic grounding failure. Subject-Evidence mismatch: asserted subject 'Customers' has no grounding in the underlying evidence span.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Microsoft",
+      "predicate": "suspend",
+      "object": "or terminate this Enrollment immediately without notice to the extent that Microsoft reasonably believes that performance would cause it to violate Trade Laws or put it at risk of becoming subject to sanctions and penalties under such laws",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Customers",
+      "predicate": "remains_responsible_for",
+      "object": "its and for its Affiliates' compliance with this section and, to the extent appl icable, a Regional Trade Compliance Supplemental Terms incorporated herein by reference",
+      "disposition": "AUTOMATED_CHECKS_FAILED",
+      "trust_score": 0.8,
+      "decision_reason": "REJECTED: Semantic grounding failure. Subject-Evidence mismatch: asserted subject 'Customers' has no grounding in the underlying evidence span.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Each party",
+      "predicate": "notify",
+      "object": "the other in writing if any of the information in the following contact information page(s) changes",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.975,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 97.5%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "This contact",
+      "predicate": "has_validity_rule",
+      "object": "also be an Online Administrator for Volume Licensing in the Microsoft 365 Admin Center (MAC) and may grant online access to others",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "The primary contact",
+      "predicate": "has_validity_rule",
+      "object": "be the default contact for all purposes unless separate contacts are identified for specific purposes",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.975,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 97.5%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Enrolled Affiliate",
+      "predicate": "choose",
+      "object": "a replacement Reseller",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "the initiating party",
+      "predicate": "notify",
+      "object": "Microsoft and the other party using a form provided by Microsoft at least 90 days prior to the date on which the change is to take effect",
       "disposition": "AUTOMATED_CHECKS_PASSED",
       "trust_score": 0.99,
       "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
