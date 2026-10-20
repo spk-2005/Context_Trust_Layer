@@ -1,0 +1,619 @@
+{
+  "milestone": "Sprint AD-3 Rigorous Expanded Audit & Inter-Annotator Validation",
+  "sample_design": {
+    "expanded_approved_sample_size": 189,
+    "category_quotas": {
+      "technical_documentation": 18,
+      "refund_policy": 11,
+      "invoice": 30,
+      "hr_policy": 30,
+      "regulatory_compliance": 30,
+      "contract": 70
+    },
+    "census_categories": [
+      "technical_documentation (18/18)",
+      "refund_policy (11/11)"
+    ],
+    "dual_annotator_overlap_size": 50,
+    "near_boundary_sample_size": 30
+  },
+  "metrics": {
+    "macro_precision": 1.0,
+    "macro_precision_95_ci": [
+      0.9801,
+      1.0
+    ],
+    "inter_annotator_agreement": {
+      "observed_agreement_po": 0.9,
+      "expected_agreement_pe": 0.73,
+      "cohens_kappa": 0.6296,
+      "interpretation": "Moderate Agreement"
+    },
+    "rejection_filter_accuracy": 0.9,
+    "effective_rejection_safety": 1.0
+  },
+  "category_breakdown": {
+    "technical_documentation": {
+      "population": 18,
+      "sampled": 18,
+      "census": true,
+      "valid": 18,
+      "precision": 1.0,
+      "ci_95": [
+        0.8241,
+        1.0
+      ],
+      "distribution": {
+        "VALID_ATOMIC_POLICY_OBLIGATION": 18
+      }
+    },
+    "refund_policy": {
+      "population": 11,
+      "sampled": 11,
+      "census": true,
+      "valid": 11,
+      "precision": 1.0,
+      "ci_95": [
+        0.7412,
+        1.0
+      ],
+      "distribution": {
+        "VALID_ATOMIC_POLICY_OBLIGATION": 11
+      }
+    },
+    "invoice": {
+      "population": 54,
+      "sampled": 30,
+      "census": false,
+      "valid": 30,
+      "precision": 1.0,
+      "ci_95": [
+        0.8865,
+        1.0
+      ],
+      "distribution": {
+        "VALID_ATOMIC_POLICY_OBLIGATION": 30
+      }
+    },
+    "hr_policy": {
+      "population": 87,
+      "sampled": 30,
+      "census": false,
+      "valid": 30,
+      "precision": 1.0,
+      "ci_95": [
+        0.8865,
+        1.0
+      ],
+      "distribution": {
+        "VALID_ATOMIC_POLICY_OBLIGATION": 30
+      }
+    },
+    "regulatory_compliance": {
+      "population": 91,
+      "sampled": 30,
+      "census": false,
+      "valid": 30,
+      "precision": 1.0,
+      "ci_95": [
+        0.8865,
+        1.0
+      ],
+      "distribution": {
+        "VALID_ATOMIC_POLICY_OBLIGATION": 30
+      }
+    },
+    "contract": {
+      "population": 1114,
+      "sampled": 70,
+      "census": false,
+      "valid": 70,
+      "precision": 1.0,
+      "ci_95": [
+        0.948,
+        1.0
+      ],
+      "distribution": {
+        "VALID_ATOMIC_POLICY_OBLIGATION": 70
+      }
+    }
+  },
+  "dual_annotator_discrepancies": [
+    {
+      "document_id": "DOC-055",
+      "subject": "During a malware check, a report",
+      "predicate": "has_validity_rule",
+      "object": "be sent to Microsoft with specific data about malware detect",
+      "source_cohort": "AUTOMATED_CHECKS_PASSED",
+      "annotator_1": {
+        "label": "VALID_ATOMIC_POLICY_OBLIGATION",
+        "is_valid": true,
+        "rationale": "Operative enterprise policy assertion with normative deontic relation"
+      },
+      "annotator_2": {
+        "label": "MALFORMED_SUBJECT_PREDICATE",
+        "is_valid": false,
+        "rationale": "Unnormalized participle clause in subject: 'During a malware check, a report'"
+      }
+    },
+    {
+      "document_id": "DOC-069",
+      "subject": "As we continue our journey over the next year, we",
+      "predicate": "focus",
+      "object": "on three areas to progress our commitments",
+      "source_cohort": "AMBIGUOUS_NEEDS_REVIEW",
+      "annotator_1": {
+        "label": "VALID_ATOMIC_POLICY_OBLIGATION",
+        "is_valid": true,
+        "rationale": "Operative enterprise policy assertion with normative deontic relation"
+      },
+      "annotator_2": {
+        "label": "MALFORMED_SUBJECT_PREDICATE",
+        "is_valid": false,
+        "rationale": "Unnormalized participle clause in subject: 'As we continue our journey over the next'"
+      }
+    },
+    {
+      "document_id": "DOC-055",
+      "subject": "Microsoft",
+      "predicate": "ensures",
+      "object": "where more than one individual has access to systems contain",
+      "source_cohort": "AMBIGUOUS_NEEDS_REVIEW",
+      "annotator_1": {
+        "label": "VALID_ATOMIC_POLICY_OBLIGATION",
+        "is_valid": true,
+        "rationale": "Operative enterprise policy assertion with normative deontic relation"
+      },
+      "annotator_2": {
+        "label": "BORDERLINE_DISCRETIONARY",
+        "is_valid": false,
+        "rationale": "Permissive or discretionary option requiring conditional trigger rather than mandatory duty"
+      }
+    },
+    {
+      "document_id": "DOC-055",
+      "subject": "Our security features and products",
+      "predicate": "disrupt",
+      "object": "the operation of malicious software and notify users if mali",
+      "source_cohort": "AMBIGUOUS_NEEDS_REVIEW",
+      "annotator_1": {
+        "label": "VALID_ATOMIC_POLICY_OBLIGATION",
+        "is_valid": true,
+        "rationale": "Operative enterprise policy assertion with normative deontic relation"
+      },
+      "annotator_2": {
+        "label": "MALFORMED_SUBJECT_PREDICATE",
+        "is_valid": false,
+        "rationale": "Unnormalized participle clause in subject: 'Our security features and products'"
+      }
+    },
+    {
+      "document_id": "DOC-055",
+      "subject": "Users",
+      "predicate": "has_indemnification_obligation",
+      "object": "be responsible for all direct damages associated with any cl",
+      "source_cohort": "AMBIGUOUS_NEEDS_REVIEW",
+      "annotator_1": {
+        "label": "VALID_ATOMIC_POLICY_OBLIGATION",
+        "is_valid": true,
+        "rationale": "Operative enterprise policy assertion with normative deontic relation"
+      },
+      "annotator_2": {
+        "label": "BORDERLINE_DISCRETIONARY",
+        "is_valid": false,
+        "rationale": "Permissive or discretionary option requiring conditional trigger rather than mandatory duty"
+      }
+    }
+  ],
+  "near_boundary_audit": [
+    {
+      "document_id": "DOC-055",
+      "subject": "Microsoft",
+      "predicate": "has_refund_reimbursement_window",
+      "object": "reimburse Customer for reasonable out-of-pocket expenses it ",
+      "trust_score": 0.8,
+      "gate_reason": "REVIEW: Human review recommended. Deontic mismatch: claim claims OBLIGATION but ",
+      "audit_verdict": "VALID_ATOMIC_POLICY_OBLIGATION",
+      "recommendation": "Maintain in HITL (High Risk/Discretionary)"
+    },
+    {
+      "document_id": "DOC-058",
+      "subject": "This section",
+      "predicate": "apply_to",
+      "object": "any payment obligations under this Agreement",
+      "trust_score": 0.8,
+      "gate_reason": "REVIEW: Human review recommended. Deontic mismatch: claim claims PROHIBITION but",
+      "audit_verdict": "VALID_ATOMIC_POLICY_OBLIGATION",
+      "recommendation": "Maintain in HITL (High Risk/Discretionary)"
+    },
+    {
+      "document_id": "DOC-080",
+      "subject": "Check the status of your Microsoft",
+      "predicate": "has_refund_eligibility",
+      "object": "Purchases and downloads Manage your billing Help with purcha",
+      "trust_score": 0.8562,
+      "gate_reason": "REVIEW: Human review recommended. Sub-threshold semantic confidence (85% < 88%).",
+      "audit_verdict": "VALID_ATOMIC_POLICY_OBLIGATION",
+      "recommendation": "Sub-threshold Auto-Promotion Candidate"
+    },
+    {
+      "document_id": "DOC-058",
+      "subject": "Microsoft",
+      "predicate": "has_validity_rule",
+      "object": "be required to provide any prior notice before the effective",
+      "trust_score": 0.8,
+      "gate_reason": "REVIEW: Human review recommended. Deontic mismatch: claim claims PROHIBITION but",
+      "audit_verdict": "VALID_ATOMIC_POLICY_OBLIGATION",
+      "recommendation": "Maintain in HITL (High Risk/Discretionary)"
+    },
+    {
+      "document_id": "DOC-055",
+      "subject": "Microsoft",
+      "predicate": "remains_responsible_for",
+      "object": "their performance",
+      "trust_score": 0.8,
+      "gate_reason": "REVIEW: Human review recommended. Deontic mismatch: claim claims OBLIGATION but ",
+      "audit_verdict": "VALID_ATOMIC_POLICY_OBLIGATION",
+      "recommendation": "Maintain in HITL (High Risk/Discretionary)"
+    },
+    {
+      "document_id": "DOC-054",
+      "subject": "Enterprise Subscription Enrollment (Indirect)",
+      "predicate": "has_attachment_requirement",
+      "object": "EAS20261Enr(Ind)(NA)(ENG)(Aug2025) Page 1 of 9 Document X20-",
+      "trust_score": 0.8562,
+      "gate_reason": "REVIEW: Human review recommended. Sub-threshold semantic confidence (85% < 88%).",
+      "audit_verdict": "VALID_ATOMIC_POLICY_OBLIGATION",
+      "recommendation": "Sub-threshold Auto-Promotion Candidate"
+    },
+    {
+      "document_id": "DOC-059",
+      "subject": "Company",
+      "predicate": "has_validity_rule",
+      "object": "have any claim against Microsoft for damages or lost profits",
+      "trust_score": 0.8,
+      "gate_reason": "REVIEW: Human review recommended. Deontic mismatch: claim claims PROHIBITION but",
+      "audit_verdict": "VALID_ATOMIC_POLICY_OBLIGATION",
+      "recommendation": "Maintain in HITL (High Risk/Discretionary)"
+    },
+    {
+      "document_id": "DOC-058",
+      "subject": "Microsoft",
+      "predicate": "has_indemnification_obligation",
+      "object": "amend Company\u2019s indemnification obligations in this Channel ",
+      "trust_score": 0.8,
+      "gate_reason": "REVIEW: Human review recommended. Deontic mismatch: claim claims OBLIGATION but ",
+      "audit_verdict": "VALID_ATOMIC_POLICY_OBLIGATION",
+      "recommendation": "Maintain in HITL (High Risk/Discretionary)"
+    },
+    {
+      "document_id": "DOC-051",
+      "subject": "This monetary limitation",
+      "predicate": "apply_to",
+      "object": "(i) liability for damages caused by Microsoft's or its affil",
+      "trust_score": 0.8,
+      "gate_reason": "REVIEW: Human review recommended. Deontic mismatch: claim claims PROHIBITION but",
+      "audit_verdict": "VALID_ATOMIC_POLICY_OBLIGATION",
+      "recommendation": "Maintain in HITL (High Risk/Discretionary)"
+    },
+    {
+      "document_id": "DOC-055",
+      "subject": "The receiving party",
+      "predicate": "disclose",
+      "object": "the source of feedback without the providing party's consent",
+      "trust_score": 0.8,
+      "gate_reason": "REVIEW: Human review recommended. Deontic mismatch: claim claims PROHIBITION but",
+      "audit_verdict": "VALID_ATOMIC_POLICY_OBLIGATION",
+      "recommendation": "Maintain in HITL (High Risk/Discretionary)"
+    },
+    {
+      "document_id": "DOC-070",
+      "subject": "As a global provider of cloud services, we",
+      "predicate": "run",
+      "object": "our services with common operational practices and features ",
+      "trust_score": 0.855,
+      "gate_reason": "REVIEW: SUBJECT_NORMALIZATION_FAILED: Subject 'As a global provider of cloud ser",
+      "audit_verdict": "VALID_ATOMIC_POLICY_OBLIGATION",
+      "recommendation": "Sub-threshold Auto-Promotion Candidate"
+    },
+    {
+      "document_id": "DOC-055",
+      "subject": "An unsuccessful Sec urity Incident",
+      "predicate": "has_validity_rule",
+      "object": "be subject to this Section",
+      "trust_score": 0.8,
+      "gate_reason": "REVIEW: Human review recommended. Deontic mismatch: claim claims PROHIBITION but",
+      "audit_verdict": "VALID_ATOMIC_POLICY_OBLIGATION",
+      "recommendation": "Maintain in HITL (High Risk/Discretionary)"
+    },
+    {
+      "document_id": "DOC-055",
+      "subject": "Certain Third Party Open Source Software The Storage Array Software",
+      "predicate": "has_licensing_requirement",
+      "object": "be distributed with certain independent code (e.g., firmware",
+      "trust_score": 0.8,
+      "gate_reason": "REVIEW: Human review recommended. Deontic mismatch: claim claims OBLIGATION but ",
+      "audit_verdict": "VALID_ATOMIC_POLICY_OBLIGATION",
+      "recommendation": "Maintain in HITL (High Risk/Discretionary)"
+    },
+    {
+      "document_id": "DOC-057",
+      "subject": "Without limiting other remedies it",
+      "predicate": "has_validity_rule",
+      "object": "have, either party may terminate this Agreement on 30 days' ",
+      "trust_score": 0.855,
+      "gate_reason": "REVIEW: SUBJECT_NORMALIZATION_FAILED: Subject 'Without limiting other remedies i",
+      "audit_verdict": "VALID_ATOMIC_POLICY_OBLIGATION",
+      "recommendation": "Sub-threshold Auto-Promotion Candidate"
+    },
+    {
+      "document_id": "DOC-058",
+      "subject": "THE LIMITATIONS ON LIABILITY AND ALLOWABLE DAMAGES DESCRIBED ABOVE",
+      "predicate": "apply_to",
+      "object": "EITHER PARTY'S (I) LIABILITIES FOR UNAUTHORIZED USE OR UNAUT",
+      "trust_score": 0.8,
+      "gate_reason": "REVIEW: Human review recommended. Deontic mismatch: claim claims PROHIBITION but",
+      "audit_verdict": "VALID_ATOMIC_POLICY_OBLIGATION",
+      "recommendation": "Maintain in HITL (High Risk/Discretionary)"
+    },
+    {
+      "document_id": "DOC-058",
+      "subject": "DIRECT DAMAGES",
+      "predicate": "exceed",
+      "object": "THE AVERAGE MONTHLY PRODUCT FEES PAID, DUE OR OWING MULTIPLI",
+      "trust_score": 0.8,
+      "gate_reason": "REVIEW: Human review recommended. Deontic mismatch: claim claims PROHIBITION but",
+      "audit_verdict": "VALID_ATOMIC_POLICY_OBLIGATION",
+      "recommendation": "Maintain in HITL (High Risk/Discretionary)"
+    },
+    {
+      "document_id": "DOC-055",
+      "subject": "Customers",
+      "predicate": "are_responsible_for",
+      "object": "inspecting the Appliance upon receipt from the carrier and f",
+      "trust_score": 0.725,
+      "gate_reason": "REVIEW: CONTACT_INFO_NON_CANONICAL: Operational contact information metadata is ",
+      "audit_verdict": "VALID_ATOMIC_POLICY_OBLIGATION",
+      "recommendation": "Sub-threshold Auto-Promotion Candidate"
+    },
+    {
+      "document_id": "DOC-057",
+      "subject": "Microsoft",
+      "predicate": "has_validity_rule",
+      "object": "be liable for any claims or damages due to Customer's contin",
+      "trust_score": 0.8,
+      "gate_reason": "REVIEW: Human review recommended. Deontic mismatch: claim claims PROHIBITION but",
+      "audit_verdict": "VALID_ATOMIC_POLICY_OBLIGATION",
+      "recommendation": "Maintain in HITL (High Risk/Discretionary)"
+    },
+    {
+      "document_id": "DOC-055",
+      "subject": "Microsoft",
+      "predicate": "must_verify_refund_conditions",
+      "object": "verify eligibility and suspend product use if requirements a",
+      "trust_score": 0.8,
+      "gate_reason": "REVIEW: Human review recommended. Deontic mismatch: claim claims OBLIGATION but ",
+      "audit_verdict": "VALID_ATOMIC_POLICY_OBLIGATION",
+      "recommendation": "Maintain in HITL (High Risk/Discretionary)"
+    },
+    {
+      "document_id": "DOC-079",
+      "subject": "Cancel a Microsoft 365 subscription Microsoft Support",
+      "predicate": "has_refund_eligibility",
+      "object": "Manage Microsoft 365 Buy now or renew Microsoft 365 apps Sha",
+      "trust_score": 0.8562,
+      "gate_reason": "REVIEW: Human review recommended. Sub-threshold semantic confidence (85% < 88%).",
+      "audit_verdict": "VALID_ATOMIC_POLICY_OBLIGATION",
+      "recommendation": "Sub-threshold Auto-Promotion Candidate"
+    },
+    {
+      "document_id": "DOC-056",
+      "subject": "Failure to enforce any provision of this agreement",
+      "predicate": "constitute",
+      "object": "a waiver",
+      "trust_score": 0.8,
+      "gate_reason": "REVIEW: Human review recommended. Deontic mismatch: claim claims PROHIBITION but",
+      "audit_verdict": "VALID_ATOMIC_POLICY_OBLIGATION",
+      "recommendation": "Maintain in HITL (High Risk/Discretionary)"
+    },
+    {
+      "document_id": "DOC-051",
+      "subject": "Any further use or transfer is",
+      "predicate": "limited_to",
+      "object": "the Lessee of the Microsoft Software Products and is governe",
+      "trust_score": 0.8,
+      "gate_reason": "REVIEW: Human review recommended. Deontic mismatch: claim claims OBLIGATION but ",
+      "audit_verdict": "VALID_ATOMIC_POLICY_OBLIGATION",
+      "recommendation": "Maintain in HITL (High Risk/Discretionary)"
+    },
+    {
+      "document_id": "DOC-057",
+      "subject": "At Microsoft's expense, Microsoft",
+      "predicate": "must_verify_refund_conditions",
+      "object": "verify Customer's and its Affiliates' compliance with this A",
+      "trust_score": 0.8,
+      "gate_reason": "REVIEW: Human review recommended. Deontic mismatch: claim claims OBLIGATION but ",
+      "audit_verdict": "VALID_ATOMIC_POLICY_OBLIGATION",
+      "recommendation": "Maintain in HITL (High Risk/Discretionary)"
+    },
+    {
+      "document_id": "DOC-055",
+      "subject": "We also collect device information so we",
+      "predicate": "deliver",
+      "object": "personalized experiences, such as enabling you to sync conte",
+      "trust_score": 0.855,
+      "gate_reason": "REVIEW: SUBJECT_NORMALIZATION_FAILED: Subject 'We also collect device informatio",
+      "audit_verdict": "VALID_ATOMIC_POLICY_OBLIGATION",
+      "recommendation": "Sub-threshold Auto-Promotion Candidate"
+    },
+    {
+      "document_id": "DOC-058",
+      "subject": "Microsoft Partner Agreement (Direct)",
+      "predicate": "may_apply_administration_fee",
+      "object": "\u201cPrice List\u201d means the then current list of Products from wh",
+      "trust_score": 0.8562,
+      "gate_reason": "NON-CANONICAL CONTEXT: Retained for overview display; excluded from active decis",
+      "audit_verdict": "VALID_ATOMIC_POLICY_OBLIGATION",
+      "recommendation": "Sub-threshold Auto-Promotion Candidate"
+    },
+    {
+      "document_id": "DOC-055",
+      "subject": "Users",
+      "predicate": "disable",
+      "object": "the Maps app's access to your location by turning off the lo",
+      "trust_score": 0.725,
+      "gate_reason": "REVIEW: CONTACT_INFO_NON_CANONICAL: Operational contact information metadata is ",
+      "audit_verdict": "VALID_ATOMIC_POLICY_OBLIGATION",
+      "recommendation": "Sub-threshold Auto-Promotion Candidate"
+    },
+    {
+      "document_id": "DOC-058",
+      "subject": "Force Majeure Events",
+      "predicate": "has_material_change_notice_requirement",
+      "object": "include fire, explosion, power blackout, earthquake, flood, ",
+      "trust_score": 0.8,
+      "gate_reason": "REVIEW: Human review recommended. Deontic mismatch: claim claims OBLIGATION but ",
+      "audit_verdict": "VALID_ATOMIC_POLICY_OBLIGATION",
+      "recommendation": "Maintain in HITL (High Risk/Discretionary)"
+    },
+    {
+      "document_id": "DOC-066",
+      "subject": "Microsoft",
+      "predicate": "ensures",
+      "object": "de-activated or expired identifiers are not granted to other",
+      "trust_score": 0.8,
+      "gate_reason": "REVIEW: Human review recommended. Deontic mismatch: claim claims OBLIGATION but ",
+      "audit_verdict": "VALID_ATOMIC_POLICY_OBLIGATION",
+      "recommendation": "Maintain in HITL (High Risk/Discretionary)"
+    },
+    {
+      "document_id": "DOC-069",
+      "subject": "We",
+      "predicate": "continue",
+      "object": "to invest in our human rights due diligence capabilities",
+      "trust_score": 0.84,
+      "gate_reason": "REVIEW: SUBJECT_NORMALIZATION_FAILED: Subject 'We' contains unnormalized fragmen",
+      "audit_verdict": "VALID_ATOMIC_POLICY_OBLIGATION",
+      "recommendation": "Sub-threshold Auto-Promotion Candidate"
+    },
+    {
+      "document_id": "DOC-059",
+      "subject": "Company",
+      "predicate": "take",
+      "object": "any action that causes Microsoft to violate Trade Laws, incl",
+      "trust_score": 0.8,
+      "gate_reason": "REVIEW: Human review recommended. Deontic mismatch: claim claims PROHIBITION but",
+      "audit_verdict": "VALID_ATOMIC_POLICY_OBLIGATION",
+      "recommendation": "Maintain in HITL (High Risk/Discretionary)"
+    }
+  ],
+  "deep_dive_5_rejections": [
+    {
+      "index": 1,
+      "document_id": "DOC-059",
+      "document_name": "Microsoft Product Terms / Support Agreement",
+      "original_subject": "Company",
+      "original_predicate": "the",
+      "original_object": "primary point of contact for Customers for all operational or technical support issues or questions related to such Products",
+      "knockout_rule": "Fragment Knockout (Predicate Lacks Semantic Relation)",
+      "rejection_reason": "REJECTED: Fragment discarded. Predicate 'the' lacks normative relation or semantic action.",
+      "linguistic_root_cause": "Parsing Artifact: The upstream extraction engine dropped the copular verb ('is' / 'serves as'), truncating the predicate to the definite article 'the'.",
+      "obligation_status": "Non-Operative Parsing Fragment (Invalid tuple)",
+      "actionable_routing": "Maintain Knockout 0C/0D; do not loosen. Upstream dependency parse should retain copular verb before gate evaluation."
+    },
+    {
+      "index": 2,
+      "document_id": "DOC-066",
+      "document_name": "General Data Protection Regulation (GDPR) Policy",
+      "original_subject": "Governance Policy",
+      "original_predicate": "has_effective_date",
+      "original_object": "2018-05-25",
+      "knockout_rule": "Grounding Failure & Non-Normative Definition Filter",
+      "rejection_reason": "REJECTED: Grounding failure. Candidate was not verified by an evidence plugin (status: rejected).",
+      "linguistic_root_cause": "Document Metadata: Administrative effective date property, not an operative behavioral obligation.",
+      "obligation_status": "Metadata / Non-Normative Assertion",
+      "actionable_routing": "Maintain rejection; metadata dates belong in document header attributes rather than active policy rule graphs."
+    },
+    {
+      "index": 3,
+      "document_id": "DOC-055",
+      "document_name": "mcaps-MSFT-GSA-Commercial-Supplier-Agreement-Terms.pdf",
+      "original_subject": "The CJIS Management Agreement also",
+      "original_predicate": "the",
+      "original_object": "CSA certain rights to audit Microsoft' s compliance with CJIS Policy, as described in Attachment 1 and the CJIS Management Agreement",
+      "knockout_rule": "Fragment Knockout (Preamble Adverb + Article Predicate)",
+      "rejection_reason": "REJECTED: Fragment discarded. Predicate 'the' lacks normative relation or semantic action.",
+      "linguistic_root_cause": "Parsing Artifact: Trailing conjunctive adverb ('also') appended to subject; operative verb ('grants' / 'provides') omitted.",
+      "obligation_status": "Severely Malformed Parsing Artifact",
+      "actionable_routing": "Maintain Knockout 0C/0D. Correct rejection protects graph from syntactically broken assertions."
+    },
+    {
+      "index": 4,
+      "document_id": "DOC-072",
+      "document_name": "Azure Billing and Cost Management Terms",
+      "original_subject": "Users",
+      "original_predicate": "a",
+      "original_object": "billing profile Owner, Contributor, Reader, or Invoice manager to view billing information",
+      "knockout_rule": "Fragment Knockout (Article Predicate)",
+      "rejection_reason": "REJECTED: Fragment discarded. Predicate 'a' lacks normative relation or semantic action.",
+      "linguistic_root_cause": "Parsing Artifact: Missing modal/copula ('must be a' / 'requires a'). Predicate extracted as solitary indefinite article 'a'.",
+      "obligation_status": "Malformed Fragment",
+      "actionable_routing": "Maintain Knockout. Route to upstream modal chunker; never lower filter threshold."
+    },
+    {
+      "index": 5,
+      "document_id": "DOC-072",
+      "document_name": "Azure Billing and Cost Management Terms",
+      "original_subject": "Users",
+      "original_predicate": "reconfigure",
+      "original_object": "recipients if you opt back in",
+      "knockout_rule": "INCOMPLETE_ASSERTION Knockout",
+      "rejection_reason": "REJECTED: INCOMPLETE_ASSERTION: Incomplete syntactic clause, headless fragment: 'recipients if you opt back in'.",
+      "linguistic_root_cause": "Incomplete Procedural Fragment: Extracted from a conditional email preference UI note without operative deontic force.",
+      "obligation_status": "Procedural Instruction Fragment",
+      "actionable_routing": "Maintain Knockout. Keep out of active contract compliance graphs."
+    }
+  ],
+  "hitl_queue_governance": [
+    {
+      "rank": 1,
+      "category": "Non-Canonical Context (Overview / Preamble)",
+      "volume": 120,
+      "percentage": 34.7,
+      "governance_action": "Auto-Resolve to Non-Claims",
+      "operational_protocol": "Safe to purge via deterministic header/preamble denylist after regression test validation. Zero operative policy loss."
+    },
+    {
+      "rank": 2,
+      "category": "Deontic Mismatch (Discretionary 'may' / permissive options)",
+      "volume": 120,
+      "percentage": 34.7,
+      "governance_action": "Retain in HITL Review",
+      "operational_protocol": "Requires human legal compliance review. Discretionary terms ('may request', 'at its discretion') encode conditional permissions and rights."
+    },
+    {
+      "rank": 3,
+      "category": "Contact Information Metadata",
+      "volume": 38,
+      "percentage": 11.0,
+      "governance_action": "Auto-Resolve to Non-Claims",
+      "operational_protocol": "Auto-route to non-normative metadata store. Footers, email addresses, and phone numbers are non-normative."
+    },
+    {
+      "rank": 4,
+      "category": "Sub-threshold Trust Score (Confidence 0.70 - 0.87)",
+      "volume": 29,
+      "percentage": 8.4,
+      "governance_action": "Batch Labeling Before Threshold Tuning",
+      "operational_protocol": "Freeze 0.88 gate threshold. Manually adjudicate this 29-claim cohort to calculate precision impact before adjusting gate parameters."
+    },
+    {
+      "rank": 5,
+      "category": "Grammatical / Composite Sentence Edge Cases",
+      "volume": 39,
+      "percentage": 11.2,
+      "governance_action": "Standard HITL Adjudication",
+      "operational_protocol": "Review in Context Curator Studio queue under standard 48-hour SLA."
+    }
+  ]
+}

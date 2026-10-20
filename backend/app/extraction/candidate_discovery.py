@@ -193,9 +193,9 @@ class CandidateDiscoveryEngine:
             if (not is_decision_eligible or modality == "DESCRIPTIVE") and not has_obligations:
                 return False, ExtractionStrategyType.LLM_SEMANTIC, "Informational guidance or purpose statement; filtered from decision gate."
 
-            # Skip macro summary statements in favor of atomic extracted rules
+            # Allow macro summary statements for non-canonical derived summary extraction
             if DeonticClassifier.is_macro_summary(text):
-                return False, ExtractionStrategyType.DOMAIN_RULES, "Macro summary statement skipped in favor of atomic rules."
+                return True, ExtractionStrategyType.DOMAIN_RULES, "Macro summary statement for non-canonical derived summary extraction."
 
             # Eligible: Compound financial/settlement deductions requiring decomposition (fallback for concise docs)
             if DeonticClassifier.split_compound_deductions(text):

@@ -1,21 +1,21 @@
 {
   "document_id": "DOC-069",
-  "filename": "System and Organization Controls (SOC) 1 Type 2 - Microsoft Compliance _ Microsoft Learn.pdf",
-  "document_type": "regulatory_compliance",
+  "filename": "Human-Rights-Transparency-Report-2025.pdf",
+  "document_type": "hr_policy",
   "evaluation_methodology": "AUTOMATED_GATE_HEURISTIC (Awaiting Human Gold Reference)",
   "claim_counts": {
-    "candidate_claims": 8,
-    "valid": 3,
-    "invalid": 3,
+    "candidate_claims": 44,
+    "valid": 28,
+    "invalid": 5,
     "missed": 0,
     "duplicate": 0,
-    "ambiguous": 2,
+    "ambiguous": 11,
     "malformed": 0
   },
   "metrics": {
-    "claim_precision": 0.375,
+    "claim_precision": 0.6364,
     "claim_recall": 1.0,
-    "f1": 0.375,
+    "f1": 0.6364,
     "evidence_supported_rate": 1.0,
     "locator_accuracy_rate": 1.0,
     "duplicate_rate": 0.0
@@ -24,9 +24,19 @@
   "failure_patterns": [],
   "claims": [
     {
-      "subject": "Microsoft",
-      "predicate": "may_replicate",
-      "object": "replicate customer data to other regions within the same geographic area (for example, the United States) for data resiliency",
+      "subject": "As Microsoft marks its 50th anniversary, we",
+      "predicate": "bring",
+      "object": "together our Human Rights R eport and Supply Chain Integrity Statement into a single Human Rights Transparency Report",
+      "disposition": "AMBIGUOUS_NEEDS_REVIEW",
+      "trust_score": 0.84,
+      "decision_reason": "REVIEW: SUBJECT_NORMALIZATION_FAILED: Subject 'As Microsoft marks its 50th anniversary, we' contains unnormalized fragment, conversational pronoun phrase, or unclosed parenthesis.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Operating globally at a time of geopolitical instability",
+      "predicate": "strong",
+      "object": "cross-company coordination to help us ensure we approach each context-specific situation with a conflict- sensitive, human-rights lens",
       "disposition": "AUTOMATED_CHECKS_PASSED",
       "trust_score": 0.99,
       "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
@@ -34,49 +44,59 @@
       "locator_valid": true
     },
     {
-      "subject": "Microsoft",
-      "predicate": "prohibited_from_replicating",
-      "object": "replicate customer data outside the chosen geographic area",
-      "disposition": "AMBIGUOUS_NEEDS_REVIEW",
-      "trust_score": 0.8,
-      "decision_reason": "REVIEW: Human review recommended. Deontic mismatch: claim claims PROHIBITION but underlying source evidence reflects discretionary/permissive phrasing or lacks normative imperative verbs.; Trust score 0.80 is below 0.88 auto-approval threshold",
-      "evidence_supported": true,
-      "locator_valid": true
-    },
-    {
-      "subject": "Customers",
-      "predicate": "are_responsible_for",
-      "object": "ensuring compliance with all applicable laws and regulations",
-      "disposition": "AUTOMATED_CHECKS_FAILED",
-      "trust_score": 0.8,
-      "decision_reason": "REJECTED: Semantic grounding failure. Subject-Evidence mismatch: asserted subject 'Customers' has no grounding in the underlying evidence span.",
-      "evidence_supported": true,
-      "locator_valid": true
-    },
-    {
-      "subject": "System",
-      "predicate": "has_return_window",
-      "object": "Applicability In-scope services Help, Search Content Service, SharePoint Online (including OneDrive, Microsoft 365 Backup, Project Online, Viva Topics, and Viva Connections), Tasks Business Scenario Service, Viva Insights (including Personal Insights), Whiteboard, and Windows 365 GCC High Bing Teams (including ObjectStore), Customer Lockbox, Exchange Online, Exchange Online Protection, Loki, M365 Usage Reports, Microsoft Defender for Cloud Apps (App Governance), Microsoft Defender for Office 365 (including Advanced Hunting, Attack Simulation and Training, and One Cyber endpoint protection), Microsoft Forms, Microsoft Planner, Microsoft Priva, Microsoft Purview (including Auditing, Communication Compliance, Compliance Manager, Data Lifecycle Management, Records Manager, Data Loss Prevention, eDiscovery, Information Protection, Unified Feedback Platform, Insider Risk Management, Data Classification Services, Exact Data Match, and ML Inference), Microsoft Teams, Office Collaboration, Office for the Web (formerly called \"Office Online\"), OneNote Services, Outlook Web Application, PowerPoint Online Document Service, Service Encryption with Customer Key, Query Annotation Service, Real Time Channel, SharePoint Online (including OneDrive, Microsoft 365 Backup, Project Online, Viva Topics, and Viva Connections), Tasks Business Scenario Service, Viva Insights (including Personal Insights), Whiteboard, and Windows 365 DoD Bing Teams (including ObjectStore), Customer Lockbox, Exchange Online, Exchange Online Protection, Loki, M365 Usage Reports, Microsoft Defender for Cloud Apps (App Governance), Microsoft Defender for Office 365 (including Advanced Hunting, Attack Simulation and Training, and One Cyber endpoint protection), Microsoft Forms, Microsoft Planner, Microsoft Priva, Microsoft Purview (including Auditing, Communication Compliance, Compliance Manager, Data Lifecycle Management, Records Manager, Data Loss Prevention, eDiscovery, Information Protection, Unified Feedback Platform, Insider Risk Management, Data Classification Services, Exact Data Match, and ML Inference), Microsoft Teams, Office Collaboration, Office for the Web (formerly called \"Office Online\"), OneNote Services, Outlook Web Application, PowerPoint Online Document Service, Service Encryption with Customer Key, Query Annotation Service, Real Time Channel, SharePoint Online (including OneDrive, Microsoft 365 Backup, Project Online, Viva Topics, and Viva Connections), Tasks Business Scenario Service, Viva Insights (including Personal Insights), and Whiteboard Customers can download the Microsoft 365 SOC 1 Type 2 Reports for Central and Microservices via the Service Trust Portal .",
-      "disposition": "AMBIGUOUS_NEEDS_REVIEW",
-      "trust_score": 0.8562,
-      "decision_reason": "REVIEW: Human review recommended. Sub-threshold semantic confidence (85% < 88%).; Trust score 0.86 is below 0.88 auto-approval threshold",
-      "evidence_supported": true,
-      "locator_valid": true
-    },
-    {
-      "subject": "This large scope",
-      "predicate": "lead",
-      "object": "to examination completion delays",
-      "disposition": "AUTOMATED_CHECKS_PASSED",
-      "trust_score": 0.99,
-      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
-      "evidence_supported": true,
-      "locator_valid": true
-    },
-    {
-      "subject": "Customers",
+      "subject": "We know that people",
       "predicate": "use",
-      "object": "the Microsoft 365 SOC 1 Type 2 attestation when pursuing their own financial industry-specific compliance requirements such as Sarbanes-Oxley (SOX), Federal Financial Institutions Examination Council (FFIEC), Gramm-Leach-Bliley Act (GLBA), and others",
+      "object": "our products if they trust us, which is why we uphold the highest standards of trust, safety, and responsible business standard as we develop and deploy technology",
+      "disposition": "AMBIGUOUS_NEEDS_REVIEW",
+      "trust_score": 0.84,
+      "decision_reason": "REVIEW: SUBJECT_NORMALIZATION_FAILED: Subject 'We know that people' contains unnormalized fragment, conversational pronoun phrase, or unclosed parenthesis.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "A) organization, led by Vice Chair and President Brad Smith",
+      "predicate": "are_responsible_for",
+      "object": "driving the company's human rights program",
+      "disposition": "AMBIGUOUS_NEEDS_REVIEW",
+      "trust_score": 0.8,
+      "decision_reason": "REVIEW: Human review recommended. Deontic mismatch: claim claims OBLIGATION but underlying source evidence reflects discretionary/permissive phrasing or lacks normative imperative verbs.; Trust score 0.80 is below 0.88 auto-approval threshold",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "This is why we maintain multiple channels where concerns",
+      "predicate": "has_validity_rule",
+      "object": "be safely reported",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "In-scope suppliers",
+      "predicate": "implement",
+      "object": "raw materials sourcing policies that follow the steps set out by the OECD's Due Diligence Guidance",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Y ou",
+      "predicate": "learn",
+      "object": "more about our raw materials sourcing in our annual Conflict Minerals Report",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Customers",
+      "predicate": "has_validity_rule",
+      "object": "be found on our website",
       "disposition": "AUTOMATED_CHECKS_PASSED",
       "trust_score": 0.99,
       "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
@@ -85,8 +105,8 @@
     },
     {
       "subject": "Users",
-      "predicate": "has_validity_rule",
-      "object": "have an existing subscription or free trial account in Microsoft 365 or Microsoft 365 U.S",
+      "predicate": "expect",
+      "object": "privacy by design",
       "disposition": "AUTOMATED_CHECKS_FAILED",
       "trust_score": 0.8,
       "decision_reason": "REJECTED: Semantic grounding failure. Subject-Evidence mismatch: asserted subject 'Users' has no grounding in the underlying evidence span.",
@@ -94,12 +114,352 @@
       "locator_valid": true
     },
     {
-      "subject": "Users",
-      "predicate": "download",
-      "object": "audit certificates, assessment reports, and other applicable documents to help you with your own regulatory requirements",
+      "subject": "To ensure these expectations are meaningful and accessible, we",
+      "predicate": "tailor",
+      "object": "them to specific platforms\u2014for example, the Xbox Community Standards provide additional guidance on how the Code of Conduct applies within gaming",
+      "disposition": "AMBIGUOUS_NEEDS_REVIEW",
+      "trust_score": 0.855,
+      "decision_reason": "REVIEW: SUBJECT_NORMALIZATION_FAILED: Subject 'To ensure these expectations are meaningful and accessible, we' contains unnormalized fragment, conversational pronoun phrase, or unclosed parenthesis.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Microsoft's privacy governance model",
+      "predicate": "ensures",
+      "object": "customer data confidentiality, detailed in third-party reports like ISO 27001 and 27701, covering data minimization, retention, transfer, and sharing",
+      "disposition": "AMBIGUOUS_NEEDS_REVIEW",
+      "trust_score": 0.8,
+      "decision_reason": "REVIEW: Human review recommended. Deontic mismatch: claim claims OBLIGATION but underlying source evidence reflects discretionary/permissive phrasing or lacks normative imperative verbs.; Trust score 0.80 is below 0.88 auto-approval threshold",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Consumers",
+      "predicate": "use",
+      "object": "the Privacy Dashboard to exercise these rights, and Microsoft provides Privacy Support for any additional privacy questions or concerns",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "We recognize that the development and deployment of AI technologies",
+      "predicate": "respect",
+      "object": "and promote the dignity, autonomy, and equality of all individuals",
+      "disposition": "AMBIGUOUS_NEEDS_REVIEW",
+      "trust_score": 0.855,
+      "decision_reason": "REVIEW: SUBJECT_NORMALIZATION_FAILED: Subject 'We recognize that the development and deployment of AI technologies' contains unnormalized fragment, conversational pronoun phrase, or unclosed parenthesis.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "F ellows seek to understand how AI-related harms and benefits",
+      "predicate": "manifest",
+      "object": "in various social, cultural, economic, and environmental contexts, and identify technological and regulatory solutions that might help mitigate risks and maximize opportunities, contributing to Microsoft's policy development and participation in international governance discussions",
+      "disposition": "AMBIGUOUS_NEEDS_REVIEW",
+      "trust_score": 0.87,
+      "decision_reason": "REVIEW: Human review recommended. Speculative language or uncertainty detected.; Trust score 0.87 is below 0.88 auto-approval threshold",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Human Rights Transparency Report 2025",
+      "predicate": "has_refund_eligibility",
+      "object": "Year over year, we consistently return to these principles as new AI technologies unlock new capabilities and potential risks.",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.975,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 97.5%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "In instances where mitigation",
+      "predicate": "has_validity_rule",
+      "object": "be required, the Responsible Business Practices team may also review the matter as human rights subject matter experts",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Customers",
+      "predicate": "has_validity_rule",
+      "object": "also be required to re- verify the information they submit to gain access to these limited access services to ensure it remains accurate, complete, and up to date",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Furthermore, all users of Microsoft online services",
+      "predicate": "comply_with",
+      "object": "our Acceptable Use Policy, which prohibits use of our services to violate the rights of others, among other restrictions, and we have the right to suspend users for violations Operating datacenters in countries or regions with human rights challenges Growing customer demand\u2014particularly from multinational enterprises\u2014combined with the potential of AI to support economic development, engineering limitations, and regulatory requirements, is driving the construction and operation of datacenters in an increasing number of countries",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Employees",
+      "predicate": "access",
+      "object": "expert help for childcare, tools for weight management, and resources for major life events such as marriage or childbirth",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "At the broadest level, all Microsoft employees",
+      "predicate": "complete",
+      "object": "training on the Trust Code (Standards of Business Conduct), our companywide ethics course which covers workplace conduct, human rights compliance, and responsible AI",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Suppliers Microsoft",
+      "predicate": "its",
+      "object": "suppliers to provide fair compensation, benefits, and healthy working conditions to their employees",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Developing standards that suppliers",
+      "predicate": "meet",
+      "object": "and expectations that they work toward implementing their own due diligence systems",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Suppliers",
+      "predicate": "cascade",
+      "object": "the environmental and human rights supply chain expectations to sub-tier suppliers and the extended supply chain",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Suppliers",
+      "predicate": "review",
+      "object": "and acknowledge the SCoC, available in several languages, on an annual basis and participate in required training",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "The PCoC",
+      "predicate": "partners",
+      "object": "to provide a safe and healthy work environment that complies with all employment, health, and safety laws",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Employee trainings Representatives from each Supply Chain Team",
+      "predicate": "attend",
+      "object": "training run by RBP on supply chain due diligence requirements",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Suppliers",
+      "predicate": "train",
+      "object": "eligible employees and subcontractors working on Microsoft matters on the content of the Microsoft SCoC annually",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "In some supplier categories, suppliers",
+      "predicate": "complete",
+      "object": "a self-assessment questionnaire",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Depending on the supplier risk category, monitoring",
+      "predicate": "include",
+      "object": "reviewing supplier practices through questionnaires, desk-based assessments, and/or on- site assessments",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "supplier engagement",
+      "predicate": "has_validity_rule",
+      "object": "be restricted, suspended, or terminated, and any related products may be removed from the market",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "an online portal, which is available in several languages and",
+      "predicate": "has_validity_rule",
+      "object": "be used anonymously; and",
+      "disposition": "AUTOMATED_CHECKS_FAILED",
+      "trust_score": 0.84,
+      "decision_reason": "REJECTED: INCOMPLETE_ASSERTION: Incomplete syntactic clause, headless fragment, bare heading, or missing measurement unit: 'be used anonymously; and'. Complete assertion required.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Supplier workers",
+      "predicate": "has_validity_rule",
+      "object": "make hotline complaints anonymously",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Employees, suppliers, and the public",
+      "predicate": "submit",
+      "object": "a complaint at any time",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Employees",
+      "predicate": "has_validity_rule",
+      "object": "also make a report through managers, HR Business Partners, the Global Compliance and Integrity inbox, and/or the Employee Relations inbox",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "As we continue our journey over the next year, we",
+      "predicate": "focus",
+      "object": "on three areas to progress our commitments",
+      "disposition": "AMBIGUOUS_NEEDS_REVIEW",
+      "trust_score": 0.84,
+      "decision_reason": "REVIEW: SUBJECT_NORMALIZATION_FAILED: Subject 'As we continue our journey over the next year, we' contains unnormalized fragment, conversational pronoun phrase, or unclosed parenthesis.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "We",
+      "predicate": "continue",
+      "object": "to invest in our human rights due diligence capabilities",
+      "disposition": "AMBIGUOUS_NEEDS_REVIEW",
+      "trust_score": 0.84,
+      "decision_reason": "REVIEW: SUBJECT_NORMALIZATION_FAILED: Subject 'We' contains unnormalized fragment, conversational pronoun phrase, or unclosed parenthesis.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Company",
+      "predicate": "build",
+      "object": "more programs around these mechanisms in key areas, and we will approach our assessments with a mindset of examining where we can continue to improve our processes and practices to align with our core commitments to international human rights law and humanitarian law",
       "disposition": "AUTOMATED_CHECKS_FAILED",
       "trust_score": 0.8,
-      "decision_reason": "REJECTED: Semantic grounding failure. Subject-Evidence mismatch: asserted subject 'Users' has no grounding in the underlying evidence span.",
+      "decision_reason": "REJECTED: Semantic grounding failure. Subject-Evidence mismatch: asserted subject 'Company' has no grounding in the underlying evidence span.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "We",
+      "predicate": "continue",
+      "object": "to develop effective governance to measure progress on our salient human rights risks across our AI value chain",
+      "disposition": "AMBIGUOUS_NEEDS_REVIEW",
+      "trust_score": 0.84,
+      "decision_reason": "REVIEW: SUBJECT_NORMALIZATION_FAILED: Subject 'We' contains unnormalized fragment, conversational pronoun phrase, or unclosed parenthesis.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Company",
+      "predicate": "examine",
+      "object": "how we can strengthen our governance and risk management mechanisms across the stakeholders involved in our value chain",
+      "disposition": "AUTOMATED_CHECKS_FAILED",
+      "trust_score": 0.8,
+      "decision_reason": "REJECTED: Semantic grounding failure. Subject-Evidence mismatch: asserted subject 'Company' has no grounding in the underlying evidence span.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Company",
+      "predicate": "examine",
+      "object": "how we can leverage our governance to better address the interconnections between our salient human rights risks",
+      "disposition": "AUTOMATED_CHECKS_FAILED",
+      "trust_score": 0.8,
+      "decision_reason": "REJECTED: Semantic grounding failure. Subject-Evidence mismatch: asserted subject 'Company' has no grounding in the underlying evidence span.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Together, we",
+      "predicate": "advance",
+      "object": "respect for human rights as a fundamental component in the development of emerging technologies",
+      "disposition": "AMBIGUOUS_NEEDS_REVIEW",
+      "trust_score": 0.855,
+      "decision_reason": "REVIEW: SUBJECT_NORMALIZATION_FAILED: Subject 'Together, we' contains unnormalized fragment, conversational pronoun phrase, or unclosed parenthesis.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Microsoft collaborates with suppliers to address compliance gaps and suppliers",
+      "predicate": "remediate",
+      "object": "findings within severity-based timelines",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "as a last resort, Microsoft",
+      "predicate": "take",
+      "object": "action to restrict new business or end the supplier relationship",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Together, these efforts underscore Microsoft's belief that trust in technology",
+      "predicate": "earned",
+      "object": "through respect, integrity, and accountability",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
       "evidence_supported": true,
       "locator_valid": true
     }

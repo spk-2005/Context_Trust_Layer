@@ -1,0 +1,67 @@
+{
+  "document_id": "DOC-076",
+  "filename": "View or download your invoice in the Microsoft 365 admin center _ Microsoft Learn.pdf",
+  "document_type": "invoice",
+  "evaluation_methodology": "AUTOMATED_GATE_HEURISTIC (Awaiting Human Gold Reference)",
+  "claim_counts": {
+    "candidate_claims": 4,
+    "valid": 0,
+    "invalid": 3,
+    "missed": 0,
+    "duplicate": 0,
+    "ambiguous": 1,
+    "malformed": 0
+  },
+  "metrics": {
+    "claim_precision": 0.0,
+    "claim_recall": 1.0,
+    "f1": 0.0,
+    "evidence_supported_rate": 1.0,
+    "locator_accuracy_rate": 1.0,
+    "duplicate_rate": 0.0
+  },
+  "human_review_required": true,
+  "failure_patterns": [],
+  "claims": [
+    {
+      "subject": "Users",
+      "predicate": "at",
+      "object": "least a Billing Administrator to do the steps described in this article",
+      "disposition": "AUTOMATED_CHECKS_FAILED",
+      "trust_score": 0.8,
+      "decision_reason": "REJECTED: Semantic grounding failure. Subject-Evidence mismatch: asserted subject 'Users' has no grounding in the underlying evidence span.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Users",
+      "predicate": "able",
+      "object": "to sign in to the Microsoft 365 admin center",
+      "disposition": "AUTOMATED_CHECKS_FAILED",
+      "trust_score": 0.8,
+      "decision_reason": "REJECTED: Semantic grounding failure. Subject-Evidence mismatch: asserted subject 'Users' has no grounding in the underlying evidence span.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Before you begin Watch",
+      "predicate": "has_definition",
+      "object": "View, download, or print your bill or invoice https://learn-video.azurefd.net/vod/player?id=a03436f9-660b-4cb3-906d- bdcd86ee21d9&locale=en-us&embedUrl=%2Fmicrosoft-365%2Fcommerce%2Fbilling- and-payments%2Fview-your-bill-or-invoice",
+      "disposition": "AMBIGUOUS_NEEDS_REVIEW",
+      "trust_score": 0.9875,
+      "decision_reason": "NON-CANONICAL CONTEXT: Retained for overview display; excluded from active decision gate to prevent duplicate evaluation against atomic row claims.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Users",
+      "predicate": "download",
+      "object": "your tax receipt in certain jurisdictions from the Billing > Billing and payments page",
+      "disposition": "AUTOMATED_CHECKS_FAILED",
+      "trust_score": 0.8,
+      "decision_reason": "REJECTED: Semantic grounding failure. Subject-Evidence mismatch: asserted subject 'Users' has no grounding in the underlying evidence span.",
+      "evidence_supported": true,
+      "locator_valid": true
+    }
+  ]
+}

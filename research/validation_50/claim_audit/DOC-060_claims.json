@@ -1,220 +1,127 @@
 {
   "document_id": "DOC-060",
-  "filename": "Microsoft Store Refund & Return Policy (Surface, Xbox, etc.).pdf",
-  "document_type": "refund_policy",
-  "evaluation_methodology": "INDEPENDENT_HUMAN_GOLD_REFERENCE",
-  "gold_reference_path": "B:\\Context_Layer_Ai\\research\\gold_labels\\DOC-060_gold.json",
+  "filename": "Migrate EA to Microsoft Customer Agreement APIs - Azure - Microsoft Cost Management _ Microsoft Learn.pdf",
+  "document_type": "contract",
+  "evaluation_methodology": "AUTOMATED_GATE_HEURISTIC (Awaiting Human Gold Reference)",
   "claim_counts": {
-    "total_gold_claims": 6,
-    "candidate_claims": 8,
-    "valid": 6,
-    "invalid": 2,
+    "candidate_claims": 10,
+    "valid": 4,
+    "invalid": 6,
     "missed": 0,
-    "duplicate": 1,
+    "duplicate": 0,
     "ambiguous": 0,
     "malformed": 0
   },
   "metrics": {
-    "claim_precision": 0.75,
+    "claim_precision": 0.4,
     "claim_recall": 1.0,
-    "f1": 0.8571,
-    "subject_accuracy": 1.0,
-    "predicate_accuracy": 1.0,
-    "object_accuracy": 1.0,
-    "modality_accuracy": 1.0,
-    "condition_preservation_rate": 1.0,
+    "f1": 0.4,
     "evidence_supported_rate": 1.0,
     "locator_accuracy_rate": 1.0,
-    "duplicate_rate": 0.1111
-  },
-  "part_level_accuracy": {
-    "subject_accuracy": 1.0,
-    "predicate_accuracy": 1.0,
-    "object_accuracy": 1.0,
-    "modality_accuracy": 1.0,
-    "condition_preservation_rate": 1.0,
-    "evidence_support_rate": 1.0,
-    "locator_correctness_rate": 1.0
+    "duplicate_rate": 0.0
   },
   "human_review_required": true,
-  "failure_patterns": [
-    "Spurious False Positive: Microsoft Store | has_return_window",
-    "Spurious False Positive: Both price adjustments | has_definition"
-  ],
+  "failure_patterns": [],
   "claims": [
     {
-      "gold_id": "DOC060-G01",
-      "gold_subject": "Customers",
-      "gold_predicate": "may_return",
-      "gold_object": "almost any physical product by January 31, 2027 for a full refund",
-      "gold_modality": "PERMISSION",
-      "gold_conditions": [
-        "Some exclusions apply",
-        "By January 31, 2027"
-      ],
-      "matched_candidate_id": "cand:3ca96016-aa9c-5e07-a627-937e637024d9:3:0fa102037477:fb46ff65c0",
-      "extracted_subject": "Customers",
-      "extracted_predicate": "may_return",
-      "extracted_object": "almost any physical product by January 31, 2027 for a full refund",
-      "extracted_modality": "PERMISSION",
-      "extracted_conditions": [
-        "Some exclusions apply",
-        "By January 31, 2027"
-      ],
-      "subject_correct": true,
-      "predicate_correct": true,
-      "object_correct": true,
-      "modality_correct": true,
-      "conditions_correct": true,
+      "subject": "Organizations with an existing EA account",
+      "predicate": "review",
+      "object": "this article when they set up an MCA account",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.975,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 97.5%.",
       "evidence_supported": true,
-      "locator_correct": true,
-      "is_true_positive": true,
-      "notes": "Matched to gold claim"
+      "locator_valid": true
     },
     {
-      "gold_id": "DOC060-G02",
-      "gold_subject": "Customers",
-      "gold_predicate": "must_return_in_condition",
-      "gold_object": "in like-new condition in its original packaging with all parts and documentation included",
-      "gold_modality": "OBLIGATION",
-      "gold_conditions": [],
-      "matched_candidate_id": "cand:3ca96016-aa9c-5e07-a627-937e637024d9:9:62756528c9ab:b3782278af",
-      "extracted_subject": "Customers",
-      "extracted_predicate": "must_return_in_condition",
-      "extracted_object": "in like-new condition in its original packaging with all parts and documentation included",
-      "extracted_modality": "OBLIGATION",
-      "extracted_conditions": [],
-      "subject_correct": true,
-      "predicate_correct": true,
-      "object_correct": true,
-      "modality_correct": true,
-      "conditions_correct": true,
+      "subject": "However, migrating to an MCA account",
+      "predicate": "extra",
+      "object": "effort",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
       "evidence_supported": true,
-      "locator_correct": true,
-      "is_true_positive": true,
-      "notes": "Matched to gold claim"
+      "locator_valid": true
     },
     {
-      "gold_id": "DOC060-G03",
-      "gold_subject": "Microsoft Store",
-      "gold_predicate": "will_issue_refund",
-      "gold_object": "refund to your original payment method within 3-5 business days",
-      "gold_modality": "OBLIGATION",
-      "gold_conditions": [
-        "Once we get the item back and confirm eligibility"
-      ],
-      "matched_candidate_id": "cand:3ca96016-aa9c-5e07-a627-937e637024d9:10:ef8bc48bbe45:a0b6bee899",
-      "extracted_subject": "Microsoft Store",
-      "extracted_predicate": "will_issue_refund",
-      "extracted_object": "refund to your original payment method within 3-5 business days",
-      "extracted_modality": "OBLIGATION",
-      "extracted_conditions": [
-        "Once we get the item back and confirm eligibility"
-      ],
-      "subject_correct": true,
-      "predicate_correct": true,
-      "object_correct": true,
-      "modality_correct": true,
-      "conditions_correct": true,
+      "subject": "Users",
+      "predicate": "migrate",
+      "object": "to Microsoft Cost Management APIs as soon as possible",
+      "disposition": "AUTOMATED_CHECKS_FAILED",
+      "trust_score": 0.8,
+      "decision_reason": "REJECTED: Semantic grounding failure. Subject-Evidence mismatch: asserted subject 'Users' has no grounding in the underlying evidence span.",
       "evidence_supported": true,
-      "locator_correct": true,
-      "is_true_positive": true,
-      "notes": "Matched to gold claim"
+      "locator_valid": true
     },
     {
-      "gold_id": "DOC060-G04",
-      "gold_subject": "Return process",
-      "gold_predicate": "must_be_started_within",
-      "gold_object": "60 days after customer receives the product",
-      "gold_modality": "OBLIGATION",
-      "gold_conditions": [
-        "For purchases made outside the window of October 1, 2026 \u2013 December 2, 2026"
-      ],
-      "matched_candidate_id": "cand:3ca96016-aa9c-5e07-a627-937e637024d9:40:75d1c5b575a8:4837ab5dec",
-      "extracted_subject": "Return process",
-      "extracted_predicate": "must_be_started_within",
-      "extracted_object": "60 days after customer receives the product",
-      "extracted_modality": "OBLIGATION",
-      "extracted_conditions": [
-        "For purchases made outside the window of October 1, 2026 \u2013 December 2, 2026"
-      ],
-      "subject_correct": true,
-      "predicate_correct": true,
-      "object_correct": true,
-      "modality_correct": true,
-      "conditions_correct": true,
+      "subject": "Users",
+      "predicate": "get",
+      "object": "a condensed version of the price sheet in PDF format",
+      "disposition": "AUTOMATED_CHECKS_FAILED",
+      "trust_score": 0.8,
+      "decision_reason": "REJECTED: Semantic grounding failure. Subject-Evidence mismatch: asserted subject 'Users' has no grounding in the underlying evidence span.",
       "evidence_supported": true,
-      "locator_correct": true,
-      "is_true_positive": true,
-      "notes": "Matched to gold claim"
+      "locator_valid": true
     },
     {
-      "gold_id": "DOC060-G05",
-      "gold_subject": "Product returns",
-      "gold_predicate": "limited_to",
-      "gold_object": "5 product returns per eligible customer purchase",
-      "gold_modality": "OBLIGATION",
-      "gold_conditions": [],
-      "matched_candidate_id": "cand:3ca96016-aa9c-5e07-a627-937e637024d9:40:75d1c5b575a8:88c6998947",
-      "extracted_subject": "Product returns",
-      "extracted_predicate": "limited_to",
-      "extracted_object": "5 product returns per eligible customer purchase",
-      "extracted_modality": "OBLIGATION",
-      "extracted_conditions": [],
-      "subject_correct": true,
-      "predicate_correct": true,
-      "object_correct": true,
-      "modality_correct": true,
-      "conditions_correct": true,
+      "subject": "The client",
+      "predicate": "has_validity_rule",
+      "object": "also make a GET call for the Azure-AsyncOperation",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
       "evidence_supported": true,
-      "locator_correct": true,
-      "is_true_positive": true,
-      "notes": "Matched to gold claim"
+      "locator_valid": true
     },
     {
-      "gold_id": "DOC060-G06",
-      "gold_subject": "Customers",
-      "gold_predicate": "must_contact",
-      "gold_object": "Microsoft Store or a Microsoft Experience Center for price adjustments",
-      "gold_modality": "OBLIGATION",
-      "gold_conditions": [
-        "Customer is eligible only if the product is in stock for purchase at Microsoft Store or a Microsoft Experience Center"
-      ],
-      "matched_candidate_id": "cand:3ca96016-aa9c-5e07-a627-937e637024d9:46:edb8d39cbb60:19d2e05d2a",
-      "extracted_subject": "Customers",
-      "extracted_predicate": "must_contact",
-      "extracted_object": "Microsoft Store or a Microsoft Experience Center for price adjustments",
-      "extracted_modality": "OBLIGATION",
-      "extracted_conditions": [
-        "Customer is eligible only if the product is in stock for purchase at Microsoft Store or a Microsoft Experience Center"
-      ],
-      "subject_correct": true,
-      "predicate_correct": true,
-      "object_correct": true,
-      "modality_correct": true,
-      "conditions_correct": true,
+      "subject": "Customers",
+      "predicate": "has_refund_eligibility",
+      "object": "The endpoint returns the status for the operation.",
+      "disposition": "AUTOMATED_CHECKS_FAILED",
+      "trust_score": 0.8,
+      "decision_reason": "REJECTED: Semantic grounding failure. Subject-Evidence mismatch: asserted subject 'Customers' has no grounding in the underlying evidence span.",
       "evidence_supported": true,
-      "locator_correct": true,
-      "is_true_positive": true,
-      "notes": "Matched to gold claim"
-    }
-  ],
-  "unmatched_extractions": [
-    {
-      "candidate_id": "cand:3ca96016-aa9c-5e07-a627-937e637024d9:38:fa86367c4827:8d597bb69c",
-      "subject": "Microsoft Store",
-      "predicate": "has_return_window",
-      "object": "Learn about returns \ue76c Fast, free delivery Get your gifts in just a few days with free delivery.",
-      "modality": "POLICY_FACT",
-      "evidence": "Learn about returns \ue76c Fast, free delivery Get your gifts in just a few days with free delivery."
+      "locator_valid": true
     },
     {
-      "candidate_id": "cand:3ca96016-aa9c-5e07-a627-937e637024d9:46:edb8d39cbb60:998cdee8d3",
-      "subject": "Both price adjustments",
-      "predicate": "has_definition",
-      "object": "Customer is eligible only if the product is in stock for purchase at Microsoft Store or a Microsoft Experience Center.",
-      "modality": "POLICY_FACT",
-      "evidence": "Both price adjustments: Customer is eligible only if the product is in stock for purchase at Microsoft Store or a Microsoft Experience Center."
+      "subject": "Meter region meterRegion Unit Not applicable",
+      "predicate": "has_validity_rule",
+      "object": "be parsed from unitOfMeasure",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Users",
+      "predicate": "get",
+      "object": "billing transactions for reservation purchases with the Reserved Instance Charge API",
+      "disposition": "AUTOMATED_CHECKS_FAILED",
+      "trust_score": 0.8,
+      "decision_reason": "REJECTED: Semantic grounding failure. Subject-Evidence mismatch: asserted subject 'Users' has no grounding in the underlying evidence span.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Users",
+      "predicate": "get",
+      "object": "reservation usage in an enrollment with the Reserved Instance Usage API",
+      "disposition": "AUTOMATED_CHECKS_FAILED",
+      "trust_score": 0.8,
+      "decision_reason": "REJECTED: Semantic grounding failure. Subject-Evidence mismatch: asserted subject 'Users' has no grounding in the underlying evidence span.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Users",
+      "predicate": "get",
+      "object": "the usage of all the reserved instance purchases using this API",
+      "disposition": "AUTOMATED_CHECKS_FAILED",
+      "trust_score": 0.8,
+      "decision_reason": "REJECTED: Semantic grounding failure. Subject-Evidence mismatch: asserted subject 'Users' has no grounding in the underlying evidence span.",
+      "evidence_supported": true,
+      "locator_valid": true
     }
   ]
 }

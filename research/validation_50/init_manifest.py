@@ -22,20 +22,25 @@ DEFAULT_DOCS_DIR = Path("B:/Context_Layer_Ai/research/validation_50/raw_document
 DEFAULT_MANIFEST_PATH = Path("B:/Context_Layer_Ai/research/validation_50/document_manifest.json")
 
 
-def detect_document_type(filename: str) -> str:
-    """Infers document category from filename semantics."""
-    fn = filename.lower()
+def detect_document_type(path: Path | str) -> str:
+    """Infers document category from parent directory and filename semantics."""
+    p = Path(path)
+    fn = p.name.lower()
+    parent = p.parent.name.lower() if len(p.parts) > 1 else ""
+
     if any(k in fn for k in ("scanned", "ocr", "receipt_scan", "image_scan")):
         return "scanned_document"
-    if any(k in fn for k in ("refund", "return", "cancellation", "exchange")):
+    if "refund" in parent or any(k in fn for k in ("refund", "return", "cancellation", "exchange")):
         return "refund_policy"
-    if any(k in fn for k in ("hr", "employment", "leave", "conduct", "handbook", "remote")):
-        return "hr_policy"
-    if any(k in fn for k in ("vendor", "agreement", "contract", "nda", "sla", "master", "covenant", "po-terms", "terms-and-conditions")):
-        return "contract"
-    if any(k in fn for k in ("invoice", "billing", "receipt", "order", "charge")):
+    if "invoice" in parent or any(k in fn for k in ("invoice", "billing", "receipt", "order", "charge", "tax forms")):
         return "invoice"
-    if any(k in fn for k in ("regulatory", "compliance", "gdpr", "hipaa", "privacy", "security", "soc2")):
+    if "hr" in parent or any(k in fn for k in ("hr", "employment", "leave", "conduct", "handbook", "remote", "human-rights")):
+        return "hr_policy"
+    if "contract" in parent or any(k in fn for k in ("vendor", "agreement", "contract", "nda", "sla", "master", "covenant", "po-terms", "licensing", "terms", "enrollment")):
+        return "contract"
+    if "technical" in parent or any(k in fn for k in ("entra", "deployment", "operations guide", "architecture", "security operations")):
+        return "technical_documentation"
+    if "difficult" in parent or any(k in fn for k in ("dpa", "regulatory", "compliance", "gdpr", "hipaa", "privacy", "security", "soc2", "assurance")):
         return "regulatory_compliance"
     if any(k in fn for k in ("table", "matrix", "schedule", "pricing")):
         return "table_heavy"
@@ -62,11 +67,17 @@ def get_pdf_page_count(path: Path) -> int:
 
 def build_manifest(raw_docs_dir: Path, output_manifest: Path) -> Dict[str, Any]:
     raw_docs_dir.mkdir(parents=True, exist_ok=True)
-    files = sorted([f for f in raw_docs_dir.glob("*") if f.is_file()])
+    # Recursively find all documents, ignoring hidden/temp files
+    files = sorted([
+        f for f in raw_docs_dir.rglob("*")
+        if f.is_file() and not f.name.startswith((".", "~$")) and f.suffix.lower() in (
+            ".pdf", ".docx", ".doc", ".md", ".txt", ".json", ".csv"
+        )
+    ])
 
     if not files:
         logger.warning(
-            "No files found in %s! Place your 50 documents into this folder, then rerun this script.",
+            "No files found in %s! Place your documents into this folder, then rerun this script.",
             raw_docs_dir,
         )
 
@@ -77,7 +88,7 @@ def build_manifest(raw_docs_dir: Path, output_manifest: Path) -> Dict[str, Any]:
         doc_id = f"DOC-{idx:03d}"
         file_bytes = f.read_bytes()
         sha256 = hashlib.sha256(file_bytes).hexdigest()
-        doc_type = detect_document_type(f.name)
+        doc_type = detect_document_type(f)
         page_count = get_pdf_page_count(f)
 
         type_counts[doc_type] = type_counts.get(doc_type, 0) + 1

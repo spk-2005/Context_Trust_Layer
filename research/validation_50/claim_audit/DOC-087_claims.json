@@ -1,0 +1,127 @@
+{
+  "document_id": "DOC-087",
+  "filename": "Microsoft Entra security operations guide - Microsoft Entra _ Microsoft Learn.pdf",
+  "document_type": "technical_documentation",
+  "evaluation_methodology": "AUTOMATED_GATE_HEURISTIC (Awaiting Human Gold Reference)",
+  "claim_counts": {
+    "candidate_claims": 10,
+    "valid": 7,
+    "invalid": 3,
+    "missed": 0,
+    "duplicate": 0,
+    "ambiguous": 0,
+    "malformed": 0
+  },
+  "metrics": {
+    "claim_precision": 0.7,
+    "claim_recall": 1.0,
+    "f1": 0.7,
+    "evidence_supported_rate": 1.0,
+    "locator_accuracy_rate": 1.0,
+    "duplicate_rate": 0.0
+  },
+  "human_review_required": true,
+  "failure_patterns": [],
+  "claims": [
+    {
+      "subject": "Increasingly, organizations",
+      "predicate": "embrace",
+      "object": "a mixture of on-premises and cloud applications, which users access with both on\u2013premises and cloud-only accounts",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Users",
+      "predicate": "build",
+      "object": "alerts using the preceding tools",
+      "disposition": "AUTOMATED_CHECKS_FAILED",
+      "trust_score": 0.8,
+      "decision_reason": "REJECTED: Semantic grounding failure. Subject-Evidence mismatch: asserted subject 'Users' has no grounding in the underlying evidence span.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "As part of an Azure hybrid environment, the following items",
+      "predicate": "has_validity_rule",
+      "object": "be baselined and included in your monitoring and alerting strategy",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.975,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 97.5%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "As part of an Azure cloud-based environment, the following items",
+      "predicate": "has_validity_rule",
+      "object": "be baselined and included in your monitoring and alerting strategy",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.975,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 97.5%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Microsoft Entra multifactor authentication - multifactor authentication",
+      "predicate": "a",
+      "object": "user to provide more than one form of proof for authentication",
+      "disposition": "AUTOMATED_CHECKS_FAILED",
+      "trust_score": 0.885,
+      "decision_reason": "REJECTED: Fragment discarded. Fragment detected: Predicate 'a' lacks normative relation or semantic action.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "This approach",
+      "predicate": "provide",
+      "object": "a proactive first step to securing your environment",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Group-based licensing - Licenses",
+      "predicate": "has_validity_rule",
+      "object": "be assigned to groups rather than directly to users",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Users",
+      "predicate": "ensure",
+      "object": "that access to resources in your environment is only possible with managed devices",
+      "disposition": "AUTOMATED_CHECKS_FAILED",
+      "trust_score": 0.8,
+      "decision_reason": "REJECTED: Semantic grounding failure. Subject-Evidence mismatch: asserted subject 'Users' has no grounding in the underlying evidence span.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Users",
+      "predicate": "enable",
+      "object": "users to create and manage their own security groups or Microsoft 365 groups in Microsoft Entra ID",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "The owner of the group",
+      "predicate": "approve",
+      "object": "or deny membership requests and can delegate control of group membership",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    }
+  ]
+}

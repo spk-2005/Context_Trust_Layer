@@ -1,0 +1,137 @@
+{
+  "document_id": "DOC-082",
+  "filename": "Get an exchange or refund on devices bought from Microsoft _ Microsoft Support.pdf",
+  "document_type": "refund_policy",
+  "evaluation_methodology": "AUTOMATED_GATE_HEURISTIC (Awaiting Human Gold Reference)",
+  "claim_counts": {
+    "candidate_claims": 11,
+    "valid": 5,
+    "invalid": 1,
+    "missed": 0,
+    "duplicate": 0,
+    "ambiguous": 5,
+    "malformed": 0
+  },
+  "metrics": {
+    "claim_precision": 0.4545,
+    "claim_recall": 1.0,
+    "f1": 0.4545,
+    "evidence_supported_rate": 1.0,
+    "locator_accuracy_rate": 1.0,
+    "duplicate_rate": 0.0
+  },
+  "human_review_required": true,
+  "failure_patterns": [],
+  "claims": [
+    {
+      "subject": "Get an exchange or refund on",
+      "predicate": "has_refund_eligibility",
+      "object": "Purchases and downloads Manage your billing Help with purchases Gift cards and account balance Refunds and exchanges Games and apps Hardware Refund or cancel a subscription Cancel an order or pre-order Status of a return and refund Can't get a refund on apps and games Errors & troubleshooting Consumer and Regulatory Information Get an exchange or refund on devices bought from Microsoft Applies To If you purchased a product from Microsoft, you may be able to request a refund, exchange or a return.",
+      "disposition": "AMBIGUOUS_NEEDS_REVIEW",
+      "trust_score": 0.8562,
+      "decision_reason": "REVIEW: Human review recommended. Sub-threshold semantic confidence (85% < 88%).; Trust score 0.86 is below 0.88 auto-approval threshold",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Get an exchange or refund on",
+      "predicate": "has_refund_eligibility",
+      "object": "Personal account Work account If you purchased a product from Microsoft, you may be able to request a refund, exchange or a return.",
+      "disposition": "AMBIGUOUS_NEEDS_REVIEW",
+      "trust_score": 0.8562,
+      "decision_reason": "REVIEW: Human review recommended. Sub-threshold semantic confidence (85% < 88%).; Trust score 0.86 is below 0.88 auto-approval threshold",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Users",
+      "predicate": "has_return_window",
+      "object": "enjoy peace of mind with up to 60-day returns on physical Microsoft products, and if we lower the price within 60 days, contact Sales support and we'll refund you the difference",
+      "disposition": "AUTOMATED_CHECKS_FAILED",
+      "trust_score": 0.8,
+      "decision_reason": "REJECTED: Semantic grounding failure. Subject-Evidence mismatch: asserted subject 'Users' has no grounding in the underlying evidence span.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Get an exchange or refund on",
+      "predicate": "has_refund_eligibility",
+      "object": "Items that may be eligible for a return, refund, or exchange include physical goods like a Surface, Xbox controller, virtual reality headset, or packaged software.",
+      "disposition": "AMBIGUOUS_NEEDS_REVIEW",
+      "trust_score": 0.8562,
+      "decision_reason": "REVIEW: Human review recommended. Sub-threshold semantic confidence (85% < 88%).; Trust score 0.86 is below 0.88 auto-approval threshold",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Get an exchange or refund on",
+      "predicate": "has_refund_eligibility",
+      "object": "Note Online returns are not available in all markets.",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.975,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 97.5%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "or",
+      "predicate": "request",
+      "object": "a return online, please contact Sales support",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Get an exchange or refund on",
+      "predicate": "has_refund_eligibility",
+      "object": "Open Order history Note Online returns are not available in all markets.",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.975,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 97.5%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Get an exchange or refund on",
+      "predicate": "has_refund_eligibility",
+      "object": "If you cannot request a return online, please contact Sales support.",
+      "disposition": "AMBIGUOUS_NEEDS_REVIEW",
+      "trust_score": 0.8562,
+      "decision_reason": "REVIEW: Human review recommended. Sub-threshold semantic confidence (85% < 88%).; Trust score 0.86 is below 0.88 auto-approval threshold",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Single items from within a bundle",
+      "predicate": "has_validity_rule",
+      "object": "be returned",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.99,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 99.0%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Get an exchange or refund on",
+      "predicate": "has_refund_eligibility",
+      "object": "In Australia, this return information does not affect any remedy you may have under the Australian Consumer Law.",
+      "disposition": "AMBIGUOUS_NEEDS_REVIEW",
+      "trust_score": 0.8562,
+      "decision_reason": "REVIEW: Human review recommended. Sub-threshold semantic confidence (85% < 88%).; Trust score 0.86 is below 0.88 auto-approval threshold",
+      "evidence_supported": true,
+      "locator_valid": true
+    },
+    {
+      "subject": "Get an exchange or refund on",
+      "predicate": "has_refund_eligibility",
+      "object": "Microsoft is not responsible for any games and/or storage devices left in a returned product.",
+      "disposition": "AUTOMATED_CHECKS_PASSED",
+      "trust_score": 0.975,
+      "decision_reason": "APPROVED: All 6 dimensions verified. Trust score: 97.5%.",
+      "evidence_supported": true,
+      "locator_valid": true
+    }
+  ]
+}
