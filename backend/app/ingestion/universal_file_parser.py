@@ -12,16 +12,25 @@ from pydantic import BaseModel, Field
 
 logger = logging.getLogger(__name__)
 
+_WORDSEGMENT_LOADED = False
+
+def _get_wordsegment():
+    global _WORDSEGMENT_LOADED
+    try:
+        import wordsegment
+        if not _WORDSEGMENT_LOADED:
+            wordsegment.load()
+            _WORDSEGMENT_LOADED = True
+        return wordsegment
+    except Exception:
+        return None
+
 def repair_ocr_text(raw_text: str) -> str:
     """Repairs OCR-induced token concatenation, missing punctuation spacing, and run-together words."""
     if not raw_text:
         return ""
 
-    try:
-        import wordsegment
-        wordsegment.load()
-    except Exception:
-        wordsegment = None
+    ws = _get_wordsegment()
 
     lines = raw_text.splitlines()
     repaired_lines = []
@@ -67,11 +76,13 @@ def repair_ocr_text(raw_text: str) -> str:
             camel_parts = re.findall(r'[A-Z]+(?=[A-Z][a-z]|\d|\W|$)|[A-Z]?[a-z]+|\d+', word)
             if len(camel_parts) > 1 and all(len(p) >= 2 for p in camel_parts):
                 repaired_tokens.append(prefix + " ".join(camel_parts) + suffix)
-            elif len(word) >= 5 and wordsegment is not None and not any(c.isdigit() for c in word):
+            elif len(word) >= 5 and ws is not None and not any(c.isdigit() for c in word):
                 try:
-                    segs = wordsegment.segment(word.lower())
-                    if len(segs) > 1 and all(len(s) >= 2 for s in segs):
-                        if word[0].isupper():
+                    segs = ws.segment(word.lower())
+                    if len(segs) > 1 and all(len(s) >= 1 for s in segs):
+                        if word.isupper():
+                            segs = [s.upper() for s in segs]
+                        elif word[0].isupper():
                             segs[0] = segs[0].capitalize()
                         repaired_tokens.append(prefix + " ".join(segs) + suffix)
                     else:
@@ -240,7 +251,7 @@ class UniversalFileParser:
             cache_key = default_pipeline_cache.compute_pipeline_key(
                 stage_name="universal_parser",
                 source_sha256=content_hash,
-                parser_version="v3.1",
+                parser_version="v3.5",
                 parser_config_hash=config_hash,
                 normalizer_version="v1.2",
             )
@@ -404,37 +415,87 @@ class UniversalFileParser:
         empty_pages = 0
         total_chars = 0
 
+        fitz_doc = None
         try:
-            import pypdf
-            reader = pypdf.PdfReader(io.BytesIO(raw_bytes))
+            try:
+                import pymupdf
+                fitz_doc = pymupdf.open(stream=raw_bytes, filetype="pdf")
+            except Exception:
+                fitz_doc = None
+
+            try:
+                import pypdf
+                reader = pypdf.PdfReader(io.BytesIO(raw_bytes))
+            except Exception:
+                reader = None
+
             pages_text = []
             from app.normalization.normalizer import DocumentNormalizer
 
-            for page_num, page in enumerate(reader.pages, start=1):
-                try:
-                    page_text = page.extract_text(extraction_mode="layout") or ""
-                except Exception:
-                    page_text = page.extract_text() or ""
+            total_page_count = len(fitz_doc) if fitz_doc is not None else (len(reader.pages) if reader and reader.pages else 0)
 
-                clean_page_text = page_text.strip()
+            # Metadata check for Microsoft Print to PDF or virtual PDF printers that vectorize text
+            doc_producer = ""
+            if fitz_doc is not None and getattr(fitz_doc, "metadata", None):
+                doc_producer = (fitz_doc.metadata.get("producer") or "").lower()
+            is_print_to_pdf_doc = any(
+                term in doc_producer for term in ("print to pdf", "microsoft", "pdfwrite", "skia", "cairo")
+            )
+
+            for page_num in range(1, total_page_count + 1):
+                clean_page_text = ""
+
+                # 1. Try PyMuPDF text extraction first (faster & handles standard/complex glyph layouts)
+                drawings_count = 0
+                if fitz_doc is not None and page_num <= len(fitz_doc):
+                    try:
+                        fitz_page = fitz_doc[page_num - 1]
+                        clean_page_text = (fitz_page.get_text("text") or "").strip()
+                        drawings_count = len(fitz_page.get_drawings())
+                    except Exception:
+                        pass
+
+                # 2. Fallback to pypdf layout text extraction
+                if not clean_page_text and reader is not None and page_num <= len(reader.pages):
+                    try:
+                        page = reader.pages[page_num - 1]
+                        page_text = page.extract_text(extraction_mode="layout") or ""
+                        clean_page_text = page_text.strip()
+                    except Exception:
+                        try:
+                            clean_page_text = (reader.pages[page_num - 1].extract_text() or "").strip()
+                        except Exception:
+                            pass
+
                 char_count = len(clean_page_text)
                 total_chars += char_count
 
-                # Scanned image detection threshold (< 40 chars per page on average)
-                page_is_scanned = char_count < 40
+                # Scanned image or vector-drawn outline detection:
+                # Trigger OCR if:
+                # - Character count is very low (< 60 chars)
+                # - Document was produced by Microsoft: Print To PDF or similar and char_count is low (< 300 chars)
+                # - Page has many vector drawings (> 40 paths) and char_count is suspiciously low (< 250 chars)
+                page_needs_ocr = (
+                    char_count < 60
+                    or (is_print_to_pdf_doc and char_count < 300)
+                    or (drawings_count > 40 and char_count < 250)
+                )
                 ocr_recovered = False
-                if page_is_scanned:
-                    try:
-                        images = getattr(page, "images", [])
-                        if images and len(images) > 0:
-                            ocr_engine = cls._get_ocr_engine()
-                            if ocr_engine is not None:
+                page_is_scanned = char_count < 40
+                if page_needs_ocr:
+                    ocr_engine = cls._get_ocr_engine()
+                    # A. Try embedded image OCR if images exist in pypdf page
+                    if ocr_engine is not None and reader is not None and page_num <= len(reader.pages):
+                        try:
+                            page = reader.pages[page_num - 1]
+                            images = getattr(page, "images", [])
+                            if images and len(images) > 0:
                                 page_ocr_lines = []
                                 for img in images:
                                     try:
                                         result, _ = ocr_engine(img.data)
                                         if result:
-                                            lines = [line[1] for line in result if line[2] > 0.4]
+                                            lines = [line[1] for line in result if float(line[2]) > 0.4]
                                             page_ocr_lines.extend(lines)
                                     except Exception as img_err:
                                         logger.warning("OCR image extraction error on page %d: %s", page_num, img_err)
@@ -446,10 +507,34 @@ class UniversalFileParser:
                                         total_chars = total_chars - char_count + len(clean_page_text)
                                         char_count = len(clean_page_text)
                                         ocr_recovered = True
+                                        page_is_scanned = True
                                         is_scanned = True
-                                        warnings.append(f"Page {page_num}: text recovered via OCR ({char_count} chars).")
-                    except Exception as ocr_err:
-                        logger.warning("OCR processing error on page %d: %s", page_num, ocr_err)
+                                        warnings.append(f"Page {page_num}: text recovered via embedded OCR ({char_count} chars).")
+                        except Exception as ocr_err:
+                            logger.warning("Embedded OCR processing error on page %d: %s", page_num, ocr_err)
+
+                    # B. Canvas Rasterization Fallback (PyMuPDF): for vector-drawn PDFs (e.g. Microsoft Print to PDF), scanned documents, or outline text
+                    if fitz_doc is not None and page_num <= len(fitz_doc) and ocr_engine is not None and (char_count < 250 or is_print_to_pdf_doc or drawings_count > 40):
+                        try:
+                            fitz_page = fitz_doc[page_num - 1]
+                            pix = fitz_page.get_pixmap(dpi=96)
+                            img_bytes = pix.tobytes("png")
+                            result, _ = ocr_engine(img_bytes, use_cls=False)
+                            if result:
+                                lines = [line[1] for line in result if float(line[2]) > 0.4]
+                                if lines:
+                                    canvas_ocr_text = repair_ocr_text("\n".join(lines)).strip()
+                                    if len(canvas_ocr_text) > char_count:
+                                        clean_page_text = canvas_ocr_text
+                                        total_chars = total_chars - char_count + len(clean_page_text)
+                                        char_count = len(clean_page_text)
+                                        ocr_recovered = True
+                                        page_is_scanned = True
+                                        is_scanned = True
+                                        warnings.append(f"Page {page_num}: text recovered via canvas rasterization OCR ({char_count} chars).")
+                                        logger.info(f"Page {page_num}/{total_page_count}: recovered {char_count} chars via canvas rasterization OCR")
+                        except Exception as raster_err:
+                            logger.warning("PyMuPDF canvas rasterization OCR error on page %d: %s", page_num, raster_err)
 
                 if char_count < 40:
                     empty_pages += 1
@@ -507,7 +592,7 @@ class UniversalFileParser:
                     blocks=page_blocks,
                 ))
 
-            total_pages = max(1, len(reader.pages))
+            total_pages = max(1, total_page_count)
             if empty_pages == total_pages or (total_chars / total_pages) < 50:
                 is_scanned = True
                 warnings.append("Document appears to be a scanned image-based PDF. Text density is low.")
@@ -526,11 +611,22 @@ class UniversalFileParser:
                 except Exception as restruct_err:
                     logger.warning("DocumentSemanticRestructurer failed: %s", restruct_err)
             else:
-                full_text = f"# {title}\n\nIngested PDF document {filename} ({len(reader.pages)} pages)."
+                full_text = f"# {title}\n\nIngested PDF document {filename} ({total_page_count} pages)."
+
+            if fitz_doc is not None:
+                try:
+                    fitz_doc.close()
+                except Exception:
+                    pass
 
             return full_text, pages, blocks, tables, warnings, is_scanned, extraction_quality
 
         except Exception as e:
+            if fitz_doc is not None:
+                try:
+                    fitz_doc.close()
+                except Exception:
+                    pass
             warnings.append(f"PDF extraction warning: {str(e)}")
             plain = cls._parse_plain_text(raw_bytes, title, filename)
             return plain, [], [], [], warnings, False, 0.5

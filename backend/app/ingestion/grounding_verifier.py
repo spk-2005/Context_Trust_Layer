@@ -80,7 +80,7 @@ class GroundingVerifier:
         start_idx = source_text.find(evidence)
         if start_idx != -1:
             matched_span = evidence
-            abs_start = section_start_offset + start_idx
+            abs_start = start_idx if len(source_text) > section_start_offset else (section_start_offset + start_idx)
             abs_end = abs_start + len(evidence)
         else:
             # 1b. Normalized Whitespace Substring Search
@@ -97,8 +97,8 @@ class GroundingVerifier:
                     last_pos = source_text.find(last_tok, first_pos if first_pos != -1 else 0)
                     if first_pos != -1 and last_pos != -1 and last_pos >= first_pos:
                         matched_span = source_text[first_pos : last_pos + len(last_tok)]
-                        abs_start = section_start_offset + first_pos
-                        abs_end = section_start_offset + first_pos + len(matched_span)
+                        abs_start = first_pos if len(source_text) > section_start_offset else (section_start_offset + first_pos)
+                        abs_end = abs_start + len(matched_span)
                     else:
                         matched_span = evidence
                         abs_start = section_start_offset
@@ -108,12 +108,12 @@ class GroundingVerifier:
                     abs_start = section_start_offset
                     abs_end = section_start_offset + len(evidence)
             else:
-                # 1c. Clause Token Fallback check
+                # 1c. Clause Token Fallback check (supports OCR with token spacing repairs)
                 words = [w.lower() for w in re.findall(r"\w+", evidence) if len(w) > 3]
                 source_words = set(re.findall(r"\w+", source_text.lower()))
                 overlap = sum(1 for w in words if w in source_words) / max(1, len(words))
 
-                if overlap < 0.65:
+                if overlap < 0.50:
                     return ClaimVerificationResult(
                         is_valid=False,
                         status=VerificationStatus.UNSUPPORTED,

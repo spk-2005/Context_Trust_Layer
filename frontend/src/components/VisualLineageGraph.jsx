@@ -1983,13 +1983,31 @@ export default function VisualLineageGraph({
       const claimIds = new Set(edges.filter(e => e.source === activeDoc.id && e.target.startsWith('cl_')).map(e => e.target));
       const assetClaims = allClaimsRaw.filter(cl => {
         if (claimIds.has(cl.id)) return true;
-        const clDocId = cl.data?.doc_id || cl.doc_id || cl.asset_id;
-        if (clDocId && (clDocId === activeDoc.id || clDocId === rawActiveDocId)) return true;
+        const clDocId = cl.data?.doc_id || cl.data?.document_id || cl.doc_id || cl.asset_id;
+        if (clDocId && (clDocId === activeDoc.id || clDocId === rawActiveDocId || clDocId === `doc_${rawActiveDocId}`)) return true;
         return false;
+      });
+      // Synchronize all detected asset claim IDs into claimIds for conflict cross-matching
+      assetClaims.forEach(cl => {
+        claimIds.add(cl.id);
+        claimIds.add(String(cl.id).replace(/^cl_/, ''));
+        if (cl.data?.claim_id) {
+          claimIds.add(cl.data.claim_id);
+          claimIds.add(`cl_${cl.data.claim_id}`);
+        }
       });
       const assetConflicts = allConflictsRaw.filter(c => {
         const cItem = conflictMap[c.id];
-        return claimIds.has(cItem?.claimAId) || claimIds.has(cItem?.claimBId);
+        const aId = cItem?.claimAId || c.data?.first_claim_id;
+        const bId = cItem?.claimBId || c.data?.second_claim_id;
+        return (
+          claimIds.has(aId) ||
+          claimIds.has(bId) ||
+          claimIds.has(`cl_${aId}`) ||
+          claimIds.has(`cl_${bId}`) ||
+          (aId && claimIds.has(String(aId).replace(/^cl_/, ''))) ||
+          (bId && claimIds.has(String(bId).replace(/^cl_/, '')))
+        );
       });
       const activeAssetConflicts = assetConflicts.filter(c => {
         const st = (c.status || '').toLowerCase();

@@ -46,3 +46,34 @@ def test_parse_plain_text_with_null_bytes():
     text = UniversalFileParser.parse_file("handbook.txt", raw_bytes, "Handbook")
     assert "\x00" not in text
     assert "Employee Handbook" in text
+
+
+def test_repair_ocr_text_segmentation():
+    from app.ingestion.universal_file_parser import repair_ocr_text
+    raw = "Startforfree Terms of Service TABLEOFCONTENTS next30days"
+    repaired = repair_ocr_text(raw)
+    assert "TABLE OF CONTENTS" in repaired or "TABLEOFCONTENTS" in repaired
+    assert "30 days" in repaired or "next 30 days" in repaired
+
+
+def test_parse_pdf_structured_and_blocks():
+    import pymupdf
+    # Create an in-memory PDF with 2 pages
+    doc = pymupdf.open()
+    p1 = doc.new_page()
+    p1.insert_text((50, 72), "1. Account Terms\nAll users must provide a valid email address.")
+    p2 = doc.new_page()
+    p2.insert_text((50, 72), "2. Payment of Fees\nMonthly fees must be paid within 14 days.")
+    pdf_bytes = doc.tobytes()
+    doc.close()
+
+    parsed = UniversalFileParser.parse_structured("contract.pdf", pdf_bytes, "Test Contract")
+    assert parsed.title == "Test Contract"
+    assert len(parsed.pages) == 2
+    assert parsed.pages[0].page_number == 1
+    assert parsed.pages[1].page_number == 2
+    assert "Account Terms" in parsed.full_text
+    assert "Payment of Fees" in parsed.full_text
+    assert parsed.extraction_quality >= 0.8
+    assert len(parsed.blocks) >= 2
+

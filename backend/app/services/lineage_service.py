@@ -50,11 +50,12 @@ class LineageService:
         res_claims = await self.db.execute(stmt_claims)
         claims = res_claims.scalars().all()
 
-        # 4. Fetch Conflicts
+        # 4. Fetch Conflicts across either claim in the organization
         stmt_conflicts = (
             select(ClaimConflict)
-            .join(Claim, ClaimConflict.claim_a_id == Claim.id)
+            .join(Claim, or_(ClaimConflict.claim_a_id == Claim.id, ClaimConflict.claim_b_id == Claim.id))
             .where(Claim.organization_id == organization_id)
+            .distinct()
             .options(
                 selectinload(ClaimConflict.claim_a),
                 selectinload(ClaimConflict.claim_b),
@@ -149,6 +150,12 @@ class LineageService:
                     "type": "provenance"
                 })
 
+        # Map version_id -> document_id for reliable DAG linking
+        ver_to_doc_id = {}
+        for d in documents:
+            for v in getattr(d, "versions", []):
+                ver_to_doc_id[v.id] = d.id
+
         # Build Claim Nodes & Edges from Document
         for cl in claims:
             cl_node_id = f"cl_{cl.id}"
@@ -157,10 +164,23 @@ class LineageService:
             vr = cl.validity_records[0] if cl.validity_records else None
             ev_snippet = None
             ev_section = None
+            parent_doc_id = None
+            if cl.document_version and cl.document_version.document_id:
+                parent_doc_id = cl.document_version.document_id
+            elif cl.document_version_id in ver_to_doc_id:
+                parent_doc_id = ver_to_doc_id[cl.document_version_id]
+            elif cl.evidence:
+                for ev in cl.evidence:
+                    if getattr(ev, "document_id", None):
+                        parent_doc_id = ev.document_id
+                        break
+
             if cl.evidence:
                 first_ev = cl.evidence[0]
                 ev_snippet = getattr(first_ev, "text_span", None) or getattr(first_ev, "exact_quote", None) or getattr(first_ev, "snippet", None)
                 ev_section = getattr(first_ev, "section", None)
+
+            doc_id_str = str(parent_doc_id) if parent_doc_id else None
 
             nodes.append({
                 "id": cl_node_id,
@@ -172,8 +192,12 @@ class LineageService:
                 "subject": cl.subject or "Policy Assertion",
                 "predicate": cl.predicate or "governs",
                 "object": cl.object or "",
+                "doc_id": doc_id_str,
+                "document_id": doc_id_str,
                 "data": {
                     "claim_id": str(cl.id),
+                    "doc_id": doc_id_str,
+                    "document_id": doc_id_str,
                     "document_version_id": str(cl.document_version_id),
                     "scope": getattr(cl, "scope", "Enterprise"),
                     "subject": cl.subject or "Policy Assertion",
@@ -193,10 +217,10 @@ class LineageService:
             })
 
             # Edge from Document
-            if cl.document_version and cl.document_version.document_id:
+            if parent_doc_id:
                 edges.append({
-                    "id": f"e_doc_{cl.document_version.document_id}_cl_{cl.id}",
-                    "source": f"doc_{cl.document_version.document_id}",
+                    "id": f"e_doc_{parent_doc_id}_cl_{cl.id}",
+                    "source": f"doc_{parent_doc_id}",
                     "target": cl_node_id,
                     "label": "extracted_from",
                     "type": "extraction"
@@ -216,6 +240,8 @@ class LineageService:
                     "conflict_id": str(cfl.id),
                     "first_claim_id": str(cfl.claim_a_id),
                     "second_claim_id": str(cfl.claim_b_id),
+                    "claimAId": f"cl_{cfl.claim_a_id}",
+                    "claimBId": f"cl_{cfl.claim_b_id}",
                 }
             })
             edges.append({

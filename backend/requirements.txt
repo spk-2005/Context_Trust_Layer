@@ -27,3 +27,7 @@ bcrypt
 pyjwt
 passlib
 cryptography
+pymupdf
+rapidocr_onnxruntime
+opencv-python-headless
+wordsegment

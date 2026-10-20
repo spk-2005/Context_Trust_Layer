@@ -301,60 +301,30 @@ async def upload_document_file(
     db: AsyncSession = Depends(get_db),
 ):
     """Upload a file (.pdf, .docx, .txt, .md, .json, .csv) and ingest into PostgreSQL."""
-    resolved_source_id = await _ensure_source_exists(db, organization_id, source_id)
-    import io
     raw_bytes = await file.read()
     filename = file.filename or "uploaded_doc.txt"
-    doc_title = title or filename.rsplit(".", 1)[0].replace("-", " ").replace("_", " ").title()
-    doc_title = doc_title.replace("\x00", "").strip()
-    doc_external_id = (external_id or f"file://{filename}").replace("\x00", "").strip()
 
-    from app.ingestion.universal_file_parser import UniversalFileParser
+    from app.ingestion.universal_document_pipeline import UniversalDocumentPipeline
 
-    content_text = UniversalFileParser.parse_file(filename=filename, raw_bytes=raw_bytes, doc_title=doc_title)
-
-
-    from app.ingestion.envelope import EnvelopeFactory
-    from app.ingestion.dispatcher import global_envelope_router
-
-    canonical_env = EnvelopeFactory.create_from_file_upload(
-        filename=filename,
-        raw_bytes=raw_bytes,
-        parsed_content=content_text,
-        organization_id=organization_id,
-        source_id=resolved_source_id,
-        document_type=document_type,
-    )
-    routing_decision = global_envelope_router.route(canonical_env)
-
-    doc_in = DocumentCreate(
-        organization_id=organization_id,
-        source_id=resolved_source_id,
-        title=doc_title,
-        content=content_text,
-        document_type=document_type.replace("\x00", ""),
-        external_id=doc_external_id,
-        metadata={
-            "filename": filename,
-            "file_size": len(raw_bytes),
-            "envelope_id": str(canonical_env.envelope_id),
-            "target_parser": routing_decision.target_parser.value,
-            "detected_format": routing_decision.detected_format,
-            "content_hash": canonical_env.content_hash,
-        },
-    )
-
-    ingestion_service = DocumentIngestionService(db)
+    pipeline = UniversalDocumentPipeline(db)
     try:
-        document, version, normalized = await ingestion_service.ingest_document(doc_in)
-        await db.commit()
+        pipeline_result = await pipeline.process_file(
+            filename=filename,
+            raw_bytes=raw_bytes,
+            organization_id=organization_id,
+            source_id=source_id,
+            title=title,
+            document_type=document_type,
+            external_id=external_id,
+            persist_file=True,
+        )
+        document = pipeline_result["document"]
+        version = pipeline_result["version"]
     except DocumentValidationError as err:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             detail=str(err),
         )
-
-    _persist_uploaded_file_bytes(document.id, filename, raw_bytes)
 
     version_response = DocumentVersionResponse.model_validate(version)
     doc_response = DocumentResponse(
@@ -495,7 +465,13 @@ async def upload_and_extract_document(
         l6_validation_result = await global_validation_gate.process_extraction_result(
             canonical_env, l5_extraction_result, session=db, document_version_id=version.id
         )
-        await db.commit()
+        # Run fine-grained claim extraction to catch atomic clauses
+        try:
+            claim_extraction_svc = ClaimExtractionService(db, llm_provider=llm_instance)
+            await claim_extraction_svc.extract_claims_from_version(version.id)
+            await db.commit()
+        except Exception as fine_err:
+            logger.warning(f"Fine-grained claim extraction notice: {fine_err}")
 
         # Run conflict detection & trust scoring on the persisted claims
         await conflict_service.run_conflict_detection_for_version(version.id)
