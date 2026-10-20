@@ -1,0 +1,1245 @@
+{
+  "document_id": "DOC-057",
+  "document_name": "Microsoft Customer Agreement",
+  "sprint": "Sprint AF: Claim Quality Normalization",
+  "metrics": {
+    "raw_candidate_claims": 97,
+    "normalized_atomic_policy_claims": 75,
+    "separated_descriptions": 5,
+    "separated_definitions": 10,
+    "separated_references": 4,
+    "separated_responsibilities": 3,
+    "duplicates_collapsed": 7,
+    "rejected_bad_fragments": 5,
+    "false_conflict_count": 0,
+    "claim_precision": 1.0
+  },
+  "conflict_engine_verification": {
+    "termination_clause_conflict": false,
+    "assessment": "Compatible conditional rights: termination without cause (60 days) and termination for breach (30 days) govern distinct legal triggers."
+  },
+  "atomic_policy_claims": [
+    {
+      "claim_id": "doc057:af:001",
+      "subject": "Microsoft",
+      "predicate": "grants_product_license",
+      "object": "a nonexclusive, limited license to Customer to use Products ordered as provided in this Agreement",
+      "modality": "PERMISSION",
+      "conditions": [
+        "upon Microsoft acceptance of order",
+        "subject to Customer compliance"
+      ],
+      "evidence_span": "Microsoft grants Customer a nonexclusive and limited license to use the Products ordered as provided in this Agreement.",
+      "locator": {
+        "page": 1,
+        "section": "License to use Microsoft Products (a)"
+      },
+      "trust_score": 0.99
+    },
+    {
+      "claim_id": "doc057:af:003",
+      "subject": "Customer",
+      "predicate": "must_control_end_user_access",
+      "object": "access to, and use of, the Products by End Users",
+      "modality": "OBLIGATION",
+      "conditions": [],
+      "evidence_span": "Customer will control access to, and use of, the Products by End Users and is responsible for any use of the Products that does not comply with this Agreement.",
+      "locator": {
+        "page": 1,
+        "section": "End Users (c)"
+      },
+      "trust_score": 0.99
+    },
+    {
+      "claim_id": "doc057:af:004",
+      "subject": "Customer",
+      "predicate": "may_order_for_affiliate",
+      "object": "Products for use by its Affiliates",
+      "modality": "PERMISSION",
+      "conditions": [],
+      "evidence_span": "Customer may order Products for use by its Affiliates.",
+      "locator": {
+        "page": 1,
+        "section": "Affiliates (d)"
+      },
+      "trust_score": 0.99
+    },
+    {
+      "claim_id": "doc057:af:005",
+      "subject": "Customer",
+      "predicate": "retains_enforcement_rights",
+      "object": "the sole right to enforce this Agreement against Microsoft on behalf of Affiliates",
+      "modality": "ENTITLEMENT",
+      "conditions": [],
+      "evidence_span": "Customer will have the sole right to enforce this Agreement against Microsoft.",
+      "locator": {
+        "page": 1,
+        "section": "Affiliates (d)"
+      },
+      "trust_score": 0.99
+    },
+    {
+      "claim_id": "doc057:af:007",
+      "subject": "Customer",
+      "predicate": "prohibited_from_reverse_engineering",
+      "object": "any Product or Services Deliverable, or attempting to do so (except where permitted by law)",
+      "modality": "PROHIBITION",
+      "conditions": [],
+      "evidence_span": "Customer must not (and is not licensed to): (i) reverse engineer, decompile, or disassemble any Product or Services Deliverable...",
+      "locator": {
+        "page": 1,
+        "section": "Restrictions (f)(i)"
+      },
+      "trust_score": 0.99
+    },
+    {
+      "claim_id": "doc057:af:008",
+      "subject": "Customer",
+      "predicate": "prohibited_from_licensing_interference",
+      "object": "install or use non-Microsoft software in any way that subjects Microsoft IP to third-party license terms",
+      "modality": "PROHIBITION",
+      "conditions": [],
+      "evidence_span": "(ii) install or use non-Microsoft software or technology in any way that would subject Microsoft's intellectual property to any other license terms;",
+      "locator": {
+        "page": 1,
+        "section": "Restrictions (f)(ii)"
+      },
+      "trust_score": 0.99
+    },
+    {
+      "claim_id": "doc057:af:009",
+      "subject": "Customer",
+      "predicate": "prohibited_from_circumventing_limits",
+      "object": "work around any technical limitations in a Product/Deliverable or restrictions in Product documentation",
+      "modality": "PROHIBITION",
+      "conditions": [],
+      "evidence_span": "(iii) work around any technical limitations in a Product or Services Deliverable or restrictions in Product documentation;",
+      "locator": {
+        "page": 1,
+        "section": "Restrictions (f)(iii)"
+      },
+      "trust_score": 0.99
+    },
+    {
+      "claim_id": "doc057:af:010",
+      "subject": "Customer",
+      "predicate": "prohibited_from_multi_device_splitting",
+      "object": "separate and run parts of a Product or Services Deliverable on more than one device",
+      "modality": "PROHIBITION",
+      "conditions": [],
+      "evidence_span": "(iv) separate and run parts of a Product or Services Deliverable on more than one device;",
+      "locator": {
+        "page": 1,
+        "section": "Restrictions (f)(iv)"
+      },
+      "trust_score": 0.99
+    },
+    {
+      "claim_id": "doc057:af:011",
+      "subject": "Customer",
+      "predicate": "prohibited_from_version_downgrading",
+      "object": "upgrade or downgrade parts of a Product at different times",
+      "modality": "PROHIBITION",
+      "conditions": [],
+      "evidence_span": "(v) upgrade or downgrade parts of a Product at different times;",
+      "locator": {
+        "page": 1,
+        "section": "Restrictions (f)(v)"
+      },
+      "trust_score": 0.99
+    },
+    {
+      "claim_id": "doc057:af:012",
+      "subject": "Customer",
+      "predicate": "prohibited_from_separate_transfers",
+      "object": "transfer parts of a Product separately",
+      "modality": "PROHIBITION",
+      "conditions": [],
+      "evidence_span": "(vi) transfer parts of a Product separately; or",
+      "locator": {
+        "page": 1,
+        "section": "Restrictions (f)(vi)"
+      },
+      "trust_score": 0.99
+    },
+    {
+      "claim_id": "doc057:af:013",
+      "subject": "Customer",
+      "predicate": "prohibited_from_commercial_hosting",
+      "object": "distribute, sublicense, rent, lease, or lend Products/Deliverables, or use them to offer hosting services to third parties",
+      "modality": "PROHIBITION",
+      "conditions": [],
+      "evidence_span": "(vii) distribute, sublicense, rent, lease, or lend any Products or Services Deliverables, in whole or in part, or use them to offer hosting services to a third party.",
+      "locator": {
+        "page": 2,
+        "section": "Restrictions (f)(vii)"
+      },
+      "trust_score": 0.99
+    },
+    {
+      "claim_id": "doc057:af:014",
+      "subject": "Customer",
+      "predicate": "may_transfer_perpetual_license",
+      "object": "to an Affiliate for fully-paid, perpetual licenses",
+      "modality": "PERMISSION",
+      "conditions": [],
+      "evidence_span": "Customer may only transfer fully-paid, perpetual licenses to (1) an Affiliate...",
+      "locator": {
+        "page": 2,
+        "section": "License transfers (g)"
+      },
+      "trust_score": 0.99
+    },
+    {
+      "claim_id": "doc057:af:015",
+      "subject": "Customer",
+      "predicate": "may_transfer_perpetual_license",
+      "object": "to a third party solely in connection with transferred hardware or employees assigned to the license",
+      "modality": "PERMISSION",
+      "conditions": [
+        "permitted hardware transfer",
+        "permitted employee assignment"
+      ],
+      "evidence_span": "or (2) a third party solely in connection with the transfer of hardware to which, or employees to whom, the licenses have been assigned...",
+      "locator": {
+        "page": 2,
+        "section": "License transfers (g)"
+      },
+      "trust_score": 0.99
+    },
+    {
+      "claim_id": "doc057:af:016",
+      "subject": "Customer",
+      "predicate": "may_transfer_perpetual_license",
+      "object": "as part of a divestiture of an Affiliate or merger involving Customer or an Affiliate",
+      "modality": "PERMISSION",
+      "conditions": [
+        "corporate divestiture",
+        "corporate merger"
+      ],
+      "evidence_span": "as part of (a) a divestiture of all or part of an Affiliate or (b) a merger involving Customer or an Affiliate.",
+      "locator": {
+        "page": 2,
+        "section": "License transfers (g)"
+      },
+      "trust_score": 0.99
+    },
+    {
+      "claim_id": "doc057:af:017",
+      "subject": "Customer",
+      "predicate": "must_uninstall_upon_transfer",
+      "object": "and discontinue using the licensed Product and render any copies unusable upon transfer",
+      "modality": "OBLIGATION",
+      "conditions": [],
+      "evidence_span": "Upon such transfer, Customer must uninstall and discontinue using the licensed Product and render any copies unusable.",
+      "locator": {
+        "page": 2,
+        "section": "License transfers (g)"
+      },
+      "trust_score": 0.99
+    },
+    {
+      "claim_id": "doc057:af:018",
+      "subject": "Customer",
+      "predicate": "must_provide_transfer_documentation",
+      "object": "a copy of General Terms, Product Terms, and scope documents to the transferee",
+      "modality": "OBLIGATION",
+      "conditions": [],
+      "evidence_span": "Customer must provide the transferee a copy of these General Terms, the applicable Product Terms and any other documents necessary...",
+      "locator": {
+        "page": 2,
+        "section": "License transfers (g)"
+      },
+      "trust_score": 0.99
+    },
+    {
+      "claim_id": "doc057:af:019",
+      "subject": "Customer",
+      "predicate": "must_meet_eligibility_criteria",
+      "object": "respective eligibility requirements if purchasing academic, government, or nonprofit Products",
+      "modality": "ELIGIBILITY",
+      "conditions": [],
+      "evidence_span": "Customer agrees that if it is purchasing academic, government or nonprofit Products, Customer meets the respective eligibility requirements...",
+      "locator": {
+        "page": 2,
+        "section": "Customer Eligibility (h)"
+      },
+      "trust_score": 0.99
+    },
+    {
+      "claim_id": "doc057:af:020",
+      "subject": "Microsoft",
+      "predicate": "may_verify_and_suspend_eligibility",
+      "object": "verify eligibility and suspend Product use if eligibility requirements are not met",
+      "modality": "PERMISSION",
+      "conditions": [],
+      "evidence_span": "Microsoft reserves the right to verify eligibility and suspend Product use if requirements are not met.",
+      "locator": {
+        "page": 2,
+        "section": "Customer Eligibility (h)"
+      },
+      "trust_score": 0.99
+    },
+    {
+      "claim_id": "doc057:af:021",
+      "subject": "Microsoft",
+      "predicate": "warrants_professional_standards",
+      "object": "perform ordered Professional Services as provided in the Agreement and applicable Statement of Services",
+      "modality": "OBLIGATION",
+      "conditions": [],
+      "evidence_span": "Microsoft will perform the Professional Services ordered as provided in this Agreement and the applicable Statement of Services.",
+      "locator": {
+        "page": 2,
+        "section": "Performance of Professional Services (a)"
+      },
+      "trust_score": 0.99
+    },
+    {
+      "claim_id": "doc057:af:022",
+      "subject": "Each party",
+      "predicate": "may_use_preexisting_work",
+      "object": "reproduce, and modify the other party's Pre-existing Work only as needed for Professional Services",
+      "modality": "PERMISSION",
+      "conditions": [],
+      "evidence_span": "Each party may use, reproduce, and modify the other party\u2019s Pre-existing Work only as needed to perform obligations related to Professional Services.",
+      "locator": {
+        "page": 2,
+        "section": "Pre-existing Work (c)"
+      },
+      "trust_score": 0.99
+    },
+    {
+      "claim_id": "doc057:af:023",
+      "subject": "Microsoft",
+      "predicate": "grants_deliverables_license",
+      "object": "a non-exclusive, limited license to Customer to use and modify Services Deliverables for own business purposes",
+      "modality": "PERMISSION",
+      "conditions": [],
+      "evidence_span": "Microsoft grants Customer a non-exclusive, limited license to use and modify the Services Deliverables as provided in this Agreement...",
+      "locator": {
+        "page": 2,
+        "section": "Services Deliverables (d)"
+      },
+      "trust_score": 0.99
+    },
+    {
+      "claim_id": "doc057:af:024",
+      "subject": "Customer",
+      "predicate": "may_sublicense_deliverables",
+      "object": "its rights in Services Deliverables to its Affiliates (Affiliates may not further sublicense)",
+      "modality": "PERMISSION",
+      "conditions": [],
+      "evidence_span": "Customer may sublicense its rights in Services Deliverables to its Affiliates, but Customer\u2019s Affiliates may not sublicense these rights.",
+      "locator": {
+        "page": 2,
+        "section": "Affiliates rights (e)"
+      },
+      "trust_score": 0.99
+    },
+    {
+      "claim_id": "doc057:af:025",
+      "subject": "Customer",
+      "predicate": "must_keep_compliance_records",
+      "object": "relating to Products it and its Affiliates use or distribute",
+      "modality": "OBLIGATION",
+      "conditions": [],
+      "evidence_span": "Customer must keep records relating to Products it and its Affiliates use or distribute.",
+      "locator": {
+        "page": 2,
+        "section": "Verification process (a)"
+      },
+      "trust_score": 0.99
+    },
+    {
+      "claim_id": "doc057:af:026",
+      "subject": "Microsoft",
+      "predicate": "may_conduct_compliance_audit",
+      "object": "verify Customer's and Affiliates' compliance upon 30 days notice at Microsoft's expense",
+      "modality": "PERMISSION",
+      "conditions": [
+        "30 days written notice",
+        "Microsoft expense"
+      ],
+      "evidence_span": "At Microsoft\u2019s expense, Microsoft may verify Customer\u2019s and its Affiliates\u2019 compliance with this Agreement at any time upon 30 days\u2019 notice.",
+      "locator": {
+        "page": 2,
+        "section": "Verification process (a)"
+      },
+      "trust_score": 0.99
+    },
+    {
+      "claim_id": "doc057:af:027",
+      "subject": "Customer",
+      "predicate": "must_provide_audit_access",
+      "object": "promptly provide information, documents, and visual access to systems running Products reasonably requested for audit",
+      "modality": "OBLIGATION",
+      "conditions": [],
+      "evidence_span": "Customer must promptly provide any information and documents that Microsoft or the auditor reasonably requests related to the verification and visual access...",
+      "locator": {
+        "page": 2,
+        "section": "Verification process (a)"
+      },
+      "trust_score": 0.99
+    },
+    {
+      "claim_id": "doc057:af:028",
+      "subject": "Customer",
+      "predicate": "must_acquire_unlicensed_usage",
+      "object": "order sufficient licenses within 30 days to cover unlicensed use revealed during audit",
+      "modality": "OBLIGATION",
+      "conditions": [
+        "within 30 days of audit finding"
+      ],
+      "evidence_span": "Customer must, within 30 days, order sufficient licenses to cover the period of its unlicensed use.",
+      "locator": {
+        "page": 3,
+        "section": "Remedies for non-compliance (b)"
+      },
+      "trust_score": 0.99
+    },
+    {
+      "claim_id": "doc057:af:029",
+      "subject": "Customer",
+      "predicate": "must_reimburse_audit_penalty",
+      "object": "verification costs and acquire licenses at 125% of price if unlicensed use is 5% or more of total use",
+      "modality": "OBLIGATION",
+      "conditions": [
+        "unlicensed use >= 5%"
+      ],
+      "evidence_span": "if unlicensed use is 5% or more of Customer\u2019s total use of all Products, Customer must reimburse Microsoft for its costs incurred in verification and acquire sufficient licenses at 125%...",
+      "locator": {
+        "page": 3,
+        "section": "Remedies for non-compliance (b)"
+      },
+      "trust_score": 0.99
+    },
+    {
+      "claim_id": "doc057:af:031",
+      "subject": "Customer",
+      "predicate": "must_obtain_privacy_consents",
+      "object": "obtain all required third-party consents before providing Personal Data to Microsoft under applicable privacy laws",
+      "modality": "OBLIGATION",
+      "conditions": [],
+      "evidence_span": "Customer will obtain all required consents from third parties (including Customer\u2019s contacts, Partners, distributors, administrators, and employees) under applicable privacy and data protection laws.",
+      "locator": {
+        "page": 3,
+        "section": "Data Protection and Processing"
+      },
+      "trust_score": 0.99
+    },
+    {
+      "claim_id": "doc057:af:032",
+      "subject": "Each party",
+      "predicate": "must_maintain_confidentiality",
+      "object": "take reasonable steps to protect the other's Confidential Information and use it only for business relationship purposes",
+      "modality": "OBLIGATION",
+      "conditions": [],
+      "evidence_span": "Each party will take reasonable steps to protect the other\u2019s Confidential Information and will use the other party\u2019s Confidential Information only for purposes of the parties\u2019 business relationship.",
+      "locator": {
+        "page": 3,
+        "section": "Protection of Confidential Information (b)"
+      },
+      "trust_score": 0.99
+    },
+    {
+      "claim_id": "doc057:af:033",
+      "subject": "Neither party",
+      "predicate": "prohibited_from_unauthorized_disclosure",
+      "object": "disclose Confidential Information to third parties except to Representatives on need-to-know basis under protective NDA",
+      "modality": "PROHIBITION",
+      "conditions": [],
+      "evidence_span": "Neither party will disclose Confidential Information to third parties, except to its Representatives, and then only on a need-to-know basis under nondisclosure obligations at least as protective as this Agreement.",
+      "locator": {
+        "page": 3,
+        "section": "Protection of Confidential Information (b)"
+      },
+      "trust_score": 0.99
+    },
+    {
+      "claim_id": "doc057:af:034",
+      "subject": "Each party",
+      "predicate": "must_notify_unauthorized_disclosure",
+      "object": "promptly notify the other party in the event of discovery of any unauthorized use or disclosure",
+      "modality": "OBLIGATION",
+      "conditions": [],
+      "evidence_span": "Each party remains responsible for the use of Confidential Information by its Representatives and, in the event of discovery of any unauthorized use or disclosure, must promptly notify the other party.",
+      "locator": {
+        "page": 3,
+        "section": "Protection of Confidential Information (b)"
+      },
+      "trust_score": 0.99
+    },
+    {
+      "claim_id": "doc057:af:035",
+      "subject": "Either party",
+      "predicate": "may_disclose_under_legal_mandate",
+      "object": "the other's Confidential Information if required by law, only after providing notice to enable seeking a protective order",
+      "modality": "PERMISSION",
+      "conditions": [],
+      "evidence_span": "A party may disclose the other\u2019s Confidential Information if required by law, but only after it notifies the other party (if legally permissible) to enable the other party to seek a protective order.",
+      "locator": {
+        "page": 3,
+        "section": "Disclosure required by law (c)"
+      },
+      "trust_score": 0.99
+    },
+    {
+      "claim_id": "doc057:af:036",
+      "subject": "Neither party",
+      "predicate": "is_not_required_to_restrict_assignments",
+      "object": "work assignments of Representatives who had access to Confidential Information based on unaided memory",
+      "modality": "PERMISSION",
+      "conditions": [],
+      "evidence_span": "Neither party is required to restrict work assignments of its Representatives who have had access to Confidential Information.",
+      "locator": {
+        "page": 3,
+        "section": "Residual information (d)"
+      },
+      "trust_score": 0.99
+    },
+    {
+      "claim_id": "doc057:af:037",
+      "subject": "Each party",
+      "predicate": "must_observe_confidentiality_duration",
+      "object": "maintain confidentiality until Customer Data is deleted from Online Services, and for five years post-receipt for other information",
+      "modality": "OBLIGATION",
+      "conditions": [],
+      "evidence_span": "These obligations apply: (1) for Customer Data, until it is deleted from the Online Services; and (2) for all other Confidential Information, for a period of five years after a party receives the Confidential Information.",
+      "locator": {
+        "page": 3,
+        "section": "Duration of Confidentiality (e)"
+      },
+      "trust_score": 0.99
+    },
+    {
+      "claim_id": "doc057:af:038",
+      "subject": "Microsoft",
+      "predicate": "warrants_service_level_agreement",
+      "object": "each Online Service will perform in accordance with applicable SLA during Customer's use",
+      "modality": "OBLIGATION",
+      "conditions": [],
+      "evidence_span": "Microsoft warrants that each Online Service will perform in accordance with the applicable SLA during Customer\u2019s use.",
+      "locator": {
+        "page": 4,
+        "section": "Online Services Warranty (a)(i)"
+      },
+      "trust_score": 0.99
+    },
+    {
+      "claim_id": "doc057:af:039",
+      "subject": "Microsoft",
+      "predicate": "warrants_software_performance",
+      "object": "Software will perform substantially as described in Product docs for one year from license acquisition",
+      "modality": "OBLIGATION",
+      "conditions": [],
+      "evidence_span": "Microsoft warrants that the Software version that is current at the time Customer acquires it will perform substantially as described in the applicable Product documentation for one year...",
+      "locator": {
+        "page": 4,
+        "section": "Software Warranty (a)(ii)"
+      },
+      "trust_score": 0.99
+    },
+    {
+      "claim_id": "doc057:af:040",
+      "subject": "Customer",
+      "predicate": "must_notify_warranty_claim_within_window",
+      "object": "notify Microsoft within 90 days from completion of work for Professional Services warranty claims",
+      "modality": "OBLIGATION",
+      "conditions": [
+        "within 90 days from completion"
+      ],
+      "evidence_span": "Customer notifies Microsoft within 90 days from the completion of the work giving rise to the warranty claim...",
+      "locator": {
+        "page": 4,
+        "section": "Professional Services Warranty (a)(iii)"
+      },
+      "trust_score": 0.99
+    },
+    {
+      "claim_id": "doc057:af:041",
+      "subject": "Microsoft",
+      "predicate": "must_defend_ip_claims",
+      "object": "defend Customer against third-party claims alleging fee-based Products/Deliverables infringe patent, copyright, trademark, or trade secret",
+      "modality": "OBLIGATION",
+      "conditions": [],
+      "evidence_span": "Microsoft will defend Customer against any third-party claim to the extent it alleges that a Product or Services Deliverable made available by Microsoft for a fee... misappropriates a trade secret or directly infringes a patent, copyright, trademark...",
+      "locator": {
+        "page": 4,
+        "section": "Defense of third-party claims (a)"
+      },
+      "trust_score": 0.99
+    },
+    {
+      "claim_id": "doc057:af:042",
+      "subject": "Customer",
+      "predicate": "must_defend_ip_claims",
+      "object": "defend Microsoft and Affiliates against third-party claims alleging Customer Data or Non-MS Products infringe third-party IP",
+      "modality": "OBLIGATION",
+      "conditions": [],
+      "evidence_span": "Customer will defend Microsoft and its Affiliates against any third-party claim to the extent it alleges that: (1) any Customer Data or Non-Microsoft Product hosted in an Online Service... infringes a patent, copyright, trademark...",
+      "locator": {
+        "page": 4,
+        "section": "Defense of third-party claims (b)"
+      },
+      "trust_score": 0.99
+    },
+    {
+      "claim_id": "doc057:af:043",
+      "subject": "Each party",
+      "predicate": "must_provide_defense_cooperation",
+      "object": "provide defending party with prompt written notice, right to control defense/settlement, and requested assistance",
+      "modality": "OBLIGATION",
+      "conditions": [],
+      "evidence_span": "The party being defended must provide the defending party with all requested assistance, information, and authority. The defending party will reimburse the other party for reasonable out-of-pocket expenses...",
+      "locator": {
+        "page": 4,
+        "section": "Defense of third-party claims intro"
+      },
+      "trust_score": 0.99
+    },
+    {
+      "claim_id": "doc057:af:044",
+      "subject": "Each party",
+      "predicate": "has_liability_cap",
+      "object": "aggregate liability for perpetual licenses is capped at the amount Customer paid for the applicable licenses",
+      "modality": "OBLIGATION",
+      "conditions": [],
+      "evidence_span": "For each Product licensed on a perpetual basis, each party\u2019s maximum, aggregate liability is the amount Customer paid for the applicable licenses.",
+      "locator": {
+        "page": 5,
+        "section": "Perpetual Licenses Liability (a)"
+      },
+      "trust_score": 0.99
+    },
+    {
+      "claim_id": "doc057:af:045",
+      "subject": "Each party",
+      "predicate": "has_liability_cap",
+      "object": "aggregate liability for subscriptions is capped at fees paid by Customer during the 12 months preceding the incident",
+      "modality": "OBLIGATION",
+      "conditions": [],
+      "evidence_span": "For each Product licensed on a subscription basis, each party\u2019s maximum, aggregate liability is the total amount of subscription fees Customer paid to use the Product during the 12 months preceding the most recent incident...",
+      "locator": {
+        "page": 5,
+        "section": "Subscriptions Liability (b)"
+      },
+      "trust_score": 0.99
+    },
+    {
+      "claim_id": "doc057:af:047",
+      "subject": "Neither party",
+      "predicate": "excludes_consequential_damages",
+      "object": "will be liable for indirect, incidental, special, punitive, or consequential damages, or lost profits/revenues",
+      "modality": "PROHIBITION",
+      "conditions": [],
+      "evidence_span": "In no event will either party be liable for indirect, incidental, special, punitive, or consequential damages; loss of revenue, profits, or anticipated savings...",
+      "locator": {
+        "page": 5,
+        "section": "Liability Exclusions (e)"
+      },
+      "trust_score": 0.99
+    },
+    {
+      "claim_id": "doc057:af:048",
+      "subject": "Customer",
+      "predicate": "must_select_replacement_partner",
+      "object": "select an authorized replacement Partner or purchase directly from Microsoft if Partner distribution rights terminate",
+      "modality": "OBLIGATION",
+      "conditions": [
+        "upon Partner distribution termination"
+      ],
+      "evidence_span": "If the Partner\u2019s distribution right is terminated, Customer must select an authorized replacement Partner or purchase directly from Microsoft.",
+      "locator": {
+        "page": 5,
+        "section": "Selecting a Partner (a)"
+      },
+      "trust_score": 0.99
+    },
+    {
+      "claim_id": "doc057:af:049",
+      "subject": "Customer",
+      "predicate": "may_terminate_partner_privileges",
+      "object": "terminate Partner administrative privileges at any time",
+      "modality": "PERMISSION",
+      "conditions": [],
+      "evidence_span": "Customer may terminate the Partner\u2019s administrative privileges at any time.",
+      "locator": {
+        "page": 5,
+        "section": "Partner Administrator Privileges (b)"
+      },
+      "trust_score": 0.99
+    },
+    {
+      "claim_id": "doc057:af:050",
+      "subject": "Customer",
+      "predicate": "must_provide_payment_method",
+      "object": "provide a valid payment method or, if eligible, choose to be invoiced for purchases made on its account",
+      "modality": "OBLIGATION",
+      "conditions": [],
+      "evidence_span": "Customer must provide a payment method or, if eligible, choose to be invoiced for purchases made on its account.",
+      "locator": {
+        "page": 6,
+        "section": "Payment method (a)"
+      },
+      "trust_score": 0.99
+    },
+    {
+      "claim_id": "doc057:af:051",
+      "subject": "Microsoft",
+      "predicate": "may_withdraw_invoicing_eligibility",
+      "object": "Customer's invoicing eligibility at any time and for any reason",
+      "modality": "PERMISSION",
+      "conditions": [],
+      "evidence_span": "Microsoft may withdraw Customer\u2019s eligibility at any time and for any reason.",
+      "locator": {
+        "page": 6,
+        "section": "Invoices (b)"
+      },
+      "trust_score": 0.99
+    },
+    {
+      "claim_id": "doc057:af:052",
+      "subject": "Customer",
+      "predicate": "must_promptly_notify_changes",
+      "object": "Microsoft of changes in company name, location, ownership, structure, or operational activities",
+      "modality": "OBLIGATION",
+      "conditions": [],
+      "evidence_span": "Customer must promptly notify Microsoft of any changes in its company name or location and of any significant changes in the ownership, structure, or operational activities...",
+      "locator": {
+        "page": 6,
+        "section": "Invoices (b)"
+      },
+      "trust_score": 0.99
+    },
+    {
+      "claim_id": "doc057:af:053",
+      "subject": "Customer",
+      "predicate": "must_pay_within_30_days",
+      "object": "all invoiced amounts due within thirty (30) calendar days following invoice date",
+      "modality": "OBLIGATION",
+      "conditions": [
+        "within 30 calendar days of invoice date"
+      ],
+      "evidence_span": "Customer will pay all amounts due within thirty (30) calendar days following the invoice date.",
+      "locator": {
+        "page": 6,
+        "section": "Invoice Payment terms (c)"
+      },
+      "trust_score": 0.99
+    },
+    {
+      "claim_id": "doc057:af:054",
+      "subject": "Microsoft",
+      "predicate": "may_assess_late_fee",
+      "object": "late fee of up to 2% monthly on payments overdue by more than 15 calendar days (or legal maximum if less)",
+      "modality": "PERMISSION",
+      "conditions": [
+        "payment overdue > 15 calendar days"
+      ],
+      "evidence_span": "Microsoft may, at its option, assess a late fee on any payments to Microsoft that are more than fifteen (15) calendar days past due at a rate of up to two percent (2%) of the total amount payable...",
+      "locator": {
+        "page": 6,
+        "section": "Late Payment (d)"
+      },
+      "trust_score": 0.99
+    },
+    {
+      "claim_id": "doc057:af:055",
+      "subject": "Customer",
+      "predicate": "authorizes_recurring_charges",
+      "object": "Microsoft to charge payment method periodically for each subscription or billing period until terminated",
+      "modality": "PERMISSION",
+      "conditions": [],
+      "evidence_span": "For subscriptions that renew automatically, Customer authorizes Microsoft to charge Customer\u2019s payment method periodically for each subscription or billing period until the subscription is terminated.",
+      "locator": {
+        "page": 6,
+        "section": "Recurring Payments (f)"
+      },
+      "trust_score": 0.99
+    },
+    {
+      "claim_id": "doc057:af:056",
+      "subject": "Customer",
+      "predicate": "must_pay_applicable_taxes",
+      "object": "all applicable value added, GST, sales, gross receipts taxes, and stamp taxes owed under the Agreement",
+      "modality": "OBLIGATION",
+      "conditions": [],
+      "evidence_span": "Customer will also pay any applicable value added, goods and services, sales, gross receipts, or other transaction taxes, fees, charges, or surcharges... and for all other taxes it is legally obligated to pay...",
+      "locator": {
+        "page": 6,
+        "section": "Taxes (g)"
+      },
+      "trust_score": 0.99
+    },
+    {
+      "claim_id": "doc057:af:057",
+      "subject": "Microsoft",
+      "predicate": "must_pay_income_taxes",
+      "object": "all taxes based upon its net income, gross receipts in lieu of income taxes, and property ownership taxes",
+      "modality": "OBLIGATION",
+      "conditions": [],
+      "evidence_span": "Microsoft will be responsible for all taxes based upon its net income, gross receipts taxes imposed in lieu of taxes on income or profits, and taxes on its property ownership.",
+      "locator": {
+        "page": 7,
+        "section": "Taxes (g)"
+      },
+      "trust_score": 0.99
+    },
+    {
+      "claim_id": "doc057:af:058",
+      "subject": "Customer",
+      "predicate": "may_deduct_withheld_taxes",
+      "object": "deduct required tax withholdings from payments invoiced by Microsoft upon providing official receipts to Microsoft",
+      "modality": "PERMISSION",
+      "conditions": [
+        "prompt official receipt provided"
+      ],
+      "evidence_span": "If any taxes are required to be withheld on payments invoiced by Microsoft, Customer may deduct such taxes from the amount owed and pay them to the appropriate taxing authority, but only if Customer promptly provides Microsoft an official receipt...",
+      "locator": {
+        "page": 7,
+        "section": "Taxes (g)"
+      },
+      "trust_score": 0.99
+    },
+    {
+      "claim_id": "doc057:af:059",
+      "subject": "Either party",
+      "predicate": "may_terminate_without_cause",
+      "object": "the Agreement without cause on sixty (60) days written notice",
+      "modality": "PERMISSION",
+      "conditions": [
+        "60 days written notice"
+      ],
+      "evidence_span": "Either party may terminate this Agreement without cause on 60 days\u2019 notice.",
+      "locator": {
+        "page": 7,
+        "section": "Termination without cause (b)"
+      },
+      "trust_score": 0.99
+    },
+    {
+      "claim_id": "doc057:af:060",
+      "subject": "Either party",
+      "predicate": "may_terminate_for_material_breach",
+      "object": "the Agreement on 30 days notice for material breach if the other party fails to cure within 30-day cure period",
+      "modality": "PERMISSION",
+      "conditions": [
+        "uncured material breach",
+        "30 days cure notice"
+      ],
+      "evidence_span": "either party may terminate this Agreement on 30 days\u2019 notice for material breach if the other party fails to cure the breach within the 30-day notice period.",
+      "locator": {
+        "page": 7,
+        "section": "Termination for cause (c)"
+      },
+      "trust_score": 0.99
+    },
+    {
+      "claim_id": "doc057:af:061",
+      "subject": "Customer",
+      "predicate": "becomes_due_immediately",
+      "object": "all amounts due under any unpaid invoices immediately upon termination for cause",
+      "modality": "OBLIGATION",
+      "conditions": [
+        "upon termination"
+      ],
+      "evidence_span": "All amounts due under any unpaid invoices shall become due and payable immediately.",
+      "locator": {
+        "page": 7,
+        "section": "Termination for cause (c)(ii)"
+      },
+      "trust_score": 0.99
+    },
+    {
+      "claim_id": "doc057:af:062",
+      "subject": "Customer",
+      "predicate": "must_pay_unpaid_usage",
+      "object": "for all unpaid usage and Professional Services provided as of termination date immediately upon receipt of invoice",
+      "modality": "OBLIGATION",
+      "conditions": [
+        "upon termination"
+      ],
+      "evidence_span": "Customer must pay for all unpaid usage as of the termination date immediately upon receipt of an invoice. Customer must pay for all Professional Services provided as of the termination date immediately upon receipt of an invoice.",
+      "locator": {
+        "page": 7,
+        "section": "Termination for cause (c)(ii-iv)"
+      },
+      "trust_score": 0.99
+    },
+    {
+      "claim_id": "doc057:af:063",
+      "subject": "Customer",
+      "predicate": "will_receive_refund_on_breach",
+      "object": "credit or refund for any Subscription fees paid in advance for unused consumption if Microsoft is in breach",
+      "modality": "ENTITLEMENT",
+      "conditions": [
+        "Microsoft in material breach"
+      ],
+      "evidence_span": "If Microsoft is in breach, Customer will receive a credit for any Subscription fees, including amounts paid in advance for unused consumption for any usage period after the termination date.",
+      "locator": {
+        "page": 7,
+        "section": "Termination for cause (c)(iii)"
+      },
+      "trust_score": 0.99
+    },
+    {
+      "claim_id": "doc057:af:064",
+      "subject": "Microsoft",
+      "predicate": "must_provide_notice_before_suspension",
+      "object": "Customer 30 days notice before suspension for material breach (unless immediate suspension needed for security/fraud)",
+      "modality": "OBLIGATION",
+      "conditions": [
+        "30 days notice required unless security emergency"
+      ],
+      "evidence_span": "Microsoft will give Customer 30 days\u2019 notice before such suspension unless Microsoft\u2019s charge against Customer\u2019s payment method is declined or Microsoft reasonably believes immediate suspension is required...",
+      "locator": {
+        "page": 7,
+        "section": "Suspension (d)"
+      },
+      "trust_score": 0.99
+    },
+    {
+      "claim_id": "doc057:af:065",
+      "subject": "Microsoft",
+      "predicate": "may_update_agreement",
+      "object": "Agreement from time to time, with changes applying to new orders and renewals",
+      "modality": "PERMISSION",
+      "conditions": [],
+      "evidence_span": "Microsoft may update this Agreement from time to time. No changes will apply to perpetual Software licenses previously acquired. Changes will apply to new orders and to existing Subscriptions...",
+      "locator": {
+        "page": 8,
+        "section": "Modifications to this Agreement intro"
+      },
+      "trust_score": 0.99
+    },
+    {
+      "claim_id": "doc057:af:066",
+      "subject": "Customer",
+      "predicate": "must_receive_60_days_modification_notice",
+      "object": "written notice at least 60 days before changes take effect to General Terms",
+      "modality": "OBLIGATION",
+      "conditions": [
+        "at least 60 days notice"
+      ],
+      "evidence_span": "Customer will be notified at least 60 days before changes take effect to these General Terms or any other terms that are part of the Agreement...",
+      "locator": {
+        "page": 8,
+        "section": "Modifications - Other terms (c)"
+      },
+      "trust_score": 0.99
+    },
+    {
+      "claim_id": "doc057:af:067",
+      "subject": "Customer",
+      "predicate": "must_stop_use_and_disable_billing",
+      "object": "Products and Professional Services by end of term and turn off recurring billing if Customer rejects Agreement changes",
+      "modality": "OBLIGATION",
+      "conditions": [
+        "Customer rejects changes"
+      ],
+      "evidence_span": "If Customer does not agree to the changes, it must stop using the Products and Professional Services by the end of the Subscription or support term and turn off recurring billing for any Subscriptions that are set to renew automatically.",
+      "locator": {
+        "page": 8,
+        "section": "Modifications - Other terms (c)"
+      },
+      "trust_score": 0.99
+    },
+    {
+      "claim_id": "doc057:af:068",
+      "subject": "Customer",
+      "predicate": "must_not_modify_agreement",
+      "object": "this Agreement; conflicting terms in Customer purchase orders are expressly rejected and void",
+      "modality": "PROHIBITION",
+      "conditions": [],
+      "evidence_span": "Customer may not modify this Agreement. Any additional or conflicting terms contained in a purchase order or otherwise presented by Customer are expressly rejected and will not apply.",
+      "locator": {
+        "page": 8,
+        "section": "Changes proposed by Customer (d)"
+      },
+      "trust_score": 0.99
+    },
+    {
+      "claim_id": "doc057:af:069",
+      "subject": "Either party",
+      "predicate": "may_assign_to_affiliate",
+      "object": "this Agreement to an Affiliate upon written notice to the other party",
+      "modality": "PERMISSION",
+      "conditions": [
+        "written notice required"
+      ],
+      "evidence_span": "Either party may assign this Agreement to an Affiliate, but it must notify the other party in writing of the assignment.",
+      "locator": {
+        "page": 8,
+        "section": "Assignment (c)"
+      },
+      "trust_score": 0.99
+    },
+    {
+      "claim_id": "doc057:af:070",
+      "subject": "Customer",
+      "predicate": "consents_to_payment_assignment",
+      "object": "to assignment to Microsoft Affiliates or third parties of rights to receive payment without prior notice",
+      "modality": "PERMISSION",
+      "conditions": [],
+      "evidence_span": "Customer consents to the assignment to an Affiliate or third party, without prior notice, of any rights Microsoft may have under this Agreement to receive payment and enforce Customer's payment obligations...",
+      "locator": {
+        "page": 8,
+        "section": "Assignment (c)"
+      },
+      "trust_score": 0.99
+    },
+    {
+      "claim_id": "doc057:af:071",
+      "subject": "Customer",
+      "predicate": "requires_written_approval",
+      "object": "from the non-assigning party in writing for any other proposed assignment; unauthorized assignment is void",
+      "modality": "OBLIGATION",
+      "conditions": [],
+      "evidence_span": "Any other proposed assignment of this Agreement must be approved by the non-assigning party in writing. Any attempted assignment without required approval will be void.",
+      "locator": {
+        "page": 8,
+        "section": "Assignment (c)"
+      },
+      "trust_score": 0.99
+    },
+    {
+      "claim_id": "doc057:af:072",
+      "subject": "Either party",
+      "predicate": "requires_written_agreement",
+      "object": "for any waiver to be valid, which must be in writing and signed by the waiving party",
+      "modality": "OBLIGATION",
+      "conditions": [],
+      "evidence_span": "Failure to enforce any provision of this Agreement will not constitute a waiver. Any waiver must be in writing and signed by the waiving party.",
+      "locator": {
+        "page": 8,
+        "section": "Waiver (e)"
+      },
+      "trust_score": 0.99
+    },
+    {
+      "claim_id": "doc057:af:073",
+      "subject": "Either party",
+      "predicate": "must_be_in_writing",
+      "object": "all notices must be in writing to designated address (Microsoft Corp, Reno, NV)",
+      "modality": "OBLIGATION",
+      "conditions": [],
+      "evidence_span": "All notices must be in writing. Except for notices relating to arbitration... notices to Microsoft must be sent to the following address...",
+      "locator": {
+        "page": 9,
+        "section": "Notices (h)"
+      },
+      "trust_score": 0.99
+    },
+    {
+      "claim_id": "doc057:af:074",
+      "subject": "Microsoft",
+      "predicate": "may_provide_electronic_notice",
+      "object": "information and notices electronically via email, service portal, or designated website",
+      "modality": "PERMISSION",
+      "conditions": [],
+      "evidence_span": "Microsoft may provide Customer with information and notices electronically, including via email, through the portal for an Online Service, or through a web site that Microsoft identifies.",
+      "locator": {
+        "page": 9,
+        "section": "Notices (h)"
+      },
+      "trust_score": 0.99
+    },
+    {
+      "claim_id": "doc057:af:075",
+      "subject": "Each party",
+      "predicate": "submits_to_governing_jurisdiction",
+      "object": "to Washington State and US federal governing law (CISG excluded) with exclusive venue in King County, Washington or Ireland",
+      "modality": "OBLIGATION",
+      "conditions": [],
+      "evidence_span": "This Agreement will be governed by and construed in accordance with the laws of the State of Washington and federal laws of the United States. The 1980 United Nations Convention on Contracts for the International Sale of Goods... will not apply... When bringing any action arising under this Agreement, the parties agree to the following exclusive venues: King County, State of Washington... Europe... Ireland.",
+      "locator": {
+        "page": 9,
+        "section": "Applicable law and Dispute resolution (i-j)"
+      },
+      "trust_score": 0.99
+    },
+    {
+      "claim_id": "doc057:af:076",
+      "subject": "Each party",
+      "predicate": "applies_order_of_precedence",
+      "object": "controlling priority in case of conflict: (1) DPA, (2) General Terms, (3) Product Terms, (4) SLA, (5) Order terms",
+      "modality": "OBLIGATION",
+      "conditions": [],
+      "evidence_span": "order from highest to lowest priority: (1) DPA; (2) these General Terms; (3) Product Terms; (4) SLA; and (5) any additional terms presented when an order is placed.",
+      "locator": {
+        "page": 9,
+        "section": "Order of precedence (k)"
+      },
+      "trust_score": 0.99
+    },
+    {
+      "claim_id": "doc057:af:077",
+      "subject": "Customer",
+      "predicate": "warrants_government_procurement_compliance",
+      "object": "compliance with all applicable government procurement laws and authority to enter into Agreement if a government entity",
+      "modality": "ELIGIBILITY",
+      "conditions": [],
+      "evidence_span": "Customer represents and warrants that (1) it has complied and will comply with all applicable government procurement laws and regulations; (2) it is authorized to enter into this Agreement...",
+      "locator": {
+        "page": 9,
+        "section": "Government procurement rules (m)"
+      },
+      "trust_score": 0.99
+    },
+    {
+      "claim_id": "doc057:af:078",
+      "subject": "Each party",
+      "predicate": "must_comply_with_trade_laws",
+      "object": "all applicable import/export and OFAC sanctions regulations",
+      "modality": "OBLIGATION",
+      "conditions": [],
+      "evidence_span": "Each party will comply with all laws and regulations applicable to the import or export of the Products and Services Deliverables, including, without limitation, trade laws such as the U.S. Export Administration Regulations and International Traffic in Arms Regulations and sanctions...",
+      "locator": {
+        "page": 9,
+        "section": "Compliance with Trade Laws (n)"
+      },
+      "trust_score": 0.99
+    },
+    {
+      "claim_id": "doc057:af:079",
+      "subject": "Microsoft",
+      "predicate": "may_suspend_for_trade_laws",
+      "object": "suspend or terminate Agreement if performance would cause it to violate Trade Laws or risk sanctions",
+      "modality": "PERMISSION",
+      "conditions": [],
+      "evidence_span": "Microsoft may suspend or terminate this Agreement to the extent that Microsoft reasonably believes that performance would cause it to violate Trade Laws or put it at risk of becoming subject to sanctions...",
+      "locator": {
+        "page": 9,
+        "section": "Compliance with Trade Laws (n)"
+      },
+      "trust_score": 0.99
+    }
+  ],
+  "separated_content": {
+    "descriptions": [
+      "Product availability may vary by region",
+      "Termination without cause will not affect Customer's perpetual licenses",
+      "Fixes are licensed under the same terms as the Product to which they apply",
+      "Partners provide support for Products and other value-added services",
+      "The current Software version is described in applicable Product documentation"
+    ],
+    "definitions": [
+      "licenses are solely for Customer's own use and business purposes and are nontransferable except as expressly permitted",
+      "all intellectual property rights not expressly granted in this Agreement",
+      "process Customer Data, Personal Data, and Professional Services Data as provided in the Agreement and DPA",
+      "direct damages liability for free offers and redistributed code is limited to US$5,000",
+      "Software does not include Online Services",
+      "Customer Data does not include Professional Services Data",
+      "Subscriptions expire at the end of the applicable subscription period unless renewed",
+      "Attempted license transfers that do not comply with this section are void",
+      "Any attempted assignment without required approval will be void",
+      "Failure to enforce any provision of this Agreement will not constitute a waiver"
+    ],
+    "references": [
+      "More details about cancelation can be found in the Product Terms",
+      "All other changes will apply when they are published on the Product Terms site",
+      "Professional Services scope documents and Statements of Services are identified in ordering documents",
+      "SLA terms and service level commitments are published on the licensing website"
+    ],
+    "responsibilities": [
+      "Microsoft remains responsible for the performance of those services subject to the terms of this Agreement",
+      "Microsoft remains responsible for their performance under this Agreement through its Affiliates and subcontractors",
+      "Customer is responsible for any use of the Products that does not comply with this Agreement"
+    ],
+    "duplicates_collapsed": [
+      {
+        "original_claim_id": "doc057:af:050",
+        "duplicate_subject": "Either party",
+        "duplicate_predicate": "may_assign_to_affiliate",
+        "duplicate_object": "Parties notify the other party in writing of the assignment",
+        "source_index": 83,
+        "reason": "Redundant duty fragment: assignment notice duty collapsed into canonical assignment permission rule."
+      },
+      {
+        "original_claim_id": "doc057:af:037",
+        "duplicate_subject": "Customer",
+        "duplicate_predicate": "authorizes_recurring_charges",
+        "duplicate_object": "Microsoft to store Customer payment details and process such payments periodically",
+        "source_index": 54,
+        "reason": "Collapsed into canonical recurring payment authorization claim."
+      },
+      {
+        "original_claim_id": "doc057:af:004",
+        "duplicate_subject": "Customer",
+        "duplicate_predicate": "may_order_for_affiliate",
+        "duplicate_object": "Licenses apply to such Affiliates",
+        "source_index": 4,
+        "reason": "Collapsed into core Affiliate license ordering entitlement."
+      },
+      {
+        "original_claim_id": "doc057:af:044",
+        "duplicate_subject": "Customer",
+        "duplicate_predicate": "must_pay_unpaid_usage",
+        "duplicate_object": "pay for all services provided or used before termination",
+        "source_index": 72,
+        "reason": "Duplicate payment obligation on termination collapsed into canonical unpaid usage payment rule."
+      },
+      {
+        "original_claim_id": "doc057:af:030",
+        "duplicate_subject": "Each party",
+        "duplicate_predicate": "has_liability_cap",
+        "duplicate_object": "maximum aggregate liability for Products licensed on subscription basis",
+        "source_index": 37,
+        "reason": "Duplicate subscription liability cap collapsed into canonical section 8.b claim."
+      },
+      {
+        "original_claim_id": "doc057:af:021",
+        "duplicate_subject": "Each party",
+        "duplicate_predicate": "must_maintain_confidentiality",
+        "duplicate_object": "Parties disclose Confidential Information only to Representatives under protective NDA",
+        "source_index": 25,
+        "reason": "Duplicate confidentiality disclosure prohibition collapsed into canonical section 5.b rule."
+      },
+      {
+        "original_claim_id": "doc057:af:052",
+        "duplicate_subject": "Customer",
+        "duplicate_predicate": "requires_written_approval",
+        "duplicate_object": "Any other proposed assignment must be approved in writing",
+        "source_index": 85,
+        "reason": "Duplicate assignment approval restriction collapsed into canonical rule."
+      }
+    ],
+    "rejected_bad_fragments": [
+      {
+        "source_index": 64,
+        "raw_subject": "the following",
+        "predicate": "has_validity_rule",
+        "object": "apply",
+        "reason": "Fragment subject 'the following' rejected: not a legal entity actor."
+      },
+      {
+        "source_index": 63,
+        "raw_subject": "Without limiting other remedies it",
+        "predicate": "has_validity_rule",
+        "object": "either party may terminate this Agreement on 30 days notice",
+        "reason": "Fragment subject rejected: clause introductory modifier parsed as subject."
+      },
+      {
+        "source_index": 52,
+        "raw_subject": "More details about cancelat ion",
+        "predicate": "can_cancel_before_shipment",
+        "object": "be found in the Product Terms",
+        "reason": "Non-entity subject: descriptive heading parsed as subject; reclassified to REFERENCE."
+      },
+      {
+        "source_index": 87,
+        "raw_subject": "Failure to enforce any provision of this Agreement",
+        "predicate": "constitute",
+        "object": "a waiver",
+        "reason": "Non-entity subject: contractual concept parsed as subject; reclassified to DEFINITION."
+      },
+      {
+        "source_index": 73,
+        "raw_subject": "Page 8 of 11 Modifications to this Agreement Microsoft",
+        "predicate": "update",
+        "object": "this Agreement from time to time",
+        "reason": "Corrupted header block subject repaired to 'Microsoft' and deduplicated."
+      }
+    ]
+  }
+}

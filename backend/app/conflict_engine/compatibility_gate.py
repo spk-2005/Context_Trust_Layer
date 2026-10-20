@@ -38,6 +38,9 @@ class CompatibilityGate:
         ("expense.shipping_coverage", "asset.return_property"),
         ("must_return_company_property", "request_leave_during_notice_period"),
         ("covers_shipping_costs", "must_return_company_property"),
+        ("may_terminate_without_cause", "may_terminate_for_material_breach"),
+        ("termination.without_cause", "termination.for_cause"),
+        ("termination.convenience", "termination.material_breach"),
     }
 
     GENERIC_PRODUCT_CLASS_NOUNS = {
@@ -62,6 +65,13 @@ class CompatibilityGate:
             return False
         if "confirmed" in pred_a and "probation" in pred_b:
             return False
+
+        # Check termination distinct triggers (without cause vs for material breach)
+        if ("terminate" in pred_a or "termination" in pred_a) and ("terminate" in pred_b or "termination" in pred_b):
+            if ("without_cause" in pred_a and "material_breach" in pred_b) or ("material_breach" in pred_a and "without_cause" in pred_b):
+                return False
+            if ("without_cause" in pred_a and "for_cause" in pred_b) or ("for_cause" in pred_a and "without_cause" in pred_b):
+                return False
 
         # If both are general notice duration
         if "notice" in pred_a and "notice" in pred_b:

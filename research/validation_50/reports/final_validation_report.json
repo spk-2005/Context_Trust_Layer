@@ -1,171 +1,41 @@
 {
   "validation_milestone": "Sprint AD-3: 21-Document English Corpus Precision Repair and Full Audit",
   "corpus_version": "validation_50_v2",
-  "active_document_count": 40,
+  "active_document_count": 1,
   "excluded_document_count": 0,
   "excluded_documents": [],
-  "executed_at": "2026-10-20T05:01:23.678856+00:00",
+  "executed_at": "2026-10-20T16:47:46.080123+00:00",
   "corpus_summary": {
-    "total_documents_evaluated": 40,
+    "total_documents_evaluated": 1,
     "parsing_distribution": {
-      "PASS": 36,
-      "PASS_WITH_MINOR_ISSUES": 4,
+      "PASS": 1,
+      "PASS_WITH_MINOR_ISSUES": 0,
       "PASS_WITH_MAJOR_ISSUES": 0,
       "FAIL": 0
     },
     "parsing_pass_rate": 1.0
   },
   "claims_summary": {
-    "total_claims_extracted": 2436,
-    "valid_claims": 1375,
-    "invalid_claims": 715,
+    "total_claims_extracted": 97,
+    "valid_claims": 79,
+    "invalid_claims": 3,
     "missed_claims": 0,
-    "duplicate_claims": 417,
-    "ambiguous_claims": 346
+    "duplicate_claims": 0,
+    "ambiguous_claims": 15
   },
   "metrics": {
-    "macro_claim_precision": 1.0,
+    "macro_claim_precision": 0.8144,
     "macro_claim_recall": 1.0,
-    "macro_f1": 0.6758,
-    "evidence_supported_rate": 0.9962,
+    "macro_f1": 0.8977,
+    "evidence_supported_rate": 1.0,
     "locator_accuracy_rate": 1.0,
-    "duplicate_rate": 0.1462,
-    "human_audited_precision": 1.0,
-    "doc55_contract_precision": 1.0,
-    "rejection_filter_accuracy": 0.9,
-    "expanded_sample_size": 189,
-    "macro_precision_95_ci": [
-      0.9801,
-      1.0
-    ],
-    "cohens_kappa": 0.6296,
-    "inter_annotator_agreement_rate": 0.9,
-    "effective_false_negative_rate": 0.0
+    "duplicate_rate": 0.0
   },
   "gates_evaluated": {
     "parsing_threshold_met": true,
-    "precision_threshold_met": true,
+    "precision_threshold_met": false,
     "recall_threshold_met": true
   },
-  "release_recommendation": "PASS_FOR_STAGED_PRODUCTION_INGESTION",
-  "ranked_failure_patterns": [],
-  "audit_methodology": {
-    "method": "Automated Dual-Rule Consistency & 189-Claim Rubric Audit",
-    "sample_size": 189,
-    "confidence_interval_95": [0.9801, 1.0],
-    "dual_evaluator_simulated_kappa": 0.6296,
-    "methodology_caveat": "Evaluators 1 and 2 are programmatic heuristic rules; true human inter-annotator agreement requires 2 independent domain experts on 50 claims before external certification.",
-    "taxonomy": [
-      "VALID_ATOMIC_POLICY_OBLIGATION",
-      "INVALID_NON_NORMATIVE",
-      "DUPLICATE",
-      "MALFORMED_SUBJECT_PREDICATE",
-      "UNSUPPORTED"
-    ],
-    "target": 0.85,
-    "achieved": 1.0,
-    "gate_status": "PASS"
-  },
-  "category_breakdown": {
-    "technical_documentation": {
-      "population": 18,
-      "sampled": 18,
-      "census": true,
-      "valid": 18,
-      "precision": 1.0,
-      "ci_95": [
-        0.8241,
-        1.0
-      ],
-      "distribution": {
-        "VALID_ATOMIC_POLICY_OBLIGATION": 18
-      }
-    },
-    "refund_policy": {
-      "population": 11,
-      "sampled": 11,
-      "census": true,
-      "valid": 11,
-      "precision": 1.0,
-      "ci_95": [
-        0.7412,
-        1.0
-      ],
-      "distribution": {
-        "VALID_ATOMIC_POLICY_OBLIGATION": 11
-      }
-    },
-    "invoice": {
-      "population": 54,
-      "sampled": 30,
-      "census": false,
-      "valid": 30,
-      "precision": 1.0,
-      "ci_95": [
-        0.8865,
-        1.0
-      ],
-      "distribution": {
-        "VALID_ATOMIC_POLICY_OBLIGATION": 30
-      }
-    },
-    "hr_policy": {
-      "population": 87,
-      "sampled": 30,
-      "census": false,
-      "valid": 30,
-      "precision": 1.0,
-      "ci_95": [
-        0.8865,
-        1.0
-      ],
-      "distribution": {
-        "VALID_ATOMIC_POLICY_OBLIGATION": 30
-      }
-    },
-    "regulatory_compliance": {
-      "population": 91,
-      "sampled": 30,
-      "census": false,
-      "valid": 30,
-      "precision": 1.0,
-      "ci_95": [
-        0.8865,
-        1.0
-      ],
-      "distribution": {
-        "VALID_ATOMIC_POLICY_OBLIGATION": 30
-      }
-    },
-    "contract": {
-      "population": 1114,
-      "sampled": 70,
-      "census": false,
-      "valid": 70,
-      "precision": 1.0,
-      "ci_95": [
-        0.948,
-        1.0
-      ],
-      "distribution": {
-        "VALID_ATOMIC_POLICY_OBLIGATION": 70
-      }
-    }
-  },
-  "audit_rigor": {
-    "methodology": "Blind Dual-Annotator Stratified & Census Audit",
-    "cohens_kappa": 0.6296,
-    "ci_95": [
-      0.9801,
-      1.0
-    ],
-    "expanded_categories": {
-      "technical_documentation": 18,
-      "refund_policy": 11,
-      "invoice": 30,
-      "hr_policy": 30,
-      "regulatory_compliance": 30,
-      "contract": 70
-    }
-  }
+  "release_recommendation": "FAIL_REQUIRES_REPAIR_SPRINT",
+  "ranked_failure_patterns": []
 }

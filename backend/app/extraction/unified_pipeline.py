@@ -141,9 +141,17 @@ class UnifiedExtractionPipeline:
         )
         raw_candidates = l5_result.candidates
 
+        # Step 4.5: Universal Claim Quality Normalization
+        from app.extraction.claim_quality_normalizer import ClaimQualityNormalizer
+
+        normalized_candidates: List[CandidateClaim] = []
+        for c in raw_candidates:
+            norm_c = ClaimQualityNormalizer.normalize_candidate_claim(c)
+            normalized_candidates.append(norm_c if norm_c is not None else c)
+
         # Step 5: Deduplication (preserve highest confidence & merge conditions)
         seen_keys: Dict[Tuple[str, str, str, str], CandidateClaim] = {}
-        for c in raw_candidates:
+        for c in normalized_candidates:
             key = (
                 (c.subject or "").strip().lower(),
                 (c.predicate or "").strip().lower(),
