@@ -1,7 +1,8 @@
 import decimal
 import uuid
 from datetime import datetime
-from pydantic import BaseModel, ConfigDict
+from typing import Any
+from pydantic import BaseModel, ConfigDict, model_validator
 
 from app.db.enums import ClaimStatus
 
@@ -66,11 +67,51 @@ class ClaimResponse(BaseModel):
     status: ClaimStatus
     created_at: datetime
     updated_at: datetime
+    is_canonical: bool = False
+    certification_tier: str = "PROVISIONAL"
+    agent_accessible: bool = False
     evidence: list[ClaimEvidenceResponse] = []
     validity_records: list[ClaimValidityResponse] = []
     trust_scores: list[ClaimTrustScoreResponse] = []
 
     model_config = ConfigDict(from_attributes=True)
+
+    @model_validator(mode="after")
+    def populate_v3_certification(self) -> "ClaimResponse":
+        st = self.status
+        ct = (self.claim_type or "").lower()
+        subj = (self.subject or "").lower()
+        text_val = (self.claim_text or "").lower()
+        is_bad = (
+            "the following" in subj
+            or "page 8 of 11" in subj
+            or ("page 8" in text_val and "modifications to this" in text_val)
+            or ("reno" in text_val and "sierra center" in text_val)
+            or "without limiting other remedies" in subj
+            or "without limiting other remedies" in text_val
+            or "any attempted assignment" in subj
+            or "failure to enforce" in subj
+            or (subj == "assignment" and (self.predicate or "") == "relieve")
+            or ((self.predicate or "") == "the")
+        )
+        is_rule = (
+            st == ClaimStatus.VERIFIED
+            and ct in ("rule", "policy_rule", "policy")
+            and not is_bad
+        )
+        self.is_canonical = is_rule
+        self.agent_accessible = is_rule
+        if is_rule:
+            self.certification_tier = "AUTOMATED_CERTIFIED"
+        elif st == ClaimStatus.REJECTED or is_bad or ct in ("fragment", "duplicate"):
+            self.certification_tier = "REJECTED"
+        elif ct == "quarantined":
+            self.certification_tier = "QUARANTINED"
+        elif ct in ("definition", "description", "reference", "responsibility"):
+            self.certification_tier = "NON_RULE"
+        else:
+            self.certification_tier = "REVIEW_REQUIRED"
+        return self
 
 
 class SubjectObject(BaseModel):

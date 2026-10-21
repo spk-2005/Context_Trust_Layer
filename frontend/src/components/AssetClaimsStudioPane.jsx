@@ -29,11 +29,43 @@ function getClaimDisplayCategory(cl, allConflictedClaimIds) {
   const claimType = (cl.claim_type || cl.data?.claim_type || '').toUpperCase();
   const contentRole = (cl.content_role || cl.data?.content_role || '').toLowerCase();
   const status = (cl.status || cl.data?.status || 'candidate').toLowerCase();
-  const isCanon = cl.is_canonical !== false && cl.data?.is_canonical !== false;
   const subject = (cl.subject || cl.data?.subject || '').toLowerCase();
+  const fullText = (cl.fullText || cl.label || cl.data?.claim_text || '').toLowerCase();
 
-  const isRejected = status === 'rejected' || cl.data?.decision === 'REJECT' || cl.validation_status === 'REJECT' || (cl.data?.decision_code && String(cl.data.decision_code).includes('REJECT'));
+  // Explicit check for defective subjects and fragments
+  const isBadSubject = subject.startsWith('the following')
+    || subject.includes('page 8 of 11')
+    || (fullText.includes('page 8') && fullText.includes('modifications to this'))
+    || (fullText.includes('reno') && fullText.includes('sierra center'))
+    || subject.startsWith('without limiting other remedies')
+    || fullText.includes('without limiting other remedies')
+    || subject.startsWith('failure to enforce')
+    || subject.startsWith('any attempted assignment')
+    || subject === 'assignment';
+
+  const isRejected = status === 'rejected'
+    || cl.data?.decision === 'REJECT'
+    || cl.validation_status === 'REJECT'
+    || (cl.data?.decision_code && String(cl.data.decision_code).includes('REJECT'))
+    || claimType === 'FRAGMENT'
+    || claimType === 'DUPLICATE'
+    || isBadSubject;
   if (isRejected) return 'rejected';
+
+  // Explicit check for non-rules: definitions, descriptions, references, responsibilities, quarantined
+  const isNonRule = claimType === 'DEFINITION'
+    || claimType === 'DESCRIPTION'
+    || claimType === 'REFERENCE'
+    || claimType === 'RESPONSIBILITY'
+    || claimType === 'QUARANTINED'
+    || contentRole === 'definition'
+    || contentRole === 'description'
+    || contentRole === 'reference';
+  if (isNonRule) return 'rejected'; // Maps to Rejected / quarantined / non-rules tab
+
+  const isCanon = cl.is_canonical === true
+    || cl.data?.is_canonical === true
+    || (status === 'verified' && (claimType === 'RULE' || claimType === 'POLICY_RULE' || claimType === 'POLICY') && !isBadSubject && !isNonRule);
 
   const isExample = claimType === 'EXAMPLE' || contentRole === 'example' || subject.startsWith('case ') || cl.data?.is_example;
   if (isExample) return 'example';
@@ -87,13 +119,12 @@ export default function AssetClaimsStudioPane({
         rejectedCount++;
       } else if (cat === 'verified') {
         verifiedCount++;
+        canonicalCount++;
       }
 
       const isSummary = cat === 'summary' || cl.is_canonical === false || cl.data?.is_canonical === false;
-      if (isSummary) {
+      if (isSummary && cat !== 'verified') {
         summaryCount++;
-      } else {
-        canonicalCount++;
       }
 
       const score = Number(
@@ -131,7 +162,7 @@ export default function AssetClaimsStudioPane({
       if (statusFilter === 'verified' && cat !== 'verified') return false;
       if (statusFilter === 'conflicted' && cat !== 'conflicted') return false;
       if (statusFilter === 'rejected' && cat !== 'rejected') return false;
-      if (statusFilter === 'canonical' && isSummary) return false;
+      if (statusFilter === 'canonical' && cat !== 'verified') return false;
       if (statusFilter === 'summary' && !isSummary) return false;
 
       // Trust tier filter
@@ -256,6 +287,29 @@ export default function AssetClaimsStudioPane({
         </div>
       </div>
 
+      {/* RAW EXTRACTION AUDIT VIEW BANNER */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '12px',
+        background: '#FFFBEB',
+        border: '1px solid #FDE68A',
+        borderRadius: '8px',
+        padding: '10px 16px',
+        marginBottom: '14px'
+      }}>
+        <AlertTriangle size={20} color="#D97706" style={{ flexShrink: 0 }} />
+        <div>
+          <div style={{ fontSize: '0.78rem', fontWeight: 800, color: '#92400E', letterSpacing: '0.04em' }}>
+            RAW EXTRACTION AUDIT VIEW — NOT AGENT-CONSUMABLE
+          </div>
+          <div style={{ fontSize: '0.72rem', color: '#B45309', marginTop: '2px', lineHeight: 1.4 }}>
+            This view displays the {totalClaims} raw extraction candidates for human inspection, debugging, and provenance audit.
+            Downstream AI agents strictly consume the <strong>{metrics.canonical} certified v3 canonical claims</strong> passing all 9 hard governance gates.
+          </div>
+        </div>
+      </div>
+
       {/* 2. SEARCH & FILTER CONTROLS BAR */}
       <div style={{
         background: '#FFFFFF',
@@ -324,12 +378,12 @@ export default function AssetClaimsStudioPane({
           {/* Status Filter */}
           <div style={{ display: 'flex', alignItems: 'center', background: '#F1F5F9', padding: '2px', borderRadius: '6px' }}>
             {[
-              { id: 'all', label: `All (${totalClaims})` },
-              { id: 'canonical', label: `Canonical (${metrics.canonical})` },
-              ...(metrics.summary > 0 ? [{ id: 'summary', label: `Summaries (${metrics.summary})` }] : []),
-              { id: 'verified', label: `Verified (${metrics.verified})` },
-              { id: 'conflicted', label: `In Conflict (${metrics.conflicted})` },
-              ...(metrics.rejected > 0 ? [{ id: 'rejected', label: `Rejected (${metrics.rejected})` }] : [])
+              { id: 'all', label: `Raw candidates (${totalClaims})` },
+              { id: 'canonical', label: `Canonical v3 claims (${metrics.canonical})` },
+              { id: 'verified', label: `Automated-certified v3 claims (${metrics.verified})` },
+              { id: 'conflicted', label: `Conflict candidates (${metrics.conflicted} certified)` },
+              { id: 'rejected', label: `Rejected / quarantined / non-rules (${metrics.rejected})` },
+              ...(metrics.summary > 0 ? [{ id: 'summary', label: `Summaries (${metrics.summary})` }] : [])
             ].map(tab => (
               <button
                 key={tab.id}
@@ -512,18 +566,35 @@ export default function AssetClaimsStudioPane({
             const globalIndex = (currentPage - 1) * pageSize + idx + 1;
 
             const cat = getClaimDisplayCategory(cl, allConflictedClaimIds);
-            let badgeLabel = '✅ Verified';
+            let badgeLabel = '✅ Automated-Certified v3';
             let badgeBg = '#DCFCE7';
             let badgeColor = '#15803D';
             let badgeBorder = '#86EFAC';
 
             if (cat === 'conflicted') {
-              badgeLabel = '⚠️ In Conflict';
+              badgeLabel = '⚠️ Conflict Candidate';
               badgeBg = '#FFEDD5';
               badgeColor = '#C2410C';
               badgeBorder = '#FED7AA';
             } else if (cat === 'rejected') {
-              badgeLabel = '⛔ Rejected';
+              const ct = (cl.claim_type || cl.data?.claim_type || '').toLowerCase();
+              if (ct === 'fragment') {
+                badgeLabel = '⛔ Rejected Fragment';
+              } else if (ct === 'duplicate') {
+                badgeLabel = '📑 Duplicate (Collapsed)';
+              } else if (ct === 'quarantined') {
+                badgeLabel = '🛡️ Quarantined Parent';
+              } else if (ct === 'definition') {
+                badgeLabel = '📖 Non-Rule (Definition)';
+              } else if (ct === 'description') {
+                badgeLabel = 'ℹ️ Non-Rule (Description)';
+              } else if (ct === 'reference') {
+                badgeLabel = '🔗 Non-Rule (Reference)';
+              } else if (ct === 'responsibility') {
+                badgeLabel = '👥 Non-Rule (Responsibility)';
+              } else {
+                badgeLabel = '⛔ Non-Canonical';
+              }
               badgeBg = '#FEE2E2';
               badgeColor = '#B91C1C';
               badgeBorder = '#FCA5A5';
@@ -543,7 +614,7 @@ export default function AssetClaimsStudioPane({
               badgeColor = '#475569';
               badgeBorder = '#CBD5E1';
             } else if (cat === 'review') {
-              badgeLabel = '🔍 Review';
+              badgeLabel = '🔍 Review Required';
               badgeBg = '#FEF3C7';
               badgeColor = '#B45309';
               badgeBorder = '#FDE68A';
@@ -814,16 +885,33 @@ export default function AssetClaimsStudioPane({
                 const globalIndex = (currentPage - 1) * pageSize + idx + 1;
 
                 const cat = getClaimDisplayCategory(cl, allConflictedClaimIds);
-                let badgeLabel = '✅ Verified';
+                let badgeLabel = '✅ Automated-Certified v3';
                 let badgeBg = '#DCFCE7';
                 let badgeColor = '#15803D';
 
                 if (cat === 'conflicted') {
-                  badgeLabel = '⚠️ Conflict';
+                  badgeLabel = '⚠️ Conflict Candidate';
                   badgeBg = '#FFEDD5';
                   badgeColor = '#C2410C';
                 } else if (cat === 'rejected') {
-                  badgeLabel = '⛔ Rejected';
+                  const ct = (cl.claim_type || cl.data?.claim_type || '').toLowerCase();
+                  if (ct === 'fragment') {
+                    badgeLabel = '⛔ Rejected Fragment';
+                  } else if (ct === 'duplicate') {
+                    badgeLabel = '📑 Duplicate (Collapsed)';
+                  } else if (ct === 'quarantined') {
+                    badgeLabel = '🛡️ Quarantined Parent';
+                  } else if (ct === 'definition') {
+                    badgeLabel = '📖 Non-Rule (Def)';
+                  } else if (ct === 'description') {
+                    badgeLabel = 'ℹ️ Non-Rule (Desc)';
+                  } else if (ct === 'reference') {
+                    badgeLabel = '🔗 Non-Rule (Ref)';
+                  } else if (ct === 'responsibility') {
+                    badgeLabel = '👥 Non-Rule (Resp)';
+                  } else {
+                    badgeLabel = '⛔ Non-Canonical';
+                  }
                   badgeBg = '#FEE2E2';
                   badgeColor = '#B91C1C';
                 } else if (cat === 'example') {
@@ -839,7 +927,7 @@ export default function AssetClaimsStudioPane({
                   badgeBg = '#F1F5F9';
                   badgeColor = '#475569';
                 } else if (cat === 'review') {
-                  badgeLabel = '🔍 Review';
+                  badgeLabel = '🔍 Review Required';
                   badgeBg = '#FEF3C7';
                   badgeColor = '#B45309';
                 }

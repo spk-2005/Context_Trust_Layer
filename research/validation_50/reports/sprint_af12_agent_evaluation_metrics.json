@@ -1,0 +1,258 @@
+{
+  "sprint": "AF-12",
+  "timestamp": "2026-10-21T03:49:20.677315+00:00",
+  "total_benchmark_questions": 175,
+  "overall_metrics": {
+    "RAW_CLAIMS": {
+      "baseline": "RAW_CLAIMS",
+      "total_questions": 175,
+      "correct_count": 50,
+      "correctness_rate_pct": 28.57,
+      "citation_correct_count": 41,
+      "citation_accuracy_pct": 23.43,
+      "hallucination_count": 106,
+      "hallucination_rate_pct": 60.57,
+      "contradiction_count": 19,
+      "contradiction_rate_pct": 10.86,
+      "refusal_correct_count": 0,
+      "refusal_accuracy_pct": 0.0,
+      "p_value_vs_clause_only": null
+    },
+    "CLAUSE_ONLY": {
+      "baseline": "CLAUSE_ONLY",
+      "total_questions": 175,
+      "correct_count": 132,
+      "correctness_rate_pct": 75.43,
+      "citation_correct_count": 132,
+      "citation_accuracy_pct": 75.43,
+      "hallucination_count": 36,
+      "hallucination_rate_pct": 20.57,
+      "contradiction_count": 7,
+      "contradiction_rate_pct": 4.0,
+      "refusal_correct_count": 39,
+      "refusal_accuracy_pct": 76.47,
+      "p_value_vs_clause_only": null
+    },
+    "CANONICAL_CLAIMS_V3": {
+      "baseline": "CANONICAL_CLAIMS_V3",
+      "total_questions": 175,
+      "correct_count": 173,
+      "correctness_rate_pct": 98.86,
+      "citation_correct_count": 173,
+      "citation_accuracy_pct": 98.86,
+      "hallucination_count": 2,
+      "hallucination_rate_pct": 1.14,
+      "contradiction_count": 0,
+      "contradiction_rate_pct": 0.0,
+      "refusal_correct_count": 51,
+      "refusal_accuracy_pct": 100.0,
+      "p_value_vs_clause_only": 0.0
+    }
+  },
+  "family_breakdown": {
+    "CONTRACTS": {
+      "RAW_CLAIMS": {
+        "total_questions": 75,
+        "correct_count": 18,
+        "correctness_rate_pct": 24.0,
+        "citation_accuracy_pct": 17.33,
+        "hallucination_rate_pct": 61.33
+      },
+      "CLAUSE_ONLY": {
+        "total_questions": 75,
+        "correct_count": 56,
+        "correctness_rate_pct": 74.67,
+        "citation_accuracy_pct": 74.67,
+        "hallucination_rate_pct": 21.33
+      },
+      "CANONICAL_CLAIMS_V3": {
+        "total_questions": 75,
+        "correct_count": 73,
+        "correctness_rate_pct": 97.33,
+        "citation_accuracy_pct": 97.33,
+        "hallucination_rate_pct": 2.67
+      }
+    },
+    "POLICIES_COMPLIANCE": {
+      "RAW_CLAIMS": {
+        "total_questions": 50,
+        "correct_count": 16,
+        "correctness_rate_pct": 32.0,
+        "citation_accuracy_pct": 28.0,
+        "hallucination_rate_pct": 60.0
+      },
+      "CLAUSE_ONLY": {
+        "total_questions": 50,
+        "correct_count": 38,
+        "correctness_rate_pct": 76.0,
+        "citation_accuracy_pct": 76.0,
+        "hallucination_rate_pct": 20.0
+      },
+      "CANONICAL_CLAIMS_V3": {
+        "total_questions": 50,
+        "correct_count": 50,
+        "correctness_rate_pct": 100.0,
+        "citation_accuracy_pct": 100.0,
+        "hallucination_rate_pct": 0.0
+      }
+    },
+    "BILLING_INVOICES": {
+      "RAW_CLAIMS": {
+        "total_questions": 50,
+        "correct_count": 16,
+        "correctness_rate_pct": 32.0,
+        "citation_accuracy_pct": 28.0,
+        "hallucination_rate_pct": 60.0
+      },
+      "CLAUSE_ONLY": {
+        "total_questions": 50,
+        "correct_count": 38,
+        "correctness_rate_pct": 76.0,
+        "citation_accuracy_pct": 76.0,
+        "hallucination_rate_pct": 20.0
+      },
+      "CANONICAL_CLAIMS_V3": {
+        "total_questions": 50,
+        "correct_count": 50,
+        "correctness_rate_pct": 100.0,
+        "citation_accuracy_pct": 100.0,
+        "hallucination_rate_pct": 0.0
+      }
+    }
+  },
+  "question_type_breakdown": {
+    "FACTUAL_LOOKUP": {
+      "RAW_CLAIMS": {
+        "total_questions": 52,
+        "correct_count": 46,
+        "correctness_rate_pct": 88.46,
+        "hallucination_rate_pct": 11.54
+      },
+      "CLAUSE_ONLY": {
+        "total_questions": 52,
+        "correct_count": 47,
+        "correctness_rate_pct": 90.38,
+        "hallucination_rate_pct": 9.62
+      },
+      "CANONICAL_CLAIMS_V3": {
+        "total_questions": 52,
+        "correct_count": 51,
+        "correctness_rate_pct": 98.08,
+        "hallucination_rate_pct": 1.92
+      }
+    },
+    "CONDITIONAL_RULE": {
+      "RAW_CLAIMS": {
+        "total_questions": 35,
+        "correct_count": 0,
+        "correctness_rate_pct": 0.0,
+        "hallucination_rate_pct": 100.0
+      },
+      "CLAUSE_ONLY": {
+        "total_questions": 35,
+        "correct_count": 30,
+        "correctness_rate_pct": 85.71,
+        "hallucination_rate_pct": 14.29
+      },
+      "CANONICAL_CLAIMS_V3": {
+        "total_questions": 35,
+        "correct_count": 34,
+        "correctness_rate_pct": 97.14,
+        "hallucination_rate_pct": 2.86
+      }
+    },
+    "MULTI_CLAUSE_SYNTHESIS": {
+      "RAW_CLAIMS": {
+        "total_questions": 18,
+        "correct_count": 4,
+        "correctness_rate_pct": 22.22,
+        "hallucination_rate_pct": 77.78
+      },
+      "CLAUSE_ONLY": {
+        "total_questions": 18,
+        "correct_count": 4,
+        "correctness_rate_pct": 22.22,
+        "hallucination_rate_pct": 77.78
+      },
+      "CANONICAL_CLAIMS_V3": {
+        "total_questions": 18,
+        "correct_count": 18,
+        "correctness_rate_pct": 100.0,
+        "hallucination_rate_pct": 0.0
+      }
+    },
+    "NEGATIVE_UNSTATED": {
+      "RAW_CLAIMS": {
+        "total_questions": 51,
+        "correct_count": 0,
+        "correctness_rate_pct": 0.0,
+        "hallucination_rate_pct": 100.0
+      },
+      "CLAUSE_ONLY": {
+        "total_questions": 51,
+        "correct_count": 39,
+        "correctness_rate_pct": 76.47,
+        "hallucination_rate_pct": 23.53
+      },
+      "CANONICAL_CLAIMS_V3": {
+        "total_questions": 51,
+        "correct_count": 51,
+        "correctness_rate_pct": 100.0,
+        "hallucination_rate_pct": 0.0
+      }
+    },
+    "ADVERSARIAL_TRAP": {
+      "RAW_CLAIMS": {
+        "total_questions": 19,
+        "correct_count": 0,
+        "correctness_rate_pct": 0.0,
+        "hallucination_rate_pct": 0.0
+      },
+      "CLAUSE_ONLY": {
+        "total_questions": 19,
+        "correct_count": 12,
+        "correctness_rate_pct": 63.16,
+        "hallucination_rate_pct": 0.0
+      },
+      "CANONICAL_CLAIMS_V3": {
+        "total_questions": 19,
+        "correct_count": 19,
+        "correctness_rate_pct": 100.0,
+        "hallucination_rate_pct": 0.0
+      }
+    }
+  },
+  "release_gates": {
+    "answer_correctness_ge_90": {
+      "threshold": 90.0,
+      "achieved": 98.86,
+      "passed": true
+    },
+    "citation_accuracy_ge_95": {
+      "threshold": 95.0,
+      "achieved": 98.86,
+      "passed": true
+    },
+    "hallucination_rate_le_5": {
+      "threshold": 5.0,
+      "achieved": 1.14,
+      "passed": true
+    },
+    "contradiction_rate_zero": {
+      "threshold": 0.0,
+      "achieved": 0.0,
+      "passed": true
+    },
+    "refusal_accuracy_ge_95": {
+      "threshold": 95.0,
+      "achieved": 100.0,
+      "passed": true
+    },
+    "statistically_superior_to_clause_only": {
+      "threshold": 0.01,
+      "achieved": 0.0,
+      "passed": true
+    }
+  },
+  "release_gate_status": "PASSED"
+}

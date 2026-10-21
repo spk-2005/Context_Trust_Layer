@@ -1,0 +1,83 @@
+{
+  "total_evaluated": 400,
+  "agreed_count": 396,
+  "disagreed_count": 4,
+  "observed_agreement": 0.99,
+  "chance_agreement": 0.4062,
+  "cohens_kappa": 0.9832,
+  "interpretation": "ALMOST_PERFECT",
+  "precision_estimate": 0.2675,
+  "precision_wilson_ci_95": [
+    0.2265,
+    0.3129
+  ],
+  "confusion_matrix": {
+    "APPROVE": {
+      "APPROVE": 107,
+      "MARK_DUPLICATE": 0,
+      "RECLASSIFY_NON_RULE": 0,
+      "REJECT_FRAGMENT": 0,
+      "REPAIR_PREDICATE": 3,
+      "SPLIT_COMPOUND": 1
+    },
+    "MARK_DUPLICATE": {
+      "APPROVE": 0,
+      "MARK_DUPLICATE": 19,
+      "RECLASSIFY_NON_RULE": 0,
+      "REJECT_FRAGMENT": 0,
+      "REPAIR_PREDICATE": 0,
+      "SPLIT_COMPOUND": 0
+    },
+    "RECLASSIFY_NON_RULE": {
+      "APPROVE": 0,
+      "MARK_DUPLICATE": 0,
+      "RECLASSIFY_NON_RULE": 1,
+      "REJECT_FRAGMENT": 0,
+      "REPAIR_PREDICATE": 0,
+      "SPLIT_COMPOUND": 0
+    },
+    "REJECT_FRAGMENT": {
+      "APPROVE": 0,
+      "MARK_DUPLICATE": 0,
+      "RECLASSIFY_NON_RULE": 0,
+      "REJECT_FRAGMENT": 7,
+      "REPAIR_PREDICATE": 0,
+      "SPLIT_COMPOUND": 0
+    },
+    "REPAIR_PREDICATE": {
+      "APPROVE": 0,
+      "MARK_DUPLICATE": 0,
+      "RECLASSIFY_NON_RULE": 0,
+      "REJECT_FRAGMENT": 0,
+      "REPAIR_PREDICATE": 225,
+      "SPLIT_COMPOUND": 0
+    },
+    "SPLIT_COMPOUND": {
+      "APPROVE": 0,
+      "MARK_DUPLICATE": 0,
+      "RECLASSIFY_NON_RULE": 0,
+      "REJECT_FRAGMENT": 0,
+      "REPAIR_PREDICATE": 0,
+      "SPLIT_COMPOUND": 37
+    }
+  },
+  "decision_distribution": {
+    "APPROVE": 107,
+    "REPAIR_PREDICATE": 228,
+    "SPLIT_COMPOUND": 38,
+    "RECLASSIFY_NON_RULE": 1,
+    "MARK_DUPLICATE": 19,
+    "REJECT_FRAGMENT": 7
+  },
+  "strata_distribution": {
+    "LOW_CONFIDENCE": 120,
+    "MERGED_DUPLICATE": 20,
+    "RANDOM_CANONICAL": 195,
+    "INVOICE_DERIVED": 25,
+    "SPLIT_CHILD": 40
+  },
+  "certification_passed": true,
+  "gate_details": [
+    "All Sprint AF-9 Human Certification Gates Passed."
+  ]
+}
