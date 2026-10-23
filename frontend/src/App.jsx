@@ -5172,7 +5172,7 @@ export default function App() {
                         🔌 Available Live Connectors (5 Supported Providers)
                       </h3>
                       <span className="badge badge-verified" style={{ fontSize: '0.70rem', padding: '2px 8px' }}>
-                        Production Drivers • Zero Mockups
+                        Production Drivers & Pluggable Sync
                       </span>
                     </div>
                     <p style={{ fontSize: '0.76rem', color: '#64748B', margin: '0 0 18px 0' }}>

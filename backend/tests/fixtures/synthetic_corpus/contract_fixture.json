@@ -1,0 +1,48 @@
+{
+  "document_id": "SYN-DOC-001",
+  "document_type": "contract",
+  "title": "Enterprise Master Services Agreement",
+  "content": "Section 4. Payment Terms. Customer must pay all undisputed invoices within thirty calendar days of invoice date. If any payment is returned unpaid, Vendor may collect return or insufficient funds fee. Section 9. Termination. Either party may terminate this Agreement without cause upon 60 days prior written notice. During any period of material breach, Vendor may suspend services for security risks or material breach. Section 14. Confidentiality. Neither party will disclose confidential information to any third party without prior written consent.",
+  "claims": [
+    {
+      "claim_id": "msa_01",
+      "verbatim_quote": "Customer must pay all undisputed invoices within thirty calendar days of invoice date.",
+      "clause_text": "Section 4. Payment Terms. Customer must pay all undisputed invoices within thirty calendar days of invoice date.",
+      "subject": "Customer",
+      "predicate": "must_pay_within_30_days",
+      "object": "invoices",
+      "claim_type": "RULE",
+      "expected_tier": "AUTOMATED_CERTIFIED"
+    },
+    {
+      "claim_id": "msa_02",
+      "verbatim_quote": "Either party may terminate this Agreement without cause upon 60 days prior written notice.",
+      "clause_text": "Section 9. Termination. Either party may terminate this Agreement without cause upon 60 days prior written notice.",
+      "subject": "Either party",
+      "predicate": "may_terminate_without_cause",
+      "object": "Agreement",
+      "claim_type": "RULE",
+      "expected_tier": "AUTOMATED_CERTIFIED"
+    },
+    {
+      "claim_id": "msa_03_bad_role",
+      "verbatim_quote": "Vendor may suspend services for security risks or material breach.",
+      "clause_text": "During any period of material breach, Vendor may suspend services for security risks or material breach.",
+      "subject": "Customer",
+      "predicate": "may_suspend_for_security_or_breach",
+      "object": "services",
+      "claim_type": "RULE",
+      "expected_tier": "REVIEW_REQUIRED"
+    },
+    {
+      "claim_id": "msa_04_compound",
+      "verbatim_quote": "Customer may transfer licenses to (1) an Affiliate or (2) a third party upon written notice.",
+      "clause_text": "Customer may transfer licenses to (1) an Affiliate or (2) a third party upon written notice.",
+      "subject": "Customer",
+      "predicate": "may_transfer_perpetual_license",
+      "object": "licenses",
+      "claim_type": "RULE",
+      "expected_tier": "QUARANTINED"
+    }
+  ]
+}

@@ -1,0 +1,116 @@
+{
+  "pipeline_version": "v3.0-certified-conditional",
+  "evaluation_timestamp": "2026-10-21T04:01:12.939885+00:00",
+  "total_claims_evaluated": 76,
+  "entailment_rate": 0.9868,
+  "entailed_claims_count": 75,
+  "neutral_claims_count": 0,
+  "contradiction_claims_count": 1,
+  "overstatements_detected_and_blocked": 1,
+  "missing_conditions_caught": 13,
+  "canonical_claims_promoted": 67,
+  "disposition_table": [
+    {
+      "claim_id": "doc057:af:013",
+      "subject": "Customer",
+      "predicate": "prohibited_from_commercial_hosting",
+      "original_failure": "Restrictive condition dropped (neighboring Section 1.g attached to clause)",
+      "disposition": "REPAIR",
+      "repair_action": "Scoped premise clause strictly to Section 1.c(vii) hosting prohibition",
+      "re_evaluation_result": "ENTAILMENT (Passed)",
+      "final_status": "CANONICAL"
+    },
+    {
+      "claim_id": "doc057:af:014",
+      "subject": "Customer",
+      "predicate": "may_transfer_perpetual_license",
+      "original_failure": "Restrictive condition dropped (missing explicit Affiliate condition)",
+      "disposition": "REPAIR",
+      "repair_action": "Added explicit condition: 'transferee must be an Affiliate', scoped clause to Section 1.g",
+      "re_evaluation_result": "ENTAILMENT (Passed)",
+      "final_status": "CANONICAL"
+    },
+    {
+      "claim_id": "doc057:af:024",
+      "subject": "Customer",
+      "predicate": "may_sublicense_deliverables",
+      "original_failure": "Polarity inversion (compound rule combining Customer right with Affiliate restriction)",
+      "disposition": "SPLIT / REVIEW",
+      "repair_action": "Parent claim retained in REVIEW; atomic child doc057:af:024.01 created for Customer right",
+      "re_evaluation_result": "Parent: REVIEW (Unentailed); Child 024.01: CANONICAL",
+      "final_status": "REVIEW"
+    },
+    {
+      "claim_id": "doc057:af:043",
+      "subject": "Each party",
+      "predicate": "must_provide_defense_cooperation",
+      "original_failure": "Truncated verbatim quote ('...def') and neighboring notice condition",
+      "disposition": "REPAIR",
+      "repair_action": "Restored full verbatim quote for requested assistance; scoped clause to cooperation duty",
+      "re_evaluation_result": "ENTAILMENT (Passed)",
+      "final_status": "CANONICAL"
+    },
+    {
+      "claim_id": "doc057:af:055",
+      "subject": "Customer",
+      "predicate": "authorizes_recurring_charges",
+      "original_failure": "Deontic escalation caused by cancelation fee text in neighboring sentence",
+      "disposition": "REPAIR",
+      "repair_action": "Added precondition 'for subscriptions that renew automatically'; scoped clause to Section 1.f",
+      "re_evaluation_result": "ENTAILMENT (Passed)",
+      "final_status": "CANONICAL"
+    },
+    {
+      "claim_id": "doc057:af:057",
+      "subject": "Microsoft",
+      "predicate": "must_pay_income_taxes",
+      "original_failure": "Neighboring withholding tax condition attached to Microsoft income tax duty",
+      "disposition": "REPAIR",
+      "repair_action": "Scoped premise clause strictly to Microsoft income tax responsibility sentence",
+      "re_evaluation_result": "ENTAILMENT (Passed)",
+      "final_status": "CANONICAL"
+    }
+  ],
+  "stress_test_defense_results": [
+    {
+      "test_name": "Deontic Escalation (Permissive 'may' -> Mandatory 'MUST')",
+      "label": "NEUTRAL",
+      "clause_entails_claim": false,
+      "is_overstatement": true,
+      "reason": "Deontic modality escalation: source clause provides a discretionary permission ('may'), but claim asserts a mandatory duty ('MUST').",
+      "test_passed": true
+    },
+    {
+      "test_name": "Polarity Inversion (Prohibition 'must not' -> Right 'MAY')",
+      "label": "CONTRADICTION",
+      "clause_entails_claim": false,
+      "is_overstatement": true,
+      "reason": "Polarity contradiction: source clause explicitly prohibits action, but claim asserts right or affirmative duty.",
+      "test_passed": true
+    },
+    {
+      "test_name": "Condition Dropping (Dropped 'solely in connection with')",
+      "label": "NEUTRAL",
+      "clause_entails_claim": false,
+      "is_overstatement": true,
+      "reason": "Restrictive condition dropped: source clause imposes strict trigger (solely in connection with), but claim has no qualifying conditions.",
+      "test_passed": true
+    },
+    {
+      "test_name": "Actor Inversion (Customer Duty -> Microsoft Duty)",
+      "label": "CONTRADICTION",
+      "clause_entails_claim": false,
+      "is_overstatement": true,
+      "reason": "Actor inversion: premise binds Customer to payment duty, but claim asserts duty on Microsoft.",
+      "test_passed": true
+    }
+  ],
+  "hard_invariants": {
+    "no_unentailed_canonical_claims": true,
+    "unentailed_claims_quarantined": true
+  },
+  "gate_status": {
+    "clause_entails_claim_gate_passed": true,
+    "hard_knockout_defense_verified": true
+  }
+}

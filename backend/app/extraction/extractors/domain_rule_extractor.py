@@ -399,8 +399,9 @@ class DomainRuleExtractor:
         if any(w in sent_lower for w in ("late payment", "overdue fee", "late fee", "subject to fees")):
             return "may_apply_administration_fee", raw_pred_obj, "PERMISSION"
 
-        # 0M. Return window check takes precedence over return channel eligibility (#182, #220)
-        if any(w in sent_lower for w in ("within 30 days", "within 14 days", "within 60 days", "within 45 days", "days of purchase", "may be returned within", "can be returned within", "returned within", "standard return window", "gold return window")):
+        # 0M. Return window check requires actual return of goods/products or return window cues
+        is_return_context = any(w in sent_lower for w in ("return", "returned", "returns", "return window")) and not any(w in sent_lower for w in ("audit", "unlicensed use", "warranty claim", "re-perform"))
+        if is_return_context and any(w in sent_lower for w in ("within 30 days", "within 14 days", "within 60 days", "within 45 days", "days of purchase", "may be returned within", "can be returned within", "returned within", "standard return window", "gold return window")):
             return "has_return_window", raw_pred_obj, "OBLIGATION"
 
         # 0N. Return channel eligibility
@@ -462,7 +463,10 @@ class DomainRuleExtractor:
             if any(k in obj_lower for k in ("original condition", "undamaged", "unworn", "tags intact", "packaging intact")):
                 return "must_be_in_original_condition", raw_pred_obj, "OBLIGATION"
             if "eligible" in obj_lower:
-                return "has_refund_eligibility", raw_pred_obj, "POLICY_FACT"
+                if any(k in sent_lower for k in ("security", "invoicing", "collateral")):
+                    return "may_be_required_to_provide_security_for_invoicing", raw_pred_obj, "PERMISSION"
+                if any(k in sent_lower for k in ("refund", "reimbursement", "credit", "money")):
+                    return "has_refund_eligibility", raw_pred_obj, "POLICY_FACT"
             if any(w in sent_lower for w in ("receipt", "proof of purchase", "order number")) and any(w in obj_lower for w in ("provided", "provide", "submitted", "submit", "present")):
                 return "requires_verifiable_order_or_purchase_proof", raw_pred_obj, "OBLIGATION"
             if any(w in obj_lower or w in sent_lower for w in ("cancel", "cancellation", "before shipment")):

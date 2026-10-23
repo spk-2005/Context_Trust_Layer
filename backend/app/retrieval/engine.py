@@ -26,6 +26,7 @@ from app.schemas.context import (
     ContextSourceInfo,
     ContextValidityInfo,
 )
+from app.services.claim_gate_evaluator import ClaimGateEvaluator
 
 
 class ContextRetrievalEngine:
@@ -95,10 +96,11 @@ class ContextRetrievalEngine:
             select(Claim)
             .where(
                 Claim.organization_id == request_in.organization_id,
-                Claim.status.in_([ClaimStatus.ACTIVE, ClaimStatus.VERIFIED, ClaimStatus.CONFLICTED]),
+                Claim.status.in_([ClaimStatus.ACTIVE, ClaimStatus.VERIFIED]),
             )
         )
         if getattr(request_in, "canonical_only", True):
+            stmt = stmt.where(Claim.claim_type.in_(["rule", "policy_rule", "policy"]))
             stmt = stmt.where(Claim.claim_type != "derived_summary")
 
         stmt = stmt.options(
@@ -167,23 +169,46 @@ class ContextRetrievalEngine:
             included = True
             exclusion_reason = None
 
+            # Universal Hard Governance Gate Evaluation
+            gate_res = ClaimGateEvaluator.evaluate(
+                claim_text=claim.claim_text,
+                subject=claim.subject,
+                predicate=claim.predicate,
+                object_text=claim.object,
+                claim_type=claim.claim_type,
+                status=claim.status.value if hasattr(claim.status, "value") else str(claim.status),
+                confidence_or_trust=latest_score,
+            )
+
             if not is_valid:
                 included = False
                 exclusion_reason = "Claim validity window has expired."
+            elif not gate_res.subject_valid:
+                included = False
+                exclusion_reason = "Hard Gate Rejected: Defective extraction fragment or invalid subject entity."
+            elif not gate_res.claim_type_allowed:
+                included = False
+                exclusion_reason = f"Hard Gate Excluded: Claim type '{claim.claim_type}' is non-normative context, not a policy rule."
+            elif not gate_res.is_atomic:
+                included = False
+                exclusion_reason = "Hard Gate Excluded: Compound multi-part rule must be decomposed into atomic propositions."
+            elif not gate_res.all_9_gates_passed:
+                included = False
+                exclusion_reason = f"Hard Governance Gate Failed: {'; '.join(gate_res.rejection_reasons)}."
+            elif claim.status in [ClaimStatus.CONFLICTED, ClaimStatus.REJECTED, ClaimStatus.CANDIDATE]:
+                included = False
+                exclusion_reason = f"Claim status '{claim.status.value}' is blocked from agent retrieval."
             elif latest_score < request_in.min_trust_score:
                 included = False
                 exclusion_reason = f"Trust score ({latest_score}) below required threshold ({request_in.min_trust_score})."
             elif not relevance_match:
                 included = False
                 exclusion_reason = "Claim not relevant to query."
-            elif claim.status == ClaimStatus.CONFLICTED:
-                included = False
-                exclusion_reason = "Claim has unresolved conflict pending human review."
             else:
-                # Enforce Sprint AE-3 Trust Tier Gate: Only certified tiers accessible
+                final_tier = gate_res.certification_tier
                 claim_tier_eval = {
                     "candidate_id": str(claim.id),
-                    "final_state": getattr(claim, "certification_status", None) or ("DUAL_HUMAN_CERTIFIED" if claim.status in [ClaimStatus.ACTIVE, ClaimStatus.VERIFIED] else "HUMAN_REVIEW_REQUIRED"),
+                    "final_state": final_tier,
                     "status": claim.status.value if hasattr(claim.status, "value") else str(claim.status)
                 }
                 gate_allowed, gate_level, gate_reason = self.access_gate.check_access(

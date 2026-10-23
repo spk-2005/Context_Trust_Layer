@@ -24,14 +24,29 @@ from app.db.models.claim_evidence import ClaimEvidence
 from app.extraction.unified_pipeline import UnifiedExtractionPipeline, UnifiedPipelineOptions
 from app.main import app
 
-EPCS_DOC_PATH = "research/validation_50/raw_documents/Electronic Prescriptions for Controlled Substances (EPCS) - Azure Compliance _ Microsoft Learn.pdf"
+from pathlib import Path
+
+
+def _find_epcs_pdf() -> Path:
+    candidates = [
+        Path("research/validation_50/raw_documents/Microsoft/Electronic Prescriptions for Controlled Substances (EPCS) - Azure Compliance _ Microsoft Learn.pdf"),
+        Path("research/validation_50/raw_documents/Electronic Prescriptions for Controlled Substances (EPCS) - Azure Compliance _ Microsoft Learn.pdf"),
+        Path("backend/storage/uploads/a07fafde-c545-429c-a5f8-cde07c7c64ba/Electronic Prescriptions for Controlled Substances (EPCS) - Azure Compliance _ Microsoft Learn.pdf"),
+    ]
+    for p in candidates:
+        if p.exists():
+            return p
+    for p in Path(".").glob("**/*EPCS*.pdf"):
+        if p.exists():
+            return p
+    raise FileNotFoundError("EPCS PDF document not found in workspace")
 
 
 @pytest.mark.asyncio
 async def test_full_stack_parity_upload_to_db_and_api():
     """Validates that HTTP upload, DB persistence, and direct audit execution produce identical claims."""
-    with open(EPCS_DOC_PATH, "rb") as f:
-        file_bytes = f.read()
+    epcs_path = _find_epcs_pdf()
+    file_bytes = epcs_path.read_bytes()
 
     filename = "Electronic Prescriptions for Controlled Substances (EPCS) - Azure Compliance _ Microsoft Learn.pdf"
     org_id = uuid.UUID("11111111-1111-1111-1111-111111111111")

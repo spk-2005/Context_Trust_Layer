@@ -1,0 +1,48 @@
+{
+  "document_id": "SYN-DOC-003",
+  "document_type": "invoice",
+  "title": "Vendor Hardware and Cloud Services Invoice Terms",
+  "content": "Invoice Notice: Customer must pay all undisputed invoices within thirty calendar days of invoice date. If any invoice remains unpaid after 15 calendar days from the due date, Vendor may assess late fee on overdue amounts. Remittance Address: 100 Technology Parkway, Suite 400, Austin, TX 78759 USA. Page 1 of 2.",
+  "claims": [
+    {
+      "claim_id": "inv_01",
+      "verbatim_quote": "Customer must pay all undisputed invoices within thirty calendar days of invoice date.",
+      "clause_text": "Invoice Notice: Customer must pay all undisputed invoices within thirty calendar days of invoice date.",
+      "subject": "Customer",
+      "predicate": "must_pay_within_30_days",
+      "object": "invoices",
+      "claim_type": "RULE",
+      "expected_tier": "AUTOMATED_CERTIFIED"
+    },
+    {
+      "claim_id": "inv_02",
+      "verbatim_quote": "Vendor may assess late fee on overdue amounts.",
+      "clause_text": "If any invoice remains unpaid after 15 calendar days from the due date, Vendor may assess late fee on overdue amounts.",
+      "subject": "Vendor",
+      "predicate": "may_assess_late_fee",
+      "object": "overdue amounts",
+      "claim_type": "RULE",
+      "expected_tier": "AUTOMATED_CERTIFIED"
+    },
+    {
+      "claim_id": "inv_03_address_reject",
+      "verbatim_quote": "100 Technology Parkway, Suite 400, Austin, TX 78759 USA.",
+      "clause_text": "Remittance Address: 100 Technology Parkway, Suite 400, Austin, TX 78759 USA.",
+      "subject": "100 Technology Parkway",
+      "predicate": "locate",
+      "object": "remittance",
+      "claim_type": "RULE",
+      "expected_tier": "REJECTED"
+    },
+    {
+      "claim_id": "inv_04_header_reject",
+      "verbatim_quote": "Page 1 of 2.",
+      "clause_text": "Page 1 of 2.",
+      "subject": "Page 1",
+      "predicate": "is",
+      "object": "page",
+      "claim_type": "RULE",
+      "expected_tier": "REJECTED"
+    }
+  ]
+}

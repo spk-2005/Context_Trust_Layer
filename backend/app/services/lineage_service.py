@@ -4,6 +4,7 @@ from sqlalchemy import select, or_, and_, desc
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from app.db.enums import ClaimStatus
 from app.db.models.claim import Claim
 from app.db.models.claim_conflict import ClaimConflict
 from app.db.models.claim_trust_score import ClaimTrustScore
@@ -12,6 +13,7 @@ from app.db.models.data_source import DataSource
 from app.db.models.decision_evaluation import DecisionEvaluation
 from app.db.models.document import Document
 from app.db.models.document_version import DocumentVersion
+from app.services.claim_gate_evaluator import ClaimGateEvaluator
 
 
 class LineageService:
@@ -162,6 +164,23 @@ class LineageService:
                 ev_snippet = getattr(first_ev, "text_span", None) or getattr(first_ev, "exact_quote", None) or getattr(first_ev, "snippet", None)
                 ev_section = getattr(first_ev, "section", None)
 
+            # Universal 9-Hard Governance Gates Evaluation
+            gate_res = ClaimGateEvaluator.evaluate(
+                claim_text=cl.claim_text,
+                subject=cl.subject,
+                predicate=cl.predicate,
+                object_text=cl.object,
+                claim_type=cl.claim_type,
+                status=cl.status.value if hasattr(cl.status, "value") else str(cl.status),
+                evidence_snippet=ev_snippet,
+                confidence_or_trust=trust_val,
+            )
+
+            is_canon = gate_res.is_canonical and (cl.status == ClaimStatus.VERIFIED or cl.status == ClaimStatus.ACTIVE)
+            tier = gate_res.certification_tier
+            if not is_canon and tier == "AUTOMATED_CERTIFIED":
+                tier = "REVIEW_REQUIRED"
+
             nodes.append({
                 "id": cl_node_id,
                 "type": "claim",
@@ -172,14 +191,32 @@ class LineageService:
                 "subject": cl.subject or "Policy Assertion",
                 "predicate": cl.predicate or "governs",
                 "object": cl.object or "",
+                "is_canonical": is_canon,
+                "certification_tier": tier,
+                "agent_accessible": is_canon,
+                "document_id": str(cl.document_version.document_id) if cl.document_version else None,
+                "gates": gate_res.gates,
+                "all_9_gates_passed": gate_res.all_9_gates_passed,
+                "rejection_reasons": gate_res.rejection_reasons,
                 "data": {
                     "claim_id": str(cl.id),
+                    "document_id": str(cl.document_version.document_id) if cl.document_version else None,
                     "document_version_id": str(cl.document_version_id),
                     "scope": getattr(cl, "scope", "Enterprise"),
                     "subject": cl.subject or "Policy Assertion",
                     "predicate": cl.predicate or "governs",
                     "object": cl.object or "",
-                    "claim_type": getattr(cl, "claim_type", "assertion"),
+                    "claim_type": getattr(cl, "claim_type", "rule"),
+                    "is_canonical": is_canon,
+                    "certification_tier": tier,
+                    "all_9_gates_passed": gate_res.all_9_gates_passed,
+                    "gates": gate_res.gates,
+                    "clause_entails_claim": gate_res.clause_entails_claim,
+                    "evidence_verified": gate_res.span_exists,
+                    "is_atomic": gate_res.is_atomic,
+                    "is_duplicate": not gate_res.is_not_duplicate,
+                    "agent_accessible": is_canon,
+                    "rejection_reasons": gate_res.rejection_reasons,
                     "extraction_method": getattr(cl, "extraction_method", "autonomous_agent"),
                     "extraction_model": getattr(cl, "extraction_model", "Gemini 2.0 Flash Enterprise"),
                     "evidence_snippet": ev_snippet,

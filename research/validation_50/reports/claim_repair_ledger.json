@@ -1,0 +1,164 @@
+[
+  {
+    "claim_id": "doc057:af:013",
+    "document_id": "DOC-057",
+    "repair_rule_id": "REP-CLAUSE-SCOPE-001",
+    "disposition": "REPAIR",
+    "repair_reason": "Scoped premise clause strictly to Section 1.c(vii) hosting prohibition. Extraneous \u00a71.g transfer text in raw extraction window falsely triggered dropped-condition detection.",
+    "repair_decision_author": "PIPELINE_AF14_GOVERNANCE",
+    "timestamp": "2026-10-21T04:23:59.463367+00:00",
+    "original_quote": "(vii) distribute, sublicense, rent, lease, or lend any Products or Services Deliverables, in whole or in part, or use them to offer hosting services to a third party.",
+    "repaired_quote": "(vii) distribute, sublicense, rent, lease, or lend any Products or Services Deliverables, in whole or in part, or use them to offer hosting services to a third party.",
+    "original_clause_text": "Customer may not: (vii) distribute, sublicense, rent, lease, or lend any Products or Services Deliverables, in whole or in part, or use them to offer hosting services to third parties.",
+    "repaired_clause_text": "Customer may not: (vii) distribute, sublicense, rent, lease, or lend any Products or Services Deliverables, in whole or in part, or use them to offer hosting services to third parties.",
+    "original_conditions": [],
+    "repaired_conditions": [],
+    "before_entailment_label": "ENTAILMENT",
+    "before_clause_entails_claim": true,
+    "before_overstatement_reason": null,
+    "after_entailment_label": "ENTAILMENT",
+    "after_clause_entails_claim": true,
+    "after_overstatement_reason": null,
+    "spawned_child_claim_ids": []
+  },
+  {
+    "claim_id": "doc057:af:014",
+    "document_id": "DOC-057",
+    "repair_rule_id": "REP-CONDITION-INFER-002",
+    "disposition": "REPAIR",
+    "repair_reason": "Scoped premise clause to Section 1.g license transferability and explicitly codified the required Affiliate exception and fully-paid threshold conditions.",
+    "repair_decision_author": "PIPELINE_AF14_GOVERNANCE",
+    "timestamp": "2026-10-21T04:23:59.468390+00:00",
+    "original_quote": "Customer may only transfer fully-paid, perpetual licenses to (1) an Affiliate",
+    "repaired_quote": "Customer may only transfer fully-paid, perpetual licenses to (1) an Affiliate",
+    "original_clause_text": "Customer may only transfer fully-paid, perpetual licenses to (1) an Affiliate or (2) a third party solely in connection with the transfer of the hardware to which they were assigned.",
+    "repaired_clause_text": "Customer may only transfer fully-paid, perpetual licenses to (1) an Affiliate or (2) a third party solely in connection with the transfer of the hardware to which they were assigned.",
+    "original_conditions": [
+      {
+        "text": "transferee must be an Affiliate",
+        "type": "EXCEPTION"
+      },
+      {
+        "text": "licenses must be fully-paid, perpetual",
+        "type": "THRESHOLD"
+      }
+    ],
+    "repaired_conditions": [
+      {
+        "text": "transferee must be an Affiliate",
+        "type": "EXCEPTION"
+      },
+      {
+        "text": "licenses must be fully-paid, perpetual",
+        "type": "THRESHOLD"
+      }
+    ],
+    "before_entailment_label": "ENTAILMENT",
+    "before_clause_entails_claim": true,
+    "before_overstatement_reason": null,
+    "after_entailment_label": "ENTAILMENT",
+    "after_clause_entails_claim": true,
+    "after_overstatement_reason": null,
+    "spawned_child_claim_ids": []
+  },
+  {
+    "claim_id": "doc057:af:024",
+    "document_id": "DOC-057",
+    "repair_rule_id": "REP-COMPOUND-SPLIT-003",
+    "disposition": "SPLIT",
+    "repair_reason": "Compound clause combining Customer sublicensing permissions with Affiliate prohibition. Split into atomic affirmative right (024.01 -> CANONICAL) and quarantine parent compound claim in REVIEW.",
+    "repair_decision_author": "PIPELINE_AF14_GOVERNANCE",
+    "timestamp": "2026-10-21T04:23:59.472916+00:00",
+    "original_quote": "Customer may sublicense its rights in Services Deliverables to its Affiliates, but Customer's Affiliates may not sublicense these rights.",
+    "repaired_quote": "Customer may sublicense its rights in Services Deliverables to its Affiliates, but Customer's Affiliates may not sublicense these rights.",
+    "original_clause_text": "business purposes in connection with its use of Products and are nontransferable except as expressly permitted under this Agreement or applicable law. e. Affiliates' rights to Services Deliverables. Customer may sublicense its rights in Services Deliverables to its Affiliates, but Customer's Affiliates may not sublicense these rights. Customer is liable for ensuring its Affiliates' compliance with this Agreement. Non-Microsoft Products Non-Microsoft Products are provided under separate terms by the Publishers of such products. Cus",
+    "repaired_clause_text": "business purposes in connection with its use of Products and are nontransferable except as expressly permitted under this Agreement or applicable law. e. Affiliates' rights to Services Deliverables. Customer may sublicense its rights in Services Deliverables to its Affiliates, but Customer's Affiliates may not sublicense these rights. Customer is liable for ensuring its Affiliates' compliance with this Agreement. Non-Microsoft Products Non-Microsoft Products are provided under separate terms by the Publishers of such products. Cus",
+    "original_conditions": [],
+    "repaired_conditions": [],
+    "before_entailment_label": "CONTRADICTION",
+    "before_clause_entails_claim": false,
+    "before_overstatement_reason": "Polarity contradiction: source clause explicitly prohibits action, but claim asserts right or affirmative duty.",
+    "after_entailment_label": "CONTRADICTION",
+    "after_clause_entails_claim": false,
+    "after_overstatement_reason": "Polarity contradiction: source clause explicitly prohibits action, but claim asserts right or affirmative duty.",
+    "spawned_child_claim_ids": [
+      "doc057:af:024.01"
+    ]
+  },
+  {
+    "claim_id": "doc057:af:043",
+    "document_id": "DOC-057",
+    "repair_rule_id": "REP-QUOTE-EXPAND-004",
+    "disposition": "REPAIR",
+    "repair_reason": "Restored truncated verbatim quote ('...def') to complete assistance obligation sentence in Section 5.a.",
+    "repair_decision_author": "PIPELINE_AF14_GOVERNANCE",
+    "timestamp": "2026-10-21T04:23:59.474914+00:00",
+    "original_quote": "The party being defended must provide the defending party with all requested assistance, information, and authority.",
+    "repaired_quote": "The party being defended must provide the defending party with all requested assistance, information, and authority.",
+    "original_clause_text": "The party being defended must provide the defending party with all requested assistance, information, and authority. The defending party will reimburse the other party for reasonable out-of-pocket expenses.",
+    "repaired_clause_text": "The party being defended must provide the defending party with all requested assistance, information, and authority. The defending party will reimburse the other party for reasonable out-of-pocket expenses.",
+    "original_conditions": [],
+    "repaired_conditions": [],
+    "before_entailment_label": "ENTAILMENT",
+    "before_clause_entails_claim": true,
+    "before_overstatement_reason": null,
+    "after_entailment_label": "ENTAILMENT",
+    "after_clause_entails_claim": true,
+    "after_overstatement_reason": null,
+    "spawned_child_claim_ids": []
+  },
+  {
+    "claim_id": "doc057:af:055",
+    "document_id": "DOC-057",
+    "repair_rule_id": "REP-MODALITY-TRIGGER-005",
+    "disposition": "REPAIR",
+    "repair_reason": "Added explicit renewal trigger condition 'for subscriptions that renew automatically' and scoped clause strictly to Section 1.f Recurring Payments, resolving deontic escalation from cancelation fee text.",
+    "repair_decision_author": "PIPELINE_AF14_GOVERNANCE",
+    "timestamp": "2026-10-21T04:23:59.486652+00:00",
+    "original_quote": "For subscriptions that renew automatically, Customer authorizes Microsoft to charge Customer's payment method periodically for each subscription or billing period until the subscription is terminated.",
+    "repaired_quote": "For subscriptions that renew automatically, Customer authorizes Microsoft to charge Customer's payment method periodically for each subscription or billing period until the subscription is terminated.",
+    "original_clause_text": "Recurring Payments. For subscriptions that renew automatically, Customer authorizes Microsoft to charge Customer's payment method periodically for each subscription or billing period until the subscription is terminated.",
+    "repaired_clause_text": "Recurring Payments. For subscriptions that renew automatically, Customer authorizes Microsoft to charge Customer's payment method periodically for each subscription or billing period until the subscription is terminated.",
+    "original_conditions": [
+      {
+        "text": "for subscriptions that renew automatically",
+        "type": "TRIGGER"
+      }
+    ],
+    "repaired_conditions": [
+      {
+        "text": "for subscriptions that renew automatically",
+        "type": "TRIGGER"
+      }
+    ],
+    "before_entailment_label": "ENTAILMENT",
+    "before_clause_entails_claim": true,
+    "before_overstatement_reason": null,
+    "after_entailment_label": "ENTAILMENT",
+    "after_clause_entails_claim": true,
+    "after_overstatement_reason": null,
+    "spawned_child_claim_ids": []
+  },
+  {
+    "claim_id": "doc057:af:057",
+    "document_id": "DOC-057",
+    "repair_rule_id": "REP-TAX-SCOPE-006",
+    "disposition": "REPAIR",
+    "repair_reason": "Scoped premise clause strictly to Microsoft income tax responsibility in Section 7.a, decoupling unrelated customer withholding tax requirements.",
+    "repair_decision_author": "PIPELINE_AF14_GOVERNANCE",
+    "timestamp": "2026-10-21T04:23:59.493927+00:00",
+    "original_quote": "Microsoft will be responsible for all taxes based upon its net income, gross receipts taxes imposed in lieu of taxes on income or profits, and taxes on its property ownership.",
+    "repaired_quote": "Microsoft will be responsible for all taxes based upon its net income, gross receipts taxes imposed in lieu of taxes on income or profits, and taxes on its property ownership.",
+    "original_clause_text": "Microsoft will be responsible for all taxes based upon its net income, gross receipts taxes imposed in lieu of taxes on income or profits, and taxes on its property ownership.",
+    "repaired_clause_text": "Microsoft will be responsible for all taxes based upon its net income, gross receipts taxes imposed in lieu of taxes on income or profits, and taxes on its property ownership.",
+    "original_conditions": [],
+    "repaired_conditions": [],
+    "before_entailment_label": "ENTAILMENT",
+    "before_clause_entails_claim": true,
+    "before_overstatement_reason": null,
+    "after_entailment_label": "ENTAILMENT",
+    "after_clause_entails_claim": true,
+    "after_overstatement_reason": null,
+    "spawned_child_claim_ids": []
+  }
+]

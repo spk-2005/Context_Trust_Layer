@@ -1,0 +1,48 @@
+{
+  "document_id": "SYN-DOC-002",
+  "document_type": "policy",
+  "title": "Corporate Information Security and Acceptable Use Policy",
+  "content": "Policy Rule 2.1. Employees must protect confidential information with reasonable care. Policy Rule 3.4. Users must not reverse engineer proprietary firmware or software. Reference Section 1.2. More details about access tiers can be found in the security guidelines. Scope Note. Export availability may vary by region.",
+  "claims": [
+    {
+      "claim_id": "pol_01",
+      "verbatim_quote": "Employees must protect confidential information with reasonable care.",
+      "clause_text": "Policy Rule 2.1. Employees must protect confidential information with reasonable care.",
+      "subject": "Employees",
+      "predicate": "must_protect_confidential_information",
+      "object": "confidential information",
+      "claim_type": "RULE",
+      "expected_tier": "AUTOMATED_CERTIFIED"
+    },
+    {
+      "claim_id": "pol_02_prohibition",
+      "verbatim_quote": "Users must not reverse engineer proprietary firmware or software.",
+      "clause_text": "Policy Rule 3.4. Users must not reverse engineer proprietary firmware or software.",
+      "subject": "Users",
+      "predicate": "must_not_reverse_engineer",
+      "object": "software",
+      "claim_type": "RULE",
+      "expected_tier": "AUTOMATED_CERTIFIED"
+    },
+    {
+      "claim_id": "pol_03_non_rule_ref",
+      "verbatim_quote": "More details about access tiers can be found in the security guidelines.",
+      "clause_text": "Reference Section 1.2. More details about access tiers can be found in the security guidelines.",
+      "subject": "More details",
+      "predicate": "refer_to",
+      "object": "security guidelines",
+      "claim_type": "REFERENCE",
+      "expected_tier": "NON_RULE"
+    },
+    {
+      "claim_id": "pol_04_slug_leak",
+      "verbatim_quote": "Users must_not_reverse_engineer proprietary software.",
+      "clause_text": "Users must_not_reverse_engineer proprietary software.",
+      "subject": "Users",
+      "predicate": "must_not_reverse_engineer",
+      "object": "software",
+      "claim_type": "RULE",
+      "expected_tier": "REJECTED"
+    }
+  ]
+}

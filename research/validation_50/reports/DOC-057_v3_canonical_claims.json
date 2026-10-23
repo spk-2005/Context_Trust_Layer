@@ -1,0 +1,2314 @@
+[
+  {
+    "claim_id": "949b1468-aae0-5887-863a-c3a57aa7c0fc",
+    "document_id": "DOC-057",
+    "status": "CANONICAL",
+    "certification_tier": "AUTOMATED_CERTIFIED",
+    "subject": {
+      "raw_text": "Customer",
+      "canonical_entity": "Customer",
+      "confidence": 1.0
+    },
+    "predicate": {
+      "raw_text": "may_order_for_affiliate",
+      "normalized_action": "may_order_for_affiliate",
+      "confidence": 1.0
+    },
+    "object": {
+      "raw_text": "Products for use by its Affiliates",
+      "normalized_object": "Products for use by its Affiliates"
+    },
+    "claim_text": "Customer may order Products for use by its Affiliates.",
+    "gates": {
+      "span_exists": true,
+      "clause_entails_claim": true,
+      "subject_valid": true,
+      "counterparty_resolved": true,
+      "predicate_valid": true,
+      "is_atomic": true,
+      "is_not_duplicate": true,
+      "claim_type_allowed": true,
+      "human_approved_if_required": true,
+      "text_integrity": true
+    },
+    "trust_score": 0.935
+  },
+  {
+    "claim_id": "26251841-ba09-5a8b-8224-a169a6ee324c",
+    "document_id": "DOC-057",
+    "status": "CANONICAL",
+    "certification_tier": "AUTOMATED_CERTIFIED",
+    "subject": {
+      "raw_text": "Microsoft",
+      "canonical_entity": "Microsoft",
+      "confidence": 1.0
+    },
+    "predicate": {
+      "raw_text": "grants_deliverables_license",
+      "normalized_action": "grants_deliverables_license",
+      "confidence": 1.0
+    },
+    "object": {
+      "raw_text": "a non-exclusive, limited license to use and modify the Services Deliverables as provided in this Agreement, including, without limitation, the reservation of rights, restrictio ns, and license transfer provisions under the section entitled License to use Microsoft Products",
+      "normalized_object": "a non-exclusive, limited license to use and modify the Services Deliverables as provided in this Agreement, including, without limitation, the reservation of rights, restrictio ns, and license transfer provisions under the section entitled License to use Microsoft Products"
+    },
+    "claim_text": "Subject to Customer's compliance with this Agreement, Microsoft grants Customer a non-exclusive, limited license to use and modify the Services Deliverables as provided in this Agreement, including, without limitation, the reservation of rights, restrictio ns, and license transfer provisions under the section entitled License to use Microsoft Products.",
+    "gates": {
+      "span_exists": true,
+      "clause_entails_claim": true,
+      "subject_valid": true,
+      "counterparty_resolved": true,
+      "predicate_valid": true,
+      "is_atomic": true,
+      "is_not_duplicate": true,
+      "claim_type_allowed": true,
+      "human_approved_if_required": true,
+      "text_integrity": true
+    },
+    "trust_score": 0.935
+  },
+  {
+    "claim_id": "2fd45a46-c4e3-5ef6-86a3-c1e1adebcd4c",
+    "document_id": "DOC-057",
+    "status": "CANONICAL",
+    "certification_tier": "AUTOMATED_CERTIFIED",
+    "subject": {
+      "raw_text": "Customer",
+      "canonical_entity": "Customer",
+      "confidence": 1.0
+    },
+    "predicate": {
+      "raw_text": "keep",
+      "normalized_action": "keep",
+      "confidence": 1.0
+    },
+    "object": {
+      "raw_text": "records relating to Products it and its Affiliates use or distribute",
+      "normalized_object": "records relating to Products it and its Affiliates use or distribute"
+    },
+    "claim_text": "Customer must keep records relating to Products it and its Affiliates use or distribute.",
+    "gates": {
+      "span_exists": true,
+      "clause_entails_claim": true,
+      "subject_valid": true,
+      "counterparty_resolved": true,
+      "predicate_valid": true,
+      "is_atomic": true,
+      "is_not_duplicate": true,
+      "claim_type_allowed": true,
+      "human_approved_if_required": true,
+      "text_integrity": true
+    },
+    "trust_score": 0.935
+  },
+  {
+    "claim_id": "06328463-bea2-5489-9adf-84148d265423",
+    "document_id": "DOC-057",
+    "status": "CANONICAL",
+    "certification_tier": "AUTOMATED_CERTIFIED",
+    "subject": {
+      "raw_text": "A party",
+      "canonical_entity": "A party",
+      "confidence": 1.0
+    },
+    "predicate": {
+      "raw_text": "disclose",
+      "normalized_action": "disclose",
+      "confidence": 1.0
+    },
+    "object": {
+      "raw_text": "the other's Confidential Information if required by law, but only after it notifies the other party (if legally permissible) to enable the other party to seek a protective order",
+      "normalized_object": "the other's Confidential Information if required by law, but only after it notifies the other party (if legally permissible) to enable the other party to seek a protective order"
+    },
+    "claim_text": "A party may disclose the other's Confidential Information if required by law, but only after it notifies the other party (if legally permissible) to enable the other party to seek a protective order.",
+    "gates": {
+      "span_exists": true,
+      "clause_entails_claim": true,
+      "subject_valid": true,
+      "counterparty_resolved": true,
+      "predicate_valid": true,
+      "is_atomic": true,
+      "is_not_duplicate": true,
+      "claim_type_allowed": true,
+      "human_approved_if_required": true,
+      "text_integrity": true
+    },
+    "trust_score": 0.935
+  },
+  {
+    "claim_id": "1d096bce-ad04-5c78-929a-52f556130fac",
+    "document_id": "DOC-057",
+    "status": "CANONICAL",
+    "certification_tier": "AUTOMATED_CERTIFIED",
+    "subject": {
+      "raw_text": "Microsoft",
+      "canonical_entity": "Microsoft",
+      "confidence": 1.0
+    },
+    "predicate": {
+      "raw_text": "invoice",
+      "normalized_action": "invoice",
+      "confidence": 1.0
+    },
+    "object": {
+      "raw_text": "eligible Customers",
+      "normalized_object": "eligible Customers"
+    },
+    "claim_text": "Microsoft may invoice eligible Customers.",
+    "gates": {
+      "span_exists": true,
+      "clause_entails_claim": true,
+      "subject_valid": true,
+      "counterparty_resolved": true,
+      "predicate_valid": true,
+      "is_atomic": true,
+      "is_not_duplicate": true,
+      "claim_type_allowed": true,
+      "human_approved_if_required": true,
+      "text_integrity": true
+    },
+    "trust_score": 0.935
+  },
+  {
+    "claim_id": "6cdefd99-250b-51ef-9f2e-78d08951c111",
+    "document_id": "DOC-057",
+    "status": "CANONICAL",
+    "certification_tier": "AUTOMATED_CERTIFIED",
+    "subject": {
+      "raw_text": "Customer",
+      "canonical_entity": "Customer",
+      "confidence": 1.0
+    },
+    "predicate": {
+      "raw_text": "must_defend_ip_claims",
+      "normalized_action": "must_defend_ip_claims",
+      "confidence": 1.0
+    },
+    "object": {
+      "raw_text": "Microsoft and its Affiliates against any third-party claim to the extent it alleges that: (1) any Customer Data or Non - Microsoft Product hosted in an Online Service by Microsoft on Customer's behalf misappropriates a trade secret or directly infringes a patent, copyright, trademark, or other proprietary right of a third party; or (2) Customer's use of any Product or Services Deliverable, alone or in combination with anything else, violates the law or harms a third party",
+      "normalized_object": "Microsoft and its Affiliates against any third-party claim to the extent it alleges that: (1) any Customer Data or Non - Microsoft Product hosted in an Online Service by Microsoft on Customer's behalf misappropriates a trade secret or directly infringes a patent, copyright, trademark, or other proprietary right of a third party; or (2) Customer's use of any Product or Services Deliverable, alone or in combination with anything else, violates the law or harms a third party"
+    },
+    "claim_text": "To the extent permitted by applicable law, Customer will defend Microsoft and its Affiliates against any third-party claim to the extent it alleges that: (1) any Customer Data or Non - Microsoft Product hosted in an Online Service by Microsoft on Customer's behalf misappropriates a trade secret or directly infringes a patent, copyright, trademark, or other proprietary right of a third party; or (2) Customer's use of any Product or Services Deliverable, alone or in combination with anything else, violates the law or harms a third party.",
+    "gates": {
+      "span_exists": true,
+      "clause_entails_claim": true,
+      "subject_valid": true,
+      "counterparty_resolved": true,
+      "predicate_valid": true,
+      "is_atomic": true,
+      "is_not_duplicate": true,
+      "claim_type_allowed": true,
+      "human_approved_if_required": true,
+      "text_integrity": true
+    },
+    "trust_score": 0.935
+  },
+  {
+    "claim_id": "063eac82-bafc-5588-b9a4-7e11912f989e",
+    "document_id": "DOC-057",
+    "status": "CANONICAL",
+    "certification_tier": "AUTOMATED_CERTIFIED",
+    "subject": {
+      "raw_text": "Customer",
+      "canonical_entity": "Customer",
+      "confidence": 1.0
+    },
+    "predicate": {
+      "raw_text": "may_terminate_without_cause",
+      "normalized_action": "may_terminate_without_cause",
+      "confidence": 1.0
+    },
+    "object": {
+      "raw_text": "the Partner's administrative privileges at any time",
+      "normalized_object": "the Partner's administrative privileges at any time"
+    },
+    "claim_text": "Customer may terminate the Partner's administrative privileges at any time.",
+    "gates": {
+      "span_exists": true,
+      "clause_entails_claim": true,
+      "subject_valid": true,
+      "counterparty_resolved": true,
+      "predicate_valid": true,
+      "is_atomic": true,
+      "is_not_duplicate": true,
+      "claim_type_allowed": true,
+      "human_approved_if_required": true,
+      "text_integrity": true
+    },
+    "trust_score": 0.935
+  },
+  {
+    "claim_id": "2384cd9d-7185-5a30-b46e-2cbe1ba20cde",
+    "document_id": "DOC-057",
+    "status": "CANONICAL",
+    "certification_tier": "AUTOMATED_CERTIFIED",
+    "subject": {
+      "raw_text": "Customer",
+      "canonical_entity": "Customer",
+      "confidence": 1.0
+    },
+    "predicate": {
+      "raw_text": "has_cancellation_fee_policy",
+      "normalized_action": "has_cancellation_fee_policy",
+      "confidence": 1.0
+    },
+    "object": {
+      "raw_text": "be charged a cancelation fee",
+      "normalized_object": "be charged a cancelation fee"
+    },
+    "claim_text": "If a Subscription or Statement of Services permits early termination and Customer cancels the Subscription or Statement of Service before the end of the Subscription or billing period, Customer may be charged a cancelation fee.",
+    "gates": {
+      "span_exists": true,
+      "clause_entails_claim": true,
+      "subject_valid": true,
+      "counterparty_resolved": true,
+      "predicate_valid": true,
+      "is_atomic": true,
+      "is_not_duplicate": true,
+      "claim_type_allowed": true,
+      "human_approved_if_required": true,
+      "text_integrity": true
+    },
+    "trust_score": 0.935
+  },
+  {
+    "claim_id": "5fd007cb-8687-5e47-b924-762488e7da79",
+    "document_id": "DOC-057",
+    "status": "CANONICAL",
+    "certification_tier": "AUTOMATED_CERTIFIED",
+    "subject": {
+      "raw_text": "Microsoft",
+      "canonical_entity": "Microsoft",
+      "confidence": 1.0
+    },
+    "predicate": {
+      "raw_text": "may_collect_return_or_insufficient_funds_fee",
+      "normalized_action": "may_collect_return_or_insufficient_funds_fee",
+      "confidence": 1.0
+    },
+    "object": {
+      "raw_text": "any applicable return item, rejection or insufficient funds fee if payment is returned unpaid",
+      "normalized_object": "any applicable return item, rejection or insufficient funds fee if payment is returned unpaid"
+    },
+    "claim_text": "If any payment is returned unpaid, Microsoft reserves the right to collect any applicable return item, rejection or insufficient funds fee.",
+    "gates": {
+      "span_exists": true,
+      "clause_entails_claim": true,
+      "subject_valid": true,
+      "counterparty_resolved": true,
+      "predicate_valid": true,
+      "is_atomic": true,
+      "is_not_duplicate": true,
+      "claim_type_allowed": true,
+      "human_approved_if_required": true,
+      "text_integrity": true
+    },
+    "trust_score": 0.935
+  },
+  {
+    "claim_id": "0fe88efd-a92c-52b4-b635-d80ed4469922",
+    "document_id": "DOC-057",
+    "status": "CANONICAL",
+    "certification_tier": "AUTOMATED_CERTIFIED",
+    "subject": {
+      "raw_text": "Microsoft",
+      "canonical_entity": "Microsoft",
+      "confidence": 1.0
+    },
+    "predicate": {
+      "raw_text": "responsible_for_own_net_income_taxes",
+      "normalized_action": "responsible_for_own_net_income_taxes",
+      "confidence": 1.0
+    },
+    "object": {
+      "raw_text": "all taxes based upon its net income, gross receipts, and property ownership",
+      "normalized_object": "all taxes based upon its net income, gross receipts, and property ownership"
+    },
+    "claim_text": "Microsoft will be responsible for all taxes based upon its net income, gross receipts taxes imposed in lieu of taxes on income or profits, and taxes on its property ownership.",
+    "gates": {
+      "span_exists": true,
+      "clause_entails_claim": true,
+      "subject_valid": true,
+      "counterparty_resolved": true,
+      "predicate_valid": true,
+      "is_atomic": true,
+      "is_not_duplicate": true,
+      "claim_type_allowed": true,
+      "human_approved_if_required": true,
+      "text_integrity": true
+    },
+    "trust_score": 0.935
+  },
+  {
+    "claim_id": "3fe4f7dc-6165-50c6-9dca-a93b38d09704",
+    "document_id": "DOC-057",
+    "status": "CANONICAL",
+    "certification_tier": "AUTOMATED_CERTIFIED",
+    "subject": {
+      "raw_text": "Each party",
+      "canonical_entity": "Each party",
+      "confidence": 1.0
+    },
+    "predicate": {
+      "raw_text": "may_terminate_without_cause",
+      "normalized_action": "may_terminate_without_cause",
+      "confidence": 1.0
+    },
+    "object": {
+      "raw_text": "this Agreement without cause on 60 days' notice",
+      "normalized_object": "this Agreement without cause on 60 days' notice"
+    },
+    "claim_text": "Either party may terminate this Agreement without cause on 60 days' notice.",
+    "gates": {
+      "span_exists": true,
+      "clause_entails_claim": true,
+      "subject_valid": true,
+      "counterparty_resolved": true,
+      "predicate_valid": true,
+      "is_atomic": true,
+      "is_not_duplicate": true,
+      "claim_type_allowed": true,
+      "human_approved_if_required": true,
+      "text_integrity": true
+    },
+    "trust_score": 0.935
+  },
+  {
+    "claim_id": "3222a919-afd1-5297-b13f-410aab6a92e1",
+    "document_id": "DOC-057",
+    "status": "CANONICAL",
+    "certification_tier": "AUTOMATED_CERTIFIED",
+    "subject": {
+      "raw_text": "Microsoft",
+      "canonical_entity": "Microsoft",
+      "confidence": 1.0
+    },
+    "predicate": {
+      "raw_text": "may_modify_or_discontinue_products",
+      "normalized_action": "may_modify_or_discontinue_products",
+      "confidence": 1.0
+    },
+    "object": {
+      "raw_text": "offering a Product or Professional Service",
+      "normalized_object": "offering a Product or Professional Service"
+    },
+    "claim_text": "Microsoft may modify or discontinue offering a Product or Professional Service.",
+    "gates": {
+      "span_exists": true,
+      "clause_entails_claim": true,
+      "subject_valid": true,
+      "counterparty_resolved": true,
+      "predicate_valid": true,
+      "is_atomic": true,
+      "is_not_duplicate": true,
+      "claim_type_allowed": true,
+      "human_approved_if_required": true,
+      "text_integrity": true
+    },
+    "trust_score": 0.935
+  },
+  {
+    "claim_id": "0adf4f42-bddd-5fe8-a27a-c17f0c1f4d98",
+    "document_id": "DOC-057",
+    "status": "CANONICAL",
+    "certification_tier": "AUTOMATED_CERTIFIED",
+    "subject": {
+      "raw_text": "Either party",
+      "canonical_entity": "Either party",
+      "confidence": 1.0
+    },
+    "predicate": {
+      "raw_text": "may_assign_to_affiliate",
+      "normalized_action": "may_assign_to_affiliate",
+      "confidence": 1.0
+    },
+    "object": {
+      "raw_text": "this Agreement to an Affiliate",
+      "normalized_object": "this Agreement to an Affiliate"
+    },
+    "claim_text": "Either party may assign this Agreement to an Affiliate, but it must notify the other party in writing of the assignment.",
+    "gates": {
+      "span_exists": true,
+      "clause_entails_claim": true,
+      "subject_valid": true,
+      "counterparty_resolved": true,
+      "predicate_valid": true,
+      "is_atomic": true,
+      "is_not_duplicate": true,
+      "claim_type_allowed": true,
+      "human_approved_if_required": true,
+      "text_integrity": true
+    },
+    "trust_score": 0.935
+  },
+  {
+    "claim_id": "27730a11-e5fd-5bdd-b7f2-db745eccfa82",
+    "document_id": "DOC-057",
+    "status": "CANONICAL",
+    "certification_tier": "AUTOMATED_CERTIFIED",
+    "subject": {
+      "raw_text": "Customer",
+      "canonical_entity": "Customer",
+      "confidence": 1.0
+    },
+    "predicate": {
+      "raw_text": "develop",
+      "normalized_action": "develop",
+      "confidence": 1.0
+    },
+    "object": {
+      "raw_text": "products independently without using the other's Confidential Information",
+      "normalized_object": "products independently without using the other's Confidential Information"
+    },
+    "claim_text": "Customer and Microsoft each may develop products independently without using the other's Confidential Information.",
+    "gates": {
+      "span_exists": true,
+      "clause_entails_claim": true,
+      "subject_valid": true,
+      "counterparty_resolved": true,
+      "predicate_valid": true,
+      "is_atomic": true,
+      "is_not_duplicate": true,
+      "claim_type_allowed": true,
+      "human_approved_if_required": true,
+      "text_integrity": true
+    },
+    "trust_score": 0.935
+  },
+  {
+    "claim_id": "6da1952d-b274-562c-9eec-e22fb73ec252",
+    "document_id": "DOC-057",
+    "status": "CANONICAL",
+    "certification_tier": "AUTOMATED_CERTIFIED",
+    "subject": {
+      "raw_text": "Customer",
+      "canonical_entity": "Customer",
+      "confidence": 1.0
+    },
+    "predicate": {
+      "raw_text": "may_require_financial_statements",
+      "normalized_action": "may_require_financial_statements",
+      "confidence": 1.0
+    },
+    "object": {
+      "raw_text": "its balance sheet, profit and loss, and cash flow statements to Microsoft upon request",
+      "normalized_object": "its balance sheet, profit and loss, and cash flow statements to Microsoft upon request"
+    },
+    "claim_text": "Customer may be required to provide its balance sheet, profit and loss, and cash flow statements to Microsoft upon request.",
+    "gates": {
+      "span_exists": true,
+      "clause_entails_claim": true,
+      "subject_valid": true,
+      "counterparty_resolved": true,
+      "predicate_valid": true,
+      "is_atomic": true,
+      "is_not_duplicate": true,
+      "claim_type_allowed": true,
+      "human_approved_if_required": true,
+      "text_integrity": true
+    },
+    "trust_score": 0.935
+  },
+  {
+    "claim_id": "6ea091c0-62b6-59fb-b7ab-855c550c978e",
+    "document_id": "DOC-057",
+    "status": "CANONICAL",
+    "certification_tier": "AUTOMATED_CERTIFIED",
+    "subject": {
+      "raw_text": "Microsoft",
+      "canonical_entity": "Microsoft",
+      "confidence": 1.0
+    },
+    "predicate": {
+      "raw_text": "may_assess_late_fee",
+      "normalized_action": "may_assess_late_fee",
+      "confidence": 1.0
+    },
+    "object": {
+      "raw_text": "a late fee on payments more than 15 calendar days past due",
+      "normalized_object": "a late fee on payments more than 15 calendar days past due"
+    },
+    "claim_text": "Microsoft may assess a late fee on any payments that are more than 15 calendar days past due.",
+    "gates": {
+      "span_exists": true,
+      "clause_entails_claim": true,
+      "subject_valid": true,
+      "counterparty_resolved": true,
+      "predicate_valid": true,
+      "is_atomic": true,
+      "is_not_duplicate": true,
+      "claim_type_allowed": true,
+      "human_approved_if_required": true,
+      "text_integrity": true
+    },
+    "trust_score": 0.935
+  },
+  {
+    "claim_id": "185158c6-e8c8-5df7-ab6c-416461f6260b",
+    "document_id": "DOC-057",
+    "status": "CANONICAL",
+    "certification_tier": "AUTOMATED_CERTIFIED",
+    "subject": {
+      "raw_text": "Either party",
+      "canonical_entity": "Either party",
+      "confidence": 1.0
+    },
+    "predicate": {
+      "raw_text": "may_terminate_for_material_breach_on_30_days_notice",
+      "normalized_action": "may_terminate_for_material_breach_on_30_days_notice",
+      "confidence": 1.0
+    },
+    "object": {
+      "raw_text": "this Agreement on 30 days notice for material breach",
+      "normalized_object": "this Agreement on 30 days notice for material breach"
+    },
+    "claim_text": "Without limiting other remedies it may have, either party may terminate this Agreement on 30 days' notice for material breach.",
+    "gates": {
+      "span_exists": true,
+      "clause_entails_claim": true,
+      "subject_valid": true,
+      "counterparty_resolved": true,
+      "predicate_valid": true,
+      "is_atomic": true,
+      "is_not_duplicate": true,
+      "claim_type_allowed": true,
+      "human_approved_if_required": true,
+      "text_integrity": true
+    },
+    "trust_score": 0.855
+  },
+  {
+    "claim_id": "0a78eeb2-f959-5287-91d0-c565bc2039fc",
+    "document_id": "DOC-057",
+    "status": "CANONICAL",
+    "certification_tier": "AUTOMATED_CERTIFIED",
+    "subject": {
+      "raw_text": "Customer",
+      "canonical_entity": "Customer",
+      "confidence": 1.0
+    },
+    "predicate": {
+      "raw_text": "promptly_provide",
+      "normalized_action": "promptly_provide",
+      "confidence": 1.0
+    },
+    "object": {
+      "raw_text": "any information and documents that Microsoft or the auditor reasonably requests related to the verification and visual",
+      "normalized_object": "any information and documents that Microsoft or the auditor reasonably requests related to the verification and visual"
+    },
+    "claim_text": "Customer must promptly provide any information and documents that Microsoft or the auditor reasonably requests related to the verification and visual",
+    "gates": {
+      "span_exists": true,
+      "clause_entails_claim": true,
+      "subject_valid": true,
+      "counterparty_resolved": true,
+      "predicate_valid": true,
+      "is_atomic": true,
+      "is_not_duplicate": true,
+      "claim_type_allowed": true,
+      "human_approved_if_required": true,
+      "text_integrity": true
+    },
+    "trust_score": 0.935
+  },
+  {
+    "claim_id": "0f2903f0-a200-53f8-85c5-d6176d39682b",
+    "document_id": "DOC-057",
+    "status": "CANONICAL",
+    "certification_tier": "AUTOMATED_CERTIFIED",
+    "subject": {
+      "raw_text": "Microsoft",
+      "canonical_entity": "Microsoft",
+      "confidence": 1.0
+    },
+    "predicate": {
+      "raw_text": "warrants_professional_standards",
+      "normalized_action": "warrants_professional_standards",
+      "confidence": 1.0
+    },
+    "object": {
+      "raw_text": "Professional Services with the applicable professional standard of care and skill in the industry",
+      "normalized_object": "Professional Services with the applicable professional standard of care and skill in the industry"
+    },
+    "claim_text": "Microsoft warrants that it will perform Professional Services with the applicable professional standard of care and skill in the industry.",
+    "gates": {
+      "span_exists": true,
+      "clause_entails_claim": true,
+      "subject_valid": true,
+      "counterparty_resolved": true,
+      "predicate_valid": true,
+      "is_atomic": true,
+      "is_not_duplicate": true,
+      "claim_type_allowed": true,
+      "human_approved_if_required": true,
+      "text_integrity": true
+    },
+    "trust_score": 0.935
+  },
+  {
+    "claim_id": "10bb35c0-3355-57e4-9806-837b0b0dba13",
+    "document_id": "DOC-057",
+    "status": "CANONICAL",
+    "certification_tier": "AUTOMATED_CERTIFIED",
+    "subject": {
+      "raw_text": "Microsoft",
+      "canonical_entity": "Microsoft",
+      "confidence": 1.0
+    },
+    "predicate": {
+      "raw_text": "engage",
+      "normalized_action": "engage",
+      "confidence": 1.0
+    },
+    "object": {
+      "raw_text": "an i ndependent auditor under nondisclosure obligations to perform the verification",
+      "normalized_object": "an i ndependent auditor under nondisclosure obligations to perform the verification"
+    },
+    "claim_text": "Microsoft may engage an i ndependent auditor under nondisclosure obligations to perform the verification.",
+    "gates": {
+      "span_exists": true,
+      "clause_entails_claim": true,
+      "subject_valid": true,
+      "counterparty_resolved": true,
+      "predicate_valid": true,
+      "is_atomic": true,
+      "is_not_duplicate": true,
+      "claim_type_allowed": true,
+      "human_approved_if_required": true,
+      "text_integrity": true
+    },
+    "trust_score": 0.935
+  },
+  {
+    "claim_id": "1facc8c7-34ca-524c-a36b-faf6cf984c51",
+    "document_id": "DOC-057",
+    "status": "CANONICAL",
+    "certification_tier": "AUTOMATED_CERTIFIED",
+    "subject": {
+      "raw_text": "Customer",
+      "canonical_entity": "Customer",
+      "confidence": 1.0
+    },
+    "predicate": {
+      "raw_text": "must_remediate_unlicensed_use_within_30_days",
+      "normalized_action": "must_remediate_unlicensed_use_within_30_days",
+      "confidence": 1.0
+    },
+    "object": {
+      "raw_text": "sufficient licenses to cover any unlicensed use revealed by verification within 30 days",
+      "normalized_object": "sufficient licenses to cover any unlicensed use revealed by verification within 30 days"
+    },
+    "claim_text": "Customer must, within 30 days, order sufficient licenses to cover any unlicensed use revealed by verification.",
+    "gates": {
+      "span_exists": true,
+      "clause_entails_claim": true,
+      "subject_valid": true,
+      "counterparty_resolved": true,
+      "predicate_valid": true,
+      "is_atomic": true,
+      "is_not_duplicate": true,
+      "claim_type_allowed": true,
+      "human_approved_if_required": true,
+      "text_integrity": true
+    },
+    "trust_score": 0.935
+  },
+  {
+    "claim_id": "2b41a3fb-3f95-5845-88c0-6b758aa370ec",
+    "document_id": "DOC-057",
+    "status": "CANONICAL",
+    "certification_tier": "AUTOMATED_CERTIFIED",
+    "subject": {
+      "raw_text": "Either party",
+      "canonical_entity": "Either party",
+      "confidence": 1.0
+    },
+    "predicate": {
+      "raw_text": "requires_written_signed_waiver",
+      "normalized_action": "requires_written_signed_waiver",
+      "confidence": 1.0
+    },
+    "object": {
+      "raw_text": "any waiver in writing and signed by the waiving party",
+      "normalized_object": "any waiver in writing and signed by the waiving party"
+    },
+    "claim_text": "Any waiver must be in writing and signed by the waiving party.",
+    "gates": {
+      "span_exists": true,
+      "clause_entails_claim": true,
+      "subject_valid": true,
+      "counterparty_resolved": true,
+      "predicate_valid": true,
+      "is_atomic": true,
+      "is_not_duplicate": true,
+      "claim_type_allowed": true,
+      "human_approved_if_required": true,
+      "text_integrity": true
+    },
+    "trust_score": 0.935
+  },
+  {
+    "claim_id": "401a1f6f-22ad-52f7-aa22-305bc8bc2aee",
+    "document_id": "DOC-057",
+    "status": "CANONICAL",
+    "certification_tier": "AUTOMATED_CERTIFIED",
+    "subject": {
+      "raw_text": "Microsoft",
+      "canonical_entity": "Microsoft",
+      "confidence": 1.0
+    },
+    "predicate": {
+      "raw_text": "must_provide_notice_before_suspension",
+      "normalized_action": "must_provide_notice_before_suspension",
+      "confidence": 1.0
+    },
+    "object": {
+      "raw_text": "Customer 30 days' notice before such suspension unless Microsoft's charge against Customer's payment method is declined or Microsoft reasonably believes immediate suspension is required to prevent unauthorized access to Customer Data or to ensure the ongoing confidentiality, integrity, availability, or resilience of Microsoft's systems and services",
+      "normalized_object": "Customer 30 days' notice before such suspension unless Microsoft's charge against Customer's payment method is declined or Microsoft reasonably believes immediate suspension is required to prevent unauthorized access to Customer Data or to ensure the ongoing confidentiality, integrity, availability, or resilience of Microsoft's systems and services"
+    },
+    "claim_text": "Microsoft will give Customer 30 days' notice before such suspension unless Microsoft's charge against Customer's payment method is declined or Microsoft reasonably believes immediate suspension is required to prevent unauthorized access to Customer Data or to ensure the ongoing confidentiality, integrity, availability, or resilience of Microsoft's systems and services.",
+    "gates": {
+      "span_exists": true,
+      "clause_entails_claim": true,
+      "subject_valid": true,
+      "counterparty_resolved": true,
+      "predicate_valid": true,
+      "is_atomic": true,
+      "is_not_duplicate": true,
+      "claim_type_allowed": true,
+      "human_approved_if_required": true,
+      "text_integrity": true
+    },
+    "trust_score": 0.935
+  },
+  {
+    "claim_id": "492ee881-f8b1-5553-b2bb-a49c7a9f8361",
+    "document_id": "DOC-057",
+    "status": "CANONICAL",
+    "certification_tier": "AUTOMATED_CERTIFIED",
+    "subject": {
+      "raw_text": "Customer",
+      "canonical_entity": "Customer",
+      "confidence": 1.0
+    },
+    "predicate": {
+      "raw_text": "may_review_non_microsoft_product_terms",
+      "normalized_action": "may_review_non_microsoft_product_terms",
+      "confidence": 1.0
+    },
+    "object": {
+      "raw_text": "terms prior to placing an order for a Non-Microsoft Product",
+      "normalized_object": "terms prior to placing an order for a Non-Microsoft Product"
+    },
+    "claim_text": "Customer will have an opportunity to review those terms prior to placing an order for a Non-Microsoft Product.",
+    "gates": {
+      "span_exists": true,
+      "clause_entails_claim": true,
+      "subject_valid": true,
+      "counterparty_resolved": true,
+      "predicate_valid": true,
+      "is_atomic": true,
+      "is_not_duplicate": true,
+      "claim_type_allowed": true,
+      "human_approved_if_required": true,
+      "text_integrity": true
+    },
+    "trust_score": 0.935
+  },
+  {
+    "claim_id": "4ee349c2-00ba-5c20-9b4d-64ead02fc4af",
+    "document_id": "DOC-057",
+    "status": "CANONICAL",
+    "certification_tier": "AUTOMATED_CERTIFIED",
+    "subject": {
+      "raw_text": "Microsoft",
+      "canonical_entity": "Microsoft",
+      "confidence": 1.0
+    },
+    "predicate": {
+      "raw_text": "must_verify_refund_conditions",
+      "normalized_action": "must_verify_refund_conditions",
+      "confidence": 1.0
+    },
+    "object": {
+      "raw_text": "verify Customer's and its Affiliates' compliance with this Agreement at any time upon 30 days' notice",
+      "normalized_object": "verify Customer's and its Affiliates' compliance with this Agreement at any time upon 30 days' notice"
+    },
+    "claim_text": "At Microsoft's expense, Microsoft may verify Customer's and its Affiliates' compliance with this Agreement at any time upon 30 days' notice.",
+    "gates": {
+      "span_exists": true,
+      "clause_entails_claim": true,
+      "subject_valid": true,
+      "counterparty_resolved": true,
+      "predicate_valid": true,
+      "is_atomic": true,
+      "is_not_duplicate": true,
+      "claim_type_allowed": true,
+      "human_approved_if_required": true,
+      "text_integrity": true
+    },
+    "trust_score": 0.935
+  },
+  {
+    "claim_id": "5562bbab-e5c7-5f50-ae6d-144d26925d18",
+    "document_id": "DOC-057",
+    "status": "CANONICAL",
+    "certification_tier": "AUTOMATED_CERTIFIED",
+    "subject": {
+      "raw_text": "Customer",
+      "canonical_entity": "Customer",
+      "confidence": 1.0
+    },
+    "predicate": {
+      "raw_text": "licenses_apply_to_ordering_affiliates",
+      "normalized_action": "licenses_apply_to_ordering_affiliates",
+      "confidence": 1.0
+    },
+    "object": {
+      "raw_text": "such Affiliates",
+      "normalized_object": "such Affiliates"
+    },
+    "claim_text": "If Customer orders Products for use by its Affiliates, the licenses granted to Customer under this Agreement will apply to such Affiliates, but Customer will have the sole right to enforce this Agreement against Microsoft.",
+    "gates": {
+      "span_exists": true,
+      "clause_entails_claim": true,
+      "subject_valid": true,
+      "counterparty_resolved": true,
+      "predicate_valid": true,
+      "is_atomic": true,
+      "is_not_duplicate": true,
+      "claim_type_allowed": true,
+      "human_approved_if_required": true,
+      "text_integrity": true
+    },
+    "trust_score": 0.935
+  },
+  {
+    "claim_id": "5e8f0cbb-3e2f-5b60-a8f8-f9b591c6e271",
+    "document_id": "DOC-057",
+    "status": "CANONICAL",
+    "certification_tier": "AUTOMATED_CERTIFIED",
+    "subject": {
+      "raw_text": "Customer",
+      "canonical_entity": "Customer",
+      "confidence": 1.0
+    },
+    "predicate": {
+      "raw_text": "authorizes_recurring_charges",
+      "normalized_action": "authorizes_recurring_charges",
+      "confidence": 1.0
+    },
+    "object": {
+      "raw_text": "Microsoft to charge Customer's payment method periodically for each subscription or billing period until the subscription is terminated",
+      "normalized_object": "Microsoft to charge Customer's payment method periodically for each subscription or billing period until the subscription is terminated"
+    },
+    "claim_text": "Customer authorizes Microsoft to charge Customer's payment method periodically for each subscription or billing period until the subscription is terminated.",
+    "gates": {
+      "span_exists": true,
+      "clause_entails_claim": true,
+      "subject_valid": true,
+      "counterparty_resolved": true,
+      "predicate_valid": true,
+      "is_atomic": true,
+      "is_not_duplicate": true,
+      "claim_type_allowed": true,
+      "human_approved_if_required": true,
+      "text_integrity": true
+    },
+    "trust_score": 0.935
+  },
+  {
+    "claim_id": "603d5e3e-03a6-52d5-a6f5-0d0d0d7df810",
+    "document_id": "DOC-057",
+    "status": "CANONICAL",
+    "certification_tier": "AUTOMATED_CERTIFIED",
+    "subject": {
+      "raw_text": "Customer",
+      "canonical_entity": "Customer",
+      "confidence": 1.0
+    },
+    "predicate": {
+      "raw_text": "ensure",
+      "normalized_action": "ensure",
+      "confidence": 1.0
+    },
+    "object": {
+      "raw_text": "that any taxes withheld are minimized to the extent possible under applicable law",
+      "normalized_object": "that any taxes withheld are minimized to the extent possible under applicable law"
+    },
+    "claim_text": "Customer will ensure that any taxes withheld are minimized to the extent possible under applicable law.",
+    "gates": {
+      "span_exists": true,
+      "clause_entails_claim": true,
+      "subject_valid": true,
+      "counterparty_resolved": true,
+      "predicate_valid": true,
+      "is_atomic": true,
+      "is_not_duplicate": true,
+      "claim_type_allowed": true,
+      "human_approved_if_required": true,
+      "text_integrity": true
+    },
+    "trust_score": 0.935
+  },
+  {
+    "claim_id": "6a6da247-c671-5faf-86fe-660e481bcdf8",
+    "document_id": "DOC-057",
+    "status": "CANONICAL",
+    "certification_tier": "AUTOMATED_CERTIFIED",
+    "subject": {
+      "raw_text": "Each party",
+      "canonical_entity": "Each party",
+      "confidence": 1.0
+    },
+    "predicate": {
+      "raw_text": "may_use_preexisting_work",
+      "normalized_action": "may_use_preexisting_work",
+      "confidence": 1.0
+    },
+    "object": {
+      "raw_text": "reproduce, and modify the other party's Pre-existing Work only as needed to perform obligations related to Professional Services",
+      "normalized_object": "reproduce, and modify the other party's Pre-existing Work only as needed to perform obligations related to Professional Services"
+    },
+    "claim_text": "Each party may use, reproduce, and modify the other party's Pre-existing Work only as needed to perform obligations related to Professional Services.",
+    "gates": {
+      "span_exists": true,
+      "clause_entails_claim": true,
+      "subject_valid": true,
+      "counterparty_resolved": true,
+      "predicate_valid": true,
+      "is_atomic": true,
+      "is_not_duplicate": true,
+      "claim_type_allowed": true,
+      "human_approved_if_required": true,
+      "text_integrity": true
+    },
+    "trust_score": 0.935
+  },
+  {
+    "claim_id": "6ef47737-08cf-5a90-a170-ed45d6cd11a8",
+    "document_id": "DOC-057",
+    "status": "CANONICAL",
+    "certification_tier": "AUTOMATED_CERTIFIED",
+    "subject": {
+      "raw_text": "Customer",
+      "canonical_entity": "Customer",
+      "confidence": 1.0
+    },
+    "predicate": {
+      "raw_text": "choose",
+      "normalized_action": "choose",
+      "confidence": 1.0
+    },
+    "object": {
+      "raw_text": "to provide that Partner with administrator privileges",
+      "normalized_object": "to provide that Partner with administrator privileges"
+    },
+    "claim_text": "If Customer purchases Online Services from a Partner, Customer may choose to provide that Partner with administrator privileges.",
+    "gates": {
+      "span_exists": true,
+      "clause_entails_claim": true,
+      "subject_valid": true,
+      "counterparty_resolved": true,
+      "predicate_valid": true,
+      "is_atomic": true,
+      "is_not_duplicate": true,
+      "claim_type_allowed": true,
+      "human_approved_if_required": true,
+      "text_integrity": true
+    },
+    "trust_score": 0.935
+  },
+  {
+    "claim_id": "6fb4e7e5-39c9-5e31-ac67-5981f6ec332b",
+    "document_id": "DOC-057",
+    "status": "CANONICAL",
+    "certification_tier": "AUTOMATED_CERTIFIED",
+    "subject": {
+      "raw_text": "Partner",
+      "canonical_entity": "Partner",
+      "confidence": 1.0
+    },
+    "predicate": {
+      "raw_text": "process",
+      "normalized_action": "process",
+      "confidence": 1.0
+    },
+    "object": {
+      "raw_text": "such data according to the terms of Partner's agreement with Customer, and its privacy commitments may differ from Microsoft's",
+      "normalized_object": "such data according to the terms of Partner's agreement with Customer, and its privacy commitments may differ from Microsoft's"
+    },
+    "claim_text": "Partner may process such data according to the terms of Partner's agreement with Customer, and its privacy commitments may differ from Microsoft's.",
+    "gates": {
+      "span_exists": true,
+      "clause_entails_claim": true,
+      "subject_valid": true,
+      "counterparty_resolved": true,
+      "predicate_valid": true,
+      "is_atomic": true,
+      "is_not_duplicate": true,
+      "claim_type_allowed": true,
+      "human_approved_if_required": true,
+      "text_integrity": true
+    },
+    "trust_score": 0.935
+  },
+  {
+    "claim_id": "70f88380-bd73-50c3-a440-eef67031f232",
+    "document_id": "DOC-057",
+    "status": "CANONICAL",
+    "certification_tier": "AUTOMATED_CERTIFIED",
+    "subject": {
+      "raw_text": "Customer",
+      "canonical_entity": "Customer",
+      "confidence": 1.0
+    },
+    "predicate": {
+      "raw_text": "may_require_acceptance_of_revised_terms",
+      "normalized_action": "may_require_acceptance_of_revised_terms",
+      "confidence": 1.0
+    },
+    "object": {
+      "raw_text": "revised or additional terms when placing a new order",
+      "normalized_object": "revised or additional terms when placing a new order"
+    },
+    "claim_text": "Customer may be required to accept revised or additional terms when placing a new order.",
+    "gates": {
+      "span_exists": true,
+      "clause_entails_claim": true,
+      "subject_valid": true,
+      "counterparty_resolved": true,
+      "predicate_valid": true,
+      "is_atomic": true,
+      "is_not_duplicate": true,
+      "claim_type_allowed": true,
+      "human_approved_if_required": true,
+      "text_integrity": true
+    },
+    "trust_score": 0.935
+  },
+  {
+    "claim_id": "715023d3-45f9-5ae4-9f0e-57ab5480617f",
+    "document_id": "DOC-057",
+    "status": "CANONICAL",
+    "certification_tier": "AUTOMATED_CERTIFIED",
+    "subject": {
+      "raw_text": "Microsoft",
+      "canonical_entity": "Microsoft",
+      "confidence": 1.0
+    },
+    "predicate": {
+      "raw_text": "warrants_professional_standards",
+      "normalized_action": "warrants_professional_standards",
+      "confidence": 1.0
+    },
+    "object": {
+      "raw_text": "its obligations under this Agreement through its Affiliates and use subcontractors to provide certain services",
+      "normalized_object": "its obligations under this Agreement through its Affiliates and use subcontractors to provide certain services"
+    },
+    "claim_text": "Microsoft may perform its obligations under this Agreement through its Affiliates and use subcontractors to provide certain services.",
+    "gates": {
+      "span_exists": true,
+      "clause_entails_claim": true,
+      "subject_valid": true,
+      "counterparty_resolved": true,
+      "predicate_valid": true,
+      "is_atomic": true,
+      "is_not_duplicate": true,
+      "claim_type_allowed": true,
+      "human_approved_if_required": true,
+      "text_integrity": true
+    },
+    "trust_score": 0.99
+  },
+  {
+    "claim_id": "73006bbd-2035-52a8-8ae4-1a73cf783823",
+    "document_id": "DOC-057",
+    "status": "CANONICAL",
+    "certification_tier": "AUTOMATED_CERTIFIED",
+    "subject": {
+      "raw_text": "Microsoft",
+      "canonical_entity": "Microsoft",
+      "confidence": 1.0
+    },
+    "predicate": {
+      "raw_text": "may_withdraw_invoicing_eligibility",
+      "normalized_action": "may_withdraw_invoicing_eligibility",
+      "confidence": 1.0
+    },
+    "object": {
+      "raw_text": "Customer's eligibility at any time and for any reason",
+      "normalized_object": "Customer's eligibility at any time and for any reason"
+    },
+    "claim_text": "Microsoft may withdraw Customer's eligibility at any time and for any reason.",
+    "gates": {
+      "span_exists": true,
+      "clause_entails_claim": true,
+      "subject_valid": true,
+      "counterparty_resolved": true,
+      "predicate_valid": true,
+      "is_atomic": true,
+      "is_not_duplicate": true,
+      "claim_type_allowed": true,
+      "human_approved_if_required": true,
+      "text_integrity": true
+    },
+    "trust_score": 0.935
+  },
+  {
+    "claim_id": "749731e0-cba9-5ad3-a706-fafa877d8919",
+    "document_id": "DOC-057",
+    "status": "CANONICAL",
+    "certification_tier": "AUTOMATED_CERTIFIED",
+    "subject": {
+      "raw_text": "Customer",
+      "canonical_entity": "Customer",
+      "confidence": 1.0
+    },
+    "predicate": {
+      "raw_text": "provide",
+      "normalized_action": "provide",
+      "confidence": 1.0
+    },
+    "object": {
+      "raw_text": "a payment method or, if eligible, choose to be invoiced for purchases made on its account",
+      "normalized_object": "a payment method or, if eligible, choose to be invoiced for purchases made on its account"
+    },
+    "claim_text": "Customer must provide a payment method or, if eligible, choose to be invoiced for purchases made on its account.",
+    "gates": {
+      "span_exists": true,
+      "clause_entails_claim": true,
+      "subject_valid": true,
+      "counterparty_resolved": true,
+      "predicate_valid": true,
+      "is_atomic": true,
+      "is_not_duplicate": true,
+      "claim_type_allowed": true,
+      "human_approved_if_required": true,
+      "text_integrity": true
+    },
+    "trust_score": 0.935
+  },
+  {
+    "claim_id": "7bab0d2d-1238-57b4-98f8-b11fcb64d8ef",
+    "document_id": "DOC-057",
+    "status": "CANONICAL",
+    "certification_tier": "AUTOMATED_CERTIFIED",
+    "subject": {
+      "raw_text": "Microsoft",
+      "canonical_entity": "Microsoft",
+      "confidence": 1.0
+    },
+    "predicate": {
+      "raw_text": "must_defend_ip_claims",
+      "normalized_action": "must_defend_ip_claims",
+      "confidence": 1.0
+    },
+    "object": {
+      "raw_text": "Customer against any third-party claim to the extent it alleges that a Product or Services Deliverable made available by Microsoft for a fee and used within the scope of the license granted under this Agreement (unmodified from the form provided by Microsoft and not combined with anything else), misappropriates a trade secret or directly infringes a patent, copyright, trademark, or other proprietary right of a third party",
+      "normalized_object": "Customer against any third-party claim to the extent it alleges that a Product or Services Deliverable made available by Microsoft for a fee and used within the scope of the license granted under this Agreement (unmodified from the form provided by Microsoft and not combined with anything else), misappropriates a trade secret or directly infringes a patent, copyright, trademark, or other proprietary right of a third party"
+    },
+    "claim_text": "Microsoft will defend Customer against any third-party claim to the extent it alleges that a Product or Services Deliverable made available by Microsoft for a fee and used within the scope of the license granted under this Agreement (unmodified from the form provided by Microsoft and not combined with anything else), misappropriates a trade secret or directly infringes a patent, copyright, trademark, or other proprietary right of a third party.",
+    "gates": {
+      "span_exists": true,
+      "clause_entails_claim": true,
+      "subject_valid": true,
+      "counterparty_resolved": true,
+      "predicate_valid": true,
+      "is_atomic": true,
+      "is_not_duplicate": true,
+      "claim_type_allowed": true,
+      "human_approved_if_required": true,
+      "text_integrity": true
+    },
+    "trust_score": 0.935
+  },
+  {
+    "claim_id": "8265d474-63a1-5293-b2a1-4e048ff4e4e0",
+    "document_id": "DOC-057",
+    "status": "CANONICAL",
+    "certification_tier": "AUTOMATED_CERTIFIED",
+    "subject": {
+      "raw_text": "Either party",
+      "canonical_entity": "Either party",
+      "confidence": 1.0
+    },
+    "predicate": {
+      "raw_text": "requires_written_notice",
+      "normalized_action": "requires_written_notice",
+      "confidence": 1.0
+    },
+    "object": {
+      "raw_text": "all notices to be in writing and delivered on date received",
+      "normalized_object": "all notices to be in writing and delivered on date received"
+    },
+    "claim_text": "All notices must be in writing and will be treated as delivered on the date received.",
+    "gates": {
+      "span_exists": true,
+      "clause_entails_claim": true,
+      "subject_valid": true,
+      "counterparty_resolved": true,
+      "predicate_valid": true,
+      "is_atomic": true,
+      "is_not_duplicate": true,
+      "claim_type_allowed": true,
+      "human_approved_if_required": true,
+      "text_integrity": true
+    },
+    "trust_score": 0.935
+  },
+  {
+    "claim_id": "851878c6-9e8f-51d5-bbb0-0efa784a2e9b",
+    "document_id": "DOC-057",
+    "status": "CANONICAL",
+    "certification_tier": "AUTOMATED_CERTIFIED",
+    "subject": {
+      "raw_text": "Each party",
+      "canonical_entity": "Each party",
+      "confidence": 1.0
+    },
+    "predicate": {
+      "raw_text": "has_refund_reimbursement_window",
+      "normalized_action": "has_refund_reimbursement_window",
+      "confidence": 1.0
+    },
+    "object": {
+      "raw_text": "reimburse the other party for reasonable out -of-pocket expenses it incurs in providing assistance",
+      "normalized_object": "reimburse the other party for reasonable out -of-pocket expenses it incurs in providing assistance"
+    },
+    "claim_text": "The defending party will reimburse the other party for reasonable out -of-pocket expenses it incurs in providing assistance.",
+    "gates": {
+      "span_exists": true,
+      "clause_entails_claim": true,
+      "subject_valid": true,
+      "counterparty_resolved": true,
+      "predicate_valid": true,
+      "is_atomic": true,
+      "is_not_duplicate": true,
+      "claim_type_allowed": true,
+      "human_approved_if_required": true,
+      "text_integrity": true
+    },
+    "trust_score": 0.935
+  },
+  {
+    "claim_id": "8bc0b5db-82c0-5ae3-b12a-f27bb0d164d7",
+    "document_id": "DOC-057",
+    "status": "CANONICAL",
+    "certification_tier": "AUTOMATED_CERTIFIED",
+    "subject": {
+      "raw_text": "Customer",
+      "canonical_entity": "Customer",
+      "confidence": 1.0
+    },
+    "predicate": {
+      "raw_text": "must_pay_within_30_days",
+      "normalized_action": "must_pay_within_30_days",
+      "confidence": 1.0
+    },
+    "object": {
+      "raw_text": "for all services provided or used before termination",
+      "normalized_object": "for all services provided or used before termination"
+    },
+    "claim_text": "Customer will pay for all services provided or used before termination.",
+    "gates": {
+      "span_exists": true,
+      "clause_entails_claim": true,
+      "subject_valid": true,
+      "counterparty_resolved": true,
+      "predicate_valid": true,
+      "is_atomic": true,
+      "is_not_duplicate": true,
+      "claim_type_allowed": true,
+      "human_approved_if_required": true,
+      "text_integrity": true
+    },
+    "trust_score": 0.935
+  },
+  {
+    "claim_id": "92329b2b-a7be-588b-9444-00cff2e7934a",
+    "document_id": "DOC-057",
+    "status": "CANONICAL",
+    "certification_tier": "AUTOMATED_CERTIFIED",
+    "subject": {
+      "raw_text": "Customer",
+      "canonical_entity": "Customer",
+      "confidence": 1.0
+    },
+    "predicate": {
+      "raw_text": "authorizes_recurring_charges",
+      "normalized_action": "authorizes_recurring_charges",
+      "confidence": 1.0
+    },
+    "object": {
+      "raw_text": "Microsoft to obtain information about Customer's financial condition, which m ay include credit reports, to assess Customer's eligibility for invoicing",
+      "normalized_object": "Microsoft to obtain information about Customer's financial condition, which m ay include credit reports, to assess Customer's eligibility for invoicing"
+    },
+    "claim_text": "Customer authorizes Microsoft to obtain information about Customer's financial condition, which m ay include credit reports, to assess Customer's eligibility for invoicing.",
+    "gates": {
+      "span_exists": true,
+      "clause_entails_claim": true,
+      "subject_valid": true,
+      "counterparty_resolved": true,
+      "predicate_valid": true,
+      "is_atomic": true,
+      "is_not_duplicate": true,
+      "claim_type_allowed": true,
+      "human_approved_if_required": true,
+      "text_integrity": true
+    },
+    "trust_score": 0.935
+  },
+  {
+    "claim_id": "964017b0-be67-5c92-8c72-fa5739d4f460",
+    "document_id": "DOC-057",
+    "status": "CANONICAL",
+    "certification_tier": "AUTOMATED_CERTIFIED",
+    "subject": {
+      "raw_text": "Customer",
+      "canonical_entity": "Customer",
+      "confidence": 1.0
+    },
+    "predicate": {
+      "raw_text": "requires_written_approval",
+      "normalized_action": "requires_written_approval",
+      "confidence": 1.0
+    },
+    "object": {
+      "raw_text": "by the non -assigning party in writing",
+      "normalized_object": "by the non -assigning party in writing"
+    },
+    "claim_text": "Any other proposed assignment of this Agreement must be approved by the non -assigning party in writing.",
+    "gates": {
+      "span_exists": true,
+      "clause_entails_claim": true,
+      "subject_valid": true,
+      "counterparty_resolved": true,
+      "predicate_valid": true,
+      "is_atomic": true,
+      "is_not_duplicate": true,
+      "claim_type_allowed": true,
+      "human_approved_if_required": true,
+      "text_integrity": true
+    },
+    "trust_score": 0.935
+  },
+  {
+    "claim_id": "96c13869-6cfd-5793-85aa-23c6e36ffa92",
+    "document_id": "DOC-057",
+    "status": "CANONICAL",
+    "certification_tier": "AUTOMATED_CERTIFIED",
+    "subject": {
+      "raw_text": "Each party",
+      "canonical_entity": "Each party",
+      "confidence": 1.0
+    },
+    "predicate": {
+      "raw_text": "prohibited_from_unauthorized_disclosure",
+      "normalized_action": "prohibited_from_unauthorized_disclosure",
+      "confidence": 1.0
+    },
+    "object": {
+      "raw_text": "Confidential Information to third parties, except to its Representatives, and then only on a need-to-know basis under nondisclosure obligations at least as protective as this Agreement",
+      "normalized_object": "Confidential Information to third parties, except to its Representatives, and then only on a need-to-know basis under nondisclosure obligations at least as protective as this Agreement"
+    },
+    "claim_text": "Neither party will disclose Confidential Information to third parties, except to its Representatives, and then only on a need-to-know basis under nondisclosure obligations at least as protective as this Agreement.",
+    "gates": {
+      "span_exists": true,
+      "clause_entails_claim": true,
+      "subject_valid": true,
+      "counterparty_resolved": true,
+      "predicate_valid": true,
+      "is_atomic": true,
+      "is_not_duplicate": true,
+      "claim_type_allowed": true,
+      "human_approved_if_required": true,
+      "text_integrity": true
+    },
+    "trust_score": 0.935
+  },
+  {
+    "claim_id": "98b16786-33f7-5bb3-82fe-6bf2e24b8408",
+    "document_id": "DOC-057",
+    "status": "CANONICAL",
+    "certification_tier": "AUTOMATED_CERTIFIED",
+    "subject": {
+      "raw_text": "Customer",
+      "canonical_entity": "Customer",
+      "confidence": 1.0
+    },
+    "predicate": {
+      "raw_text": "deduct",
+      "normalized_action": "deduct",
+      "confidence": 1.0
+    },
+    "object": {
+      "raw_text": "such taxes from the amount owed and pay them to the appropriate taxing authority, but only if Customer promptly provides Microsoft an official receipt for those withholdings and other documents reasonably requested to allow Microsoft to claim a foreign tax credit or refund",
+      "normalized_object": "such taxes from the amount owed and pay them to the appropriate taxing authority, but only if Customer promptly provides Microsoft an official receipt for those withholdings and other documents reasonably requested to allow Microsoft to claim a foreign tax credit or refund"
+    },
+    "claim_text": "If any taxes are required to be withheld on payments invoiced by Microsoft, Customer may deduct such taxes from the amount owed and pay them to the appropriate taxing authority, but only if Customer promptly provides Microsoft an official receipt for those withholdings and other documents reasonably requested to allow Microsoft to claim a foreign tax credit or refund.",
+    "gates": {
+      "span_exists": true,
+      "clause_entails_claim": true,
+      "subject_valid": true,
+      "counterparty_resolved": true,
+      "predicate_valid": true,
+      "is_atomic": true,
+      "is_not_duplicate": true,
+      "claim_type_allowed": true,
+      "human_approved_if_required": true,
+      "text_integrity": true
+    },
+    "trust_score": 0.935
+  },
+  {
+    "claim_id": "9b238597-af0a-5196-ba7c-2f63687dd9bf",
+    "document_id": "DOC-057",
+    "status": "CANONICAL",
+    "certification_tier": "AUTOMATED_CERTIFIED",
+    "subject": {
+      "raw_text": "Customer",
+      "canonical_entity": "Customer",
+      "confidence": 1.0
+    },
+    "predicate": {
+      "raw_text": "must_pay_applicable_taxes",
+      "normalized_action": "must_pay_applicable_taxes",
+      "confidence": 1.0
+    },
+    "object": {
+      "raw_text": "any applicable value added, goods and services, sales, gross receipts, or other transaction taxes, fees, charges, or surcharges, or any regulatory cost recovery surcharges or similar amounts that are owed under this Agreement and that Microsoft is permitted to collect from Customer",
+      "normalized_object": "any applicable value added, goods and services, sales, gross receipts, or other transaction taxes, fees, charges, or surcharges, or any regulatory cost recovery surcharges or similar amounts that are owed under this Agreement and that Microsoft is permitted to collect from Customer"
+    },
+    "claim_text": "If any amounts are to be paid to Microsoft, Customer will also pay any applicable value added, goods and services, sales, gross receipts, or other transaction taxes, fees, charges, or surcharges, or any regulatory cost recovery surcharges or similar amounts that are owed under this Agreement and that Microsoft is permitted to collect from Customer.",
+    "gates": {
+      "span_exists": true,
+      "clause_entails_claim": true,
+      "subject_valid": true,
+      "counterparty_resolved": true,
+      "predicate_valid": true,
+      "is_atomic": true,
+      "is_not_duplicate": true,
+      "claim_type_allowed": true,
+      "human_approved_if_required": true,
+      "text_integrity": true
+    },
+    "trust_score": 0.935
+  },
+  {
+    "claim_id": "a03e63c0-550c-53e2-adab-4f5ee67d5d76",
+    "document_id": "DOC-057",
+    "status": "CANONICAL",
+    "certification_tier": "AUTOMATED_CERTIFIED",
+    "subject": {
+      "raw_text": "Customer",
+      "canonical_entity": "Customer",
+      "confidence": 1.0
+    },
+    "predicate": {
+      "raw_text": "control",
+      "normalized_action": "control",
+      "confidence": 1.0
+    },
+    "object": {
+      "raw_text": "access to, and use of, the Products by End Users and is responsible for any use of the Products that does not comply with this Agreement",
+      "normalized_object": "access to, and use of, the Products by End Users and is responsible for any use of the Products that does not comply with this Agreement"
+    },
+    "claim_text": "Customer will control access to, and use of, the Products by End Users and is responsible for any use of the Products that does not comply with this Agreement.",
+    "gates": {
+      "span_exists": true,
+      "clause_entails_claim": true,
+      "subject_valid": true,
+      "counterparty_resolved": true,
+      "predicate_valid": true,
+      "is_atomic": true,
+      "is_not_duplicate": true,
+      "claim_type_allowed": true,
+      "human_approved_if_required": true,
+      "text_integrity": true
+    },
+    "trust_score": 0.935
+  },
+  {
+    "claim_id": "a35ff8f4-85db-5984-98ca-8e9699b9a392",
+    "document_id": "DOC-057",
+    "status": "CANONICAL",
+    "certification_tier": "AUTOMATED_CERTIFIED",
+    "subject": {
+      "raw_text": "Customer",
+      "canonical_entity": "Customer",
+      "confidence": 1.0
+    },
+    "predicate": {
+      "raw_text": "promptly_notify",
+      "normalized_action": "promptly_notify",
+      "confidence": 1.0
+    },
+    "object": {
+      "raw_text": "Microsoft of any changes in its company name or location and of any significant changes in the ownership, structure, or operational activities of the organization",
+      "normalized_object": "Microsoft of any changes in its company name or location and of any significant changes in the ownership, structure, or operational activities of the organization"
+    },
+    "claim_text": "Customer must promptly notify Microsoft of any changes in its company name or location and of any significant changes in the ownership, structure, or operational activities of the organization.",
+    "gates": {
+      "span_exists": true,
+      "clause_entails_claim": true,
+      "subject_valid": true,
+      "counterparty_resolved": true,
+      "predicate_valid": true,
+      "is_atomic": true,
+      "is_not_duplicate": true,
+      "claim_type_allowed": true,
+      "human_approved_if_required": true,
+      "text_integrity": true
+    },
+    "trust_score": 0.935
+  },
+  {
+    "claim_id": "a3733748-5821-5d2b-950f-20c919a74677",
+    "document_id": "DOC-057",
+    "status": "CANONICAL",
+    "certification_tier": "AUTOMATED_CERTIFIED",
+    "subject": {
+      "raw_text": "Customer",
+      "canonical_entity": "Customer",
+      "confidence": 1.0
+    },
+    "predicate": {
+      "raw_text": "uninstall",
+      "normalized_action": "uninstall",
+      "confidence": 1.0
+    },
+    "object": {
+      "raw_text": "and discontinue using the licensed Product and render any copies unusable",
+      "normalized_object": "and discontinue using the licensed Product and render any copies unusable"
+    },
+    "claim_text": "Upon such transfer, Customer must uninstall and discontinue using the licensed Product and render any copies unusable.",
+    "gates": {
+      "span_exists": true,
+      "clause_entails_claim": true,
+      "subject_valid": true,
+      "counterparty_resolved": true,
+      "predicate_valid": true,
+      "is_atomic": true,
+      "is_not_duplicate": true,
+      "claim_type_allowed": true,
+      "human_approved_if_required": true,
+      "text_integrity": true
+    },
+    "trust_score": 0.935
+  },
+  {
+    "claim_id": "a3a8a79a-cdf2-5fe2-b013-5635ceedd97d",
+    "document_id": "DOC-057",
+    "status": "CANONICAL",
+    "certification_tier": "AUTOMATED_CERTIFIED",
+    "subject": {
+      "raw_text": "Microsoft",
+      "canonical_entity": "Microsoft",
+      "confidence": 1.0
+    },
+    "predicate": {
+      "raw_text": "provide",
+      "normalized_action": "provide",
+      "confidence": 1.0
+    },
+    "object": {
+      "raw_text": "Customer's contact information and transaction details to the Publisher",
+      "normalized_object": "Customer's contact information and transaction details to the Publisher"
+    },
+    "claim_text": "Microsoft may provide Customer's contact information and transaction details to the Publisher.",
+    "gates": {
+      "span_exists": true,
+      "clause_entails_claim": true,
+      "subject_valid": true,
+      "counterparty_resolved": true,
+      "predicate_valid": true,
+      "is_atomic": true,
+      "is_not_duplicate": true,
+      "claim_type_allowed": true,
+      "human_approved_if_required": true,
+      "text_integrity": true
+    },
+    "trust_score": 0.935
+  },
+  {
+    "claim_id": "a430dd77-ebf5-52fb-b2c2-8ca76a502b62",
+    "document_id": "DOC-057",
+    "status": "CANONICAL",
+    "certification_tier": "AUTOMATED_CERTIFIED",
+    "subject": {
+      "raw_text": "Customer",
+      "canonical_entity": "Customer",
+      "confidence": 1.0
+    },
+    "predicate": {
+      "raw_text": "authorizes_payment_storage_and_processing",
+      "normalized_action": "authorizes_payment_storage_and_processing",
+      "confidence": 1.0
+    },
+    "object": {
+      "raw_text": "Microsoft to store Customer's payment details and process such payments as electronic debits or fund transfers",
+      "normalized_object": "Microsoft to store Customer's payment details and process such payments as electronic debits or fund transfers"
+    },
+    "claim_text": "Customer authorizes Microsoft to store Customer's payment details and process such payments as either electronic debits or fund transfers.",
+    "gates": {
+      "span_exists": true,
+      "clause_entails_claim": true,
+      "subject_valid": true,
+      "counterparty_resolved": true,
+      "predicate_valid": true,
+      "is_atomic": true,
+      "is_not_duplicate": true,
+      "claim_type_allowed": true,
+      "human_approved_if_required": true,
+      "text_integrity": true
+    },
+    "trust_score": 0.935
+  },
+  {
+    "claim_id": "a9db41c4-0afd-538d-8e41-e2b3a6f886bf",
+    "document_id": "DOC-057",
+    "status": "CANONICAL",
+    "certification_tier": "AUTOMATED_CERTIFIED",
+    "subject": {
+      "raw_text": "Partner",
+      "canonical_entity": "Partner",
+      "confidence": 1.0
+    },
+    "predicate": {
+      "raw_text": "provide",
+      "normalized_action": "provide",
+      "confidence": 1.0
+    },
+    "object": {
+      "raw_text": "support for Products and other value-added services, and Partner is responsible for the performance of any services it provides",
+      "normalized_object": "support for Products and other value-added services, and Partner is responsible for the performance of any services it provides"
+    },
+    "claim_text": "Partners may provide support for Products and other value-added services, and Partner is responsible for the performance of any services it provides.",
+    "gates": {
+      "span_exists": true,
+      "clause_entails_claim": true,
+      "subject_valid": true,
+      "counterparty_resolved": true,
+      "predicate_valid": true,
+      "is_atomic": true,
+      "is_not_duplicate": true,
+      "claim_type_allowed": true,
+      "human_approved_if_required": true,
+      "text_integrity": true
+    },
+    "trust_score": 0.935
+  },
+  {
+    "claim_id": "afaaa5b0-9111-5f72-ab6e-5bd4d69480eb",
+    "document_id": "DOC-057",
+    "status": "CANONICAL",
+    "certification_tier": "AUTOMATED_CERTIFIED",
+    "subject": {
+      "raw_text": "Each party",
+      "canonical_entity": "Each party",
+      "confidence": 1.0
+    },
+    "predicate": {
+      "raw_text": "restrict",
+      "normalized_action": "restrict",
+      "confidence": 1.0
+    },
+    "object": {
+      "raw_text": "work assignments of its Representatives who have had access to Confidential Information",
+      "normalized_object": "work assignments of its Representatives who have had access to Confidential Information"
+    },
+    "claim_text": "Neither party is required to restrict work assignments of its Representatives who have had access to Confidential Information.",
+    "gates": {
+      "span_exists": true,
+      "clause_entails_claim": true,
+      "subject_valid": true,
+      "counterparty_resolved": true,
+      "predicate_valid": true,
+      "is_atomic": true,
+      "is_not_duplicate": true,
+      "claim_type_allowed": true,
+      "human_approved_if_required": true,
+      "text_integrity": true
+    },
+    "trust_score": 0.935
+  },
+  {
+    "claim_id": "b2c4ea1c-f973-5ccc-b0de-cd2b818aaa96",
+    "document_id": "DOC-057",
+    "status": "CANONICAL",
+    "certification_tier": "AUTOMATED_CERTIFIED",
+    "subject": {
+      "raw_text": "Customer",
+      "canonical_entity": "Customer",
+      "confidence": 1.0
+    },
+    "predicate": {
+      "raw_text": "obtain",
+      "normalized_action": "obtain",
+      "confidence": 1.0
+    },
+    "object": {
+      "raw_text": "all required consents from third parties (including Customer's contacts, Partners, distributors, administrators, and employees) under applicable privacy and data protection laws",
+      "normalized_object": "all required consents from third parties (including Customer's contacts, Partners, distributors, administrators, and employees) under applicable privacy and data protection laws"
+    },
+    "claim_text": "Before providing Personal Data to Microsoft, Customer will obtain all required consents from third parties (including Customer's contacts, Partners, distributors, administrators, and employees) under applicable privacy and data protection laws.",
+    "gates": {
+      "span_exists": true,
+      "clause_entails_claim": true,
+      "subject_valid": true,
+      "counterparty_resolved": true,
+      "predicate_valid": true,
+      "is_atomic": true,
+      "is_not_duplicate": true,
+      "claim_type_allowed": true,
+      "human_approved_if_required": true,
+      "text_integrity": true
+    },
+    "trust_score": 0.935
+  },
+  {
+    "claim_id": "b89fb2a7-9818-53c5-aa12-e203002d8ed6",
+    "document_id": "DOC-057",
+    "status": "CANONICAL",
+    "certification_tier": "AUTOMATED_CERTIFIED",
+    "subject": {
+      "raw_text": "Customer",
+      "canonical_entity": "Customer",
+      "confidence": 1.0
+    },
+    "predicate": {
+      "raw_text": "must_notify_changes_60_days_before_effect",
+      "normalized_action": "must_notify_changes_60_days_before_effect",
+      "confidence": 1.0
+    },
+    "object": {
+      "raw_text": "at least 60 days before changes take effect to these General Terms or any other terms that are part of the Agreement",
+      "normalized_object": "at least 60 days before changes take effect to these General Terms or any other terms that are part of the Agreement"
+    },
+    "claim_text": "Customer will be notified at least 60 days before changes take effect to these General Terms or any other terms that are part of the Agreement.",
+    "gates": {
+      "span_exists": true,
+      "clause_entails_claim": true,
+      "subject_valid": true,
+      "counterparty_resolved": true,
+      "predicate_valid": true,
+      "is_atomic": true,
+      "is_not_duplicate": true,
+      "claim_type_allowed": true,
+      "human_approved_if_required": true,
+      "text_integrity": true
+    },
+    "trust_score": 0.935
+  },
+  {
+    "claim_id": "b98fae45-a079-5f68-b84d-86bdd3822da2",
+    "document_id": "DOC-057",
+    "status": "CANONICAL",
+    "certification_tier": "AUTOMATED_CERTIFIED",
+    "subject": {
+      "raw_text": "Each party",
+      "canonical_entity": "Each party",
+      "confidence": 1.0
+    },
+    "predicate": {
+      "raw_text": "remains_responsible_for",
+      "normalized_action": "remains_responsible_for",
+      "confidence": 1.0
+    },
+    "object": {
+      "raw_text": "the use of Confidential Information by its Representatives and, in the event of discovery of any unauthorized use or disclosure, must promptly notify the other party",
+      "normalized_object": "the use of Confidential Information by its Representatives and, in the event of discovery of any unauthorized use or disclosure, must promptly notify the other party"
+    },
+    "claim_text": "Each party remains responsible for the use of Confidential Information by its Representatives and, in the event of discovery of any unauthorized use or disclosure, must promptly notify the other party.",
+    "gates": {
+      "span_exists": true,
+      "clause_entails_claim": true,
+      "subject_valid": true,
+      "counterparty_resolved": true,
+      "predicate_valid": true,
+      "is_atomic": true,
+      "is_not_duplicate": true,
+      "claim_type_allowed": true,
+      "human_approved_if_required": true,
+      "text_integrity": true
+    },
+    "trust_score": 0.935
+  },
+  {
+    "claim_id": "bacaf190-525b-5e83-87f9-11fe73090aef",
+    "document_id": "DOC-057",
+    "status": "CANONICAL",
+    "certification_tier": "AUTOMATED_CERTIFIED",
+    "subject": {
+      "raw_text": "Each party",
+      "canonical_entity": "Each party",
+      "confidence": 1.0
+    },
+    "predicate": {
+      "raw_text": "has_liability_cap",
+      "normalized_action": "has_liability_cap",
+      "confidence": 1.0
+    },
+    "object": {
+      "raw_text": "maximum aggregate liability capped at subscription fees paid in prior 12 months",
+      "normalized_object": "maximum aggregate liability capped at subscription fees paid in prior 12 months"
+    },
+    "claim_text": "For each Product licensed on a subscription basis, each party's maximum, aggregate liability is the total amount of subscription fees Customer paid.",
+    "gates": {
+      "span_exists": true,
+      "clause_entails_claim": true,
+      "subject_valid": true,
+      "counterparty_resolved": true,
+      "predicate_valid": true,
+      "is_atomic": true,
+      "is_not_duplicate": true,
+      "claim_type_allowed": true,
+      "human_approved_if_required": true,
+      "text_integrity": true
+    },
+    "trust_score": 0.935
+  },
+  {
+    "claim_id": "bc8e6dc0-b791-515b-857f-d28a9f14c8f1",
+    "document_id": "DOC-057",
+    "status": "CANONICAL",
+    "certification_tier": "AUTOMATED_CERTIFIED",
+    "subject": {
+      "raw_text": "Customer",
+      "canonical_entity": "Customer",
+      "confidence": 1.0
+    },
+    "predicate": {
+      "raw_text": "will_issue_refund",
+      "normalized_action": "will_issue_refund",
+      "confidence": 1.0
+    },
+    "object": {
+      "raw_text": "receive, as its sole remedy, a refund for any amount paid in advance for any period after termination",
+      "normalized_object": "receive, as its sole remedy, a refund for any amount paid in advance for any period after termination"
+    },
+    "claim_text": "If Microsoft terminates a Subscription or Statement of Services under this provision, Customer will receive, as its sole remedy, a refund for any amount paid in advance for any period after termination.",
+    "gates": {
+      "span_exists": true,
+      "clause_entails_claim": true,
+      "subject_valid": true,
+      "counterparty_resolved": true,
+      "predicate_valid": true,
+      "is_atomic": true,
+      "is_not_duplicate": true,
+      "claim_type_allowed": true,
+      "human_approved_if_required": true,
+      "text_integrity": true
+    },
+    "trust_score": 0.935
+  },
+  {
+    "claim_id": "c213cd25-632f-517e-bb8d-fc9dd99f31c9",
+    "document_id": "DOC-057",
+    "status": "CANONICAL",
+    "certification_tier": "AUTOMATED_CERTIFIED",
+    "subject": {
+      "raw_text": "Microsoft",
+      "canonical_entity": "Microsoft",
+      "confidence": 1.0
+    },
+    "predicate": {
+      "raw_text": "grants_product_license",
+      "normalized_action": "grants_product_license",
+      "confidence": 1.0
+    },
+    "object": {
+      "raw_text": "a nonexclusive and limited license to use the Products ordered as provided in this Agreement",
+      "normalized_object": "a nonexclusive and limited license to use the Products ordered as provided in this Agreement"
+    },
+    "claim_text": "Upon Microsoft's acceptance of each order and subject to Customer's compliance with this Agreement, Microsoft grants Customer a nonexclusive and limited license to use the Products ordered as provided in this Agreement.",
+    "gates": {
+      "span_exists": true,
+      "clause_entails_claim": true,
+      "subject_valid": true,
+      "counterparty_resolved": true,
+      "predicate_valid": true,
+      "is_atomic": true,
+      "is_not_duplicate": true,
+      "claim_type_allowed": true,
+      "human_approved_if_required": true,
+      "text_integrity": true
+    },
+    "trust_score": 0.935
+  },
+  {
+    "claim_id": "c253d20a-8eed-54e4-b298-5a916d6de7e7",
+    "document_id": "DOC-057",
+    "status": "CANONICAL",
+    "certification_tier": "AUTOMATED_CERTIFIED",
+    "subject": {
+      "raw_text": "Customer",
+      "canonical_entity": "Customer",
+      "confidence": 1.0
+    },
+    "predicate": {
+      "raw_text": "must_pay_unpaid_invoices_immediately",
+      "normalized_action": "must_pay_unpaid_invoices_immediately",
+      "confidence": 1.0
+    },
+    "object": {
+      "raw_text": "all amounts due under any unpaid invoices immediately upon termination",
+      "normalized_object": "all amounts due under any unpaid invoices immediately upon termination"
+    },
+    "claim_text": "Customer must pay all amounts due under any unpaid invoices immediately upon termination.",
+    "gates": {
+      "span_exists": true,
+      "clause_entails_claim": true,
+      "subject_valid": true,
+      "counterparty_resolved": true,
+      "predicate_valid": true,
+      "is_atomic": true,
+      "is_not_duplicate": true,
+      "claim_type_allowed": true,
+      "human_approved_if_required": true,
+      "text_integrity": true
+    },
+    "trust_score": 0.935
+  },
+  {
+    "claim_id": "c7828240-6eac-5a2c-a6d5-5b5044cb04d4",
+    "document_id": "DOC-057",
+    "status": "CANONICAL",
+    "certification_tier": "AUTOMATED_CERTIFIED",
+    "subject": {
+      "raw_text": "Customer",
+      "canonical_entity": "Customer",
+      "confidence": 1.0
+    },
+    "predicate": {
+      "raw_text": "must_pay_for_services_before_termination",
+      "normalized_action": "must_pay_for_services_before_termination",
+      "confidence": 1.0
+    },
+    "object": {
+      "raw_text": "for all Professional Services provided as of the termination date immediately upon receipt of an invoice",
+      "normalized_object": "for all Professional Services provided as of the termination date immediately upon receipt of an invoice"
+    },
+    "claim_text": "Customer must pay for all Professional Services provided as of the termination date immediately upon receipt of an invoice.",
+    "gates": {
+      "span_exists": true,
+      "clause_entails_claim": true,
+      "subject_valid": true,
+      "counterparty_resolved": true,
+      "predicate_valid": true,
+      "is_atomic": true,
+      "is_not_duplicate": true,
+      "claim_type_allowed": true,
+      "human_approved_if_required": true,
+      "text_integrity": true
+    },
+    "trust_score": 0.935
+  },
+  {
+    "claim_id": "c8a6784b-3081-589a-8f30-1ff55319e4c4",
+    "document_id": "DOC-057",
+    "status": "CANONICAL",
+    "certification_tier": "AUTOMATED_CERTIFIED",
+    "subject": {
+      "raw_text": "Customer",
+      "canonical_entity": "Customer",
+      "confidence": 1.0
+    },
+    "predicate": {
+      "raw_text": "must_not_modify_agreement",
+      "normalized_action": "must_not_modify_agreement",
+      "confidence": 1.0
+    },
+    "object": {
+      "raw_text": "this Agreement",
+      "normalized_object": "this Agreement"
+    },
+    "claim_text": "Customer may not modify this Agreement.",
+    "gates": {
+      "span_exists": true,
+      "clause_entails_claim": true,
+      "subject_valid": true,
+      "counterparty_resolved": true,
+      "predicate_valid": true,
+      "is_atomic": true,
+      "is_not_duplicate": true,
+      "claim_type_allowed": true,
+      "human_approved_if_required": true,
+      "text_integrity": true
+    },
+    "trust_score": 0.935
+  },
+  {
+    "claim_id": "d115b826-d2c6-5704-8ae2-87f5d9c8c276",
+    "document_id": "DOC-057",
+    "status": "CANONICAL",
+    "certification_tier": "AUTOMATED_CERTIFIED",
+    "subject": {
+      "raw_text": "Customer",
+      "canonical_entity": "Customer",
+      "confidence": 1.0
+    },
+    "predicate": {
+      "raw_text": "has_refund_eligibility",
+      "normalized_action": "has_refund_eligibility",
+      "confidence": 1.0
+    },
+    "object": {
+      "raw_text": "If Microsoft is unable to resolve a claim of misappropriation or infringement, it may, at its option, either (1) modify or replace the Product or Services Deliverable with a functional equivalent or (2) terminate Customer's license and refund any license fees (less depreciation for perpetual licenses), including amounts paid in advance for unused consumption for any usage period after the termination date.",
+      "normalized_object": "If Microsoft is unable to resolve a claim of misappropriation or infringement, it may, at its option, either (1) modify or replace the Product or Services Deliverable with a functional equivalent or (2) terminate Customer's license and refund any license fees (less depreciation for perpetual licenses), including amounts paid in advance for unused consumption for any usage period after the termination date."
+    },
+    "claim_text": "If Microsoft is unable to resolve a claim of misappropriation or infringement, it may, at its option, either (1) modify or replace the Product or Services Deliverable with a functional equivalent or (2) terminate Customer's license and refund any license fees (less depreciation for perpetual licenses), including amounts paid in advance for unused consumption for any usage period after the termination date.",
+    "gates": {
+      "span_exists": true,
+      "clause_entails_claim": true,
+      "subject_valid": true,
+      "counterparty_resolved": true,
+      "predicate_valid": true,
+      "is_atomic": true,
+      "is_not_duplicate": true,
+      "claim_type_allowed": true,
+      "human_approved_if_required": true,
+      "text_integrity": true
+    },
+    "trust_score": 0.935
+  },
+  {
+    "claim_id": "d99d46f7-2320-5be4-bea9-bbf61f392e55",
+    "document_id": "DOC-057",
+    "status": "CANONICAL",
+    "certification_tier": "AUTOMATED_CERTIFIED",
+    "subject": {
+      "raw_text": "Customer",
+      "canonical_entity": "Customer",
+      "confidence": 1.0
+    },
+    "predicate": {
+      "raw_text": "may_require_security_for_invoicing",
+      "normalized_action": "may_require_security_for_invoicing",
+      "confidence": 1.0
+    },
+    "object": {
+      "raw_text": "security in a form acceptable to Microsoft to be eligible for invoicing",
+      "normalized_object": "security in a form acceptable to Microsoft to be eligible for invoicing"
+    },
+    "claim_text": "Customer may be required to provide security in a form acceptable to Microsoft to be eligible for invoicing.",
+    "gates": {
+      "span_exists": true,
+      "clause_entails_claim": true,
+      "subject_valid": true,
+      "counterparty_resolved": true,
+      "predicate_valid": true,
+      "is_atomic": true,
+      "is_not_duplicate": true,
+      "claim_type_allowed": true,
+      "human_approved_if_required": true,
+      "text_integrity": true
+    },
+    "trust_score": 0.935
+  },
+  {
+    "claim_id": "dc928878-a4aa-52d5-989c-5bfdb1fc2f45",
+    "document_id": "DOC-057",
+    "status": "CANONICAL",
+    "certification_tier": "AUTOMATED_CERTIFIED",
+    "subject": {
+      "raw_text": "Each party",
+      "canonical_entity": "Each party",
+      "confidence": 1.0
+    },
+    "predicate": {
+      "raw_text": "provide",
+      "normalized_action": "provide",
+      "confidence": 1.0
+    },
+    "object": {
+      "raw_text": "the defending party with all requested assistance, information, and authority",
+      "normalized_object": "the defending party with all requested assistance, information, and authority"
+    },
+    "claim_text": "The party being defended must provide the defending party with all requested assistance, information, and authority.",
+    "gates": {
+      "span_exists": true,
+      "clause_entails_claim": true,
+      "subject_valid": true,
+      "counterparty_resolved": true,
+      "predicate_valid": true,
+      "is_atomic": true,
+      "is_not_duplicate": true,
+      "claim_type_allowed": true,
+      "human_approved_if_required": true,
+      "text_integrity": true
+    },
+    "trust_score": 0.935
+  },
+  {
+    "claim_id": "f0bd437b-5f09-59db-a7b9-070f1044158b",
+    "document_id": "DOC-057",
+    "status": "CANONICAL",
+    "certification_tier": "AUTOMATED_CERTIFIED",
+    "subject": {
+      "raw_text": "Customer",
+      "canonical_entity": "Customer",
+      "confidence": 1.0
+    },
+    "predicate": {
+      "raw_text": "has_professional_services_remedy_window",
+      "normalized_action": "has_professional_services_remedy_window",
+      "confidence": 1.0
+    },
+    "object": {
+      "raw_text": "a 90-day remedy window to notify Microsoft of Professional Services warranty claims",
+      "normalized_object": "a 90-day remedy window to notify Microsoft of Professional Services warranty claims"
+    },
+    "claim_text": "Customer has a 90-day remedy window to notify Microsoft of Professional Services warranty claims.",
+    "gates": {
+      "span_exists": true,
+      "clause_entails_claim": true,
+      "subject_valid": true,
+      "counterparty_resolved": true,
+      "predicate_valid": true,
+      "is_atomic": true,
+      "is_not_duplicate": true,
+      "claim_type_allowed": true,
+      "human_approved_if_required": true,
+      "text_integrity": true
+    },
+    "trust_score": 0.935
+  },
+  {
+    "claim_id": "f1379a8a-ea81-5f5f-8642-f19b5717fc2c",
+    "document_id": "DOC-057",
+    "status": "CANONICAL",
+    "certification_tier": "AUTOMATED_CERTIFIED",
+    "subject": {
+      "raw_text": "Customer",
+      "canonical_entity": "Customer",
+      "confidence": 1.0
+    },
+    "predicate": {
+      "raw_text": "must_pay_unpaid_usage",
+      "normalized_action": "must_pay_unpaid_usage",
+      "confidence": 1.0
+    },
+    "object": {
+      "raw_text": "for all unpaid usage as of the termination date immediately upon receipt of an invoice",
+      "normalized_object": "for all unpaid usage as of the termination date immediately upon receipt of an invoice"
+    },
+    "claim_text": "For Subscriptions billed in arrears based on usage, Customer must pay for all unpaid usage as of the termination date immediately upon receipt of an invoice.",
+    "gates": {
+      "span_exists": true,
+      "clause_entails_claim": true,
+      "subject_valid": true,
+      "counterparty_resolved": true,
+      "predicate_valid": true,
+      "is_atomic": true,
+      "is_not_duplicate": true,
+      "claim_type_allowed": true,
+      "human_approved_if_required": true,
+      "text_integrity": true
+    },
+    "trust_score": 0.935
+  },
+  {
+    "claim_id": "f6e0491b-9460-5a42-9a3f-8018ae71b04a",
+    "document_id": "DOC-057",
+    "status": "CANONICAL",
+    "certification_tier": "AUTOMATED_CERTIFIED",
+    "subject": {
+      "raw_text": "Microsoft",
+      "canonical_entity": "Microsoft",
+      "confidence": 1.0
+    },
+    "predicate": {
+      "raw_text": "must_verify_refund_conditions",
+      "normalized_action": "must_verify_refund_conditions",
+      "confidence": 1.0
+    },
+    "object": {
+      "raw_text": "verify eligibility and suspend Product use if requirements are not met",
+      "normalized_object": "verify eligibility and suspend Product use if requirements are not met"
+    },
+    "claim_text": "Microsoft reserves the right to verify eligibility and suspend Product use if requirements are not met.",
+    "gates": {
+      "span_exists": true,
+      "clause_entails_claim": true,
+      "subject_valid": true,
+      "counterparty_resolved": true,
+      "predicate_valid": true,
+      "is_atomic": true,
+      "is_not_duplicate": true,
+      "claim_type_allowed": true,
+      "human_approved_if_required": true,
+      "text_integrity": true
+    },
+    "trust_score": 0.935
+  },
+  {
+    "claim_id": "f74ab3da-e01a-5a30-88ad-999616fda61f",
+    "document_id": "DOC-057",
+    "status": "CANONICAL",
+    "certification_tier": "AUTOMATED_CERTIFIED",
+    "subject": {
+      "raw_text": "Customer",
+      "canonical_entity": "Customer",
+      "confidence": 1.0
+    },
+    "predicate": {
+      "raw_text": "provide",
+      "normalized_action": "provide",
+      "confidence": 1.0
+    },
+    "object": {
+      "raw_text": "the transferee a copy of these General Terms, the applicable Product Terms and any other documents necessary to show the scope, purpose and limitations of the licenses transferred",
+      "normalized_object": "the transferee a copy of these General Terms, the applicable Product Terms and any other documents necessary to show the scope, purpose and limitations of the licenses transferred"
+    },
+    "claim_text": "Customer must provide the transferee a copy of these General Terms, the applicable Product Terms and any other documents necessary to show the scope, purpose and limitations of the licenses transferred.",
+    "gates": {
+      "span_exists": true,
+      "clause_entails_claim": true,
+      "subject_valid": true,
+      "counterparty_resolved": true,
+      "predicate_valid": true,
+      "is_atomic": true,
+      "is_not_duplicate": true,
+      "claim_type_allowed": true,
+      "human_approved_if_required": true,
+      "text_integrity": true
+    },
+    "trust_score": 0.935
+  },
+  {
+    "claim_id": "f878a20b-a906-5646-919b-57816b59c197",
+    "document_id": "DOC-057",
+    "status": "CANONICAL",
+    "certification_tier": "AUTOMATED_CERTIFIED",
+    "subject": {
+      "raw_text": "Customer",
+      "canonical_entity": "Customer",
+      "confidence": 1.0
+    },
+    "predicate": {
+      "raw_text": "remain",
+      "normalized_action": "remain",
+      "confidence": 1.0
+    },
+    "object": {
+      "raw_text": "responsible for all obligations under this Agreement and for its Affiliates' compliance with this Agreement",
+      "normalized_object": "responsible for all obligations under this Agreement and for its Affiliates' compliance with this Agreement"
+    },
+    "claim_text": "Customer will remain responsible for all obligations under this Agreement and for its Affiliates' compliance with this Agreement.",
+    "gates": {
+      "span_exists": true,
+      "clause_entails_claim": true,
+      "subject_valid": true,
+      "counterparty_resolved": true,
+      "predicate_valid": true,
+      "is_atomic": true,
+      "is_not_duplicate": true,
+      "claim_type_allowed": true,
+      "human_approved_if_required": true,
+      "text_integrity": true
+    },
+    "trust_score": 0.935
+  }
+]

@@ -84,8 +84,8 @@ class TrustService:
         # Update claim status if conflicted or low score, preserving human decisions
         if has_conflicts:
             claim.status = ClaimStatus.CONFLICTED
-        elif claim.status in [ClaimStatus.OUTDATED, ClaimStatus.REJECTED]:
-            pass  # Preserve explicit status
+        elif claim.status in [ClaimStatus.OUTDATED, ClaimStatus.REJECTED, ClaimStatus.CANDIDATE]:
+            pass  # Preserve explicit status assigned by Universal Certification Gate
         elif not (version and version.is_current):
             claim.status = ClaimStatus.OUTDATED
         elif breakdown.overall_score >= 0.70:
@@ -173,8 +173,8 @@ class TrustService:
 
             if has_conflicts:
                 claim.status = ClaimStatus.CONFLICTED
-            elif claim.status in [ClaimStatus.OUTDATED, ClaimStatus.REJECTED]:
-                pass
+            elif claim.status in [ClaimStatus.OUTDATED, ClaimStatus.REJECTED, ClaimStatus.CANDIDATE]:
+                pass  # Preserve explicit status assigned by Universal Certification Gate
             elif not (version and version.is_current):
                 claim.status = ClaimStatus.OUTDATED
             elif breakdown.overall_score >= 0.70:
