@@ -1,0 +1,41 @@
+{
+  "version": "1.0.0",
+  "rules": [
+    {
+      "repair_id": "REP-ENUM-PREFIX-001",
+      "name": "Strip Leading Enumeration Markers",
+      "description": "Removes leading formatting artifacts like (i), (ii), 1., 2), (a) from claim text without corrupting modal verbs",
+      "trigger": {
+        "text_pattern": "^\\s*(?:\\([iIvVxX0-9a-zA-Z]+\\)|[0-9a-zA-Z]+[\\.\\)]|\\([0-9]+\\))\\s+"
+      },
+      "action": "strip_pattern",
+      "mutation_scope": ["claim_text_prefix"],
+      "requires_revalidation": ["text_integrity", "clause_entails_claim"],
+      "author": "PIPELINE_GOVERNANCE"
+    },
+    {
+      "repair_id": "REP-WHITESPACE-002",
+      "name": "Normalize Excess Whitespace and Linebreaks",
+      "description": "Collapses multi-space runs and formatting linebreaks into single spaces",
+      "trigger": {
+        "text_pattern": "\\s{2,}|\\r?\\n"
+      },
+      "action": "normalize_whitespace",
+      "mutation_scope": ["claim_text_internal_whitespace"],
+      "requires_revalidation": ["text_integrity"],
+      "author": "PIPELINE_GOVERNANCE"
+    },
+    {
+      "repair_id": "REP-BRACKET-NOTE-003",
+      "name": "Strip Trailing Editorial Bracket Notes",
+      "description": "Removes trailing page or editorial bracket markers like [Page 8] from text",
+      "trigger": {
+        "text_pattern": "\\s*\\[(?:page|section|note)\\s+[^\\]]+\\]\\s*$"
+      },
+      "action": "strip_pattern",
+      "mutation_scope": ["claim_text_suffix"],
+      "requires_revalidation": ["text_integrity"],
+      "author": "PIPELINE_GOVERNANCE"
+    }
+  ]
+}

@@ -33,6 +33,7 @@ from app.schemas.document import (
     DocumentVersionResponse,
 )
 from app.services.activity_service import ActivityService
+from app.services.claim_gate_evaluator import ClaimGateEvaluator
 
 logger = logging.getLogger(__name__)
 
@@ -537,9 +538,9 @@ async def upload_and_extract_document(
                 "candidates": [c.model_dump() for c in unified_res.candidates],
             },
             "layer_6_validation_gate": {
-                "claims_approved": sum(1 for e in unified_res.evaluations if e.lifecycle_decision.value == "APPROVE"),
-                "claims_queued_for_review": sum(1 for e in unified_res.evaluations if e.lifecycle_decision.value == "REVIEW"),
-                "claims_rejected": sum(1 for e in unified_res.evaluations if e.lifecycle_decision.value == "REJECT"),
+                "claims_approved": sum(1 for e in unified_res.evaluations if str(e.lifecycle_decision.value).lower() == "approve"),
+                "claims_queued_for_review": sum(1 for e in unified_res.evaluations if str(e.lifecycle_decision.value).lower() == "review"),
+                "claims_rejected": sum(1 for e in unified_res.evaluations if str(e.lifecycle_decision.value).lower() == "reject"),
                 "average_trust_score": round(sum(e.composite_trust_score for e in unified_res.evaluations) / max(len(unified_res.evaluations), 1), 4),
                 "evaluations": [e.to_dict() for e in unified_res.evaluations],
             },
@@ -1018,6 +1019,17 @@ async def get_document_artifacts(
             first_ev = c.evidence[0] if c.evidence else None
             section = getattr(first_ev, "section", "General") or "General"
             quote = getattr(first_ev, "text_span", None) or getattr(first_ev, "exact_quote", "") or ""
+            gate_res = ClaimGateEvaluator.evaluate(
+                claim_id=str(c.id),
+                subject=c.subject,
+                predicate=c.predicate,
+                object_val=c.object,
+                claim_text=c.claim_text,
+                claim_type=getattr(c, "claim_type", "policy"),
+                status=c.status.value if hasattr(c.status, "value") else str(c.status),
+                metadata=getattr(c, "claim_metadata", {}) or {},
+                confidence=float(score),
+            )
             claims_output.append({
                 "id": str(c.id),
                 "document_version_id": str(c.document_version_id),
@@ -1030,7 +1042,13 @@ async def get_document_artifacts(
                 "validity": str(validity),
                 "section": section,
                 "quote": quote,
-                "created_at": c.created_at.isoformat() if c.created_at else None
+                "created_at": c.created_at.isoformat() if c.created_at else None,
+                "gates": gate_res.gates,
+                "all_9_gates_passed": gate_res.all_9_gates_passed,
+                "is_canonical": gate_res.is_canonical,
+                "agent_accessible": gate_res.agent_accessible,
+                "certification_tier": gate_res.certification_tier,
+                "rejection_reasons": gate_res.rejection_reasons,
             })
 
     # Get sample content preview

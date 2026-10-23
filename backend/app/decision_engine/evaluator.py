@@ -20,6 +20,7 @@ from app.schemas.decision import (
     DecisionEvaluateRequest,
     DecisionEvaluateResponse,
 )
+from app.services.claim_gate_evaluator import ClaimGateEvaluator
 
 
 class DecisionEvaluator:
@@ -417,6 +418,19 @@ class DecisionEvaluator:
             query_words = set(decision_query.lower().split())
             matched_items = []
             for c in claims:
+                gate_res = ClaimGateEvaluator.evaluate(
+                    claim_id=str(c.id),
+                    subject=c.subject,
+                    predicate=c.predicate,
+                    object_val=c.object,
+                    claim_text=c.claim_text,
+                    claim_type=getattr(c, "claim_type", "policy"),
+                    status=c.status.value if hasattr(c.status, "value") else str(c.status),
+                    metadata=getattr(c, "claim_metadata", {}) or {},
+                )
+                if not gate_res.all_9_gates_passed or not gate_res.agent_accessible:
+                    continue
+
                 claim_text_lower = c.claim_text.lower()
                 sub_lower = (c.subject or "").lower()
                 words = set(claim_text_lower.split() + sub_lower.split())

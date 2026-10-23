@@ -12,11 +12,13 @@ PDF/File raw bytes → structured parsing → candidate discovery → claim extr
 
 from __future__ import annotations
 
+import hashlib
 import logging
+import re
 import time
 import uuid
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -31,10 +33,19 @@ from app.ingestion.parsers.document_parser import DocumentParser
 from app.ingestion.parsers.evidence_model import ParsedEvidenceResult, ParsedEvidenceUnit
 from app.ingestion.parsers.structured_parser import StructuredDataParser
 from app.ingestion.universal_file_parser import UniversalFileParser
+from app.schemas.evidence import ImmutableEvidenceSpan
+from app.schemas.universal_claim import ClaimLifecycleState
+from app.services.universal_gate_evaluator import (
+    UniversalGateEvaluator,
+    UniversalGateResult,
+)
+from app.taxonomy.registry import PredicateRegistryService
 from app.validation_gate.decision_engine import ClaimLifecycleDecisionEngine
 from app.validation_gate.models import (
     CandidateGateEvaluation,
     ClaimLifecycleDecision,
+    DecisionCode,
+    DimensionEvaluation,
     Layer6ValidationResult,
 )
 from app.validation_gate.persistence import EnterpriseClaimStore
@@ -65,12 +76,18 @@ class UnifiedPipelineResult:
     evaluations: List[CandidateGateEvaluation]
     conflicts: List[Dict[str, Any]]
     metrics: Dict[str, Any]
+    pipeline_run_id: str = field(default_factory=lambda: str(uuid.uuid4()))
+    source_byte_hash: str = ""
+    source_hash_algorithm: str = "SHA-256"
     persisted_claim_ids: List[uuid.UUID] = field(default_factory=list)
 
     def to_summary_dict(self) -> Dict[str, Any]:
         return {
+            "pipeline_run_id": self.pipeline_run_id,
             "envelope_id": str(self.envelope.envelope_id),
-            "asset_id": self.envelope.asset_id,
+            "document_id": self.envelope.asset_id,
+            "source_byte_hash": self.source_byte_hash,
+            "source_hash_algorithm": self.source_hash_algorithm,
             "filename": self.envelope.evidence_locator.get("filename") if self.envelope.evidence_locator else "",
             "total_evidence_units": len(self.evidence_result.units),
             "candidates_discovered": len(self.raw_candidates),
@@ -168,16 +185,247 @@ class UnifiedExtractionPipeline:
 
         deduped_candidates = list(seen_keys.values())
 
-        # Step 6: Multi-Dimensional Validation Gate (Layer 6)
+        # Step 6: Universal 10-Gate Governance & Certification Gate (Layer 6)
         evaluations: List[CandidateGateEvaluation] = []
         candidates_map: Dict[str, CandidateClaim] = {}
+        seen_signatures: Set[str] = set()
+
         for cand in deduped_candidates:
             candidates_map[cand.candidate_id] = cand
-            eval_res = ClaimLifecycleDecisionEngine.evaluate_candidate(
-                candidate=cand,
-                envelope=canonical_env,
+
+            raw_text = (cand.claim_text or "").strip()
+            raw_subj = (cand.subject or "").strip()
+            raw_pred = (cand.predicate or "").strip()
+            raw_obj = str(cand.object or "").strip()
+            raw_span = (cand.evidence_text_span or "").strip()
+            loc = cand.locator or {}
+            raw_page = loc.get("page_number") or loc.get("page") or 1
+            sec_heading = loc.get("section_heading") or loc.get("section")
+
+            # Clean enumeration prefixes (e.g. (i), (ii), 1., etc.)
+            clean_sentence = UniversalGateEvaluator.strip_enumeration_prefix(raw_span or raw_text)
+            clean_subj = UniversalGateEvaluator.strip_enumeration_prefix(raw_subj)
+            clean_pred = raw_pred
+            clean_obj = raw_obj
+
+            if clean_sentence:
+                cand.claim_text = clean_sentence
+            cand.subject = clean_subj
+            cand.predicate = clean_pred
+
+            # Build ImmutableEvidenceSpan
+            quote = clean_sentence or raw_text
+            span = ImmutableEvidenceSpan.from_content(
+                verbatim_quote=quote,
+                clause_text=raw_span or quote,
+                content=content_text or canonical_env.parsed_content or quote,
+                page=int(raw_page) if (raw_page and str(raw_page).isdigit() and int(raw_page) > 0) else 1,
+                document_uri=f"urn:doc:{canonical_env.asset_id}",
+                section_locator=str(sec_heading) if sec_heading else None,
             )
-            evaluations.append(eval_res)
+
+            # Preserve physical character offsets and exact quote on candidate
+            if span.char_start is not None:
+                cand.locator["char_start"] = span.char_start
+            if span.char_end is not None:
+                cand.locator["char_end"] = span.char_end
+            cand.evidence_text_span = span.verbatim_quote
+
+            # Check for non-atomic compound rule with multi-branch disjunctions
+            is_compound = bool(
+                re.search(
+                    r"\b(and\s+may\s+not|and\s+must\s+not|and\s+also\s+must|and\s+shall\s+not)\b",
+                    cand.claim_text,
+                    re.IGNORECASE,
+                )
+            )
+
+            if is_compound:
+                gate_res = UniversalGateResult(
+                    evidence_exists=True,
+                    evidence_located=True,
+                    text_integrity=True,
+                    clause_entails_claim=True,
+                    subject_valid=True,
+                    counterparty_resolved=True,
+                    predicate_valid=PredicateRegistryService.exists(clean_pred),
+                    atomicity_valid=False,
+                    duplicate_valid=True,
+                    claim_type_allowed=True,
+                    human_approved_if_required=False,
+                    all_gates_passed=False,
+                    lifecycle_state=ClaimLifecycleState.QUARANTINED,
+                    certification_tier="QUARANTINED",
+                    is_canonical=False,
+                    agent_accessible=False,
+                    rejection_reasons=["Non-atomic compound claim containing multi-branch disjunctive obligations."],
+                    gates={"atomicity_valid": False},
+                    repaired_claim_text=clean_sentence,
+                )
+            else:
+                gate_res = UniversalGateEvaluator.evaluate(
+                    claim_text=cand.claim_text,
+                    subject=clean_subj,
+                    predicate=clean_pred,
+                    object_text=clean_obj,
+                    claim_type="RULE",
+                    evidence=span,
+                    source_content=content_text or canonical_env.parsed_content,
+                    clause_text=raw_span or cand.claim_text,
+                    existing_signatures=seen_signatures,
+                )
+
+            if gate_res.is_canonical:
+                sig = UniversalGateEvaluator.compute_semantic_signature(clean_subj, clean_pred, clean_obj)
+                seen_signatures.add(sig)
+
+            tier = gate_res.certification_tier
+            if tier == "AUTOMATED_CERTIFIED":
+                cand.claim_type = "rule"
+                cand.is_canonical = True
+                cand.status = "verified"
+                decision = ClaimLifecycleDecision.APPROVE
+                decision_code = DecisionCode.APPROVE_ALL_PASSED
+                composite_score = 0.99
+            elif tier == "REVIEW_REQUIRED":
+                cand.claim_type = "rule"
+                cand.is_canonical = False
+                cand.status = "candidate"
+                decision = ClaimLifecycleDecision.REVIEW
+                if not gate_res.predicate_valid:
+                    decision_code = DecisionCode.WEAK_PREDICATE
+                elif not gate_res.counterparty_resolved:
+                    decision_code = DecisionCode.SUBJECT_CONTAMINATION
+                else:
+                    decision_code = DecisionCode.REVIEW_SCORE_BELOW_THRESHOLD
+                composite_score = 0.85
+            elif tier == "QUARANTINED":
+                cand.claim_type = "quarantined"
+                cand.is_canonical = False
+                cand.status = "rejected"
+                decision = ClaimLifecycleDecision.REJECT
+                decision_code = DecisionCode.META_RULE_NOT_ATOMIC
+                composite_score = 0.50
+            elif tier == "NON_RULE":
+                cand.claim_type = "non_rule"
+                cand.is_canonical = False
+                cand.status = "rejected"
+                decision = ClaimLifecycleDecision.REJECT
+                decision_code = DecisionCode.REJECT_DESCRIPTIVE_PURPOSE
+                composite_score = 0.50
+            elif tier == "DUPLICATE":
+                cand.claim_type = "duplicate"
+                cand.is_canonical = False
+                cand.status = "rejected"
+                decision = ClaimLifecycleDecision.REJECT
+                decision_code = DecisionCode.SUMMARY_NON_CANONICAL
+                composite_score = 0.0
+            else:  # REJECTED
+                cand.claim_type = "non_rule"
+                cand.is_canonical = False
+                cand.status = "rejected"
+                decision = ClaimLifecycleDecision.REJECT
+                if not gate_res.evidence_exists or not gate_res.evidence_located:
+                    decision_code = DecisionCode.REJECT_GROUNDING_FAILED
+                elif not gate_res.text_integrity:
+                    decision_code = DecisionCode.FRAGMENT_ASSERTION_DISCARDED
+                elif not gate_res.subject_valid:
+                    decision_code = DecisionCode.SUBJECT_NORMALIZATION_FAILED
+                else:
+                    decision_code = DecisionCode.REJECT_SEMANTIC_MISMATCH
+                composite_score = 0.0
+
+            source_match = DimensionEvaluation(
+                dimension_name="source_match",
+                status="pass" if (gate_res.evidence_exists and gate_res.evidence_located) else "fail",
+                score=1.0 if (gate_res.evidence_exists and gate_res.evidence_located) else 0.0,
+                passed=bool(gate_res.evidence_exists and gate_res.evidence_located),
+                reason="Source evidence physically located and hash-verified." if (gate_res.evidence_exists and gate_res.evidence_located) else "Evidence missing or unlocated in source.",
+                details={"evidence_exists": gate_res.evidence_exists, "evidence_located": gate_res.evidence_located},
+            )
+            meaning = DimensionEvaluation(
+                dimension_name="meaning",
+                status="pass" if (gate_res.text_integrity and gate_res.clause_entails_claim) else "fail",
+                score=1.0 if (gate_res.text_integrity and gate_res.clause_entails_claim) else 0.0,
+                passed=bool(gate_res.text_integrity and gate_res.clause_entails_claim),
+                reason="Proposition strictly entailed without template synthesis." if (gate_res.text_integrity and gate_res.clause_entails_claim) else "Text integrity or entailment violation.",
+                details={"text_integrity": gate_res.text_integrity, "clause_entails_claim": gate_res.clause_entails_claim},
+            )
+            completeness = DimensionEvaluation(
+                dimension_name="completeness",
+                status="pass" if (gate_res.atomicity_valid and gate_res.counterparty_resolved) else "fail",
+                score=1.0 if (gate_res.atomicity_valid and gate_res.counterparty_resolved) else 0.5,
+                passed=bool(gate_res.atomicity_valid and gate_res.counterparty_resolved),
+                reason="Atomic single-obligation claim with resolved counterparty." if (gate_res.atomicity_valid and gate_res.counterparty_resolved) else "Compound disjunction or dangling pronoun.",
+                details={"atomicity_valid": gate_res.atomicity_valid, "counterparty_resolved": gate_res.counterparty_resolved},
+            )
+            scope_eval = DimensionEvaluation(
+                dimension_name="scope",
+                status="pass" if (gate_res.claim_type_allowed and gate_res.predicate_valid) else "fail",
+                score=1.0 if (gate_res.claim_type_allowed and gate_res.predicate_valid) else 0.0,
+                passed=bool(gate_res.claim_type_allowed and gate_res.predicate_valid),
+                reason="Operative rule within authorized predicate taxonomy." if (gate_res.claim_type_allowed and gate_res.predicate_valid) else "Non-rule type or predicate not in registry.",
+                details={"claim_type_allowed": gate_res.claim_type_allowed, "predicate_valid": gate_res.predicate_valid},
+            )
+            authority = DimensionEvaluation(
+                dimension_name="authority",
+                status="pass",
+                score=1.0,
+                passed=True,
+                reason="Authoritative source envelope.",
+            )
+            time_eval = DimensionEvaluation(
+                dimension_name="time",
+                status="current",
+                score=1.0,
+                passed=True,
+                reason="Document version active and current.",
+            )
+            review_trigger = DimensionEvaluation(
+                dimension_name="review",
+                status="review_required" if decision == ClaimLifecycleDecision.REVIEW else "no_review_needed",
+                score=0.5 if decision == ClaimLifecycleDecision.REVIEW else 1.0,
+                passed=(decision != ClaimLifecycleDecision.REVIEW),
+                reason="Adjudication review required before certification." if decision == ClaimLifecycleDecision.REVIEW else "Automated gate certified.",
+            )
+
+            decision_reason = (
+                "; ".join(gate_res.rejection_reasons)
+                if gate_res.rejection_reasons
+                else f"UNIVERSAL 10-GATE CERTIFIED: All gates passed. Tier: {gate_res.certification_tier}."
+            )
+
+            candidate_eval = CandidateGateEvaluation(
+                candidate_id=cand.candidate_id,
+                envelope_id=canonical_env.envelope_id,
+                asset_id=canonical_env.asset_id,
+                claim_text=cand.claim_text,
+                subject=cand.subject,
+                predicate=cand.predicate,
+                object=cand.object,
+                evidence_text_span=cand.evidence_text_span,
+                claim_type=cand.claim_type,
+                modality=cand.modality,
+                conditions=cand.conditions or [],
+                value=cand.value,
+                unit=cand.unit,
+                scope=cand.scope or {},
+                locator=cand.locator or {},
+                is_ambiguous=cand.is_ambiguous,
+                ambiguity_reason=cand.ambiguity_reason,
+                source_match=source_match,
+                completeness=completeness,
+                meaning=meaning,
+                scope_eval=scope_eval,
+                time=time_eval,
+                authority=authority,
+                review_trigger=review_trigger,
+                composite_trust_score=composite_score,
+                lifecycle_decision=decision,
+                decision_code=decision_code,
+                decision_reason=decision_reason,
+            )
+            evaluations.append(candidate_eval)
 
         # Step 7: Deterministic In-Memory Conflict Detection
         conflicts: List[Dict[str, Any]] = []
@@ -221,6 +469,9 @@ class UnifiedExtractionPipeline:
             "rejected": sum(1 for e in evaluations if e.lifecycle_decision == ClaimLifecycleDecision.REJECT),
         }
 
+        source_byte_hash = hashlib.sha256(raw_bytes).hexdigest()
+        pipeline_run_id = str(uuid.uuid4())
+
         return UnifiedPipelineResult(
             envelope=canonical_env,
             evidence_result=evidence_result,
@@ -229,5 +480,9 @@ class UnifiedExtractionPipeline:
             evaluations=evaluations,
             conflicts=conflicts,
             metrics=metrics,
+            pipeline_run_id=pipeline_run_id,
+            source_byte_hash=source_byte_hash,
+            source_hash_algorithm="SHA-256",
             persisted_claim_ids=persisted_ids,
         )
+

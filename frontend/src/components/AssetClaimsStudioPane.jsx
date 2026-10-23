@@ -22,64 +22,106 @@ import {
   X
 } from 'lucide-react';
 
-function getClaimDisplayCategory(cl, allConflictedClaimIds) {
-  const isConf = allConflictedClaimIds.has(cl.id) || cl.status === 'conflicted';
-  if (isConf) return 'conflicted';
+export function getClaimClassification(cl, allConflictedClaimIds = new Set()) {
+  const isConf = (cl.id && allConflictedClaimIds.has(cl.id)) || (cl.status || '').toLowerCase() === 'conflicted';
+  if (isConf) {
+    return {
+      category: 'conflicted',
+      badgeLabel: '⚠️ Conflict Candidate',
+      badgeBg: '#FFEDD5',
+      badgeColor: '#C2410C',
+      badgeBorder: '#FED7AA',
+    };
+  }
 
-  const claimType = (cl.claim_type || cl.data?.claim_type || '').toUpperCase();
-  const contentRole = (cl.content_role || cl.data?.content_role || '').toLowerCase();
-  const status = (cl.status || cl.data?.status || 'candidate').toLowerCase();
-  const subject = (cl.subject || cl.data?.subject || '').toLowerCase();
-  const fullText = (cl.fullText || cl.label || cl.data?.claim_text || '').toLowerCase();
+  const claimType = (cl.claim_type || cl.data?.claim_type || '').toLowerCase().trim();
+  const contentRole = (cl.content_role || cl.data?.content_role || '').toLowerCase().trim();
+  const status = (cl.status || cl.data?.status || 'candidate').toLowerCase().trim();
+  const certTier = (cl.certification_tier || cl.data?.certification_tier || '').toUpperCase().trim();
+  const decisionStr = (cl.decision || cl.data?.decision || cl.validation_status || '').toUpperCase().trim();
+  const decisionCode = (cl.decision_code || cl.data?.decision_code || '').toUpperCase().trim();
 
-  // Explicit check for defective subjects and fragments
-  const isBadSubject = subject.startsWith('the following')
-    || subject.includes('page 8 of 11')
-    || (fullText.includes('page 8') && fullText.includes('modifications to this'))
-    || (fullText.includes('reno') && fullText.includes('sierra center'))
-    || subject.startsWith('without limiting other remedies')
-    || fullText.includes('without limiting other remedies')
-    || subject.startsWith('failure to enforce')
-    || subject.startsWith('any attempted assignment')
-    || subject === 'assignment';
+  const gates = cl.gates || cl.data?.gates || {};
+  const hasGates = Object.keys(gates).length > 0;
+  const allGatesPassed = cl.all_9_gates_passed === true || cl.data?.all_9_gates_passed === true ||
+    (hasGates && Object.values(gates).every(v => v === true));
 
-  const isRejected = status === 'rejected'
-    || cl.data?.decision === 'REJECT'
-    || cl.validation_status === 'REJECT'
-    || (cl.data?.decision_code && String(cl.data.decision_code).includes('REJECT'))
-    || claimType === 'FRAGMENT'
-    || claimType === 'DUPLICATE'
-    || isBadSubject;
-  if (isRejected) return 'rejected';
+  // 1. Quarantined compound rules
+  if (certTier === 'QUARANTINED' || claimType === 'quarantined' || decisionCode.includes('META_RULE')) {
+    return {
+      category: 'quarantined',
+      badgeLabel: '⚠️ Quarantined (Compound)',
+      badgeBg: '#FEF3C7',
+      badgeColor: '#B45309',
+      badgeBorder: '#FCD34D',
+    };
+  }
 
-  // Explicit check for non-rules: definitions, descriptions, references, responsibilities, quarantined
-  const isNonRule = claimType === 'DEFINITION'
-    || claimType === 'DESCRIPTION'
-    || claimType === 'REFERENCE'
-    || claimType === 'RESPONSIBILITY'
-    || claimType === 'QUARANTINED'
-    || contentRole === 'definition'
-    || contentRole === 'description'
-    || contentRole === 'reference';
-  if (isNonRule) return 'rejected'; // Maps to Rejected / quarantined / non-rules tab
+  // 2. Rejected: fragments, duplicates, explicit rejections
+  const isRejected = certTier === 'REJECTED'
+    || status === 'rejected'
+    || decisionStr === 'REJECT'
+    || ['fragment', 'duplicate'].includes(claimType)
+    || decisionCode.includes('FRAGMENT')
+    || decisionCode.includes('SUBJECT_CONTAMINATION');
+  if (isRejected) {
+    const isDup = claimType === 'duplicate' || decisionCode.includes('DUPLICATE');
+    return {
+      category: 'rejected',
+      badgeLabel: isDup ? '📑 Duplicate (Collapsed)' : '⛔ Rejected Fragment',
+      badgeBg: '#FEE2E2',
+      badgeColor: '#B91C1C',
+      badgeBorder: '#FCA5A5',
+    };
+  }
 
-  const isCanon = cl.is_canonical === true
-    || cl.data?.is_canonical === true
-    || (status === 'verified' && (claimType === 'RULE' || claimType === 'POLICY_RULE' || claimType === 'POLICY') && !isBadSubject && !isNonRule);
+  // 3. Non-Rules: definitions, descriptions, references, responsibilities
+  const isNonRule = certTier === 'NON_RULE'
+    || ['definition', 'description', 'reference', 'responsibility', 'non_rule'].includes(claimType)
+    || ['definition', 'description', 'reference', 'responsibility'].includes(contentRole)
+    || decisionCode.includes('DESCRIPTIVE');
+  if (isNonRule) {
+    let sublabel = '📖 Non-Rule Context';
+    if (claimType === 'definition' || contentRole === 'definition') sublabel = '📖 Non-Rule (Def)';
+    else if (claimType === 'description' || contentRole === 'description') sublabel = 'ℹ️ Non-Rule (Desc)';
+    else if (claimType === 'reference' || contentRole === 'reference') sublabel = '🔗 Non-Rule (Ref)';
+    else if (claimType === 'responsibility' || contentRole === 'responsibility') sublabel = '👥 Non-Rule (Resp)';
+    return {
+      category: 'non_rule',
+      badgeLabel: sublabel,
+      badgeBg: '#F3E8FF',
+      badgeColor: '#6B21A8',
+      badgeBorder: '#D8B4FE',
+    };
+  }
 
-  const isExample = claimType === 'EXAMPLE' || contentRole === 'example' || subject.startsWith('case ') || cl.data?.is_example;
-  if (isExample) return 'example';
+  // 4. Canonical v3 (Automated-Certified / Human-Certified)
+  const isHumanCertified = certTier === 'HUMAN_CERTIFIED';
+  const isCanon = (cl.is_canonical === true || cl.data?.is_canonical === true || allGatesPassed || decisionStr === 'APPROVE')
+    && (status === 'verified' || status === 'active' || decisionStr === 'APPROVE')
+    && (['rule', 'policy_rule', 'policy'].includes(claimType) || !claimType);
+  if (isCanon) {
+    return {
+      category: 'canonical',
+      badgeLabel: isHumanCertified ? '🛡️ Human-Certified' : '✅ Automated-Certified v3',
+      badgeBg: isHumanCertified ? '#EFF6FF' : '#DCFCE7',
+      badgeColor: isHumanCertified ? '#1D4ED8' : '#15803D',
+      badgeBorder: isHumanCertified ? '#93C5FD' : '#86EFAC',
+    };
+  }
 
-  const isContact = claimType === 'CONTACT_INFORMATION' || contentRole === 'contact_info' || claimType.includes('CONTACT');
-  if (isContact) return 'contact';
+  // 5. Review required: unverified or failed semantic gates
+  return {
+    category: 'review',
+    badgeLabel: '🔍 Review Required',
+    badgeBg: '#E0F2FE',
+    badgeColor: '#0369A1',
+    badgeBorder: '#BAE6FD',
+  };
+}
 
-  const isSummaryRole = claimType === 'SUMMARY' || claimType === 'DERIVED_SUMMARY' || claimType === 'SUMMARY_NON_CANONICAL' || contentRole === 'summary';
-  if (isSummaryRole) return 'summary';
-
-  const isReview = status === 'review' || status === 'candidate' || (!isCanon);
-  if (isReview) return 'review';
-
-  return 'verified';
+export function getClaimDisplayCategory(cl, allConflictedClaimIds = new Set()) {
+  return getClaimClassification(cl, allConflictedClaimIds).category;
 }
 
 export default function AssetClaimsStudioPane({
@@ -92,7 +134,7 @@ export default function AssetClaimsStudioPane({
   showToast
 }) {
   const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all'); // 'all' | 'verified' | 'conflicted' | 'rejected' | 'canonical' | 'summary'
+  const [statusFilter, setStatusFilter] = useState('all'); // 'all' | 'canonical' | 'review' | 'quarantined' | 'non_rule' | 'rejected' | 'conflicted'
   const [trustTierFilter, setTrustTierFilter] = useState('all'); // 'all' | 'high' | 'med' | 'low'
   const [sortBy, setSortBy] = useState('trust_desc'); // 'trust_desc' | 'trust_asc' | 'subject_asc' | 'index'
   const [viewMode, setViewMode] = useState('cards'); // 'cards' | 'table'
@@ -102,30 +144,28 @@ export default function AssetClaimsStudioPane({
 
   const totalClaims = claims.length;
 
-  // Compute metrics
+  // Compute metrics across universal governance categories
   const metrics = useMemo(() => {
-    let verifiedCount = 0;
-    let conflictedCount = 0;
-    let rejectedCount = 0;
     let canonicalCount = 0;
+    let reviewCount = 0;
+    let quarantinedCount = 0;
+    let nonRuleCount = 0;
+    let rejectedCount = 0;
+    let conflictedCount = 0;
     let summaryCount = 0;
     let totalScore = 0;
 
     claims.forEach(cl => {
       const cat = getClaimDisplayCategory(cl, allConflictedClaimIds);
-      if (cat === 'conflicted') {
-        conflictedCount++;
-      } else if (cat === 'rejected') {
-        rejectedCount++;
-      } else if (cat === 'verified') {
-        verifiedCount++;
-        canonicalCount++;
-      }
+      if (cat === 'conflicted') conflictedCount++;
+      else if (cat === 'rejected') rejectedCount++;
+      else if (cat === 'quarantined') quarantinedCount++;
+      else if (cat === 'non_rule') nonRuleCount++;
+      else if (cat === 'canonical') canonicalCount++;
+      else if (cat === 'review') reviewCount++;
 
-      const isSummary = cat === 'summary' || cl.is_canonical === false || cl.data?.is_canonical === false;
-      if (isSummary && cat !== 'verified') {
-        summaryCount++;
-      }
+      const isSummary = cl.claim_type === 'derived_summary' || cl.content_role === 'summary';
+      if (isSummary) summaryCount++;
 
       const score = Number(
         cl.trustScore ??
@@ -138,14 +178,17 @@ export default function AssetClaimsStudioPane({
     });
 
     const avgScore = totalClaims > 0 ? Math.round((totalScore / totalClaims) * 100) : 95;
-    const verifiedPct = totalClaims > 0 ? Math.round((verifiedCount / totalClaims) * 100) : 100;
+    const verifiedPct = totalClaims > 0 ? Math.round((canonicalCount / totalClaims) * 100) : 100;
 
     return {
       total: totalClaims,
-      verified: verifiedCount,
-      conflicted: conflictedCount,
-      rejected: rejectedCount,
       canonical: canonicalCount,
+      verified: canonicalCount,
+      review: reviewCount,
+      quarantined: quarantinedCount,
+      nonRule: nonRuleCount,
+      rejected: rejectedCount,
+      conflicted: conflictedCount,
       summary: summaryCount,
       verifiedPct,
       avgScore
@@ -156,14 +199,15 @@ export default function AssetClaimsStudioPane({
   const filteredClaims = useMemo(() => {
     return claims.filter(cl => {
       const cat = getClaimDisplayCategory(cl, allConflictedClaimIds);
-      const isSummary = cat === 'summary' || cl.is_canonical === false || cl.data?.is_canonical === false;
 
       // Status filter
-      if (statusFilter === 'verified' && cat !== 'verified') return false;
-      if (statusFilter === 'conflicted' && cat !== 'conflicted') return false;
+      if (statusFilter === 'canonical' && cat !== 'canonical') return false;
+      if (statusFilter === 'verified' && cat !== 'canonical') return false;
+      if (statusFilter === 'review' && cat !== 'review') return false;
+      if (statusFilter === 'quarantined' && cat !== 'quarantined') return false;
+      if (statusFilter === 'non_rule' && cat !== 'non_rule') return false;
       if (statusFilter === 'rejected' && cat !== 'rejected') return false;
-      if (statusFilter === 'canonical' && cat !== 'verified') return false;
-      if (statusFilter === 'summary' && !isSummary) return false;
+      if (statusFilter === 'conflicted' && cat !== 'conflicted') return false;
 
       // Trust tier filter
       const score = Number(
@@ -376,13 +420,15 @@ export default function AssetClaimsStudioPane({
         {/* Filter buttons & sort */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
           {/* Status Filter */}
-          <div style={{ display: 'flex', alignItems: 'center', background: '#F1F5F9', padding: '2px', borderRadius: '6px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', background: '#F1F5F9', padding: '2px', borderRadius: '6px', flexWrap: 'wrap', gap: '2px' }}>
             {[
               { id: 'all', label: `Raw candidates (${totalClaims})` },
-              { id: 'canonical', label: `Canonical v3 claims (${metrics.canonical})` },
-              { id: 'verified', label: `Automated-certified v3 claims (${metrics.verified})` },
-              { id: 'conflicted', label: `Conflict candidates (${metrics.conflicted} certified)` },
-              { id: 'rejected', label: `Rejected / quarantined / non-rules (${metrics.rejected})` },
+              { id: 'canonical', label: `Canonical v3 (${metrics.canonical})` },
+              ...(metrics.review > 0 ? [{ id: 'review', label: `Review required (${metrics.review})` }] : []),
+              { id: 'quarantined', label: `Quarantined (${metrics.quarantined})` },
+              { id: 'non_rule', label: `Non-rules (${metrics.nonRule})` },
+              { id: 'rejected', label: `Rejected (${metrics.rejected})` },
+              ...(metrics.conflicted > 0 ? [{ id: 'conflicted', label: `Conflicts (${metrics.conflicted})` }] : []),
               ...(metrics.summary > 0 ? [{ id: 'summary', label: `Summaries (${metrics.summary})` }] : [])
             ].map(tab => (
               <button
@@ -565,60 +611,7 @@ export default function AssetClaimsStudioPane({
             const evidence = cl.data?.evidence_snippet || cl.data?.quote || cl.data?.context_clause || '';
             const globalIndex = (currentPage - 1) * pageSize + idx + 1;
 
-            const cat = getClaimDisplayCategory(cl, allConflictedClaimIds);
-            let badgeLabel = '✅ Automated-Certified v3';
-            let badgeBg = '#DCFCE7';
-            let badgeColor = '#15803D';
-            let badgeBorder = '#86EFAC';
-
-            if (cat === 'conflicted') {
-              badgeLabel = '⚠️ Conflict Candidate';
-              badgeBg = '#FFEDD5';
-              badgeColor = '#C2410C';
-              badgeBorder = '#FED7AA';
-            } else if (cat === 'rejected') {
-              const ct = (cl.claim_type || cl.data?.claim_type || '').toLowerCase();
-              if (ct === 'fragment') {
-                badgeLabel = '⛔ Rejected Fragment';
-              } else if (ct === 'duplicate') {
-                badgeLabel = '📑 Duplicate (Collapsed)';
-              } else if (ct === 'quarantined') {
-                badgeLabel = '🛡️ Quarantined Parent';
-              } else if (ct === 'definition') {
-                badgeLabel = '📖 Non-Rule (Definition)';
-              } else if (ct === 'description') {
-                badgeLabel = 'ℹ️ Non-Rule (Description)';
-              } else if (ct === 'reference') {
-                badgeLabel = '🔗 Non-Rule (Reference)';
-              } else if (ct === 'responsibility') {
-                badgeLabel = '👥 Non-Rule (Responsibility)';
-              } else {
-                badgeLabel = '⛔ Non-Canonical';
-              }
-              badgeBg = '#FEE2E2';
-              badgeColor = '#B91C1C';
-              badgeBorder = '#FCA5A5';
-            } else if (cat === 'example') {
-              badgeLabel = '📖 Example';
-              badgeBg = '#F3E8FF';
-              badgeColor = '#7E22CE';
-              badgeBorder = '#D8B4FE';
-            } else if (cat === 'contact') {
-              badgeLabel = '📞 Contact Info';
-              badgeBg = '#E0F2FE';
-              badgeColor = '#0369A1';
-              badgeBorder = '#BAE6FD';
-            } else if (cat === 'summary') {
-              badgeLabel = '📋 Summary';
-              badgeBg = '#F1F5F9';
-              badgeColor = '#475569';
-              badgeBorder = '#CBD5E1';
-            } else if (cat === 'review') {
-              badgeLabel = '🔍 Review Required';
-              badgeBg = '#FEF3C7';
-              badgeColor = '#B45309';
-              badgeBorder = '#FDE68A';
-            }
+            const { category: cat, badgeLabel, badgeBg, badgeColor, badgeBorder } = getClaimClassification(cl, allConflictedClaimIds);
 
             return (
               <div
@@ -754,6 +747,39 @@ export default function AssetClaimsStudioPane({
                       &ldquo;{evidence}&rdquo;
                     </div>
                   )}
+
+                  {/* 9 Hard Governance Gates Micro-Audit Bar */}
+                  {(() => {
+                    const gates = cl.gates || cl.data?.gates || null;
+                    if (!gates) return null;
+                    const passedCount = Object.values(gates).filter(v => v === true).length;
+                    return (
+                      <div style={{ marginTop: '8px', paddingTop: '6px', borderTop: '1px dashed #E2E8F0' }}>
+                        <div style={{ fontSize: '0.60rem', fontWeight: 700, color: '#64748B', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                          Governance Gates ({passedCount}/9 passed):
+                        </div>
+                        <div style={{ display: 'flex', gap: '3px', flexWrap: 'wrap' }}>
+                          {Object.entries(gates).map(([gName, gVal]) => (
+                            <span
+                              key={gName}
+                              title={`${gName}: ${gVal ? 'PASSED' : 'FAILED'}`}
+                              style={{
+                                fontSize: '0.58rem',
+                                padding: '1px 4px',
+                                borderRadius: '3px',
+                                background: gVal ? '#ECFDF5' : '#FEF2F2',
+                                color: gVal ? '#047857' : '#B91C1C',
+                                border: `1px solid ${gVal ? '#A7F3D0' : '#FECACA'}`,
+                                fontWeight: 600
+                              }}
+                            >
+                              {gName.replace(/_/g, ' ')}: {gVal ? '✓' : '✗'}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })()}
                 </div>
 
                 {/* Card Actions Footer */}
@@ -884,53 +910,7 @@ export default function AssetClaimsStudioPane({
                 const claimText = cl.fullText || cl.label || cl.data?.claim_text || '';
                 const globalIndex = (currentPage - 1) * pageSize + idx + 1;
 
-                const cat = getClaimDisplayCategory(cl, allConflictedClaimIds);
-                let badgeLabel = '✅ Automated-Certified v3';
-                let badgeBg = '#DCFCE7';
-                let badgeColor = '#15803D';
-
-                if (cat === 'conflicted') {
-                  badgeLabel = '⚠️ Conflict Candidate';
-                  badgeBg = '#FFEDD5';
-                  badgeColor = '#C2410C';
-                } else if (cat === 'rejected') {
-                  const ct = (cl.claim_type || cl.data?.claim_type || '').toLowerCase();
-                  if (ct === 'fragment') {
-                    badgeLabel = '⛔ Rejected Fragment';
-                  } else if (ct === 'duplicate') {
-                    badgeLabel = '📑 Duplicate (Collapsed)';
-                  } else if (ct === 'quarantined') {
-                    badgeLabel = '🛡️ Quarantined Parent';
-                  } else if (ct === 'definition') {
-                    badgeLabel = '📖 Non-Rule (Def)';
-                  } else if (ct === 'description') {
-                    badgeLabel = 'ℹ️ Non-Rule (Desc)';
-                  } else if (ct === 'reference') {
-                    badgeLabel = '🔗 Non-Rule (Ref)';
-                  } else if (ct === 'responsibility') {
-                    badgeLabel = '👥 Non-Rule (Resp)';
-                  } else {
-                    badgeLabel = '⛔ Non-Canonical';
-                  }
-                  badgeBg = '#FEE2E2';
-                  badgeColor = '#B91C1C';
-                } else if (cat === 'example') {
-                  badgeLabel = '📖 Example';
-                  badgeBg = '#F3E8FF';
-                  badgeColor = '#7E22CE';
-                } else if (cat === 'contact') {
-                  badgeLabel = '📞 Contact Info';
-                  badgeBg = '#E0F2FE';
-                  badgeColor = '#0369A1';
-                } else if (cat === 'summary') {
-                  badgeLabel = '📋 Summary';
-                  badgeBg = '#F1F5F9';
-                  badgeColor = '#475569';
-                } else if (cat === 'review') {
-                  badgeLabel = '🔍 Review Required';
-                  badgeBg = '#FEF3C7';
-                  badgeColor = '#B45309';
-                }
+                const { category: cat, badgeLabel, badgeBg, badgeColor, badgeBorder } = getClaimClassification(cl, allConflictedClaimIds);
 
                 return (
                   <tr
@@ -950,7 +930,8 @@ export default function AssetClaimsStudioPane({
                         padding: '2px 6px',
                         borderRadius: '999px',
                         background: badgeBg,
-                        color: badgeColor
+                        color: badgeColor,
+                        border: `1px solid ${badgeBorder}`
                       }}>
                         {badgeLabel}
                       </span>

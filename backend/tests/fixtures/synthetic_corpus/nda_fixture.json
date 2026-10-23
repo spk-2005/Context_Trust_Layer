@@ -1,0 +1,48 @@
+{
+  "document_id": "SYN-DOC-005",
+  "document_type": "nda",
+  "title": "Mutual Non-Disclosure and Confidentiality Agreement",
+  "content": "Section 2. Confidentiality Obligations. Each party must protect confidential information received from the other party with the same degree of care it uses for its own sensitive information. Neither party will disclose confidential information to any third party without prior written consent. Section 6. Waivers. Either party requires written signed waiver for any modification or waiver of rights under this Agreement. Definition: Confidential Information refers to non-public technical and business information.",
+  "claims": [
+    {
+      "claim_id": "nda_01",
+      "verbatim_quote": "Each party must protect confidential information received from the other party with the same degree of care it uses for its own sensitive information.",
+      "clause_text": "Section 2. Confidentiality Obligations. Each party must protect confidential information received from the other party with the same degree of care it uses for its own sensitive information.",
+      "subject": "Each party",
+      "predicate": "must_protect_confidential_information",
+      "object": "confidential information",
+      "claim_type": "RULE",
+      "expected_tier": "AUTOMATED_CERTIFIED"
+    },
+    {
+      "claim_id": "nda_02_negative_modal",
+      "verbatim_quote": "Neither party will disclose confidential information to any third party without prior written consent.",
+      "clause_text": "Neither party will disclose confidential information to any third party without prior written consent.",
+      "subject": "Neither party",
+      "predicate": "must_not_disclose_confidential_information",
+      "object": "confidential information",
+      "claim_type": "RULE",
+      "expected_tier": "AUTOMATED_CERTIFIED"
+    },
+    {
+      "claim_id": "nda_03_waiver",
+      "verbatim_quote": "Either party requires written signed waiver for any modification or waiver of rights under this Agreement.",
+      "clause_text": "Section 6. Waivers. Either party requires written signed waiver for any modification or waiver of rights under this Agreement.",
+      "subject": "Either party",
+      "predicate": "requires_written_signed_waiver",
+      "object": "waiver",
+      "claim_type": "RULE",
+      "expected_tier": "AUTOMATED_CERTIFIED"
+    },
+    {
+      "claim_id": "nda_04_definition",
+      "verbatim_quote": "Confidential Information refers to non-public technical and business information.",
+      "clause_text": "Definition: Confidential Information refers to non-public technical and business information.",
+      "subject": "Confidential Information",
+      "predicate": "refer_to",
+      "object": "non-public information",
+      "claim_type": "DEFINITION",
+      "expected_tier": "NON_RULE"
+    }
+  ]
+}

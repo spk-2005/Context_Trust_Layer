@@ -19,6 +19,7 @@ from app.decision_engine.evaluator import DecisionEvaluator
 from app.schemas.context import ContextQueryRequest
 from app.schemas.decision import DecisionActor, DecisionContextItem, DecisionEvaluateRequest
 from app.retrieval.engine import ContextRetrievalEngine
+from app.services.claim_gate_evaluator import ClaimGateEvaluator
 
 
 MCP_PROTOCOL_VERSION = "2024-11-05"
@@ -424,6 +425,20 @@ async def handle_get_trusted_context(session: AsyncSession, args: Dict[str, Any]
 
         for c in matched_claims:
             score = float(c.trust_scores[0].overall_score) if c.trust_scores else 0.94
+            gate_res = ClaimGateEvaluator.evaluate(
+                claim_id=str(c.id),
+                subject=c.subject,
+                predicate=c.predicate,
+                object_val=c.object,
+                claim_text=c.claim_text,
+                claim_type=getattr(c, "claim_type", "policy"),
+                status=c.status.value if hasattr(c.status, "value") else str(c.status),
+                metadata=getattr(c, "claim_metadata", {}) or {},
+                confidence=score,
+            )
+            if not gate_res.all_9_gates_passed or not gate_res.agent_accessible:
+                continue
+
             doc_title = "Ssfa 01 01 Customer Refund & Disputes Policy"
             sec = "General"
             pg = 1
@@ -517,7 +532,21 @@ async def handle_evaluate_decision(session: AsyncSession, args: Dict[str, Any]) 
 
         sorted_fetched = sorted(fetched_claims, key=_score_candidate, reverse=True)
 
-        for fc in sorted_fetched[:5]:
+        for fc in sorted_fetched:
+            gate_res = ClaimGateEvaluator.evaluate(
+                claim_id=str(fc.id),
+                subject=fc.subject,
+                predicate=fc.predicate,
+                object_val=fc.object,
+                claim_text=fc.claim_text,
+                claim_type=getattr(fc, "claim_type", "policy"),
+                status=fc.status.value if hasattr(fc.status, "value") else str(fc.status),
+                metadata=getattr(fc, "claim_metadata", {}) or {},
+                confidence=float(fc.trust_scores[0].overall_score) if fc.trust_scores else 0.95,
+            )
+            if not gate_res.all_9_gates_passed or not gate_res.agent_accessible:
+                continue
+
             doc_title = "Ssfa 01 01 Customer Refund & Disputes Policy"
             if fc.evidence and fc.evidence[0].document:
                 doc_title = fc.evidence[0].document.title
@@ -530,6 +559,8 @@ async def handle_evaluate_decision(session: AsyncSession, args: Dict[str, Any]) 
                     scope="Enterprise"
                 )
             )
+            if len(context_items) >= 5:
+                break
 
     req = DecisionEvaluateRequest(
         decision=action_type,
@@ -617,6 +648,18 @@ async def handle_search_claims(session: AsyncSession, args: Dict[str, Any]) -> D
             page = c.evidence[0].page_number or 1
             ev_quotes = [ev.text_span for ev in c.evidence]
 
+        gate_res = ClaimGateEvaluator.evaluate(
+            claim_id=str(c.id),
+            subject=c.subject,
+            predicate=c.predicate,
+            object_val=c.object,
+            claim_text=c.claim_text,
+            claim_type=getattr(c, "claim_type", "policy"),
+            status=c.status.value if hasattr(c.status, "value") else str(c.status),
+            metadata=getattr(c, "claim_metadata", {}) or {},
+            confidence=score,
+        )
+
         items.append({
             "id": str(c.id),
             "text": c.claim_text,
@@ -629,6 +672,11 @@ async def handle_search_claims(session: AsyncSession, args: Dict[str, Any]) -> D
             "status": str(c.status),
             "claim_type": str(c.claim_type),
             "trust_score": score,
+            "all_9_gates_passed": gate_res.all_9_gates_passed,
+            "certification_tier": gate_res.certification_tier,
+            "is_canonical": gate_res.is_canonical,
+            "agent_accessible": gate_res.agent_accessible,
+            "gates": gate_res.gates,
             "evidence": ev_quotes,
             "evidence_count": len(c.evidence) if c.evidence else 0
         })
@@ -757,20 +805,34 @@ async def execute_mcp_resource(uri: str, session: AsyncSession) -> Dict[str, Any
     demo_org_id = uuid.UUID("11111111-1111-1111-1111-111111111111")
 
     if uri == "context://claims/verified":
-        stmt = select(Claim).where(Claim.organization_id == demo_org_id).limit(30)
+        stmt = select(Claim).where(Claim.organization_id == demo_org_id).limit(50)
         res = await session.execute(stmt)
         claims = res.scalars().all()
-        return {
-            "uri": uri,
-            "mimeType": "application/json",
-            "text": json.dumps([
-                {
+        certified_items = []
+        for c in claims:
+            gate_res = ClaimGateEvaluator.evaluate(
+                claim_id=str(c.id),
+                subject=c.subject,
+                predicate=c.predicate,
+                object_val=c.object,
+                claim_text=c.claim_text,
+                claim_type=getattr(c, "claim_type", "policy"),
+                status=c.status.value if hasattr(c.status, "value") else str(c.status),
+                metadata=getattr(c, "claim_metadata", {}) or {},
+            )
+            if gate_res.all_9_gates_passed and gate_res.agent_accessible:
+                certified_items.append({
                     "id": str(c.id),
                     "claim_text": c.claim_text,
                     "status": str(c.status),
+                    "tier": gate_res.certification_tier,
+                    "all_9_gates_passed": True,
                     "created_at": c.created_at.isoformat() if c.created_at else None
-                } for c in claims
-            ], indent=2)
+                })
+        return {
+            "uri": uri,
+            "mimeType": "application/json",
+            "text": json.dumps(certified_items, indent=2)
         }
 
     elif uri == "context://documents/active":
@@ -851,13 +913,32 @@ async def execute_mcp_resource(uri: str, session: AsyncSession) -> Dict[str, Any
             res = await session.execute(stmt)
             claim = res.scalar_one_or_none()
             if claim:
+                gate_res = ClaimGateEvaluator.evaluate(
+                    claim_id=str(claim.id),
+                    subject=claim.subject,
+                    predicate=claim.predicate,
+                    object_val=claim.object,
+                    claim_text=claim.claim_text,
+                    claim_type=getattr(claim, "claim_type", "policy"),
+                    status=claim.status.value if hasattr(claim.status, "value") else str(claim.status),
+                    metadata=getattr(claim, "claim_metadata", {}) or {},
+                )
                 return {
                     "uri": uri,
                     "mimeType": "application/json",
                     "text": json.dumps({
                         "id": str(claim.id),
                         "claim_text": claim.claim_text,
+                        "subject": claim.subject,
+                        "predicate": claim.predicate,
+                        "object": claim.object,
                         "status": str(claim.status),
+                        "all_9_gates_passed": gate_res.all_9_gates_passed,
+                        "certification_tier": gate_res.certification_tier,
+                        "is_canonical": gate_res.is_canonical,
+                        "agent_accessible": gate_res.agent_accessible,
+                        "gates": gate_res.gates,
+                        "rejection_reasons": gate_res.rejection_reasons,
                         "created_at": claim.created_at.isoformat() if claim.created_at else None
                     }, indent=2)
                 }

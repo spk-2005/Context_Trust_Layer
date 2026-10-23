@@ -26,6 +26,7 @@ from app.schemas.context import (
     ContextSourceInfo,
     ContextValidityInfo,
 )
+from app.services.claim_gate_evaluator import ClaimGateEvaluator
 
 
 class ContextRetrievalEngine:
@@ -168,39 +169,32 @@ class ContextRetrievalEngine:
             included = True
             exclusion_reason = None
 
-            # Hard Gate: Defective Subject and Address/Header Leakage Patterns
-            subj_lower = (claim.subject or "").lower()
-            text_lower = claim.claim_text.lower()
-            is_bad_subject = (
-                "the following" in subj_lower
-                or "page 8 of 11" in subj_lower
-                or ("page 8" in text_lower and "modifications to this" in text_lower)
-                or ("reno" in text_lower and "sierra center" in text_lower)
-                or "without limiting other remedies" in subj_lower
-                or "without limiting other remedies" in text_lower
-                or "any attempted assignment" in subj_lower
-                or "failure to enforce" in subj_lower
-                or (subj_lower == "assignment" and claim.predicate == "relieve")
-                or (claim.predicate == "the")
+            # Universal Hard Governance Gate Evaluation
+            gate_res = ClaimGateEvaluator.evaluate(
+                claim_text=claim.claim_text,
+                subject=claim.subject,
+                predicate=claim.predicate,
+                object_text=claim.object,
+                claim_type=claim.claim_type,
+                status=claim.status.value if hasattr(claim.status, "value") else str(claim.status),
+                confidence_or_trust=latest_score,
             )
-
-            # Hard Gate: Non-rule and Defective Claim Types
-            ct_lower = (claim.claim_type or "").lower()
-            is_non_rule = ct_lower in [
-                "reference", "description", "definition", "responsibility",
-                "fragment", "section_marker", "duplicate", "quarantined",
-                "example", "derived_summary", "summary"
-            ]
 
             if not is_valid:
                 included = False
                 exclusion_reason = "Claim validity window has expired."
-            elif is_bad_subject:
+            elif not gate_res.subject_valid:
                 included = False
                 exclusion_reason = "Hard Gate Rejected: Defective extraction fragment or invalid subject entity."
-            elif is_non_rule:
+            elif not gate_res.claim_type_allowed:
                 included = False
                 exclusion_reason = f"Hard Gate Excluded: Claim type '{claim.claim_type}' is non-normative context, not a policy rule."
+            elif not gate_res.is_atomic:
+                included = False
+                exclusion_reason = "Hard Gate Excluded: Compound multi-part rule must be decomposed into atomic propositions."
+            elif not gate_res.all_9_gates_passed:
+                included = False
+                exclusion_reason = f"Hard Governance Gate Failed: {'; '.join(gate_res.rejection_reasons)}."
             elif claim.status in [ClaimStatus.CONFLICTED, ClaimStatus.REJECTED, ClaimStatus.CANDIDATE]:
                 included = False
                 exclusion_reason = f"Claim status '{claim.status.value}' is blocked from agent retrieval."
@@ -211,14 +205,7 @@ class ContextRetrievalEngine:
                 included = False
                 exclusion_reason = "Claim not relevant to query."
             else:
-                # Enforce Sprint AE-3 Trust Tier Gate: Only certified tiers accessible
-                is_canonical_rule = (
-                    claim.status in [ClaimStatus.ACTIVE, ClaimStatus.VERIFIED]
-                    and ct_lower in ["rule", "policy_rule", "policy"]
-                    and not is_bad_subject
-                    and not is_non_rule
-                )
-                final_tier = getattr(claim, "certification_status", None) or ("AUTOMATED_CERTIFIED" if is_canonical_rule else "REVIEW_REQUIRED")
+                final_tier = gate_res.certification_tier
                 claim_tier_eval = {
                     "candidate_id": str(claim.id),
                     "final_state": final_tier,

@@ -44,6 +44,7 @@ from app.schemas.data_source import (
 )
 from app.schemas.source_scope import SourceInventoryItem, SourceInventoryResponse
 from app.services.activity_service import ActivityService
+from app.services.claim_gate_evaluator import ClaimGateEvaluator
 
 router = APIRouter(prefix="/sources", tags=["sources"])
 
@@ -990,6 +991,17 @@ async def get_source_artifacts(
         for c in claims:
             score = c.trust_scores[0].overall_score if c.trust_scores else 0.95
             validity = c.validity_records[0].validity_status if c.validity_records else "valid"
+            gate_res = ClaimGateEvaluator.evaluate(
+                claim_id=str(c.id),
+                subject=c.subject,
+                predicate=c.predicate,
+                object_val=c.object,
+                claim_text=c.claim_text,
+                claim_type=getattr(c, "claim_type", "policy"),
+                status=c.status.value if hasattr(c.status, "value") else str(c.status),
+                metadata=getattr(c, "claim_metadata", {}) or {},
+                confidence=float(score),
+            )
             claims_output.append({
                 "id": str(c.id),
                 "subject": c.subject or "General",
@@ -999,7 +1011,13 @@ async def get_source_artifacts(
                 "status": c.status.value if hasattr(c.status, "value") else str(c.status),
                 "trust_score": float(score),
                 "validity": str(validity),
-                "created_at": c.created_at.isoformat() if c.created_at else None
+                "created_at": c.created_at.isoformat() if c.created_at else None,
+                "gates": gate_res.gates,
+                "all_9_gates_passed": gate_res.all_9_gates_passed,
+                "is_canonical": gate_res.is_canonical,
+                "agent_accessible": gate_res.agent_accessible,
+                "certification_tier": gate_res.certification_tier,
+                "rejection_reasons": gate_res.rejection_reasons,
             })
 
     return {

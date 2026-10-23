@@ -1,0 +1,48 @@
+{
+  "document_id": "SYN-DOC-004",
+  "document_type": "employment_agreement",
+  "title": "Executive Employment and Proprietary Information Agreement",
+  "content": "Section 3. Inventions and Work Product. Employee assigns inventions and work product created during employment to Company. Section 5. Restrictive Covenants. During employment and for 12 months thereafter, Employee must not solicit employees of the Company. Employee must not compete in the defined territory without prior written approval. Grammar fragment: Termination without cause will not affect accrued wages.",
+  "claims": [
+    {
+      "claim_id": "emp_01",
+      "verbatim_quote": "Employee assigns inventions and work product created during employment to Company.",
+      "clause_text": "Section 3. Inventions and Work Product. Employee assigns inventions and work product created during employment to Company.",
+      "subject": "Employee",
+      "predicate": "assigns_inventions_and_work_product",
+      "object": "inventions and work product",
+      "claim_type": "RULE",
+      "expected_tier": "AUTOMATED_CERTIFIED"
+    },
+    {
+      "claim_id": "emp_02_non_solicit",
+      "verbatim_quote": "Employee must not solicit employees of the Company.",
+      "clause_text": "During employment and for 12 months thereafter, Employee must not solicit employees of the Company.",
+      "subject": "Employee",
+      "predicate": "must_not_solicit_employees",
+      "object": "employees",
+      "claim_type": "RULE",
+      "expected_tier": "AUTOMATED_CERTIFIED"
+    },
+    {
+      "claim_id": "emp_03_non_compete",
+      "verbatim_quote": "Employee must not compete in the defined territory without prior written approval.",
+      "clause_text": "Employee must not compete in the defined territory without prior written approval.",
+      "subject": "Employee",
+      "predicate": "must_not_compete",
+      "object": "defined territory",
+      "claim_type": "RULE",
+      "expected_tier": "AUTOMATED_CERTIFIED"
+    },
+    {
+      "claim_id": "emp_04_bad_subject",
+      "verbatim_quote": "Termination without cause will not affect accrued wages.",
+      "clause_text": "Termination without cause will not affect accrued wages.",
+      "subject": "Termination without cause",
+      "predicate": "affect",
+      "object": "accrued wages",
+      "claim_type": "RULE",
+      "expected_tier": "REVIEW_REQUIRED"
+    }
+  ]
+}

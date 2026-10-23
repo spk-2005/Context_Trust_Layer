@@ -70,6 +70,9 @@ class ClaimResponse(BaseModel):
     is_canonical: bool = False
     certification_tier: str = "PROVISIONAL"
     agent_accessible: bool = False
+    all_9_gates_passed: bool = False
+    gates: dict[str, bool] = {}
+    rejection_reasons: list[str] = []
     evidence: list[ClaimEvidenceResponse] = []
     validity_records: list[ClaimValidityResponse] = []
     trust_scores: list[ClaimTrustScoreResponse] = []
@@ -78,39 +81,30 @@ class ClaimResponse(BaseModel):
 
     @model_validator(mode="after")
     def populate_v3_certification(self) -> "ClaimResponse":
-        st = self.status
-        ct = (self.claim_type or "").lower()
-        subj = (self.subject or "").lower()
-        text_val = (self.claim_text or "").lower()
-        is_bad = (
-            "the following" in subj
-            or "page 8 of 11" in subj
-            or ("page 8" in text_val and "modifications to this" in text_val)
-            or ("reno" in text_val and "sierra center" in text_val)
-            or "without limiting other remedies" in subj
-            or "without limiting other remedies" in text_val
-            or "any attempted assignment" in subj
-            or "failure to enforce" in subj
-            or (subj == "assignment" and (self.predicate or "") == "relieve")
-            or ((self.predicate or "") == "the")
+        from app.services.claim_gate_evaluator import ClaimGateEvaluator
+
+        trust_val = 0.95
+        if self.trust_scores and len(self.trust_scores) > 0:
+            trust_val = float(self.trust_scores[0].overall_score)
+
+        ev_snip = self.evidence[0].text_span if self.evidence and len(self.evidence) > 0 else None
+
+        res = ClaimGateEvaluator.evaluate(
+            claim_text=self.claim_text,
+            subject=self.subject,
+            predicate=self.predicate,
+            object_text=self.object,
+            claim_type=self.claim_type,
+            status=self.status.value if hasattr(self.status, "value") else str(self.status),
+            evidence_snippet=ev_snip,
+            confidence_or_trust=trust_val,
         )
-        is_rule = (
-            st == ClaimStatus.VERIFIED
-            and ct in ("rule", "policy_rule", "policy")
-            and not is_bad
-        )
-        self.is_canonical = is_rule
-        self.agent_accessible = is_rule
-        if is_rule:
-            self.certification_tier = "AUTOMATED_CERTIFIED"
-        elif st == ClaimStatus.REJECTED or is_bad or ct in ("fragment", "duplicate"):
-            self.certification_tier = "REJECTED"
-        elif ct == "quarantined":
-            self.certification_tier = "QUARANTINED"
-        elif ct in ("definition", "description", "reference", "responsibility"):
-            self.certification_tier = "NON_RULE"
-        else:
-            self.certification_tier = "REVIEW_REQUIRED"
+        self.gates = res.gates
+        self.all_9_gates_passed = res.all_9_gates_passed
+        self.is_canonical = res.is_canonical
+        self.agent_accessible = res.agent_accessible
+        self.certification_tier = res.certification_tier
+        self.rejection_reasons = res.rejection_reasons
         return self
 
 
