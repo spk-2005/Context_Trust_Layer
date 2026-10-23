@@ -82,6 +82,7 @@ CANONICAL_SUBJECT_ALLOWLIST: Set[str] = {
     "Product", "Products", "Software", "Service", "Services", "Subscription",
     "Order", "Refund request", "Deliverable", "Deliverables",
     "Documentation", "Data", "Confidential Information", "Account", "Invoice",
+    "Waiver", "Notice",
 }
 
 SUBJECT_REPAIR_MAP: Dict[str, str] = {
@@ -224,20 +225,21 @@ CONTROLLED_PREDICATE_VOCABULARY: Dict[str, str] = {
     "warrants_software_performance": "Microsoft warrants Software will perform substantially as described for one year",
     "warrants_professional_standards": "Microsoft warrants Professional Services will meet industry standards of care",
     "must_notify_warranty_claim_within_window": "Customer must notify warranty claim within 90 days from completion of work",
+    "has_professional_services_remedy_window": "Customer warranty notification remedy window for professional services",
     "must_defend_ip_claims": "Party will defend the other against third-party intellectual property infringement claims",
     "must_provide_defense_cooperation": "Defended party must provide prompt written notice and requested assistance for defense",
 
     # Liability Limits & Exclusions
-    "has_liability_cap": "Party aggregate liability is limited to fees paid in prior 12 months (or license fee for perpetual)",
+    "has_liability_cap": "Party aggregate liability is limited to amounts required to pay in prior 12 months (or license fee for perpetual)",
     "excludes_consequential_damages": "Neither party will be liable for indirect, incidental, special, punitive, or consequential damages",
 
-    # Partners & Resellers
-    "must_select_replacement_partner": "Customer must select replacement Partner or buy direct if Partner rights terminate",
-    "may_terminate_partner_privileges": "Customer may terminate Partner administrative privileges at any time",
+    # Compliance & Remedies
+    "must_remediate_unlicensed_use_within_30_days": "Customer must order sufficient licenses within 30 days to cover unlicensed use",
 
     # Invoicing, Payment & Late Fees
     "must_provide_payment_method": "Customer must provide valid payment method or choose invoicing if eligible",
     "must_pay_within_30_days": "Customer will pay all invoiced amounts due within thirty (30) calendar days following invoice date",
+    "must_pay_unpaid_invoices_immediately": "Customer must pay all amounts due under unpaid invoices immediately upon termination",
     "may_assess_late_fee": "Microsoft may assess a late fee of up to 2% monthly on payments overdue by more than 15 calendar days",
     "authorizes_recurring_charges": "Customer authorizes Microsoft to periodically charge payment method for auto-renewing subscriptions",
     "must_pay_applicable_taxes": "Customer will pay applicable VAT, sales, and transaction taxes owed under the Agreement",
@@ -254,6 +256,8 @@ CONTROLLED_PREDICATE_VOCABULARY: Dict[str, str] = {
     "will_receive_refund_on_breach": "Customer will receive credit or refund for advance payments for period after termination",
     "must_provide_notice_before_suspension": "Microsoft will give Customer 30 days notice before suspension for material breach",
     "must_stop_use_and_disable_billing": "Customer must stop using Products and turn off recurring billing if it rejects modifications",
+    "may_modify_or_discontinue_products": "Microsoft may modify or discontinue offering a Product or Professional Service",
+
 
     # Modifications, Assignment & Governance
     "may_update_agreement": "Microsoft may update Agreement from time to time, applying to new orders and renewals",
@@ -278,27 +282,22 @@ CONTROLLED_PREDICATE_VOCABULARY: Dict[str, str] = {
     "varies_by_region": "Product availability may vary by geographical region",
 }
 
-# Vague predicate transformation lookup
+# Vague predicate transformation lookup (only for unambiguous semantic mappings)
 VAGUE_PREDICATE_REPLACEMENT: Dict[str, str] = {
     "customer": "grants_product_license",
     "order": "may_order_for_affiliate",
     "use": "may_use_preexisting_work",
     "become": "becomes_due_immediately",
     "approved": "requires_written_approval",
-    "in": "requires_written_notice",
     "vary": "varies_by_region",
     "apply_to": "applies_to_contract_orders",
     "give": "must_provide_notice_before_suspension",
     "withdraw": "may_withdraw_invoicing_eligibility",
-    "modify": "must_not_modify_agreement",
     "suspend": "may_suspend_for_security_or_breach",
-    "perform": "warrants_professional_standards",
     "terminate": "may_terminate_without_cause",
-    "pay": "must_pay_within_30_days",
     "defend": "must_defend_ip_claims",
     "comply_with": "must_comply_with_trade_laws",
     "disclose": "prohibited_from_unauthorized_disclosure",
-    "authorizes": "authorizes_recurring_charges",
     "can_cancel_before_shipment": "has_cancellation_fee_policy",
     "has_validity_rule": "governs_contract_validity",
     "has_rma_generation_behavior": "may_provide_electronic_notice",
@@ -688,8 +687,9 @@ class ClaimQualityNormalizer:
             return "prohibited_from_licensing_interference"
 
         if p_clean == "in":
-            if "writing" in object_text.lower():
-                return "requires_written_agreement" if "waiver" in subject.lower() else "must_be_in_writing"
+            obj_lower = object_text.lower()
+            if "writing" in obj_lower:
+                return "must_be_in_writing"
             return "requires_written_notice"
 
         if p_clean == "become":
@@ -711,20 +711,49 @@ class ClaimQualityNormalizer:
             return "may_terminate_without_cause"
 
         if p_clean == "pay":
-            if "unpaid" in object_text.lower():
+            obj_lower = object_text.lower()
+            if "immediately" in obj_lower or "upon receipt" in obj_lower:
+                return "must_pay_unpaid_invoices_immediately"
+            if "before termination" in obj_lower or "prior to termination" in obj_lower:
+                return "must_pay_for_services_before_termination"
+            if "unpaid" in obj_lower:
                 return "must_pay_unpaid_usage"
-            if "tax" in object_text.lower():
+            if "tax" in obj_lower:
                 return "must_pay_applicable_taxes"
-            if "late" in object_text.lower():
+            if "late" in obj_lower:
                 return "may_assess_late_fee"
-            return "must_pay_within_30_days"
+            if "30 days" in obj_lower or "thirty" in obj_lower:
+                return "must_pay_within_30_days"
+            return "must_pay_invoices"
+
+        if p_clean in ("authorizes", "authorize"):
+            obj_lower = object_text.lower()
+            if any(k in obj_lower for k in ("credit", "financial", "invoicing", "eligibility")):
+                return "authorizes_financial_assessment"
+            if any(k in obj_lower for k in ("recurring", "periodically", "renewal", "automatic")):
+                return "authorizes_recurring_charges"
+            return "authorizes_financial_assessment"
+
+        if p_clean in ("perform", "performs"):
+            obj_lower = object_text.lower()
+            if any(k in obj_lower for k in ("affiliate", "subcontractor")):
+                return "may_perform_through_affiliates_and_subcontractors"
+            if any(k in obj_lower for k in ("standard", "care", "skill", "warrant", "warranty")):
+                return "warrants_professional_standards"
+            return "may_perform_through_affiliates_and_subcontractors"
+
+        if p_clean in ("modify", "modifies"):
+            obj_lower = object_text.lower()
+            if any(k in obj_lower for k in ("discontinue", "may modify", "regulatory", "regulation")):
+                return "may_modify_or_discontinue_product"
+            return "must_not_modify_agreement"
 
         if p_clean == "defend":
             if any(w in object_text.lower() for w in ("infringement", "claim", "ip", "intellectual property", "third-party")):
                 return "must_defend_ip_claims"
             return "must_provide_defense_cooperation"
 
-        if p_clean == "disclose":
+        if p_clean in ("disclose", "discloses"):
             if "law" in object_text.lower() or "legal" in object_text.lower():
                 return "may_disclose_under_legal_mandate"
             return "prohibited_from_unauthorized_disclosure"
