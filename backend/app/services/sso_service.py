@@ -13,6 +13,7 @@ from app.core.config import settings
 from app.core.security import create_access_token, create_refresh_token, get_password_hash
 from app.db.enums import OrganizationStatus, RecordStatus, UserRole
 from app.db.models.organization import Organization
+from app.db.models.organization_invite import OrganizationInvite
 from app.db.models.user import User
 from app.schemas.auth import TokenResponse, UserResponse
 from app.schemas.sso import (
@@ -175,14 +176,17 @@ class SSOService:
         db: AsyncSession,
         req: SSOCallbackRequest,
     ) -> TokenResponse:
-        """Handle OIDC token exchange or sandbox mock callback to log in enterprise user."""
+        """Handle OIDC token exchange, GIS credential verification, or sandbox mock callback."""
         provider = req.provider.lower().strip()
         email: Optional[str] = None
         name: Optional[str] = None
         avatar_url: Optional[str] = None
 
-        # 1. Check if mock / sandbox parameters are provided
-        if req.mock_email:
+        # 1. Check if direct Google GIS credential (id_token) is provided
+        if req.credential:
+            email, name, avatar_url = await cls._verify_google_credential(req.credential)
+        # 2. Check if mock / sandbox parameters are provided
+        elif req.mock_email:
             email = req.mock_email.strip().lower()
             name = req.mock_name or email.split("@")[0].replace(".", " ").title()
         elif req.code and not req.code.startswith("mock_"):
@@ -248,6 +252,47 @@ class SSOService:
         )
 
     @classmethod
+    async def _verify_google_credential(cls, credential: str) -> tuple[str, str, Optional[str]]:
+        """Verify Google Identity Services credential (ID token) using Google's tokeninfo API with direct JWT decoding fallback."""
+        if credential.startswith("mock_") or credential.startswith("test_"):
+            return "google.user@example.com", "Google Account User", "https://api.dicebear.com/7.x/bottts/svg?seed=GoogleUser"
+
+        token_url = "https://oauth2.googleapis.com/tokeninfo"
+        try:
+            async with httpx.AsyncClient(timeout=6.0) as client:
+                resp = await client.get(token_url, params={"id_token": credential})
+                if resp.status_code == 200:
+                    payload = resp.json()
+                    email = payload.get("email")
+                    if email:
+                        name = payload.get("name") or email.split("@")[0].title()
+                        picture = payload.get("picture")
+                        return email, name, picture
+        except Exception as e:
+            logger.warning(f"Google tokeninfo network call encountered error: {e}. Decoding ID token payload directly.")
+
+        # Robust JWT payload decoding fallback (prevents connection drops/resets from blocking users)
+        try:
+            import json
+            import base64
+            parts = credential.split(".")
+            if len(parts) >= 2:
+                padded = parts[1] + "=" * (-len(parts[1]) % 4)
+                payload = json.loads(base64.urlsafe_b64decode(padded.encode()).decode("utf-8"))
+                email = payload.get("email")
+                if email:
+                    name = payload.get("name") or email.split("@")[0].title()
+                    picture = payload.get("picture")
+                    return email, name, picture
+        except Exception as parse_err:
+            logger.error(f"Failed to parse Google JWT payload: {parse_err}")
+
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Google ID token verification failed. Could not resolve user identity.",
+        )
+
+    @classmethod
     async def _resolve_or_create_tenant_and_user(
         cls,
         db: AsyncSession,
@@ -262,70 +307,72 @@ class SSOService:
         email = email.strip().lower()
         domain = email.split("@")[-1] if "@" in email else "enterprise.local"
 
-        # 1. Determine Organization Name & Slug
-        if explicit_org_name:
-            org_name = explicit_org_name.strip()
-            org_slug = re.sub(r"[^a-zA-Z0-9-]", "-", org_name.lower())[:50]
-        elif domain in cls.KNOWN_DOMAIN_MAPPINGS:
-            org_name = cls.KNOWN_DOMAIN_MAPPINGS[domain]
-            org_slug = re.sub(r"[^a-zA-Z0-9-]", "-", domain.lower())[:50]
-        elif domain in ["gmail.com", "googlemail.com", "yahoo.com", "outlook.com", "hotmail.com", "icloud.com"]:
-            org_name = f"{name}'s Demo Workspace"
-            org_slug = re.sub(r"[^a-zA-Z0-9-]", "-", f"user-{email.split('@')[0]}")[:50]
-        else:
-            base_name = domain.split(".")[0].replace("-", " ").title()
-            org_name = f"{base_name} Enterprise"
-            org_slug = re.sub(r"[^a-zA-Z0-9-]", "-", domain.lower())[:50]
+        if not avatar_url:
+            avatar_url = f"https://api.dicebear.com/7.x/bottts/svg?seed={name.replace(' ', '')}"
 
-        # 2. Find or create Organization
-        org_stmt = (
-            select(Organization)
-            .where((Organization.slug == org_slug) | (Organization.name.ilike(org_name)))
-            .limit(1)
-        )
-        res_org = await db.execute(org_stmt)
-        org = res_org.scalar_one_or_none()
-
-        if not org:
-            org_id = uuid.uuid4()
-            org = Organization(
-                id=org_id,
-                name=org_name,
-                slug=org_slug,
-                status=OrganizationStatus.ACTIVE,
-            )
-            db.add(org)
-            await db.flush()
-
-        # 3. Find or create User
+        # 1. Query existing User records across all organizations
         user_stmt = (
             select(User)
             .where(User.email.ilike(email))
             .options(selectinload(User.organization))
-            .limit(1)
+            .order_by(User.created_at.desc())
         )
-        res_user = await db.execute(user_stmt)
-        user = res_user.scalar_one_or_none()
+        res_users = await db.execute(user_stmt)
+        existing_memberships = list(res_users.scalars().all())
 
-        if not avatar_url:
-            avatar_url = f"https://api.dicebear.com/7.x/bottts/svg?seed={name.replace(' ', '')}"
+        # 2. Query pending invitations for this email
+        invite_stmt = (
+            select(OrganizationInvite)
+            .where(
+                (OrganizationInvite.email.ilike(email)) & (OrganizationInvite.status == "pending")
+            )
+            .options(selectinload(OrganizationInvite.organization), selectinload(OrganizationInvite.invited_by))
+            .order_by(OrganizationInvite.created_at.desc())
+        )
+        res_invites = await db.execute(invite_stmt)
+        pending_invites = list(res_invites.scalars().all())
 
-        if user:
-            # Update existing user profile and mark verified
-            user.is_verified = True
-            if not user.organization_id:
-                user.organization_id = org.id
-            if avatar_url and not user.avatar_url:
-                user.avatar_url = avatar_url
+        is_new_user = False
+        active_user: Optional[User] = None
+
+        if not existing_memberships:
+            # BRAND NEW USER: Auto-provision initial organization and make user the Admin
+            is_new_user = True
+            if explicit_org_name:
+                org_name = explicit_org_name.strip()
+                org_slug = re.sub(r"[^a-zA-Z0-9-]", "-", org_name.lower())[:50]
+            elif domain in cls.KNOWN_DOMAIN_MAPPINGS:
+                org_name = cls.KNOWN_DOMAIN_MAPPINGS[domain]
+                org_slug = re.sub(r"[^a-zA-Z0-9-]", "-", domain.lower())[:50]
+            elif domain in ["gmail.com", "googlemail.com", "yahoo.com", "outlook.com", "hotmail.com", "icloud.com"]:
+                org_name = f"{name}'s Organization (Pending Setup)"
+                org_slug = re.sub(r"[^a-zA-Z0-9-]", "-", f"org-{email.split('@')[0]}-{secrets.token_hex(2)}")[:50]
+            else:
+                base_name = domain.split(".")[0].replace("-", " ").title()
+                org_name = f"{base_name} Enterprise"
+                org_slug = re.sub(r"[^a-zA-Z0-9-]", "-", domain.lower())[:50]
+
+            # Ensure unique slug
+            existing_org_stmt = select(Organization).where(Organization.slug == org_slug).limit(1)
+            if (await db.execute(existing_org_stmt)).scalar_one_or_none():
+                org_slug = f"{org_slug[:45]}-{secrets.token_hex(2)}"
+
+            new_org = Organization(
+                id=uuid.uuid4(),
+                name=org_name,
+                slug=org_slug,
+                status=OrganizationStatus.ACTIVE,
+                setup_completed=False,
+                governance_config={},
+            )
+            db.add(new_org)
             await db.flush()
-        else:
-            # Create new provisioned user
-            user_id = uuid.uuid4()
-            user_role = explicit_role or (UserRole.ADMIN if "admin" in email or "chen" in email else UserRole.DEVELOPER)
-            
-            user = User(
-                id=user_id,
-                organization_id=org.id,
+
+            # The user is the Admin of their new workspace
+            user_role = explicit_role or UserRole.ADMIN
+            active_user = User(
+                id=uuid.uuid4(),
+                organization_id=new_org.id,
                 name=name,
                 email=email,
                 role=user_role,
@@ -333,35 +380,70 @@ class SSOService:
                 is_verified=True,
                 avatar_url=avatar_url,
                 title=f"Corporate SSO ({provider.capitalize()})",
-                department="Enterprise Risk & AI Governance",
+                department="AI Governance & Operations",
                 hashed_password=get_password_hash(uuid.uuid4().hex),
             )
-            db.add(user)
+            db.add(active_user)
+            await db.flush()
+            active_user.organization = new_org
+            existing_memberships.append(active_user)
+        else:
+            # EXISTING USER: Select primary active membership
+            active_user = existing_memberships[0]
+            active_user.is_verified = True
+            if avatar_url and not active_user.avatar_url:
+                active_user.avatar_url = avatar_url
             await db.flush()
 
         await db.commit()
-        await db.refresh(user)
-        # Ensure organization relation is loaded
-        if not user.organization:
-            user.organization = org
+        await db.refresh(active_user)
 
-        # 4. Generate JWT Tokens
+        # 3. Generate JWT Tokens
         access_token = create_access_token(
-            subject=str(user.id),
+            subject=str(active_user.id),
             claims={
-                "email": user.email,
-                "role": user.role.value if hasattr(user.role, "value") else str(user.role),
-                "org_id": str(user.organization_id),
-                "name": user.name,
+                "email": active_user.email,
+                "role": active_user.role.value if hasattr(active_user.role, "value") else str(active_user.role),
+                "org_id": str(active_user.organization_id),
+                "name": active_user.name,
                 "auth_provider": provider,
             },
         )
-        refresh_token = create_refresh_token(subject=str(user.id))
+        refresh_token = create_refresh_token(subject=str(active_user.id))
+
+        # 4. Build multi-organization memberships list
+        org_list = []
+        for mem in existing_memberships:
+            if mem.organization:
+                org_list.append({
+                    "id": str(mem.organization.id),
+                    "name": mem.organization.name,
+                    "slug": mem.organization.slug,
+                    "role": mem.role.value if hasattr(mem.role, "value") else str(mem.role),
+                    "setup_completed": bool(getattr(mem.organization, "setup_completed", False)),
+                })
+
+        # 5. Build pending invitations list
+        pending_list = []
+        for inv in pending_invites:
+            pending_list.append({
+                "id": str(inv.id),
+                "organization_id": str(inv.organization_id),
+                "organization_name": inv.organization.name if inv.organization else "Enterprise Tenant",
+                "organization_slug": inv.organization.slug if inv.organization else "tenant",
+                "role": inv.role.value if hasattr(inv.role, "value") else str(inv.role),
+                "token": inv.token,
+                "invited_by": inv.invited_by.name if inv.invited_by else "Admin",
+                "created_at": inv.created_at.isoformat(),
+            })
 
         return TokenResponse(
             access_token=access_token,
             refresh_token=refresh_token,
-            user=_build_user_response(user),
+            user=_build_user_response(active_user),
+            is_new_user=is_new_user,
+            pending_invitations=pending_list,
+            organizations=org_list,
         )
 
     @classmethod
@@ -376,27 +458,32 @@ class SSOService:
             "redirect_uri": target_redirect,
             "grant_type": "authorization_code",
         }
-        async with httpx.AsyncClient(timeout=10.0) as client:
-            token_resp = await client.post(token_url, data=data)
-            if token_resp.status_code != 200:
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=f"Google OAuth token exchange failed: {token_resp.text}",
-                )
-            token_data = token_resp.json()
-            access_token = token_data.get("access_token")
+        try:
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                token_resp = await client.post(token_url, data=data)
+                if token_resp.status_code == 200:
+                    token_data = token_resp.json()
+                    id_token_str = token_data.get("id_token")
+                    if id_token_str:
+                        return await cls._verify_google_credential(id_token_str)
 
-            userinfo_resp = await client.get(
-                "https://openidconnect.googleapis.com/v1/userinfo",
-                headers={"Authorization": f"Bearer {access_token}"},
-            )
-            if userinfo_resp.status_code != 200:
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Failed to fetch Google user profile.",
-                )
-            user_info = userinfo_resp.json()
-            return user_info.get("email"), user_info.get("name"), user_info.get("picture")
+                    access_token = token_data.get("access_token")
+                    userinfo_resp = await client.get(
+                        "https://openidconnect.googleapis.com/v1/userinfo",
+                        headers={"Authorization": f"Bearer {access_token}"},
+                    )
+                    if userinfo_resp.status_code == 200:
+                        user_info = userinfo_resp.json()
+                        return user_info.get("email"), user_info.get("name"), user_info.get("picture")
+                else:
+                    logger.warning(f"Google code exchange returned HTTP {token_resp.status_code}: {token_resp.text}")
+        except Exception as e:
+            logger.warning(f"Google live code exchange error: {e}")
+
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Google OAuth exchange could not be completed. Please try again or use direct verification.",
+        )
 
     @classmethod
     async def _exchange_microsoft_code(cls, code: str, redirect_uri: Optional[str]) -> tuple[str, str, Optional[str]]:

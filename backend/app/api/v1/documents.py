@@ -20,6 +20,7 @@ from app.db.models.claim_conflict import ClaimConflict
 from app.db.models.data_source import DataSource
 from app.db.models.document import Document
 from app.db.models.document_version import DocumentVersion
+from app.db.models.folder import Folder
 from app.db.models.organization import Organization
 from app.db.repositories.document_repository import DocumentRepository
 from app.ingestion.document_ingestion import DocumentIngestionService
@@ -32,6 +33,7 @@ from app.schemas.document import (
     DocumentResponse,
     DocumentVersionResponse,
 )
+from app.schemas.folder import DocumentMoveRequest
 from app.services.activity_service import ActivityService
 from app.services.claim_gate_evaluator import ClaimGateEvaluator
 
@@ -86,6 +88,25 @@ async def _ensure_source_exists(db: AsyncSession, organization_id: uuid.UUID, so
     db.add(new_source)
     await db.flush()
     return new_src_id
+
+
+async def _ensure_folder_exists(db: AsyncSession, organization_id: uuid.UUID, folder_id: uuid.UUID | None) -> uuid.UUID:
+    """Resolves folder_id within the organization, falling back to the organization's system Inbox."""
+    from app.services.folder_service import FolderService
+    folder_service = FolderService(db)
+    if folder_id:
+        res = await db.execute(
+            select(Folder.id).where(
+                Folder.id == folder_id,
+                Folder.organization_id == organization_id,
+            )
+        )
+        existing = res.scalar_one_or_none()
+        if existing:
+            return existing
+
+    inbox = await folder_service.ensure_system_inbox(organization_id)
+    return inbox.id
 
 
 def _persist_uploaded_file_bytes(doc_id: uuid.UUID, filename: str, raw_bytes: bytes) -> None:
@@ -249,6 +270,7 @@ async def create_document(
         doc_in.document_type = doc_in.document_type.replace("\x00", "")
 
     doc_in.source_id = await _ensure_source_exists(db, doc_in.organization_id, doc_in.source_id)
+    doc_in.folder_id = await _ensure_folder_exists(db, doc_in.organization_id, doc_in.folder_id)
 
     ingestion_service = DocumentIngestionService(db)
 
@@ -266,6 +288,7 @@ async def create_document(
         id=document.id,
         organization_id=document.organization_id,
         source_id=document.source_id,
+        folder_id=document.folder_id,
         external_id=document.external_id,
         title=document.title,
         document_type=document.document_type,
@@ -296,6 +319,7 @@ async def upload_document_file(
     file: UploadFile = File(...),
     organization_id: uuid.UUID = Form(uuid.UUID("11111111-1111-1111-1111-111111111111")),
     source_id: uuid.UUID = Form(uuid.UUID("44444444-4444-4444-4444-444444444444")),
+    folder_id: uuid.UUID | None = Form(None),
     title: str | None = Form(None),
     document_type: str = Form("policy"),
     external_id: str | None = Form(None),
@@ -303,6 +327,7 @@ async def upload_document_file(
 ):
     """Upload a file (.pdf, .docx, .txt, .md, .json, .csv) and ingest into PostgreSQL."""
     resolved_source_id = await _ensure_source_exists(db, organization_id, source_id)
+    resolved_folder_id = await _ensure_folder_exists(db, organization_id, folder_id)
     import io
     raw_bytes = await file.read()
     filename = file.filename or "uploaded_doc.txt"
@@ -331,6 +356,7 @@ async def upload_document_file(
     doc_in = DocumentCreate(
         organization_id=organization_id,
         source_id=resolved_source_id,
+        folder_id=resolved_folder_id,
         title=doc_title,
         content=content_text,
         document_type=document_type.replace("\x00", ""),
@@ -362,6 +388,7 @@ async def upload_document_file(
         id=document.id,
         organization_id=document.organization_id,
         source_id=document.source_id,
+        folder_id=document.folder_id,
         external_id=document.external_id,
         title=document.title,
         document_type=document.document_type,
@@ -389,6 +416,7 @@ async def upload_and_extract_document(
     file: UploadFile = File(...),
     organization_id: uuid.UUID = Form(uuid.UUID("11111111-1111-1111-1111-111111111111")),
     source_id: uuid.UUID = Form(uuid.UUID("44444444-4444-4444-4444-444444444444")),
+    folder_id: uuid.UUID | None = Form(None),
     title: str | None = Form(None),
     document_type: str = Form("policy"),
     external_id: str | None = Form(None),
@@ -400,6 +428,7 @@ async def upload_and_extract_document(
 ):
     """Upload a file, parse text, extract atomic claims, score trust, and run conflict checks in 1 atomic pipeline."""
     resolved_source_id = await _ensure_source_exists(db, organization_id, source_id)
+    resolved_folder_id = await _ensure_folder_exists(db, organization_id, folder_id)
     import io
     import time
     from app.llm.factory import get_llm_provider
@@ -423,6 +452,7 @@ async def upload_and_extract_document(
     doc_in = DocumentCreate(
         organization_id=organization_id,
         source_id=resolved_source_id,
+        folder_id=resolved_folder_id,
         title=doc_title,
         content=content_text,
         document_type=document_type.replace("\x00", ""),
@@ -555,6 +585,7 @@ async def upload_and_extract_document(
         id=document.id,
         organization_id=document.organization_id,
         source_id=document.source_id,
+        folder_id=document.folder_id,
         external_id=document.external_id,
         title=document.title,
         document_type=document.document_type,
@@ -580,6 +611,25 @@ async def upload_and_extract_document(
         "layers": layers_payload,
         "message": f"Successfully parsed '{filename}' across all 6 architecture layers ({total_claims_count} claims verified in {duration_ms}ms).",
     }
+
+
+@router.post("/{document_id}/move", response_model=DocumentResponse)
+async def move_document_to_folder(
+    document_id: uuid.UUID,
+    req: DocumentMoveRequest,
+    db: AsyncSession = Depends(get_db),
+):
+    """Moves a document to another folder within the same organization."""
+    repo = DocumentRepository(db)
+    doc = await repo.get_by_id_with_versions(document_id)
+    if not doc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Document not found")
+    from app.services.folder_service import FolderService
+    folder_service = FolderService(db)
+    updated = await folder_service.move_document(doc.organization_id, document_id, req.destination_folder_id)
+    await db.commit()
+    reloaded = await repo.get_by_id_with_versions(document_id)
+    return DocumentResponse.model_validate(reloaded)
 
 
 

@@ -68,6 +68,7 @@ class DocumentRepository(BaseRepository[Document]):
         document_type: str | None = "policy",
         external_id: str | None = None,
         owner_id: uuid.UUID | None = None,
+        folder_id: uuid.UUID | None = None,
     ) -> tuple[Document, DocumentVersion, bool]:
         """
         Idempotent document ingestion with SHA-256 deduplication.
@@ -89,6 +90,7 @@ class DocumentRepository(BaseRepository[Document]):
             document = Document(
                 organization_id=organization_id,
                 source_id=source_id,
+                folder_id=folder_id,
                 owner_id=owner_id,
                 title=title,
                 document_type=document_type,
@@ -115,6 +117,11 @@ class DocumentRepository(BaseRepository[Document]):
         # Existing document: Update owner_id if not present or passed
         if owner_id and not document.owner_id:
             document.owner_id = owner_id
+            await self.session.flush()
+
+        # Existing document: Assign folder_id if not set and passed
+        if folder_id and not document.folder_id:
+            document.folder_id = folder_id
             await self.session.flush()
 
         # Existing document: Check current active version
@@ -199,3 +206,42 @@ class DocumentRepository(BaseRepository[Document]):
         )
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
+
+    async def list_by_folder_ids(
+        self,
+        organization_id: uuid.UUID,
+        folder_ids: list[uuid.UUID],
+        status_filter: str | None = None,
+        limit: int = 50,
+        offset: int = 0,
+    ) -> Sequence[Document]:
+        stmt = select(Document).where(
+            Document.organization_id == organization_id,
+            Document.folder_id.in_(folder_ids),
+        )
+        if status_filter:
+            stmt = stmt.where(Document.status == status_filter)
+        stmt = (
+            stmt.order_by(Document.updated_at.desc())
+            .offset(offset)
+            .limit(limit)
+            .options(selectinload(Document.versions))
+        )
+        result = await self.session.execute(stmt)
+        return result.scalars().all()
+
+    async def count_by_folder_ids(
+        self,
+        organization_id: uuid.UUID,
+        folder_ids: list[uuid.UUID],
+        status_filter: str | None = None,
+    ) -> int:
+        from sqlalchemy import func
+        stmt = select(func.count(Document.id)).where(
+            Document.organization_id == organization_id,
+            Document.folder_id.in_(folder_ids),
+        )
+        if status_filter:
+            stmt = stmt.where(Document.status == status_filter)
+        result = await self.session.execute(stmt)
+        return result.scalar() or 0

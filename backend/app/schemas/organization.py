@@ -17,6 +17,8 @@ class OrganizationCreate(OrganizationBase):
     allowed_auth_methods: List[str] = Field(
         default_factory=lambda: ["password", "google", "microsoft", "okta"]
     )
+    governance_config: Optional[dict] = Field(default_factory=dict)
+    setup_completed: bool = False
 
 
 class OrganizationResponse(OrganizationBase):
@@ -26,6 +28,8 @@ class OrganizationResponse(OrganizationBase):
     allowed_auth_methods: List[str] = Field(
         default_factory=lambda: ["password", "google", "microsoft", "okta"]
     )
+    governance_config: Optional[dict] = Field(default_factory=dict)
+    setup_completed: bool = False
     member_count: int = 0
     created_at: datetime
     updated_at: datetime
@@ -38,6 +42,8 @@ class OrganizationSettingsUpdate(BaseModel):
     slug: Optional[str] = None
     domain_whitelist: Optional[List[str]] = None
     allowed_auth_methods: Optional[List[str]] = None
+    governance_config: Optional[dict] = None
+    setup_completed: Optional[bool] = None
 
 
 class OrganizationMemberResponse(BaseModel):
@@ -103,3 +109,54 @@ class TenantSwitchResponse(BaseModel):
     expires_in: int = 86400
     user: UserResponse
     active_organization: OrganizationResponse
+
+
+class OrganizationSetupMemberInvite(BaseModel):
+    name: Optional[str] = None
+    email: EmailStr
+    role: str = "reviewer"
+    department: Optional[str] = None
+
+
+class OrganizationSetupWizardRequest(BaseModel):
+    name: str
+    slug: Optional[str] = None
+    domain_whitelist: List[str] = Field(default_factory=list)
+    allowed_auth_methods: List[str] = Field(default_factory=lambda: ["password", "google", "microsoft", "okta"])
+    initial_members: List[OrganizationSetupMemberInvite] = Field(default_factory=list)
+    industry: Optional[str] = "Financial Services & Capital Markets"
+    trust_threshold: float = Field(default=0.70, ge=0.5, le=0.99)
+    conflict_policy: str = Field(default="human_in_the_loop")
+    regulatory_frameworks: List[str] = Field(default_factory=lambda: ["NIST AI 600-1", "EU AI Act"])
+    liability_cap_usd: float = Field(default=50000.0)
+    seed_baseline_policies: bool = True
+    organization_id: Optional[uuid.UUID] = None
+    initial_workspace: Optional[dict] = None
+
+
+class SetupStepDetail(BaseModel):
+    id: str
+    title: str
+    description: str
+    completed: bool
+    data: Optional[dict] = None
+
+
+class OrganizationSetupStatusResponse(BaseModel):
+    organization_id: uuid.UUID
+    organization_name: str
+    setup_completed: bool
+    completion_percentage: int
+    completed_steps_count: int
+    total_steps_count: int
+    steps: List[SetupStepDetail]
+    next_recommended_step: str
+
+
+class OrganizationSetupWizardResponse(BaseModel):
+    organization: OrganizationResponse
+    status: OrganizationSetupStatusResponse
+    access_token: Optional[str] = None
+    mcp_api_key: Optional[str] = None
+    message: str
+

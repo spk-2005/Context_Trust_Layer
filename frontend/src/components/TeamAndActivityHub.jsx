@@ -7,7 +7,8 @@ export default function TeamAndActivityHub({
   onSelectPersona,
   showToast,
   initialSubTab = 'directory',
-  onSubTabChange
+  onSubTabChange,
+  onLaunchSetupWizard
 }) {
   const { user: currentAuthUser, refreshPersonas } = useAuth();
   const [activeSubTab, setActiveSubTab] = useState(initialSubTab || 'directory'); // 'directory', 'activity', 'domains'
@@ -115,6 +116,7 @@ export default function TeamAndActivityHub({
   const handleInviteMember = async (e) => {
     e.preventDefault();
     try {
+      // 1. Create or bind user membership
       const res = await fetch('/v1/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -127,12 +129,23 @@ export default function TeamAndActivityHub({
           department: inviteForm.department,
         }),
       });
+
+      // 2. Also register official pending invitation token
+      await fetch(`/v1/organizations/${orgId}/invites`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: inviteForm.email,
+          role: inviteForm.role,
+        }),
+      }).catch(err => console.warn('Invite token registration:', err));
+
       if (res.ok) {
         const newUser = await res.json();
         setUsers(prev => [...prev, newUser]);
         setShowInviteModal(false);
         setInviteForm({ name: '', email: '', role: 'reviewer', title: '', department: 'Governance & Risk' });
-        showToast(`Added ${newUser.name} as ${newUser.role.toUpperCase()}`);
+        showToast(`Invited ${newUser.name} as ${newUser.role.toUpperCase()} to ${activeOrg?.name || 'organization'}`);
         if (refreshPersonas) refreshPersonas();
         fetchActivities();
       } else {
@@ -224,6 +237,16 @@ export default function TeamAndActivityHub({
 
         {/* Action Controls */}
         <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+          {onLaunchSetupWizard && (
+            <button
+              onClick={() => onLaunchSetupWizard(activeOrg)}
+              className="btn btn-secondary"
+              style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 14px', fontSize: '0.82rem', fontWeight: 600 }}
+              title="Launch Guided Organization Onboarding & Setup Wizard"
+            >
+              <span>🚀 Setup Wizard</span>
+            </button>
+          )}
           <button
             onClick={() => setShowInviteModal(true)}
             className="btn btn-primary"

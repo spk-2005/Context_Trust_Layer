@@ -11,9 +11,13 @@ from app.api.deps import get_current_user, get_optional_current_user
 from app.core.security import create_access_token, create_refresh_token, get_password_hash
 from app.db.database import get_db
 from app.db.enums import OrganizationStatus, RecordStatus, UserRole
+from app.db.models.agent import Agent
+from app.db.models.data_source import DataSource
+from app.db.models.document import Document
 from app.db.models.organization import Organization
 from app.db.models.organization_invite import OrganizationInvite
 from app.db.models.user import User
+from app.db.models.user_activity import UserActivityLog
 from app.schemas.auth import UserResponse
 from app.schemas.organization import (
     InviteAcceptRequest,
@@ -25,6 +29,11 @@ from app.schemas.organization import (
     OrganizationMemberRoleUpdate,
     OrganizationResponse,
     OrganizationSettingsUpdate,
+    OrganizationSetupMemberInvite,
+    OrganizationSetupStatusResponse,
+    OrganizationSetupWizardRequest,
+    OrganizationSetupWizardResponse,
+    SetupStepDetail,
     TenantSwitchResponse,
 )
 
@@ -34,6 +43,7 @@ router = APIRouter(prefix="/organizations", tags=["organizations"])
 def _build_org_response(org: Organization, member_count: int = 0) -> OrganizationResponse:
     whitelist = org.domain_whitelist if org.domain_whitelist is not None else []
     auth_methods = org.allowed_auth_methods if org.allowed_auth_methods is not None else ["password", "google", "microsoft", "okta"]
+    gov_cfg = org.governance_config if getattr(org, "governance_config", None) is not None else {}
     return OrganizationResponse(
         id=org.id,
         name=org.name,
@@ -41,6 +51,8 @@ def _build_org_response(org: Organization, member_count: int = 0) -> Organizatio
         status=org.status,
         domain_whitelist=whitelist,
         allowed_auth_methods=auth_methods,
+        governance_config=gov_cfg,
+        setup_completed=bool(getattr(org, "setup_completed", False)),
         member_count=member_count,
         created_at=org.created_at,
         updated_at=org.updated_at,
@@ -103,6 +115,23 @@ async def create_organization(
             detail=f"Organization with slug '{slug}' already exists.",
         )
 
+    if current_user:
+        # Check if user already belongs to an unconfigured pending organization
+        user_org_stmt = select(Organization).where(Organization.id == current_user.organization_id).limit(1)
+        res_uorg = await db.execute(user_org_stmt)
+        user_org = res_uorg.scalar_one_or_none()
+        if user_org and not user_org.setup_completed:
+            # Upgrade and activate the user's pending organization
+            user_org.name = data.name.strip()
+            user_org.slug = slug
+            user_org.setup_completed = True
+            if data.domain_whitelist:
+                user_org.domain_whitelist = data.domain_whitelist
+            current_user.role = UserRole.ADMIN
+            await db.commit()
+            await db.refresh(user_org)
+            return _build_org_response(user_org, member_count=1)
+
     org = Organization(
         id=uuid.uuid4(),
         name=data.name.strip(),
@@ -110,15 +139,462 @@ async def create_organization(
         status=OrganizationStatus.ACTIVE,
         domain_whitelist=data.domain_whitelist or [],
         allowed_auth_methods=data.allowed_auth_methods or ["password", "google", "microsoft", "okta"],
+        governance_config=data.governance_config or {},
+        setup_completed=True,
     )
     db.add(org)
+    await db.flush()
+
+    if current_user:
+        new_membership = User(
+            id=uuid.uuid4(),
+            organization_id=org.id,
+            name=current_user.name,
+            email=current_user.email,
+            role=UserRole.ADMIN,
+            status=RecordStatus.ACTIVE,
+            title="Organization Creator & Admin",
+            department="Governance & Risk",
+            is_verified=True,
+            avatar_url=current_user.avatar_url,
+            hashed_password=current_user.hashed_password,
+        )
+        db.add(new_membership)
+
     await db.commit()
     await db.refresh(org)
-    return _build_org_response(org, member_count=0)
+    return _build_org_response(org, member_count=1 if current_user else 0)
+
+
+@router.get("/my-organizations", response_model=List[dict])
+async def get_my_organizations(
+    current_user: Optional[User] = Depends(get_optional_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """List all organizations the current authenticated user belongs to with roles."""
+    if not current_user:
+        return []
+
+    stmt = (
+        select(User)
+        .where(User.email.ilike(current_user.email))
+        .options(selectinload(User.organization))
+        .order_by(User.created_at.desc())
+    )
+    res = await db.execute(stmt)
+    memberships = res.scalars().all()
+
+    return [
+        {
+            "id": str(m.organization.id),
+            "name": m.organization.name,
+            "slug": m.organization.slug,
+            "role": m.role.value if hasattr(m.role, "value") else str(m.role),
+            "setup_completed": bool(getattr(m.organization, "setup_completed", False)),
+        }
+        for m in memberships
+        if m.organization
+    ]
+
+
+@router.get("/my-invitations", response_model=List[InviteResponse])
+async def get_my_invitations(
+    current_user: Optional[User] = Depends(get_optional_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """List pending invitations addressed to current authenticated user's email."""
+    if not current_user:
+        return []
+
+    stmt = (
+        select(OrganizationInvite)
+        .where(
+            (OrganizationInvite.email.ilike(current_user.email))
+            & (OrganizationInvite.status == "pending")
+        )
+        .options(selectinload(OrganizationInvite.organization))
+        .order_by(OrganizationInvite.created_at.desc())
+    )
+    res = await db.execute(stmt)
+    invites = res.scalars().all()
+
+    return [
+        InviteResponse(
+            id=inv.id,
+            organization_id=inv.organization_id,
+            organization_name=inv.organization.name if inv.organization else "Enterprise Tenant",
+            email=inv.email,
+            role=inv.role.value if hasattr(inv.role, "value") else str(inv.role),
+            token=inv.token,
+            invite_url=f"http://localhost:4000/invite?token={inv.token}",
+            status=inv.status,
+            expires_at=inv.expires_at,
+            created_at=inv.created_at,
+        )
+        for inv in invites
+    ]
 
 
 # ==========================================
-# 2. Multi-Tenant Workspace Switching
+# 2. Multi-Step Organization Setup & Status
+# ==========================================
+
+@router.get("/{org_id}/setup-status", response_model=OrganizationSetupStatusResponse)
+async def get_organization_setup_status(
+    org_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+):
+    """Retrieve multi-step setup progress, completion metrics, and checklist items for an organization."""
+    org_stmt = select(Organization).where(Organization.id == org_id).limit(1)
+    res_org = await db.execute(org_stmt)
+    org = res_org.scalar_one_or_none()
+    if not org:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Organization not found.")
+
+    # 1. Identity & Domain Whitelist Step
+    has_domains = bool(org.domain_whitelist and len(org.domain_whitelist) > 0)
+    step_identity = SetupStepDetail(
+        id="identity",
+        title="Organization Profile & Corporate Domains",
+        description="Verify organization name, isolated tenant slug, and allowed corporate email domains.",
+        completed=bool(org.name and org.slug and has_domains),
+        data={
+            "name": org.name,
+            "slug": org.slug,
+            "domains": org.domain_whitelist or [],
+            "auth_methods": org.allowed_auth_methods or [],
+        },
+    )
+
+    # 2. Team Members & Separation of Duties (SoD)
+    user_stmt = select(User).where((User.organization_id == org.id) & (User.status == RecordStatus.ACTIVE))
+    res_users = await db.execute(user_stmt)
+    users = res_users.scalars().all()
+    roles = {u.role.value if hasattr(u.role, "value") else str(u.role) for u in users}
+    step_team = SetupStepDetail(
+        id="team",
+        title="Team Directory & Governance Roles",
+        description="Assign key roles (Admin, Data Steward, Risk Auditor, Developer) with Separation of Duties.",
+        completed=len(users) >= 2 or (len(users) >= 1 and "admin" in roles),
+        data={
+            "member_count": len(users),
+            "roles_present": list(roles),
+        },
+    )
+
+    # 3. Governance Policies & Trust Thresholds
+    gov_cfg = org.governance_config or {}
+    has_threshold = "trust_threshold" in gov_cfg
+    step_governance = SetupStepDetail(
+        id="governance",
+        title="Trust Score Thresholds & Conflict Gate",
+        description="Configure baseline evidence trust threshold (e.g. 0.70) and automated escalation rules.",
+        completed=has_threshold or bool(org.setup_completed),
+        data=gov_cfg,
+    )
+
+    # 4. Knowledge Ingestion & Baseline Policies
+    doc_stmt = select(func.count(Document.id)).where((Document.organization_id == org.id) & (Document.status == RecordStatus.ACTIVE))
+    res_docs = await db.execute(doc_stmt)
+    doc_count = res_docs.scalar() or 0
+
+    source_stmt = select(func.count(DataSource.id)).where((DataSource.organization_id == org.id) & (DataSource.status == RecordStatus.ACTIVE))
+    res_sources = await db.execute(source_stmt)
+    source_count = res_sources.scalar() or 0
+
+    step_knowledge = SetupStepDetail(
+        id="knowledge",
+        title="Evidence Ingestion & Policy Corpus",
+        description="Connect enterprise data sources (Confluence, SharePoint, GitHub) or ingest baseline policies.",
+        completed=(doc_count + source_count) > 0,
+        data={
+            "document_count": doc_count,
+            "data_source_count": source_count,
+        },
+    )
+
+    # 5. Agent Integrations & MCP Key
+    agent_stmt = select(func.count(Agent.id)).where((Agent.organization_id == org.id) & (Agent.status == RecordStatus.ACTIVE))
+    res_agents = await db.execute(agent_stmt)
+    agent_count = res_agents.scalar() or 0
+
+    step_mcp = SetupStepDetail(
+        id="mcp_api",
+        title="MCP Gateway API Token & Live Connectors",
+        description="Provision autonomous AI agent connection token and verify Context Trust Gateway API.",
+        completed=agent_count > 0 or bool(org.setup_completed),
+        data={
+            "agent_count": agent_count,
+            "api_ready": True,
+        },
+    )
+
+    all_steps = [step_identity, step_team, step_governance, step_knowledge, step_mcp]
+    completed_count = sum(1 for s in all_steps if s.completed)
+    pct = int((completed_count / len(all_steps)) * 100)
+    is_fully_done = (pct == 100) or bool(org.setup_completed)
+
+    next_step = "complete"
+    for s in all_steps:
+        if not s.completed:
+            next_step = s.id
+            break
+
+    return OrganizationSetupStatusResponse(
+        organization_id=org.id,
+        organization_name=org.name,
+        setup_completed=is_fully_done,
+        completion_percentage=pct,
+        completed_steps_count=completed_count,
+        total_steps_count=len(all_steps),
+        steps=all_steps,
+        next_recommended_step=next_step,
+    )
+
+
+@router.post("/setup-wizard", response_model=OrganizationSetupWizardResponse)
+async def complete_organization_setup_wizard(
+    data: OrganizationSetupWizardRequest,
+    current_user: Optional[User] = Depends(get_optional_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Execute complete end-to-end organization onboarding wizard with profile, team, policies, and initial context."""
+    import re
+
+    # 1. Resolve or create organization
+    org = None
+    if data.organization_id:
+        org_stmt = select(Organization).where(Organization.id == data.organization_id).limit(1)
+        res_org = await db.execute(org_stmt)
+        org = res_org.scalar_one_or_none()
+
+    if not org:
+        name_clean = data.name.strip()
+        slug_clean = data.slug.strip().lower() if data.slug else re.sub(r"[^a-zA-Z0-9-]", "-", name_clean.lower())[:50]
+        # check slug uniqueness
+        check_stmt = select(Organization).where(Organization.slug == slug_clean).limit(1)
+        res_check = await db.execute(check_stmt)
+        if res_check.scalar_one_or_none():
+            slug_clean = f"{slug_clean}-{secrets.token_hex(3)}"
+
+        org = Organization(
+            id=uuid.uuid4(),
+            name=name_clean,
+            slug=slug_clean,
+            status=OrganizationStatus.ACTIVE,
+        )
+        db.add(org)
+        await db.flush()
+
+    # 2. Update identity & whitelists
+    if data.name:
+        org.name = data.name.strip()
+    if data.domain_whitelist:
+        cleaned_domains = [d.strip().lower().replace("@", "") for d in data.domain_whitelist if d.strip()]
+        org.domain_whitelist = cleaned_domains
+    if data.allowed_auth_methods:
+        org.allowed_auth_methods = data.allowed_auth_methods
+
+    # 3. Store governance config & thresholds
+    gov_cfg = {
+        "industry": data.industry or "Financial Services & Capital Markets",
+        "trust_threshold": data.trust_threshold,
+        "conflict_policy": data.conflict_policy,
+        "regulatory_frameworks": data.regulatory_frameworks or ["NIST AI 600-1", "EU AI Act"],
+        "liability_cap_usd": data.liability_cap_usd,
+        "onboarded_at": datetime.now(timezone.utc).isoformat(),
+    }
+    if data.initial_workspace:
+        gov_cfg["workspaces"] = [data.initial_workspace]
+    org.governance_config = gov_cfg
+    org.setup_completed = True
+
+    # 4. Ensure admin user belongs to this org
+    active_user = None
+    if current_user:
+        mem_stmt = select(User).where((User.organization_id == org.id) & (User.email.ilike(current_user.email))).limit(1)
+        res_mem = await db.execute(mem_stmt)
+        active_user = res_mem.scalar_one_or_none()
+        if active_user:
+            active_user.role = UserRole.ADMIN
+            active_user.status = RecordStatus.ACTIVE
+            await db.flush()
+        elif current_user.organization_id == org.id:
+            active_user = current_user
+            active_user.role = UserRole.ADMIN
+            active_user.status = RecordStatus.ACTIVE
+            await db.flush()
+        else:
+            # Multi-org: User is creating a second (or new) organization where they are Admin
+            active_user = User(
+                id=uuid.uuid4(),
+                organization_id=org.id,
+                name=current_user.name,
+                email=current_user.email,
+                role=UserRole.ADMIN,
+                status=RecordStatus.ACTIVE,
+                title="Organization Creator & Admin",
+                department="Governance & Risk",
+                is_verified=True,
+                avatar_url=current_user.avatar_url,
+                hashed_password=current_user.hashed_password,
+            )
+            db.add(active_user)
+            await db.flush()
+    else:
+        admin_stmt = select(User).where((User.organization_id == org.id) & (User.role == UserRole.ADMIN)).limit(1)
+        res_admin = await db.execute(admin_stmt)
+        active_user = res_admin.scalar_one_or_none()
+        if not active_user:
+            first_domain = org.domain_whitelist[0] if (org.domain_whitelist and len(org.domain_whitelist) > 0) else "enterprise.local"
+            active_user = User(
+                id=uuid.uuid4(),
+                organization_id=org.id,
+                name="Compliance Administrator",
+                email=f"admin@{first_domain}",
+                role=UserRole.ADMIN,
+                status=RecordStatus.ACTIVE,
+                title="Chief Compliance Officer",
+                department="Governance & Risk",
+                is_verified=True,
+                hashed_password=get_password_hash(uuid.uuid4().hex),
+            )
+            db.add(active_user)
+            await db.flush()
+
+    # 5. Provision / invite initial team members
+    for member in data.initial_members:
+        clean_email = member.email.strip().lower()
+        exist_stmt = select(User).where((User.organization_id == org.id) & (User.email == clean_email)).limit(1)
+        res_exist = await db.execute(exist_stmt)
+        if not res_exist.scalar_one_or_none():
+            try:
+                assigned_role = UserRole(member.role.lower())
+            except ValueError:
+                assigned_role = UserRole.REVIEWER
+
+            new_user = User(
+                id=uuid.uuid4(),
+                organization_id=org.id,
+                name=member.name.strip() if member.name else clean_email.split("@")[0].replace(".", " ").title(),
+                email=clean_email,
+                role=assigned_role,
+                status=RecordStatus.ACTIVE,
+                title="Governance Team Member",
+                department=member.department or "Compliance Operations",
+                is_verified=True,
+            )
+            db.add(new_user)
+
+            invite = OrganizationInvite(
+                id=uuid.uuid4(),
+                organization_id=org.id,
+                email=clean_email,
+                role=assigned_role,
+                token=secrets.token_urlsafe(32),
+                invited_by_id=active_user.id,
+                expires_at=datetime.now(timezone.utc) + timedelta(days=14),
+                status="accepted",
+            )
+            db.add(invite)
+
+    # 6. Seed baseline governance policy document if requested and org has no documents
+    if data.seed_baseline_policies:
+        doc_check_stmt = select(Document).where(Document.organization_id == org.id).limit(1)
+        res_doc_check = await db.execute(doc_check_stmt)
+        if not res_doc_check.scalar_one_or_none():
+            source = DataSource(
+                id=uuid.uuid4(),
+                organization_id=org.id,
+                name="Enterprise Governance & Policy Hub",
+                source_type="confluence",
+                source_family="document",
+                source_intent="governance_policy",
+                domain="Compliance",
+                status=RecordStatus.ACTIVE,
+                capabilities={"realtime_sync": True, "claim_extraction": True},
+            )
+            db.add(source)
+            await db.flush()
+
+            base_doc = Document(
+                id=uuid.uuid4(),
+                organization_id=org.id,
+                source_id=source.id,
+                title=f"{org.name} Autonomous AI Governance & Context Standard",
+                document_type="policy",
+                domain="Compliance",
+                content_hash=secrets.token_hex(32),
+                status=RecordStatus.ACTIVE,
+            )
+            db.add(base_doc)
+
+    # 7. Ensure Default Agent exists
+    agent_check_stmt = select(Agent).where(Agent.organization_id == org.id).limit(1)
+    res_agent_check = await db.execute(agent_check_stmt)
+    if not res_agent_check.scalar_one_or_none():
+        agent = Agent(
+            id=uuid.uuid4(),
+            organization_id=org.id,
+            name=f"{org.name} Context Gateway Agent",
+            description="Autonomous Context Trust Validation Gate Agent for MCP Clients",
+            agent_type="mcp_gateway",
+            status=RecordStatus.ACTIVE,
+        )
+        db.add(agent)
+
+    # 8. Log setup activity
+    activity = UserActivityLog(
+        id=uuid.uuid4(),
+        organization_id=org.id,
+        user_id=active_user.id if active_user else None,
+        user_name=active_user.name if active_user else "System Admin",
+        user_role=active_user.role.value if hasattr(active_user.role, "value") else str(active_user.role),
+        action_type="ORGANIZATION_SETUP_COMPLETED",
+        target_type="organization",
+        target_id=str(org.id),
+        target_title=org.name,
+        domain="Governance",
+        details={
+            "industry": data.industry,
+            "trust_threshold": data.trust_threshold,
+            "initial_member_count": len(data.initial_members),
+            "domains": org.domain_whitelist,
+        },
+    )
+    db.add(activity)
+
+    await db.commit()
+    await db.refresh(org)
+
+    new_token = create_access_token(
+        subject=str(active_user.id),
+        claims={
+            "email": active_user.email,
+            "role": active_user.role.value if hasattr(active_user.role, "value") else str(active_user.role),
+            "org_id": str(org.id),
+            "name": active_user.name,
+        },
+    )
+
+    mcp_api_key = f"ctl_live_{secrets.token_hex(16)}"
+    setup_status = await get_organization_setup_status(org.id, db)
+
+    count_stmt = select(func.count(User.id)).where((User.organization_id == org.id) & (User.status == RecordStatus.ACTIVE))
+    res_count = await db.execute(count_stmt)
+    m_count = res_count.scalar() or 0
+
+    return OrganizationSetupWizardResponse(
+        organization=_build_org_response(org, member_count=m_count),
+        status=setup_status,
+        access_token=new_token,
+        mcp_api_key=mcp_api_key,
+        message=f"Setup successfully completed for '{org.name}'! Context Trust Gateway is active.",
+    )
+
+
+# ==========================================
+# 3. Multi-Tenant Workspace Switching
 # ==========================================
 
 @router.post("/{org_id}/switch", response_model=TenantSwitchResponse)
@@ -136,18 +612,42 @@ async def switch_organization(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Target organization not found.")
 
     # 2. Resolve user: if user authenticated via JWT use them, else fallback to active persona or default
-    target_user = current_user
-    if not target_user:
+    active_caller = current_user
+    if not active_caller:
         # Fallback to Sarah Chen (admin) or first available user for demo
         fallback_stmt = select(User).where(User.status == RecordStatus.ACTIVE).limit(1)
         res_fb = await db.execute(fallback_stmt)
-        target_user = res_fb.scalar_one_or_none()
+        active_caller = res_fb.scalar_one_or_none()
 
-    if not target_user:
+    if not active_caller:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="No active user session to switch tenant.")
 
-    # 3. Update target user's active organization in DB
-    target_user.organization_id = org.id
+    # 3. Find user's membership in target organization
+    mem_stmt = select(User).where((User.organization_id == org.id) & (User.email.ilike(active_caller.email))).limit(1)
+    res_mem = await db.execute(mem_stmt)
+    target_user = res_mem.scalar_one_or_none()
+
+    if not target_user:
+        if active_caller.organization_id != org.id:
+            # Create membership row in target org
+            target_user = User(
+                id=uuid.uuid4(),
+                organization_id=org.id,
+                name=active_caller.name,
+                email=active_caller.email,
+                role=active_caller.role,
+                status=RecordStatus.ACTIVE,
+                is_verified=True,
+                avatar_url=active_caller.avatar_url,
+                title=active_caller.title,
+                department=active_caller.department,
+                hashed_password=active_caller.hashed_password,
+            )
+            db.add(target_user)
+            await db.flush()
+        else:
+            target_user = active_caller
+
     await db.commit()
     await db.refresh(target_user)
 
@@ -502,19 +1002,28 @@ async def accept_invite(
     if not org:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Target organization no longer exists.")
 
-    # Find or create User
-    user_stmt = select(User).where(User.email == invite.email.lower()).limit(1)
+    # Find or create User membership in target organization
+    user_stmt = select(User).where((User.email.ilike(invite.email.lower())) & (User.organization_id == org.id)).limit(1)
     res_user = await db.execute(user_stmt)
     user = res_user.scalar_one_or_none()
 
     if user:
-        user.organization_id = org.id
         user.role = invite.role
         user.status = RecordStatus.ACTIVE
         user.is_verified = True
     else:
-        user_name = data.full_name or invite.email.split("@")[0].replace(".", " ").title()
-        hashed_pwd = get_password_hash(data.password or uuid.uuid4().hex)
+        # Check if user has an existing account in another org to copy profile info
+        existing_profile_stmt = select(User).where(User.email.ilike(invite.email.lower())).limit(1)
+        existing_profile = (await db.execute(existing_profile_stmt)).scalar_one_or_none()
+
+        user_name = data.full_name or (existing_profile.name if existing_profile else invite.email.split("@")[0].replace(".", " ").title())
+        hashed_pwd = (
+            get_password_hash(data.password)
+            if data.password
+            else (existing_profile.hashed_password if existing_profile else get_password_hash(uuid.uuid4().hex))
+        )
+        avatar = existing_profile.avatar_url if (existing_profile and existing_profile.avatar_url) else f"https://api.dicebear.com/7.x/bottts/svg?seed={user_name.replace(' ', '')}"
+
         user = User(
             id=uuid.uuid4(),
             organization_id=org.id,
@@ -524,8 +1033,8 @@ async def accept_invite(
             role=invite.role,
             status=RecordStatus.ACTIVE,
             is_verified=True,
-            avatar_url=f"https://api.dicebear.com/7.x/bottts/svg?seed={user_name.replace(' ', '')}",
-            title="Enterprise Team Member",
+            avatar_url=avatar,
+            title=f"Invited Team Member ({invite.role.value if hasattr(invite.role, 'value') else str(invite.role)})",
             department="Risk & AI Governance",
         )
         db.add(user)
@@ -556,6 +1065,92 @@ async def accept_invite(
         access_token=access_token,
         refresh_token=refresh_token,
         user=_build_user_response(user, org_name=org.name),
+        active_organization=_build_org_response(org, member_count=m_count),
+    )
+
+
+@router.post("/invites/{invite_id}/accept-direct", response_model=TenantSwitchResponse)
+async def accept_invite_direct(
+    invite_id: uuid.UUID,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Directly accept a pending invitation for the currently authenticated user and switch tenant."""
+    stmt = (
+        select(OrganizationInvite)
+        .where((OrganizationInvite.id == invite_id) & (OrganizationInvite.status == "pending"))
+        .options(selectinload(OrganizationInvite.organization))
+        .limit(1)
+    )
+    res = await db.execute(stmt)
+    invite = res.scalar_one_or_none()
+    if not invite:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Invitation not found or already accepted.")
+
+    if invite.email.strip().lower() != current_user.email.strip().lower():
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"This invitation was addressed to '{invite.email}', but your active session is '{current_user.email}'.",
+        )
+
+    now = datetime.now(timezone.utc)
+    if invite.expires_at < now:
+        invite.status = "expired"
+        await db.commit()
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="This invitation link has expired.")
+
+    org = invite.organization
+    if not org:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Target organization no longer exists.")
+
+    mem_stmt = select(User).where((User.organization_id == org.id) & (User.email.ilike(current_user.email))).limit(1)
+    res_mem = await db.execute(mem_stmt)
+    member_user = res_mem.scalar_one_or_none()
+
+    if member_user:
+        member_user.role = invite.role
+        member_user.status = RecordStatus.ACTIVE
+    else:
+        member_user = User(
+            id=uuid.uuid4(),
+            organization_id=org.id,
+            name=current_user.name,
+            email=current_user.email.lower(),
+            hashed_password=current_user.hashed_password,
+            role=invite.role,
+            status=RecordStatus.ACTIVE,
+            is_verified=True,
+            avatar_url=current_user.avatar_url,
+            title=f"Invited Team Member ({invite.role.value if hasattr(invite.role, 'value') else str(invite.role)})",
+            department="Risk & AI Governance",
+        )
+        db.add(member_user)
+
+    invite.status = "accepted"
+    await db.commit()
+    await db.refresh(member_user)
+
+    access_token = create_access_token(
+        subject=str(member_user.id),
+        claims={
+            "email": member_user.email,
+            "role": member_user.role.value if hasattr(member_user.role, "value") else str(member_user.role),
+            "org_id": str(org.id),
+            "name": member_user.name,
+        },
+    )
+    refresh_token = create_refresh_token(subject=str(member_user.id))
+
+    count_stmt = select(func.count(User.id)).where(
+        (User.organization_id == org.id) & (User.status == RecordStatus.ACTIVE)
+    )
+    res_count = await db.execute(count_stmt)
+    m_count = res_count.scalar() or 0
+
+    return TenantSwitchResponse(
+        access_token=access_token,
+        refresh_token=refresh_token,
+        user=_build_user_response(member_user, org_name=org.name),
         active_organization=_build_org_response(org, member_count=m_count),
     )
 

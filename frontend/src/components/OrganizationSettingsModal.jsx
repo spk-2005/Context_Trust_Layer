@@ -32,7 +32,7 @@ export default function OrganizationSettingsModal({ isOpen, onClose, activeOrg, 
   const [orgSlug, setOrgSlug] = useState('');
   const [domains, setDomains] = useState([]);
   const [newDomainInput, setNewDomainInput] = useState('');
-  const [authMethods, setAuthMethods] = useState(['password', 'google', 'microsoft', 'okta']);
+  const [authMethods, setAuthMethods] = useState(['google']);
 
   // Members states
   const [members, setMembers] = useState([]);
@@ -54,7 +54,7 @@ export default function OrganizationSettingsModal({ isOpen, onClose, activeOrg, 
     setOrgName(activeOrg.name || '');
     setOrgSlug(activeOrg.slug || '');
     setDomains(activeOrg.domain_whitelist || []);
-    setAuthMethods(activeOrg.allowed_auth_methods || ['password', 'google', 'microsoft', 'okta']);
+    setAuthMethods(activeOrg.allowed_auth_methods?.length ? activeOrg.allowed_auth_methods : ['google']);
 
     fetchOrgDetails();
     fetchMembers();
@@ -648,12 +648,9 @@ export default function OrganizationSettingsModal({ isOpen, onClose, activeOrg, 
                 <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: '#334155', marginBottom: '8px' }}>
                   Allowed Authentication Providers
                 </label>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '8px' }}>
                   {[
-                    { id: 'google', label: 'Google Workspace (OIDC)', icon: '🌐' },
-                    { id: 'microsoft', label: 'Microsoft Entra ID / Azure', icon: '🏢' },
-                    { id: 'okta', label: 'Okta Workforce Identity', icon: '🔒' },
-                    { id: 'password', label: 'Corporate Password Auth', icon: '🔑' },
+                    { id: 'google', label: 'Google Workspace & Google Identity Services (Exclusive)', icon: '🌐' },
                   ].map(method => {
                     const isChecked = authMethods.includes(method.id);
                     return (

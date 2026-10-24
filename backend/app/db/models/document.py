@@ -5,6 +5,7 @@ from sqlalchemy import (
     DateTime,
     Enum,
     ForeignKey,
+    ForeignKeyConstraint,
     Index,
     String,
     Text,
@@ -28,6 +29,12 @@ class Document(Base):
             "external_id",
             name="uq_document_external",
         ),
+        ForeignKeyConstraint(
+            ["organization_id", "folder_id"],
+            ["folders.organization_id", "folders.id"],
+            name="fk_documents_folder_same_tenant",
+            ondelete="RESTRICT",
+        ),
         Index(
             "idx_documents_organization",
             "organization_id",
@@ -35,6 +42,11 @@ class Document(Base):
         Index(
             "idx_documents_source",
             "source_id",
+        ),
+        Index(
+            "idx_documents_org_folder",
+            "organization_id",
+            "folder_id",
         ),
     )
 
@@ -52,6 +64,11 @@ class Document(Base):
             name="fk_documents_organization",
         ),
         nullable=False,
+    )
+
+    folder_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        nullable=True,
     )
 
     source_id: Mapped[uuid.UUID] = mapped_column(
@@ -153,4 +170,11 @@ class Document(Base):
         "ClaimEvidence",
         back_populates="document",
         cascade="all, delete-orphan",
+    )
+
+    folder = relationship(
+        "Folder",
+        back_populates="documents",
+        foreign_keys=[organization_id, folder_id],
+        overlaps="organization,documents",
     )

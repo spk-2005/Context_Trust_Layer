@@ -43,7 +43,7 @@ export default function WorkspaceSettingsStudio({
   const [orgSlug, setOrgSlug] = useState('');
   const [domains, setDomains] = useState([]);
   const [newDomainInput, setNewDomainInput] = useState('');
-  const [authMethods, setAuthMethods] = useState(['password', 'google', 'microsoft', 'okta']);
+  const [authMethods, setAuthMethods] = useState(['google']);
 
   // Members states
   const [members, setMembers] = useState([]);
@@ -64,7 +64,7 @@ export default function WorkspaceSettingsStudio({
     setOrgName(activeOrg.name || 'Trulin Trust Workspace');
     setOrgSlug(activeOrg.slug || 'demo');
     setDomains(activeOrg.domain_whitelist || ['trulin.ai', 'demo.com', 'gmail.com']);
-    setAuthMethods(activeOrg.allowed_auth_methods || ['password', 'google', 'microsoft', 'okta']);
+    setAuthMethods(activeOrg.allowed_auth_methods?.length ? activeOrg.allowed_auth_methods : ['google']);
 
     fetchOrgDetails();
     fetchMembers();
@@ -988,10 +988,7 @@ export default function WorkspaceSettingsStudio({
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               {[
-                { key: 'password', title: 'Work Email & Password', desc: 'Direct corporate email authentication with salted bcrypt hashing', icon: Key },
-                { key: 'google', title: 'Google Workspace OIDC', desc: 'Single sign-on via Google Workspace OAuth 2.0 federation', icon: Globe },
-                { key: 'microsoft', title: 'Microsoft Entra ID (Azure AD)', desc: 'Enterprise SAML 2.0 / OIDC identity directory synchronization', icon: Lock },
-                { key: 'okta', title: 'Okta Identity Cloud', desc: 'Universal Directory SSO and SCIM user lifecycle management', icon: ShieldCheck }
+                { key: 'google', title: 'Google Workspace & Google Identity OIDC (Exclusive)', desc: 'Enterprise Single Sign-On via Google OAuth 2.0 federation (Client ID: 727103176838-d6flfi3ef09448699or2n90opjjfn0us.apps.googleusercontent.com)', icon: Globe }
               ].map((method) => {
                 const isChecked = authMethods.includes(method.key);
                 const IconComponent = method.icon;

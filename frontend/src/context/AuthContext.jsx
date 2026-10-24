@@ -79,6 +79,24 @@ export function AuthProvider({ children }) {
     }
   });
 
+  const [myOrganizations, setMyOrganizations] = useState(() => {
+    try {
+      const saved = localStorage.getItem('ctl_my_orgs');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+  const [myInvitations, setMyInvitations] = useState(() => {
+    try {
+      const saved = localStorage.getItem('ctl_my_invitations');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+  const [isNewUser, setIsNewUser] = useState(false);
+
   const [personas, setPersonas] = useState(DEFAULT_ENTERPRISE_PERSONAS);
   const [ssoProviders, setSsoProviders] = useState([]);
   const [rbacMatrix, setRbacMatrix] = useState(null);
@@ -192,19 +210,68 @@ export function AuthProvider({ children }) {
     verifySession();
   }, [token]);
 
+  // 3. Handle live OAuth redirect callback (e.g. ?code=... from Google)
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get('code');
+    if (code) {
+      async function exchangeCode() {
+        try {
+          setIsLoading(true);
+          const redirectUri = window.location.origin + window.location.pathname;
+          const res = await fetch('/v1/auth/sso/callback', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              provider: 'google',
+              code: code,
+              redirect_uri: redirectUri
+            })
+          });
+          if (res.ok) {
+            const data = await res.json();
+            handleAuthSuccess(data);
+            window.history.replaceState({}, document.title, '/');
+          } else {
+            const err = await res.json().catch(() => ({}));
+            console.error('OAuth callback failed:', err);
+          }
+        } catch (err) {
+          console.error('OAuth callback network error:', err);
+        } finally {
+          setIsLoading(false);
+        }
+      }
+      exchangeCode();
+    }
+  }, []);
+
   const handleAuthSuccess = (data) => {
-    const { access_token, user: userData } = data;
+    const { access_token, user: userData, organizations: orgs, pending_invitations: invites, is_new_user } = data;
     setToken(access_token);
     setUser(userData);
     localStorage.setItem('ctl_token', access_token);
     localStorage.setItem('ctl_user', JSON.stringify(userData));
-    if (userData.organization_id) {
+    if (userData && userData.organization_id) {
       const orgData = {
         id: userData.organization_id,
         name: userData.organization_name || 'Enterprise Tenant'
       };
       setOrganization(orgData);
       localStorage.setItem('ctl_org', JSON.stringify(orgData));
+      localStorage.setItem('context_layer_active_org_id', userData.organization_id);
+    }
+    if (orgs && Array.isArray(orgs)) {
+      setMyOrganizations(orgs);
+      localStorage.setItem('ctl_my_orgs', JSON.stringify(orgs));
+    }
+    if (invites && Array.isArray(invites)) {
+      setMyInvitations(invites);
+      localStorage.setItem('ctl_my_invitations', JSON.stringify(invites));
+    }
+    if (is_new_user !== undefined) {
+      setIsNewUser(Boolean(is_new_user));
     }
     setIsAuthModalOpen(false);
   };
@@ -369,7 +436,101 @@ export function AuthProvider({ children }) {
       localStorage.setItem('ctl_org', JSON.stringify(orgObj));
       localStorage.setItem('context_layer_active_org_id', data.active_organization.id);
     }
+    await refreshMyOrganizations();
     return data;
+  };
+
+  const loginWithGoogleCredential = async (credential) => {
+    try {
+      setIsLoading(true);
+      const res = await fetch('/v1/auth/sso/callback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          provider: 'google',
+          credential
+        })
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.detail || 'Google sign-in token verification failed.');
+      }
+      const data = await res.json();
+      handleAuthSuccess(data);
+      return data;
+    } catch (err) {
+      console.error('Google sign-in error:', err);
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const acceptInvitation = async (inviteId) => {
+    const headers = { 'Content-Type': 'application/json' };
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    const res = await fetch(`/v1/organizations/invites/${inviteId}/accept-direct`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({})
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.detail || 'Failed to accept invitation.');
+    }
+    const data = await res.json();
+    handleAuthSuccess({
+      access_token: data.access_token,
+      user: data.user
+    });
+    if (data.active_organization) {
+      const orgObj = {
+        id: data.active_organization.id,
+        name: data.active_organization.name,
+        slug: data.active_organization.slug,
+        domain_whitelist: data.active_organization.domain_whitelist || [],
+        member_count: data.active_organization.member_count || 0
+      };
+      setOrganization(orgObj);
+      localStorage.setItem('ctl_org', JSON.stringify(orgObj));
+      localStorage.setItem('context_layer_active_org_id', data.active_organization.id);
+    }
+    setMyInvitations((prev) => {
+      const updated = prev.filter((inv) => inv.id !== inviteId);
+      localStorage.setItem('ctl_my_invitations', JSON.stringify(updated));
+      return updated;
+    });
+    await refreshMyOrganizations();
+    return data;
+  };
+
+  const refreshMyOrganizations = async () => {
+    if (!token) return;
+    try {
+      const headers = { Authorization: `Bearer ${token}` };
+      const [orgsRes, invitesRes] = await Promise.all([
+        fetch('/v1/organizations/my-organizations', { headers }),
+        fetch('/v1/organizations/my-invitations', { headers })
+      ]);
+      if (orgsRes.ok) {
+        const orgs = await orgsRes.json();
+        if (Array.isArray(orgs)) {
+          setMyOrganizations(orgs);
+          localStorage.setItem('ctl_my_orgs', JSON.stringify(orgs));
+        }
+      }
+      if (invitesRes.ok) {
+        const invites = await invitesRes.json();
+        if (Array.isArray(invites)) {
+          setMyInvitations(invites);
+          localStorage.setItem('ctl_my_invitations', JSON.stringify(invites));
+        }
+      }
+    } catch (err) {
+      console.warn('Failed to refresh user organizations/invites:', err);
+    }
   };
 
   const isTabVisible = (tabKey) => {
@@ -398,9 +559,14 @@ export function AuthProvider({ children }) {
     setUser(null);
     setOrganization(null);
     setSimulatedRole(null);
+    setMyOrganizations([]);
+    setMyInvitations([]);
+    setIsNewUser(false);
     localStorage.removeItem('ctl_token');
     localStorage.removeItem('ctl_user');
     localStorage.removeItem('ctl_org');
+    localStorage.removeItem('ctl_my_orgs');
+    localStorage.removeItem('ctl_my_invitations');
   };
 
   return (
@@ -426,12 +592,20 @@ export function AuthProvider({ children }) {
         setIsAuthModalOpen,
         authModalTab,
         setAuthModalTab,
+        myOrganizations,
+        myInvitations,
+        isNewUser,
+        setIsNewUser,
         login,
         register,
+        handleAuthSuccess,
         loginAsPersona,
         loginWithSSO,
+        loginWithGoogleCredential,
         loginWithCorporateDomain,
         switchOrganization,
+        acceptInvitation,
+        refreshMyOrganizations,
         logout,
         refreshPersonas,
       }}
@@ -476,7 +650,7 @@ export const ROLE_METADATA = {
     separation_of_duties: 'Read-only policy access; no authority to resolve conflicts or alter source pipelines (SoD enforced).',
     badge_color: '#B45309',
     badge_bg: 'rgba(180, 83, 9, 0.12)',
-    allowed_tabs: ['home', 'profile', 'demo', 'visual_lineage', 'integrations', 'playground'],
+    allowed_tabs: ['home', 'profile', 'demo', 'visual_lineage', 'ingestion', 'integrations', 'playground'],
   },
   viewer: {
     title: 'Compliance Observer',

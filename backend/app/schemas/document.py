@@ -21,6 +21,7 @@ class DocumentVersionResponse(BaseModel):
 class DocumentCreate(BaseModel):
     organization_id: uuid.UUID
     source_id: uuid.UUID | None = None
+    folder_id: uuid.UUID | None = None
     title: str
     content: str
     document_type: str | None = "policy"
@@ -33,6 +34,7 @@ class DocumentResponse(BaseModel):
     id: uuid.UUID
     organization_id: uuid.UUID
     source_id: uuid.UUID | None = None
+    folder_id: uuid.UUID | None = None
     owner_id: uuid.UUID | None = None
     external_id: str | None = None
     title: str

@@ -33,6 +33,7 @@ export default function UserProfileStudio({
   roleMetadata,
   onOpenRegisterOrg,
   onOpenOrgSettings,
+  onLaunchSetupWizard,
   onLogout,
   showToast,
   initialSubSection = 'companies',
@@ -68,16 +69,12 @@ export default function UserProfileStudio({
     ? activePersona.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
     : 'SC';
 
-  const displayOrgs = (organizations && organizations.length > 0)
+  const cleanOrgs = (organizations && organizations.length > 0)
     ? organizations.filter(o => 
-        !o.name.includes('Test') && 
         !o.name.includes('Auto Resolve') && 
-        !o.name.includes('Default Org') &&
-        !o.name.includes('Deloitte') &&
-        !o.name.includes('Goldman')
+        !o.name.includes('Default Org')
       )
     : (activeOrg ? [activeOrg] : []);
-  const cleanOrgs = displayOrgs.length > 0 ? displayOrgs : (activeOrg ? [activeOrg] : []);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '22px', maxWidth: '1280px', margin: '0 auto' }}>
@@ -221,13 +218,13 @@ export default function UserProfileStudio({
         </button>
 
         <button
-          onClick={() => handleSubSectionClick('personas')}
+          onClick={() => handleSubSectionClick('identity')}
           style={{
             padding: '8px 16px',
             borderRadius: '6px 6px 0 0',
             border: 'none',
-            background: activeSubSection === 'personas' ? '#FFAB4A' : 'transparent',
-            color: activeSubSection === 'personas' ? '#1A1207' : 'var(--text-secondary)',
+            background: activeSubSection === 'identity' ? '#FFAB4A' : 'transparent',
+            color: activeSubSection === 'identity' ? '#1A1207' : 'var(--text-secondary)',
             fontWeight: 700,
             fontSize: '0.82rem',
             cursor: 'pointer',
@@ -237,13 +234,13 @@ export default function UserProfileStudio({
           }}
         >
           <User size={15} />
-          <span>Identity & Personas</span>
+          <span>Google Identity & Credentials</span>
           <span className="badge" style={{
             fontSize: '0.62rem',
-            background: activeSubSection === 'personas' ? 'rgba(0,0,0,0.15)' : 'var(--bg-card)',
-            color: activeSubSection === 'personas' ? '#1A1207' : 'var(--text-muted)'
+            background: activeSubSection === 'identity' ? 'rgba(0,0,0,0.15)' : 'var(--bg-card)',
+            color: activeSubSection === 'identity' ? '#1A1207' : 'var(--text-muted)'
           }}>
-            {personas.length || 4}
+            OAuth 2.0
           </span>
         </button>
 
@@ -358,31 +355,64 @@ export default function UserProfileStudio({
                       {org.name}
                     </h3>
 
-                    <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                       <span>slug: <code>{org.slug || org.name.toLowerCase().replace(/[^a-z0-9]/g, '-')}</code></span>
+                      {org.setup_completed ? (
+                        <span style={{ fontSize: '0.62rem', padding: '1px 5px', borderRadius: '3px', background: '#DCFCE7', color: '#15803D', fontWeight: 700 }}>
+                          ✓ Setup Ready
+                        </span>
+                      ) : (
+                        <span style={{ fontSize: '0.62rem', padding: '1px 5px', borderRadius: '3px', background: '#FEF3C7', color: '#B45309', fontWeight: 700 }}>
+                          ● Setup Incomplete
+                        </span>
+                      )}
                     </div>
                   </div>
 
-                  <div style={{ marginTop: '16px', paddingTop: '12px', borderTop: '1px solid var(--border-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div style={{ marginTop: '16px', paddingTop: '12px', borderTop: '1px solid var(--border-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', flexWrap: 'wrap' }}>
                     <div style={{ fontSize: '0.70rem', color: 'var(--text-muted)' }}>
                       {isActive ? 'Session connected' : 'Click card to activate'}
                     </div>
 
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleSelectCompany(org);
-                      }}
-                      disabled={isActive || isSwitching}
-                      className={isActive ? 'btn btn-secondary' : 'btn btn-primary'}
-                      style={{
-                        padding: '5px 12px',
-                        fontSize: '0.75rem',
-                        cursor: isActive ? 'default' : 'pointer'
-                      }}
-                    >
-                      {isActive ? 'Currently Active' : isSwitching ? 'Switching...' : 'Switch Company ➔'}
-                    </button>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      {onLaunchSetupWizard && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onLaunchSetupWizard(org);
+                          }}
+                          className="btn btn-secondary"
+                          style={{
+                            padding: '4px 8px',
+                            fontSize: '0.72rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px'
+                          }}
+                          title="Run Onboarding Setup Wizard for this organization"
+                        >
+                          <Sparkles size={11} style={{ color: '#FFAB4A' }} />
+                          <span>Setup Wizard</span>
+                        </button>
+                      )}
+
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleSelectCompany(org);
+                        }}
+                        disabled={isActive || isSwitching}
+                        className={isActive ? 'btn btn-secondary' : 'btn btn-primary'}
+                        style={{
+                          padding: '5px 12px',
+                          fontSize: '0.75rem',
+                          cursor: isActive ? 'default' : 'pointer'
+                        }}
+                      >
+                        {isActive ? 'Currently Active' : isSwitching ? 'Switching...' : 'Switch Company ➔'}
+                      </button>
+                    </div>
                   </div>
                 </div>
               );
@@ -392,100 +422,91 @@ export default function UserProfileStudio({
       )}
 
       {/* 4. SUB-SECTION: PERSONAS & ROLE SWITCHER */}
-      {activeSubSection === 'personas' && (
+      {/* 4. SUB-SECTION: GOOGLE IDENTITY & CREDENTIALS */}
+      {activeSubSection === 'identity' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div>
             <h2 style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--text-main)', margin: 0 }}>
-              Individual Personas & Role Clearances
+              Google Identity & Enterprise Credentials
             </h2>
             <p style={{ margin: '4px 0 0 0', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-              Switch personas to test role-based access control (RBAC) and Separation of Duties (SoD) enforcement across Trulin.
+              Verified Single Sign-On credentials for {activePersona?.name || 'Authorized User'}.
             </p>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(290px, 1fr))', gap: '14px' }}>
-            {personas.map((persona) => {
-              const isSelected = activePersona?.id === persona.id ||
-                (activePersona?.email && activePersona.email === persona.email) ||
-                (activePersona?.role === persona.role && activePersona?.name === persona.name);
-              const initials = persona.name
-                ? persona.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
-                : 'U';
-
-              return (
-                <div
-                  key={persona.id || persona.email || persona.role}
-                  onClick={() => {
-                    if (onSelectPersona) onSelectPersona(persona);
-                  }}
-                  style={{
-                    background: isSelected ? '#FFFDF9' : 'var(--bg-card)',
-                    border: `1.5px solid ${isSelected ? '#FFAB4A' : 'var(--border-subtle)'}`,
-                    borderRadius: '10px',
-                    padding: '16px 18px',
-                    cursor: 'pointer',
-                    transition: 'all 0.15s ease',
-                    boxShadow: isSelected ? '0 3px 12px rgba(255, 171, 74, 0.14)' : 'none',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'space-between'
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <div style={{
-                      width: '36px',
-                      height: '36px',
-                      borderRadius: '50%',
-                      background: isSelected ? 'linear-gradient(135deg, #FFAB4A 0%, #EA580C 100%)' : 'var(--bg-card-subtle)',
-                      color: isSelected ? '#1A1207' : 'var(--text-secondary)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontWeight: 700,
-                      fontSize: '0.82rem',
-                      flexShrink: 0
-                    }}>
-                      {initials}
-                    </div>
-
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <span style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                          {persona.name}
-                        </span>
-                        <span className="badge" style={{
-                          fontSize: '0.60rem',
-                          padding: '1px 5px',
-                          background: isSelected ? 'rgba(255, 171, 74, 0.15)' : 'var(--bg-card-subtle)',
-                          color: isSelected ? '#9A4900' : 'var(--text-muted)',
-                          fontWeight: 700
-                        }}>
-                          {persona.role?.toUpperCase()}
-                        </span>
-                      </div>
-                      <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '2px' }}>
-                        {persona.title || persona.department || 'Enterprise User'}
-                      </div>
-                    </div>
+          <div className="clean-panel" style={{ padding: '24px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '18px', borderBottom: '1px solid var(--border-subtle)', marginBottom: '18px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                <div style={{
+                  width: '46px',
+                  height: '46px',
+                  borderRadius: '12px',
+                  backgroundColor: '#FFFFFF',
+                  border: '1px solid #E5E7EB',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.06)'
+                }}>
+                  <svg width="24" height="24" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+                  </svg>
+                </div>
+                <div>
+                  <div style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--text-main)' }}>
+                    {activePersona?.name || 'Verified User'}
                   </div>
-
-                  <div style={{ marginTop: '14px', paddingTop: '10px', borderTop: '1px solid var(--border-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <span style={{ fontSize: '0.70rem', color: 'var(--text-muted)' }}>
-                      {persona.email || `${persona.name.toLowerCase().replace(/\s+/g, '.')}@${activeOrg?.slug || 'company'}.com`}
-                    </span>
-                    {isSelected ? (
-                      <span style={{ fontSize: '0.70rem', color: '#EA580C', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
-                        <Check size={11} strokeWidth={3} /> Active
-                      </span>
-                    ) : (
-                      <span style={{ fontSize: '0.70rem', color: 'var(--text-muted)', fontWeight: 600 }}>
-                        Switch ➔
-                      </span>
-                    )}
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                    {activePersona?.email || 'user@company.com'}
                   </div>
                 </div>
-              );
-            })}
+              </div>
+
+              <span className="badge badge-verified" style={{ padding: '4px 10px', fontSize: '0.72rem' }}>
+                ● Google Verified Session
+              </span>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '14px' }}>
+              <div style={{ padding: '12px 14px', background: 'var(--bg-card-subtle)', borderRadius: '8px' }}>
+                <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>
+                  Authentication Protocol
+                </span>
+                <div style={{ fontSize: '0.86rem', fontWeight: 700, color: 'var(--text-main)', marginTop: '4px' }}>
+                  Google OAuth 2.0 / OpenID Connect (OIDC)
+                </div>
+              </div>
+
+              <div style={{ padding: '12px 14px', background: 'var(--bg-card-subtle)', borderRadius: '8px' }}>
+                <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>
+                  Client ID
+                </span>
+                <div style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-main)', marginTop: '4px', fontFamily: 'monospace' }}>
+                  727103176838-...0us.apps.googleusercontent.com
+                </div>
+              </div>
+
+              <div style={{ padding: '12px 14px', background: 'var(--bg-card-subtle)', borderRadius: '8px' }}>
+                <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>
+                  Assigned Workspace Role
+                </span>
+                <div style={{ fontSize: '0.86rem', fontWeight: 700, color: '#EA580C', marginTop: '4px', textTransform: 'uppercase' }}>
+                  {effectiveRole || 'ADMIN'}
+                </div>
+              </div>
+
+              <div style={{ padding: '12px 14px', background: 'var(--bg-card-subtle)', borderRadius: '8px' }}>
+                <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>
+                  Session Security
+                </span>
+                <div style={{ fontSize: '0.86rem', fontWeight: 700, color: '#16A34A', marginTop: '4px' }}>
+                  HMAC-SHA256 Signed JWT Token
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )}

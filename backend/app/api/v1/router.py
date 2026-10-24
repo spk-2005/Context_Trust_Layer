@@ -19,6 +19,7 @@ from app.api.v1.hitl import router as hitl_router
 from app.api.v1.red_team import router as red_team_router
 from app.api.v1.merkle import router as merkle_router
 from app.api.v1.drift import router as drift_router
+from app.api.v1.folders import router as folders_router
 from app.api.v1.review import router as review_router
 
 api_v1_router = APIRouter(prefix="/v1")
@@ -28,6 +29,7 @@ api_v1_router.include_router(auth_router)
 api_v1_router.include_router(health_router)
 api_v1_router.include_router(organizations_router)
 api_v1_router.include_router(users_router)
+api_v1_router.include_router(folders_router)
 api_v1_router.include_router(documents_router)
 api_v1_router.include_router(sources_router)
 api_v1_router.include_router(claims_router)

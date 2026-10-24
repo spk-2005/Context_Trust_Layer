@@ -30,6 +30,8 @@ async def init_db_schema():
         "CREATE INDEX IF NOT EXISTS idx_activity_action_type ON user_activity_logs(action_type);",
         "ALTER TABLE organizations ADD COLUMN IF NOT EXISTS domain_whitelist JSONB DEFAULT '[]'::jsonb;",
         "ALTER TABLE organizations ADD COLUMN IF NOT EXISTS allowed_auth_methods JSONB DEFAULT '[]'::jsonb;",
+        "ALTER TABLE organizations ADD COLUMN IF NOT EXISTS governance_config JSONB DEFAULT '{}'::jsonb;",
+        "ALTER TABLE organizations ADD COLUMN IF NOT EXISTS setup_completed BOOLEAN DEFAULT FALSE;",
         "ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_url VARCHAR(500);",
         "ALTER TABLE users ADD COLUMN IF NOT EXISTS title VARCHAR(100);",
         "ALTER TABLE users ADD COLUMN IF NOT EXISTS department VARCHAR(100);",

@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import DateTime, Enum, JSON, String, text
+from sqlalchemy import Boolean, DateTime, Enum, JSON, String, text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -51,6 +51,19 @@ class Organization(Base):
         JSON,
         nullable=True,
         default=lambda: ["password", "google", "microsoft", "okta"],
+    )
+
+    governance_config: Mapped[dict | None] = mapped_column(
+        JSON,
+        nullable=True,
+        default=dict,
+    )
+
+    setup_completed: Mapped[bool] = mapped_column(
+        Boolean,
+        nullable=False,
+        default=False,
+        server_default=text("false"),
     )
 
     created_at: Mapped[datetime] = mapped_column(

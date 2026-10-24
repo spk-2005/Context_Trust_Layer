@@ -23,6 +23,7 @@ class SSOAuthorizeResponse(BaseModel):
 class SSOCallbackRequest(BaseModel):
     provider: str
     code: Optional[str] = None
+    credential: Optional[str] = None  # Google Identity Services One-Tap / ID token
     state: Optional[str] = None
     redirect_uri: Optional[str] = None
     # Developer sandbox override parameters for instant testing

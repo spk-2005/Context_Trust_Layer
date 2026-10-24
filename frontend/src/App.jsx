@@ -40,7 +40,8 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   X,
-  LogOut
+  LogOut,
+  Upload
 } from 'lucide-react';
 import AuthLandingView from './components/AuthLandingView';
 import UserProfileStudio from './components/UserProfileStudio';
@@ -52,6 +53,8 @@ import ContextCuratorStudio from './components/ContextCuratorStudio';
 import McpIntegrationStudio from './components/McpIntegrationStudio';
 import SignInModal from './components/SignInModal';
 import OrganizationSettingsModal from './components/OrganizationSettingsModal';
+import OrganizationSetupWizardModal from './components/OrganizationSetupWizardModal';
+import OrganizationSetupChecklistBanner from './components/OrganizationSetupChecklistBanner';
 import WorkspaceSettingsStudio from './components/WorkspaceSettingsStudio';
 import RbacMatrixModal from './components/RbacMatrixModal';
 import ExecutiveRoiModal from './components/ExecutiveRoiModal';
@@ -62,6 +65,7 @@ import RedTeamModal from './components/RedTeamModal';
 import MerkleVerificationModal from './components/MerkleVerificationModal';
 import AssetInspectorDrawer from './components/AssetInspectorDrawer';
 import MillionScaleClaimsGrid from './components/MillionScaleClaimsGrid';
+import DocumentWorkspaceExplorer from './components/DocumentWorkspaceExplorer';
 import { useAuth, DEFAULT_ENTERPRISE_PERSONAS } from './context/AuthContext';
 import { ENTERPRISE_CONNECTORS, CATALOG_CATEGORIES, getConnectorById } from './utils/connectorsCatalog';
 
@@ -73,7 +77,7 @@ export const TAB_TO_PATH = {
   playground: '/chat',
   demo: '/demo',
   live_ingestion: '/live-ingestion',
-  visual_lineage: '/lineage',
+  visual_lineage: '/vault',
   context_curator: '/curator',
   conflicts: '/conflicts',
   ingestion: '/documents',
@@ -112,16 +116,11 @@ export const PATH_TO_TAB = {
 
 export const DEFAULT_WORKSPACES = [
   { id: 'all', name: 'All Workspaces (Unified)', icon: '🌐', domain: 'global', description: 'Unified enterprise knowledge across all departments and systems' },
-  { id: 'finance', name: 'Finance & Billing Operations', icon: '💳', domain: 'finance', description: 'Invoices, customer refunds, ARR tiers, and accounting compliance SLAs' },
-  { id: 'secops', name: 'Engineering & Infrastructure SecOps', icon: '🛡️', domain: 'secops', description: 'IAM policies, mTLS authentication, Friday freezes, and session expiration' },
-  { id: 'hr', name: 'HR & People Operations', icon: '👥', domain: 'hr', description: 'Remote work guidelines, employee handbooks, and leave approval rules' },
-  { id: 'support', name: 'Customer Support & Success', icon: '💬', domain: 'support', description: 'Dispute arbitration workflows, tier exception matrices, and SLA escalations' },
-  { id: 'staging', name: 'Staging / Policy Sandbox', icon: '🧪', domain: 'staging', description: 'Isolated sandbox environment for dry-run conflict and gate simulations' },
 ];
 
 export const VAULT_SUBTABS = ['documents', 'connectors', 'conflicts', 'claims', 'dag'];
 export const CURATOR_SUBVIEWS = ['health', 'conflicts', 'drift'];
-export const DOC_EXPLORER_VIEWS = ['connectors', 'ingest', 'documents', 'claims'];
+export const DOC_EXPLORER_VIEWS = ['folders', 'documents', 'ingest', 'connectors', 'connect', 'claims'];
 export const MCP_SUBVIEWS = ['tester', 'configs', 'sdks', 'schemas'];
 export const TEAM_SUBTABS = ['directory', 'activity', 'domains'];
 export const PROFILE_SUBTABS = ['companies', 'security', 'personas'];
@@ -135,7 +134,7 @@ export const parseUrlState = (workspacesList) => {
       docId: null,
       lineageSection: 'summary',
       workspace: DEFAULT_WORKSPACES[0],
-      docView: 'connectors',
+      docView: 'folders',
       curatorSubView: 'health',
       mcpSubView: 'tester',
       teamSubTab: 'directory',
@@ -151,7 +150,7 @@ export const parseUrlState = (workspacesList) => {
   let tab = 'home';
   let vaultSubTab = 'documents';
   let curatorSubView = 'health';
-  let docView = 'connectors';
+  let docView = 'folders';
   let mcpSubView = 'tester';
   let teamSubTab = 'directory';
   let profileSubTab = 'companies';
@@ -189,11 +188,9 @@ export const parseUrlState = (workspacesList) => {
     const parts = rawPath.split('/').filter(Boolean);
     const sub = parts[1] || params.get('view');
     if (sub && DOC_EXPLORER_VIEWS.includes(sub)) {
-      docView = sub;
-    } else if (sub === 'stored') {
-      docView = 'documents';
+      docView = (sub === 'documents' ? 'folders' : sub);
     } else {
-      docView = 'connectors';
+      docView = 'folders';
     }
   }
   // 5. Chat / Playground routing
@@ -291,7 +288,7 @@ export const computeUrlFromState = ({
   selectedLineageAssetId = null,
   lineageSection = 'summary',
   curatorSubView = 'health',
-  docExplorerView = 'connectors',
+  docExplorerView = 'folders',
   mcpActiveSubView = 'tester',
   teamSubTab = 'directory',
   profileSubTab = 'companies',
@@ -313,9 +310,9 @@ export const computeUrlFromState = ({
       break;
     case 'visual_lineage':
       if (vaultSubTab && vaultSubTab !== 'documents') {
-        pathname = `/lineage/${vaultSubTab}`;
+        pathname = `/vault/${vaultSubTab}`;
       } else {
-        pathname = '/lineage';
+        pathname = '/vault';
       }
       break;
     case 'context_curator':
@@ -329,8 +326,8 @@ export const computeUrlFromState = ({
       pathname = '/conflicts';
       break;
     case 'ingestion':
-      if (docExplorerView && docExplorerView !== 'connectors') {
-        pathname = `/documents/${docExplorerView === 'documents' ? 'stored' : docExplorerView}`;
+      if (docExplorerView && docExplorerView !== 'folders') {
+        pathname = `/documents/${docExplorerView}`;
       } else {
         pathname = '/documents';
       }
@@ -407,15 +404,208 @@ export const getInitialDocViewFromUrl = () => {
   } catch {
     // ignore
   }
-  return 'connectors';
+  return 'folders';
 };
+
+function ServiceLockedGate({
+  serviceName,
+  isOrgReady,
+  isWorkspaceReady,
+  activeOrg,
+  onOpenOrgModal,
+  onOpenWorkspaceModal,
+  onGoHome
+}) {
+  return (
+    <div style={{
+      maxWidth: '740px',
+      margin: '40px auto',
+      padding: '0 20px',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      textAlign: 'center'
+    }}>
+      <div className="clean-panel" style={{
+        width: '100%',
+        padding: '36px 32px',
+        position: 'relative',
+        overflow: 'hidden',
+        border: '1px solid rgba(234, 88, 12, 0.25)',
+        boxShadow: '0 12px 36px rgba(0, 0, 0, 0.25)',
+        background: 'var(--bg-card)'
+      }}>
+        <div style={{
+          position: 'absolute',
+          top: '-40px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          width: '320px',
+          height: '120px',
+          background: 'radial-gradient(ellipse at center, rgba(234, 88, 12, 0.16) 0%, transparent 70%)',
+          pointerEvents: 'none'
+        }} />
+
+        <div style={{
+          width: '56px',
+          height: '56px',
+          borderRadius: '14px',
+          background: 'rgba(234, 88, 12, 0.12)',
+          border: '1px solid rgba(234, 88, 12, 0.3)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          margin: '0 auto 16px auto',
+          color: '#EA580C'
+        }}>
+          <Lock size={26} strokeWidth={2.2} />
+        </div>
+
+        <div style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '6px',
+          padding: '3px 10px',
+          borderRadius: '999px',
+          background: 'rgba(234, 88, 12, 0.1)',
+          border: '1px solid rgba(234, 88, 12, 0.25)',
+          fontSize: '0.72rem',
+          fontWeight: 700,
+          color: '#EA580C',
+          textTransform: 'uppercase',
+          letterSpacing: '0.06em',
+          marginBottom: '12px'
+        }}>
+          Service Access Restricted
+        </div>
+
+        <h2 style={{
+          fontSize: '1.35rem',
+          fontWeight: 800,
+          color: 'var(--text-main)',
+          margin: '0 0 8px 0',
+          letterSpacing: '-0.02em'
+        }}>
+          Create Your Organization & Workspace to Access {serviceName}
+        </h2>
+
+        <p style={{
+          fontSize: '0.85rem',
+          color: 'var(--text-secondary)',
+          maxWidth: '540px',
+          margin: '0 auto 24px auto',
+          lineHeight: '1.55'
+        }}>
+          To ensure strict data boundary isolation, cryptographic provenance, and zero-trust verification,
+          access to this service requires an active enterprise organization and departmental workspace.
+        </p>
+
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+          gap: '12px',
+          textAlign: 'left',
+          marginBottom: '26px'
+        }}>
+          <div style={{
+            padding: '14px 16px',
+            borderRadius: '8px',
+            background: isOrgReady ? 'rgba(16, 185, 129, 0.08)' : 'rgba(234, 88, 12, 0.06)',
+            border: isOrgReady ? '1px solid rgba(16, 185, 129, 0.3)' : '1px solid rgba(234, 88, 12, 0.25)'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+              <span style={{ fontSize: '0.76rem', fontWeight: 700, color: 'var(--text-main)' }}>
+                1. Organization Tenant
+              </span>
+              <span style={{
+                fontSize: '0.62rem',
+                fontWeight: 700,
+                padding: '1px 6px',
+                borderRadius: '4px',
+                background: isOrgReady ? '#10B981' : '#EA580C',
+                color: '#FFFFFF'
+              }}>
+                {isOrgReady ? 'ACTIVE' : 'ACTION REQUIRED'}
+              </span>
+            </div>
+            <div style={{ fontSize: '0.73rem', color: 'var(--text-muted)' }}>
+              {isOrgReady ? (activeOrg?.name || 'Configured') : 'Create your organization tenant'}
+            </div>
+          </div>
+
+          <div style={{
+            padding: '14px 16px',
+            borderRadius: '8px',
+            background: isWorkspaceReady ? 'rgba(16, 185, 129, 0.08)' : 'rgba(234, 88, 12, 0.06)',
+            border: isWorkspaceReady ? '1px solid rgba(16, 185, 129, 0.3)' : '1px solid rgba(234, 88, 12, 0.25)'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+              <span style={{ fontSize: '0.76rem', fontWeight: 700, color: 'var(--text-main)' }}>
+                2. Department Workspace
+              </span>
+              <span style={{
+                fontSize: '0.62rem',
+                fontWeight: 700,
+                padding: '1px 6px',
+                borderRadius: '4px',
+                background: isWorkspaceReady ? '#10B981' : '#EA580C',
+                color: '#FFFFFF'
+              }}>
+                {isWorkspaceReady ? 'ACTIVE' : 'ACTION REQUIRED'}
+              </span>
+            </div>
+            <div style={{ fontSize: '0.73rem', color: 'var(--text-muted)' }}>
+              {isWorkspaceReady ? 'Workspace active' : 'Create departmental workspace'}
+            </div>
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap' }}>
+          {!isOrgReady ? (
+            <button
+              onClick={onOpenOrgModal}
+              className="btn btn-primary"
+              style={{ padding: '9px 20px', fontSize: '0.84rem', display: 'flex', alignItems: 'center', gap: '7px' }}
+            >
+              <Building2 size={15} />
+              <span>Create Your Organization</span>
+            </button>
+          ) : !isWorkspaceReady ? (
+            <button
+              onClick={onOpenWorkspaceModal}
+              className="btn btn-primary"
+              style={{ padding: '9px 20px', fontSize: '0.84rem', display: 'flex', alignItems: 'center', gap: '7px' }}
+            >
+              <Plus size={15} />
+              <span>Create Initial Workspace</span>
+            </button>
+          ) : null}
+
+          <button
+            onClick={onGoHome}
+            className="btn btn-secondary"
+            style={{ padding: '9px 18px', fontSize: '0.84rem', display: 'flex', alignItems: 'center', gap: '7px' }}
+          >
+            <Home size={15} />
+            <span>Return to Home Overview</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function App() {
   const isPopStateRef = useRef(false);
   const [activeTab, setActiveTab] = useState(() => initialUrlState?.tab || 'home');
   const [expandedMenu, setExpandedMenu] = useState(() => initialUrlState?.tab || 'home');
   const [vaultSubTab, setVaultSubTab] = useState(() => initialUrlState?.vaultSubTab || 'documents');
-  const [openSidebarMenu, setOpenSidebarMenu] = useState(null);
+  const [openSidebarMenu, setOpenSidebarMenu] = useState(() => {
+    if (initialUrlState?.tab === 'visual_lineage') return 'vault';
+    if (initialUrlState?.tab === 'context_curator' || initialUrlState?.tab === 'conflicts') return 'curator';
+    if (initialUrlState?.tab === 'ingestion') return 'explorer';
+    return null;
+  });
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [health, setHealth] = useState({ status: 'checking', database: false, version: '0.1.0' });
   const [conflicts, setConflicts] = useState([]);
@@ -449,6 +639,7 @@ export default function App() {
 
   // -------------------------------------------------------------
   const {
+    token: authToken,
     user: authUser,
     organization: authOrg,
     isAuthenticated,
@@ -464,12 +655,74 @@ export default function App() {
     isTabVisible,
     getSodGuard,
     roleMetadata,
+    myOrganizations,
+    myInvitations,
+    isNewUser,
+    setIsNewUser,
+    acceptInvitation,
+    refreshMyOrganizations,
   } = useAuth();
 
   // Atlan Active Persona & User Ecosystem State
   const [personas, setPersonas] = useState(DEFAULT_ENTERPRISE_PERSONAS);
   const [activePersona, setActivePersona] = useState(DEFAULT_ENTERPRISE_PERSONAS[0]);
-  const [isPersonaDropdownOpen, setIsPersonaDropdownOpen] = useState(false);
+
+  // Unified Header Dropdown State (Strict Mutual Exclusivity & Outside Click)
+  const [activeDropdown, setActiveDropdown] = useState(null); // 'org' | 'workspace' | 'persona' | null
+  const headerControlsRef = useRef(null);
+
+  const isOrgDropdownOpen = activeDropdown === 'org';
+  const isWorkspaceDropdownOpen = activeDropdown === 'workspace';
+  const isPersonaDropdownOpen = activeDropdown === 'persona';
+
+  const toggleDropdown = (name) => {
+    setActiveDropdown(prev => prev === name ? null : name);
+  };
+  const closeDropdowns = () => setActiveDropdown(null);
+
+  const setIsOrgDropdownOpen = (val) => {
+    setActiveDropdown(prev => (typeof val === 'function' ? val(prev === 'org') : val) ? 'org' : null);
+  };
+  const setIsWorkspaceDropdownOpen = (val) => {
+    setActiveDropdown(prev => (typeof val === 'function' ? val(prev === 'workspace') : val) ? 'workspace' : null);
+  };
+  const setIsPersonaDropdownOpen = (val) => {
+    setActiveDropdown(prev => (typeof val === 'function' ? val(prev === 'persona') : val) ? 'persona' : null);
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (headerControlsRef.current && !headerControlsRef.current.contains(e.target)) {
+        setActiveDropdown(null);
+      }
+    };
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        setActiveDropdown(null);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
+
+  // Auto-launch Organization Setup Wizard for new user onboarding
+  useEffect(() => {
+    if (isNewUser) {
+      setSetupWizardTargetOrg(null);
+      setIsSetupWizardOpen(true);
+      setIsNewUser(false);
+    }
+  }, [isNewUser]);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      refreshMyOrganizations?.();
+    }
+  }, [isAuthenticated]);
 
   // Auto-redirect if active tab is restricted under effective/simulated role
   useEffect(() => {
@@ -942,29 +1195,63 @@ export default function App() {
   // -------------------------------------------------------------
   // Dynamic Multi-Tenant Organization State
   // -------------------------------------------------------------
-  const [organizations, setOrganizations] = useState([{ id: '11111111-1111-1111-1111-111111111111', name: 'demo', slug: 'demo' }]);
-  const [activeOrg, setActiveOrg] = useState({ id: '11111111-1111-1111-1111-111111111111', name: 'demo', slug: 'demo' });
-  const [isOrgDropdownOpen, setIsOrgDropdownOpen] = useState(false);
+  const [organizations, setOrganizations] = useState([]);
+  const [activeOrg, setActiveOrg] = useState(null);
   const [showNewOrgModal, setShowNewOrgModal] = useState(false);
   const [showRenameOrgModal, setShowRenameOrgModal] = useState(false);
   const [newOrgName, setNewOrgName] = useState('');
   const [newOrgSlug, setNewOrgSlug] = useState('');
   const [renameOrgName, setRenameOrgName] = useState('');
   const [isCreatingOrg, setIsCreatingOrg] = useState(false);
+  const [isSetupWizardOpen, setIsSetupWizardOpen] = useState(false);
+  const [setupWizardTargetOrg, setSetupWizardTargetOrg] = useState(null);
+  const [orgSetupRefreshTrigger, setOrgSetupRefreshTrigger] = useState(0);
 
   // -------------------------------------------------------------
   // Departmental Workspaces under Active Company
   // -------------------------------------------------------------
-  const [workspaces, setWorkspaces] = useState(DEFAULT_WORKSPACES);
-  const [activeWorkspace, setActiveWorkspace] = useState(() => initialUrlState?.workspace || DEFAULT_WORKSPACES[0]);
-  const [isWorkspaceDropdownOpen, setIsWorkspaceDropdownOpen] = useState(false);
+  const [workspaces, setWorkspaces] = useState([]);
+  const [activeWorkspace, setActiveWorkspace] = useState(null);
   const [showNewWorkspaceModal, setShowNewWorkspaceModal] = useState(false);
   const [newWorkspaceName, setNewWorkspaceName] = useState('');
-  const [newWorkspaceDomain, setNewWorkspaceDomain] = useState('finance');
+  const [newWorkspaceDomain, setNewWorkspaceDomain] = useState('governance');
   const [newWorkspaceDescription, setNewWorkspaceDescription] = useState('');
   const [docExplorerScopeAll, setDocExplorerScopeAll] = useState(false);
   const [docExplorerView, setDocExplorerView] = useState(getInitialDocViewFromUrl); // 'connectors' | 'ingest' | 'documents' | 'claims'
   const [docSourceFilter, setDocSourceFilter] = useState('all'); // 'all' | source_id
+
+  // Load organization-specific workspaces from storage or org config
+  useEffect(() => {
+    if (activeOrg?.id) {
+      try {
+        const saved = localStorage.getItem(`ctl_workspaces_${activeOrg.id}`);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setWorkspaces(parsed);
+            if (!activeWorkspace || !parsed.some(w => w.id === activeWorkspace.id)) {
+              setActiveWorkspace(parsed[0]);
+            }
+            return;
+          }
+        }
+      } catch (e) {
+        console.warn('Failed to parse saved workspaces:', e);
+      }
+      if (activeOrg.governance_config?.workspaces && Array.isArray(activeOrg.governance_config.workspaces) && activeOrg.governance_config.workspaces.length > 0) {
+        const orgWs = activeOrg.governance_config.workspaces;
+        setWorkspaces(orgWs);
+        setActiveWorkspace(orgWs[0]);
+        localStorage.setItem(`ctl_workspaces_${activeOrg.id}`, JSON.stringify(orgWs));
+        return;
+      }
+      setWorkspaces([]);
+      setActiveWorkspace(null);
+    } else {
+      setWorkspaces([]);
+      setActiveWorkspace(null);
+    }
+  }, [activeOrg?.id]);
 
   // Chat Sessions for Sidebar History and AI Copilot Chat Sync
   const [chatSessions, setChatSessions] = useState([]);
@@ -1240,17 +1527,24 @@ export default function App() {
       domain: newWorkspaceDomain,
       description: newWorkspaceDescription.trim() || 'Custom department workspace'
     };
-    setWorkspaces(prev => [...prev, newWs]);
+    setWorkspaces(prev => {
+      const updated = [...prev, newWs];
+      if (activeOrg?.id) {
+        localStorage.setItem(`ctl_workspaces_${activeOrg.id}`, JSON.stringify(updated));
+      }
+      return updated;
+    });
     setActiveWorkspace(newWs);
     setShowNewWorkspaceModal(false);
     setNewWorkspaceName('');
     setNewWorkspaceDescription('');
+    closeDropdowns();
     showToast(`Created and switched to workspace '${newWs.name}'!`);
   };
 
   const handleSwitchWorkspace = (ws) => {
     setActiveWorkspace(ws);
-    setIsWorkspaceDropdownOpen(false);
+    closeDropdowns();
     showToast(`Switched workspace to '${ws.name}'`);
   };
 
@@ -1259,7 +1553,8 @@ export default function App() {
   // -------------------------------------------------------------
   const fetchOrganizations = async () => {
     try {
-      const res = await fetch('/v1/organizations');
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+      const res = await fetch('/v1/organizations/my-organizations', { headers });
       if (res.ok) {
         const orgs = await res.json();
         setOrganizations(orgs);
@@ -1267,12 +1562,41 @@ export default function App() {
           const savedId = localStorage.getItem('context_layer_active_org_id');
           const matched = orgs.find(o => o.id === savedId) || orgs[0];
           setActiveOrg(matched);
+        } else {
+          setActiveOrg(null);
         }
       }
     } catch (e) {
       console.warn("Failed to fetch organizations:", e);
     }
   };
+
+  // Synchronize authenticated organization context with user identity
+  useEffect(() => {
+    if (isAuthenticated) {
+      if (myOrganizations && myOrganizations.length > 0) {
+        setOrganizations(myOrganizations);
+        const savedId = localStorage.getItem('context_layer_active_org_id');
+        const matched = myOrganizations.find(o => o.id === savedId) || myOrganizations[0];
+        setActiveOrg(matched);
+      } else if (authUser?.organization_id) {
+        const initialUserOrg = {
+          id: authUser.organization_id,
+          name: authUser.organization_name || 'Enterprise Organization',
+          setup_completed: false
+        };
+        setOrganizations([initialUserOrg]);
+        setActiveOrg(initialUserOrg);
+      } else {
+        fetchOrganizations();
+      }
+    } else {
+      setOrganizations([]);
+      setActiveOrg(null);
+      setWorkspaces([]);
+      setActiveWorkspace(null);
+    }
+  }, [isAuthenticated, myOrganizations, authUser]);
 
   const fetchLiveDatabaseRecords = async (orgId = activeOrg?.id) => {
     if (!orgId) return;
@@ -1378,25 +1702,38 @@ export default function App() {
     try {
       const res = await fetch('/v1/organizations', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: newOrgName.trim(), slug })
+        headers: {
+          'Content-Type': 'application/json',
+          ...(authToken ? { 'Authorization': `Bearer ${authToken}` } : {})
+        },
+        body: JSON.stringify({ name: newOrgName.trim(), slug, setup_completed: true })
       });
       if (res.ok) {
         const created = await res.json();
-        setOrganizations(prev => [...prev, created]);
+        created.setup_completed = true;
+        setOrganizations(prev => {
+          const exists = prev.some(o => o.id === created.id);
+          return exists ? prev.map(o => o.id === created.id ? created : o) : [created, ...prev];
+        });
         setActiveOrg(created);
         localStorage.setItem('context_layer_active_org_id', created.id);
         setShowNewOrgModal(false);
         setNewOrgName('');
         setNewOrgSlug('');
+        if (refreshMyOrganizations) {
+          refreshMyOrganizations();
+        }
         await fetchHealthAndConflicts(created.id);
-        showToast(`Created & switched to client workspace '${created.name}'!`);
+        showToast(`Enterprise organization '${created.name}' created! Now create your initial workspace to activate services.`);
+        if (workspaces.length === 0) {
+          setShowNewWorkspaceModal(true);
+        }
       } else {
         const err = await res.json();
-        showToast(`Failed to create workspace: ${err.detail || res.status}`, 'error');
+        showToast(`Failed to create organization: ${err.detail || res.status}`, 'error');
       }
     } catch (e) {
-      showToast("Network error creating workspace", "error");
+      showToast("Network error creating organization", "error");
     } finally {
       setIsCreatingOrg(false);
     }
@@ -2269,331 +2606,531 @@ export default function App() {
 
   const currentScenario = scenarios[demoScenario];
 
-  const renderHeaderRightControls = () => (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'nowrap', position: 'relative' }}>
-      {/* 0. DEMO SANDBOX PILL & RESET ACTION */}
-      <button
-        type="button"
-        onClick={handleResetDemoData}
-        className="top-header-pill"
-        title="Click to reset demo knowledge graph (Policies, Claims, Conflicts) to initial clean state"
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '5px',
-          color: '#B45309',
-          backgroundColor: 'rgba(255, 171, 74, 0.12)',
-          border: '1px solid rgba(255, 171, 74, 0.35)',
-          fontWeight: 700,
-          cursor: 'pointer',
-          padding: '4px 8px'
-        }}
-      >
-        <RefreshCw size={11} style={{ color: '#FFAB4A' }} />
-        <span style={{ fontSize: '0.72rem' }}>Reset Demo</span>
-      </button>
+  const renderHeaderRightControls = () => {
+    // Only display the authenticated user's genuine enterprise organizations
+    const displayOrgs = (myOrganizations && myOrganizations.length > 0)
+      ? myOrganizations
+      : (activeOrg ? [activeOrg] : []);
 
-      {/* 1. ACTIVE DEPARTMENTAL WORKSPACE DROPDOWN */}
-      <div style={{ position: 'relative' }}>
-        <button
-          onClick={() => {
-            setIsWorkspaceDropdownOpen(prev => !prev);
-            setIsPersonaDropdownOpen(false);
-          }}
-          className={`top-header-pill ${isWorkspaceDropdownOpen ? 'top-header-pill-active' : ''}`}
-          title={`Active Workspace: ${activeWorkspace?.name || 'All Workspaces'}`}
-          style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
-        >
-          <FolderGit2 size={12} style={{ color: 'var(--text-muted)' }} />
-          <span style={{ maxWidth: '130px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {activeWorkspace?.name ? activeWorkspace.name.replace(' (Universal)', '') : 'All Workspaces'}
-          </span>
-          <ChevronDown size={11} style={{ color: '#94A3B8' }} />
-        </button>
-
-        {isWorkspaceDropdownOpen && (
-          <div style={{
-            position: 'absolute',
-            top: 'calc(100% + 4px)',
-            right: 0,
-            background: 'var(--bg-card)',
-            border: '1px solid var(--border-subtle)',
-            borderRadius: '6px',
-            boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
-            zIndex: 250,
-            width: '260px',
-            padding: '6px'
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 6px 4px 6px', borderBottom: '1px solid var(--border-subtle)', marginBottom: '4px' }}>
-              <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                Workspaces
-              </span>
-              {activeWorkspace?.domain && (
-                <span className="badge badge-muted" style={{ fontSize: '0.6rem', padding: '1px 4px' }}>{activeWorkspace.domain.toUpperCase()}</span>
-              )}
-            </div>
-
-            <div style={{ maxHeight: '190px', overflowY: 'auto' }}>
-              {workspaces.map(ws => (
-                <button
-                  key={ws.id}
-                  onClick={() => {
-                    setActiveWorkspace(ws);
-                    setIsWorkspaceDropdownOpen(false);
-                  }}
-                  style={{
-                    width: '100%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '6px 8px',
-                    background: activeWorkspace?.id === ws.id ? 'var(--primary-subtle, rgba(99,102,241,0.1))' : 'transparent',
-                    border: 'none',
-                    borderRadius: '4px',
-                    color: activeWorkspace?.id === ws.id ? 'var(--primary)' : 'var(--text-main)',
-                    fontSize: '0.75rem',
-                    fontWeight: activeWorkspace?.id === ws.id ? 700 : 500,
-                    cursor: 'pointer',
-                    textAlign: 'left'
-                  }}
-                >
-                  <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{ws.name}</span>
-                  {activeWorkspace?.id === ws.id && <span style={{ fontSize: '0.7rem', color: 'var(--primary)' }}>✓</span>}
-                </button>
-              ))}
-            </div>
-
-            <div style={{ borderTop: '1px solid var(--border-subtle)', marginTop: '4px', paddingTop: '4px' }}>
-              <button
-                onClick={() => {
-                  setShowNewWorkspaceModal(true);
-                  setIsWorkspaceDropdownOpen(false);
-                }}
-                style={{
-                  width: '100%',
-                  padding: '5px 8px',
-                  background: 'transparent',
-                  border: 'none',
-                  color: 'var(--primary)',
-                  fontSize: '0.72rem',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  textAlign: 'left',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '4px'
-                }}
-              >
-                + Create Workspace
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* 2. AUTHENTICATED USER / PERSONA PROFILE DROPDOWN */}
-      <div style={{ position: 'relative' }}>
-        <button
-          onClick={() => {
-            setIsPersonaDropdownOpen(prev => !prev);
-            setIsWorkspaceDropdownOpen(false);
-          }}
-          className={`top-header-pill ${isPersonaDropdownOpen ? 'top-header-pill-active' : ''}`}
-          title={`Signed in as ${authUser?.name || activePersona?.name || 'User'} (${(authUser?.role || effectiveRole || 'admin').toUpperCase()})`}
-          style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '3px 8px 3px 5px' }}
-        >
-          <img
-            src={authUser?.avatar_url || activePersona?.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${authUser?.name || 'User'}`}
-            alt="Avatar"
-            style={{ width: '18px', height: '18px', borderRadius: '50%', backgroundColor: 'rgba(255,171,74,0.2)' }}
-          />
-          <span style={{ maxWidth: '110px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 600 }}>
-            {authUser?.name || activePersona?.name || 'User'}
-          </span>
-          <span
+    return (
+      <div ref={headerControlsRef} style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'nowrap', position: 'relative' }}>
+        {/* 1. ACTIVE ENTERPRISE TENANT ORGANIZATION DROPDOWN */}
+        <div style={{ position: 'relative' }}>
+          <button
+            onClick={() => toggleDropdown('org')}
+            className={`top-header-pill ${isOrgDropdownOpen ? 'top-header-pill-active' : ''}`}
+            title={`Active Organization Tenant: ${isOrgReady ? activeOrg?.name : 'Create Organization'}`}
             style={{
-              fontSize: '0.6rem',
-              fontWeight: 700,
-              padding: '1px 5px',
-              borderRadius: '4px',
-              backgroundColor: 'rgba(255,171,74,0.15)',
-              color: '#B45309',
-              border: '1px solid rgba(255,171,74,0.35)',
-              textTransform: 'uppercase'
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '3px 9px',
+              ...(!isOrgReady ? { border: '1px dashed #EA580C', background: 'rgba(234, 88, 12, 0.08)' } : {})
             }}
           >
-            {(authUser?.role || effectiveRole || 'admin')}
-          </span>
-          <ChevronDown size={11} style={{ color: '#94A3B8' }} />
-        </button>
+            <Building2 size={12} style={{ color: isOrgReady ? '#FFAB4A' : '#EA580C' }} />
+            <span style={{ maxWidth: '130px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 700 }}>
+              {isOrgReady ? activeOrg.name : (activeOrg?.name && !activeOrg.name.includes('Pending Setup') ? activeOrg.name : 'Create Organization')}
+            </span>
+            {!isOrgReady ? (
+              <span style={{
+                fontSize: '0.58rem',
+                padding: '1px 5px',
+                borderRadius: '3px',
+                background: '#EA580C',
+                color: '#FFFFFF',
+                fontWeight: 800
+              }}>
+                SETUP
+              </span>
+            ) : activeOrg?.member_count != null ? (
+              <span style={{
+                fontSize: '0.62rem',
+                padding: '1px 5px',
+                borderRadius: '4px',
+                background: 'rgba(255, 171, 74, 0.18)',
+                color: '#9A4900',
+                fontWeight: 700
+              }}>
+                {activeOrg.member_count}
+              </span>
+            ) : null}
+            <ChevronDown size={11} style={{ color: '#94A3B8', transform: isOrgDropdownOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s ease' }} />
+          </button>
 
-        {isPersonaDropdownOpen && (
-          <div style={{
-            position: 'absolute',
-            top: 'calc(100% + 4px)',
-            right: 0,
-            background: 'var(--bg-card)',
-            border: '1px solid var(--border-subtle)',
-            borderRadius: '8px',
-            boxShadow: '0 10px 30px rgba(0,0,0,0.25)',
-            zIndex: 250,
-            width: '280px',
-            padding: '8px'
-          }}>
-            {/* User Details Header */}
-            <div style={{ padding: '6px 8px', borderBottom: '1px solid var(--border-subtle)', marginBottom: '6px' }}>
-              <div style={{ fontWeight: 700, fontSize: '0.82rem', color: 'var(--text-main)' }}>
-                {authUser?.name || activePersona?.name}
+          {isOrgDropdownOpen && (
+            <div
+              className="dropdown-menu-animated"
+              style={{
+                position: 'absolute',
+                top: 'calc(100% + 5px)',
+                right: 0,
+                background: 'var(--bg-card)',
+                border: '1px solid var(--border-subtle)',
+                borderRadius: '8px',
+                boxShadow: '0 12px 32px rgba(0,0,0,0.22)',
+                zIndex: 260,
+                width: '300px',
+                padding: '8px'
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 6px 6px 6px', borderBottom: '1px solid var(--border-subtle)', marginBottom: '6px' }}>
+                <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Enterprise Organizations
+                </span>
+                <span className="badge" style={{ fontSize: '0.62rem', padding: '1px 5px' }}>
+                  {displayOrgs.length} {displayOrgs.length === 1 ? 'Tenant' : 'Tenants'}
+                </span>
               </div>
-              <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', wordBreak: 'break-all', marginTop: '1px' }}>
-                {authUser?.email || activePersona?.email}
-              </div>
-              <div style={{ fontSize: '0.68rem', color: '#FFAB4A', fontWeight: 600, marginTop: '3px' }}>
-                🏢 {authOrg?.name || activeOrg?.name || 'Enterprise Workspace'}
-              </div>
-            </div>
 
-            {/* Quick Demo Switchers */}
-            <div style={{ fontSize: '0.66rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', padding: '4px 8px 2px 8px' }}>
-              Quick Persona Switch
-            </div>
-            <div style={{ maxHeight: '160px', overflowY: 'auto', marginBottom: '6px' }}>
-              {personas.map(p => (
+              {!isOrgReady && (
+                <div style={{
+                  padding: '8px 10px',
+                  background: 'rgba(234, 88, 12, 0.08)',
+                  border: '1px solid rgba(234, 88, 12, 0.2)',
+                  borderRadius: '6px',
+                  marginBottom: '8px',
+                  fontSize: '0.72rem',
+                  color: 'var(--text-secondary)'
+                }}>
+                  <div style={{ fontWeight: 700, color: '#EA580C', marginBottom: '2px' }}>Organization Required</div>
+                  Create your organization tenant to activate services.
+                </div>
+              )}
+
+              <div style={{ maxHeight: '180px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                {displayOrgs.map(org => {
+                  const isActive = activeOrg?.id === org.id;
+                  const myMem = myOrganizations?.find(m => m.id === org.id);
+                  const roleToShow = org.role || myMem?.role || (isActive ? (authUser?.role || effectiveRole) : null);
+                  return (
+                    <button
+                      key={org.id}
+                      onClick={() => {
+                        handleSwitchOrganization(org);
+                        closeDropdowns();
+                      }}
+                      style={{
+                        width: '100%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '7px 9px',
+                        background: isActive ? 'rgba(255, 171, 74, 0.12)' : 'transparent',
+                        border: 'none',
+                        borderRadius: '5px',
+                        color: isActive ? '#9A4900' : 'var(--text-main)',
+                        fontSize: '0.78rem',
+                        fontWeight: isActive ? 700 : 500,
+                        cursor: 'pointer',
+                        textAlign: 'left',
+                        transition: 'background 0.15s ease'
+                      }}
+                      onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = '#F8FAFC'; }}
+                      onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = 'transparent'; }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
+                        <Building2 size={13} style={{ color: isActive ? '#FFAB4A' : 'var(--text-muted)', flexShrink: 0 }} />
+                        <div style={{ minWidth: 0 }}>
+                          <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                            <span>{org.name}</span>
+                            {roleToShow && (
+                              <span style={{ fontSize: '0.58rem', fontWeight: 700, padding: '1px 4px', borderRadius: '3px', backgroundColor: '#EFF6FF', color: '#1D4ED8', textTransform: 'uppercase' }}>
+                                {roleToShow}
+                              </span>
+                            )}
+                          </div>
+                          <div style={{ fontSize: '0.66rem', color: 'var(--text-muted)', fontFamily: 'monospace' }}>
+                            {org.slug}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        {isActive && <span style={{ color: '#FFAB4A', fontWeight: 800 }}>✓</span>}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div style={{ borderTop: '1px solid var(--border-subtle)', marginTop: '6px', paddingTop: '6px', display: 'flex', flexDirection: 'column', gap: '3px' }}>
                 <button
-                  key={p.id || p.email}
                   onClick={() => {
-                    handleSelectPersona(p);
-                    setIsPersonaDropdownOpen(false);
+                    setShowNewOrgModal(true);
+                    closeDropdowns();
                   }}
                   style={{
                     width: '100%',
+                    padding: '7px 8px',
+                    background: 'rgba(255, 171, 74, 0.1)',
+                    border: '1px solid rgba(255, 171, 74, 0.3)',
+                    borderRadius: '5px',
+                    color: '#9A4900',
+                    fontSize: '0.74rem',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    textAlign: 'left',
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '6px 8px',
-                    background: (authUser?.email === p.email || activePersona?.id === p.id) ? 'rgba(255,171,74,0.1)' : 'transparent',
-                    border: 'none',
-                    borderRadius: '6px',
-                    color: (authUser?.email === p.email || activePersona?.id === p.id) ? '#B45309' : 'var(--text-main)',
-                    fontSize: '0.74rem',
-                    fontWeight: (authUser?.email === p.email || activePersona?.id === p.id) ? 700 : 500,
-                    cursor: 'pointer',
-                    textAlign: 'left'
+                    gap: '6px'
                   }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', overflow: 'hidden' }}>
-                    <img src={p.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${p.name}`} alt="" style={{ width: 16, height: 16, borderRadius: '50%' }} />
-                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</span>
-                  </div>
-                  <span style={{ fontSize: '0.62rem', opacity: 0.8, textTransform: 'uppercase' }}>{p.role}</span>
+                  <Plus size={13} />
+                  <span>+ Create Enterprise Organization</span>
                 </button>
-              ))}
+
+                <button
+                  onClick={() => {
+                    setSetupWizardTargetOrg(activeOrg);
+                    setIsSetupWizardOpen(true);
+                    closeDropdowns();
+                  }}
+                  style={{
+                    width: '100%',
+                    padding: '5px 8px',
+                    background: 'transparent',
+                    border: 'none',
+                    color: 'var(--text-secondary)',
+                    fontSize: '0.72rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.color = 'var(--text-main)'}
+                  onMouseLeave={e => e.currentTarget.style.color = 'var(--text-secondary)'}
+                >
+                  <Sparkles size={12} style={{ color: '#FFAB4A' }} />
+                  <span>Launch Onboarding Wizard for '{activeOrg?.name || 'Organization'}'</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    setIsOrgSettingsModalOpen(true);
+                    closeDropdowns();
+                  }}
+                  style={{
+                    width: '100%',
+                    padding: '5px 8px',
+                    background: 'transparent',
+                    border: 'none',
+                    color: 'var(--text-secondary)',
+                    fontSize: '0.72rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.color = 'var(--text-main)'}
+                  onMouseLeave={e => e.currentTarget.style.color = 'var(--text-secondary)'}
+                >
+                  <Sliders size={12} />
+                  <span>Organization Settings & Whitelists</span>
+                </button>
+              </div>
             </div>
+          )}
+        </div>
 
-            {/* Profile & Sign Out Actions */}
-            <div style={{ borderTop: '1px solid var(--border-subtle)', paddingTop: '6px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
-              <button
-                onClick={() => {
-                  handleResetDemoData();
-                  setIsPersonaDropdownOpen(false);
-                }}
-                style={{
-                  width: '100%',
-                  padding: '6px 8px',
-                  background: 'transparent',
-                  border: 'none',
-                  borderRadius: '4px',
-                  color: '#B45309',
-                  fontSize: '0.74rem',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  textAlign: 'left',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px'
-                }}
-              >
-                <RefreshCw size={13} color="#FFAB4A" />
-                <span>Reset Demo Knowledge</span>
-              </button>
+        {/* 2. ACTIVE DEPARTMENTAL WORKSPACE DROPDOWN */}
+        <div style={{ position: 'relative' }}>
+          <button
+            onClick={() => toggleDropdown('workspace')}
+            className={`top-header-pill ${isWorkspaceDropdownOpen ? 'top-header-pill-active' : ''}`}
+            title={`Active Workspace: ${isWorkspaceReady ? activeWorkspace?.name : 'Create Workspace'}`}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              ...(!isWorkspaceReady ? { border: '1px dashed #EA580C', background: 'rgba(234, 88, 12, 0.08)' } : {})
+            }}
+          >
+            <FolderGit2 size={12} style={{ color: isWorkspaceReady ? 'var(--text-muted)' : '#EA580C' }} />
+            <span style={{ maxWidth: '130px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: isWorkspaceReady ? 500 : 700 }}>
+              {isWorkspaceReady ? activeWorkspace.name.replace(' (Universal)', '') : 'Create Workspace'}
+            </span>
+            {!isWorkspaceReady && (
+              <span style={{
+                fontSize: '0.58rem',
+                padding: '1px 5px',
+                borderRadius: '3px',
+                background: '#EA580C',
+                color: '#FFFFFF',
+                fontWeight: 800
+              }}>
+                SETUP
+              </span>
+            )}
+            <ChevronDown size={11} style={{ color: '#94A3B8', transform: isWorkspaceDropdownOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s ease' }} />
+          </button>
 
-              <button
-                onClick={() => {
-                  setActiveTab('profile');
-                  setIsPersonaDropdownOpen(false);
-                }}
-                style={{
-                  width: '100%',
-                  padding: '6px 8px',
-                  background: 'transparent',
-                  border: 'none',
-                  borderRadius: '4px',
-                  color: 'var(--text-main)',
-                  fontSize: '0.74rem',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  textAlign: 'left',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px'
-                }}
-              >
-                <User size={13} />
-                <span>Account Profile & Companies</span>
-              </button>
+          {isWorkspaceDropdownOpen && (
+            <div
+              className="dropdown-menu-animated"
+              style={{
+                position: 'absolute',
+                top: 'calc(100% + 5px)',
+                right: 0,
+                background: 'var(--bg-card)',
+                border: '1px solid var(--border-subtle)',
+                borderRadius: '8px',
+                boxShadow: '0 12px 32px rgba(0,0,0,0.22)',
+                zIndex: 250,
+                width: '280px',
+                padding: '8px'
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 6px 6px 6px', borderBottom: '1px solid var(--border-subtle)', marginBottom: '6px' }}>
+                <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Workspaces
+                </span>
+                <span className="badge badge-muted" style={{ fontSize: '0.62rem', padding: '1px 5px' }}>
+                  {workspaces.length} {workspaces.length === 1 ? 'Workspace' : 'Workspaces'}
+                </span>
+              </div>
 
-              <button
-                onClick={() => {
-                  setIsPersonaDropdownOpen(false);
-                  if (authLogout) authLogout();
-                }}
-                style={{
-                  width: '100%',
-                  padding: '6px 8px',
-                  background: 'transparent',
-                  border: 'none',
-                  borderRadius: '4px',
-                  color: '#EF4444',
-                  fontSize: '0.74rem',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  textAlign: 'left',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px'
-                }}
-              >
-                <LogOut size={13} />
-                <span>Sign Out</span>
-              </button>
+              {!isWorkspaceReady && (
+                <div style={{
+                  padding: '8px 10px',
+                  background: 'rgba(234, 88, 12, 0.08)',
+                  border: '1px solid rgba(234, 88, 12, 0.2)',
+                  borderRadius: '6px',
+                  marginBottom: '8px',
+                  fontSize: '0.72rem',
+                  color: 'var(--text-secondary)'
+                }}>
+                  <div style={{ fontWeight: 700, color: '#EA580C', marginBottom: '2px' }}>Workspace Required</div>
+                  Workspaces partition documents and policies by department.
+                </div>
+              )}
+
+              <div style={{ maxHeight: '190px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                {workspaces.map(ws => (
+                  <button
+                    key={ws.id}
+                    onClick={() => {
+                      setActiveWorkspace(ws);
+                      closeDropdowns();
+                    }}
+                    style={{
+                      width: '100%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '6px 8px',
+                      background: activeWorkspace?.id === ws.id ? 'var(--primary-subtle, rgba(255, 171, 74, 0.12))' : 'transparent',
+                      border: 'none',
+                      borderRadius: '5px',
+                      color: activeWorkspace?.id === ws.id ? '#9A4900' : 'var(--text-main)',
+                      fontSize: '0.75rem',
+                      fontWeight: activeWorkspace?.id === ws.id ? 700 : 500,
+                      cursor: 'pointer',
+                      textAlign: 'left',
+                      transition: 'background 0.15s ease'
+                    }}
+                    onMouseEnter={e => { if (activeWorkspace?.id !== ws.id) e.currentTarget.style.background = '#F8FAFC'; }}
+                    onMouseLeave={e => { if (activeWorkspace?.id !== ws.id) e.currentTarget.style.background = 'transparent'; }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0 }}>
+                      <span>{ws.icon || '📁'}</span>
+                      <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{ws.name}</span>
+                    </div>
+                    {activeWorkspace?.id === ws.id && <span style={{ fontSize: '0.75rem', color: '#FFAB4A', fontWeight: 800 }}>✓</span>}
+                  </button>
+                ))}
+
+                {workspaces.length === 0 && (
+                  <div style={{ padding: '8px 10px', fontSize: '0.72rem', color: 'var(--text-muted)', background: 'var(--bg-card-subtle)', borderRadius: '5px', margin: '4px 0' }}>
+                    No departmental workspaces added yet. Create one below to unlock all services.
+                  </div>
+                )}
+              </div>
+
+              <div style={{ borderTop: '1px solid var(--border-subtle)', marginTop: '6px', paddingTop: '6px' }}>
+                <button
+                  onClick={() => {
+                    setShowNewWorkspaceModal(true);
+                    closeDropdowns();
+                  }}
+                  style={{
+                    width: '100%',
+                    padding: '7px 8px',
+                    background: 'rgba(255, 171, 74, 0.1)',
+                    border: '1px solid rgba(255, 171, 74, 0.3)',
+                    borderRadius: '5px',
+                    color: '#9A4900',
+                    fontSize: '0.74rem',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '5px'
+                  }}
+                >
+                  <Plus size={13} />
+                  <span>+ Create Department Workspace</span>
+                </button>
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
+
+        {/* 3. AUTHENTICATED USER / PERSONA PROFILE DROPDOWN */}
+        <div style={{ position: 'relative' }}>
+          <button
+            onClick={() => toggleDropdown('persona')}
+            className={`top-header-pill ${isPersonaDropdownOpen ? 'top-header-pill-active' : ''}`}
+            title={`Signed in as ${authUser?.name || activePersona?.name || 'User'} (${(authUser?.role || effectiveRole || 'admin').toUpperCase()})`}
+            style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '3px 8px 3px 5px' }}
+          >
+            <img
+              src={authUser?.avatar_url || activePersona?.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${authUser?.name || 'User'}`}
+              alt="Avatar"
+              style={{ width: '18px', height: '18px', borderRadius: '50%', backgroundColor: 'rgba(255,171,74,0.2)' }}
+            />
+            <span style={{ maxWidth: '110px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 600 }}>
+              {authUser?.name || activePersona?.name || 'User'}
+            </span>
+            <span
+              style={{
+                fontSize: '0.6rem',
+                fontWeight: 700,
+                padding: '1px 5px',
+                borderRadius: '4px',
+                backgroundColor: 'rgba(255,171,74,0.15)',
+                color: '#B45309',
+                border: '1px solid rgba(255,171,74,0.35)',
+                textTransform: 'uppercase'
+              }}
+            >
+              {(authUser?.role || effectiveRole || 'admin')}
+            </span>
+            <ChevronDown size={11} style={{ color: '#94A3B8', transform: isPersonaDropdownOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s ease' }} />
+          </button>
+
+          {isPersonaDropdownOpen && (
+            <div
+              className="dropdown-menu-animated"
+              style={{
+                position: 'absolute',
+                top: 'calc(100% + 5px)',
+                right: 0,
+                background: 'var(--bg-card)',
+                border: '1px solid var(--border-subtle)',
+                borderRadius: '8px',
+                boxShadow: '0 12px 32px rgba(0,0,0,0.22)',
+                zIndex: 250,
+                width: '280px',
+                padding: '8px'
+              }}
+            >
+              {/* User Details Header */}
+              <div style={{ padding: '6px 8px', borderBottom: '1px solid var(--border-subtle)', marginBottom: '6px' }}>
+                <div style={{ fontWeight: 700, fontSize: '0.82rem', color: 'var(--text-main)' }}>
+                  {authUser?.name || activePersona?.name}
+                </div>
+                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', wordBreak: 'break-all', marginTop: '1px' }}>
+                  {authUser?.email || activePersona?.email}
+                </div>
+                <div style={{ fontSize: '0.68rem', color: '#FFAB4A', fontWeight: 600, marginTop: '3px' }}>
+                  🏢 {authOrg?.name || activeOrg?.name || 'Enterprise Workspace'}
+                </div>
+              </div>
+
+              {/* Google Identity Verified Badge */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '4px 8px 8px 8px', fontSize: '0.70rem', color: 'var(--text-muted)' }}>
+                <svg width="13" height="13" viewBox="0 0 24 24">
+                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+                </svg>
+                <span>Authenticated via Google Workspace</span>
+              </div>
+
+              {/* Sign Out Action */}
+              <div style={{ borderTop: '1px solid var(--border-subtle)', paddingTop: '6px' }}>
+
+                <button
+                  onClick={() => {
+                    closeDropdowns();
+                    if (authLogout) authLogout();
+                  }}
+                  style={{
+                    width: '100%',
+                    padding: '6px 8px',
+                    background: 'transparent',
+                    border: 'none',
+                    borderRadius: '4px',
+                    color: '#EF4444',
+                    fontSize: '0.74rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }}
+                >
+                  <LogOut size={13} />
+                  <span>Sign Out</span>
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Real-Time Incident Webhooks Button */}
+        <button
+          onClick={() => {
+            closeDropdowns();
+            setIsWebhookModalOpen(true);
+          }}
+          className="top-header-pill"
+          title="Configure Real-Time Incident Webhooks (Slack, PagerDuty, MS Teams)"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '5px',
+            color: 'var(--text-secondary)',
+            fontWeight: 600,
+            cursor: 'pointer'
+          }}
+        >
+          <Bell size={12} style={{ color: '#EA580C' }} />
+        </button>
       </div>
-
-      {/* Real-Time Incident Webhooks Button */}
-      <button
-        onClick={() => setIsWebhookModalOpen(true)}
-        className="top-header-pill"
-        title="Configure Real-Time Incident Webhooks (Slack, PagerDuty, MS Teams)"
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '5px',
-          color: 'var(--text-secondary)',
-          fontWeight: 600,
-          cursor: 'pointer'
-        }}
-      >
-        <Bell size={12} style={{ color: '#EA580C' }} />
-      </button>
-    </div>
-  );
+    );
+  };
 
   // Unauthenticated Barrier View
   if (!isAuthenticated && !authUser) {
     return <AuthLandingView />;
   }
+
+  // Enterprise Environment Status: Org & Workspace Provisioning
+  const isOrgReady = Boolean(
+    activeOrg &&
+    activeOrg.id &&
+    activeOrg.setup_completed === true &&
+    activeOrg.name &&
+    !activeOrg.name.includes('Pending Setup')
+  );
+
+  const isWorkspaceReady = Boolean(
+    workspaces &&
+    workspaces.length > 0 &&
+    activeWorkspace &&
+    activeWorkspace.id
+  );
+
+  const isEnvironmentReady = Boolean(isOrgReady && isWorkspaceReady);
 
   return (
     <div className="app-layout">
@@ -2730,15 +3267,101 @@ export default function App() {
             <span>Home Overview</span>
           </button>
 
-          {isTabVisible('demo') && (
-            <button
-              onClick={() => { setActiveTab('demo'); }}
-              className={`nav-item ${activeTab === 'demo' ? 'nav-item-active' : ''}`}
-              title="Decision Gate Demo"
-            >
-              <Brain size={16} strokeWidth={1.75} />
-              <span>Decision Gate Demo</span>
-            </button>
+          {isTabVisible('ingestion') && (
+            <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveTab('ingestion');
+                  setOpenSidebarMenu(prev => prev === 'explorer' ? null : 'explorer');
+                }}
+                className={`nav-item ${activeTab === 'ingestion' ? 'nav-item-active' : ''}`}
+                title="Document Explorer"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: isSidebarOpen ? 'space-between' : 'center',
+                  width: '100%',
+                  cursor: 'pointer'
+                }}
+              >
+                {isSidebarOpen ? (
+                  <>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <FolderTree size={16} strokeWidth={1.75} />
+                      <span>Document Explorer</span>
+                    </div>
+                    <ChevronDown
+                      size={13}
+                      style={{
+                        transform: openSidebarMenu === 'explorer' ? 'rotate(180deg)' : 'rotate(0deg)',
+                        transition: 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+                        opacity: 0.7
+                      }}
+                    />
+                  </>
+                ) : (
+                  <FolderTree size={16} strokeWidth={1.75} />
+                )}
+              </button>
+
+              {/* Sub-items of Document Explorer */}
+              {isSidebarOpen && (
+                <div className={`sidebar-accordion-wrapper ${openSidebarMenu === 'explorer' ? 'expanded' : ''}`}>
+                  <div className="sidebar-accordion-inner">
+                    {[
+                      { id: 'folders', label: 'Folders & Structure', count: displayedDbDocuments.length },
+                      { id: 'ingest', label: 'Upload & Ingest', count: null },
+                      { id: 'connectors', label: 'Live Connectors', count: displayedDataSources.length }
+                    ].map(sub => {
+                      const isSubActive = activeTab === 'ingestion' && (
+                        (sub.id === 'folders' && (docExplorerView === 'folders' || docExplorerView === 'documents'))
+                        || docExplorerView === sub.id
+                      );
+                      return (
+                        <button
+                          key={sub.id}
+                          type="button"
+                          onClick={() => {
+                            setActiveTab('ingestion');
+                            setDocExplorerView(sub.id);
+                          }}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            padding: '5px 8px',
+                            borderRadius: '6px',
+                            border: 'none',
+                            background: isSubActive ? '#FFF7ED' : 'transparent',
+                            color: isSubActive ? '#EA580C' : '#64748B',
+                            fontSize: '0.74rem',
+                            fontWeight: isSubActive ? 700 : 500,
+                            cursor: 'pointer',
+                            textAlign: 'left',
+                            transition: 'all 0.15s ease'
+                          }}
+                        >
+                          <span>{sub.label}</span>
+                          {sub.count !== null && (
+                            <span style={{
+                              fontSize: '0.68rem',
+                              fontWeight: 700,
+                              padding: '1px 5px',
+                              borderRadius: '10px',
+                              background: isSubActive ? '#FFEDD5' : '#F1F5F9',
+                              color: isSubActive ? '#EA580C' : '#64748B'
+                            }}>
+                              {sub.count}
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
           )}
 
           {isTabVisible('visual_lineage') && (
@@ -2784,11 +3407,9 @@ export default function App() {
                 <div className={`sidebar-accordion-wrapper ${openSidebarMenu === 'vault' ? 'expanded' : ''}`}>
                   <div className="sidebar-accordion-inner">
                     {[
-                      { id: 'documents', label: 'Documents', count: displayedDbDocuments.length },
-                      { id: 'connectors', label: 'Connectors', count: displayedDataSources.length },
-                      { id: 'conflicts', label: 'Conflicts Registry', count: conflicts.length },
-                      { id: 'claims', label: 'Claims and Decisions', count: dbClaims.length },
-                      { id: 'dag', label: 'Full Canvas DAG', count: null }
+                      { id: 'documents', label: 'Folders & Documents', count: displayedDbDocuments.length },
+                      { id: 'dag', label: 'Full Canvas DAG', count: null },
+                      { id: 'claims', label: 'Atomic Claims', count: dbClaims.length }
                     ].map(sub => {
                       const isSubActive = activeTab === 'visual_lineage' && vaultSubTab === sub.id;
                       return (
@@ -2910,8 +3531,8 @@ export default function App() {
                 <div className={`sidebar-accordion-wrapper ${openSidebarMenu === 'curator' ? 'expanded' : ''}`}>
                   <div className="sidebar-accordion-inner">
                     {[
-                      { id: 'health', label: 'Context Health & Heuristics', count: null },
                       { id: 'conflicts', label: 'Pairwise Conflict Resolver', count: conflicts.length > 0 ? `${conflicts.length} Pending` : null, isAlert: conflicts.length > 0 },
+                      { id: 'health', label: 'Context Health & Heuristics', count: null },
                       { id: 'drift', label: 'Drift & Claim Decay', count: null }
                     ].map(sub => {
                       const isSubActive = (activeTab === 'context_curator' || activeTab === 'conflicts') && (curatorSubView === sub.id || (activeTab === 'conflicts' && sub.id === 'conflicts'));
@@ -2963,100 +3584,6 @@ export default function App() {
                               padding: '1px 5px',
                               borderRadius: '4px',
                               whiteSpace: 'nowrap'
-                            }}>
-                              {sub.count}
-                            </span>
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          {isTabVisible('ingestion') && (
-            <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
-              <button
-                type="button"
-                onClick={() => {
-                  setActiveTab('ingestion');
-                  setOpenSidebarMenu(prev => prev === 'explorer' ? null : 'explorer');
-                }}
-                className={`nav-item ${activeTab === 'ingestion' ? 'nav-item-active' : ''}`}
-                title="Document Explorer"
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: isSidebarOpen ? 'space-between' : 'center',
-                  width: '100%',
-                  cursor: 'pointer'
-                }}
-              >
-                {isSidebarOpen ? (
-                  <>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <FolderTree size={16} strokeWidth={1.75} />
-                      <span>Document Explorer</span>
-                    </div>
-                    <ChevronDown
-                      size={13}
-                      style={{
-                        transform: openSidebarMenu === 'explorer' ? 'rotate(180deg)' : 'rotate(0deg)',
-                        transition: 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
-                        opacity: 0.7
-                      }}
-                    />
-                  </>
-                ) : (
-                  <FolderTree size={16} strokeWidth={1.75} />
-                )}
-              </button>
-
-              {/* Sub-items of Document Explorer */}
-              {isSidebarOpen && (
-                <div className={`sidebar-accordion-wrapper ${openSidebarMenu === 'explorer' ? 'expanded' : ''}`}>
-                  <div className="sidebar-accordion-inner">
-                    {[
-                      { id: 'ingest', label: 'Upload & Ingest', count: null },
-                      { id: 'documents', label: 'Stored Documents', count: displayedDbDocuments.length },
-                      { id: 'connectors', label: 'Live Connectors', count: displayedDataSources.length }
-                    ].map(sub => {
-                      const isSubActive = activeTab === 'ingestion' && docExplorerView === sub.id;
-                      return (
-                        <button
-                          key={sub.id}
-                          type="button"
-                          onClick={() => {
-                            setActiveTab('ingestion');
-                            setDocExplorerView(sub.id);
-                          }}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            padding: '5px 8px',
-                            borderRadius: '6px',
-                            border: 'none',
-                            background: isSubActive ? '#FFF7ED' : 'transparent',
-                            color: isSubActive ? '#EA580C' : '#64748B',
-                            fontSize: '0.74rem',
-                            fontWeight: isSubActive ? 700 : 500,
-                            cursor: 'pointer',
-                            textAlign: 'left',
-                            transition: 'all 0.15s ease'
-                          }}
-                        >
-                          <span>{sub.label}</span>
-                          {sub.count !== null && (
-                            <span style={{
-                              fontSize: '0.68rem',
-                              fontWeight: 700,
-                              padding: '1px 5px',
-                              borderRadius: '10px',
-                              background: isSubActive ? '#FFEDD5' : '#F1F5F9',
-                              color: isSubActive ? '#EA580C' : '#64748B'
                             }}>
                               {sub.count}
                             </span>
@@ -3244,14 +3771,14 @@ export default function App() {
 
         {/* Set 2: Bottom Pinned Governance & Administration Group */}
         <div className="sidebar-footer" style={{ width: '100%' }}>
-          {isTabVisible('integrations') && (
+          {isTabVisible('demo') && (
             <button
-              onClick={() => setActiveTab('integrations')}
-              className={`nav-item ${activeTab === 'integrations' ? 'nav-item-active' : ''}`}
-              title="Agent Integrations & MCP"
+              onClick={() => setActiveTab('demo')}
+              className={`nav-item ${activeTab === 'demo' ? 'nav-item-active' : ''}`}
+              title="Decision Gate Demo"
             >
-              <Sliders size={16} strokeWidth={1.75} />
-              <span>Agent Integrations & MCP</span>
+              <Brain size={16} strokeWidth={1.75} />
+              <span>Decision Gate Demo</span>
             </button>
           )}
           {isTabVisible('audit') && (
@@ -3262,6 +3789,16 @@ export default function App() {
             >
               <BarChart3 size={16} strokeWidth={1.75} />
               <span>Audit Trail & Lineage</span>
+            </button>
+          )}
+          {isTabVisible('integrations') && (
+            <button
+              onClick={() => setActiveTab('integrations')}
+              className={`nav-item ${activeTab === 'integrations' ? 'nav-item-active' : ''}`}
+              title="Agent Integrations & MCP"
+            >
+              <Sliders size={16} strokeWidth={1.75} />
+              <span>Agent Integrations & MCP</span>
             </button>
           )}
           {isTabVisible('team') && (
@@ -3350,6 +3887,99 @@ export default function App() {
           {renderHeaderRightControls()}
         </div>
 
+        {/* Enterprise Organization Setup Progress Checklist Banner */}
+        <OrganizationSetupChecklistBanner
+          activeOrg={activeOrg}
+          onLaunchWizard={(recommendedStep) => {
+            setSetupWizardTargetOrg(activeOrg);
+            setIsSetupWizardOpen(true);
+          }}
+          refreshTrigger={orgSetupRefreshTrigger}
+        />
+
+        {/* Pending Organization Invitations Notification Banner */}
+        {isAuthenticated && myInvitations && myInvitations.length > 0 && (
+          <div
+            style={{
+              margin: '0 24px 16px 24px',
+              padding: '12px 18px',
+              borderRadius: '10px',
+              backgroundColor: '#EFF6FF',
+              border: '1px solid #BFDBFE',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '14px',
+              boxShadow: '0 2px 6px rgba(37, 99, 235, 0.08)'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div
+                style={{
+                  width: '36px',
+                  height: '36px',
+                  borderRadius: '8px',
+                  backgroundColor: '#DBEAFE',
+                  color: '#1D4ED8',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0
+                }}
+              >
+                <Users size={18} />
+              </div>
+              <div>
+                <div style={{ fontSize: '0.84rem', fontWeight: 700, color: '#1E3A8A' }}>
+                  You have {myInvitations.length} pending organization invitation{myInvitations.length > 1 ? 's' : ''}!
+                </div>
+                <div style={{ fontSize: '0.74rem', color: '#3B82F6', marginTop: '2px', display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                  {myInvitations.map((inv) => (
+                    <span key={inv.id}>
+                      • <strong>{inv.organization_name}</strong> as <span style={{ textTransform: 'capitalize', fontWeight: 600 }}>{inv.role.replace('_', ' ')}</span> (Invited by {inv.invited_by})
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              {myInvitations.map((inv) => (
+                <button
+                  key={inv.id}
+                  type="button"
+                  onClick={async () => {
+                    try {
+                      await acceptInvitation(inv.id);
+                      showToast(`Accepted invitation to '${inv.organization_name}'! Switched workspace.`);
+                      fetchOrganizations();
+                    } catch (err) {
+                      showToast(err.message || 'Failed to accept invitation.');
+                    }
+                  }}
+                  style={{
+                    padding: '7px 14px',
+                    borderRadius: '6px',
+                    backgroundColor: '#2563EB',
+                    color: '#FFFFFF',
+                    border: 'none',
+                    fontSize: '0.76rem',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    boxShadow: '0 2px 4px rgba(37, 99, 235, 0.2)'
+                  }}
+                >
+                  <CheckCircle2 size={13} />
+                  <span>Join {inv.organization_name}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
 
 
         {/* ========================================================= */}
@@ -3391,6 +4021,150 @@ export default function App() {
               </div>
             </div>
 
+            {/* Enterprise Environment Setup Hero Card (Displayed when org or workspace needs provisioning) */}
+            {!isEnvironmentReady && (
+              <div
+                className="clean-panel"
+                style={{
+                  padding: '22px 24px',
+                  marginBottom: '28px',
+                  border: '1px solid rgba(234, 88, 12, 0.35)',
+                  background: 'linear-gradient(135deg, rgba(234, 88, 12, 0.07) 0%, var(--bg-card) 100%)',
+                  position: 'relative',
+                  boxShadow: '0 8px 24px rgba(0,0,0,0.18)'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
+                  <div style={{ maxWidth: '640px' }}>
+                    <div style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      padding: '2px 8px',
+                      borderRadius: '4px',
+                      background: 'rgba(234, 88, 12, 0.15)',
+                      color: '#EA580C',
+                      fontSize: '0.68rem',
+                      fontWeight: 800,
+                      letterSpacing: '0.04em',
+                      textTransform: 'uppercase',
+                      marginBottom: '8px'
+                    }}>
+                      <Shield size={12} />
+                      Environment Setup Required
+                    </div>
+                    <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-main)', margin: '0 0 6px 0' }}>
+                      Set Up Your Organization Tenant & Departmental Workspace
+                    </h3>
+                    <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.5 }}>
+                      Enterprise services (Document Vault, Live Ingestion, Context Curator, AI Playground, and Decision Audit) are secured. Create your organization and initial workspace to activate them.
+                    </p>
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                    {!isOrgReady ? (
+                      <button
+                        onClick={() => setShowNewOrgModal(true)}
+                        className="btn btn-primary"
+                        style={{ padding: '8px 16px', fontSize: '0.82rem', display: 'flex', alignItems: 'center', gap: '6px' }}
+                      >
+                        <Building2 size={14} />
+                        <span>Create Organization</span>
+                      </button>
+                    ) : !isWorkspaceReady ? (
+                      <button
+                        onClick={() => setShowNewWorkspaceModal(true)}
+                        className="btn btn-primary"
+                        style={{ padding: '8px 16px', fontSize: '0.82rem', display: 'flex', alignItems: 'center', gap: '6px' }}
+                      >
+                        <Plus size={14} />
+                        <span>Create Workspace</span>
+                      </button>
+                    ) : null}
+                  </div>
+                </div>
+
+                {/* 2-Step Status Grid */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '12px', marginTop: '16px' }}>
+                  {/* Step 1: Organization */}
+                  <div style={{
+                    padding: '12px 14px',
+                    borderRadius: '8px',
+                    background: isOrgReady ? 'rgba(16, 185, 129, 0.08)' : 'rgba(255, 255, 255, 0.03)',
+                    border: isOrgReady ? '1px solid rgba(16, 185, 129, 0.3)' : '1px solid var(--border-subtle)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '10px'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
+                      <Building2 size={16} style={{ color: isOrgReady ? '#10B981' : '#EA580C', flexShrink: 0 }} />
+                      <div style={{ minWidth: 0 }}>
+                        <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          1. Organization Tenant
+                        </div>
+                        <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {isOrgReady ? activeOrg?.name : 'Create your enterprise organization'}
+                        </div>
+                      </div>
+                    </div>
+                    {isOrgReady ? (
+                      <span style={{ fontSize: '0.64rem', fontWeight: 700, padding: '2px 7px', borderRadius: '4px', background: '#10B981', color: '#FFFFFF', flexShrink: 0 }}>
+                        ✓ Ready
+                      </span>
+                    ) : (
+                      <button
+                        onClick={() => setShowNewOrgModal(true)}
+                        className="btn btn-secondary"
+                        style={{ padding: '4px 10px', fontSize: '0.72rem', flexShrink: 0 }}
+                      >
+                        Create
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Step 2: Workspace */}
+                  <div style={{
+                    padding: '12px 14px',
+                    borderRadius: '8px',
+                    background: isWorkspaceReady ? 'rgba(16, 185, 129, 0.08)' : 'rgba(255, 255, 255, 0.03)',
+                    border: isWorkspaceReady ? '1px solid rgba(16, 185, 129, 0.3)' : '1px solid var(--border-subtle)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '10px'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
+                      <FolderGit2 size={16} style={{ color: isWorkspaceReady ? '#10B981' : '#EA580C', flexShrink: 0 }} />
+                      <div style={{ minWidth: 0 }}>
+                        <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          2. Department Workspace
+                        </div>
+                        <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {isWorkspaceReady ? activeWorkspace?.name : 'Create a workspace for team data'}
+                        </div>
+                      </div>
+                    </div>
+                    {isWorkspaceReady ? (
+                      <span style={{ fontSize: '0.64rem', fontWeight: 700, padding: '2px 7px', borderRadius: '4px', background: '#10B981', color: '#FFFFFF', flexShrink: 0 }}>
+                        ✓ Ready
+                      </span>
+                    ) : (
+                      <button
+                        onClick={() => setShowNewWorkspaceModal(true)}
+                        disabled={!isOrgReady}
+                        className="btn btn-secondary"
+                        style={{ padding: '4px 10px', fontSize: '0.72rem', flexShrink: 0, opacity: !isOrgReady ? 0.5 : 1 }}
+                        title={!isOrgReady ? "Please create organization first" : ""}
+                      >
+                        Create
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Live System Metrics Grid (4 Cards) */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px', marginBottom: '28px' }}>
               <div
@@ -3412,7 +4186,7 @@ export default function App() {
               <div
                 className="clean-panel"
                 style={{ padding: '18px 20px', cursor: 'pointer' }}
-                onClick={() => { setActiveTab('ingestion'); setExpandedMenu('ingestion'); setDocExplorerView('documents'); }}
+                onClick={() => { setActiveTab('ingestion'); setExpandedMenu('ingestion'); setDocExplorerView('folders'); }}
               >
                 <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>
                   Stored Policy Documents
@@ -3529,7 +4303,7 @@ export default function App() {
                 <div
                   className="clean-panel"
                   style={{ padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', cursor: 'pointer' }}
-                  onClick={() => { setActiveTab('ingestion'); setExpandedMenu('ingestion'); }}
+                  onClick={() => { setActiveTab('ingestion'); setExpandedMenu('ingestion'); setDocExplorerView('folders'); }}
                 >
                   <div>
                     <span className="badge badge-verified" style={{ marginBottom: '8px' }}>Module 4</span>
@@ -4635,18 +5409,30 @@ export default function App() {
         {/* TAB 2: INTERACTIVE AGENT PLAYGROUND & AI COPILOT CHAT     */}
         {/* ========================================================= */}
         {activeTab === 'playground' && (
-          <AgentChatPlayground
-            activeOrg={activeOrg}
-            activePersona={activePersona}
-            activeWorkspace={activeWorkspace}
-            workspaces={workspaces}
-            showToast={showToast}
-            selectedSessionId={activeChatSessionId}
-            onSessionChange={(id) => {
-              setActiveChatSessionId(id);
-              fetchChatSessions();
-            }}
-          />
+          !isEnvironmentReady ? (
+            <ServiceLockedGate
+              serviceName="AI Agent Playground & Chat"
+              isOrgReady={isOrgReady}
+              isWorkspaceReady={isWorkspaceReady}
+              activeOrg={activeOrg}
+              onOpenOrgModal={() => setShowNewOrgModal(true)}
+              onOpenWorkspaceModal={() => setShowNewWorkspaceModal(true)}
+              onGoHome={() => setActiveTab('home')}
+            />
+          ) : (
+            <AgentChatPlayground
+              activeOrg={activeOrg}
+              activePersona={activePersona}
+              activeWorkspace={activeWorkspace}
+              workspaces={workspaces}
+              showToast={showToast}
+              selectedSessionId={activeChatSessionId}
+              onSessionChange={(id) => {
+                setActiveChatSessionId(id);
+                fetchChatSessions();
+              }}
+            />
+          )
         )}
 
 
@@ -4655,30 +5441,42 @@ export default function App() {
         {/* TAB 4: DOCUMENT INGESTION & CLAIM EXPLORER                */}
         {/* ========================================================= */}
         {activeTab === 'ingestion' && (
+          !isEnvironmentReady ? (
+            <ServiceLockedGate
+              serviceName="Document Explorer & Live Ingestion Studio"
+              isOrgReady={isOrgReady}
+              isWorkspaceReady={isWorkspaceReady}
+              activeOrg={activeOrg}
+              onOpenOrgModal={() => setShowNewOrgModal(true)}
+              onOpenWorkspaceModal={() => setShowNewWorkspaceModal(true)}
+              onGoHome={() => setActiveTab('home')}
+            />
+          ) : (
           <div>
             {/* Clean Document Explorer Header */}
             <div style={{
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
-              marginBottom: '20px',
+              marginBottom: '16px',
               flexWrap: 'wrap',
               gap: '12px'
             }}>
               <div>
                 <h1 className="tab-main-heading" style={{ margin: 0, textAlign: 'left', fontSize: '1.45rem' }}>
+                  {(docExplorerView === 'folders' || docExplorerView === 'documents') && 'Folders & Workspace Structure'}
                   {docExplorerView === 'ingest' && 'Upload & Ingestion Studio'}
-                  {docExplorerView === 'documents' && 'Stored Documents & Policies'}
                   {docExplorerView === 'connectors' && 'Live Connectors'}
                   {docExplorerView === 'connect' && 'Connect Enterprise Data Source'}
+                  {docExplorerView === 'claims' && 'Atomic Claims Browser'}
                 </h1>
-                {docExplorerView !== 'connectors' && (
-                  <p className="tab-subtitle" style={{ margin: '4px 0 0 0', textAlign: 'left' }}>
-                    {docExplorerView === 'ingest' && 'Upload policy files or markdown to parse atomic claims into PostgreSQL.'}
-                    {docExplorerView === 'documents' && 'Search and inspect verified documents and policy versions stored in PostgreSQL.'}
-                    {docExplorerView === 'connect' && 'Configure automated schema extraction, governance rules, and continuous synchronization.'}
-                  </p>
-                )}
+                <p className="tab-subtitle" style={{ margin: '4px 0 0 0', textAlign: 'left' }}>
+                  {(docExplorerView === 'folders' || docExplorerView === 'documents') && 'Create and organize files into nested folders, upload documents directly to folders, and manage workspace hierarchy.'}
+                  {docExplorerView === 'ingest' && 'Upload raw policy files or markdown to parse atomic claims with 9-gate verification into PostgreSQL.'}
+                  {docExplorerView === 'connectors' && 'Manage live external data source connectors, real-time synchronization schedules, and automated schema ingestion.'}
+                  {docExplorerView === 'connect' && 'Configure automated schema extraction, governance rules, and continuous synchronization.'}
+                  {docExplorerView === 'claims' && 'Inspect atomic claims extracted from stored enterprise policies across all active workspaces.'}
+                </p>
               </div>
 
               {docExplorerView === 'connect' && (
@@ -4705,6 +5503,68 @@ export default function App() {
                 </div>
               )}
             </div>
+
+            {/* 3 Dedicated Document Explorer Horizontal Navigation Tabs */}
+            {docExplorerView !== 'connect' && (
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                borderBottom: '1px solid #E2E8F0',
+                paddingBottom: '14px',
+                marginBottom: '20px'
+              }}>
+                {[
+                  { id: 'folders', label: 'Folders & Structure', icon: FolderTree, count: displayedDbDocuments.length },
+                  { id: 'ingest', label: 'Upload & Ingest', icon: Upload, count: null },
+                  { id: 'connectors', label: 'Live Connectors', icon: Database, count: displayedDataSources.length }
+                ].map(tab => {
+                  const isActive = (tab.id === 'folders' && (docExplorerView === 'folders' || docExplorerView === 'documents'))
+                    || (tab.id === 'connectors' && docExplorerView === 'connectors')
+                    || docExplorerView === tab.id;
+                  const IconComp = tab.icon;
+                  return (
+                    <button
+                      key={tab.id}
+                      type="button"
+                      onClick={() => {
+                        setDocExplorerView(tab.id);
+                        if (tab.id === 'connectors') setTestConnectionResult(null);
+                      }}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        padding: '8px 16px',
+                        borderRadius: '8px',
+                        border: isActive ? '1px solid #2563EB' : '1px solid #E2E8F0',
+                        background: isActive ? '#EFF6FF' : '#FFFFFF',
+                        color: isActive ? '#1D4ED8' : '#475569',
+                        fontSize: '0.82rem',
+                        fontWeight: isActive ? 700 : 500,
+                        cursor: 'pointer',
+                        transition: 'all 0.15s ease'
+                      }}
+                    >
+                      <IconComp size={15} style={{ color: isActive ? '#2563EB' : '#64748B' }} />
+                      <span>{tab.label}</span>
+                      {typeof tab.count === 'number' && (
+                        <span style={{
+                          fontSize: '0.68rem',
+                          fontWeight: 700,
+                          padding: '1px 6px',
+                          borderRadius: '10px',
+                          background: isActive ? '#DBEAFE' : '#F1F5F9',
+                          color: isActive ? '#1E40AF' : '#64748B'
+                        }}>
+                          {tab.count}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
 
             {/* VIEW 0: CONNECTORS HUB (LIVE CONNECTORS & SYNCHRONIZED CONNECTORS WORKFLOW) */}
             {docExplorerView === 'connectors' && (() => {
@@ -5043,7 +5903,7 @@ export default function App() {
                                     type="button"
                                     onClick={() => {
                                       setDocSourceFilter(src.id);
-                                      setDocExplorerView('documents');
+                                      setDocExplorerView('folders');
                                     }}
                                     className="btn btn-secondary"
                                     style={{ padding: '5px 12px', fontSize: '0.74rem', fontWeight: 600 }}
@@ -5136,7 +5996,7 @@ export default function App() {
                                 type="button"
                                 onClick={() => {
                                   setDocSourceFilter(src.id);
-                                  setDocExplorerView('documents');
+                                  setDocExplorerView('folders');
                                 }}
                                 style={{
                                   padding: '5px 10px',
@@ -6365,319 +7225,26 @@ export default function App() {
               />
             )}
 
-            {/* VIEW 2: STORED DOCUMENTS BROWSER */}
-            {docExplorerView === 'documents' && (
-              <div className="clean-panel" style={{ padding: '22px' }}>
-                {/* Header Action Bar with Direct Navigation to Connectors & Connect Real Source */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '18px', flexWrap: 'wrap', gap: '14px' }}>
-                  <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <span style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text-main)' }}>
-                        Documents in PostgreSQL ({displayedDbDocuments.length})
-                      </span>
-                      <span className="badge badge-verified" style={{ fontSize: '0.72rem', padding: '2px 8px' }}>
-                        PostgreSQL ACID Storage
-                      </span>
-                    </div>
-                    <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '3px' }}>
-                      Normalized policies, contracts, and markdown files synced from active enterprise connectors.
-                    </div>
-                  </div>
-
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-                    {/* Primary Button to Navigate Back to Connect Real Data Source / Connectors */}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setDocExplorerView('connectors');
-                        setDocSourceFilter('all');
-                      }}
-                      className="btn btn-secondary"
-                      style={{ padding: '7px 14px', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '6px' }}
-                      title="Navigate back to Connectors & Sync dashboard"
-                    >
-                      <span>🔌</span>
-                      <span>Manage Connectors & Sync</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={handleSyncAllSources}
-                      disabled={syncingSourceId === 'all'}
-                      className="btn btn-secondary"
-                      style={{ padding: '7px 14px', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '6px' }}
-                      title="Run bulk synchronization across all active connectors"
-                    >
-                      <span className={syncingSourceId === 'all' ? 'spin' : ''}>🔄</span>
-                      <span>{syncingSourceId === 'all' ? 'Syncing All...' : 'Sync All Connectors'}</span>
-                    </button>
-
-                    <input
-                      type="text"
-                      placeholder="Search documents by title or external ID..."
-                      value={dbSearchQuery}
-                      onChange={e => setDbSearchQuery(e.target.value)}
-                      style={{ padding: '6px 12px', fontSize: '0.8rem', width: '260px' }}
-                    />
-                  </div>
-                </div>
-
-                {/* Filter by Source Connector Bar */}
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  padding: '10px 14px',
-                  background: 'var(--bg-subtle, #F8FAFC)',
-                  borderRadius: '8px',
-                  border: '1px solid var(--border-subtle, #E2E8F0)',
-                  marginBottom: '18px',
-                  flexWrap: 'wrap'
-                }}>
-                  <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)' }}>
-                    Filter by Source Connector:
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => setDocSourceFilter('all')}
-                    style={{
-                      padding: '4px 10px',
-                      borderRadius: '6px',
-                      fontSize: '0.75rem',
-                      fontWeight: docSourceFilter === 'all' ? 700 : 500,
-                      border: '1px solid',
-                      borderColor: docSourceFilter === 'all' ? 'var(--primary, #2563EB)' : 'var(--border-subtle, #E2E8F0)',
-                      background: docSourceFilter === 'all' ? 'var(--primary, #2563EB)' : '#FFFFFF',
-                      color: docSourceFilter === 'all' ? '#FFFFFF' : 'var(--text-main)',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    All Connectors ({dbDocuments.length})
-                  </button>
-
-                  {displayedDataSources.map(src => {
-                    const count = dbDocuments.filter(d => d.source_id === src.id).length;
-                    const isSelected = docSourceFilter === src.id;
-                    const icon = src.source_type === 'github' ? '🐙'
-                      : (src.source_type === 'mongodb' || src.source_type === 'mongodb_atlas') ? '🍃'
-                      : src.source_type === 'jira' ? '🎯'
-                      : src.source_type === 'confluence' ? '📘'
-                      : src.source_type === 'postgresql' ? '🐘'
-                      : '🔌';
-                    return (
-                      <button
-                        key={src.id}
-                        type="button"
-                        onClick={() => setDocSourceFilter(isSelected ? 'all' : src.id)}
-                        style={{
-                          padding: '4px 10px',
-                          borderRadius: '6px',
-                          fontSize: '0.75rem',
-                          fontWeight: isSelected ? 700 : 500,
-                          border: '1px solid',
-                          borderColor: isSelected ? 'var(--primary, #2563EB)' : 'var(--border-subtle, #E2E8F0)',
-                          background: isSelected ? 'var(--primary, #2563EB)' : '#FFFFFF',
-                          color: isSelected ? '#FFFFFF' : 'var(--text-main)',
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '6px'
-                        }}
-                      >
-                        <span>{icon}</span>
-                        <span>{src.name}</span>
-                        <span style={{
-                          fontSize: '0.68rem',
-                          padding: '1px 5px',
-                          borderRadius: '10px',
-                          background: isSelected ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.06)',
-                          color: isSelected ? '#FFFFFF' : 'inherit'
-                        }}>
-                          {count}
-                        </span>
-                      </button>
-                    );
-                  })}
-
-                  {docSourceFilter !== 'all' && (
-                    <button
-                      type="button"
-                      onClick={() => setDocSourceFilter('all')}
-                      style={{
-                        padding: '4px 8px',
-                        fontSize: '0.72rem',
-                        color: 'var(--text-muted)',
-                        background: 'transparent',
-                        border: 'none',
-                        cursor: 'pointer',
-                        textDecoration: 'underline'
-                      }}
-                    >
-                      Clear Filter
-                    </button>
-                  )}
-                </div>
-
-                {displayedDbDocuments.length === 0 ? (
-                  <div style={{ padding: '40px 20px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.85rem', background: '#FAFAFA', borderRadius: '8px', border: '1px dashed var(--border-subtle)' }}>
-                    <div style={{ fontWeight: 600, fontSize: '0.95rem', color: 'var(--text-main)', marginBottom: '4px' }}>
-                      {docSourceFilter !== 'all' ? "No documents found for this selected connector." : "No documents stored yet."}
-                    </div>
-                    <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: '14px' }}>
-                      {docSourceFilter !== 'all'
-                        ? "Try syncing this connector or clear the filter to view all documents."
-                        : activeWorkspace && activeWorkspace.id !== 'all' && !docExplorerScopeAll
-                          ? `No documents found matching ${activeWorkspace.name}. Switch to "All Combined Resources" or check your connectors.`
-                          : "No documents currently stored in PostgreSQL. Run a synchronization from Manage Connectors & Sync to populate documents."}
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', flexWrap: 'wrap' }}>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setDocExplorerView('connectors');
-                          setDocSourceFilter('all');
-                        }}
-                        className="btn btn-secondary"
-                        style={{ padding: '7px 16px', fontSize: '0.8rem' }}
-                      >
-                        ← Return to Live Connectors
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div style={{ display: 'grid', gap: '12px' }}>
-                    {displayedDbDocuments
-                      .filter(d =>
-                        !dbSearchQuery ||
-                        d.title?.toLowerCase().includes(dbSearchQuery.toLowerCase()) ||
-                        d.external_id?.toLowerCase().includes(dbSearchQuery.toLowerCase())
-                      )
-                      .map((doc, idx) => {
-                        const matchedSrc = dataSources.find(s => s.id === doc.source_id);
-                        const srcName = matchedSrc?.name || (doc.external_id?.includes('github') ? 'GitHub' : doc.external_id?.includes('confluence') ? 'Confluence' : 'Connected Source');
-                        const srcIcon = matchedSrc?.source_type === 'github' ? '🐙'
-                          : (matchedSrc?.source_type === 'mongodb' || matchedSrc?.source_type === 'mongodb_atlas') ? '🍃'
-                          : matchedSrc?.source_type === 'jira' ? '🎯'
-                          : matchedSrc?.source_type === 'confluence' ? '📘'
-                          : matchedSrc?.source_type === 'postgresql' ? '🐘'
-                          : '🔌';
-
-                        return (
-                          <div key={doc.id || idx} style={{ background: '#FFFFFF', border: '1px solid var(--border-subtle)', padding: '16px', borderRadius: '8px' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px', flexWrap: 'wrap', gap: '10px' }}>
-                              <div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                                  <span style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--text-main)' }}>
-                                    {doc.title}
-                                  </span>
-                                  <span className="badge badge-verified">
-                                    {doc.document_type || 'policy'}
-                                  </span>
-                                  <span className="badge badge-allow">
-                                    {doc.status || 'active'}
-                                  </span>
-                                  <span style={{
-                                    fontSize: '0.72rem',
-                                    fontWeight: 600,
-                                    padding: '2px 8px',
-                                    borderRadius: '12px',
-                                    background: 'rgba(37,99,235,0.08)',
-                                    color: 'var(--primary, #2563EB)',
-                                    display: 'inline-flex',
-                                    alignItems: 'center',
-                                    gap: '4px'
-                                  }}>
-                                    <span>{srcIcon}</span>
-                                    <span>Connector: {srcName}</span>
-                                  </span>
-                                  {matchedSrc?.last_synced_at && (
-                                    <span style={{ fontSize: '0.70rem', color: '#64748B' }}>
-                                      Synced: {new Date(matchedSrc.last_synced_at).toLocaleDateString()}
-                                    </span>
-                                  )}
-                                </div>
-                                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-                                  Source ID: <span className="code-pill">{doc.external_id || 'N/A'}</span> • Created: {new Date(doc.created_at).toLocaleDateString()}
-                                </div>
-                              </div>
-
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                {matchedSrc && (
-                                  <button
-                                    type="button"
-                                    onClick={() => handleSyncSource(matchedSrc.id, matchedSrc.name)}
-                                    disabled={syncingSourceId === matchedSrc.id}
-                                    className="btn btn-secondary"
-                                    style={{ padding: '4px 10px', fontSize: '0.72rem', display: 'flex', alignItems: 'center', gap: '4px' }}
-                                    title={`Re-sync live source '${matchedSrc.name}'`}
-                                  >
-                                    <span className={syncingSourceId === matchedSrc.id ? 'spin' : ''}>🔄</span>
-                                    <span>{syncingSourceId === matchedSrc.id ? 'Syncing...' : 'Sync Source'}</span>
-                                  </button>
-                                )}
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setDocExplorerView('connectors');
-                                  }}
-                                  className="btn btn-secondary"
-                                  style={{ padding: '4px 10px', fontSize: '0.72rem' }}
-                                  title="View Connector Configuration"
-                                >
-                                  🔌 View Connector
-                                </button>
-                                <span className="code-pill" style={{ fontSize: '0.7rem' }}>
-                                  ID: {doc.id?.substring(0, 8)}...
-                                </span>
-                              </div>
-                            </div>
-
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px', paddingTop: '10px', borderTop: '1px solid var(--border-subtle)', fontSize: '0.74rem', color: 'var(--text-muted)', flexWrap: 'wrap', gap: '8px' }}>
-                              <span>SHA-256 Hash: <code style={{ color: 'var(--text-secondary)' }}>{doc.content_hash?.substring(0, 24)}...</code></span>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                <span>Versions: <strong style={{ color: 'var(--primary)' }}>{doc.versions?.length || 1}</strong></span>
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setSelectedLineageAssetId(doc.id);
-                                    setVaultSubTab('documents');
-                                    setActiveTab('visual_lineage');
-                                  }}
-                                  className="btn btn-primary"
-                                  style={{
-                                    padding: '5px 12px',
-                                    fontSize: '0.74rem',
-                                    fontWeight: 700,
-                                    display: 'inline-flex',
-                                    alignItems: 'center',
-                                    gap: '5px'
-                                  }}
-                                  title="Open document in Lineage & 360° Facilities Viewer"
-                                >
-                                  <span>📄 View in Lineage & 360</span>
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => setInspectorState({
-                                    isOpen: true,
-                                    assetType: 'document',
-                                    assetId: doc.id,
-                                    assetTitle: doc.title
-                                  })}
-                                  className="btn btn-secondary"
-                                  style={{ padding: '5px 12px', fontSize: '0.74rem', fontWeight: 700, color: 'var(--primary, #2563EB)', borderColor: 'var(--primary, #2563EB)' }}
-                                  title="Deep-dive into this document's atomic claims, conflicts, and provenance"
-                                >
-                                  🔍 Inspect Claims & Conflicts ➔
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                  </div>
-                )}
-              </div>
+            {/* VIEW 2: DOCUMENT WORKSPACE & FOLDER EXPLORER (CAN CREATE, ORGANIZE, RENAME, UPLOAD) */}
+            {(docExplorerView === 'folders' || docExplorerView === 'documents') && (
+              <DocumentWorkspaceExplorer
+                activeOrg={activeOrg}
+                token={authToken}
+                user={authUser}
+                showToast={showToast}
+                readOnly={false}
+                onInspectDocument={(doc) => setInspectorState({
+                  isOpen: true,
+                  assetType: 'document',
+                  assetId: doc.id,
+                  assetTitle: doc.title
+                })}
+                onViewClaims={(doc) => {
+                  setSelectedLineageAssetId(doc.id);
+                  setVaultSubTab('documents');
+                  setActiveTab('visual_lineage');
+                }}
+              />
             )}
 
             {/* VIEW 3: ATOMIC CLAIMS BROWSER (MILLION-SCALE DISCOVERY ENGINE) */}
@@ -6708,12 +7275,24 @@ export default function App() {
               </div>
             )}
           </div>
+          )
         )}
 
         {/* ========================================================= */}
         {/* TAB 6: DECISION AUDIT TRAIL & LINEAGE EXPLORER            */}
         {/* ========================================================= */}
         {activeTab === 'audit' && (
+          !isEnvironmentReady ? (
+            <ServiceLockedGate
+              serviceName="Decision Audit Trail & Cryptographic Ledger"
+              isOrgReady={isOrgReady}
+              isWorkspaceReady={isWorkspaceReady}
+              activeOrg={activeOrg}
+              onOpenOrgModal={() => setShowNewOrgModal(true)}
+              onOpenWorkspaceModal={() => setShowNewWorkspaceModal(true)}
+              onGoHome={() => setActiveTab('home')}
+            />
+          ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
 
             {/* Centered Top Header & Compliance Export Actions */}
@@ -7087,35 +7666,79 @@ export default function App() {
               )}
             </div>
           </div>
+          )
         )}
 
         {/* ========================================================= */}
         {/* ENTERPRISE TAB 2: VAULT (DATA EXPLORATION & DAG LINEAGE)  */}
         {/* ========================================================= */}
         {activeTab === 'visual_lineage' && (
-          <div>
-
-            <VisualLineageGraph
+          !isEnvironmentReady ? (
+            <ServiceLockedGate
+              serviceName="Context Vault & Evidence Lineage"
+              isOrgReady={isOrgReady}
+              isWorkspaceReady={isWorkspaceReady}
               activeOrg={activeOrg}
-              activeWorkspace={activeWorkspace}
-              showToast={showToast}
-              vaultSubTab={vaultSubTab}
-              onVaultSubTabChange={(sub) => {
-                setVaultSubTab(sub);
-                setSelectedLineageAssetId(null);
-              }}
-              initialAssetId={selectedLineageAssetId}
-              onAssetChange={setSelectedLineageAssetId}
-              initialSection={lineageSection}
-              onSectionChange={setLineageSection}
+              onOpenOrgModal={() => setShowNewOrgModal(true)}
+              onOpenWorkspaceModal={() => setShowNewWorkspaceModal(true)}
+              onGoHome={() => setActiveTab('home')}
             />
+          ) : (
+          <div>
+            {vaultSubTab === 'documents' && !selectedLineageAssetId ? (
+              <DocumentWorkspaceExplorer
+                activeOrg={activeOrg}
+                token={authToken}
+                user={authUser}
+                showToast={showToast}
+                readOnly={true}
+                onInspectDocument={(doc) => setInspectorState({
+                  isOpen: true,
+                  assetType: 'document',
+                  assetId: doc.id,
+                  assetTitle: doc.title
+                })}
+                onViewClaims={(doc, section = 'summary') => {
+                  setSelectedLineageAssetId(doc.id);
+                  setVaultSubTab('documents');
+                  if (section) setLineageSection(section);
+                }}
+              />
+            ) : (
+              <VisualLineageGraph
+                activeOrg={activeOrg}
+                activeWorkspace={activeWorkspace}
+                showToast={showToast}
+                vaultSubTab={vaultSubTab}
+                onVaultSubTabChange={(sub) => {
+                  setVaultSubTab(sub);
+                  setSelectedLineageAssetId(null);
+                }}
+                initialAssetId={selectedLineageAssetId}
+                onAssetChange={setSelectedLineageAssetId}
+                initialSection={lineageSection}
+                onSectionChange={setLineageSection}
+              />
+            )}
           </div>
+          )
         )}
 
         {/* ========================================================= */}
         {/* ENTERPRISE TAB 3: CONTEXT CURATOR BOT (OPTION 3)          */}
         {/* ========================================================= */}
         {(activeTab === 'context_curator' || activeTab === 'conflicts') && (
+          !isEnvironmentReady ? (
+            <ServiceLockedGate
+              serviceName="Context Curator & Conflict Resolution Hub"
+              isOrgReady={isOrgReady}
+              isWorkspaceReady={isWorkspaceReady}
+              activeOrg={activeOrg}
+              onOpenOrgModal={() => setShowNewOrgModal(true)}
+              onOpenWorkspaceModal={() => setShowNewWorkspaceModal(true)}
+              onGoHome={() => setActiveTab('home')}
+            />
+          ) : (
           <div>
             <ContextCuratorStudio
               activeOrg={activeOrg}
@@ -7128,12 +7751,24 @@ export default function App() {
               onSubViewChange={setCuratorSubView}
             />
           </div>
+          )
         )}
 
         {/* ========================================================= */}
         {/* ENTERPRISE TAB 4: MCP INTEGRATION STUDIO (OPTION 4)       */}
         {/* ========================================================= */}
         {activeTab === 'integrations' && (
+          !isEnvironmentReady ? (
+            <ServiceLockedGate
+              serviceName="MCP Hub & External Integrations"
+              isOrgReady={isOrgReady}
+              isWorkspaceReady={isWorkspaceReady}
+              activeOrg={activeOrg}
+              onOpenOrgModal={() => setShowNewOrgModal(true)}
+              onOpenWorkspaceModal={() => setShowNewWorkspaceModal(true)}
+              onGoHome={() => setActiveTab('home')}
+            />
+          ) : (
           <div>
             <div className="tab-header-center" style={{ marginBottom: '20px' }}>
 
@@ -7151,6 +7786,7 @@ export default function App() {
               onSubViewChange={setMcpActiveSubView}
             />
           </div>
+          )
         )}
 
         {/* ========================================================= */}
@@ -7174,6 +7810,10 @@ export default function App() {
               showToast={showToast}
               initialSubTab={teamSubTab}
               onSubTabChange={setTeamSubTab}
+              onLaunchSetupWizard={(org) => {
+                setSetupWizardTargetOrg(org || activeOrg);
+                setIsSetupWizardOpen(true);
+              }}
             />
           </div>
         )}
@@ -7185,7 +7825,7 @@ export default function App() {
           <div>
             <UserProfileStudio
               activeOrg={activeOrg}
-              organizations={organizations}
+              organizations={myOrganizations && myOrganizations.length > 0 ? myOrganizations : (activeOrg ? [activeOrg] : [])}
               onSwitchOrg={handleSwitchOrganization}
               activeWorkspace={activeWorkspace}
               workspaces={workspaces}
@@ -7195,7 +7835,14 @@ export default function App() {
               onSelectPersona={handleSelectPersona}
               effectiveRole={effectiveRole}
               roleMetadata={roleMetadata}
-              onOpenRegisterOrg={() => setShowNewOrgModal(true)}
+              onOpenRegisterOrg={() => {
+                setSetupWizardTargetOrg(null);
+                setIsSetupWizardOpen(true);
+              }}
+              onLaunchSetupWizard={(org) => {
+                setSetupWizardTargetOrg(org || activeOrg);
+                setIsSetupWizardOpen(true);
+              }}
               onOpenOrgSettings={() => setActiveTab('settings')}
               onLogout={authLogout}
               showToast={showToast}
@@ -7519,10 +8166,10 @@ export default function App() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <div>
                 <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
-                  Register Client Workspace
+                  Create Enterprise Organization
                 </h3>
                 <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '4px', margin: 0 }}>
-                  Create an isolated tenant domain for your client company.
+                  Create an isolated tenant boundary for policy governance and document vaults.
                 </p>
               </div>
               <button
@@ -7536,11 +8183,11 @@ export default function App() {
             <form onSubmit={handleCreateOrganization}>
               <div style={{ marginBottom: '14px' }}>
                 <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '6px' }}>
-                  Company / Organization Name *
+                  Organization / Company Name *
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g. demo, Demo Enterprise..."
+                  placeholder="Enter enterprise organization name..."
                   value={newOrgName}
                   onChange={e => {
                     setNewOrgName(e.target.value);
@@ -7555,11 +8202,11 @@ export default function App() {
 
               <div style={{ marginBottom: '20px' }}>
                 <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '6px' }}>
-                  Workspace Tenant Slug *
+                  Tenant Domain Slug *
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g. demo, demo-prod"
+                  placeholder="organization-slug"
                   value={newOrgSlug}
                   onChange={e => setNewOrgSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]+/g, ''))}
                   required
@@ -7585,7 +8232,7 @@ export default function App() {
                   className="btn btn-primary"
                   style={{ padding: '8px 20px', fontSize: '0.82rem' }}
                 >
-                  {isCreatingOrg ? 'Creating...' : 'Create & Switch Workspace'}
+                  {isCreatingOrg ? 'Creating...' : 'Create Organization'}
                 </button>
               </div>
             </form>
@@ -7700,6 +8347,26 @@ export default function App() {
           </div>
         </div>
       )}
+
+      {/* Enterprise Multi-Step Organization Onboarding & Setup Wizard Modal */}
+      <OrganizationSetupWizardModal
+        isOpen={isSetupWizardOpen}
+        onClose={() => setIsSetupWizardOpen(false)}
+        initialOrg={setupWizardTargetOrg}
+        onSetupComplete={(updatedOrg, newAccessToken) => {
+          setActiveOrg(updatedOrg);
+          setOrganizations(prev => {
+            const exists = prev.some(o => o.id === updatedOrg.id);
+            return exists ? prev.map(o => o.id === updatedOrg.id ? updatedOrg : o) : [...prev, updatedOrg];
+          });
+          localStorage.setItem('context_layer_active_org_id', updatedOrg.id);
+          setOrgSetupRefreshTrigger(prev => prev + 1);
+          fetchOrganizations();
+          fetchHealthAndConflicts(updatedOrg.id);
+          fetchLiveDatabaseRecords(updatedOrg.id);
+          showToast(`Organization '${updatedOrg.name}' setup complete and active!`);
+        }}
+      />
 
       {/* Enterprise Authentication & Persona Switching Modal */}
       <SignInModal />

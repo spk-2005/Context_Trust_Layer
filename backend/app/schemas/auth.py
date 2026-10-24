@@ -58,3 +58,6 @@ class TokenResponse(BaseModel):
     token_type: str = "bearer"
     expires_in: int = 86400  # 24 hours in seconds
     user: UserResponse
+    is_new_user: bool = False
+    pending_invitations: list[dict] = Field(default_factory=list)
+    organizations: list[dict] = Field(default_factory=list)

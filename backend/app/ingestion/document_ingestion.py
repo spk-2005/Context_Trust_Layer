@@ -57,6 +57,7 @@ class DocumentIngestionService:
 
         # 3. Create or match existing version via deduplication
         owner_id = getattr(doc_in, "owner_id", None)
+        folder_id = getattr(doc_in, "folder_id", None)
         document, version, is_changed = await self.doc_repo.get_or_create_version_with_dedup(
             organization_id=normalized.organization_id,
             source_id=normalized.source_id,
@@ -66,6 +67,7 @@ class DocumentIngestionService:
             document_type=normalized.document_type,
             external_id=normalized.external_id,
             owner_id=owner_id,
+            folder_id=folder_id,
         )
 
         return document, version, normalized, is_changed

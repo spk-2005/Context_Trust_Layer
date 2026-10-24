@@ -19,7 +19,7 @@ import {
 import { useAuth } from '../context/AuthContext';
 
 export default function RbacMatrixModal({ isOpen, onClose }) {
-  const { user, personas, loginAsPersona, rbacMatrix, permissions, hasPermission } = useAuth();
+  const { user, effectiveRole, setSimulatedRole, rbacMatrix, permissions, hasPermission } = useAuth();
   const [selectedRoleFilter, setSelectedRoleFilter] = useState('all');
 
   if (!isOpen) return null;
@@ -364,38 +364,34 @@ export default function RbacMatrixModal({ isOpen, onClose }) {
             </div>
           </div>
 
-          {/* Quick Persona Switcher */}
+          {/* Role Simulation for Testing */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <span style={{ fontSize: '12px', fontWeight: '600', color: '#475569', marginRight: '4px' }}>
-              Test Role:
+              Simulate Role:
             </span>
-            {personas && personas.length > 0 ? (
-              personas.map((p) => {
-                const isSelected = p.id === user?.id || p.role === user?.role;
-                return (
-                  <button
-                    key={p.id}
-                    onClick={() => loginAsPersona(p)}
-                    style={{
-                      padding: '4px 10px',
-                      fontSize: '12px',
-                      fontWeight: isSelected ? '700' : '500',
-                      borderRadius: '6px',
-                      border: isSelected ? '1.5px solid #2563EB' : '1px solid #CBD5E1',
-                      backgroundColor: isSelected ? '#EFF6FF' : '#FFFFFF',
-                      color: isSelected ? '#1D4ED8' : '#475569',
-                      cursor: 'pointer',
-                      transition: 'all 0.15s ease'
-                    }}
-                    title={`Switch to ${p.name} (${p.role})`}
-                  >
-                    {p.role === 'admin' ? 'Admin / CCO' : p.role === 'data_owner' ? 'Data Steward' : p.role === 'reviewer' ? 'Auditor' : 'Operator'}
-                  </button>
-                );
-              })
-            ) : (
-              <span style={{ fontSize: '12px', color: '#94A3B8' }}>Personas loaded</span>
-            )}
+            {['admin', 'data_owner', 'reviewer', 'developer'].map((r) => {
+              const isSelected = (effectiveRole || '').toLowerCase() === r;
+              return (
+                <button
+                  key={r}
+                  onClick={() => setSimulatedRole && setSimulatedRole(r === user?.role ? null : r)}
+                  style={{
+                    padding: '4px 10px',
+                    fontSize: '12px',
+                    fontWeight: isSelected ? '700' : '500',
+                    borderRadius: '6px',
+                    border: isSelected ? '1.5px solid #2563EB' : '1px solid #CBD5E1',
+                    backgroundColor: isSelected ? '#EFF6FF' : '#FFFFFF',
+                    color: isSelected ? '#1D4ED8' : '#475569',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease'
+                  }}
+                  title={`Simulate ${r} permissions`}
+                >
+                  {r === 'admin' ? 'Admin / CCO' : r === 'data_owner' ? 'Data Steward' : r === 'reviewer' ? 'Auditor' : 'Engineer'}
+                </button>
+              );
+            })}
           </div>
         </div>
 
