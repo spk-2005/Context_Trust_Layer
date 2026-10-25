@@ -3901,37 +3901,6 @@ export default function App() {
               <span>Team & Personas</span>
             </button>
           )}
-          {/* Pinned System Status in Sidebar Footer */}
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: '8px 10px',
-            marginTop: '6px',
-            borderTop: '1px solid var(--border-subtle)'
-          }}>
-            {isSidebarOpen ? (
-              <div
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  fontSize: '0.70rem',
-                  color: '#64748B',
-                  fontWeight: 600
-                }}
-                title="System Operational Status: All engines healthy"
-              >
-                <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--success-solid, #10B981)', display: 'inline-block' }} />
-                <span>All Systems Operational</span>
-              </div>
-            ) : (
-              <span
-                style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--success-solid, #10B981)', display: 'inline-block' }}
-                title="All Systems Operational"
-              />
-            )}
-          </div>
         </div>
       </aside>
 
