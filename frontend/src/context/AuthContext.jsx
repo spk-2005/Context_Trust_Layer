@@ -569,11 +569,24 @@ export function AuthProvider({ children }) {
     localStorage.removeItem('ctl_my_invitations');
   };
 
+  const updateUser = (updatedFields) => {
+    setUser(prev => {
+      const merged = { ...(prev || {}), ...updatedFields };
+      try {
+        localStorage.setItem('ctl_user', JSON.stringify(merged));
+      } catch (e) {
+        console.warn('Failed to persist user profile:', e);
+      }
+      return merged;
+    });
+  };
+
   return (
     <AuthContext.Provider
       value={{
         token,
         user,
+        updateUser,
         organization,
         personas,
         ssoProviders,

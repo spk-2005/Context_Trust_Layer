@@ -29,6 +29,7 @@ export default function WorkspaceSettingsStudio({
   activeOrg,
   onOrgUpdated,
   onBack,
+  onOpenRbacModal,
   showToast
 }) {
   const { token, user: currentUser } = useAuth();
@@ -330,6 +331,18 @@ export default function WorkspaceSettingsStudio({
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          {onOpenRbacModal && (
+            <button
+              type="button"
+              onClick={onOpenRbacModal}
+              className="btn btn-secondary"
+              style={{ padding: '8px 14px', fontSize: '0.82rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}
+              title="Inspect Atlan-Grade RBAC Permissions & Separation of Duties Matrix"
+            >
+              <ShieldCheck size={14} />
+              <span>RBAC Matrix</span>
+            </button>
+          )}
           <button
             type="button"
             onClick={handleSaveSettings}

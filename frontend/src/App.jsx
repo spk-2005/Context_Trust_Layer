@@ -41,6 +41,7 @@ import {
   PanelLeftOpen,
   X,
   LogOut,
+  Settings,
   Upload
 } from 'lucide-react';
 import AuthLandingView from './components/AuthLandingView';
@@ -123,7 +124,7 @@ export const CURATOR_SUBVIEWS = ['health', 'conflicts', 'drift'];
 export const DOC_EXPLORER_VIEWS = ['folders', 'documents', 'ingest', 'connectors', 'connect', 'claims'];
 export const MCP_SUBVIEWS = ['tester', 'configs', 'sdks', 'schemas'];
 export const TEAM_SUBTABS = ['directory', 'activity', 'domains'];
-export const PROFILE_SUBTABS = ['companies', 'security', 'personas'];
+export const PROFILE_SUBTABS = ['user_profile', 'companies', 'register'];
 export const LINEAGE_SECTIONS = ['summary', 'extraction', 'dag', 'conflicts', 'claims', 'all'];
 
 export const parseUrlState = (workspacesList) => {
@@ -138,7 +139,7 @@ export const parseUrlState = (workspacesList) => {
       curatorSubView: 'health',
       mcpSubView: 'tester',
       teamSubTab: 'directory',
-      profileSubTab: 'companies',
+      profileSubTab: 'user_profile',
       chatSession: null,
       scenario: 'refund_trap'
     };
@@ -153,7 +154,7 @@ export const parseUrlState = (workspacesList) => {
   let docView = 'folders';
   let mcpSubView = 'tester';
   let teamSubTab = 'directory';
-  let profileSubTab = 'companies';
+  let profileSubTab = 'user_profile';
 
   // 1. Vault / Lineage routing
   if (rawPath === '/lineage' || rawPath === '/vault' || rawPath.startsWith('/lineage/') || rawPath.startsWith('/vault/')) {
@@ -239,7 +240,7 @@ export const parseUrlState = (workspacesList) => {
     if (sub && PROFILE_SUBTABS.includes(sub)) {
       profileSubTab = sub;
     } else {
-      profileSubTab = 'companies';
+      profileSubTab = 'user_profile';
     }
   }
   // 12. Root / Home
@@ -291,7 +292,7 @@ export const computeUrlFromState = ({
   docExplorerView = 'folders',
   mcpActiveSubView = 'tester',
   teamSubTab = 'directory',
-  profileSubTab = 'companies',
+  profileSubTab = 'user_profile',
   activeChatSessionId = null,
   demoScenario = 'refund_trap',
   activeWorkspace = null
@@ -353,7 +354,7 @@ export const computeUrlFromState = ({
       }
       break;
     case 'profile':
-      if (profileSubTab && profileSubTab !== 'companies') {
+      if (profileSubTab && profileSubTab !== 'user_profile') {
         pathname = `/profile/${profileSubTab}`;
       } else {
         pathname = '/profile';
@@ -633,7 +634,7 @@ export default function App() {
   const [selectedLineageAssetId, setSelectedLineageAssetId] = useState(() => initialUrlState?.docId || null);
   const [lineageSection, setLineageSection] = useState(() => initialUrlState?.lineageSection || 'summary');
   const [teamSubTab, setTeamSubTab] = useState(() => initialUrlState?.teamSubTab || 'directory');
-  const [profileSubTab, setProfileSubTab] = useState(() => initialUrlState?.profileSubTab || 'companies');
+  const [profileSubTab, setProfileSubTab] = useState(() => initialUrlState?.profileSubTab || 'user_profile');
   const [mcpActiveSubView, setMcpActiveSubView] = useState(() => initialUrlState?.mcpSubView || 'tester'); // 'tester' | 'configs' | 'sdks' | 'schemas'
   const [selectedDocForViewer, setSelectedDocForViewer] = useState(null);
 
@@ -2970,18 +2971,30 @@ export default function App() {
               }
             }}
           >
-            <img
-              src={authUser?.avatar_url || activePersona?.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${authUser?.name || 'User'}`}
-              alt="Avatar"
-              style={{
-                width: '100%',
-                height: '100%',
-                borderRadius: '50%',
-                backgroundColor: '#0F172A',
-                objectFit: 'cover',
-                display: 'block'
-              }}
-            />
+            {authUser?.avatar_url || authUser?.picture || activePersona?.avatar_url ? (
+              <img
+                src={authUser?.avatar_url || authUser?.picture || activePersona?.avatar_url}
+                alt="Avatar"
+                onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  borderRadius: '50%',
+                  backgroundColor: '#0F172A',
+                  objectFit: 'cover',
+                  display: 'block'
+                }}
+              />
+            ) : (
+              <span style={{ color: '#FFFFFF', fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.02em', userSelect: 'none' }}>
+                {(authUser?.name || activePersona?.name || 'PK')
+                  .split(' ')
+                  .map(n => n[0])
+                  .join('')
+                  .slice(0, 2)
+                  .toUpperCase()}
+              </span>
+            )}
           </button>
 
           {isPersonaDropdownOpen && (
@@ -3001,32 +3014,134 @@ export default function App() {
               }}
             >
               {/* User Details Header */}
-              <div style={{ padding: '6px 8px', borderBottom: '1px solid var(--border-subtle)', marginBottom: '6px' }}>
-                <div style={{ fontWeight: 700, fontSize: '0.82rem', color: 'var(--text-main)' }}>
-                  {authUser?.name || activePersona?.name}
+              <div style={{ padding: '8px 10px', borderBottom: '1px solid var(--border-subtle)', marginBottom: '4px' }}>
+                <div style={{ fontWeight: 700, fontSize: '0.84rem', color: 'var(--text-main)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {authUser?.name || activePersona?.name || 'User'}
                 </div>
-                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', wordBreak: 'break-all', marginTop: '1px' }}>
+                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginTop: '2px' }}>
                   {authUser?.email || activePersona?.email}
-                </div>
-                <div style={{ fontSize: '0.68rem', color: '#475569', fontWeight: 600, marginTop: '3px' }}>
-                  🏢 {authOrg?.name || activeOrg?.name || 'Enterprise Workspace'}
                 </div>
               </div>
 
-              {/* Google Identity Verified Badge */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '4px 8px 8px 8px', fontSize: '0.70rem', color: 'var(--text-muted)' }}>
-                <svg width="13" height="13" viewBox="0 0 24 24">
-                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
-                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
-                </svg>
-                <span>Authenticated via Google Workspace</span>
+              {/* Navigation Options */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', padding: '2px 0' }}>
+                <button
+                  onClick={() => {
+                    closeDropdowns();
+                    setActiveTab('profile');
+                    setProfileSubTab('user_profile');
+                  }}
+                  style={{
+                    width: '100%',
+                    padding: '7px 10px',
+                    background: 'transparent',
+                    border: 'none',
+                    borderRadius: '5px',
+                    color: 'var(--text-main)',
+                    fontSize: '0.76rem',
+                    fontWeight: 500,
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    transition: 'background 0.15s ease'
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.background = '#F1F5F9'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                >
+                  <User size={13} style={{ color: '#475569' }} />
+                  <span>Profile</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    closeDropdowns();
+                    setActiveTab('profile');
+                    setProfileSubTab('companies');
+                  }}
+                  style={{
+                    width: '100%',
+                    padding: '7px 10px',
+                    background: 'transparent',
+                    border: 'none',
+                    borderRadius: '5px',
+                    color: 'var(--text-main)',
+                    fontSize: '0.76rem',
+                    fontWeight: 500,
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    transition: 'background 0.15s ease'
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.background = '#F1F5F9'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                >
+                  <Building2 size={13} style={{ color: '#475569' }} />
+                  <span>Organizations</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    closeDropdowns();
+                    setActiveTab('settings');
+                  }}
+                  style={{
+                    width: '100%',
+                    padding: '7px 10px',
+                    background: 'transparent',
+                    border: 'none',
+                    borderRadius: '5px',
+                    color: 'var(--text-main)',
+                    fontSize: '0.76rem',
+                    fontWeight: 500,
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    transition: 'background 0.15s ease'
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.background = '#F1F5F9'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                >
+                  <Settings size={13} style={{ color: '#475569' }} />
+                  <span>Workspace Settings</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    closeDropdowns();
+                    setIsRbacModalOpen(true);
+                  }}
+                  style={{
+                    width: '100%',
+                    padding: '7px 10px',
+                    background: 'transparent',
+                    border: 'none',
+                    borderRadius: '5px',
+                    color: 'var(--text-main)',
+                    fontSize: '0.76rem',
+                    fontWeight: 500,
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    transition: 'background 0.15s ease'
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.background = '#F1F5F9'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                >
+                  <ShieldCheck size={13} style={{ color: '#475569' }} />
+                  <span>RBAC Matrix</span>
+                </button>
               </div>
 
               {/* Sign Out Action */}
-              <div style={{ borderTop: '1px solid var(--border-subtle)', paddingTop: '6px' }}>
-
+              <div style={{ borderTop: '1px solid var(--border-subtle)', marginTop: '4px', paddingTop: '4px' }}>
                 <button
                   onClick={() => {
                     closeDropdowns();
@@ -3034,19 +3149,22 @@ export default function App() {
                   }}
                   style={{
                     width: '100%',
-                    padding: '6px 8px',
+                    padding: '7px 10px',
                     background: 'transparent',
                     border: 'none',
-                    borderRadius: '4px',
+                    borderRadius: '5px',
                     color: '#EF4444',
-                    fontSize: '0.74rem',
+                    fontSize: '0.75rem',
                     fontWeight: 600,
                     cursor: 'pointer',
                     textAlign: 'left',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '6px'
+                    gap: '8px',
+                    transition: 'background 0.15s ease'
                   }}
+                  onMouseEnter={e => e.currentTarget.style.background = '#FEF2F2'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                 >
                   <LogOut size={13} />
                   <span>Sign Out</span>
@@ -3783,64 +3901,35 @@ export default function App() {
               <span>Team & Personas</span>
             </button>
           )}
-          <button
-            onClick={() => setActiveTab('profile')}
-            className={`nav-item ${activeTab === 'profile' ? 'nav-item-active' : ''}`}
-            title="Profile & Companies"
-          >
-            <User size={16} strokeWidth={1.75} />
-            <span>Profile & Companies</span>
-          </button>
-
-          {/* Pinned System Status & RBAC Inspector in Sidebar Footer */}
+          {/* Pinned System Status in Sidebar Footer */}
           <div style={{
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '8px 10px 4px 10px',
+            justifyContent: 'center',
+            padding: '8px 10px',
             marginTop: '6px',
             borderTop: '1px solid var(--border-subtle)'
           }}>
-            <button
-              type="button"
-              onClick={() => setIsRbacModalOpen(true)}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                background: 'transparent',
-                border: 'none',
-                color: 'var(--text-secondary)',
-                fontSize: '0.72rem',
-                fontWeight: 600,
-                cursor: 'pointer',
-                padding: '3px 6px',
-                borderRadius: '5px',
-                transition: 'all 0.15s ease'
-              }}
-              title="Inspect Atlan-Grade RBAC Permissions & Separation of Duties Matrix"
-              onMouseEnter={e => { e.currentTarget.style.background = '#F1F5F9'; e.currentTarget.style.color = '#0F172A'; }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
-            >
-              <ShieldCheck size={13} style={{ color: 'var(--primary)' }} />
-              {isSidebarOpen && <span>RBAC Matrix</span>}
-            </button>
-
-            {isSidebarOpen && (
+            {isSidebarOpen ? (
               <div
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
-                  gap: '5px',
-                  fontSize: '0.68rem',
+                  gap: '6px',
+                  fontSize: '0.70rem',
                   color: '#64748B',
                   fontWeight: 600
                 }}
                 title="System Operational Status: All engines healthy"
               >
                 <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--success-solid, #10B981)', display: 'inline-block' }} />
-                <span>Operational</span>
+                <span>All Systems Operational</span>
               </div>
+            ) : (
+              <span
+                style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--success-solid, #10B981)', display: 'inline-block' }}
+                title="All Systems Operational"
+              />
             )}
           </div>
         </div>
@@ -7782,6 +7871,7 @@ export default function App() {
               showToast={showToast}
               initialSubTab={teamSubTab}
               onSubTabChange={setTeamSubTab}
+              onOpenRbacModal={() => setIsRbacModalOpen(true)}
               onLaunchSetupWizard={(org) => {
                 setSetupWizardTargetOrg(org || activeOrg);
                 setIsSetupWizardOpen(true);
@@ -7807,6 +7897,7 @@ export default function App() {
               onSelectPersona={handleSelectPersona}
               effectiveRole={effectiveRole}
               roleMetadata={roleMetadata}
+              onOpenRbacModal={() => setIsRbacModalOpen(true)}
               onOpenRegisterOrg={() => {
                 setActiveTab('profile');
                 setProfileSubTab('register');
@@ -7843,6 +7934,7 @@ export default function App() {
                 setOrganizations(orgs => orgs.map(o => o.id === updated.id ? updated : o));
               }}
               onBack={() => setActiveTab('profile')}
+              onOpenRbacModal={() => setIsRbacModalOpen(true)}
               showToast={showToast}
             />
           </div>
