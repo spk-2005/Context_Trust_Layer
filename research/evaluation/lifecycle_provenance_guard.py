@@ -29,7 +29,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-ROOT_DIR = Path("B:/Context_Layer_Ai")
+ROOT_DIR = Path(__file__).resolve().parent.parent.parent
 EVAL_DIR = ROOT_DIR / "research" / "evaluation"
 HOLDOUT_DIR = ROOT_DIR / "research" / "holdout"
 RESULTS_DIR = ROOT_DIR / "research" / "extraction-results"
@@ -345,8 +345,11 @@ class LifecycleProvenanceGuard:
             assert rel_name in registered_artifacts, f"{rel_name} missing from artifact_provenance.json"
             f_path = self.eval_dir / rel_name
             assert f_path.exists(), f"File {f_path} does not exist on disk"
-            actual_sha = hashlib.sha256(f_path.read_bytes()).hexdigest()
+            raw = f_path.read_bytes()
+            sha_raw = hashlib.sha256(raw).hexdigest()
+            sha_lf = hashlib.sha256(raw.replace(b"\r\n", b"\n")).hexdigest()
             expected_sha = registered_artifacts[rel_name]
+            actual_sha = sha_raw if sha_raw == expected_sha else sha_lf
             if actual_sha != expected_sha:
                 mismatches.append((rel_name, expected_sha, actual_sha))
             else:

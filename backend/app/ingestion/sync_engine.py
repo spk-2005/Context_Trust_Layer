@@ -19,6 +19,7 @@ from app.ingestion.connectors.kafka_connector import KafkaConnector
 from app.ingestion.connectors.mongodb_connector import MongoDbConnector
 from app.ingestion.connectors.postgres_connector import PostgresConnector
 from app.ingestion.connectors.salesforce_connector import SalesforceConnector
+from app.ingestion.connectors.slack_connector import SlackConnector
 from app.ingestion.connectors.universal_driver import UniversalConnectorDriver
 from app.services.claim_extraction_service import ClaimExtractionService
 from app.services.conflict_service import ConflictService
@@ -149,6 +150,15 @@ class SyncEngine:
                 token=token_val,
                 owner_id=effective_owner,
                 connection_config=raw_config,
+                **common_layer1,
+            )
+        elif source_type in ("slack", "slack_channel", "slack_workspace"):
+            return SlackConnector(
+                session=self.session,
+                organization_id=source.organization_id,
+                source_id=source.id,
+                connection_config=raw_config,
+                owner_id=effective_owner,
                 **common_layer1,
             )
         else:

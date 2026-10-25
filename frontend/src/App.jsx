@@ -1190,6 +1190,11 @@ export default function App() {
     jiraEmail: '',
     jiraToken: '',
     jiraFilter: '',
+    // Slack
+    slackBotToken: '',
+    slackChannels: '',
+    slackLookbackDays: 30,
+    slackIncludeReplies: true,
   });
 
   // -------------------------------------------------------------
@@ -1925,6 +1930,17 @@ export default function App() {
         token: (newSourceForm.jiraToken || '').trim(),
         jql: (newSourceForm.jiraFilter || '').trim() || undefined
       };
+    } else if (st === 'slack' || st === 'slack_channel' || st === 'slack_workspace') {
+      const rawCh = (newSourceForm.slackChannels || '').trim();
+      const chList = rawCh ? rawCh.split(',').map(c => c.trim().replace(/^#/, '')).filter(Boolean) : [];
+      return {
+        ...base,
+        bot_token: (newSourceForm.slackBotToken || '').trim(),
+        token: (newSourceForm.slackBotToken || '').trim(),
+        channels: chList,
+        lookback_days: parseInt(newSourceForm.slackLookbackDays || 30, 10),
+        include_replies: newSourceForm.slackIncludeReplies !== false
+      };
     }
     // Generic Universal Driver config for all other catalog connectors
     return {
@@ -2089,6 +2105,10 @@ export default function App() {
         }
         else if (newSourceForm.sourceType === 'confluence') externalId = `confluence://${newSourceForm.confluenceSpace}/${uniqueSuffix}`;
         else if (newSourceForm.sourceType === 'jira') externalId = `jira://${newSourceForm.jiraProject}/${uniqueSuffix}`;
+        else if (newSourceForm.sourceType === 'slack' || newSourceForm.sourceType === 'slack_channel' || newSourceForm.sourceType === 'slack_workspace') {
+          const firstChan = (newSourceForm.slackChannels || 'workspace').split(',')[0].trim().replace(/^#/, '') || 'workspace';
+          externalId = `slack://${firstChan}/${uniqueSuffix}`;
+        }
         else externalId = `${newSourceForm.sourceType}://${newSourceForm.name.trim().toLowerCase().replace(/\s+/g, '-')}/${uniqueSuffix}`;
       }
 
@@ -4179,7 +4199,7 @@ export default function App() {
                   {dataSources.length || 5} Active
                 </div>
                 <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
-                  GitHub, Confluence, Jira, Web Portal
+                  GitHub, Confluence, Jira, Slack, Web Portal
                 </div>
               </div>
 
@@ -5568,7 +5588,7 @@ export default function App() {
 
             {/* VIEW 0: CONNECTORS HUB (LIVE CONNECTORS & SYNCHRONIZED CONNECTORS WORKFLOW) */}
             {docExplorerView === 'connectors' && (() => {
-              const LIVE_CONNECTOR_TYPES = ['github', 'mongodb', 'mongodb_atlas', 'jira', 'confluence', 'postgresql'];
+              const LIVE_CONNECTOR_TYPES = ['github', 'mongodb', 'mongodb_atlas', 'jira', 'confluence', 'postgresql', 'slack', 'slack_channel', 'slack_workspace'];
               const liveConfiguredSources = dataSources.filter(s =>
                 LIVE_CONNECTOR_TYPES.includes((s.source_type || '').toLowerCase())
               );
@@ -5632,6 +5652,16 @@ export default function App() {
                   description: 'Live database connection via asyncpg driver. Discovers schemas, tables, and performs read-only parameterized row extraction.',
                   scope: 'Schemas, Tables & ACID Relational Records',
                   default_port: 5432
+                },
+                {
+                  id: 'slack',
+                  name: 'Slack',
+                  icon: '💬',
+                  family: 'Collaboration & Chat',
+                  category_label: 'Chat & Incidents',
+                  description: 'Live integration via Slack Web API. Ingests operational decisions, approval threads, and incident channels.',
+                  scope: 'Public & Private Channels, Threads & Mentions',
+                  default_port: null
                 }
               ];
 
@@ -5709,7 +5739,7 @@ export default function App() {
                           </span>
                         </div>
                         <p style={{ fontSize: '0.76rem', color: '#64748B', margin: '4px 0 0 0' }}>
-                          Configured connections to GitHub, MongoDB Atlas, Jira, Confluence, and PostgreSQL with live health, schedule, and state.
+                          Configured connections to GitHub, MongoDB Atlas, Jira, Confluence, PostgreSQL, and Slack with live health, schedule, and state.
                         </p>
                       </div>
                     </div>
@@ -5719,7 +5749,7 @@ export default function App() {
                         <div style={{ fontSize: '1.8rem', marginBottom: '8px' }}>🔌</div>
                         <div style={{ fontWeight: 700, color: '#0F172A', fontSize: '0.92rem', marginBottom: '4px' }}>No live data sources connected yet</div>
                         <div style={{ fontSize: '0.78rem', color: '#64748B', maxWidth: '500px', margin: '0 auto 16px auto' }}>
-                          Select one of the 5 supported live connectors below to configure authenticated access, test live connectivity, and synchronize source records into PostgreSQL.
+                          Select one of the 6 supported live connectors below to configure authenticated access, test live connectivity, and synchronize source records into PostgreSQL.
                         </div>
                         <button
                           type="button"
@@ -5753,6 +5783,7 @@ export default function App() {
                             : src.source_type === 'jira' ? '🎯'
                             : src.source_type === 'confluence' ? '📘'
                             : src.source_type === 'postgresql' ? '🐘'
+                            : (src.source_type === 'slack' || src.source_type === 'slack_channel' || src.source_type === 'slack_workspace') ? '💬'
                             : '🔌';
 
                           const docCount = cfg.discovered_items_count || dbDocuments.filter(d => d.source_id === src.id).length;
@@ -5960,6 +5991,7 @@ export default function App() {
                             : src.source_type === 'jira' ? '🎯'
                             : src.source_type === 'confluence' ? '📘'
                             : src.source_type === 'postgresql' ? '🐘'
+                            : (src.source_type === 'slack' || src.source_type === 'slack_channel' || src.source_type === 'slack_workspace') ? '💬'
                             : '🔌';
                           const count = dbDocuments.filter(d => d.source_id === src.id).length;
 
@@ -6029,14 +6061,14 @@ export default function App() {
                   }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
                       <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0F172A', margin: 0 }}>
-                        🔌 Available Live Connectors (5 Supported Providers)
+                        🔌 Available Live Connectors (6 Supported Providers)
                       </h3>
                       <span className="badge badge-verified" style={{ fontSize: '0.70rem', padding: '2px 8px' }}>
                         Production Drivers & Pluggable Sync
                       </span>
                     </div>
                     <p style={{ fontSize: '0.76rem', color: '#64748B', margin: '0 0 18px 0' }}>
-                      Connect to real external systems with genuine API handshakes, database drivers, schema discovery, and encrypted credentials. (Slack is explicitly excluded).
+                      Connect to real external systems with genuine API handshakes, database drivers, schema discovery, and encrypted credentials.
                     </p>
 
                     <div style={{
@@ -6106,7 +6138,7 @@ export default function App() {
                                     ...prev,
                                     name: `Production ${connector.name} ${existingCount > 0 ? `#${existingCount + 1}` : ''}`.trim(),
                                     sourceType: connector.id,
-                                    authorityLevel: 85,
+                                    authorityLevel: connector.id === 'slack' ? 50 : 85,
                                     pgPort: connector.default_port || 5432,
                                     schedule: 'off',
                                     externalId: ''
@@ -7019,8 +7051,122 @@ export default function App() {
                     </div>
                   )}
 
-                  {/* 6. UNIVERSAL DRIVER CONFIGURATION FOR NON-LIVE CATALOG CONNECTORS */}
-                  {!['github', 'postgresql', 'postgres', 'mongodb', 'mongodb_atlas', 'jira', 'confluence'].includes(newSourceForm.sourceType) && (
+                  {/* 6. SLACK SPECIFIC FIELDS */}
+                  {newSourceForm.sourceType === 'slack' && (
+                    <div style={{ background: '#F8FAFC', border: '1px solid var(--border-subtle, #E2E8F0)', borderRadius: '8px', padding: '14px', display: 'grid', gap: '12px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #E2E8F0', paddingBottom: '6px' }}>
+                        <span style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--text-main)' }}>Slack Workspace Connection Parameters</span>
+                        <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>🔒 Web API v2 • Token Auth & Channel Ingestion</span>
+                      </div>
+
+                      <div>
+                        <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Bot User OAuth Token (xoxb-...):</label>
+                        <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                          <input
+                            type={showPasswordMask ? "text" : "password"}
+                            value={newSourceForm.slackBotToken}
+                            onChange={e => { setNewSourceForm({ ...newSourceForm, slackBotToken: e.target.value }); setTestConnectionResult(null); }}
+                            placeholder="xoxb-your-slack-bot-token"
+                            style={{ width: '100%', padding: '7px 32px 7px 9px', fontSize: '0.82rem' }}
+                            required
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowPasswordMask(!showPasswordMask)}
+                            style={{ position: 'absolute', right: '8px', background: 'none', border: 'none', cursor: 'pointer', color: '#64748B', display: 'flex', alignItems: 'center' }}
+                          >
+                            👁️
+                          </button>
+                        </div>
+                        <div style={{ fontSize: '0.68rem', color: '#64748B', marginTop: '3px' }}>
+                          Requires scopes: <code>channels:read</code>, <code>channels:history</code>, <code>users:read</code>, <code>files:read</code> (for ingesting uploaded document contents like Word/PDF).
+                        </div>
+                      </div>
+
+                      <div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2px' }}>
+                          <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Target Channel(s) (comma-separated names or IDs):</label>
+                          <button
+                            type="button"
+                            onClick={() => handleDiscoverResource('channels')}
+                            disabled={isDiscovering}
+                            style={{ background: '#EFF6FF', border: '1px solid #BFDBFE', color: '#1D4ED8', borderRadius: '4px', padding: '1px 6px', fontSize: '0.68rem', fontWeight: 700, cursor: 'pointer' }}
+                          >
+                            🔍 Discover Channels
+                          </button>
+                        </div>
+                        <input
+                          type="text"
+                          value={newSourceForm.slackChannels}
+                          onChange={e => { setNewSourceForm({ ...newSourceForm, slackChannels: e.target.value }); setTestConnectionResult(null); }}
+                          placeholder="e.g. general, incidents, dev-decisions (or leave empty to ingest all member channels)"
+                          style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
+                        />
+                        {discoveredOptions.channels && discoveredOptions.channels.length > 0 && (
+                          <div style={{ marginTop: '6px', display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                            {discoveredOptions.channels.slice(0, 12).map(c => {
+                              const chanName = typeof c === 'object' ? (c.name || c.id) : c;
+                              const isMember = typeof c === 'object' ? c.is_member : true;
+                              return (
+                                <button
+                                  key={chanName}
+                                  type="button"
+                                  onClick={() => setNewSourceForm(prev => {
+                                    const currentList = (prev.slackChannels || '').split(',').map(x => x.trim().replace(/^#/, '')).filter(Boolean);
+                                    if (currentList.includes(chanName)) return prev;
+                                    return {
+                                      ...prev,
+                                      slackChannels: currentList.length > 0 ? `${currentList.join(', ')}, ${chanName}` : chanName
+                                    };
+                                  })}
+                                  style={{
+                                    padding: '2px 8px',
+                                    fontSize: '0.68rem',
+                                    background: isMember === false ? '#FFFBEB' : '#F1F5F9',
+                                    border: isMember === false ? '1px solid #FDE68A' : '1px solid #CBD5E1',
+                                    borderRadius: '4px',
+                                    cursor: 'pointer',
+                                    color: isMember === false ? '#B45309' : '#1E293B'
+                                  }}
+                                  title={isMember === false ? `Bot is not in #${chanName}. Run /invite @bot first.` : `Add #${chanName}`}
+                                >
+                                  #{chanName} {isMember === false ? '⚠️' : ''}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                        <div>
+                          <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Lookback Days (1–365):</label>
+                          <input
+                            type="number"
+                            min="1"
+                            max="365"
+                            value={newSourceForm.slackLookbackDays}
+                            onChange={e => setNewSourceForm({ ...newSourceForm, slackLookbackDays: e.target.value })}
+                            placeholder="30"
+                            style={{ width: '100%', padding: '7px 9px', fontSize: '0.82rem' }}
+                          />
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', marginTop: '14px' }}>
+                          <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.74rem', fontWeight: 600, color: '#334155', cursor: 'pointer' }}>
+                            <input
+                              type="checkbox"
+                              checked={newSourceForm.slackIncludeReplies !== false}
+                              onChange={e => setNewSourceForm({ ...newSourceForm, slackIncludeReplies: e.target.checked })}
+                            />
+                            Include Thread Replies
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 7. UNIVERSAL DRIVER CONFIGURATION FOR NON-LIVE CATALOG CONNECTORS */}
+                  {!['github', 'postgresql', 'postgres', 'mongodb', 'mongodb_atlas', 'jira', 'confluence', 'slack'].includes(newSourceForm.sourceType) && (
                     <div style={{ background: '#F8FAFC', border: '1px solid var(--border-subtle, #E2E8F0)', borderRadius: '8px', padding: '14px', display: 'grid', gap: '12px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #E2E8F0', paddingBottom: '6px' }}>
                         <span style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--text-main)' }}>Enterprise Endpoint Connection Parameters</span>

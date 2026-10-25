@@ -24,7 +24,8 @@ logger = logging.getLogger(__name__)
 
 T = TypeVar("T", bound=BaseModel)
 
-DEFAULT_CACHE_DIR = Path("B:/Context_Layer_Ai/.pipeline_cache")
+REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent
+DEFAULT_CACHE_DIR = REPO_ROOT / ".pipeline_cache"
 
 
 class PipelineStageCache:

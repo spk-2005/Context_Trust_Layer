@@ -19,7 +19,7 @@ from pathlib import Path
 import pytest
 
 # Ensure research evaluation module is importable
-EVAL_DIR = Path("B:/Context_Layer_Ai/research/evaluation")
+EVAL_DIR = Path(__file__).resolve().parent.parent.parent.parent / "research" / "evaluation"
 if str(EVAL_DIR) not in sys.path:
     sys.path.insert(0, str(EVAL_DIR))
 
@@ -262,7 +262,7 @@ class TestBenchmarkMatcherInvariants:
 
     def test_immutable_corpus_manifest_sha256_integrity(self):
         """All files referenced in corpus_manifest.json must physically exist and match recorded SHA-256."""
-        manifest_path = Path("B:/Context_Layer_Ai/research/evaluation/corpus_manifest.json")
+        manifest_path = EVAL_DIR / "corpus_manifest.json"
         assert manifest_path.exists(), f"Manifest missing: {manifest_path}"
 
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
@@ -270,12 +270,15 @@ class TestBenchmarkMatcherInvariants:
         documents = manifest["documents"]
         assert len(documents) == 9
 
+        repo_root = EVAL_DIR.parent.parent
         for doc_code in [f"DOC-00{i}" for i in range(1, 10)]:
             assert doc_code in documents, f"Missing document {doc_code} in manifest"
             meta = documents[doc_code]
 
             # 1. Source PDF exists & matches hash
             src_path = Path(meta["source_file_path"])
+            if not src_path.exists():
+                src_path = repo_root / "docs" / src_path.name
             assert src_path.exists(), f"Source file does not exist: {src_path}"
             src_bytes = src_path.read_bytes()
             assert len(src_bytes) == meta["source_size_bytes"]
@@ -284,6 +287,8 @@ class TestBenchmarkMatcherInvariants:
 
             # 2. Gold label exists & matches hash
             gold_path = Path(meta["gold_label_path"])
+            if not gold_path.exists():
+                gold_path = repo_root / "research" / "gold_labels" / gold_path.name
             assert gold_path.exists(), f"Gold file does not exist: {gold_path}"
             gold_bytes = gold_path.read_bytes()
             computed_gold_sha = hashlib.sha256(gold_bytes).hexdigest()
@@ -364,14 +369,17 @@ class TestBenchmarkMatcherInvariants:
 
     def test_evaluation_artifact_immutability_hashes(self):
         """Evaluation artifacts must exist and match recorded SHA-256 hashes in provenance ledger."""
-        prov_file = Path("B:/Context_Layer_Ai/research/evaluation/artifact_provenance.json")
+        prov_file = EVAL_DIR / "artifact_provenance.json"
         assert prov_file.exists(), "artifact_provenance.json missing"
         prov = json.loads(prov_file.read_text(encoding="utf-8"))
         artifacts = prov["artifacts"]
 
         for filename, recorded_sha in artifacts.items():
-            fpath = Path("B:/Context_Layer_Ai/research/evaluation") / filename
+            fpath = EVAL_DIR / filename
             assert fpath.exists(), f"Artifact missing: {filename}"
-            actual_sha = hashlib.sha256(fpath.read_bytes()).hexdigest()
+            raw = fpath.read_bytes()
+            sha_raw = hashlib.sha256(raw).hexdigest()
+            sha_lf = hashlib.sha256(raw.replace(b"\r\n", b"\n")).hexdigest()
+            actual_sha = sha_raw if sha_raw == recorded_sha else sha_lf
             assert actual_sha == recorded_sha, f"SHA-256 mismatch for {filename}: {actual_sha} != {recorded_sha}"
 

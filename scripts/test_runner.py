@@ -17,7 +17,7 @@ import time
 from pathlib import Path
 from typing import List, Set
 
-ROOT_DIR = Path("B:/Context_Layer_Ai")
+ROOT_DIR = Path(__file__).resolve().parent.parent
 PYTEST_BIN = ROOT_DIR / "backend" / ".venv" / "Scripts" / "pytest.exe"
 PYTHON_BIN = ROOT_DIR / "backend" / ".venv" / "Scripts" / "python.exe"
 

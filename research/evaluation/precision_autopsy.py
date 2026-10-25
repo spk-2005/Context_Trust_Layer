@@ -4,8 +4,9 @@ import sys
 from pathlib import Path
 from typing import Dict, List, Any, Set
 
-if "B:/Context_Layer_Ai" not in sys.path:
-    sys.path.insert(0, "B:/Context_Layer_Ai")
+REPO_ROOT = Path(__file__).resolve().parent.parent.parent
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
 
 from research.evaluation.benchmark_harness import BenchmarkHarness, unpack_gold_object
 
@@ -30,12 +31,12 @@ class PrecisionAutopsyEngine:
 
     def __init__(
         self,
-        gold_dir: Path = Path("B:/Context_Layer_Ai/research/gold_labels"),
-        results_dir: Path = Path("B:/Context_Layer_Ai/research/extraction-results"),
+        gold_dir: Path | None = None,
+        results_dir: Path | None = None,
     ):
-        self.gold_dir = gold_dir
-        self.results_dir = results_dir
-        self.harness = BenchmarkHarness(gold_dir=gold_dir, results_dir=results_dir)
+        self.gold_dir = Path(gold_dir) if gold_dir is not None else REPO_ROOT / "research" / "gold_labels"
+        self.results_dir = Path(results_dir) if results_dir is not None else REPO_ROOT / "research" / "extraction-results"
+        self.harness = BenchmarkHarness(gold_dir=self.gold_dir, results_dir=self.results_dir)
 
     def diagnose_claim(
         self,
@@ -207,7 +208,7 @@ if __name__ == "__main__":
     all_docs = [f"DOC-{i:03d}" for i in range(1, 10)]
     report = autopsy.run_all(all_docs)
 
-    out_file = Path("B:/Context_Layer_Ai/research/evaluation/precision_autopsy_report.json")
+    out_file = REPO_ROOT / "research" / "evaluation" / "precision_autopsy_report.json"
     out_file.write_text(json.dumps(report, indent=2), encoding="utf-8")
     print(f"Precision Autopsy Report saved to {out_file}\n")
 

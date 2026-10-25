@@ -628,25 +628,10 @@ async def switch_organization(
     target_user = res_mem.scalar_one_or_none()
 
     if not target_user:
-        if active_caller.organization_id != org.id:
-            # Create membership row in target org
-            target_user = User(
-                id=uuid.uuid4(),
-                organization_id=org.id,
-                name=active_caller.name,
-                email=active_caller.email,
-                role=active_caller.role,
-                status=RecordStatus.ACTIVE,
-                is_verified=True,
-                avatar_url=active_caller.avatar_url,
-                title=active_caller.title,
-                department=active_caller.department,
-                hashed_password=active_caller.hashed_password,
-            )
-            db.add(target_user)
-            await db.flush()
-        else:
-            target_user = active_caller
+        active_caller.organization_id = org.id
+        target_user = active_caller
+        db.add(target_user)
+        await db.flush()
 
     await db.commit()
     await db.refresh(target_user)

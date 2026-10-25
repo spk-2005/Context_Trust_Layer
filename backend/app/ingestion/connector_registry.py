@@ -12,7 +12,7 @@ def resolve_source_family(source_type: str) -> SourceFamily:
         return SourceFamily.DOCUMENT
     elif st in ("github", "git", "gitlab", "bitbucket"):
         return SourceFamily.DOCUMENT
-    elif st in ("slack", "teams", "jira_comments", "email", "discord"):
+    elif st in ("slack", "slack_channel", "slack_workspace", "teams", "jira_comments", "email", "discord"):
         return SourceFamily.CONVERSATION
     elif st in ("jira", "jira_issues"):
         return SourceFamily.CONVERSATION
@@ -31,7 +31,7 @@ def get_default_intent(source_type: str) -> SourceIntent:
     st = (source_type or "").lower().strip()
     if st in ("file", "manual_upload", "confluence", "wiki", "github", "git"):
         return SourceIntent.GOVERNANCE_POLICY
-    elif st in ("slack", "teams", "discord"):
+    elif st in ("slack", "slack_channel", "slack_workspace", "teams", "discord"):
         return SourceIntent.PROPOSALS_DISCUSSIONS
     elif st in ("tableau", "looker", "power_bi"):
         return SourceIntent.ANALYTICS_METRIC
@@ -125,6 +125,13 @@ class ConnectorMetadata(BaseModel):
                 {"id": "database", "label": "Database", "type": "text", "required": True},
                 {"id": "username", "label": "Username", "type": "text", "required": True},
                 {"id": "password", "label": "Password", "type": "password", "required": True},
+            ]
+        elif self.id in ("slack", "slack_channel", "slack_workspace"):
+            return [
+                {"id": "bot_token", "label": "Bot User OAuth Token (xoxb-...)", "type": "password", "required": True},
+                {"id": "channels", "label": "Target Channels (#incident-management)", "type": "text", "required": False},
+                {"id": "lookback_days", "label": "Lookback Days (1-365)", "type": "number", "default": 30, "required": False},
+                {"id": "include_replies", "label": "Include Thread Replies", "type": "checkbox", "default": True, "required": False},
             ]
         return [
             {"id": "host", "label": "Host / Endpoint", "type": "text", "required": True},
@@ -1376,6 +1383,18 @@ CONNECTOR_CATALOG: List[ConnectorMetadata] = [
         doc_type="crm_contract",
         monitored_scope="GitHub repository markdown policies, OpenAPI specifications, security docs & CI/CD standards."
     ),
+    ConnectorMetadata(
+        id="slack",
+        name="Slack Workspace",
+        category="crm_erp",
+        category_label="CRM & ERP",
+        family="enterprise_app",
+        description="Ingest operational decisions, approval threads, and discussions from Slack public and private channels.",
+        default_port=443,
+        default_auth="token",
+        doc_type="policy_rule",
+        monitored_scope="Slack public & private channels, message threads, decision consensus & operational alerts."
+    ),
 
     # -------------------------------------------------------------
     # 9. ML / AI (2)
@@ -1443,6 +1462,9 @@ class ConnectorRegistry:
             "sagemaker_ai": "sagemaker",
             "soda_core": "soda",
             "soda_cloud": "soda",
+            "slack_channel": "slack",
+            "slack_workspace": "slack",
+            "slack_message": "slack",
         }
         target_id = aliases.get(clean_id)
         if target_id and target_id in cls._catalog_by_id:

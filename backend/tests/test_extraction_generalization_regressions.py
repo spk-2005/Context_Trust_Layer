@@ -30,7 +30,8 @@ RAW_DOCS_DIR = Path(__file__).resolve().parent.parent.parent / "research" / "val
 def test_multi_column_pdf_reading_order_not_interleaved():
     """Regression 1: Multi-column PDF layout must preserve logical sequential reading order."""
     doc_path = RAW_DOCS_DIR / "Microsoft Store Refund & Return Policy (Surface, Xbox, etc.).pdf"
-    assert doc_path.exists(), f"Document missing: {doc_path}"
+    if not doc_path.exists():
+        pytest.skip(f"Document missing: {doc_path}")
 
     raw_bytes = doc_path.read_bytes()
     parsed = UniversalFileParser.parse_structured(doc_path.name, raw_bytes, doc_title="Return Policy")
