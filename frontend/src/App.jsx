@@ -2624,11 +2624,12 @@ export default function App() {
               display: 'flex',
               alignItems: 'center',
               gap: '6px',
-              padding: '3px 9px',
-              ...(!isOrgReady ? { border: '1px dashed #EA580C', background: 'rgba(234, 88, 12, 0.08)' } : {})
+              borderRadius: '20px',
+              padding: '0 10px',
+              ...(!isOrgReady ? { border: '1px dashed #64748B', background: 'rgba(100, 116, 139, 0.06)' } : {})
             }}
           >
-            <Building2 size={12} style={{ color: isOrgReady ? '#FFAB4A' : '#EA580C' }} />
+            <Building2 size={12} style={{ color: isOrgReady ? '#475569' : '#0F172A' }} />
             <span style={{ maxWidth: '130px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 700 }}>
               {isOrgReady ? activeOrg.name : (activeOrg?.name && !activeOrg.name.includes('Pending Setup') ? activeOrg.name : 'Create Organization')}
             </span>
@@ -2637,7 +2638,7 @@ export default function App() {
                 fontSize: '0.58rem',
                 padding: '1px 5px',
                 borderRadius: '3px',
-                background: '#EA580C',
+                background: '#0F172A',
                 color: '#FFFFFF',
                 fontWeight: 800
               }}>
@@ -2648,8 +2649,9 @@ export default function App() {
                 fontSize: '0.62rem',
                 padding: '1px 5px',
                 borderRadius: '4px',
-                background: 'rgba(255, 171, 74, 0.18)',
-                color: '#9A4900',
+                background: '#F1F5F9',
+                color: '#334155',
+                border: '1px solid #E2E8F0',
                 fontWeight: 700
               }}>
                 {activeOrg.member_count}
@@ -2678,9 +2680,6 @@ export default function App() {
                 <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                   Enterprise Organizations
                 </span>
-                <span className="badge" style={{ fontSize: '0.62rem', padding: '1px 5px' }}>
-                  {displayOrgs.length} {displayOrgs.length === 1 ? 'Tenant' : 'Tenants'}
-                </span>
               </div>
 
               {!isOrgReady && (
@@ -2701,8 +2700,6 @@ export default function App() {
               <div style={{ maxHeight: '180px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '2px' }}>
                 {displayOrgs.map(org => {
                   const isActive = activeOrg?.id === org.id;
-                  const myMem = myOrganizations?.find(m => m.id === org.id);
-                  const roleToShow = org.role || myMem?.role || (isActive ? (authUser?.role || effectiveRole) : null);
                   return (
                     <button
                       key={org.id}
@@ -2714,14 +2711,13 @@ export default function App() {
                         width: '100%',
                         display: 'flex',
                         alignItems: 'center',
-                        justifyContent: 'space-between',
-                        padding: '7px 9px',
-                        background: isActive ? 'rgba(255, 171, 74, 0.12)' : 'transparent',
+                        padding: '8px 12px',
+                        background: isActive ? '#F1F5F9' : 'transparent',
                         border: 'none',
                         borderRadius: '5px',
-                        color: isActive ? '#9A4900' : 'var(--text-main)',
+                        color: isActive ? '#0F172A' : 'var(--text-main)',
                         fontSize: '0.78rem',
-                        fontWeight: isActive ? 700 : 500,
+                        fontWeight: isActive ? 600 : 500,
                         cursor: 'pointer',
                         textAlign: 'left',
                         transition: 'background 0.15s ease'
@@ -2729,26 +2725,9 @@ export default function App() {
                       onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = '#F8FAFC'; }}
                       onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = 'transparent'; }}
                     >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
-                        <Building2 size={13} style={{ color: isActive ? '#FFAB4A' : 'var(--text-muted)', flexShrink: 0 }} />
-                        <div style={{ minWidth: 0 }}>
-                          <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                            <span>{org.name}</span>
-                            {roleToShow && (
-                              <span style={{ fontSize: '0.58rem', fontWeight: 700, padding: '1px 4px', borderRadius: '3px', backgroundColor: '#EFF6FF', color: '#1D4ED8', textTransform: 'uppercase' }}>
-                                {roleToShow}
-                              </span>
-                            )}
-                          </div>
-                          <div style={{ fontSize: '0.66rem', color: 'var(--text-muted)', fontFamily: 'monospace' }}>
-                            {org.slug}
-                          </div>
-                        </div>
-                      </div>
-
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        {isActive && <span style={{ color: '#FFAB4A', fontWeight: 800 }}>✓</span>}
-                      </div>
+                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {org.name}
+                      </span>
                     </button>
                   );
                 })}
@@ -2757,16 +2736,17 @@ export default function App() {
               <div style={{ borderTop: '1px solid var(--border-subtle)', marginTop: '6px', paddingTop: '6px', display: 'flex', flexDirection: 'column', gap: '3px' }}>
                 <button
                   onClick={() => {
-                    setShowNewOrgModal(true);
                     closeDropdowns();
+                    setActiveTab('profile');
+                    setProfileSubTab('register');
                   }}
                   style={{
                     width: '100%',
                     padding: '7px 8px',
-                    background: 'rgba(255, 171, 74, 0.1)',
-                    border: '1px solid rgba(255, 171, 74, 0.3)',
+                    background: '#F8FAFC',
+                    border: '1px solid #E2E8F0',
                     borderRadius: '5px',
-                    color: '#9A4900',
+                    color: '#0F172A',
                     fontSize: '0.74rem',
                     fontWeight: 700,
                     cursor: 'pointer',
@@ -2775,42 +2755,17 @@ export default function App() {
                     alignItems: 'center',
                     gap: '6px'
                   }}
+                  onMouseEnter={e => e.currentTarget.style.background = '#F1F5F9'}
+                  onMouseLeave={e => e.currentTarget.style.background = '#F8FAFC'}
                 >
                   <Plus size={13} />
-                  <span>+ Create Enterprise Organization</span>
+                  <span>Create Enterprise Organization</span>
                 </button>
 
                 <button
                   onClick={() => {
-                    setSetupWizardTargetOrg(activeOrg);
-                    setIsSetupWizardOpen(true);
                     closeDropdowns();
-                  }}
-                  style={{
-                    width: '100%',
-                    padding: '5px 8px',
-                    background: 'transparent',
-                    border: 'none',
-                    color: 'var(--text-secondary)',
-                    fontSize: '0.72rem',
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    textAlign: 'left',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px'
-                  }}
-                  onMouseEnter={e => e.currentTarget.style.color = 'var(--text-main)'}
-                  onMouseLeave={e => e.currentTarget.style.color = 'var(--text-secondary)'}
-                >
-                  <Sparkles size={12} style={{ color: '#FFAB4A' }} />
-                  <span>Launch Onboarding Wizard for '{activeOrg?.name || 'Organization'}'</span>
-                </button>
-
-                <button
-                  onClick={() => {
-                    setIsOrgSettingsModalOpen(true);
-                    closeDropdowns();
+                    setActiveTab('settings');
                   }}
                   style={{
                     width: '100%',
@@ -2847,10 +2802,12 @@ export default function App() {
               display: 'flex',
               alignItems: 'center',
               gap: '6px',
-              ...(!isWorkspaceReady ? { border: '1px dashed #EA580C', background: 'rgba(234, 88, 12, 0.08)' } : {})
+              borderRadius: '20px',
+              padding: '0 10px',
+              ...(!isWorkspaceReady ? { border: '1px dashed #64748B', background: 'rgba(100, 116, 139, 0.06)' } : {})
             }}
           >
-            <FolderGit2 size={12} style={{ color: isWorkspaceReady ? 'var(--text-muted)' : '#EA580C' }} />
+            <FolderGit2 size={12} style={{ color: '#475569' }} />
             <span style={{ maxWidth: '130px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: isWorkspaceReady ? 500 : 700 }}>
               {isWorkspaceReady ? activeWorkspace.name.replace(' (Universal)', '') : 'Create Workspace'}
             </span>
@@ -2859,7 +2816,7 @@ export default function App() {
                 fontSize: '0.58rem',
                 padding: '1px 5px',
                 borderRadius: '3px',
-                background: '#EA580C',
+                background: '#0F172A',
                 color: '#FFFFFF',
                 fontWeight: 800
               }}>
@@ -2888,9 +2845,6 @@ export default function App() {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 6px 6px 6px', borderBottom: '1px solid var(--border-subtle)', marginBottom: '6px' }}>
                 <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                   Workspaces
-                </span>
-                <span className="badge badge-muted" style={{ fontSize: '0.62rem', padding: '1px 5px' }}>
-                  {workspaces.length} {workspaces.length === 1 ? 'Workspace' : 'Workspaces'}
                 </span>
               </div>
 
@@ -2921,14 +2875,13 @@ export default function App() {
                       width: '100%',
                       display: 'flex',
                       alignItems: 'center',
-                      justifyContent: 'space-between',
-                      padding: '6px 8px',
-                      background: activeWorkspace?.id === ws.id ? 'var(--primary-subtle, rgba(255, 171, 74, 0.12))' : 'transparent',
+                      padding: '8px 12px',
+                      background: activeWorkspace?.id === ws.id ? '#F1F5F9' : 'transparent',
                       border: 'none',
                       borderRadius: '5px',
-                      color: activeWorkspace?.id === ws.id ? '#9A4900' : 'var(--text-main)',
-                      fontSize: '0.75rem',
-                      fontWeight: activeWorkspace?.id === ws.id ? 700 : 500,
+                      color: activeWorkspace?.id === ws.id ? '#0F172A' : 'var(--text-main)',
+                      fontSize: '0.78rem',
+                      fontWeight: activeWorkspace?.id === ws.id ? 600 : 500,
                       cursor: 'pointer',
                       textAlign: 'left',
                       transition: 'background 0.15s ease'
@@ -2936,11 +2889,7 @@ export default function App() {
                     onMouseEnter={e => { if (activeWorkspace?.id !== ws.id) e.currentTarget.style.background = '#F8FAFC'; }}
                     onMouseLeave={e => { if (activeWorkspace?.id !== ws.id) e.currentTarget.style.background = 'transparent'; }}
                   >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0 }}>
-                      <span>{ws.icon || '📁'}</span>
-                      <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{ws.name}</span>
-                    </div>
-                    {activeWorkspace?.id === ws.id && <span style={{ fontSize: '0.75rem', color: '#FFAB4A', fontWeight: 800 }}>✓</span>}
+                    <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{ws.name}</span>
                   </button>
                 ))}
 
@@ -2954,16 +2903,18 @@ export default function App() {
               <div style={{ borderTop: '1px solid var(--border-subtle)', marginTop: '6px', paddingTop: '6px' }}>
                 <button
                   onClick={() => {
-                    setShowNewWorkspaceModal(true);
                     closeDropdowns();
+                    setActiveTab('ingestion');
+                    setExpandedMenu?.('ingestion');
+                    setDocExplorerView?.('folders');
                   }}
                   style={{
                     width: '100%',
                     padding: '7px 8px',
-                    background: 'rgba(255, 171, 74, 0.1)',
-                    border: '1px solid rgba(255, 171, 74, 0.3)',
+                    background: '#F8FAFC',
+                    border: '1px solid #E2E8F0',
                     borderRadius: '5px',
-                    color: '#9A4900',
+                    color: '#0F172A',
                     fontSize: '0.74rem',
                     fontWeight: 700,
                     cursor: 'pointer',
@@ -2972,9 +2923,11 @@ export default function App() {
                     alignItems: 'center',
                     gap: '5px'
                   }}
+                  onMouseEnter={e => e.currentTarget.style.background = '#F1F5F9'}
+                  onMouseLeave={e => e.currentTarget.style.background = '#F8FAFC'}
                 >
                   <Plus size={13} />
-                  <span>+ Create Department Workspace</span>
+                  <span>Create Department Workspace</span>
                 </button>
               </div>
             </div>
@@ -2985,33 +2938,50 @@ export default function App() {
         <div style={{ position: 'relative' }}>
           <button
             onClick={() => toggleDropdown('persona')}
-            className={`top-header-pill ${isPersonaDropdownOpen ? 'top-header-pill-active' : ''}`}
+            aria-label="User profile menu"
             title={`Signed in as ${authUser?.name || activePersona?.name || 'User'} (${(authUser?.role || effectiveRole || 'admin').toUpperCase()})`}
-            style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '3px 8px 3px 5px' }}
+            style={{
+              width: '28px',
+              height: '28px',
+              borderRadius: '50%',
+              padding: 0,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: '#0F172A',
+              border: 'none',
+              boxShadow: isPersonaDropdownOpen ? '0 0 0 2px rgba(0, 0, 0, 0.15)' : '0 1px 3px rgba(0, 0, 0, 0.12)',
+              cursor: 'pointer',
+              overflow: 'hidden',
+              transition: 'all 0.15s ease',
+              outline: 'none',
+              flexShrink: 0
+            }}
+            onMouseEnter={e => {
+              if (!isPersonaDropdownOpen) {
+                e.currentTarget.style.transform = 'scale(1.05)';
+                e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.2)';
+              }
+            }}
+            onMouseLeave={e => {
+              if (!isPersonaDropdownOpen) {
+                e.currentTarget.style.transform = 'none';
+                e.currentTarget.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.12)';
+              }
+            }}
           >
             <img
               src={authUser?.avatar_url || activePersona?.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${authUser?.name || 'User'}`}
               alt="Avatar"
-              style={{ width: '18px', height: '18px', borderRadius: '50%', backgroundColor: 'rgba(255,171,74,0.2)' }}
-            />
-            <span style={{ maxWidth: '110px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 600 }}>
-              {authUser?.name || activePersona?.name || 'User'}
-            </span>
-            <span
               style={{
-                fontSize: '0.6rem',
-                fontWeight: 700,
-                padding: '1px 5px',
-                borderRadius: '4px',
-                backgroundColor: 'rgba(255,171,74,0.15)',
-                color: '#B45309',
-                border: '1px solid rgba(255,171,74,0.35)',
-                textTransform: 'uppercase'
+                width: '100%',
+                height: '100%',
+                borderRadius: '50%',
+                backgroundColor: '#0F172A',
+                objectFit: 'cover',
+                display: 'block'
               }}
-            >
-              {(authUser?.role || effectiveRole || 'admin')}
-            </span>
-            <ChevronDown size={11} style={{ color: '#94A3B8', transform: isPersonaDropdownOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s ease' }} />
+            />
           </button>
 
           {isPersonaDropdownOpen && (
@@ -3038,7 +3008,7 @@ export default function App() {
                 <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', wordBreak: 'break-all', marginTop: '1px' }}>
                   {authUser?.email || activePersona?.email}
                 </div>
-                <div style={{ fontSize: '0.68rem', color: '#FFAB4A', fontWeight: 600, marginTop: '3px' }}>
+                <div style={{ fontSize: '0.68rem', color: '#475569', fontWeight: 600, marginTop: '3px' }}>
                   🏢 {authOrg?.name || activeOrg?.name || 'Enterprise Workspace'}
                 </div>
               </div>
@@ -3097,13 +3067,15 @@ export default function App() {
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: '5px',
+            justifyContent: 'center',
+            borderRadius: '20px',
+            padding: '0 8px',
             color: 'var(--text-secondary)',
             fontWeight: 600,
             cursor: 'pointer'
           }}
         >
-          <Bell size={12} style={{ color: '#EA580C' }} />
+          <Bell size={12} style={{ color: '#475569' }} />
         </button>
       </div>
     );
@@ -3882,7 +3854,7 @@ export default function App() {
         {/* ========================================================= */}
         {/* TOP HEADER CONTROLS (Identical position for all tabs/pages) */}
         {/* ========================================================= */}
-        <div className="top-breadcrumb-bar" style={{ position: 'relative', zIndex: 50 }}>
+        <div className="top-breadcrumb-bar" style={{ position: 'relative', zIndex: 50, paddingTop: '10px', paddingBottom: '6px' }}>
           <div />
           {renderHeaderRightControls()}
         </div>
@@ -7836,14 +7808,21 @@ export default function App() {
               effectiveRole={effectiveRole}
               roleMetadata={roleMetadata}
               onOpenRegisterOrg={() => {
-                setSetupWizardTargetOrg(null);
-                setIsSetupWizardOpen(true);
+                setActiveTab('profile');
+                setProfileSubTab('register');
               }}
               onLaunchSetupWizard={(org) => {
-                setSetupWizardTargetOrg(org || activeOrg);
-                setIsSetupWizardOpen(true);
+                if (org && org.id !== activeOrg?.id) {
+                  setActiveOrg(org);
+                }
+                setActiveTab('settings');
               }}
-              onOpenOrgSettings={() => setActiveTab('settings')}
+              onOpenOrgSettings={(targetOrg) => {
+                if (targetOrg && targetOrg.id !== activeOrg?.id) {
+                  setActiveOrg(targetOrg);
+                }
+                setActiveTab('settings');
+              }}
               onLogout={authLogout}
               showToast={showToast}
               initialSubSection={profileSubTab}

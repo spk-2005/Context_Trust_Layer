@@ -333,8 +333,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0;
-  margin-bottom: 2px;
+  padding: 10px 0 6px 0;
+  margin-bottom: 4px;
   border-bottom: none;
 }
 
@@ -1281,10 +1281,10 @@ body {
 }
 
 .top-header-pill-active {
-  border-color: var(--primary) !important;
+  border-color: #0F172A !important;
   background: #FFFFFF !important;
-  box-shadow: 0 0 0 2px rgba(255, 171, 74, 0.22) !important;
-  color: #9A4900 !important;
+  box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.12) !important;
+  color: #0F172A !important;
 }
 
 .top-status-badge {

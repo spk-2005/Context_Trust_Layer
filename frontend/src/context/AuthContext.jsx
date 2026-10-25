@@ -8,7 +8,7 @@ export const DEFAULT_ENTERPRISE_PERSONAS = [
     name: 'Sarah Chen',
     email: 'sarah.chen@ssfa.com',
     role: 'admin',
-    title: 'Chief Compliance Officer',
+    title: 'Administrator',
     department: 'Risk, Trust & Security',
     organization_name: 'SSFA Capital Holdings',
     organization_id: '11111111-1111-1111-1111-111111111111',
@@ -534,7 +534,7 @@ export function AuthProvider({ children }) {
   };
 
   const isTabVisible = (tabKey) => {
-    if (tabKey === 'home' || tabKey === 'profile') return true;
+    if (tabKey === 'home' || tabKey === 'profile' || tabKey === 'settings' || tabKey === 'register_company') return true;
     const meta = ROLE_METADATA[effectiveRole] || ROLE_METADATA.admin;
     return meta.allowed_tabs ? meta.allowed_tabs.includes(tabKey) : true;
   };
@@ -617,13 +617,13 @@ export function AuthProvider({ children }) {
 
 export const ROLE_METADATA = {
   admin: {
-    title: 'Chief Compliance Officer (CCO)',
+    title: 'Administrator',
     role: 'admin',
     description: 'Executive authority: full tenant governance, policy overrides, user promotions, and audit sign-offs.',
     separation_of_duties: 'Executive override authority across all workflows.',
     badge_color: '#047857',
     badge_bg: 'rgba(4, 120, 87, 0.12)',
-    allowed_tabs: ['home', 'profile', 'demo', 'live_ingestion', 'visual_lineage', 'context_curator', 'ingestion', 'integrations', 'audit', 'team', 'playground', 'conflicts'],
+    allowed_tabs: ['home', 'profile', 'settings', 'register_company', 'demo', 'live_ingestion', 'visual_lineage', 'context_curator', 'ingestion', 'integrations', 'audit', 'team', 'playground', 'conflicts'],
   },
   data_owner: {
     title: 'Data Steward',

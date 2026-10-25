@@ -14,10 +14,13 @@ import {
   Calendar,
   Lock,
   ArrowRight,
+  ArrowLeft,
   Layers,
   Sparkles,
-  LogOut
+  LogOut,
+  Globe
 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 export default function UserProfileStudio({
   activeOrg,
@@ -39,8 +42,16 @@ export default function UserProfileStudio({
   initialSubSection = 'companies',
   onSubSectionChange
 }) {
+  const { user: authUser, token } = useAuth();
   const [switchingOrgId, setSwitchingOrgId] = useState(null);
-  const [activeSubSection, setActiveSubSection] = useState(initialSubSection || 'companies'); // 'companies' | 'security' | 'personas'
+  const [activeSubSection, setActiveSubSection] = useState(initialSubSection || 'companies'); // 'companies' | 'register' | 'identity' | 'security'
+
+  // Register Company Form state
+  const [newCompanyName, setNewCompanyName] = useState('');
+  const [newCompanyDomain, setNewCompanyDomain] = useState('');
+  const [newCompanyIndustry, setNewCompanyIndustry] = useState('Enterprise AI & Decision Governance');
+  const [isRegistering, setIsRegistering] = useState(false);
+  const [registerError, setRegisterError] = useState(null);
 
   useEffect(() => {
     if (initialSubSection) {
@@ -65,9 +76,12 @@ export default function UserProfileStudio({
     }
   };
 
-  const userInitials = activePersona?.name
-    ? activePersona.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
-    : 'SC';
+  const displayName = authUser?.name || activePersona?.name || 'Authorized User';
+  const displayEmail = authUser?.email || activePersona?.email || 'user@enterprise.com';
+  const avatarUrl = authUser?.avatar_url || authUser?.picture || activePersona?.avatar_url;
+  const userInitials = displayName
+    ? displayName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
+    : 'U';
 
   const cleanOrgs = (organizations && organizations.length > 0)
     ? organizations.filter(o => 
@@ -75,6 +89,58 @@ export default function UserProfileStudio({
         !o.name.includes('Default Org')
       )
     : (activeOrg ? [activeOrg] : []);
+
+  const handleRegisterCompanySubmit = async (e) => {
+    e.preventDefault();
+    if (!newCompanyName.trim()) {
+      setRegisterError('Organization name is required.');
+      return;
+    }
+    setRegisterError(null);
+    setIsRegistering(true);
+
+    const slug = newCompanyName.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    const domains = newCompanyDomain.trim()
+      ? newCompanyDomain.split(',').map(d => d.trim().toLowerCase().replace(/^@/, '')).filter(Boolean)
+      : ['gmail.com'];
+
+    try {
+      const res = await fetch('/v1/organizations', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({
+          name: newCompanyName.trim(),
+          slug,
+          domain_whitelist: domains,
+          setup_completed: true
+        })
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.detail || `Server returned ${res.status}`);
+      }
+
+      const created = await res.json();
+      created.setup_completed = true;
+      if (onSwitchOrg) {
+        await onSwitchOrg(created);
+      }
+      if (showToast) {
+        showToast(`Enterprise organization '${created.name}' registered successfully!`, 'success');
+      }
+      setNewCompanyName('');
+      setNewCompanyDomain('');
+      handleSubSectionClick('companies');
+    } catch (err) {
+      setRegisterError(err.message || 'Failed to register organization.');
+    } finally {
+      setIsRegistering(false);
+    }
+  };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '22px', maxWidth: '1280px', margin: '0 auto' }}>
@@ -87,58 +153,49 @@ export default function UserProfileStudio({
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '20px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '18px' }}>
-            {/* Initials Avatar */}
+            {/* Signed-in Profile Avatar */}
             <div style={{
               width: '64px',
               height: '64px',
               borderRadius: '50%',
-              background: 'linear-gradient(135deg, #FFAB4A 0%, #EA580C 100%)',
-              color: '#1A1207',
-              fontSize: '1.4rem',
-              fontWeight: 800,
+              backgroundColor: '#0F172A',
+              color: '#FFFFFF',
+              fontSize: '1.25rem',
+              fontWeight: 700,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              boxShadow: '0 4px 16px rgba(255, 171, 74, 0.35)',
+              boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)',
+              border: '1px solid #E2E8F0',
+              overflow: 'hidden',
               flexShrink: 0
             }}>
-              {userInitials}
+              {avatarUrl ? (
+                <img
+                  src={avatarUrl}
+                  alt={displayName}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                />
+              ) : (
+                <span>{userInitials}</span>
+              )}
             </div>
 
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-                <h1 style={{ fontSize: '1.45rem', fontWeight: 800, color: 'var(--text-main)', margin: 0, letterSpacing: '-0.02em' }}>
-                  {activePersona?.name || 'Sarah Chen'}
-                </h1>
-                <span className="badge badge-verified" style={{ fontSize: '0.68rem', padding: '2px 8px' }}>
-                  {effectiveRole?.toUpperCase() || 'ADMIN'}
-                </span>
-                <span className="badge" style={{
-                  fontSize: '0.65rem',
-                  padding: '2px 8px',
-                  background: 'rgba(22, 163, 74, 0.12)',
-                  color: '#15803D',
-                  border: '1px solid rgba(22, 163, 74, 0.3)',
-                  fontWeight: 700
-                }}>
-                  ● SoD Enforced
-                </span>
-              </div>
+              <h1 style={{ fontSize: '1.45rem', fontWeight: 800, color: 'var(--text-main)', margin: 0, letterSpacing: '-0.02em' }}>
+                {displayName}
+              </h1>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginTop: '6px', fontSize: '0.82rem', color: 'var(--text-secondary)', flexWrap: 'wrap' }}>
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
-                  <Shield size={13} style={{ color: 'var(--primary-dark)' }} />
-                  {roleMetadata?.title || 'Chief Compliance Officer'}
-                </span>
-                <span>•</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginTop: '6px', fontSize: '0.82rem', color: 'var(--text-secondary)', flexWrap: 'wrap' }}>
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
                   <Building2 size={13} style={{ color: 'var(--text-muted)' }} />
-                  {activeOrg?.name || 'Default Organization'}
+                  {activeOrg?.name || 'Enterprise Workspace'}
                 </span>
                 <span>•</span>
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
                   <Mail size={13} style={{ color: 'var(--text-muted)' }} />
-                  {activePersona?.email || `${activePersona?.name ? activePersona.name.toLowerCase().replace(/\s+/g, '.') : 'admin'}@${activeOrg?.slug || 'company'}.com`}
+                  {displayEmail}
                 </span>
               </div>
             </div>
@@ -146,23 +203,42 @@ export default function UserProfileStudio({
 
           {/* Quick Profile Actions */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-            <img 
-              src="/Trulin-Main-NoBg.png" 
-              alt="Trulin" 
-              style={{ height: '26px', maxWidth: '120px', objectFit: 'contain', marginRight: '6px' }} 
-            />
             <button
               onClick={() => onOpenOrgSettings && onOpenOrgSettings()}
               className="btn btn-secondary"
-              style={{ fontSize: '0.8rem', padding: '7px 14px' }}
+              style={{
+                fontSize: '0.8rem',
+                padding: '7px 14px',
+                borderRadius: '6px',
+                border: '1px solid #E2E8F0',
+                background: '#FFFFFF',
+                color: '#0F172A',
+                fontWeight: 600,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                cursor: 'pointer'
+              }}
             >
               <Settings size={14} />
               <span>Workspace Settings</span>
             </button>
             <button
-              onClick={() => onOpenRegisterOrg && onOpenRegisterOrg()}
+              onClick={() => handleSubSectionClick('register')}
               className="btn btn-primary"
-              style={{ fontSize: '0.8rem', padding: '7px 14px' }}
+              style={{
+                fontSize: '0.8rem',
+                padding: '7px 14px',
+                borderRadius: '6px',
+                background: '#0F172A',
+                color: '#FFFFFF',
+                fontWeight: 600,
+                border: 'none',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                cursor: 'pointer'
+              }}
             >
               <Plus size={14} />
               <span>Register Company</span>
@@ -174,9 +250,15 @@ export default function UserProfileStudio({
                 style={{
                   fontSize: '0.8rem',
                   padding: '7px 14px',
+                  borderRadius: '6px',
                   color: '#EF4444',
                   borderColor: 'rgba(239, 68, 68, 0.3)',
-                  backgroundColor: 'rgba(239, 68, 68, 0.05)'
+                  backgroundColor: 'rgba(239, 68, 68, 0.05)',
+                  fontWeight: 600,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  cursor: 'pointer'
                 }}
                 title="Sign out of current session"
               >
@@ -196,8 +278,8 @@ export default function UserProfileStudio({
             padding: '8px 16px',
             borderRadius: '6px 6px 0 0',
             border: 'none',
-            background: activeSubSection === 'companies' ? '#FFAB4A' : 'transparent',
-            color: activeSubSection === 'companies' ? '#1A1207' : 'var(--text-secondary)',
+            background: activeSubSection === 'companies' ? '#0F172A' : 'transparent',
+            color: activeSubSection === 'companies' ? '#FFFFFF' : 'var(--text-secondary)',
             fontWeight: 700,
             fontSize: '0.82rem',
             cursor: 'pointer',
@@ -207,14 +289,34 @@ export default function UserProfileStudio({
           }}
         >
           <Building2 size={15} />
-          <span>Switch Company & Entity</span>
+          <span>Organizations & Entities</span>
           <span className="badge" style={{
             fontSize: '0.62rem',
-            background: activeSubSection === 'companies' ? 'rgba(0,0,0,0.15)' : 'var(--bg-card)',
-            color: activeSubSection === 'companies' ? '#1A1207' : 'var(--text-muted)'
+            background: activeSubSection === 'companies' ? 'rgba(255,255,255,0.2)' : 'var(--bg-card)',
+            color: activeSubSection === 'companies' ? '#FFFFFF' : 'var(--text-muted)'
           }}>
             {cleanOrgs.length}
           </span>
+        </button>
+
+        <button
+          onClick={() => handleSubSectionClick('register')}
+          style={{
+            padding: '8px 16px',
+            borderRadius: '6px 6px 0 0',
+            border: 'none',
+            background: activeSubSection === 'register' ? '#0F172A' : 'transparent',
+            color: activeSubSection === 'register' ? '#FFFFFF' : 'var(--text-secondary)',
+            fontWeight: 700,
+            fontSize: '0.82rem',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '7px'
+          }}
+        >
+          <Plus size={15} />
+          <span>Register Company</span>
         </button>
 
         <button
@@ -223,8 +325,8 @@ export default function UserProfileStudio({
             padding: '8px 16px',
             borderRadius: '6px 6px 0 0',
             border: 'none',
-            background: activeSubSection === 'identity' ? '#FFAB4A' : 'transparent',
-            color: activeSubSection === 'identity' ? '#1A1207' : 'var(--text-secondary)',
+            background: activeSubSection === 'identity' ? '#0F172A' : 'transparent',
+            color: activeSubSection === 'identity' ? '#FFFFFF' : 'var(--text-secondary)',
             fontWeight: 700,
             fontSize: '0.82rem',
             cursor: 'pointer',
@@ -237,8 +339,8 @@ export default function UserProfileStudio({
           <span>Google Identity & Credentials</span>
           <span className="badge" style={{
             fontSize: '0.62rem',
-            background: activeSubSection === 'identity' ? 'rgba(0,0,0,0.15)' : 'var(--bg-card)',
-            color: activeSubSection === 'identity' ? '#1A1207' : 'var(--text-muted)'
+            background: activeSubSection === 'identity' ? 'rgba(255,255,255,0.2)' : 'var(--bg-card)',
+            color: activeSubSection === 'identity' ? '#FFFFFF' : 'var(--text-muted)'
           }}>
             OAuth 2.0
           </span>
@@ -250,8 +352,8 @@ export default function UserProfileStudio({
             padding: '8px 16px',
             borderRadius: '6px 6px 0 0',
             border: 'none',
-            background: activeSubSection === 'security' ? '#FFAB4A' : 'transparent',
-            color: activeSubSection === 'security' ? '#1A1207' : 'var(--text-secondary)',
+            background: activeSubSection === 'security' ? '#0F172A' : 'transparent',
+            color: activeSubSection === 'security' ? '#FFFFFF' : 'var(--text-secondary)',
             fontWeight: 700,
             fontSize: '0.82rem',
             cursor: 'pointer',
@@ -265,7 +367,7 @@ export default function UserProfileStudio({
         </button>
       </div>
 
-      {/* 3. SUB-SECTION: SIMPLE COMPANY SWITCHER */}
+      {/* 3. SUB-SECTION: ENTERPRISE ORGANIZATIONS CARDS */}
       {activeSubSection === 'companies' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div>
@@ -273,11 +375,11 @@ export default function UserProfileStudio({
               Associated Companies & Organizations
             </h2>
             <p style={{ margin: '4px 0 0 0', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-              Select an enterprise organization below to switch your operational session. Real-time context, policies, and evidence will dynamically re-route.
+              Manage and switch operational environments for your enterprise.
             </p>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(310px, 1fr))', gap: '14px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '16px' }}>
             {cleanOrgs.map((org) => {
               const isActive = activeOrg?.id === org.id;
               const isSwitching = switchingOrgId === org.id;
@@ -287,13 +389,13 @@ export default function UserProfileStudio({
                   key={org.id}
                   onClick={() => handleSelectCompany(org)}
                   style={{
-                    background: isActive ? '#FFFDF9' : 'var(--bg-card)',
-                    border: `1.5px solid ${isActive ? '#FFAB4A' : 'var(--border-subtle)'}`,
-                    borderRadius: '10px',
-                    padding: '18px 20px',
+                    background: '#FFFFFF',
+                    border: `1.5px solid ${isActive ? '#0F172A' : '#E2E8F0'}`,
+                    borderRadius: '12px',
+                    padding: '20px 22px',
                     cursor: isActive ? 'default' : 'pointer',
-                    transition: 'all 0.2s ease',
-                    boxShadow: isActive ? '0 4px 14px rgba(255, 171, 74, 0.15)' : 'none',
+                    transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+                    boxShadow: isActive ? '0 4px 20px -2px rgba(15, 23, 42, 0.08)' : '0 1px 3px rgba(0, 0, 0, 0.04)',
                     display: 'flex',
                     flexDirection: 'column',
                     justifyContent: 'space-between',
@@ -301,117 +403,133 @@ export default function UserProfileStudio({
                   }}
                   onMouseEnter={(e) => {
                     if (!isActive) {
-                      e.currentTarget.style.borderColor = '#FFC57E';
+                      e.currentTarget.style.borderColor = '#94A3B8';
                       e.currentTarget.style.transform = 'translateY(-2px)';
                     }
                   }}
                   onMouseLeave={(e) => {
                     if (!isActive) {
-                      e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                      e.currentTarget.style.borderColor = '#E2E8F0';
                       e.currentTarget.style.transform = 'translateY(0)';
                     }
                   }}
                 >
                   <div>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
                       <div style={{
-                        width: '38px',
-                        height: '38px',
-                        borderRadius: '8px',
-                        background: isActive ? 'linear-gradient(135deg, #FFAB4A 0%, #F5982C 100%)' : 'var(--bg-card-subtle)',
-                        color: isActive ? '#1A1207' : 'var(--text-muted)',
+                        width: '42px',
+                        height: '42px',
+                        borderRadius: '10px',
+                        background: isActive ? '#0F172A' : '#F1F5F9',
+                        color: isActive ? '#FFFFFF' : '#475569',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        fontWeight: 800,
-                        fontSize: '1rem',
-                        boxShadow: isActive ? '0 2px 8px rgba(255, 171, 74, 0.25)' : 'none'
+                        boxShadow: isActive ? '0 2px 8px rgba(15, 23, 42, 0.25)' : 'none'
                       }}>
-                        <Building2 size={18} />
+                        <Building2 size={20} />
                       </div>
 
                       {isActive ? (
-                        <span className="badge" style={{
-                          background: 'rgba(255, 171, 74, 0.18)',
-                          color: '#9A4900',
-                          border: '1px solid rgba(255, 171, 74, 0.4)',
-                          fontSize: '0.65rem',
+                        <span style={{
+                          padding: '3px 10px',
+                          borderRadius: '20px',
+                          background: '#0F172A',
+                          color: '#FFFFFF',
+                          fontSize: '0.68rem',
                           fontWeight: 700,
                           display: 'inline-flex',
                           alignItems: 'center',
-                          gap: '4px'
+                          gap: '5px'
                         }}>
-                          <Check size={12} strokeWidth={3} />
-                          Active Company
+                          <Check size={11} strokeWidth={3} />
+                          Active Organization
                         </span>
                       ) : (
-                        <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 500 }}>
-                          Client Root
+                        <span style={{ fontSize: '0.72rem', color: '#64748B', fontWeight: 500 }}>
+                          Available
                         </span>
                       )}
                     </div>
 
-                    <h3 style={{ fontSize: '0.96rem', fontWeight: 700, color: 'var(--text-main)', margin: '0 0 4px 0' }}>
+                    <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--text-main)', margin: '0 0 6px 0' }}>
                       {org.name}
                     </h3>
 
-                    <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                      <span>slug: <code>{org.slug || org.name.toLowerCase().replace(/[^a-z0-9]/g, '-')}</code></span>
-                      {org.setup_completed ? (
-                        <span style={{ fontSize: '0.62rem', padding: '1px 5px', borderRadius: '3px', background: '#DCFCE7', color: '#15803D', fontWeight: 700 }}>
-                          ✓ Setup Ready
-                        </span>
-                      ) : (
-                        <span style={{ fontSize: '0.62rem', padding: '1px 5px', borderRadius: '3px', background: '#FEF3C7', color: '#B45309', fontWeight: 700 }}>
-                          ● Setup Incomplete
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginTop: '6px' }}>
+                      {org.domain_whitelist && org.domain_whitelist.length > 0 && (
+                        <span style={{ fontSize: '0.7rem', color: '#475569', background: '#F8FAFC', border: '1px solid #E2E8F0', padding: '2px 8px', borderRadius: '4px' }}>
+                          🌐 {org.domain_whitelist.join(', ')}
                         </span>
                       )}
+                      <span style={{
+                        fontSize: '0.7rem',
+                        padding: '2px 8px',
+                        borderRadius: '4px',
+                        background: org.setup_completed ? '#F0FDF4' : '#FFFBEB',
+                        color: org.setup_completed ? '#15803D' : '#B45309',
+                        border: `1px solid ${org.setup_completed ? '#DCFCE7' : '#FEF3C7'}`,
+                        fontWeight: 600
+                      }}>
+                        {org.setup_completed ? '✓ Verified Enterprise Tenant' : '● Setup In Progress'}
+                      </span>
                     </div>
                   </div>
 
-                  <div style={{ marginTop: '16px', paddingTop: '12px', borderTop: '1px solid var(--border-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', flexWrap: 'wrap' }}>
-                    <div style={{ fontSize: '0.70rem', color: 'var(--text-muted)' }}>
-                      {isActive ? 'Session connected' : 'Click card to activate'}
+                  <div style={{ marginTop: '18px', paddingTop: '14px', borderTop: '1px solid var(--border-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', flexWrap: 'wrap' }}>
+                    <div style={{ fontSize: '0.72rem', color: isActive ? '#0F172A' : '#64748B', fontWeight: isActive ? 600 : 400 }}>
+                      {isActive ? '● Current operational session' : 'Click card to activate'}
                     </div>
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      {onLaunchSetupWizard && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (onOpenOrgSettings) onOpenOrgSettings(org);
+                        }}
+                        className="btn btn-secondary"
+                        style={{
+                          padding: '5px 10px',
+                          fontSize: '0.74rem',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '5px',
+                          background: '#FFFFFF',
+                          border: '1px solid #E2E8F0',
+                          borderRadius: '6px',
+                          color: '#334155',
+                          cursor: 'pointer'
+                        }}
+                        title="Configure settings for this organization"
+                      >
+                        <Settings size={12} />
+                        <span>Settings</span>
+                      </button>
+
+                      {!isActive && (
                         <button
                           type="button"
                           onClick={(e) => {
                             e.stopPropagation();
-                            onLaunchSetupWizard(org);
+                            handleSelectCompany(org);
                           }}
-                          className="btn btn-secondary"
+                          disabled={isSwitching}
+                          className="btn btn-primary"
                           style={{
-                            padding: '4px 8px',
-                            fontSize: '0.72rem',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '4px'
+                            padding: '5px 14px',
+                            fontSize: '0.74rem',
+                            fontWeight: 600,
+                            borderRadius: '6px',
+                            background: '#0F172A',
+                            color: '#FFFFFF',
+                            border: 'none',
+                            cursor: 'pointer'
                           }}
-                          title="Run Onboarding Setup Wizard for this organization"
                         >
-                          <Sparkles size={11} style={{ color: '#FFAB4A' }} />
-                          <span>Setup Wizard</span>
+                          {isSwitching ? 'Switching...' : 'Switch Organization'}
                         </button>
                       )}
-
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleSelectCompany(org);
-                        }}
-                        disabled={isActive || isSwitching}
-                        className={isActive ? 'btn btn-secondary' : 'btn btn-primary'}
-                        style={{
-                          padding: '5px 12px',
-                          fontSize: '0.75rem',
-                          cursor: isActive ? 'default' : 'pointer'
-                        }}
-                      >
-                        {isActive ? 'Currently Active' : isSwitching ? 'Switching...' : 'Switch Company ➔'}
-                      </button>
                     </div>
                   </div>
                 </div>
@@ -421,8 +539,183 @@ export default function UserProfileStudio({
         </div>
       )}
 
-      {/* 4. SUB-SECTION: PERSONAS & ROLE SWITCHER */}
-      {/* 4. SUB-SECTION: GOOGLE IDENTITY & CREDENTIALS */}
+      {/* 4. SUB-SECTION: DEDICATED REGISTER COMPANY PAGE (NO POPUPS) */}
+      {activeSubSection === 'register' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', maxWidth: '780px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <button
+              type="button"
+              onClick={() => handleSubSectionClick('companies')}
+              className="btn btn-secondary"
+              style={{
+                padding: '6px 12px',
+                fontSize: '0.8rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                borderRadius: '6px',
+                border: '1px solid #E2E8F0',
+                background: '#FFFFFF',
+                color: '#0F172A',
+                cursor: 'pointer'
+              }}
+            >
+              <ArrowLeft size={14} />
+              <span>Back to Organizations</span>
+            </button>
+            <div>
+              <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-main)', margin: 0, letterSpacing: '-0.01em' }}>
+                Register Enterprise Organization
+              </h2>
+              <p style={{ margin: '3px 0 0 0', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+                Provision a dedicated multi-tenant operational environment for compliance, governance, and document processing.
+              </p>
+            </div>
+          </div>
+
+          <form
+            onSubmit={handleRegisterCompanySubmit}
+            className="clean-panel"
+            style={{
+              padding: '28px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '20px',
+              background: '#FFFFFF',
+              border: '1px solid #E2E8F0',
+              borderRadius: '12px',
+              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)'
+            }}
+          >
+            {registerError && (
+              <div style={{
+                padding: '10px 14px',
+                borderRadius: '6px',
+                backgroundColor: '#FEF2F2',
+                border: '1px solid #FECACA',
+                color: '#B91C1C',
+                fontSize: '0.82rem'
+              }}>
+                {registerError}
+              </div>
+            )}
+
+            <div>
+              <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, color: '#0F172A', marginBottom: '6px' }}>
+                Organization / Company Name *
+              </label>
+              <input
+                type="text"
+                placeholder="e.g. Acme Corporation or Horizon Financial"
+                value={newCompanyName}
+                onChange={(e) => setNewCompanyName(e.target.value)}
+                required
+                style={{
+                  width: '100%',
+                  padding: '10px 14px',
+                  borderRadius: '8px',
+                  border: '1px solid #CBD5E1',
+                  fontSize: '0.88rem',
+                  outline: 'none',
+                  boxSizing: 'border-box'
+                }}
+              />
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, color: '#0F172A', marginBottom: '6px' }}>
+                Authorized Corporate Email Domains
+              </label>
+              <input
+                type="text"
+                placeholder="e.g. acme.com, acmecorp.io (comma-separated)"
+                value={newCompanyDomain}
+                onChange={(e) => setNewCompanyDomain(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '10px 14px',
+                  borderRadius: '8px',
+                  border: '1px solid #CBD5E1',
+                  fontSize: '0.88rem',
+                  outline: 'none',
+                  boxSizing: 'border-box'
+                }}
+              />
+              <span style={{ fontSize: '0.74rem', color: '#64748B', marginTop: '4px', display: 'block' }}>
+                Users signing in with these domains will automatically resolve to this organization.
+              </span>
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, color: '#0F172A', marginBottom: '6px' }}>
+                Primary Industry & Compliance Standard
+              </label>
+              <select
+                value={newCompanyIndustry}
+                onChange={(e) => setNewCompanyIndustry(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '10px 14px',
+                  borderRadius: '8px',
+                  border: '1px solid #CBD5E1',
+                  fontSize: '0.88rem',
+                  outline: 'none',
+                  backgroundColor: '#FFFFFF',
+                  boxSizing: 'border-box'
+                }}
+              >
+                <option value="Enterprise AI & Decision Governance">Enterprise AI & Decision Governance (EU AI Act & NIST)</option>
+                <option value="Financial Services & Wealth Management">Financial Services & Wealth Management (SEC & FINRA)</option>
+                <option value="Healthcare & Life Sciences">Healthcare & Life Sciences (HIPAA & FDA)</option>
+                <option value="Defense & Public Sector">Defense & Public Sector (FedRAMP & SOC2)</option>
+              </select>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '10px', marginTop: '10px', paddingTop: '16px', borderTop: '1px solid #F1F5F9' }}>
+              <button
+                type="button"
+                onClick={() => handleSubSectionClick('companies')}
+                disabled={isRegistering}
+                className="btn btn-secondary"
+                style={{
+                  padding: '9px 18px',
+                  fontSize: '0.84rem',
+                  borderRadius: '8px',
+                  border: '1px solid #E2E8F0',
+                  background: '#FFFFFF',
+                  color: '#475569',
+                  cursor: 'pointer'
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={isRegistering || !newCompanyName.trim()}
+                className="btn btn-primary"
+                style={{
+                  padding: '9px 22px',
+                  fontSize: '0.84rem',
+                  fontWeight: 700,
+                  borderRadius: '8px',
+                  background: '#0F172A',
+                  color: '#FFFFFF',
+                  border: 'none',
+                  cursor: isRegistering ? 'not-allowed' : 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}
+              >
+                {isRegistering ? <Sparkles size={14} className="spinning" /> : <Plus size={14} />}
+                <span>{isRegistering ? 'Provisioning...' : 'Register Enterprise Organization'}</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* 5. SUB-SECTION: GOOGLE IDENTITY & CREDENTIALS */}
       {activeSubSection === 'identity' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div>
@@ -430,11 +723,11 @@ export default function UserProfileStudio({
               Google Identity & Enterprise Credentials
             </h2>
             <p style={{ margin: '4px 0 0 0', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-              Verified Single Sign-On credentials for {activePersona?.name || 'Authorized User'}.
+              Verified Single Sign-On credentials for {displayName}.
             </p>
           </div>
 
-          <div className="clean-panel" style={{ padding: '24px' }}>
+          <div className="clean-panel" style={{ padding: '24px', background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '12px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '18px', borderBottom: '1px solid var(--border-subtle)', marginBottom: '18px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
                 <div style={{
@@ -457,15 +750,23 @@ export default function UserProfileStudio({
                 </div>
                 <div>
                   <div style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--text-main)' }}>
-                    {activePersona?.name || 'Verified User'}
+                    {displayName}
                   </div>
                   <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '2px' }}>
-                    {activePersona?.email || 'user@company.com'}
+                    {displayEmail}
                   </div>
                 </div>
               </div>
 
-              <span className="badge badge-verified" style={{ padding: '4px 10px', fontSize: '0.72rem' }}>
+              <span style={{
+                padding: '4px 10px',
+                fontSize: '0.72rem',
+                borderRadius: '20px',
+                background: '#F0FDF4',
+                color: '#15803D',
+                border: '1px solid #DCFCE7',
+                fontWeight: 600
+              }}>
                 ● Google Verified Session
               </span>
             </div>
@@ -493,7 +794,7 @@ export default function UserProfileStudio({
                 <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>
                   Assigned Workspace Role
                 </span>
-                <div style={{ fontSize: '0.86rem', fontWeight: 700, color: '#EA580C', marginTop: '4px', textTransform: 'uppercase' }}>
+                <div style={{ fontSize: '0.86rem', fontWeight: 700, color: '#0F172A', marginTop: '4px', textTransform: 'uppercase' }}>
                   {effectiveRole || 'ADMIN'}
                 </div>
               </div>
@@ -511,7 +812,7 @@ export default function UserProfileStudio({
         </div>
       )}
 
-      {/* 5. SUB-SECTION: GOVERNANCE & SECURITY CLEARANCES */}
+      {/* 6. SUB-SECTION: GOVERNANCE & SECURITY CLEARANCES */}
       {activeSubSection === 'security' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div>
@@ -519,11 +820,11 @@ export default function UserProfileStudio({
               Separation of Duties (SoD) & Governance Clearances
             </h2>
             <p style={{ margin: '4px 0 0 0', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-              Permissions matrix evaluated by the Trulin Policy-Based Access Control (PBAC) engine for {activePersona?.name || 'this user'}.
+              Permissions matrix evaluated by the Trulin Policy-Based Access Control (PBAC) engine for {displayName}.
             </p>
           </div>
 
-          <div className="clean-panel" style={{ padding: '20px 24px' }}>
+          <div className="clean-panel" style={{ padding: '20px 24px', background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '12px' }}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
               <div style={{ padding: '14px', background: 'var(--bg-card-subtle)', borderRadius: '8px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
