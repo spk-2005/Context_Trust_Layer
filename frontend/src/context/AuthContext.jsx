@@ -332,7 +332,8 @@ export function AuthProvider({ children }) {
   const loginWithSSO = async (provider, customOptions = {}) => {
     try {
       // 1. Inquire provider authorization endpoint
-      const authRes = await fetch(`/v1/auth/sso/authorize/${provider}`);
+      const currentRedirectUri = `${window.location.origin}/auth/callback`;
+      const authRes = await fetch(`/v1/auth/sso/authorize/${provider}?redirect_uri=${encodeURIComponent(currentRedirectUri)}`);
       if (!authRes.ok) {
         const err = await authRes.json();
         throw new Error(err.detail || `Failed to initiate ${provider} SSO authorization`);
