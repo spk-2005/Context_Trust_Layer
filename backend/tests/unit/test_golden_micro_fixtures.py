@@ -1,4 +1,4 @@
-﻿"""
+"""
 Golden Micro-Fixtures Fast-Lane Test Suite (Pytest Marker: fast).
 Executes in under 2 seconds. Provides immediate regression feedback on individual
 contract covenants, table cells, headings, and normalization without parsing full PDFs.
@@ -20,7 +20,7 @@ from app.validation_gate.models import ClaimLifecycleDecision
 from app.ingestion.envelope import CanonicalSourceEnvelope, EnvelopeFactory
 from app.ingestion.parsers.evidence_model import ParsedEvidenceUnit
 
-FIXTURES_DIR = Path("B:/Context_Layer_Ai/backend/tests/fixtures/golden_micro")
+FIXTURES_DIR = Path(__file__).resolve().parent.parent / "fixtures" / "golden_micro"
 
 
 def _build_test_envelope(unit: ParsedEvidenceUnit) -> CanonicalSourceEnvelope:

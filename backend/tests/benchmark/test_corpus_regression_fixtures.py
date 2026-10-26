@@ -11,8 +11,9 @@ from pathlib import Path
 import pytest
 
 
-RESULTS_DIR = Path("B:/Context_Layer_Ai/research/extraction-results")
-GOLD_DIR = Path("B:/Context_Layer_Ai/research/gold_labels")
+REPO_ROOT = Path(__file__).resolve().parents[3]
+RESULTS_DIR = REPO_ROOT / "research" / "extraction-results"
+GOLD_DIR = REPO_ROOT / "research" / "gold_labels"
 
 
 def load_doc_result(code: str) -> dict:
@@ -204,8 +205,8 @@ class TestDoc009RefundHandbookRegression:
 
 
 import sys
-if "B:/Context_Layer_Ai" not in sys.path:
-    sys.path.insert(0, "B:/Context_Layer_Ai")
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
 from research.evaluation.benchmark_harness import BenchmarkHarness
 
 

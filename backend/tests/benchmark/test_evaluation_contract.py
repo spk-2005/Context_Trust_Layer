@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 from research.evaluation.benchmark_harness import BenchmarkHarness
 
-EVAL_DIR = Path("B:/Context_Layer_Ai/research/evaluation")
+EVAL_DIR = Path(__file__).resolve().parents[3] / "research" / "evaluation"
 
 def test_contract_document_exists():
     contract_file = EVAL_DIR / "EVALUATION_CONTRACT_v1.md"

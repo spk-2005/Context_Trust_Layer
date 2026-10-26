@@ -2,7 +2,10 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
-sys.path.insert(0, "B:/Context_Layer_Ai")
+
+ROOT_DIR = Path(__file__).resolve().parents[3]
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
 
 import hashlib
 import json
@@ -12,8 +15,6 @@ from research.evaluation.benchmark_harness import BenchmarkHarness
 from app.extraction.subject_normalizer import SubjectNormalizer
 from app.extraction.extractors.domain_rule_extractor import DomainRuleExtractor
 
-
-ROOT_DIR = Path("B:/Context_Layer_Ai")
 EVAL_DIR = ROOT_DIR / "research" / "evaluation"
 HOLDOUT_DIR = ROOT_DIR / "research" / "holdout"
 

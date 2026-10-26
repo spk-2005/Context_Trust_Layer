@@ -18,8 +18,8 @@ import sys
 from pathlib import Path
 import pytest
 
-# Ensure research evaluation module is importable
-EVAL_DIR = Path("B:/Context_Layer_Ai/research/evaluation")
+REPO_ROOT = Path(__file__).resolve().parents[3]
+EVAL_DIR = REPO_ROOT / "research" / "evaluation"
 if str(EVAL_DIR) not in sys.path:
     sys.path.insert(0, str(EVAL_DIR))
 
@@ -262,7 +262,7 @@ class TestBenchmarkMatcherInvariants:
 
     def test_immutable_corpus_manifest_sha256_integrity(self):
         """All files referenced in corpus_manifest.json must physically exist and match recorded SHA-256."""
-        manifest_path = Path("B:/Context_Layer_Ai/research/evaluation/corpus_manifest.json")
+        manifest_path = EVAL_DIR / "corpus_manifest.json"
         assert manifest_path.exists(), f"Manifest missing: {manifest_path}"
 
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
@@ -364,13 +364,13 @@ class TestBenchmarkMatcherInvariants:
 
     def test_evaluation_artifact_immutability_hashes(self):
         """Evaluation artifacts must exist and match recorded SHA-256 hashes in provenance ledger."""
-        prov_file = Path("B:/Context_Layer_Ai/research/evaluation/artifact_provenance.json")
+        prov_file = EVAL_DIR / "artifact_provenance.json"
         assert prov_file.exists(), "artifact_provenance.json missing"
         prov = json.loads(prov_file.read_text(encoding="utf-8"))
         artifacts = prov["artifacts"]
 
         for filename, recorded_sha in artifacts.items():
-            fpath = Path("B:/Context_Layer_Ai/research/evaluation") / filename
+            fpath = EVAL_DIR / filename
             assert fpath.exists(), f"Artifact missing: {filename}"
             actual_sha = hashlib.sha256(fpath.read_bytes()).hexdigest()
             assert actual_sha == recorded_sha, f"SHA-256 mismatch for {filename}: {actual_sha} != {recorded_sha}"

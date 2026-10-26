@@ -23,7 +23,7 @@ from pathlib import Path
 from typing import Any, List
 import pytest
 
-ROOT_DIR = Path("B:/Context_Layer_Ai")
+ROOT_DIR = Path(__file__).resolve().parents[3]
 EVAL_DIR = ROOT_DIR / "research" / "evaluation"
 HOLDOUT_DIR = ROOT_DIR / "research" / "holdout"
 RESULTS_DIR = ROOT_DIR / "research" / "extraction-results"
