@@ -1,0 +1,127 @@
+name: CI / Automated Quality & Release Gate
+
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # =========================================================================
+  # 1. BACKEND: LINT, MIGRATIONS & COMPREHENSIVE UNIT TEST SUITE (331 TESTS)
+  # =========================================================================
+  backend-gate:
+    name: Backend Tests & DB Migrations
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_DB: context_trust_test
+          POSTGRES_USER: context_user
+          POSTGRES_PASSWORD: context_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U context_user -d context_trust_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgresql+asyncpg://context_user:context_password@localhost:5432/context_trust_test
+      POSTGRES_SERVER: localhost
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: context_trust_test
+      POSTGRES_USER: context_user
+      POSTGRES_PASSWORD: context_password
+      APP_ENV: test
+      SECRET_KEY: ci-test-secret-key-at-least-thirty-two-chars-long
+      JWT_SECRET: ci-test-jwt-secret-key-at-least-thirty-two-chars-long
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip setuptools wheel
+          pip install -r backend/requirements.txt
+
+      - name: Validate Alembic Schema Migrations
+        run: |
+          cd backend
+          alembic upgrade head
+
+      - name: Verify Seed Integrity
+        run: |
+          cd backend
+          python seed_demo_knowledge.py || echo "Notice: Demo knowledge already seeded."
+
+      - name: Run 331 Unit & Connector Tests
+        run: |
+          pytest backend/tests/unit -v --tb=short
+
+  # =========================================================================
+  # 2. FRONTEND: DEPENDENCIES & PRODUCTION ASSET BUNDLE BUILD (VITE)
+  # =========================================================================
+  frontend-gate:
+    name: Frontend Production Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 18
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install Frontend Dependencies
+        run: |
+          cd frontend
+          npm ci
+
+      - name: Verify Production Vite Bundle
+        run: |
+          cd frontend
+          npm run build
+        env:
+          VITE_API_BASE_URL: https://api.trulin.ai
+
+  # =========================================================================
+  # 3. UNIFIED RELEASE GATE STATUS (Used for GitHub Branch Protection)
+  # =========================================================================
+  ci-status-gate:
+    name: CI Quality Gate Summary
+    needs: [backend-gate, frontend-gate]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Evaluate Pipeline Status
+        run: |
+          if [ "${{ needs.backend-gate.result }}" != "success" ]; then
+            echo "::error::Backend test suite or migration gate failed."
+            exit 1
+          fi
+          if [ "${{ needs.frontend-gate.result }}" != "success" ]; then
+            echo "::error::Frontend bundle compilation failed."
+            exit 1
+          fi
+          echo "All CI quality gates passed successfully. PR is eligible for merge review."

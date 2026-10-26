@@ -2614,24 +2614,17 @@ export default function App() {
       : (activeOrg ? [activeOrg] : []);
 
     return (
-      <div ref={headerControlsRef} style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'nowrap', position: 'relative' }}>
+      <div ref={headerControlsRef} style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'nowrap', position: 'relative' }}>
         {/* 1. ACTIVE ENTERPRISE TENANT ORGANIZATION DROPDOWN */}
         <div style={{ position: 'relative' }}>
           <button
             onClick={() => toggleDropdown('org')}
             className={`top-header-pill ${isOrgDropdownOpen ? 'top-header-pill-active' : ''}`}
             title={`Active Organization Tenant: ${isOrgReady ? activeOrg?.name : 'Create Organization'}`}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              borderRadius: '20px',
-              padding: '0 10px',
-              ...(!isOrgReady ? { border: '1px dashed #64748B', background: 'rgba(100, 116, 139, 0.06)' } : {})
-            }}
+            style={!isOrgReady ? { border: '1px dashed #64748B', background: 'rgba(100, 116, 139, 0.06)' } : undefined}
           >
-            <Building2 size={12} style={{ color: isOrgReady ? '#475569' : '#0F172A' }} />
-            <span style={{ maxWidth: '130px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 700 }}>
+            <Building2 size={13} style={{ color: isOrgReady ? '#475569' : '#0F172A', flexShrink: 0 }} />
+            <span style={{ maxWidth: '140px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 600 }}>
               {isOrgReady ? activeOrg.name : (activeOrg?.name && !activeOrg.name.includes('Pending Setup') ? activeOrg.name : 'Create Organization')}
             </span>
             {!isOrgReady ? (
@@ -2641,7 +2634,8 @@ export default function App() {
                 borderRadius: '3px',
                 background: '#0F172A',
                 color: '#FFFFFF',
-                fontWeight: 800
+                fontWeight: 800,
+                flexShrink: 0
               }}>
                 SETUP
               </span>
@@ -2653,12 +2647,13 @@ export default function App() {
                 background: '#F1F5F9',
                 color: '#334155',
                 border: '1px solid #E2E8F0',
-                fontWeight: 700
+                fontWeight: 700,
+                flexShrink: 0
               }}>
                 {activeOrg.member_count}
               </span>
             ) : null}
-            <ChevronDown size={11} style={{ color: '#94A3B8', transform: isOrgDropdownOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s ease' }} />
+            <ChevronDown size={11} style={{ color: '#94A3B8', transform: isOrgDropdownOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s ease', flexShrink: 0 }} />
           </button>
 
           {isOrgDropdownOpen && (
@@ -2666,12 +2661,12 @@ export default function App() {
               className="dropdown-menu-animated"
               style={{
                 position: 'absolute',
-                top: 'calc(100% + 5px)',
+                top: 'calc(100% + 6px)',
                 right: 0,
-                background: 'var(--bg-card)',
-                border: '1px solid var(--border-subtle)',
-                borderRadius: '8px',
-                boxShadow: '0 12px 32px rgba(0,0,0,0.22)',
+                background: '#FFFFFF',
+                border: '1px solid #E2E8F0',
+                borderRadius: '10px',
+                boxShadow: '0 12px 28px -4px rgba(15, 23, 42, 0.12), 0 8px 12px -4px rgba(15, 23, 42, 0.06)',
                 zIndex: 260,
                 width: '300px',
                 padding: '8px'
@@ -2799,17 +2794,10 @@ export default function App() {
             onClick={() => toggleDropdown('workspace')}
             className={`top-header-pill ${isWorkspaceDropdownOpen ? 'top-header-pill-active' : ''}`}
             title={`Active Workspace: ${isWorkspaceReady ? activeWorkspace?.name : 'Create Workspace'}`}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              borderRadius: '20px',
-              padding: '0 10px',
-              ...(!isWorkspaceReady ? { border: '1px dashed #64748B', background: 'rgba(100, 116, 139, 0.06)' } : {})
-            }}
+            style={!isWorkspaceReady ? { border: '1px dashed #64748B', background: 'rgba(100, 116, 139, 0.06)' } : undefined}
           >
-            <FolderGit2 size={12} style={{ color: '#475569' }} />
-            <span style={{ maxWidth: '130px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: isWorkspaceReady ? 500 : 700 }}>
+            <FolderGit2 size={13} style={{ color: '#475569', flexShrink: 0 }} />
+            <span style={{ maxWidth: '140px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 600 }}>
               {isWorkspaceReady ? activeWorkspace.name.replace(' (Universal)', '') : 'Create Workspace'}
             </span>
             {!isWorkspaceReady && (
@@ -2819,12 +2807,13 @@ export default function App() {
                 borderRadius: '3px',
                 background: '#0F172A',
                 color: '#FFFFFF',
-                fontWeight: 800
+                fontWeight: 800,
+                flexShrink: 0
               }}>
                 SETUP
               </span>
             )}
-            <ChevronDown size={11} style={{ color: '#94A3B8', transform: isWorkspaceDropdownOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s ease' }} />
+            <ChevronDown size={11} style={{ color: '#94A3B8', transform: isWorkspaceDropdownOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s ease', flexShrink: 0 }} />
           </button>
 
           {isWorkspaceDropdownOpen && (
@@ -2832,12 +2821,12 @@ export default function App() {
               className="dropdown-menu-animated"
               style={{
                 position: 'absolute',
-                top: 'calc(100% + 5px)',
+                top: 'calc(100% + 6px)',
                 right: 0,
-                background: 'var(--bg-card)',
-                border: '1px solid var(--border-subtle)',
-                borderRadius: '8px',
-                boxShadow: '0 12px 32px rgba(0,0,0,0.22)',
+                background: '#FFFFFF',
+                border: '1px solid #E2E8F0',
+                borderRadius: '10px',
+                boxShadow: '0 12px 28px -4px rgba(15, 23, 42, 0.12), 0 8px 12px -4px rgba(15, 23, 42, 0.06)',
                 zIndex: 250,
                 width: '280px',
                 padding: '8px'
@@ -2941,35 +2930,7 @@ export default function App() {
             onClick={() => toggleDropdown('persona')}
             aria-label="User profile menu"
             title={`Signed in as ${authUser?.name || activePersona?.name || 'User'} (${(authUser?.role || effectiveRole || 'admin').toUpperCase()})`}
-            style={{
-              width: '28px',
-              height: '28px',
-              borderRadius: '50%',
-              padding: 0,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              backgroundColor: '#0F172A',
-              border: 'none',
-              boxShadow: isPersonaDropdownOpen ? '0 0 0 2px rgba(0, 0, 0, 0.15)' : '0 1px 3px rgba(0, 0, 0, 0.12)',
-              cursor: 'pointer',
-              overflow: 'hidden',
-              transition: 'all 0.15s ease',
-              outline: 'none',
-              flexShrink: 0
-            }}
-            onMouseEnter={e => {
-              if (!isPersonaDropdownOpen) {
-                e.currentTarget.style.transform = 'scale(1.05)';
-                e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.2)';
-              }
-            }}
-            onMouseLeave={e => {
-              if (!isPersonaDropdownOpen) {
-                e.currentTarget.style.transform = 'none';
-                e.currentTarget.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.12)';
-              }
-            }}
+            className={`top-header-avatar-btn ${isPersonaDropdownOpen ? 'top-header-avatar-btn-active' : ''}`}
           >
             {authUser?.avatar_url || authUser?.picture || activePersona?.avatar_url ? (
               <img
@@ -2980,13 +2941,12 @@ export default function App() {
                   width: '100%',
                   height: '100%',
                   borderRadius: '50%',
-                  backgroundColor: '#0F172A',
                   objectFit: 'cover',
                   display: 'block'
                 }}
               />
             ) : (
-              <span style={{ color: '#FFFFFF', fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.02em', userSelect: 'none' }}>
+              <span style={{ color: '#FFFFFF', fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.02em', userSelect: 'none' }}>
                 {(authUser?.name || activePersona?.name || 'PK')
                   .split(' ')
                   .map(n => n[0])
@@ -3002,12 +2962,12 @@ export default function App() {
               className="dropdown-menu-animated"
               style={{
                 position: 'absolute',
-                top: 'calc(100% + 5px)',
+                top: 'calc(100% + 6px)',
                 right: 0,
-                background: 'var(--bg-card)',
-                border: '1px solid var(--border-subtle)',
-                borderRadius: '8px',
-                boxShadow: '0 12px 32px rgba(0,0,0,0.22)',
+                background: '#FFFFFF',
+                border: '1px solid #E2E8F0',
+                borderRadius: '10px',
+                boxShadow: '0 12px 28px -4px rgba(15, 23, 42, 0.12), 0 8px 12px -4px rgba(15, 23, 42, 0.06)',
                 zIndex: 250,
                 width: '280px',
                 padding: '8px'
@@ -3180,20 +3140,10 @@ export default function App() {
             closeDropdowns();
             setIsWebhookModalOpen(true);
           }}
-          className="top-header-pill"
+          className="top-header-icon-btn"
           title="Configure Real-Time Incident Webhooks (Slack, PagerDuty, MS Teams)"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            borderRadius: '20px',
-            padding: '0 8px',
-            color: 'var(--text-secondary)',
-            fontWeight: 600,
-            cursor: 'pointer'
-          }}
         >
-          <Bell size={12} style={{ color: '#475569' }} />
+          <Bell size={13} style={{ color: '#475569' }} />
         </button>
       </div>
     );
