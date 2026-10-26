@@ -39,8 +39,13 @@ async def list_chat_sessions(
     db: AsyncSession = Depends(get_db),
 ):
     """List chat sessions for a specific organization, user/persona, and departmental workspace."""
-    service = ChatService(db)
-    return await service.list_sessions(organization_id, user_id, workspace_id, limit)
+    try:
+        service = ChatService(db)
+        return await service.list_sessions(organization_id, user_id, workspace_id, limit)
+    except Exception as e:
+        import logging
+        logging.getLogger("chat").warning(f"Error querying chat sessions: {e}")
+        return []
 
 
 @router.post("/sessions")

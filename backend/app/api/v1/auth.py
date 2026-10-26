@@ -299,15 +299,84 @@ async def list_available_personas(
     db: AsyncSession = Depends(get_db),
 ):
     """List all available enterprise personas for quick-switch and testing."""
-    stmt = (
-        select(User)
-        .where(User.status == RecordStatus.ACTIVE)
-        .options(selectinload(User.organization))
-        .order_by(User.name)
-    )
-    res = await db.execute(stmt)
-    users = res.scalars().all()
-    return [_build_user_response(u) for u in users]
+    try:
+        stmt = (
+            select(User)
+            .where(User.status == RecordStatus.ACTIVE)
+            .options(selectinload(User.organization))
+            .order_by(User.name)
+        )
+        res = await db.execute(stmt)
+        users = res.scalars().all()
+        if users:
+            return [_build_user_response(u) for u in users]
+    except Exception as e:
+        logger.warning(f"Database query for personas failed, returning fallback personas: {e}")
+
+    # Fallback personas so the frontend never crashes if DB is waking up or initializing
+    fallback_org_id = uuid.UUID("11111111-1111-1111-1111-111111111111")
+    return [
+        UserResponse(
+            id=uuid.UUID("11111111-1111-1111-1111-000000000001"),
+            organization_id=fallback_org_id,
+            organization_name="Enterprise Organization",
+            name="Sarah Chen",
+            email="sarah.chen@google.com",
+            role=UserRole.ADMIN,
+            title="Chief Data Officer",
+            department="Executive",
+            avatar_url="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150",
+            status="active",
+        ),
+        UserResponse(
+            id=uuid.UUID("11111111-1111-1111-1111-000000000002"),
+            organization_id=fallback_org_id,
+            organization_name="Enterprise Organization",
+            name="Marcus Vance",
+            email="marcus.vance@microsoft.com",
+            role=UserRole.AUDITOR,
+            title="Lead Compliance Auditor",
+            department="Governance & Risk",
+            avatar_url="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150",
+            status="active",
+        ),
+        UserResponse(
+            id=uuid.UUID("11111111-1111-1111-1111-000000000003"),
+            organization_id=fallback_org_id,
+            organization_name="Enterprise Organization",
+            name="Aisha Patel",
+            email="aisha.patel@enterprise.internal",
+            role=UserRole.CONTRIBUTOR,
+            title="Principal AI Architect",
+            department="Engineering",
+            avatar_url="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150",
+            status="active",
+        ),
+        UserResponse(
+            id=uuid.UUID("11111111-1111-1111-1111-000000000004"),
+            organization_id=fallback_org_id,
+            organization_name="Enterprise Organization",
+            name="David Kim",
+            email="david.kim@enterprise.internal",
+            role=UserRole.CURATOR,
+            title="Senior Policy Curator",
+            department="Legal Operations",
+            avatar_url="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150",
+            status="active",
+        ),
+        UserResponse(
+            id=uuid.UUID("11111111-1111-1111-1111-000000000005"),
+            organization_id=fallback_org_id,
+            organization_name="Enterprise Organization",
+            name="Elena Rostova",
+            email="elena.rostova@enterprise.internal",
+            role=UserRole.VIEWER,
+            title="Data Governance Analyst",
+            department="Analytics",
+            avatar_url="https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150",
+            status="active",
+        ),
+    ]
 
 
 @router.get("/me", response_model=UserResponse)

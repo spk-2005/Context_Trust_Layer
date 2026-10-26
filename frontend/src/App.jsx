@@ -640,6 +640,7 @@ export default function App() {
 
   // -------------------------------------------------------------
   const {
+    token,
     token: authToken,
     user: authUser,
     organization: authOrg,
