@@ -23,9 +23,11 @@ export default function SignInModal() {
   const [errorMsg, setErrorMsg] = useState(null);
   const [successMsg, setSuccessMsg] = useState(null);
 
-  const isPreviewBranch = typeof window !== 'undefined' &&
-    window.location.hostname.includes('.vercel.app') &&
-    !window.location.hostname.startsWith('context-trust-layer.vercel.app');
+  const isPreviewBranch = typeof window !== 'undefined' && (
+    (window.location.hostname.includes('.vercel.app') && !window.location.hostname.startsWith('context-trust-layer.vercel.app')) ||
+    window.location.hostname === 'localhost' ||
+    window.location.hostname === '127.0.0.1'
+  );
 
   const googleBtnRef = useRef(null);
 

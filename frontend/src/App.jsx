@@ -133,6 +133,7 @@ export const parseUrlState = (workspacesList) => {
       tab: 'home',
       vaultSubTab: 'documents',
       docId: null,
+      claimId: null,
       lineageSection: 'summary',
       workspace: DEFAULT_WORKSPACES[0],
       docView: 'folders',
@@ -249,7 +250,8 @@ export const parseUrlState = (workspacesList) => {
   }
 
   // Parse query parameters
-  const docId = params.get('doc') || params.get('asset') || null;
+  const docId = params.get('doc') || params.get('asset') || params.get('assetId') || null;
+  const claimId = params.get('claim') || params.get('claimId') || null;
   const sec = params.get('section');
   let lineageSection = 'summary';
   if (sec && LINEAGE_SECTIONS.includes(sec)) {
@@ -271,6 +273,7 @@ export const parseUrlState = (workspacesList) => {
     tab,
     vaultSubTab,
     docId,
+    claimId,
     lineageSection,
     workspace,
     docView,
@@ -287,6 +290,7 @@ export const computeUrlFromState = ({
   activeTab,
   vaultSubTab = 'documents',
   selectedLineageAssetId = null,
+  selectedLineageClaimId = null,
   lineageSection = 'summary',
   curatorSubView = 'health',
   docExplorerView = 'folders',
@@ -375,6 +379,9 @@ export const computeUrlFromState = ({
   // Document param & section for Vault / Lineage
   if (activeTab === 'visual_lineage' && selectedLineageAssetId) {
     params.set('doc', selectedLineageAssetId);
+    if (selectedLineageClaimId) {
+      params.set('claimId', selectedLineageClaimId);
+    }
     if (lineageSection && lineageSection !== 'summary') {
       params.set('section', lineageSection);
     }
@@ -632,6 +639,7 @@ export default function App() {
     assetTitle: ''
   });
   const [selectedLineageAssetId, setSelectedLineageAssetId] = useState(() => initialUrlState?.docId || null);
+  const [selectedLineageClaimId, setSelectedLineageClaimId] = useState(() => initialUrlState?.claimId || null);
   const [lineageSection, setLineageSection] = useState(() => initialUrlState?.lineageSection || 'summary');
   const [teamSubTab, setTeamSubTab] = useState(() => initialUrlState?.teamSubTab || 'directory');
   const [profileSubTab, setProfileSubTab] = useState(() => initialUrlState?.profileSubTab || 'user_profile');
@@ -5412,6 +5420,15 @@ export default function App() {
                 setActiveChatSessionId(id);
                 fetchChatSessions();
               }}
+              onOpenHitlModal={() => setIsHitlModalOpen(true)}
+              onInspectDocument={(docId) => {
+                setInspectorState({
+                  isOpen: true,
+                  assetType: 'document',
+                  assetId: docId,
+                  assetTitle: 'Policy Document'
+                });
+              }}
             />
           )
         )}
@@ -7694,9 +7711,12 @@ export default function App() {
                 onVaultSubTabChange={(sub) => {
                   setVaultSubTab(sub);
                   setSelectedLineageAssetId(null);
+                  setSelectedLineageClaimId(null);
                 }}
                 initialAssetId={selectedLineageAssetId}
                 onAssetChange={setSelectedLineageAssetId}
+                initialClaimId={selectedLineageClaimId}
+                onClaimChange={setSelectedLineageClaimId}
                 initialSection={lineageSection}
                 onSectionChange={setLineageSection}
               />

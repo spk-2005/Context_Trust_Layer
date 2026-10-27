@@ -43,6 +43,7 @@ class BaseLLMProvider(ABC):
         citations: list[dict],
         has_conflicts: bool = False,
         warnings: list[str] | None = None,
+        history: list[dict] | None = None,
     ) -> str:
         """Synthesize a factual, grounded answer to query based strictly on verified context claims."""
         pass

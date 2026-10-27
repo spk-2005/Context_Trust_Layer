@@ -1,7 +1,10 @@
 import decimal
+import logging
+import math
+import re
 import uuid
 from datetime import datetime, timezone
-from typing import Sequence
+from typing import Any, Sequence
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -26,7 +29,74 @@ from app.schemas.context import (
     ContextSourceInfo,
     ContextValidityInfo,
 )
+from app.schemas.governed_context import GovernedContextPackage
 from app.services.claim_gate_evaluator import ClaimGateEvaluator
+
+logger = logging.getLogger(__name__)
+
+_EMBEDDING_CACHE: dict[str, list[float]] = {}
+
+
+def _cosine_similarity(v1: Sequence[float], v2: Sequence[float]) -> float:
+    if not v1 or not v2 or len(v1) != len(v2):
+        return 0.0
+    dot = sum(a * b for a, b in zip(v1, v2))
+    norm1 = sum(a * a for a, b in zip(v1, v2))
+    norm2 = sum(b * b for a, b in zip(v1, v2))
+    if norm1 <= 0.0 or norm2 <= 0.0:
+        return 0.0
+    return dot / ((norm1 ** 0.5) * (norm2 ** 0.5))
+
+
+def _compute_lexical_score(claim_text: str, subject: str | None, query: str, domain: str | None) -> float:
+    claim_lower = claim_text.lower()
+    q_lower = query.lower()
+    q_words = [w.strip("?.,!$₹£€()[]\"'") for w in q_lower.split() if len(w) > 1]
+
+    score = 0.0
+    # 1. Token overlap
+    c_words = set(re.findall(r"\b\w+\b", claim_lower))
+    overlap = [w for w in q_words if w in c_words]
+    score += len(overlap) * 2.5
+
+    # 2. Exact n-gram phrase matches (2-word sequences)
+    if len(q_words) >= 2:
+        for i in range(len(q_words) - 1):
+            bigram = f"{q_words[i]} {q_words[i+1]}"
+            if bigram in claim_lower:
+                score += 6.0
+
+    # 3. Numeric & monetary match (crucial for policy windows and dollar limits)
+    numbers_in_query = re.findall(r"\b\d+(?:\.\d+)?\b|\$\d+|\bnet-\d+\b", q_lower)
+    for num in numbers_in_query:
+        clean_num = num.strip("$")
+        if clean_num in claim_lower:
+            score += 10.0
+
+    # 4. Governance terms & Acronyms
+    gov_terms = ["sla", "sox", "vpn", "iam", "mtls", "sso", "ciso", "cfo", "kms", "gdpr", "hipaa", "pci", "refund", "freeze"]
+    for gt in gov_terms:
+        if gt in q_words and gt in claim_lower:
+            score += 6.0
+
+    # 5. Subject entity match
+    if subject and any(w in subject.lower() for w in q_words):
+        score += 4.0
+
+    # 6. Domain alignment bonus
+    if domain and domain not in ("global", "all"):
+        domain_keywords = {
+            "finance": ["refund", "billing", "invoice", "arr", "tier", "payment", "accounting", "handbook", "confluence", "customer", "credit"],
+            "secops": ["security", "firewall", "ingress", "iam", "mtls", "session", "token", "freeze", "infrastructure", "portal", "key"],
+            "hr": ["remote", "work", "leave", "vacation", "employee", "handbook", "people", "guideline", "stipend"],
+            "support": ["support", "dispute", "sla", "ticket", "escalation", "customer", "resolution", "arbitration"],
+            "staging": ["sandbox", "staging", "test", "trial", "mock", "experiment"]
+        }
+        kws = domain_keywords.get(domain, [domain])
+        if any(kw in claim_lower for kw in kws):
+            score += 12.0
+
+    return score
 
 
 class ContextRetrievalEngine:
@@ -104,7 +174,7 @@ class ContextRetrievalEngine:
             stmt = stmt.where(Claim.claim_type != "derived_summary")
 
         stmt = stmt.options(
-            selectinload(Claim.evidence).selectinload(ClaimEvidence.document),
+            selectinload(Claim.evidence).selectinload(ClaimEvidence.document).selectinload(Document.folder),
             selectinload(Claim.validity_records),
             selectinload(Claim.trust_scores),
             selectinload(Claim.document_version),
@@ -112,8 +182,75 @@ class ContextRetrievalEngine:
         res = await self.session.execute(stmt)
         all_claims = res.scalars().all()
 
-        evaluated_items: list[tuple[Claim, decimal.Decimal, bool, str | None, ContextItemResponse | None]] = []
-        query_terms = set(request_in.query.lower().split())
+        target_domain = (request_in.domain or request_in.workspace_id or "").lower()
+
+        # 2b. Compute query embedding & populate claim embeddings for Semantic Vector Search
+        query_emb: list[float] = []
+        try:
+            query_emb = await self.llm.get_embedding(request_in.query)
+        except Exception as q_err:
+            logger.warning("Query embedding calculation failed (%s); falling back to lexical search", q_err)
+
+        # Batch compute missing embeddings
+        missing_claims = [c.claim_text for c in all_claims if c.claim_text not in _EMBEDDING_CACHE]
+        if missing_claims:
+            try:
+                new_embs = await self.llm.get_embeddings(missing_claims)
+                for txt, emb in zip(missing_claims, new_embs):
+                    _EMBEDDING_CACHE[txt] = emb
+            except Exception as b_err:
+                logger.debug("Batch embedding calculation fallback (%s)", b_err)
+                for txt in missing_claims:
+                    try:
+                        _EMBEDDING_CACHE[txt] = await self.llm.get_embedding(txt)
+                    except Exception:
+                        pass
+
+        # Build Section context map for Clause Expansion
+        section_context_map: dict[tuple[uuid.UUID, str], list[str]] = {}
+        for c in all_claims:
+            for ev in c.evidence:
+                if ev.document_id and ev.section:
+                    sec_key = (ev.document_id, ev.section.strip().lower())
+                    if sec_key not in section_context_map:
+                        section_context_map[sec_key] = []
+                    if c.claim_text not in section_context_map[sec_key]:
+                        section_context_map[sec_key].append(c.claim_text)
+
+        # 2c. Compute Lexical & Semantic Scores for each candidate claim
+        claim_scores: list[dict[str, Any]] = []
+        for claim in all_claims:
+            lex_score = _compute_lexical_score(claim.claim_text, claim.subject, request_in.query, target_domain)
+            claim_emb = _EMBEDDING_CACHE.get(claim.claim_text, [])
+            sem_score = _cosine_similarity(query_emb, claim_emb) if query_emb and claim_emb else 0.0
+            claim_scores.append({
+                "claim": claim,
+                "lex_score": lex_score,
+                "sem_score": sem_score,
+            })
+
+        # Rank claims by lexical and semantic scores for Reciprocal Rank Fusion (RRF)
+        sorted_by_lex = sorted(claim_scores, key=lambda x: x["lex_score"], reverse=True)
+        for rank_idx, item in enumerate(sorted_by_lex, start=1):
+            item["rank_lex"] = rank_idx
+
+        sorted_by_sem = sorted(claim_scores, key=lambda x: x["sem_score"], reverse=True)
+        for rank_idx, item in enumerate(sorted_by_sem, start=1):
+            item["rank_sem"] = rank_idx
+
+        # Calculate final RRF Fusion score
+        for item in claim_scores:
+            rank_l = item.get("rank_lex", 1)
+            rank_s = item.get("rank_sem", 1)
+            sem_s = item.get("sem_score", 0.0)
+            lex_s = item.get("lex_score", 0.0)
+            rrf_val = (1.0 / (60.0 + rank_l)) + (1.0 / (60.0 + rank_s)) + (sem_s * 0.05)
+            item["rrf_score"] = rrf_val
+            item["is_relevant"] = (lex_s > 0.0) or (sem_s >= 0.50) or (len(request_in.query.split()) <= 1)
+
+        scores_by_claim_id = {item["claim"].id: item for item in claim_scores}
+
+        evaluated_items: list[tuple[Claim, decimal.Decimal, bool, str | None, ContextItemResponse | None, float]] = []
         now = datetime.now(timezone.utc)
 
         for claim in all_claims:
@@ -121,6 +258,10 @@ class ContextRetrievalEngine:
             latest_score = decimal.Decimal("0.5000")
             if claim.trust_scores:
                 latest_score = max(ts.overall_score for ts in claim.trust_scores)
+
+            score_data = scores_by_claim_id.get(claim.id, {"rrf_score": 0.0, "is_relevant": False})
+            relevance_score = score_data["rrf_score"]
+            relevance_match = score_data["is_relevant"]
 
             # Check validity window
             is_valid = True
@@ -132,38 +273,6 @@ class ContextRetrievalEngine:
                     validity_info.valid_until = str(val.valid_until)
                 if val.valid_from:
                     validity_info.valid_from = str(val.valid_from)
-
-            # Check if claim content matches query keywords/intent
-            claim_words = set(claim.claim_text.lower().split())
-            overlap = query_terms.intersection(claim_words)
-            # Calculate relevance score based on keyword overlap & term importance
-            claim_lower = claim.claim_text.lower()
-            overlap = query_terms.intersection(claim_words)
-            relevance_match = len(overlap) > 0 or len(query_terms) == 0
-            
-            relevance_score = len(overlap)
-            for qt in query_terms:
-                clean_qt = qt.strip("?.,!$₹£€")
-                if clean_qt and any(char.isdigit() for char in clean_qt) and clean_qt in claim_lower:
-                    relevance_score += 5
-                elif qt in ["refund", "window", "enterprise", "exception", "limit", "procurement", "po", "downtime", "sla", "cfo", "approval"] and qt in claim_lower:
-                    relevance_score += 2
-
-            # Departmental Workspace Domain Scoping Bonus
-            target_domain = (request_in.domain or request_in.workspace_id or "").lower()
-            if target_domain and target_domain not in ("global", "all"):
-                domain_keywords = {
-                    "finance": ["refund", "billing", "invoice", "arr", "tier", "payment", "accounting", "handbook", "confluence", "customer"],
-                    "secops": ["security", "firewall", "ingress", "iam", "mtls", "session", "token", "freeze", "infrastructure", "portal"],
-                    "hr": ["remote", "work", "leave", "vacation", "employee", "handbook", "people", "guideline"],
-                    "support": ["support", "dispute", "sla", "ticket", "escalation", "customer", "resolution", "arbitration"],
-                    "staging": ["sandbox", "staging", "test", "trial", "mock", "experiment"]
-                }
-                kws = domain_keywords.get(target_domain, [target_domain])
-                if any(kw in claim_lower for kw in kws):
-                    relevance_score += 25
-                elif any(kw in (claim.subject or "").lower() for kw in kws):
-                    relevance_score += 20
 
             # Filter decisions
             included = True
@@ -223,6 +332,9 @@ class ContextRetrievalEngine:
             if included:
                 # Build provenance / evidence metadata
                 doc_title = "Unknown Document"
+                doc_id = None
+                folder_name = None
+                folder_id = None
                 section_title = None
                 page_num = 1
                 evidence_quotes: list[str] = []
@@ -230,9 +342,43 @@ class ContextRetrievalEngine:
                 for ev in claim.evidence:
                     if ev.document:
                         doc_title = ev.document.title
+                        doc_id = str(ev.document.id)
+                        if getattr(ev.document, "folder", None):
+                            folder_name = ev.document.folder.name
+                            folder_id = str(ev.document.folder.id)
                     section_title = ev.section
                     page_num = ev.page_number or 1
                     evidence_quotes.append(ev.text_span)
+
+                    # Clause Context Expansion: include related caveats or definitions from the same section
+                    if ev.document_id and ev.section:
+                        sec_key = (ev.document_id, ev.section.strip().lower())
+                        related_clauses = section_context_map.get(sec_key, [])
+                        for rel_clause in related_clauses[:2]:
+                            if rel_clause != claim.claim_text:
+                                evidence_quotes.append(f"[Section Context (§{ev.section})]: {rel_clause}")
+
+                lane = "canonical" if claim.claim_type in ["rule", "policy_rule", "policy"] else "passage"
+                primary_quote = evidence_quotes[0] if evidence_quotes else claim.claim_text
+
+                gov_pkg = GovernedContextPackage(
+                    claim_id=str(claim.id),
+                    document_id=doc_id,
+                    document_title=doc_title,
+                    folder_name=folder_name,
+                    folder_id=folder_id,
+                    section=section_title,
+                    page=page_num,
+                    rule_text=claim.claim_text,
+                    verbatim_evidence=primary_quote,
+                    actor=claim.subject,
+                    recipient=claim.object,
+                    modality=getattr(claim, "modality", "MUST") or "MUST",
+                    topic=claim.subject,
+                    certification_provenance="human_steward_approved" if str(claim.status).lower() in ["verified", "certified"] else "automated_gate_passed",
+                    trust_score=float(latest_score),
+                    evidence_lane=lane,
+                )
 
                 item_response = ContextItemResponse(
                     claim=claim.claim_text,
@@ -242,10 +388,16 @@ class ContextRetrievalEngine:
                         document=doc_title,
                         section=section_title,
                         page=page_num,
+                        folder_name=folder_name,
+                        folder_id=folder_id,
                     ),
                     evidence=evidence_quotes,
                     claim_type=claim.claim_type,
                     is_canonical=(claim.claim_type != "derived_summary"),
+                    claim_id=str(claim.id),
+                    document_id=doc_id,
+                    evidence_lane=lane,
+                    governed_package=gov_pkg,
                 )
 
             evaluated_items.append((claim, latest_score, included, exclusion_reason, item_response, relevance_score))
@@ -287,7 +439,67 @@ class ContextRetrievalEngine:
             self.session.add(context_log)
             rank += 1
 
-        # 4. Mark AgentRequest completed
+        # 4. Check for active ClaimConflicts among retrieved candidate claims
+        top_claim_ids = [claim.id for claim, _, _, _, _, _ in top_included]
+        detected_conflicts: list[dict] = []
+
+        if top_claim_ids:
+            from sqlalchemy import or_
+            conflict_stmt = (
+                select(ClaimConflict)
+                .options(
+                    selectinload(ClaimConflict.claim_a).selectinload(Claim.evidence).selectinload(ClaimEvidence.document),
+                    selectinload(ClaimConflict.claim_b).selectinload(Claim.evidence).selectinload(ClaimEvidence.document),
+                )
+                .where(
+                    or_(
+                        ClaimConflict.claim_a_id.in_(top_claim_ids),
+                        ClaimConflict.claim_b_id.in_(top_claim_ids),
+                    ),
+                    ClaimConflict.resolution_status.in_([
+                        ConflictStatus.DETECTED,
+                        ConflictStatus.HUMAN_REVIEW_REQUIRED,
+                        "detected",
+                        "human_review_required",
+                    ]),
+                )
+            )
+            conf_res = await self.session.execute(conflict_stmt)
+            active_conflicts = conf_res.scalars().all()
+
+            seen_conflict_pairs = set()
+            for c in active_conflicts:
+                pair_key = (min(str(c.claim_a_id), str(c.claim_b_id)), max(str(c.claim_a_id), str(c.claim_b_id)))
+                if pair_key in seen_conflict_pairs:
+                    continue
+                seen_conflict_pairs.add(pair_key)
+
+                claim_a_text = c.claim_a.claim_text if c.claim_a else "Disputed Rule A"
+                claim_b_text = c.claim_b.claim_text if c.claim_b else "Disputed Rule B"
+                doc_a_title = (
+                    c.claim_a.evidence[0].document.title
+                    if (c.claim_a and c.claim_a.evidence and c.claim_a.evidence[0].document)
+                    else "Source A"
+                )
+                doc_b_title = (
+                    c.claim_b.evidence[0].document.title
+                    if (c.claim_b and c.claim_b.evidence and c.claim_b.evidence[0].document)
+                    else "Source B"
+                )
+                detected_conflicts.append({
+                    "conflict_id": str(c.id),
+                    "conflict_type": c.conflict_type or "policy_contradiction",
+                    "severity": c.severity or "high",
+                    "description": f"Contradiction detected between {doc_a_title} and {doc_b_title}: '{claim_a_text}' vs '{claim_b_text}'",
+                    "claim_a_id": str(c.claim_a_id),
+                    "claim_b_id": str(c.claim_b_id),
+                    "source_a": doc_a_title,
+                    "source_b": doc_b_title,
+                    "claim_a_text": claim_a_text,
+                    "claim_b_text": claim_b_text,
+                })
+
+        # 5. Mark AgentRequest completed
         agent_req.status = "completed"
         agent_req.completed_at = datetime.now(timezone.utc)
         await self.session.flush()
@@ -298,8 +510,11 @@ class ContextRetrievalEngine:
             else request_in.min_trust_score
         )
 
+        gov_packages = [r.governed_package for r in final_context_list if r.governed_package is not None]
+
         return ContextQueryResponse(
             context=final_context_list,
-            conflicts=[],
+            governed_packages=gov_packages,
+            conflicts=detected_conflicts,
             confidence=decimal.Decimal(f"{avg_confidence:.4f}"),
         )

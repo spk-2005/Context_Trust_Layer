@@ -116,3 +116,27 @@ async def send_chat_message(
         domain=req.domain,
     )
     return result
+
+
+from app.services.feedback_telemetry_service import (
+    FeedbackSubmitRequest,
+    FeedbackTelemetryService,
+)
+
+
+@router.post("/sessions/{session_id}/messages/{message_id}/feedback")
+async def submit_message_feedback(
+    session_id: uuid.UUID,
+    message_id: str,
+    req: FeedbackSubmitRequest,
+):
+    """Log structured feedback with failure taxonomy stage (Atlan feedback loop)."""
+    req.session_id = str(session_id)
+    req.message_id = str(message_id)
+    return FeedbackTelemetryService.record_feedback(req)
+
+
+@router.get("/telemetry/feedback")
+async def get_feedback_telemetry():
+    """Get aggregated failure taxonomy distribution and steward queue stats."""
+    return FeedbackTelemetryService.get_stage_distribution()

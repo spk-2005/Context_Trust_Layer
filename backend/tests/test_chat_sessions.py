@@ -62,14 +62,39 @@ async def test_chat_session_lifecycle_and_message_processing():
         assistant_msg = msg_data["assistant_message"]
         assert assistant_msg["role"] == "assistant"
         assert "metadata_json" in assistant_msg
+        assert assistant_msg["metadata_json"]["mode"] == "document_qa"
+        assert "answer_status" in assistant_msg["metadata_json"]
         assert "decision" in assistant_msg["metadata_json"]
         assert "citations" in assistant_msg["metadata_json"]
+        assert "verification" in assistant_msg["metadata_json"]
+        assert "is_verified" in assistant_msg["metadata_json"]["verification"]
+        if assistant_msg["metadata_json"]["citations"]:
+            first_c = assistant_msg["metadata_json"]["citations"][0]
+            assert "evidence_lane" in first_c
+
+        # 4b. Test Mode B: Action Evaluation request
+        action_res = await client.post(
+            f"/v1/chat/sessions/{session_id}/messages",
+            json={
+                "organization_id": DEMO_ORG_ID,
+                "content": "Can I approve a $5000 refund exception for enterprise client Acme?",
+                "user_id": test_user["id"],
+                "user_name": test_user["name"],
+                "user_role": test_user["role"],
+            }
+        )
+        assert action_res.status_code == 200
+        action_data = action_res.json()
+        action_assistant = action_data["assistant_message"]
+        assert action_assistant["metadata_json"]["mode"] == "action_evaluation"
+        assert action_assistant["metadata_json"]["decision"] in ["ALLOW", "BLOCK", "REVIEW", "CLARIFY"]
+        assert action_assistant["metadata_json"]["audit_id"] is not None
 
         # 5. Fetch complete session with messages
         detail_res = await client.get(f"/v1/chat/sessions/{session_id}")
         assert detail_res.status_code == 200
         detail = detail_res.json()
-        assert len(detail["messages"]) >= 2
+        assert len(detail["messages"]) >= 4
 
         # 6. Delete the chat session
         del_res = await client.delete(f"/v1/chat/sessions/{session_id}")
