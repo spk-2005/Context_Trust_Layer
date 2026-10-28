@@ -469,7 +469,11 @@ class ContextRetrievalEngine:
 
             seen_conflict_pairs = set()
             for c in active_conflicts:
-                pair_key = (min(str(c.claim_a_id), str(c.claim_b_id)), max(str(c.claim_a_id), str(c.claim_b_id)))
+                cid_a = getattr(c, "claim_a_id", None)
+                cid_b = getattr(c, "claim_b_id", None)
+                if not cid_a or not cid_b:
+                    continue
+                pair_key = (min(str(cid_a), str(cid_b)), max(str(cid_a), str(cid_b)))
                 if pair_key in seen_conflict_pairs:
                     continue
                 seen_conflict_pairs.add(pair_key)

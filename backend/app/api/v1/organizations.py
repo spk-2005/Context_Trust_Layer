@@ -35,6 +35,9 @@ from app.schemas.organization import (
     OrganizationSetupWizardResponse,
     SetupStepDetail,
     TenantSwitchResponse,
+    WorkspaceCreate,
+    WorkspaceResponse,
+    WorkspaceUpdate,
 )
 
 router = APIRouter(prefix="/organizations", tags=["organizations"])
@@ -54,8 +57,8 @@ def _build_org_response(org: Organization, member_count: int = 0) -> Organizatio
         governance_config=gov_cfg,
         setup_completed=bool(getattr(org, "setup_completed", False)),
         member_count=member_count,
-        created_at=org.created_at,
-        updated_at=org.updated_at,
+        created_at=org.created_at or datetime.now(timezone.utc),
+        updated_at=org.updated_at or datetime.now(timezone.utc),
     )
 
 
@@ -191,6 +194,8 @@ async def get_my_organizations(
             "slug": m.organization.slug,
             "role": m.role.value if hasattr(m.role, "value") else str(m.role),
             "setup_completed": bool(getattr(m.organization, "setup_completed", False)),
+            "governance_config": m.organization.governance_config or {},
+            "domain_whitelist": m.organization.domain_whitelist or [],
         }
         for m in memberships
         if m.organization
@@ -726,6 +731,12 @@ async def update_organization_settings(
         org.domain_whitelist = cleaned_domains
     if data.allowed_auth_methods is not None:
         org.allowed_auth_methods = data.allowed_auth_methods
+    if data.governance_config is not None:
+        current_cfg = dict(org.governance_config or {})
+        current_cfg.update(data.governance_config)
+        org.governance_config = current_cfg
+    if data.setup_completed is not None:
+        org.setup_completed = data.setup_completed
 
     await db.commit()
     await db.refresh(org)
@@ -737,6 +748,147 @@ async def update_organization_settings(
     m_count = res_count.scalar() or 0
 
     return _build_org_response(org, member_count=m_count)
+
+
+# ==========================================
+# 3b. Departmental Workspace Management
+# ==========================================
+
+@router.get("/{org_id}/workspaces", response_model=List[WorkspaceResponse])
+async def list_organization_workspaces(
+    org_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+):
+    """Retrieve all persistent department workspaces for the organization."""
+    org_stmt = select(Organization).where(Organization.id == org_id).limit(1)
+    res = await db.execute(org_stmt)
+    org = res.scalar_one_or_none()
+    if not org:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Organization not found.")
+
+    gov_cfg = dict(org.governance_config or {})
+    workspaces = gov_cfg.get("workspaces")
+    if not workspaces or not isinstance(workspaces, list) or len(workspaces) == 0:
+        # Auto-provision primary starter workspace if none exist
+        default_ws = {
+            "id": f"ws_{org.id.hex[:10]}",
+            "name": f"{org.name} Workspace",
+            "domain": "governance",
+            "icon": "🏢",
+            "description": "Primary enterprise governance & compliance workspace",
+            "created_at": datetime.now(timezone.utc).isoformat(),
+        }
+        workspaces = [default_ws]
+        gov_cfg["workspaces"] = workspaces
+        org.governance_config = dict(gov_cfg)
+        await db.commit()
+        await db.refresh(org)
+
+    return workspaces
+
+
+@router.post("/{org_id}/workspaces", response_model=WorkspaceResponse, status_code=status.HTTP_201_CREATED)
+async def create_organization_workspace(
+    org_id: uuid.UUID,
+    data: WorkspaceCreate,
+    current_user: Optional[User] = Depends(get_optional_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Create and persist a new departmental workspace for this organization."""
+    org_stmt = select(Organization).where(Organization.id == org_id).limit(1)
+    res = await db.execute(org_stmt)
+    org = res.scalar_one_or_none()
+    if not org:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Organization not found.")
+
+    gov_cfg = dict(org.governance_config or {})
+    workspaces = list(gov_cfg.get("workspaces") or [])
+
+    new_ws = {
+        "id": f"ws_{uuid.uuid4().hex[:12]}",
+        "name": data.name.strip(),
+        "domain": data.domain or "governance",
+        "icon": data.icon or ("🛡️" if data.domain == "secops" else "👥" if data.domain == "hr" else "💳" if data.domain == "finance" else "📁"),
+        "description": (data.description or "Custom departmental workspace").strip(),
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+    workspaces.append(new_ws)
+    gov_cfg["workspaces"] = workspaces
+    org.governance_config = dict(gov_cfg)
+
+    await db.commit()
+    await db.refresh(org)
+    return new_ws
+
+
+@router.patch("/{org_id}/workspaces/{workspace_id}", response_model=WorkspaceResponse)
+async def update_organization_workspace(
+    org_id: uuid.UUID,
+    workspace_id: str,
+    data: WorkspaceUpdate,
+    db: AsyncSession = Depends(get_db),
+):
+    """Update properties of an existing workspace."""
+    org_stmt = select(Organization).where(Organization.id == org_id).limit(1)
+    res = await db.execute(org_stmt)
+    org = res.scalar_one_or_none()
+    if not org:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Organization not found.")
+
+    gov_cfg = dict(org.governance_config or {})
+    workspaces = list(gov_cfg.get("workspaces") or [])
+
+    found_idx = -1
+    for idx, ws in enumerate(workspaces):
+        if ws.get("id") == workspace_id:
+            found_idx = idx
+            break
+
+    if found_idx == -1:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Workspace not found in this organization.")
+
+    target = dict(workspaces[found_idx])
+    if data.name is not None:
+        target["name"] = data.name.strip()
+    if data.domain is not None:
+        target["domain"] = data.domain.strip()
+    if data.icon is not None:
+        target["icon"] = data.icon.strip()
+    if data.description is not None:
+        target["description"] = data.description.strip()
+
+    workspaces[found_idx] = target
+    gov_cfg["workspaces"] = workspaces
+    org.governance_config = dict(gov_cfg)
+
+    await db.commit()
+    await db.refresh(org)
+    return target
+
+
+@router.delete("/{org_id}/workspaces/{workspace_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_organization_workspace(
+    org_id: uuid.UUID,
+    workspace_id: str,
+    db: AsyncSession = Depends(get_db),
+):
+    """Delete a departmental workspace from the organization."""
+    org_stmt = select(Organization).where(Organization.id == org_id).limit(1)
+    res = await db.execute(org_stmt)
+    org = res.scalar_one_or_none()
+    if not org:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Organization not found.")
+
+    gov_cfg = dict(org.governance_config or {})
+    workspaces = list(gov_cfg.get("workspaces") or [])
+    updated = [w for w in workspaces if w.get("id") != workspace_id]
+
+    gov_cfg["workspaces"] = updated
+    org.governance_config = dict(gov_cfg)
+
+    await db.commit()
+    await db.refresh(org)
+    return None
 
 
 # ==========================================

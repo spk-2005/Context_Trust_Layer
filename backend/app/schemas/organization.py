@@ -46,6 +46,29 @@ class OrganizationSettingsUpdate(BaseModel):
     setup_completed: Optional[bool] = None
 
 
+class WorkspaceCreate(BaseModel):
+    name: str = Field(..., min_length=1, max_length=100)
+    domain: Optional[str] = Field("governance", max_length=50)
+    icon: Optional[str] = Field("📁", max_length=20)
+    description: Optional[str] = Field(None, max_length=500)
+
+
+class WorkspaceUpdate(BaseModel):
+    name: Optional[str] = Field(None, min_length=1, max_length=100)
+    domain: Optional[str] = Field(None, max_length=50)
+    icon: Optional[str] = Field(None, max_length=20)
+    description: Optional[str] = Field(None, max_length=500)
+
+
+class WorkspaceResponse(BaseModel):
+    id: str
+    name: str
+    domain: str = "governance"
+    icon: str = "📁"
+    description: Optional[str] = ""
+    created_at: Optional[str] = None
+
+
 class OrganizationMemberResponse(BaseModel):
     id: uuid.UUID
     name: str

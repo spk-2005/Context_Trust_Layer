@@ -13,6 +13,10 @@ class UserBase(BaseModel):
     title: str | None = None
     department: str | None = None
     avatar_url: str | None = None
+    phone: str | None = None
+    bio: str | None = None
+    timezone: str | None = None
+    user_preferences: dict[str, Any] | None = None
 
 
 class UserCreate(UserBase):
@@ -25,6 +29,10 @@ class UserUpdate(BaseModel):
     title: str | None = None
     department: str | None = None
     avatar_url: str | None = None
+    phone: str | None = None
+    bio: str | None = None
+    timezone: str | None = None
+    user_preferences: dict[str, Any] | None = None
     status: RecordStatus | None = None
 
 

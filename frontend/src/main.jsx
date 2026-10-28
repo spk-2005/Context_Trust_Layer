@@ -9,25 +9,48 @@ import { AuthProvider } from './context/AuthContext'
 // hostname 'backend'. Vite's dev-server proxy (vite.config.js) transparently forwards
 // relative /v1/* requests to http://backend:8000 inside the Docker network.
 const originalFetch = window.fetch;
-window.fetch = (input, init = {}) => {
+window.fetch = async (input, init = {}) => {
   const token = localStorage.getItem('ctl_token');
-  if (token) {
-    if (!init.headers) {
-      init.headers = {};
+  const deviceId = localStorage.getItem('ctl_device_id') || 'dev_client';
+
+  if (!init.headers) {
+    init.headers = {};
+  }
+  if (init.headers instanceof Headers) {
+    if (token && !init.headers.has('Authorization')) {
+      init.headers.set('Authorization', `Bearer ${token}`);
     }
-    if (init.headers instanceof Headers) {
-      if (!init.headers.has('Authorization')) {
-        init.headers.set('Authorization', `Bearer ${token}`);
-      }
-    } else if (Array.isArray(init.headers)) {
-      init.headers.push(['Authorization', `Bearer ${token}`]);
-    } else {
-      if (!init.headers['Authorization']) {
-        init.headers['Authorization'] = `Bearer ${token}`;
-      }
+    if (!init.headers.has('X-Device-Id')) {
+      init.headers.set('X-Device-Id', deviceId);
+    }
+  } else if (Array.isArray(init.headers)) {
+    if (token) init.headers.push(['Authorization', `Bearer ${token}`]);
+    init.headers.push(['X-Device-Id', deviceId]);
+  } else {
+    if (token && !init.headers['Authorization']) {
+      init.headers['Authorization'] = `Bearer ${token}`;
+    }
+    if (!init.headers['X-Device-Id']) {
+      init.headers['X-Device-Id'] = deviceId;
     }
   }
-  return originalFetch(input, init);
+
+  const response = await originalFetch(input, init);
+  if (response.status === 401) {
+    try {
+      const clone = response.clone();
+      const err = await clone.json();
+      if (err?.detail && typeof err.detail === 'string' && err.detail.includes('SESSION_SUPERSEDED')) {
+        localStorage.removeItem('ctl_token');
+        if (typeof BroadcastChannel !== 'undefined') {
+          const bc = new BroadcastChannel('ctl_sync_channel');
+          bc.postMessage({ type: 'SESSION_SUPERSEDED' });
+          bc.close();
+        }
+      }
+    } catch {}
+  }
+  return response;
 };
 
 class ErrorBoundary extends React.Component {

@@ -49,7 +49,36 @@ def _build_user_response(user: User) -> UserResponse:
         avatar_url=user.avatar_url,
         title=user.title,
         department=user.department,
+        phone=getattr(user, "phone", None),
+        bio=getattr(user, "bio", None),
+        timezone=getattr(user, "timezone", None),
+        user_preferences=getattr(user, "user_preferences", None) or {},
+        active_device_id=getattr(user, "last_active_device", None),
     )
+
+
+async def _get_user_organizations(db: AsyncSession, email: str) -> list[dict]:
+    stmt = (
+        select(User)
+        .where(User.email.ilike(email))
+        .options(selectinload(User.organization))
+        .order_by(User.created_at.desc())
+    )
+    res = await db.execute(stmt)
+    memberships = res.scalars().all()
+    return [
+        {
+            "id": str(m.organization.id),
+            "name": m.organization.name,
+            "slug": m.organization.slug,
+            "role": m.role.value if hasattr(m.role, "value") else str(m.role),
+            "setup_completed": bool(getattr(m.organization, "setup_completed", False)),
+            "governance_config": m.organization.governance_config or {},
+            "domain_whitelist": m.organization.domain_whitelist or [],
+        }
+        for m in memberships
+        if m.organization
+    ]
 
 
 @router.post("/register", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
@@ -151,7 +180,14 @@ async def register_user(
         # Non-blocking if seeding encounter minor edge case
         pass
 
-    # 5. Generate tokens
+    # 5. Generate tokens and device session
+    session_id = str(uuid.uuid4())
+    new_user.active_session_id = session_id
+    if req.device_id:
+        new_user.last_active_device = req.device_id
+    await db.commit()
+    await db.refresh(new_user)
+
     access_token = create_access_token(
         subject=str(new_user.id),
         claims={
@@ -159,15 +195,19 @@ async def register_user(
             "role": new_user.role.value if hasattr(new_user.role, "value") else str(new_user.role),
             "org_id": str(org.id),
             "name": new_user.name,
+            "session_id": session_id,
         }
     )
     refresh_token = create_refresh_token(subject=str(new_user.id))
+    org_list = await _get_user_organizations(db, new_user.email)
 
     new_user.organization = org
     return TokenResponse(
         access_token=access_token,
         refresh_token=refresh_token,
         user=_build_user_response(new_user),
+        is_new_user=True,
+        organizations=org_list,
     )
 
 
@@ -206,6 +246,13 @@ async def login_user(
             detail="This account has been deactivated. Please contact your organization administrator.",
         )
 
+    session_id = str(uuid.uuid4())
+    user.active_session_id = session_id
+    if req.device_id:
+        user.last_active_device = req.device_id
+    await db.commit()
+    await db.refresh(user)
+
     access_token = create_access_token(
         subject=str(user.id),
         claims={
@@ -213,14 +260,17 @@ async def login_user(
             "role": user.role.value if hasattr(user.role, "value") else str(user.role),
             "org_id": str(user.organization_id),
             "name": user.name,
+            "session_id": session_id,
         }
     )
     refresh_token = create_refresh_token(subject=str(user.id))
+    org_list = await _get_user_organizations(db, user.email)
 
     return TokenResponse(
         access_token=access_token,
         refresh_token=refresh_token,
         user=_build_user_response(user),
+        organizations=org_list,
     )
 
 
@@ -276,6 +326,13 @@ async def persona_quick_login(
             detail="No enterprise persona accounts found in database.",
         )
 
+    session_id = str(uuid.uuid4())
+    user.active_session_id = session_id
+    if req.device_id:
+        user.last_active_device = req.device_id
+    await db.commit()
+    await db.refresh(user)
+
     access_token = create_access_token(
         subject=str(user.id),
         claims={
@@ -283,14 +340,17 @@ async def persona_quick_login(
             "role": user.role.value if hasattr(user.role, "value") else str(user.role),
             "org_id": str(user.organization_id),
             "name": user.name,
+            "session_id": session_id,
         }
     )
     refresh_token = create_refresh_token(subject=str(user.id))
+    org_list = await _get_user_organizations(db, user.email)
 
     return TokenResponse(
         access_token=access_token,
         refresh_token=refresh_token,
         user=_build_user_response(user),
+        organizations=org_list,
     )
 
 
@@ -417,6 +477,12 @@ async def refresh_access_token(
             detail="Account inactive or not found.",
         )
 
+    session_id = user.active_session_id or str(uuid.uuid4())
+    if not user.active_session_id:
+        user.active_session_id = session_id
+        await db.commit()
+        await db.refresh(user)
+
     access_token = create_access_token(
         subject=str(user.id),
         claims={
@@ -424,14 +490,17 @@ async def refresh_access_token(
             "role": user.role.value if hasattr(user.role, "value") else str(user.role),
             "org_id": str(user.organization_id),
             "name": user.name,
+            "session_id": session_id,
         }
     )
     new_refresh = create_refresh_token(subject=str(user.id))
+    org_list = await _get_user_organizations(db, user.email)
 
     return TokenResponse(
         access_token=access_token,
         refresh_token=new_refresh,
         user=_build_user_response(user),
+        organizations=org_list,
     )
 
 

@@ -671,6 +671,9 @@ export default function App() {
     setIsNewUser,
     acceptInvitation,
     refreshMyOrganizations,
+    sessionSupersededNotice,
+    setSessionSupersededNotice,
+    broadcastSyncEvent,
   } = useAuth();
 
   // Atlan Active Persona & User Ecosystem State
@@ -1230,37 +1233,94 @@ export default function App() {
   const [docExplorerView, setDocExplorerView] = useState(getInitialDocViewFromUrl); // 'connectors' | 'ingest' | 'documents' | 'claims'
   const [docSourceFilter, setDocSourceFilter] = useState('all'); // 'all' | source_id
 
-  // Load organization-specific workspaces from storage or org config
+  // Load organization-specific workspaces from backend database (with local/config cache fallback)
   useEffect(() => {
-    if (activeOrg?.id) {
-      try {
-        const saved = localStorage.getItem(`ctl_workspaces_${activeOrg.id}`);
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            setWorkspaces(parsed);
-            if (!activeWorkspace || !parsed.some(w => w.id === activeWorkspace.id)) {
-              setActiveWorkspace(parsed[0]);
-            }
-            return;
+    if (!activeOrg?.id) {
+      setWorkspaces([]);
+      setActiveWorkspace(null);
+      return;
+    }
+
+    let isMounted = true;
+
+    // 1. Initial cache check for instant paint
+    try {
+      const saved = localStorage.getItem(`ctl_workspaces_${activeOrg.id}`);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setWorkspaces(parsed);
+          if (!activeWorkspace || !parsed.some(w => w.id === activeWorkspace.id)) {
+            setActiveWorkspace(parsed[0]);
           }
         }
-      } catch (e) {
-        console.warn('Failed to parse saved workspaces:', e);
-      }
-      if (activeOrg.governance_config?.workspaces && Array.isArray(activeOrg.governance_config.workspaces) && activeOrg.governance_config.workspaces.length > 0) {
+      } else if (activeOrg.governance_config?.workspaces && Array.isArray(activeOrg.governance_config.workspaces) && activeOrg.governance_config.workspaces.length > 0) {
         const orgWs = activeOrg.governance_config.workspaces;
         setWorkspaces(orgWs);
         setActiveWorkspace(orgWs[0]);
         localStorage.setItem(`ctl_workspaces_${activeOrg.id}`, JSON.stringify(orgWs));
-        return;
       }
-      setWorkspaces([]);
-      setActiveWorkspace(null);
-    } else {
-      setWorkspaces([]);
-      setActiveWorkspace(null);
+    } catch (e) {
+      console.warn('Error reading workspace cache:', e);
     }
+
+    // 2. Fetch live source-of-truth from backend
+    async function fetchOrgWorkspaces() {
+      try {
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+        const res = await fetch(`/v1/organizations/${activeOrg.id}/workspaces`, { headers });
+        if (res.ok && isMounted) {
+          const remoteWs = await res.json();
+          if (Array.isArray(remoteWs) && remoteWs.length > 0) {
+            setWorkspaces(remoteWs);
+            localStorage.setItem(`ctl_workspaces_${activeOrg.id}`, JSON.stringify(remoteWs));
+            setActiveWorkspace(prev => {
+              if (prev && remoteWs.some(w => w.id === prev.id)) {
+                return prev;
+              }
+              return remoteWs[0];
+            });
+          }
+        }
+      } catch (err) {
+        console.warn('Failed to fetch remote workspaces:', err);
+      }
+    }
+
+    fetchOrgWorkspaces();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [activeOrg?.id, token]);
+
+  // Multi-tab workspace synchronization
+  useEffect(() => {
+    let channel = null;
+    if (typeof BroadcastChannel !== 'undefined') {
+      try {
+        channel = new BroadcastChannel('ctl_sync_channel');
+        channel.onmessage = (event) => {
+          const { type, payload } = event.data || {};
+          if (type === 'WORKSPACE_CHANGED' && payload?.orgId === activeOrg?.id) {
+            if (payload.activeWorkspace) {
+              setActiveWorkspace(payload.activeWorkspace);
+            }
+            if (activeOrg?.id) {
+              fetch(`/v1/organizations/${activeOrg.id}/workspaces`)
+                .then(r => r.json())
+                .then(data => {
+                  if (Array.isArray(data)) setWorkspaces(data);
+                })
+                .catch(() => {});
+            }
+          }
+        };
+      } catch (e) {}
+    }
+    return () => {
+      if (channel) channel.close();
+    };
   }, [activeOrg?.id]);
 
   // Chat Sessions for Sidebar History and AI Copilot Chat Sync
@@ -1527,16 +1587,24 @@ export default function App() {
   const [isFetchingLineage, setIsFetchingLineage] = useState(false);
   const [copiedToken, setCopiedToken] = useState(null);
 
-  const handleCreateWorkspace = (e) => {
+  const handleCreateWorkspace = async (e) => {
     e?.preventDefault();
     if (!newWorkspaceName.trim()) return;
+    const name = newWorkspaceName.trim();
+    const domain = newWorkspaceDomain;
+    const desc = newWorkspaceDescription.trim() || 'Custom department workspace';
+    const icon = domain === 'secops' ? '🛡️' : domain === 'hr' ? '👥' : domain === 'finance' ? '💳' : domain === 'staging' ? '🧪' : '📁';
+
+    const tempId = `ws_${Date.now()}`;
     const newWs = {
-      id: `ws_${Date.now()}`,
-      name: newWorkspaceName.trim(),
-      icon: newWorkspaceDomain === 'secops' ? '🛡️' : newWorkspaceDomain === 'hr' ? '👥' : newWorkspaceDomain === 'finance' ? '💳' : newWorkspaceDomain === 'staging' ? '🧪' : '📁',
-      domain: newWorkspaceDomain,
-      description: newWorkspaceDescription.trim() || 'Custom department workspace'
+      id: tempId,
+      name,
+      icon,
+      domain,
+      description: desc
     };
+
+    // Optimistic local update
     setWorkspaces(prev => {
       const updated = [...prev, newWs];
       if (activeOrg?.id) {
@@ -1550,12 +1618,49 @@ export default function App() {
     setNewWorkspaceDescription('');
     closeDropdowns();
     showToast(`Created and switched to workspace '${newWs.name}'!`);
+
+    // Persist to backend database!
+    if (activeOrg?.id) {
+      try {
+        const headers = { 'Content-Type': 'application/json' };
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+        const res = await fetch(`/v1/organizations/${activeOrg.id}/workspaces`, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({
+            name,
+            domain,
+            icon,
+            description: desc
+          })
+        });
+        if (res.ok) {
+          const persistedWs = await res.json();
+          setWorkspaces(prev => {
+            const updated = prev.map(w => w.id === tempId ? persistedWs : w);
+            localStorage.setItem(`ctl_workspaces_${activeOrg.id}`, JSON.stringify(updated));
+            return updated;
+          });
+          setActiveWorkspace(persistedWs);
+          broadcastSyncEvent?.('WORKSPACE_CHANGED', {
+            orgId: activeOrg.id,
+            activeWorkspace: persistedWs
+          });
+        }
+      } catch (err) {
+        console.warn('Failed to save workspace to backend:', err);
+      }
+    }
   };
 
   const handleSwitchWorkspace = (ws) => {
     setActiveWorkspace(ws);
     closeDropdowns();
     showToast(`Switched workspace to '${ws.name}'`);
+    broadcastSyncEvent?.('WORKSPACE_CHANGED', {
+      orgId: activeOrg?.id,
+      activeWorkspace: ws
+    });
   };
 
   // -------------------------------------------------------------
@@ -8381,6 +8486,126 @@ export default function App() {
 
       {/* Enterprise Authentication & Persona Switching Modal */}
       <SignInModal />
+
+      {/* Session Superseded Security Alert Modal (Single Device Policy Enforced) */}
+      {sessionSupersededNotice && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(15, 23, 42, 0.75)',
+            backdropFilter: 'blur(8px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 99999,
+            padding: '16px',
+          }}
+        >
+          <div
+            style={{
+              width: '100%',
+              maxWidth: '480px',
+              backgroundColor: '#FFFFFF',
+              borderRadius: '16px',
+              border: '1px solid #FECACA',
+              boxShadow: '0 25px 60px -15px rgba(220, 38, 38, 0.25)',
+              overflow: 'hidden',
+              display: 'flex',
+              flexDirection: 'column',
+            }}
+          >
+            <div style={{ height: '4px', background: 'linear-gradient(90deg, #EF4444, #DC2626, #B91C1C)' }} />
+            <div style={{ padding: '24px 28px', textAlign: 'center' }}>
+              <div
+                style={{
+                  width: '56px',
+                  height: '56px',
+                  borderRadius: '16px',
+                  backgroundColor: '#FEF2F2',
+                  border: '1px solid #FECACA',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  margin: '0 auto 16px auto',
+                  color: '#DC2626',
+                }}
+              >
+                <ShieldAlert size={28} />
+              </div>
+
+              <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: '#0F172A', margin: '0 0 8px 0' }}>
+                Active Session Terminated
+              </h3>
+
+              <div
+                style={{
+                  padding: '4px 10px',
+                  borderRadius: '6px',
+                  backgroundColor: '#FEF2F2',
+                  color: '#991B1B',
+                  fontSize: '0.74rem',
+                  fontWeight: 600,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  marginBottom: '14px',
+                }}
+              >
+                <span>Enterprise Single-Device Security Policy</span>
+              </div>
+
+              <p style={{ fontSize: '0.82rem', color: '#475569', lineHeight: 1.5, margin: '0 0 20px 0' }}>
+                {sessionSupersededNotice}
+              </p>
+
+              <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSessionSupersededNotice(null);
+                    setAuthModalTab('login');
+                    setIsAuthModalOpen(true);
+                  }}
+                  style={{
+                    flex: 1,
+                    padding: '11px 18px',
+                    borderRadius: '8px',
+                    border: 'none',
+                    background: 'linear-gradient(135deg, #FFAB4A 0%, #EA580C 100%)',
+                    color: '#FFFFFF',
+                    fontSize: '0.84rem',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    boxShadow: '0 4px 12px rgba(234, 88, 12, 0.25)',
+                  }}
+                >
+                  Sign In Again on this Device
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSessionSupersededNotice(null)}
+                  style={{
+                    padding: '11px 16px',
+                    borderRadius: '8px',
+                    border: '1px solid #CBD5E1',
+                    backgroundColor: '#FFFFFF',
+                    color: '#64748B',
+                    fontSize: '0.84rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                  }}
+                >
+                  Dismiss
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Enterprise Organization & Workspace Governance Modal */}
       <OrganizationSettingsModal

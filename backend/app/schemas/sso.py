@@ -29,6 +29,7 @@ class SSOCallbackRequest(BaseModel):
     # Developer sandbox override parameters for instant testing
     mock_email: Optional[str] = None
     mock_name: Optional[str] = None
+    device_id: Optional[str] = None
 
 
 class SSOSandboxLoginRequest(BaseModel):
@@ -37,3 +38,4 @@ class SSOSandboxLoginRequest(BaseModel):
     full_name: Optional[str] = Field(None, description="Full name of employee")
     organization_name: Optional[str] = Field(None, description="Explicit organization or tenant name if not auto-inferred")
     role: Optional[str] = Field(None, description="Target role: admin, data_owner, reviewer, developer")
+    device_id: Optional[str] = None

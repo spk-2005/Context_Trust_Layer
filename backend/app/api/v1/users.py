@@ -110,6 +110,14 @@ async def update_user(
         user.department = user_in.department
     if user_in.avatar_url is not None:
         user.avatar_url = user_in.avatar_url
+    if user_in.phone is not None:
+        user.phone = user_in.phone
+    if user_in.bio is not None:
+        user.bio = user_in.bio
+    if user_in.timezone is not None:
+        user.timezone = user_in.timezone
+    if user_in.user_preferences is not None:
+        user.user_preferences = user_in.user_preferences
     if user_in.status is not None:
         user.status = user_in.status
 
