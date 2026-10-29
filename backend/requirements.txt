@@ -27,3 +27,4 @@ bcrypt
 pyjwt
 passlib
 cryptography
+slack-sdk

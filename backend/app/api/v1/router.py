@@ -21,6 +21,7 @@ from app.api.v1.merkle import router as merkle_router
 from app.api.v1.drift import router as drift_router
 from app.api.v1.folders import router as folders_router
 from app.api.v1.review import router as review_router
+from app.api.v1.slack import router as slack_router
 
 api_v1_router = APIRouter(prefix="/v1")
 
@@ -47,6 +48,7 @@ api_v1_router.include_router(red_team_router)
 api_v1_router.include_router(merkle_router)
 api_v1_router.include_router(drift_router)
 api_v1_router.include_router(review_router)
+api_v1_router.include_router(slack_router)
 
 
 

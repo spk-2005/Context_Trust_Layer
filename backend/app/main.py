@@ -10,6 +10,7 @@ from app.db.init_db import init_db_schema
 
 
 from app.ingestion.scheduler import scheduler
+from app.services.slack_worker import slack_worker
 
 
 @asynccontextmanager
@@ -19,7 +20,9 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         print(f"Warning: Failed to auto-initialize DB schema: {e}")
     scheduler.start()
+    slack_worker.start()
     yield
+    slack_worker.stop()
     scheduler.stop()
 
 

@@ -20,6 +20,14 @@ from app.db.models.user import User
 from app.db.models.user_activity import UserActivityLog
 from app.db.models.webhook import WebhookSubscription, WebhookDispatchLog
 from app.db.models.hitl_escalation import HitlEscalation
+from app.db.models.slack import (
+    SlackInstallation,
+    SlackUserIdentity,
+    SlackInboundRequest,
+    SlackJob,
+    SlackDeliveryLedger,
+    SlackFeedback,
+)
 
 __all__ = [
     "Base",
@@ -46,5 +54,11 @@ __all__ = [
     "WebhookSubscription",
     "WebhookDispatchLog",
     "HitlEscalation",
+    "SlackInstallation",
+    "SlackUserIdentity",
+    "SlackInboundRequest",
+    "SlackJob",
+    "SlackDeliveryLedger",
+    "SlackFeedback",
 ]
 

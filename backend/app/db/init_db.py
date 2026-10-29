@@ -182,6 +182,107 @@ async def init_db_schema():
         "CREATE INDEX IF NOT EXISTS idx_org_invites_org ON organization_invites(organization_id);",
         "CREATE INDEX IF NOT EXISTS idx_org_invites_token ON organization_invites(token);",
         "CREATE INDEX IF NOT EXISTS idx_org_invites_email ON organization_invites(email);",
+        """
+        CREATE TABLE IF NOT EXISTS slack_installations (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+            slack_team_id VARCHAR(32) NOT NULL UNIQUE,
+            slack_team_name VARCHAR(255) NOT NULL DEFAULT '',
+            bot_user_id VARCHAR(32) NOT NULL DEFAULT '',
+            encrypted_bot_token TEXT NOT NULL,
+            installed_by_user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+            is_active BOOLEAN NOT NULL DEFAULT TRUE,
+            scopes JSONB DEFAULT '["commands", "chat:write"]'::jsonb,
+            created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+            updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+            revoked_at TIMESTAMPTZ
+        );
+        """,
+        "CREATE INDEX IF NOT EXISTS idx_slack_installations_team ON slack_installations(slack_team_id);",
+        "CREATE INDEX IF NOT EXISTS idx_slack_installations_org ON slack_installations(organization_id);",
+        "CREATE INDEX IF NOT EXISTS idx_slack_installations_active ON slack_installations(is_active);",
+        """
+        CREATE TABLE IF NOT EXISTS slack_user_identities (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+            slack_team_id VARCHAR(32) NOT NULL,
+            slack_user_id VARCHAR(32) NOT NULL,
+            trulin_user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+            is_active BOOLEAN NOT NULL DEFAULT TRUE,
+            linked_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+            last_used_at TIMESTAMPTZ,
+            CONSTRAINT uq_slack_team_user UNIQUE (slack_team_id, slack_user_id)
+        );
+        """,
+        "CREATE INDEX IF NOT EXISTS idx_slack_identities_team_user ON slack_user_identities(slack_team_id, slack_user_id);",
+        "CREATE INDEX IF NOT EXISTS idx_slack_identities_org ON slack_user_identities(organization_id);",
+        "CREATE INDEX IF NOT EXISTS idx_slack_identities_trulin_user ON slack_user_identities(trulin_user_id);",
+        """
+        CREATE TABLE IF NOT EXISTS slack_inbound_requests (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE,
+            slack_team_id VARCHAR(32) NOT NULL,
+            slack_user_id VARCHAR(32) NOT NULL,
+            slack_channel_id VARCHAR(32) NOT NULL,
+            command VARCHAR(64) NOT NULL DEFAULT '/trulin',
+            query_fingerprint VARCHAR(64) NOT NULL UNIQUE,
+            response_url TEXT NOT NULL,
+            response_url_expires_at TIMESTAMPTZ NOT NULL,
+            trigger_id VARCHAR(64),
+            trace_id VARCHAR(64) NOT NULL,
+            raw_text TEXT NOT NULL DEFAULT '',
+            status VARCHAR(32) NOT NULL DEFAULT 'QUEUED',
+            created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+        );
+        """,
+        "CREATE INDEX IF NOT EXISTS idx_slack_requests_fingerprint ON slack_inbound_requests(query_fingerprint);",
+        "CREATE INDEX IF NOT EXISTS idx_slack_requests_trace ON slack_inbound_requests(trace_id);",
+        "CREATE INDEX IF NOT EXISTS idx_slack_requests_org ON slack_inbound_requests(organization_id);",
+        "CREATE INDEX IF NOT EXISTS idx_slack_requests_created_at ON slack_inbound_requests(created_at);",
+        """
+        CREATE TABLE IF NOT EXISTS slack_jobs (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            inbound_request_id UUID NOT NULL REFERENCES slack_inbound_requests(id) ON DELETE CASCADE,
+            status VARCHAR(32) NOT NULL DEFAULT 'QUEUED',
+            attempts INTEGER NOT NULL DEFAULT 0,
+            max_attempts INTEGER NOT NULL DEFAULT 3,
+            locked_at TIMESTAMPTZ,
+            locked_by VARCHAR(64),
+            next_run_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+            error_message TEXT,
+            created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+            updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+        );
+        """,
+        "CREATE INDEX IF NOT EXISTS idx_slack_jobs_status_next_run ON slack_jobs(status, next_run_at);",
+        "CREATE INDEX IF NOT EXISTS idx_slack_jobs_request ON slack_jobs(inbound_request_id);",
+        """
+        CREATE TABLE IF NOT EXISTS slack_delivery_ledger (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            inbound_request_id UUID NOT NULL REFERENCES slack_inbound_requests(id) ON DELETE CASCADE,
+            delivery_target VARCHAR(32) NOT NULL DEFAULT 'response_url',
+            delivery_status VARCHAR(32) NOT NULL DEFAULT 'SUCCESS',
+            http_status INTEGER,
+            trace_id VARCHAR(64) NOT NULL,
+            delivered_at TIMESTAMPTZ NOT NULL DEFAULT now()
+        );
+        """,
+        "CREATE INDEX IF NOT EXISTS idx_slack_ledger_request ON slack_delivery_ledger(inbound_request_id);",
+        "CREATE INDEX IF NOT EXISTS idx_slack_ledger_trace ON slack_delivery_ledger(trace_id);",
+        "CREATE INDEX IF NOT EXISTS idx_slack_ledger_status ON slack_delivery_ledger(delivery_status);",
+        """
+        CREATE TABLE IF NOT EXISTS slack_feedbacks (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            trace_id VARCHAR(64) NOT NULL,
+            organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+            trulin_user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+            feedback_type VARCHAR(50) NOT NULL,
+            reviewer_notes TEXT,
+            created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+        );
+        """,
+        "CREATE INDEX IF NOT EXISTS idx_slack_feedback_trace ON slack_feedbacks(trace_id);",
+        "CREATE INDEX IF NOT EXISTS idx_slack_feedback_org ON slack_feedbacks(organization_id);",
     ]
 
     async with engine.begin() as conn:

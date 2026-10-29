@@ -64,6 +64,15 @@ class Settings(BaseSettings):
     okta_client_secret: str | None = None
     okta_domain: str | None = None
 
+    # Slack Integration Settings (Trulin Policy Assistant Surface)
+    slack_enabled: bool = False
+    slack_client_id: str | None = None
+    slack_client_secret: str | None = None
+    slack_signing_secret: str | None = None
+    slack_app_id: str | None = None
+    slack_redirect_uri: str = "http://localhost:8000/v1/slack/oauth/callback"
+    trulin_public_url: str = "http://localhost:4000"
+
     @model_validator(mode="after")
     def assemble_db_connection(self) -> "Settings":
         if not self.database_url:
