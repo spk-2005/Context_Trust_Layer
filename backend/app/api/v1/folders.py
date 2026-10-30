@@ -214,3 +214,19 @@ async def move_document_to_folder(
         "folder_id": str(doc.folder_id),
         "message": "Document moved successfully.",
     }
+
+
+@router.post("/auto-organize")
+async def auto_organize_workspace_folders(
+    org_id: uuid.UUID = Depends(_resolve_organization_id),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Intelligently provisions standard enterprise folders and auto-files
+    unorganized / unclassified documents into appropriate domain and connector folders.
+    """
+    service = FolderService(db)
+    result = await service.auto_organize_documents(organization_id=org_id)
+    await db.commit()
+    return result
+

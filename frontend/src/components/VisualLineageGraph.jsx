@@ -2208,7 +2208,7 @@ export default function VisualLineageGraph({
               <style>{`
                 .trulin-artifact-row {
                   transition: background 0.22s cubic-bezier(0.16, 1, 0.3, 1);
-                  background: #FFFFFF;
+                  background: #FAF8F5;
                   cursor: pointer;
                 }
                 .trulin-artifact-row:hover {

@@ -217,6 +217,16 @@ class DecisionEvaluator:
                     suggested_action="Investigate potential duplicate submission with vendor before approving payment.",
                     t0=t0, now_utc=now_utc,
                 )
+            # 7. Refund exceeding Tier 1 authority threshold without supervisor sign-off
+            if "refund" in dec_lower and ("without" in dec_lower or "bypass" in dec_lower or "override" in dec_lower) and any(m in dec_lower for m in ["manager", "supervisor", "sign-off", "signoff", "lead"]):
+                reasons.append("Approval Hierarchy Violation: Support agents cannot approve refunds over $50.00 independently; Tier 2 or Customer Experience Manager sign-off is mandatory.")
+                return await self._finalize_response(
+                    req=req, db_session=db_session, audit_id=audit_id,
+                    decision="BLOCK", validity="INSUFFICIENT", risk="HIGH",
+                    reasons=reasons, preferred_source=it.source,
+                    suggested_action="Escalate refund request to Tier 2 Lead or Customer Experience Manager for authorized sign-off.",
+                    t0=t0, now_utc=now_utc,
+                )
 
         # 3. Analyze Sources, Authority, and Dates
         sources_with_dates = []

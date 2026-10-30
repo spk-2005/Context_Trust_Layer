@@ -28,7 +28,17 @@ import {
   Info,
   Network,
   Sparkles,
-  BookOpen
+  BookOpen,
+  Shield,
+  Lock,
+  Scale,
+  Coins,
+  Users,
+  MessageSquare,
+  CheckSquare,
+  Briefcase,
+  ArrowLeft,
+  ChevronLeft
 } from 'lucide-react';
 
 export default function DocumentWorkspaceExplorer({
@@ -213,7 +223,7 @@ export default function DocumentWorkspaceExplorer({
         setAllDocuments(docsData);
         setSelectedDocId(prev => {
           if (prev && docsData.some(d => d.id === prev)) return prev;
-          return docsData.length > 0 ? docsData[0].id : null;
+          return null;
         });
       }
     } catch (err) {
@@ -244,6 +254,130 @@ export default function DocumentWorkspaceExplorer({
   const activeFolder = useMemo(() => {
     return folders.find(f => f.id === activeFolderId) || null;
   }, [folders, activeFolderId]);
+
+  // Breadcrumb path from root to active folder
+  const breadcrumbs = useMemo(() => {
+    if (!activeFolderId) return [{ id: null, name: 'Vault Root' }];
+    const chain = [];
+    let cur = folders.find(f => f.id === activeFolderId);
+    while (cur) {
+      chain.unshift(cur);
+      if (!cur.parent_id) break;
+      cur = folders.find(f => f.id === cur.parent_id);
+    }
+    return [{ id: null, name: 'Vault Root' }, ...chain];
+  }, [folders, activeFolderId]);
+
+  // Direct subfolders for current folder
+  const currentChildFolders = useMemo(() => {
+    return folders.filter(f => f.parent_id === activeFolderId);
+  }, [folders, activeFolderId]);
+
+  // Direct documents for current folder
+  const currentFolderDocs = useMemo(() => {
+    if (!activeFolderId) {
+      const inbox = folders.find(f => f.is_system && f.folder_type === 'inbox');
+      return inbox ? (docsByFolder[inbox.id] || docsByFolder['inbox'] || []) : allDocuments;
+    }
+    const current = folders.find(f => f.id === activeFolderId);
+    if (current?.is_system && current?.folder_type === 'inbox') {
+      return (docsByFolder[activeFolderId] || []).concat(docsByFolder['inbox'] || []);
+    }
+    return docsByFolder[activeFolderId] || [];
+  }, [activeFolderId, folders, docsByFolder, allDocuments]);
+
+  // Handler for intelligent auto-organize
+  const [isAutoOrganizing, setIsAutoOrganizing] = useState(false);
+  const handleAutoOrganize = async () => {
+    setIsAutoOrganizing(true);
+    try {
+      const headers = {};
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+      headers['X-Organization-Id'] = orgId;
+
+      showToast?.('Intelligently auto-organizing documents into enterprise folders...');
+      const res = await fetch(`/v1/folders/auto-organize?organization_id=${orgId}`, {
+        method: 'POST',
+        headers
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        showToast?.(`Successfully filed ${data.organized_count} document${data.organized_count === 1 ? '' : 's'} into enterprise domain & connector folders!`);
+        await fetchData(true);
+      } else {
+        const err = await res.json();
+        showToast?.(err.detail || 'Auto-organize failed', 'error');
+      }
+    } catch (err) {
+      showToast?.('Error organizing documents: ' + err.message, 'error');
+    } finally {
+      setIsAutoOrganizing(false);
+    }
+  };
+
+  // Helper to render icon for folders
+  const renderFolderIcon = (node, size = 15) => {
+    const color = node.color || '#FFAB4A';
+    if (node.is_system && node.folder_type === 'inbox') {
+      return <Inbox size={size} style={{ color: '#6366F1', flexShrink: 0 }} />;
+    }
+    if (node.folder_type === 'governance') {
+      return <Shield size={size} style={{ color: '#FFAB4A', flexShrink: 0 }} />;
+    }
+    if (node.folder_type === 'connectors') {
+      return <Network size={size} style={{ color: '#6366F1', flexShrink: 0 }} />;
+    }
+    if (node.icon === 'lock') return <Lock size={size} style={{ color: '#3B82F6', flexShrink: 0 }} />;
+    if (node.icon === 'scale') return <Scale size={size} style={{ color: '#8B5CF6', flexShrink: 0 }} />;
+    if (node.icon === 'dollar-sign') return <Coins size={size} style={{ color: '#10B981', flexShrink: 0 }} />;
+    if (node.icon === 'users') return <Users size={size} style={{ color: '#F59E0B', flexShrink: 0 }} />;
+    if (node.icon === 'message-square') return <MessageSquare size={size} style={{ color: '#E11D48', flexShrink: 0 }} />;
+    if (node.icon === 'git-branch') return <GitBranch size={size} style={{ color: '#334155', flexShrink: 0 }} />;
+    if (node.icon === 'book-open') return <BookOpen size={size} style={{ color: '#0284C7', flexShrink: 0 }} />;
+    if (node.icon === 'check-square') return <CheckSquare size={size} style={{ color: '#0284C7', flexShrink: 0 }} />;
+    if (node.icon === 'briefcase') return <Briefcase size={size} style={{ color: '#64748B', flexShrink: 0 }} />;
+    return <Folder size={size} style={{ color, flexShrink: 0 }} />;
+  };
+
+  // Helper to render source badge
+  const renderSourceBadge = (doc) => {
+    const title = (doc.title || '').toLowerCase();
+    const type = (doc.document_type || '').toLowerCase();
+    if (type === 'slack_message' || title.includes('slack')) {
+      return (
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.68rem', padding: '2px 7px', borderRadius: '4px', background: '#FEE2E2', color: '#991B1B', fontWeight: 600 }}>
+          <MessageSquare size={10} /> Slack
+        </span>
+      );
+    }
+    if (title.includes('github')) {
+      return (
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.68rem', padding: '2px 7px', borderRadius: '4px', background: '#F1F5F9', color: '#334155', fontWeight: 600 }}>
+          <GitBranch size={10} /> GitHub
+        </span>
+      );
+    }
+    if (title.includes('confluence')) {
+      return (
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.68rem', padding: '2px 7px', borderRadius: '4px', background: '#E0F2FE', color: '#0369A1', fontWeight: 600 }}>
+          <BookOpen size={10} /> Confluence
+        </span>
+      );
+    }
+    if (title.includes('jira')) {
+      return (
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.68rem', padding: '2px 7px', borderRadius: '4px', background: '#E0F2FE', color: '#0284C7', fontWeight: 600 }}>
+          <CheckSquare size={10} /> Jira
+        </span>
+      );
+    }
+    return (
+      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.68rem', padding: '2px 7px', borderRadius: '4px', background: '#FFF7ED', color: '#C2410C', fontWeight: 600 }}>
+        <Upload size={10} /> Manual Upload
+      </span>
+    );
+  };
 
   // 2. Fetch details & artifacts for selected document (Live Preview)
   useEffect(() => {
@@ -854,12 +988,8 @@ export default function DocumentWorkspaceExplorer({
               )}
             </span>
 
-            {/* Folder Icon (NO numbers anywhere) */}
-            {node.is_system ? (
-              <Inbox size={15} style={{ color: '#6366F1', flexShrink: 0 }} />
-            ) : (
-              <Folder size={15} style={{ color: node.color || '#3B82F6', flexShrink: 0 }} />
-            )}
+            {/* Folder Icon (Customized per folder type/domain) */}
+            {renderFolderIcon(node, 15)}
 
             {/* Folder Name OR Inline Rename Input (Just like Drive / Windows Explorer) */}
             {renamingFolderId === node.id ? (
@@ -1030,12 +1160,12 @@ export default function DocumentWorkspaceExplorer({
         style={{
           width: '360px',
           minWidth: '320px',
-          background: '#FFFFFF',
+          background: '#FAF8F5',
           borderRadius: '8px',
-          border: '1px solid var(--border-subtle, #E2E8F0)',
+          border: '1px solid var(--border-subtle)',
           display: 'flex',
           flexDirection: 'column',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+          boxShadow: 'none',
           overflow: 'hidden'
         }}
       >
@@ -1043,8 +1173,8 @@ export default function DocumentWorkspaceExplorer({
         <div
           style={{
             padding: '10px 12px',
-            borderBottom: '1px solid var(--border-subtle, #E2E8F0)',
-            background: '#F8FAFC',
+            borderBottom: '1px solid var(--border-subtle)',
+            background: '#FAF8F5',
             display: 'flex',
             flexDirection: 'column',
             gap: '8px'
@@ -1209,12 +1339,12 @@ export default function DocumentWorkspaceExplorer({
         style={{
           flex: 1,
           minWidth: 0,
-          background: '#FFFFFF',
+          background: '#FAF8F5',
           borderRadius: '8px',
-          border: '1px solid var(--border-subtle, #E2E8F0)',
+          border: '1px solid var(--border-subtle)',
           display: 'flex',
           flexDirection: 'column',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+          boxShadow: 'none',
           overflow: 'hidden',
           maxHeight: '500px' // Minimal height as requested by user!
         }}
@@ -1242,8 +1372,8 @@ export default function DocumentWorkspaceExplorer({
               <div
                 style={{
                   padding: '9px 14px',
-                  borderBottom: '1px solid var(--border-subtle, #E2E8F0)',
-                  background: '#F8FAFC',
+                  borderBottom: '1px solid var(--border-subtle)',
+                  background: '#FAF8F5',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
@@ -1251,6 +1381,28 @@ export default function DocumentWorkspaceExplorer({
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, flex: 1 }}>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedDocId(null)}
+                    className="btn btn-secondary"
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      padding: '3px 8px',
+                      fontSize: '0.72rem',
+                      fontWeight: 600,
+                      background: '#FFFFFF',
+                      border: '1px solid var(--border-subtle)',
+                      borderRadius: '5px',
+                      cursor: 'pointer',
+                      color: 'var(--text-secondary)'
+                    }}
+                    title="Return to folder view"
+                  >
+                    <ArrowLeft size={12} />
+                    <span>Back</span>
+                  </button>
                   <FileText size={15} style={{ color: '#2563EB', flexShrink: 0 }} />
                   <span
                     style={{
@@ -1361,8 +1513,8 @@ export default function DocumentWorkspaceExplorer({
                   alignItems: 'center',
                   gap: '4px',
                   padding: '4px 12px',
-                  borderBottom: '1px solid var(--border-subtle, #E2E8F0)',
-                  background: '#FFFFFF',
+                  borderBottom: '1px solid var(--border-subtle)',
+                  background: '#FAF8F5',
                   overflowX: 'auto'
                 }}
               >
@@ -1412,7 +1564,7 @@ export default function DocumentWorkspaceExplorer({
                       style={{
                         flex: 1,
                         overflowY: 'auto',
-                        background: '#F1F5F9',
+                        background: '#FAF8F5',
                         padding: '14px 18px'
                       }}
                     >
@@ -1952,26 +2104,377 @@ export default function DocumentWorkspaceExplorer({
             </>
           );
         })() : (
-          /* Empty Selection Placeholder */
+          /* INDUSTRIAL FOLDER WORKSPACE & BREADCRUMB NAVIGATION */
           <div
             style={{
               flex: 1,
-              minHeight: '260px',
               display: 'flex',
               flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              padding: '30px',
-              textAlign: 'center',
-              color: 'var(--text-muted)'
+              background: '#FAF8F5',
+              overflowY: 'auto',
+              minHeight: '440px'
             }}
           >
-            <FileText size={32} style={{ color: '#CBD5E1', marginBottom: '10px' }} />
-            <div style={{ fontSize: '0.84rem', fontWeight: 600, color: 'var(--text-main)', marginBottom: '4px' }}>
-              Select a file to preview
+            {/* 1. TOP BREADCRUMB BAR */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '10px 16px',
+                borderBottom: '1px solid var(--border-subtle)',
+                background: '#FAF8F5',
+                flexWrap: 'wrap',
+                gap: '8px'
+              }}
+            >
+              {/* Interactive Clickable Breadcrumb Trail */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
+                {breadcrumbs.map((crumb, idx) => {
+                  const isLast = idx === breadcrumbs.length - 1;
+                  return (
+                    <React.Fragment key={crumb.id || 'root'}>
+                      {idx > 0 && <ChevronRight size={12} style={{ color: '#94A3B8' }} />}
+                      <span
+                        onClick={() => {
+                          setActiveFolderId(crumb.id);
+                          setSelectedDocId(null);
+                        }}
+                        style={{
+                          cursor: isLast ? 'default' : 'pointer',
+                          fontWeight: isLast ? 700 : 500,
+                          color: isLast ? 'var(--text-main)' : '#0284C7',
+                          padding: '2px 6px',
+                          borderRadius: '4px',
+                          transition: 'background 0.15s ease'
+                        }}
+                        onMouseEnter={e => {
+                          if (!isLast) e.currentTarget.style.background = '#F0ECE4';
+                        }}
+                        onMouseLeave={e => {
+                          if (!isLast) e.currentTarget.style.background = 'transparent';
+                        }}
+                        title={isLast ? 'Current folder' : `Jump to ${crumb.name}`}
+                      >
+                        {crumb.name}
+                      </span>
+                    </React.Fragment>
+                  );
+                })}
+              </div>
+
+              {/* Action Toolbar */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                {!readOnly && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setUploadFolderId(activeFolderId);
+                        setShowUploadModal(true);
+                      }}
+                      className="btn btn-secondary"
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '5px',
+                        padding: '4px 10px',
+                        fontSize: '0.74rem',
+                        fontWeight: 600,
+                        background: '#FFFFFF',
+                        border: '1px solid var(--border-subtle)',
+                        borderRadius: '6px',
+                        cursor: 'pointer'
+                      }}
+                      title="Upload file into this folder"
+                    >
+                      <Upload size={13} style={{ color: '#0284C7' }} />
+                      <span>Upload</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => startInlineCreate(activeFolderId)}
+                      className="btn btn-secondary"
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '5px',
+                        padding: '4px 10px',
+                        fontSize: '0.74rem',
+                        fontWeight: 600,
+                        background: '#FFFFFF',
+                        border: '1px solid var(--border-subtle)',
+                        borderRadius: '6px',
+                        cursor: 'pointer'
+                      }}
+                      title="Create subfolder here"
+                    >
+                      <FolderPlus size={13} style={{ color: '#FFAB4A' }} />
+                      <span>+ Subfolder</span>
+                    </button>
+                  </>
+                )}
+
+                <button
+                  type="button"
+                  onClick={handleAutoOrganize}
+                  disabled={isAutoOrganizing}
+                  className="btn btn-secondary"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '5px',
+                    padding: '4px 10px',
+                    fontSize: '0.74rem',
+                    fontWeight: 600,
+                    background: '#FFFFFF',
+                    border: '1px solid #CBD5E1',
+                    borderRadius: '6px',
+                    cursor: isAutoOrganizing ? 'not-allowed' : 'pointer',
+                    color: '#D97706'
+                  }}
+                  title="Automatically organize all unclassified files into domain & connector folders"
+                >
+                  <Sparkles size={13} className={isAutoOrganizing ? 'spin' : ''} style={{ color: '#F59E0B' }} />
+                  <span>{isAutoOrganizing ? 'Filing...' : 'Auto-Organize'}</span>
+                </button>
+              </div>
             </div>
-            <div style={{ fontSize: '0.74rem', maxWidth: '240px' }}>
-              Click any document in the directory tree on the left to read its live content, claims, and hash seal.
+
+            {/* 2. FOLDER OVERVIEW HEADER */}
+            <div
+              style={{
+                padding: '16px 20px',
+                borderBottom: '1px solid var(--border-subtle)',
+                background: '#FAF8F5',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '12px'
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div
+                  style={{
+                    width: '38px',
+                    height: '38px',
+                    borderRadius: '10px',
+                    background: '#FFFFFF',
+                    border: '1px solid var(--border-subtle)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
+                  }}
+                >
+                  {activeFolder ? renderFolderIcon(activeFolder, 20) : <Folder size={20} style={{ color: '#FFAB4A' }} />}
+                </div>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: 'var(--text-main)' }}>
+                      {activeFolder ? activeFolder.name : 'All Vault Documents'}
+                    </h3>
+                    <span
+                      style={{
+                        fontSize: '0.66rem',
+                        fontWeight: 600,
+                        padding: '1px 8px',
+                        borderRadius: '999px',
+                        background: activeFolder?.is_system ? '#EEF2FF' : '#F1F5F9',
+                        color: activeFolder?.is_system ? '#4338CA' : '#475569',
+                        border: '1px solid rgba(0,0,0,0.06)'
+                      }}
+                    >
+                      {activeFolder?.folder_type ? activeFolder.folder_type.replace('_', ' ').toUpperCase() : 'VAULT'}
+                    </span>
+                  </div>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                    {currentChildFolders.length} subfolders • {currentFolderDocs.length} documents in this scope
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* 3. SUBFOLDERS SECTION (GRID) */}
+            {currentChildFolders.length > 0 && (
+              <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border-subtle)' }}>
+                <div style={{ fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '10px', letterSpacing: '0.04em' }}>
+                  Subfolders ({currentChildFolders.length})
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '10px' }}>
+                  {currentChildFolders.map(child => (
+                    <div
+                      key={child.id}
+                      onClick={() => {
+                        setActiveFolderId(child.id);
+                        setExpandedFolders(prev => new Set([...prev, child.id]));
+                      }}
+                      style={{
+                        padding: '10px 12px',
+                        borderRadius: '8px',
+                        background: '#FFFFFF',
+                        border: '1px solid var(--border-subtle)',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: '8px',
+                        transition: 'all 0.15s ease'
+                      }}
+                      onMouseEnter={e => {
+                        e.currentTarget.style.borderColor = '#FFAB4A';
+                        e.currentTarget.style.background = '#FDFCFB';
+                      }}
+                      onMouseLeave={e => {
+                        e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                        e.currentTarget.style.background = '#FFFFFF';
+                      }}
+                      title={`Open ${child.name}`}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
+                        {renderFolderIcon(child, 16)}
+                        <span style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {child.name}
+                        </span>
+                      </div>
+                      <span style={{ fontSize: '0.68rem', padding: '1px 6px', borderRadius: '4px', background: '#F1F5F9', color: '#64748B', fontWeight: 600 }}>
+                        {child.direct_documents_count || 0}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* 4. DOCUMENTS TABLE SECTION */}
+            <div style={{ padding: '16px 20px', flex: 1 }}>
+              <div style={{ fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '10px', letterSpacing: '0.04em' }}>
+                Documents ({currentFolderDocs.length})
+              </div>
+
+              {currentFolderDocs.length === 0 ? (
+                <div
+                  style={{
+                    padding: '36px 20px',
+                    textAlign: 'center',
+                    background: '#FFFFFF',
+                    borderRadius: '8px',
+                    border: '1px dashed var(--border-subtle)',
+                    color: 'var(--text-muted)'
+                  }}
+                >
+                  <FileText size={28} style={{ color: '#CBD5E1', marginBottom: '8px' }} />
+                  <div style={{ fontSize: '0.84rem', fontWeight: 600, color: 'var(--text-main)', marginBottom: '4px' }}>
+                    No documents in this folder
+                  </div>
+                  <div style={{ fontSize: '0.74rem', maxWidth: '320px', margin: '0 auto 12px auto' }}>
+                    Upload a policy document, connect an integration, or click Auto-Organize to file unclassified documents.
+                  </div>
+                  {!readOnly && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setUploadFolderId(activeFolderId);
+                        setShowUploadModal(true);
+                      }}
+                      className="btn btn-primary"
+                      style={{ padding: '5px 14px', fontSize: '0.74rem' }}
+                    >
+                      Upload to this folder
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <div style={{ overflowX: 'auto', background: '#FFFFFF', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.76rem' }}>
+                    <thead>
+                      <tr style={{ background: '#FAF8F5', borderBottom: '1px solid var(--border-subtle)', color: 'var(--text-muted)' }}>
+                        <th style={{ padding: '8px 12px', fontWeight: 600 }}>Document</th>
+                        <th style={{ padding: '8px 12px', fontWeight: 600 }}>Origin Source</th>
+                        <th style={{ padding: '8px 12px', fontWeight: 600 }}>Domain</th>
+                        <th style={{ padding: '8px 12px', fontWeight: 600 }}>Claims</th>
+                        <th style={{ padding: '8px 12px', fontWeight: 600 }}>Trust Status</th>
+                        <th style={{ padding: '8px 12px', fontWeight: 600, textAlign: 'right' }}>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {currentFolderDocs.map(doc => (
+                        <tr
+                          key={doc.id}
+                          style={{ borderBottom: '1px solid #F1F5F9', transition: 'background 0.1s ease' }}
+                          onMouseEnter={e => e.currentTarget.style.background = '#FAF8F5'}
+                          onMouseLeave={e => e.currentTarget.style.background = '#FFFFFF'}
+                        >
+                          <td style={{ padding: '8px 12px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <FileText size={14} style={{ color: '#0284C7', flexShrink: 0 }} />
+                              <div style={{ minWidth: 0 }}>
+                                <div
+                                  onClick={() => setSelectedDocId(doc.id)}
+                                  style={{ fontWeight: 600, color: 'var(--text-main)', cursor: 'pointer', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '280px' }}
+                                  title={doc.title}
+                                >
+                                  {doc.title}
+                                </div>
+                                <div style={{ fontSize: '0.66rem', color: '#94A3B8', fontFamily: 'var(--font-mono)' }}>
+                                  {doc.content_hash ? `sha256:${doc.content_hash.slice(0, 8)}...` : 'hash pending'}
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+                          <td style={{ padding: '8px 12px' }}>
+                            {renderSourceBadge(doc)}
+                          </td>
+                          <td style={{ padding: '8px 12px' }}>
+                            <span style={{ fontSize: '0.68rem', padding: '2px 6px', borderRadius: '4px', background: '#F1F5F9', color: '#475569', fontWeight: 600 }}>
+                              {doc.domain || 'General'}
+                            </span>
+                          </td>
+                          <td style={{ padding: '8px 12px' }}>
+                            <span style={{ fontSize: '0.68rem', padding: '2px 6px', borderRadius: '4px', background: '#EFF6FF', color: '#1D4ED8', fontWeight: 700 }}>
+                              {doc.claims_count !== undefined ? `${doc.claims_count} Claims` : 'Claims ready'}
+                            </span>
+                          </td>
+                          <td style={{ padding: '8px 12px' }}>
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.68rem', padding: '2px 6px', borderRadius: '4px', background: '#F0FDF4', color: '#166534', fontWeight: 600 }}>
+                              <CheckCircle2 size={11} style={{ color: '#16A34A' }} /> Verified
+                            </span>
+                          </td>
+                          <td style={{ padding: '8px 12px', textAlign: 'right' }}>
+                            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                              <button
+                                type="button"
+                                onClick={() => setSelectedDocId(doc.id)}
+                                className="btn btn-secondary"
+                                style={{ padding: '2px 8px', fontSize: '0.70rem', background: '#FFFFFF', border: '1px solid #CBD5E1', cursor: 'pointer' }}
+                                title="Inspect live content & extracted claims"
+                              >
+                                Preview
+                              </button>
+                              {!readOnly && (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setMovingDoc(doc);
+                                    setMoveDocTargetFolderId(doc.folder_id || '');
+                                    setShowMoveDocModal(true);
+                                  }}
+                                  className="btn btn-secondary"
+                                  style={{ padding: '2px 6px', fontSize: '0.70rem', background: '#FFFFFF', border: '1px solid #CBD5E1', cursor: 'pointer' }}
+                                  title="Move to another folder"
+                                >
+                                  <Move size={11} />
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
           </div>
         )}

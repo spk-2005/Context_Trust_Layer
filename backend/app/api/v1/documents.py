@@ -90,10 +90,23 @@ async def _ensure_source_exists(db: AsyncSession, organization_id: uuid.UUID, so
     return new_src_id
 
 
-async def _ensure_folder_exists(db: AsyncSession, organization_id: uuid.UUID, folder_id: uuid.UUID | None) -> uuid.UUID:
-    """Resolves folder_id within the organization, falling back to the organization's system Inbox."""
+async def _ensure_folder_exists(
+    db: AsyncSession,
+    organization_id: uuid.UUID,
+    folder_id: uuid.UUID | None,
+    title: str = "",
+    doc_type: str = "",
+) -> uuid.UUID:
+    """
+    Resolves folder_id within the organization.
+    If folder_id is not specified, intelligently matches document title and type
+    to standard enterprise folders (Finance, Security, Legal, HR, Connectors),
+    falling back to the organization's system Inbox.
+    """
     from app.services.folder_service import FolderService
     folder_service = FolderService(db)
+
+    # 1. If explicit folder passed and exists in tenant, respect it
     if folder_id:
         res = await db.execute(
             select(Folder.id).where(
@@ -105,8 +118,52 @@ async def _ensure_folder_exists(db: AsyncSession, organization_id: uuid.UUID, fo
         if existing:
             return existing
 
-    inbox = await folder_service.ensure_system_inbox(organization_id)
-    return inbox.id
+    # 2. Ensure enterprise hierarchy exists
+    f_map = await folder_service.ensure_enterprise_hierarchy(organization_id)
+    inbox = f_map.get("Inbox")
+
+    # 3. Smart routing based on title and document_type
+    title_lower = (title or "").lower()
+    type_lower = (doc_type or "").lower()
+
+    if type_lower == "slack_message" or "slack" in title_lower:
+        matched = f_map.get("Slack Channels")
+        if matched:
+            return matched.id
+    if "github" in title_lower:
+        matched = f_map.get("GitHub Repositories")
+        if matched:
+            return matched.id
+    if "confluence" in title_lower:
+        matched = f_map.get("Confluence Spaces")
+        if matched:
+            return matched.id
+    if "jira" in title_lower:
+        matched = f_map.get("Jira Projects")
+        if matched:
+            return matched.id
+    if any(k in title_lower for k in ["refund", "billing", "price", "pricing", "commercial", "supplier", "finance", "invoice"]):
+        matched = f_map.get("Finance & Operations")
+        if matched:
+            return matched.id
+    if any(k in title_lower for k in ["security", "infrastructure", "cloud", "iam", "wifi", "access", "sanction", "aml", "firewall"]):
+        matched = f_map.get("Security & Infrastructure")
+        if matched:
+            return matched.id
+    if any(k in title_lower for k in ["legal", "agreement", "contract", "terms", "nda", "standard", "governance", "compliance"]):
+        matched = f_map.get("Legal & Customer Contracts")
+        if matched:
+            return matched.id
+    if any(k in title_lower for k in ["handbook", "employee", "remote", "workplace", "people", "hr", "conduct"]):
+        matched = f_map.get("People & Workplace")
+        if matched:
+            return matched.id
+
+    if inbox:
+        return inbox.id
+
+    fresh_inbox = await folder_service.ensure_system_inbox(organization_id)
+    return fresh_inbox.id
 
 
 def _persist_uploaded_file_bytes(doc_id: uuid.UUID, filename: str, raw_bytes: bytes) -> None:
@@ -327,13 +384,16 @@ async def upload_document_file(
 ):
     """Upload a file (.pdf, .docx, .txt, .md, .json, .csv) and ingest into PostgreSQL."""
     resolved_source_id = await _ensure_source_exists(db, organization_id, source_id)
-    resolved_folder_id = await _ensure_folder_exists(db, organization_id, folder_id)
     import io
     raw_bytes = await file.read()
     filename = file.filename or "uploaded_doc.txt"
     doc_title = title or filename.rsplit(".", 1)[0].replace("-", " ").replace("_", " ").title()
     doc_title = doc_title.replace("\x00", "").strip()
     doc_external_id = (external_id or f"file://{filename}").replace("\x00", "").strip()
+
+    resolved_folder_id = await _ensure_folder_exists(
+        db, organization_id, folder_id, title=doc_title, doc_type=document_type
+    )
 
     from app.ingestion.universal_file_parser import UniversalFileParser
 
@@ -428,7 +488,6 @@ async def upload_and_extract_document(
 ):
     """Upload a file, parse text, extract atomic claims, score trust, and run conflict checks in 1 atomic pipeline."""
     resolved_source_id = await _ensure_source_exists(db, organization_id, source_id)
-    resolved_folder_id = await _ensure_folder_exists(db, organization_id, folder_id)
     import io
     import time
     from app.llm.factory import get_llm_provider
@@ -443,6 +502,10 @@ async def upload_and_extract_document(
     doc_title = title or filename.rsplit(".", 1)[0].replace("-", " ").replace("_", " ").title()
     doc_title = doc_title.replace("\x00", "").strip()
     doc_external_id = (external_id or f"file://{filename}").replace("\x00", "").strip()
+
+    resolved_folder_id = await _ensure_folder_exists(
+        db, organization_id, folder_id, title=doc_title, doc_type=document_type
+    )
 
     from app.ingestion.universal_file_parser import UniversalFileParser
 

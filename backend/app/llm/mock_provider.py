@@ -565,47 +565,13 @@ class MockLLMProvider(BaseLLMProvider):
         warnings: list[str] | None = None,
         history: list[dict] | None = None,
     ) -> str:
-        """Template synthesis when using Mock provider."""
-        if not citations:
-            return (
-                f'No verified claims or policies matching "{query}" were found in the current organization knowledge base. '
-                "Please ingest the relevant documentation or connect enterprise data sources."
-            )
-        avg_trust = sum(float(c.get("trust_score", 0.8)) for c in citations) / len(citations)
-        
-        # Sanitize and extract clean natural language claims
-        clean_claims = []
-        for c in citations:
-            text = c.get("claim_text", "").strip()
-            if text.startswith("{") or '"connectors":' in text or "synthetic" in text.lower():
-                continue
-            if len(text) > 280:
-                text = text[:280].rsplit(" ", 1)[0] + "..."
-            clean_claims.append(text)
-
-        if not clean_claims:
-            clean_claims = [c.get("claim_text", "Verified policy statement")[:250] for c in citations[:2]]
-
-        if has_conflicts:
-            lead_claim = clean_claims[0] if clean_claims else "Policy in dispute"
-            return (
-                f"**Dispute Notice:** Conflicting governance records were identified for this query.\n\n"
-                f"• **Primary Active Claim:** {lead_claim} [Source 1]\n"
-                f"• **Governance Status:** Multiple sources contain contradictory rules regarding this policy.\n\n"
-                f"⚠️ **Action Required:** A Data Steward review has been triggered to reconcile conflicting source documents."
-            )
-        elif avg_trust >= 0.70:
-            lead_bullets = "\n".join(f"• **Verified Policy Rule:** {claim} [Source {idx + 1}]" for idx, claim in enumerate(clean_claims[:3]))
-            return (
-                f"**Direct Answer & Policy Summary:**\n\n"
-                f"{lead_bullets}\n\n"
-                f"✨ **Context Verification:** All cited claims have verified authority status and passed the freshness decay threshold (Trust Score: **{int(avg_trust * 100)}/100**)."
-            )
-        else:
-            lead_bullets = "\n".join(f"• **Candidate Record:** {claim} [Source {idx + 1}]" for idx, claim in enumerate(clean_claims[:2]))
-            return (
-                f"**Moderate Confidence Findings:**\n\n"
-                f"{lead_bullets}\n\n"
-                f"📌 **Note:** Claim authority is scored at **{int(avg_trust * 100)}/100**. Manual steward verification is recommended before automated execution."
-            )
+        """Intelligent Hybrid grounded synthesis with metric extraction and gap analysis."""
+        from app.services.policy_answer_synthesizer import PolicyAnswerSynthesizer
+        return PolicyAnswerSynthesizer.synthesize(
+            query=query,
+            citations=citations,
+            has_conflicts=has_conflicts,
+            warnings=warnings,
+            history=history,
+        )
 

@@ -3,7 +3,7 @@ import {
   MessageSquare, Plus, MoreHorizontal, Search, Trash2, 
   CheckCircle2, Clock, ShieldCheck, Sparkles, AlertTriangle, 
   Copy, Check, ChevronDown, ChevronRight, BookOpen, Layers, Shield,
-  ExternalLink, ShieldAlert, ArrowUpRight
+  ExternalLink, ShieldAlert, ArrowUpRight, Mic, ArrowUp, FileText, X
 } from 'lucide-react';
 
 const PROCESS_STEPS = [
@@ -128,11 +128,11 @@ function RichAnswerContent({ content, onCitationClick }) {
   const flushBulletList = () => {
     if (currentBulletList.length > 0) {
       elements.push(
-        <div key={`bullets-${elements.length}`} style={{ margin: '8px 0', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+        <div key={`bullets-${elements.length}`} style={{ margin: '6px 0', display: 'flex', flexDirection: 'column', gap: '5px' }}>
           {currentBulletList.map((item, bIdx) => (
-            <div key={bIdx} className="chat-bullet-row">
-              <div className="chat-bullet-dot" />
-              <div style={{ flex: 1, color: '#1E293B', fontSize: '0.84rem' }}>
+            <div key={bIdx} style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
+              <span style={{ color: '#78716C', fontSize: '0.85rem' }}>•</span>
+              <div style={{ flex: 1, color: '#292524', fontSize: '0.95rem', lineHeight: 1.65 }}>
                 {renderInlineFormatted(item)}
               </div>
             </div>
@@ -150,7 +150,7 @@ function RichAnswerContent({ content, onCitationClick }) {
       if (part.startsWith('**') && part.endsWith('**')) {
         const inner = part.slice(2, -2);
         return (
-          <strong key={pIdx} style={{ fontWeight: 700, color: 'var(--text-main, #0F172A)' }}>
+          <strong key={pIdx} style={{ fontWeight: 600, color: '#1C1917' }}>
             {inner}
           </strong>
         );
@@ -159,11 +159,11 @@ function RichAnswerContent({ content, onCitationClick }) {
         const inner = part.slice(1, -1);
         return (
           <code key={pIdx} style={{
-            background: '#F1F5F9',
-            padding: '2px 6px',
+            background: 'rgba(0,0,0,0.05)',
+            padding: '2px 5px',
             borderRadius: '4px',
-            fontSize: '0.82em',
-            color: '#0F172A',
+            fontSize: '0.86em',
+            color: '#1C1917',
             fontFamily: 'monospace'
           }}>
             {inner}
@@ -183,30 +183,30 @@ function RichAnswerContent({ content, onCitationClick }) {
             style={{
               display: 'inline-flex',
               alignItems: 'center',
-              gap: '2px',
-              background: '#FFF7ED',
-              border: '1px solid #FDBA74',
+              justifyContent: 'center',
+              background: 'rgba(0, 0, 0, 0.05)',
+              border: 'none',
               borderRadius: '4px',
-              color: '#C2410C',
-              fontWeight: 700,
+              color: '#78716C',
+              fontWeight: 600,
               fontSize: '0.72rem',
-              padding: '0 5px',
+              padding: '1px 5px',
               margin: '0 2px',
               cursor: 'pointer',
               verticalAlign: 'baseline',
               transition: 'all 0.15s ease'
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = '#EA580C';
-              e.currentTarget.style.color = '#FFFFFF';
+              e.currentTarget.style.background = '#FBE9D9';
+              e.currentTarget.style.color = '#7C2D12';
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.background = '#FFF7ED';
-              e.currentTarget.style.color = '#C2410C';
+              e.currentTarget.style.background = 'rgba(0, 0, 0, 0.05)';
+              e.currentTarget.style.color = '#78716C';
             }}
-            title={`Click to view Source ${num} evidence and provenance`}
+            title={`View Source ${num}`}
           >
-            [Source {num}]
+            {num}
           </button>
         );
       }
@@ -215,9 +215,51 @@ function RichAnswerContent({ content, onCitationClick }) {
   };
 
   for (let i = 0; i < rawLines.length; i++) {
-    const line = rawLines[i].trim();
+    let line = rawLines[i].trim();
     if (!line) {
       flushBulletList();
+      continue;
+    }
+
+    // Strip legacy robotic template headers
+    if (line.match(/^\*\*Direct Answer:\*\*\s*$/i) || line.match(/^Direct Answer:\s*$/i)) {
+      continue;
+    }
+    if (line.match(/^(\*\*Direct Answer:\*\*|Direct Answer:)\s*(.+)$/i)) {
+      line = line.replace(/^(\*\*Direct Answer:\*\*|Direct Answer:)\s*/i, '');
+    }
+    if (line.includes('🔒 Provenance:') || line.includes('🔒 **Provenance:**')) {
+      continue;
+    }
+    if (line.startsWith('📌 Policy Boundary Notice:') || line.startsWith('📌 **Policy Boundary Notice:**')) {
+      flushBulletList();
+      const cleanNote = line.replace(/^📌\s*(\*\*Policy Boundary Notice:\*\*|Policy Boundary Notice:)\s*/i, '');
+      elements.push(
+        <div key={`boundary-${i}`} style={{
+          margin: '10px 0',
+          padding: '8px 12px',
+          background: 'rgba(0,0,0,0.02)',
+          borderLeft: '3px solid #D97706',
+          borderRadius: '0 6px 6px 0',
+          fontSize: '0.88rem',
+          lineHeight: 1.55,
+          color: '#57534E'
+        }}>
+          <strong style={{ color: '#92400E', fontWeight: 600 }}>Policy boundary: </strong>
+          {renderInlineFormatted(cleanNote)}
+        </div>
+      );
+      continue;
+    }
+    if (line.startsWith('👉 Recommended Next Step:') || line.startsWith('👉 **Recommended Next Step:**')) {
+      flushBulletList();
+      const cleanStep = line.replace(/^👉\s*(\*\*Recommended Next Step:\*\*|Recommended Next Step:)\s*/i, '');
+      elements.push(
+        <p key={`step-${i}`} style={{ margin: '8px 0', lineHeight: 1.65, fontSize: '0.95rem', color: '#292524' }}>
+          <strong style={{ color: '#1C1917' }}>Recommended next step: </strong>
+          {renderInlineFormatted(cleanStep)}
+        </p>
+      );
       continue;
     }
 
@@ -230,45 +272,32 @@ function RichAnswerContent({ content, onCitationClick }) {
 
     flushBulletList();
 
-    // Check for Callout / Highlight cards (e.g. `💡`, `✨`, `⚠️`, `📌`, `**Direct Answer`, `**Bottom Line`)
-    if (
-      line.startsWith('💡') ||
-      line.startsWith('✨') ||
-      line.startsWith('📌') ||
-      line.toLowerCase().includes('bottom line') ||
-      line.toLowerCase().includes('direct answer') ||
-      line.toLowerCase().includes('policy summary')
-    ) {
-      elements.push(
-        <div key={`highlight-${i}`} className="chat-highlight-card">
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
-            <span style={{ fontSize: '1.1rem', lineHeight: 1 }}>
-              {line.startsWith('⚠️') ? '⚠️' : line.startsWith('✨') ? '✨' : line.startsWith('📌') ? '📌' : '💡'}
-            </span>
-            <div style={{ flex: 1 }}>
-              {renderInlineFormatted(line.replace(/^[💡✨⚠️📌]\s*/, ''))}
-            </div>
-          </div>
-        </div>
-      );
-      continue;
-    }
-
-    // Header elements `### `, `## `
+    // Clean Markdown Headers `### `, `## ` or standalone `**Heading:**`
     if (line.startsWith('### ') || line.startsWith('## ')) {
       const headerText = line.replace(/^#+\s*/, '');
       elements.push(
         <h4 key={`header-${i}`} style={{
-          fontSize: '0.9rem',
-          fontWeight: 700,
-          color: '#0F172A',
-          margin: '12px 0 6px 0',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '6px'
+          fontSize: '0.98rem',
+          fontWeight: 600,
+          color: '#1C1917',
+          margin: '14px 0 6px 0'
         }}>
-          <span style={{ width: '4px', height: '14px', background: '#FFAB4A', borderRadius: '2px', display: 'inline-block' }} />
           {renderInlineFormatted(headerText)}
+        </h4>
+      );
+      continue;
+    }
+
+    if (line.startsWith('**') && line.endsWith('**') && !line.includes('\n')) {
+      const headerText = line.slice(2, -2);
+      elements.push(
+        <h4 key={`header-bold-${i}`} style={{
+          fontSize: '0.96rem',
+          fontWeight: 600,
+          color: '#1C1917',
+          margin: '14px 0 6px 0'
+        }}>
+          {headerText}
         </h4>
       );
       continue;
@@ -276,52 +305,119 @@ function RichAnswerContent({ content, onCitationClick }) {
 
     // Regular paragraph
     elements.push(
-      <p key={`p-${i}`} style={{ margin: '6px 0', lineHeight: 1.6, fontSize: '0.85rem', color: '#1E293B' }}>
+      <p key={`p-${i}`} style={{ margin: '8px 0', lineHeight: 1.65, fontSize: '0.95rem', color: '#292524' }}>
         {renderInlineFormatted(line)}
       </p>
     );
   }
 
   flushBulletList();
-  return <div>{elements}</div>;
+  return <div style={{ display: 'flex', flexDirection: 'column' }}>{elements}</div>;
 }
 
-const STARTER_PROMPTS_BY_WORKSPACE = {
+
+// Microsoft Copilot-style Signature Gradient Ribbon Emblem
+function CopilotEmblem({ size = 22 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: 0 }}>
+      <defs>
+        <linearGradient id="cp-ribbon-left" x1="0" y1="20" x2="16" y2="4" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor="#00C7FF" />
+          <stop offset="30%" stopColor="#2563EB" />
+          <stop offset="65%" stopColor="#7C3AED" />
+          <stop offset="100%" stopColor="#D946EF" />
+        </linearGradient>
+        <linearGradient id="cp-ribbon-right" x1="24" y1="4" x2="8" y2="20" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor="#FF6B4A" />
+          <stop offset="35%" stopColor="#FFA629" />
+          <stop offset="70%" stopColor="#F43F5E" />
+          <stop offset="100%" stopColor="#8B5CF6" />
+        </linearGradient>
+      </defs>
+      {/* Ribbon Loop Left */}
+      <path
+        d="M4.8 15.6C3.5 14.1 3.2 11.8 4.1 9.7C5 7.6 7 6.3 9.3 6.4C11.4 6.5 13.1 7.8 14 9.7C14.5 10.7 14.6 11.8 14.4 12.9L4.8 15.6Z"
+        fill="url(#cp-ribbon-left)"
+      />
+      {/* Ribbon Loop Right */}
+      <path
+        d="M19.2 8.4C20.5 9.9 20.8 12.2 19.9 14.3C19 16.4 17 17.7 14.7 17.6C12.6 17.5 10.9 16.2 10 14.3C9.5 13.3 9.4 12.2 9.6 11.1L19.2 8.4Z"
+        fill="url(#cp-ribbon-right)"
+        opacity="0.95"
+      />
+      <circle cx="12" cy="12" r="2.2" fill="#FFFFFF" opacity="0.35" />
+    </svg>
+  );
+}
+
+const COPILOT_MODES = [
+  { id: 'quick', label: 'Quick response', icon: '⚡', desc: 'Direct bottom-line answer with synthesized takeaways' },
+  { id: 'policy', label: 'Policy Governance', icon: '🛡️', desc: 'Deep contextual audit with freshness decay & verified citations' },
+  { id: 'decision', label: 'Action Gatekeeper', icon: '⚖️', desc: 'Evaluates policy thresholds and ALLOW / BLOCK gates' },
+  { id: 'audit', label: 'Contradiction Audit', icon: '⚠️', desc: 'Scans cross-source policy conflicts and disputed claims' }
+];
+
+const COPILOT_PILLS_BY_WORKSPACE = {
   all: [
-    { title: "Enterprise Refund Policy", query: "What is our company refund window for enterprise annual contracts?", icon: "💳" },
-    { title: "Remote Work Wi-Fi Security", query: "Can remote employees work from public Wi-Fi without VPN?", icon: "🔒" },
-    { title: "Production Ingress Authority", query: "Who is authorized to approve production ingress firewall exceptions?", icon: "🛡️" },
-    { title: "Disputed Policies Review", query: "Are there any conflicting refund rules between Slack and Confluence?", icon: "⚠️" }
+    { label: "Enterprise refund window", query: "What is our company refund window for enterprise annual contracts?" },
+    { label: "Remote work Wi-Fi security", query: "Can remote employees work from public Wi-Fi without VPN?" },
+    { label: "Production ingress authority", query: "Who is authorized to approve production ingress firewall exceptions?" },
+    { label: "Disputed policies review", query: "Are there any conflicting refund rules between Slack and Confluence?" },
+    { label: "Approve $75 refund exception", query: "Can I approve a $75 refund exception for an enterprise customer?" },
+    { label: "Emergency Sev-1 bypass", query: "Can emergency hotfixes bypass automated compliance verification during Sev-1 incidents?" },
+    { label: "Data retention & SLA", query: "What are our data retention guidelines and customer deletion SLAs?" },
+    { label: "Customer contract overrides", query: "How are custom contract terms and SLA overrides handled versus standard policies?" }
   ],
   finance: [
-    { title: "Enterprise Refund Window", query: "What is our company refund window for enterprise annual contracts?", icon: "💳" },
-    { title: "Invoice Dispute Arbitration", query: "What are the financial approval thresholds and dispute arbitration rules for billing?", icon: "📊" },
-    { title: "Mid-Cycle Proration Rules", query: "How is billing proration calculated when enterprise accounts change contract tiers?", icon: "💰" },
-    { title: "Billing vs Slack Conflict", query: "Are there any conflicting refund statements in sales channels versus the billing handbook?", icon: "⚠️" }
+    { label: "Enterprise refund window", query: "What is our company refund window for enterprise annual contracts?" },
+    { label: "Invoice dispute arbitration", query: "What are the financial approval thresholds and dispute arbitration rules for billing?" },
+    { label: "Mid-cycle proration rules", query: "How is billing proration calculated when enterprise accounts change contract tiers?" },
+    { label: "Billing vs Slack conflict", query: "Are there any conflicting refund statements in sales channels versus the billing handbook?" },
+    { label: "Approve $75 refund exception", query: "Can I approve a $75 refund exception for a customer without manager sign-off?" },
+    { label: "Annual contract renewals", query: "What are the early termination fees and renewal notification windows for enterprise accounts?" },
+    { label: "Payment gateway failover", query: "What is our financial policy for fallback payment processing during gateway outages?" },
+    { label: "Travel meal expense limit", query: "What is the maximum single meal reimbursement permitted under corporate travel policy?" }
   ],
   secops: [
-    { title: "Production Ingress Firewall", query: "Who is authorized to approve production ingress firewall exceptions?", icon: "🛡️" },
-    { title: "Zero Trust Token Expiry", query: "What is the mandatory session timeout and mTLS certificate renewal rule for core services?", icon: "🔐" },
-    { title: "Emergency Sev-1 Bypass", query: "Can emergency hotfixes bypass automated compliance verification during Sev-1 incidents?", icon: "⚡" },
-    { title: "KMS Key Rotation Policy", query: "What are the cryptographic key rotation intervals enforced by our SecOps baseline?", icon: "🔑" }
+    { label: "Production ingress firewall", query: "Who is authorized to approve production ingress firewall exceptions?" },
+    { label: "Zero-trust token expiry", query: "What is the mandatory session timeout and mTLS certificate renewal rule for core services?" },
+    { label: "Emergency Sev-1 bypass", query: "Can emergency hotfixes bypass automated compliance verification during Sev-1 incidents?" },
+    { label: "KMS key rotation policy", query: "What are the cryptographic key rotation intervals enforced by our SecOps baseline?" },
+    { label: "Port 22 SSH exceptions", query: "Can a senior DevOps engineer open public port 22 access without SecOps approval?" },
+    { label: "Incident escalation matrix", query: "When does an unconfirmed security intrusion trigger an executive bridge call?" },
+    { label: "VPN Public Wi-Fi mandate", query: "Are remote employees permitted to connect to corporate GitHub from hotel Wi-Fi without VPN?" },
+    { label: "Critical CVE patching SLA", query: "What is the mandated remediation SLA for critical CVEs in production containers?" }
   ],
   hr: [
-    { title: "Remote Work Wi-Fi Security", query: "Can remote employees work from public Wi-Fi without VPN?", icon: "🔒" },
-    { title: "International Leave Policy", query: "What are the mandatory leave guidelines and annual holiday allowances for remote team members?", icon: "🌴" },
-    { title: "Home Office Stipend", query: "What is the reimbursement policy and expense allowance for home workstation equipment?", icon: "💻" },
-    { title: "Contractor Compliance Checks", query: "Are background checks and security sign-offs mandatory for external contractors?", icon: "📋" }
+    { label: "Remote work Wi-Fi security", query: "Can remote employees work from public Wi-Fi without VPN?" },
+    { label: "International leave policy", query: "What are the mandatory leave guidelines and annual holiday allowances for remote team members?" },
+    { label: "Home office stipend", query: "What is the reimbursement policy and expense allowance for home workstation equipment?" },
+    { label: "Contractor compliance checks", query: "Are background checks and security sign-offs mandatory for external contractors?" },
+    { label: "Equipment return window", query: "What is the policy window for departing staff to return enterprise laptops and tokens?" },
+    { label: "Paid parental leave", query: "What is the paid parental leave allowance for primary and secondary caregivers?" },
+    { label: "Travel meal allowance", query: "What is the maximum reimbursement for international business travel meals?" },
+    { label: "Conflict resolution steps", query: "What is the formal grievance procedure for workplace disputes?" }
   ],
   support: [
-    { title: "Enterprise SLA Targets", query: "What is the guaranteed response time SLA for Tier-0 critical client incidents?", icon: "⏱️" },
-    { title: "Customer Escalation Hierarchy", query: "When does an unresolved customer ticket get escalated to Engineering and Executive leadership?", icon: "📈" },
-    { title: "Goodwill Credit Authorizations", query: "What is the maximum billing credit a frontline support lead can grant directly?", icon: "💵" },
-    { title: "SSO Login Incident Playbook", query: "What is the standard procedure when a customer tenant experiences SAML SSO auth failure?", icon: "🔍" }
+    { label: "Enterprise SLA targets", query: "What is the guaranteed response time SLA for Tier-0 critical client incidents?" },
+    { label: "Customer escalation hierarchy", query: "When does an unresolved customer ticket get escalated to Engineering and Executive leadership?" },
+    { label: "Goodwill credit limits", query: "What is the maximum billing credit a frontline support lead can grant directly?" },
+    { label: "SSO login incident playbook", query: "What is the standard procedure when a customer tenant experiences SAML SSO auth failure?" },
+    { label: "Approve $75 refund exception", query: "Can Tier-1 support approve a $75 refund without escalation?" },
+    { label: "Maintenance downtime notice", query: "How many hours in advance must customer tenants be notified of scheduled maintenance?" },
+    { label: "Severity 1 SLA breach", query: "What financial penalties or service credits apply when Tier-0 uptime SLAs are missed?" },
+    { label: "Feature request routing", query: "How are enterprise client product requests prioritized and tracked in Jira?" }
   ],
   staging: [
-    { title: "Sandbox Test Claims", query: "What sandbox policy claims are currently staged for upcoming policy release?", icon: "🧪" },
-    { title: "Mock Ingestion Rules", query: "How are synthetic ingestion events validated against staging confidence gates?", icon: "🔬" }
+    { label: "Sandbox test claims", query: "What sandbox policy claims are currently staged for upcoming policy release?" },
+    { label: "Mock ingestion rules", query: "How are synthetic ingestion events validated against staging confidence gates?" },
+    { label: "Staging rollback matrix", query: "What are the staging rollback criteria when policy confidence drops below 80%?" },
+    { label: "Synthetic dispute verification", query: "How do synthetic disputes trigger automated zero-trust gate alerts?" }
   ]
 };
+
+const STARTER_PROMPTS_BY_WORKSPACE = COPILOT_PILLS_BY_WORKSPACE;
+
 
 export default function AgentChatPlayground({
   activeOrg,
@@ -372,16 +468,80 @@ export default function AgentChatPlayground({
   const orgId = activeOrg?.id || '11111111-1111-1111-1111-111111111111';
   const userId = activePersona?.id || null;
 
-  // Close plus menu on outside click
+  // Copilot Response Mode & Mic Dictation State
+  const [selectedMode, setSelectedMode] = useState('quick');
+  const [showModeMenu, setShowModeMenu] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const modeMenuRef = useRef(null);
+  const recognitionRef = useRef(null);
+
+  const activeModeObj = COPILOT_MODES.find(m => m.id === selectedMode) || COPILOT_MODES[0];
+
+  const firstName = activePersona?.name && activePersona.name !== 'User' && activePersona.name !== 'Anonymous'
+    ? activePersona.name.split(' ')[0].charAt(0).toUpperCase() + activePersona.name.split(' ')[0].slice(1).toLowerCase()
+    : '';
+
+  // Close plus and mode menu on outside click
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (plusMenuRef.current && !plusMenuRef.current.contains(e.target)) {
         setShowPlusMenu(false);
       }
+      if (modeMenuRef.current && !modeMenuRef.current.contains(e.target)) {
+        setShowModeMenu(false);
+      }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  // Voice dictation using browser SpeechRecognition if available
+  const handleMicClick = () => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      if (showToast) showToast("Voice input not supported in this browser. Please type your query.");
+      return;
+    }
+    if (isListening) {
+      recognitionRef.current?.stop();
+      setIsListening(false);
+      return;
+    }
+
+    try {
+      const recognition = new SpeechRecognition();
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      recognition.lang = 'en-US';
+
+      recognition.onstart = () => {
+        setIsListening(true);
+        if (showToast) showToast("🎙️ Listening... Speak your policy question");
+      };
+
+      recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        if (transcript) {
+          setInputPrompt(prev => prev ? `${prev} ${transcript}` : transcript);
+        }
+      };
+
+      recognition.onerror = () => {
+        setIsListening(false);
+      };
+
+      recognition.onend = () => {
+        setIsListening(false);
+      };
+
+      recognitionRef.current = recognition;
+      recognition.start();
+    } catch (e) {
+      setIsListening(false);
+      if (showToast) showToast("Microphone access could not be initialized");
+    }
+  };
+
 
   const handleFileUpload = (e) => {
     const file = e.target.files?.[0];
@@ -586,20 +746,20 @@ export default function AgentChatPlayground({
   );
 
   return (
-    <div>
-      {/* FULL-SCREEN AI COPILOT CHAT WORKSPACE (PLAIN BACKGROUND, DIRECT CHAT) */}
-      <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 130px)', maxHeight: 'calc(100vh - 130px)', background: 'transparent', overflow: 'hidden' }}>
+    <div className="copilot-canvas" style={{ background: '#FAF8F5', border: 'none', borderRadius: 0, overflow: 'hidden', width: '100%' }}>
+      {/* FULL-SCREEN AI COPILOT CHAT WORKSPACE (WARM MINIMALIST AESTHETIC) */}
+      <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 100px)', maxHeight: 'calc(100vh - 100px)', background: '#FAF8F5', overflow: 'hidden' }}>
 
-        {/* MAIN WORKSPACE: CONVERSATION STREAM & QUERY BAR */}
+        {/* MAIN WORKSPACE: CONVERSATION STREAM & FLOATING INPUT */}
         <div style={{ display: 'flex', flexDirection: 'column', height: '100%', padding: '0', overflow: 'hidden', background: 'transparent' }}>
 
-          {/* Messages Scroll Area - No unnecessary scrollbar in empty state */}
+          {/* Messages Scroll Area */}
           <div
             id="chat-messages-container"
             style={{
               flex: 1,
               overflowY: messages.length === 0 ? 'hidden' : 'auto',
-              padding: messages.length === 0 ? '8px 12px' : '16px 20px',
+              padding: messages.length === 0 ? '24px 20px' : '16px 20px',
               display: 'flex',
               flexDirection: 'column',
               gap: '16px',
@@ -607,78 +767,54 @@ export default function AgentChatPlayground({
             }}
           >
 
-            {/* Empty State: Centered Big Rectangular Chat Box + Prompts */}
+            {/* Empty State: Copilot Warm Minimalist Aesthetic (Image 1 Parity) */}
             {messages.length === 0 && (
               <div style={{
                 margin: 'auto',
                 width: '100%',
-                maxWidth: '680px',
+                maxWidth: '720px',
                 textAlign: 'center',
-                padding: '10px 0',
+                padding: '16px 12px',
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center'
               }}>
-                {/* Ask Trulin - Smaller text */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                    <h2 style={{
-                    fontSize: '1rem',
-                    fontWeight: 700,
-                    color: 'var(--text-main, #0F172A)',
-                    margin: 0,
-                    letterSpacing: '-0.01em'
-                  }}>
-                    Ask
-                  </h2>
-                  <img src="/Trulin-Main-NoBg.png" alt="Trulin" style={{ height: '24px', objectFit: 'contain' }} />
-                
-                </div>
+                {/* Hero Greeting */}
+                <h1 className="copilot-hero-title">
+                  Hey{firstName ? ` ${firstName}` : ''}, what’s on your mind today?
+                </h1>
 
-                {/* Subtitle - Smaller text */}
-                <p style={{
-                  fontSize: '0.75rem',
-                  color: 'var(--text-muted, #64748B)',
-                  lineHeight: 1.45,
-                  maxWidth: '540px',
-                  marginBottom: '10px'
-                }}>
-                  Every answer is filtered by freshness decay, authority scoring, and contradiction detection. Expired or disputed claims are automatically highlighted.
-                </p>
-
-                {/* Workspace Retrieval Scope Badge */}
-                <div style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  padding: '4px 12px',
-                  borderRadius: '20px',
-                  fontSize: '0.74rem',
-                  fontWeight: 600,
-                  background: activeWorkspace && activeWorkspace.id !== 'all' ? 'rgba(37, 99, 235, 0.08)' : 'rgba(100, 116, 139, 0.08)',
-                  color: activeWorkspace && activeWorkspace.id !== 'all' ? 'var(--primary, #2563EB)' : '#64748B',
-                  border: `1px solid ${activeWorkspace && activeWorkspace.id !== 'all' ? 'rgba(37, 99, 235, 0.2)' : 'rgba(100, 116, 139, 0.2)'}`,
-                  marginBottom: '16px'
-                }}>
-                  <span>{activeWorkspace?.icon || '🏢'}</span>
-                  <span>Scope: <strong>{activeWorkspace?.name || 'All Workspaces (Unified)'}</strong></span>
-                  {activeWorkspace && activeWorkspace.id !== 'all' ? (
-                    <span style={{ fontSize: '0.68rem', color: '#16A34A', background: 'rgba(22, 163, 74, 0.1)', padding: '1px 6px', borderRadius: '10px', marginLeft: '4px' }}>● Isolated Departmental Retrieval</span>
-                  ) : (
-                    <span style={{ fontSize: '0.68rem', color: '#2563EB', background: 'rgba(37, 99, 235, 0.1)', padding: '1px 6px', borderRadius: '10px', marginLeft: '4px' }}>● Unified Enterprise Retrieval</span>
+                {/* Floating Rounded Pill-Card */}
+                <div className="copilot-card">
+                  {/* Attached Document Preview if any */}
+                  {attachedFile && (
+                    <div style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      background: '#F4F4F5',
+                      border: '1px solid #E4E4E7',
+                      borderRadius: '12px',
+                      padding: '3px 10px',
+                      fontSize: '0.74rem',
+                      color: '#27272A',
+                      marginBottom: '8px'
+                    }}>
+                      <FileText size={13} color="#52525B" />
+                      <span>{attachedFile.name}</span>
+                      <button
+                        type="button"
+                        onClick={() => setAttachedFile(null)}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0 2px', display: 'flex' }}
+                      >
+                        <X size={12} color="#71717A" />
+                      </button>
+                    </div>
                   )}
-                </div>
 
-                {/* Big Rectangular Chat Box at Center with Disco Blue Animated Border & Glow Shadow */}
-                <div
-                  className="disco-blue-border-card"
-                  style={{
-                    width: '100%',
-                    padding: '14px 18px 12px 18px',
-                    marginBottom: '16px',
-                    textAlign: 'left'
-                  }}
-                >
+                  {/* Top Textarea */}
                   <textarea
+                    className="copilot-textarea"
                     rows={2}
                     value={inputPrompt}
                     onChange={e => setInputPrompt(e.target.value)}
@@ -688,585 +824,312 @@ export default function AgentChatPlayground({
                         handleSendMessage();
                       }
                     }}
-                    placeholder={activeWorkspace && activeWorkspace.id !== 'all' ? `Ask Trulin in ${activeWorkspace.name} (queries scoped to ${activeWorkspace.domain} claims)...` : "Search policy rules or ask AI Copilot a question..."}
+                    placeholder={
+                      activeWorkspace && activeWorkspace.id !== 'all'
+                        ? `Message Copilot in ${activeWorkspace.name}...`
+                        : "Message Copilot"
+                    }
                     disabled={isSending}
-                    style={{
-                      width: '100%',
-                      border: 'none',
-                      outline: 'none',
-                      background: 'transparent',
-                      resize: 'none',
-                      fontSize: '0.875rem',
-                      color: 'var(--text-main, #0F172A)',
-                      fontFamily: 'inherit',
-                      lineHeight: 1.5,
-                      padding: 0
-                    }}
                   />
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '6px', paddingTop: '6px', borderTop: '1px solid #F1F5F9' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.7rem', color: 'var(--text-muted, #94A3B8)' }}>
-                      <Search size={13} color="#94A3B8" />
-                      <span>Press <kbd style={{ padding: '1px 5px', background: '#F1F5F9', borderRadius: '4px', border: '1px solid #E2E8F0', fontSize: '0.66rem', fontWeight: 600 }}>Enter</kbd> to ask</span>
+
+                  {/* Bottom Row inside card */}
+                  <div className="copilot-bottom-row" style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+                    {/* Right: Mic Button, Send Button */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <button
+                        type="button"
+                        className={`copilot-action-icon-btn ${isListening ? 'copilot-mic-listening' : ''}`}
+                        title={isListening ? "Listening... click to stop" : "Voice dictation"}
+                        onClick={handleMicClick}
+                      >
+                        <Mic size={18} />
+                      </button>
+
+                      <button
+                        type="button"
+                        className="copilot-send-btn"
+                        disabled={(!inputPrompt.trim() && !attachedFile) || isSending}
+                        onClick={() => handleSendMessage()}
+                        title="Send question"
+                      >
+                        <ArrowUp size={16} strokeWidth={2.5} />
+                      </button>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => handleSendMessage()}
-                      disabled={!inputPrompt.trim() || isSending}
-                      style={{
-                        width: '28px',
-                        height: '28px',
-                        borderRadius: '6px',
-                        border: 'none',
-                        background: !inputPrompt.trim() || isSending ? '#F1F5F9' : 'var(--primary, #2563EB)',
-                        color: !inputPrompt.trim() || isSending ? '#94A3B8' : '#FFFFFF',
-                        cursor: !inputPrompt.trim() || isSending ? 'default' : 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '0.85rem',
-                        fontWeight: 700,
-                        transition: 'all 0.15s ease'
-                      }}
-                      title="Send Question"
-                    >
-                      {isSending ? "..." : "↑"}
-                    </button>
                   </div>
                 </div>
 
-                {/* Below that: Suggested Prompts */}
-                <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: '1fr 1fr',
-                  gap: '8px',
-                  width: '100%',
-                  textAlign: 'left'
-                }}>
-                  {(STARTER_PROMPTS_BY_WORKSPACE[activeWorkspace?.id || 'all'] || STARTER_PROMPTS_BY_WORKSPACE.all).map((starter, i) => (
+                {/* 2 Centered Rows of Capsule Suggestion Pills (Image 1 Parity) */}
+                <div className="copilot-pill-row">
+                  {(COPILOT_PILLS_BY_WORKSPACE[activeWorkspace?.id || 'all'] || COPILOT_PILLS_BY_WORKSPACE.all).map((pill, i) => (
                     <button
                       key={i}
-                      onClick={() => handleSendMessage(starter.query)}
-                      style={{
-                        background: 'var(--bg-card-subtle, #F8FAFC)',
-                        border: '1px solid var(--border-subtle, #E2E8F0)',
-                        borderRadius: '8px',
-                        padding: '10px 12px',
-                        cursor: 'pointer',
-                        textAlign: 'left',
-                        transition: 'all 0.15s ease'
-                      }}
-                      onMouseEnter={e => {
-                        e.currentTarget.style.borderColor = 'var(--primary, #2563EB)';
-                        e.currentTarget.style.background = '#FFFFFF';
-                      }}
-                      onMouseLeave={e => {
-                        e.currentTarget.style.borderColor = 'var(--border-subtle, #E2E8F0)';
-                        e.currentTarget.style.background = 'var(--bg-card-subtle, #F8FAFC)';
-                      }}
+                      type="button"
+                      className="copilot-pill"
+                      onClick={() => handleSendMessage(pill.query)}
+                      title={`Ask: "${pill.query}"`}
                     >
-                      <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-main, #0F172A)', marginBottom: '2px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <span>{starter.icon}</span> {starter.title}
-                      </div>
-                      <div style={{ fontSize: '0.7rem', color: 'var(--text-muted, #64748B)', lineHeight: 1.35 }}>
-                        "{starter.query}"
-                      </div>
+                      {pill.label}
                     </button>
                   ))}
                 </div>
               </div>
             )}
 
-            {/* Message Cards */}
+
+            {/* Timeline divider matching Microsoft Copilot ("Today ────────────") */}
+            {messages.length > 0 && (
+              <div style={{
+                width: '100%',
+                maxWidth: '740px',
+                margin: '8px auto 16px auto',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                color: '#78716C',
+                fontSize: '0.82rem',
+                fontWeight: 500
+              }}>
+                <span style={{ color: '#57534E', fontWeight: 600 }}>Today</span>
+                <div style={{ flex: 1, height: '1px', background: '#E7E5E4' }} />
+              </div>
+            )}
+
+            {/* Message Stream */}
             {messages.map((msg, idx) => {
               const isUser = msg.role === 'user';
               const meta = msg.metadata_json || {};
               const decision = meta.decision;
               const citations = meta.citations || [];
               const warnings = meta.warnings || [];
-              const isExpanded = expandedCitations[msg.id];
               const isCopied = copiedMsgId === msg.id;
 
               return (
                 <div
                   key={msg.id || idx}
                   style={{
+                    width: '100%',
+                    maxWidth: '740px',
+                    margin: '0 auto',
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: isUser ? 'flex-end' : 'flex-start',
-                    gap: '4px',
-                    width: '100%'
+                    gap: '4px'
                   }}
                 >
-                  {/* Author & Timestamp */}
-                  <div style={{
-                    fontSize: '0.68rem',
-                    color: 'var(--text-muted)',
-                    fontWeight: 600,
-                    padding: '0 4px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px'
-                  }}>
-                    {!isUser && <img src="/Trulin-Main-NoBg.png" alt="Trulin" style={{ height: '14px', objectFit: 'contain' }} />}
-                    <span>{isUser ? (meta.author || activePersona?.name || 'You') : 'Context Trust Copilot'}</span>
-                    <span>•</span>
-                    <span>{new Date(msg.created_at || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                  </div>
-
-                  {/* Message Bubble */}
                   {isUser ? (
                     <div
-                      className="user-question-card"
                       style={{
-                        maxWidth: '78%',
-                        padding: '12px 16px',
-                        borderRadius: '14px 14px 2px 14px',
-                        color: 'var(--text-main, #0F172A)',
-                        fontSize: '0.86rem',
+                        maxWidth: '82%',
+                        background: '#FBE9D9',
+                        color: '#292524',
+                        padding: '10px 18px',
+                        borderRadius: '18px',
+                        fontSize: '0.94rem',
                         lineHeight: 1.55,
+                        fontWeight: 450,
+                        whiteSpace: 'pre-wrap',
+                        wordBreak: 'break-word',
+                        boxShadow: 'none',
+                        border: 'none',
+                        fontFamily: 'inherit'
                       }}
                     >
-                      <div style={{ whiteSpace: 'pre-wrap' }}>
-                        {msg.content}
-                      </div>
+                      {msg.content}
                     </div>
                   ) : (
                     <div
-                      className="chat-answer-bubble"
                       style={{
-                        maxWidth: '92%',
                         width: '100%',
-                        background: '#FFFFFF',
-                        border: '1px solid #E2E8F0',
-                        borderRadius: '14px 14px 14px 2px',
-                        boxShadow: '0 4px 16px rgba(0,0,0,0.04)',
-                        overflow: 'hidden'
+                        maxWidth: '100%',
+                        background: 'transparent',
+                        border: 'none',
+                        borderRadius: '0',
+                        boxShadow: 'none',
+                        padding: '2px 0 14px 0',
+                        color: '#292524'
                       }}
                     >
-                      {/* Top Header Verdict Bar */}
-                      <div className="chat-verdict-bar">
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                          {meta.mode === 'action_evaluation' ? (
-                            <>
-                              <span
-                                className={`badge ${decision === 'ALLOW' ? 'badge-allow' : decision === 'BLOCK' ? 'badge-block' : 'badge-review'}`}
-                                style={{ fontSize: '0.7rem', padding: '2px 9px', fontWeight: 700, borderRadius: '6px' }}
-                              >
-                                ACTION GATE: {decision}
-                              </span>
-                              {meta.risk_level && (
-                                <span style={{
-                                  fontSize: '0.68rem',
-                                  padding: '2px 7px',
-                                  borderRadius: '5px',
-                                  fontWeight: 700,
-                                  background: meta.risk_level === 'HIGH' ? '#FEE2E2' : meta.risk_level === 'MEDIUM' ? '#FEF3C7' : '#DCFCE7',
-                                  color: meta.risk_level === 'HIGH' ? '#991B1B' : meta.risk_level === 'MEDIUM' ? '#92400E' : '#166534',
-                                }}>
-                                  RISK: {meta.risk_level}
-                                </span>
-                              )}
-                              {meta.audit_id && (
-                                <span style={{ fontSize: '0.68rem', color: '#64748B', fontFamily: 'monospace' }}>
-                                  Audit: {meta.audit_id}
-                                </span>
-                              )}
-                            </>
-                          ) : (
-                            <>
-                              {meta.answer_status ? (
-                                <span
-                                  className={`badge ${meta.answer_status === 'ANSWERED' ? 'badge-allow' : meta.answer_status === 'DISPUTED' ? 'badge-block' : 'badge-review'}`}
-                                  style={{ fontSize: '0.7rem', padding: '2px 9px', fontWeight: 700, borderRadius: '6px' }}
-                                >
-                                  EVIDENCE: {meta.answer_status.replace(/_/g, ' ')}
-                                </span>
-                              ) : decision ? (
-                                <span
-                                  className={`badge ${decision === 'ALLOW' ? 'badge-allow' : decision === 'BLOCK' ? 'badge-block' : 'badge-review'}`}
-                                  style={{ fontSize: '0.7rem', padding: '2px 9px', fontWeight: 700, borderRadius: '6px' }}
-                                >
-                                  GATE: {decision}
-                                </span>
-                              ) : null}
-                            </>
-                          )}
-                          {meta.trust_score !== undefined && (
-                            <span style={{
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '5px',
-                              fontSize: '0.74rem',
-                              fontWeight: 700,
-                              color: '#334155',
-                              background: '#F1F5F9',
-                              padding: '2px 8px',
-                              borderRadius: '6px'
-                            }}>
-                              <span>🛡️ Trust Score:</span>
-                              <strong style={{ color: '#EA580C' }}>{Math.round(meta.trust_score * 100)}/100</strong>
-                            </span>
-                          )}
-                          {meta.confidence !== undefined && (
-                            <span style={{ fontSize: '0.72rem', color: '#64748B', fontWeight: 600 }}>
-                              Confidence: {Math.round(meta.confidence * 100)}%
-                            </span>
-                          )}
-                          {meta.verification && (
-                            <span
-                              style={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '4px',
-                                fontSize: '0.68rem',
-                                fontWeight: 700,
-                                padding: '2px 7px',
-                                borderRadius: '6px',
-                                background: meta.verification.verification_status === 'VERIFIED' ? '#ECFDF5' : meta.verification.verification_status === 'PARTIALLY_GROUNDED' ? '#FFFBEB' : '#FEF2F2',
-                                color: meta.verification.verification_status === 'VERIFIED' ? '#047857' : meta.verification.verification_status === 'PARTIALLY_GROUNDED' ? '#B45309' : '#B91C1C',
-                                border: `1px solid ${meta.verification.verification_status === 'VERIFIED' ? '#A7F3D0' : meta.verification.verification_status === 'PARTIALLY_GROUNDED' ? '#FDE68A' : '#FECACA'}`
-                              }}
-                              title={`Grounding score: ${Math.round((meta.verification.grounding_score || 0) * 100)}%`}
-                            >
-                              <span>{meta.verification.verification_status === 'VERIFIED' ? '✓' : '⚠️'}</span>
-                              <span>{meta.verification.verification_status.replace(/_/g, ' ')} ({Math.round((meta.verification.grounding_score || 0) * 100)}%)</span>
-                            </span>
-                          )}
-                        </div>
-
-                        {/* Quick Copy Button */}
-                        <button
-                          type="button"
-                          onClick={() => {
-                            navigator.clipboard.writeText(msg.content);
-                            setCopiedMsgId(msg.id);
-                            if (showToast) showToast("Answer copied to clipboard!");
-                            setTimeout(() => setCopiedMsgId(null), 2000);
-                          }}
-                          style={{
-                            background: isCopied ? '#F0FDF4' : 'transparent',
-                            border: `1px solid ${isCopied ? '#86EFAC' : '#E2E8F0'}`,
-                            borderRadius: '6px',
-                            padding: '3px 8px',
-                            fontSize: '0.7rem',
-                            fontWeight: 600,
-                            color: isCopied ? '#16A34A' : '#64748B',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '4px',
-                            transition: 'all 0.15s ease'
-                          }}
-                          title="Copy Answer"
-                        >
-                          {isCopied ? <Check size={12} color="#16A34A" /> : <Copy size={12} color="#64748B" />}
-                          <span>{isCopied ? "Copied" : "Copy"}</span>
-                        </button>
-                      </div>
-
-                      {/* Conversational Rewrite Sub-header if Multi-turn Follow-up was resolved */}
+                      {/* Understood Context Query if multi-turn rewrite */}
                       {meta.resolved_query && (
                         <div style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '6px',
-                          padding: '6px 18px',
-                          background: '#F8FAFC',
-                          borderBottom: '1px solid #F1F5F9',
-                          fontSize: '0.72rem',
-                          color: '#475569'
+                          fontSize: '0.74rem',
+                          color: '#78716C',
+                          fontStyle: 'italic',
+                          marginBottom: '8px'
                         }}>
-                          <span style={{ fontWeight: 700, color: '#EA580C' }}>Contextual Rewrite:</span>
-                          <span style={{ fontStyle: 'italic' }}>"{meta.resolved_query}"</span>
+                          Context query: "{meta.resolved_query}"
                         </div>
                       )}
 
-                      {/* Main Structured Body */}
-                      <div style={{ padding: '14px 18px' }}>
-                        <RichAnswerContent
-                          content={msg.content}
-                          onCitationClick={(srcNum) => handleCitationClick(msg.id, srcNum)}
-                        />
+                      {/* Clean Natural Prose Response - NO extra background, NO ai slop cards */}
+                      <RichAnswerContent
+                        content={msg.content}
+                        onCitationClick={(srcNum) => handleCitationClick(msg.id, srcNum)}
+                      />
 
-                        {/* Quick Verified Sources & Folder Breadcrumbs with Direct Lineage Deep-Link */}
-                        {citations.length > 0 && (
+                      {/* Clean subtle Sources row if citations exist */}
+                      {citations.length > 0 && (() => {
+                        // Deduplicate citations by clean title so we don't display repetitive rows
+                        const seenTitles = new Set();
+                        const displayCitations = [];
+                        citations.forEach((c, ci) => {
+                          const srcIdx = c.source_index || ci + 1;
+                          const rawTitle = c.source_title || 'Enterprise Policy';
+                          const cleanTitle = rawTitle
+                            .replace(/^Slack Thread:\s*#?/i, '#')
+                            .replace(/\.pdf\].*$/i, '.pdf]')
+                            .replace(/\s*\(\d+\.\d+\)$/, '');
+                          const key = `${c.document_id || ''}-${cleanTitle}`;
+                          if (!seenTitles.has(key)) {
+                            seenTitles.add(key);
+                            displayCitations.push({ ...c, srcIdx, cleanTitle });
+                          }
+                        });
+
+                        return (
                           <div style={{
                             display: 'flex',
                             alignItems: 'center',
                             gap: '6px',
                             flexWrap: 'wrap',
-                            marginTop: '10px',
-                            padding: '6px 10px',
-                            background: '#F8FAFC',
-                            borderRadius: '8px',
-                            border: '1px solid #F1F5F9'
-                          }}>
-                            <span style={{ fontSize: '0.70rem', fontWeight: 700, color: '#64748B' }}>Verified Sources:</span>
-                            {citations.map((c, ci) => {
-                              const srcIdx = c.source_index || ci + 1;
-                              return (
-                                <a
-                                  key={ci}
-                                  href={`/vault?workspace=${activeWorkspace?.id || 'all'}&doc=${c.document_id || ''}&claimId=${c.claim_id || ''}&section=claims`}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  style={{
-                                    display: 'inline-flex',
-                                    alignItems: 'center',
-                                    gap: '4px',
-                                    fontSize: '0.70rem',
-                                    fontWeight: 600,
-                                    padding: '3px 8px',
-                                    borderRadius: '5px',
-                                    background: '#FFFFFF',
-                                    border: '1px solid #E2E8F0',
-                                    color: '#1E293B',
-                                    textDecoration: 'none',
-                                    transition: 'all 0.15s ease'
-                                  }}
-                                  onMouseEnter={e => {
-                                    e.currentTarget.style.borderColor = '#EA580C';
-                                    e.currentTarget.style.color = '#EA580C';
-                                  }}
-                                  onMouseLeave={e => {
-                                    e.currentTarget.style.borderColor = '#E2E8F0';
-                                    e.currentTarget.style.color = '#1E293B';
-                                  }}
-                                  title={`Open ${c.source_title} in Lineage Graph in a new tab (Claim ${c.claim_id || srcIdx})`}
-                                >
-                                  <span style={{ color: '#EA580C', fontWeight: 700 }}>[{srcIdx}]</span>
-                                  <span>📁 {c.folder_name || 'Enterprise Policies'} / 📄 {c.source_title}</span>
-                                  <ExternalLink size={10} color="#94A3B8" />
-                                </a>
-                              );
-                            })}
-                          </div>
-                        )}
-
-                        {/* Conflict Warnings & HITL Escalation Alert */}
-                        {(warnings.length > 0 || meta.answer_status === 'DISPUTED') && (
-                          <div style={{
                             marginTop: '12px',
-                            background: 'rgba(239, 68, 68, 0.08)',
-                            border: '1px solid rgba(239, 68, 68, 0.3)',
-                            borderLeft: '4px solid #DC2626',
-                            borderRadius: '8px',
-                            padding: '12px 14px',
-                            fontSize: '0.78rem',
-                            color: '#991B1B'
+                            paddingTop: '6px',
+                            fontSize: '0.74rem',
+                            color: '#78716C'
                           }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
-                              <div style={{ fontWeight: 800, display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                <AlertTriangle size={15} color="#DC2626" />
-                                <span>Contradiction & Policy Dispute Alert</span>
-                              </div>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  if (onOpenHitlModal) {
-                                    onOpenHitlModal();
-                                  } else {
-                                    window.dispatchEvent(new CustomEvent('open-hitl-modal', { detail: { messageId: msg.id } }));
-                                  }
-                                  if (showToast) showToast('Escalated question to Human Data Steward review queue.');
-                                }}
+                            <span style={{ fontWeight: 600, color: '#57534E' }}>Sources:</span>
+                            {displayCitations.map((c, ci) => (
+                              <a
+                                key={ci}
+                                href={`/vault?workspace=${activeWorkspace?.id || 'all'}&doc=${c.document_id || ''}&claimId=${c.claim_id || ''}&section=claims`}
+                                target="_blank"
+                                rel="noopener noreferrer"
                                 style={{
-                                  background: '#DC2626',
-                                  color: '#FFFFFF',
-                                  border: 'none',
-                                  borderRadius: '6px',
-                                  padding: '4px 10px',
-                                  fontSize: '0.72rem',
-                                  fontWeight: 700,
-                                  cursor: 'pointer',
                                   display: 'inline-flex',
                                   alignItems: 'center',
-                                  gap: '5px',
-                                  boxShadow: '0 1px 3px rgba(220, 38, 38, 0.3)'
+                                  gap: '4px',
+                                  fontSize: '0.72rem',
+                                  fontWeight: 500,
+                                  padding: '2px 8px',
+                                  borderRadius: '10px',
+                                  background: '#F5F5F4',
+                                  color: '#44403C',
+                                  textDecoration: 'none',
+                                  transition: 'all 0.15s ease'
                                 }}
-                                title="Escalate this dispute directly to human data steward queue"
+                                onMouseEnter={e => {
+                                  e.currentTarget.style.background = '#E7E5E4';
+                                  e.currentTarget.style.color = '#1C1917';
+                                }}
+                                onMouseLeave={e => {
+                                  e.currentTarget.style.background = '#F5F5F4';
+                                  e.currentTarget.style.color = '#44403C';
+                                }}
+                                title={`Open ${c.source_title} in Knowledge Vault`}
                               >
-                                <ShieldAlert size={12} color="#FFFFFF" />
-                                <span>Escalate to Data Steward (HITL)</span>
-                              </button>
-                            </div>
-                            {warnings.map((w, wi) => (
-                              <div key={wi} style={{ lineHeight: 1.4, marginTop: '4px' }}>{w}</div>
+                                <span style={{ color: '#D97706', fontWeight: 700 }}>[{c.srcIdx}]</span>
+                                <span>{c.cleanTitle}</span>
+                                <ExternalLink size={10} color="#A8A29E" />
+                              </a>
                             ))}
                           </div>
-                        )}
+                        );
+                      })()}
 
-                        {/* Expandable Evidence & Citations */}
-                        {citations.length > 0 && (
-                          <div style={{ marginTop: '12px', paddingTop: '10px', borderTop: '1px solid #F1F5F9' }}>
+                      {/* Conflict Warnings & HITL Escalation Alert */}
+                      {(warnings.length > 0 || meta.answer_status === 'DISPUTED') && (
+                        <div style={{
+                          marginTop: '10px',
+                          background: 'rgba(239, 68, 68, 0.06)',
+                          border: '1px solid rgba(239, 68, 68, 0.2)',
+                          borderRadius: '10px',
+                          padding: '10px 14px',
+                          fontSize: '0.78rem',
+                          color: '#991B1B'
+                        }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+                            <div style={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                              <AlertTriangle size={14} color="#DC2626" />
+                              <span>Contradiction & Policy Dispute Alert</span>
+                            </div>
                             <button
                               type="button"
-                              onClick={() => setExpandedCitations(prev => ({ ...prev, [msg.id]: !prev[msg.id] }))}
+                              onClick={() => {
+                                if (onOpenHitlModal) onOpenHitlModal();
+                                else window.dispatchEvent(new CustomEvent('open-hitl-modal', { detail: { messageId: msg.id } }));
+                                if (showToast) showToast('Escalated question to Human Data Steward review queue.');
+                              }}
                               style={{
-                                background: '#F8FAFC',
-                                border: '1px solid #E2E8F0',
-                                borderRadius: '8px',
-                                color: '#1E293B',
-                                fontSize: '0.74rem',
+                                background: '#DC2626',
+                                color: '#FFFFFF',
+                                border: 'none',
+                                borderRadius: '6px',
+                                padding: '3px 9px',
+                                fontSize: '0.70rem',
                                 fontWeight: 700,
                                 cursor: 'pointer',
-                                padding: '6px 12px',
                                 display: 'inline-flex',
                                 alignItems: 'center',
-                                gap: '6px',
-                                transition: 'all 0.15s ease'
+                                gap: '4px'
                               }}
+                              title="Escalate this dispute directly to human data steward queue"
                             >
-                              {isExpanded ? <ChevronDown size={14} color="#EA580C" /> : <ChevronRight size={14} color="#EA580C" />}
-                              <BookOpen size={13} color="#EA580C" />
-                              <span>Grounded Evidence & Verified Citations ({citations.length})</span>
+                              <ShieldAlert size={12} color="#FFFFFF" />
+                              <span>Escalate to Data Steward</span>
                             </button>
-
-                            {isExpanded && (
-                              <div style={{
-                                marginTop: '10px',
-                                display: 'grid',
-                                gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-                                gap: '8px'
-                              }}>
-                                {citations.map((c, ci) => {
-                                  const sourceIndex = c.source_index || ci + 1;
-                                  const isHighlighted = activeCitationHighlight[msg.id] === sourceIndex;
-
-                                  return (
-                                    <div
-                                      key={ci}
-                                      id={`citation-${msg.id}-${sourceIndex}`}
-                                      style={{
-                                        background: isHighlighted ? '#FFF7ED' : '#FAFAFA',
-                                        border: isHighlighted ? '1.5px solid #EA580C' : '1px solid #E2E8F0',
-                                        boxShadow: isHighlighted ? '0 0 0 2px rgba(234, 88, 12, 0.2)' : 'none',
-                                        borderRadius: '8px',
-                                        padding: '10px 12px',
-                                        fontSize: '0.76rem',
-                                        display: 'flex',
-                                        flexDirection: 'column',
-                                        gap: '4px',
-                                        transition: 'all 0.2s ease'
-                                      }}
-                                    >
-                                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '4px' }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-                                          <span style={{ fontSize: '0.68rem', fontWeight: 800, color: '#EA580C', background: 'rgba(234, 88, 12, 0.1)', padding: '1px 6px', borderRadius: '4px' }}>
-                                            [Source {sourceIndex}]
-                                          </span>
-                                          <span style={{
-                                            fontSize: '0.68rem',
-                                            fontWeight: 600,
-                                            color: '#0369A1',
-                                            background: '#F0F9FF',
-                                            border: '1px solid #BAE6FD',
-                                            borderRadius: '4px',
-                                            padding: '1px 6px',
-                                            display: 'inline-flex',
-                                            alignItems: 'center',
-                                            gap: '3px'
-                                          }}>
-                                            📁 {c.folder_name || 'Enterprise Policies'}
-                                          </span>
-                                          <strong style={{ color: '#0F172A', fontSize: '0.78rem' }}>
-                                            📄 {c.source_title}
-                                          </strong>
-                                        </div>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                          {c.evidence_lane && (
-                                            <span style={{ fontSize: '0.62rem', padding: '1px 5px', borderRadius: '4px', background: c.evidence_lane === 'canonical' ? '#EFF6FF' : '#F8FAFC', color: c.evidence_lane === 'canonical' ? '#2563EB' : '#64748B', fontWeight: 600 }}>
-                                              {c.evidence_lane === 'canonical' ? 'Canonical Rule' : 'Source Passage'}
-                                            </span>
-                                          )}
-                                          <span className="badge badge-verified" style={{ fontSize: '0.64rem', padding: '1px 6px', borderRadius: '4px' }}>
-                                            Trust: {Math.round(c.trust_score * 100)}/100
-                                          </span>
-                                        </div>
-                                      </div>
-                                      <div style={{ color: '#475569', fontStyle: 'italic', lineHeight: 1.4, margin: '2px 0' }}>
-                                        "{c.claim_text}"
-                                      </div>
-                                      {c.evidence?.verbatim_quote && (
-                                        <div style={{
-                                          background: '#FFFFFF',
-                                          border: '1px solid #E2E8F0',
-                                          borderRadius: '4px',
-                                          padding: '4px 8px',
-                                          fontSize: '0.70rem',
-                                          color: '#334155',
-                                          fontStyle: 'italic',
-                                          marginTop: '2px'
-                                        }}>
-                                          <span style={{ fontWeight: 700, color: '#64748B', fontStyle: 'normal' }}>Quote: </span>
-                                          "{c.evidence.verbatim_quote}"
-                                        </div>
-                                      )}
-                                      <div style={{ fontSize: '0.68rem', color: '#94A3B8', display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', marginTop: '4px' }}>
-                                        <span>Status: <strong style={{ color: '#16A34A' }}>{c.validity || 'Active'}</strong></span>
-                                        {c.section && <span>• {c.section}</span>}
-                                        {c.page && <span>• Page {c.page}</span>}
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginLeft: 'auto' }}>
-                                          {c.document_id && (
-                                            <a
-                                              href={`/vault?workspace=${activeWorkspace?.id || 'all'}&doc=${c.document_id}&claimId=${c.claim_id || ''}&section=claims`}
-                                              target="_blank"
-                                              rel="noopener noreferrer"
-                                              style={{
-                                                background: '#EFF6FF',
-                                                border: '1px solid #BFDBFE',
-                                                borderRadius: '4px',
-                                                color: '#1D4ED8',
-                                                fontSize: '0.68rem',
-                                                fontWeight: 700,
-                                                cursor: 'pointer',
-                                                display: 'inline-flex',
-                                                alignItems: 'center',
-                                                gap: '4px',
-                                                padding: '2px 7px',
-                                                textDecoration: 'none',
-                                                transition: 'all 0.15s ease'
-                                              }}
-                                              title="Open this file in Lineage Graph in a new tab with this exact claim highlighted"
-                                              onClick={(e) => e.stopPropagation()}
-                                            >
-                                              <span>Open Lineage</span>
-                                              <ExternalLink size={10} />
-                                            </a>
-                                          )}
-                                          {c.document_id && onInspectDocument && (
-                                            <button
-                                              type="button"
-                                              onClick={(e) => {
-                                                e.stopPropagation();
-                                                onInspectDocument(c.document_id);
-                                              }}
-                                              style={{
-                                                background: 'transparent',
-                                                border: 'none',
-                                                color: '#2563EB',
-                                                fontSize: '0.68rem',
-                                                fontWeight: 700,
-                                                cursor: 'pointer',
-                                                display: 'inline-flex',
-                                                alignItems: 'center',
-                                                gap: '3px',
-                                                padding: '2px 4px'
-                                              }}
-                                              title="Inspect source document in Ingestion Studio"
-                                            >
-                                              <span>Inspect Doc</span>
-                                              <ChevronRight size={12} />
-                                            </button>
-                                          )}
-                                        </div>
-                                      </div>
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                            )}
                           </div>
+                          {warnings.map((w, wi) => (
+                            <div key={wi} style={{ lineHeight: 1.4, marginTop: '4px' }}>{w}</div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Minimal Bottom Action Row: Copy button and optional decision badge */}
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '12px',
+                        marginTop: '10px',
+                        fontSize: '0.74rem',
+                        color: '#78716C'
+                      }}>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            navigator.clipboard.writeText(msg.content);
+                            setCopiedMsgId(msg.id);
+                            if (showToast) showToast("Copied to clipboard");
+                            setTimeout(() => setCopiedMsgId(null), 2000);
+                          }}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            cursor: 'pointer',
+                            padding: '2px 0',
+                            color: isCopied ? '#16A34A' : '#78716C',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            fontSize: '0.74rem',
+                            fontWeight: 500
+                          }}
+                          title="Copy Answer"
+                        >
+                          {isCopied ? <Check size={13} color="#16A34A" /> : <Copy size={13} />}
+                          <span>{isCopied ? "Copied" : "Copy"}</span>
+                        </button>
+
+                        {decision && (
+                          <span style={{
+                            fontSize: '0.70rem',
+                            fontWeight: 600,
+                            color: decision === 'ALLOW' ? '#15803D' : '#B91C1C',
+                            background: decision === 'ALLOW' ? '#DCFCE7' : '#FEE2E2',
+                            padding: '2px 8px',
+                            borderRadius: '8px'
+                          }}>
+                            {decision === 'ALLOW' ? '✓ Allowed' : '✕ Blocked'}
+                          </span>
                         )}
                       </div>
                     </div>
@@ -1283,86 +1146,113 @@ export default function AgentChatPlayground({
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Bottom Single-Line Bar - Only shown when active conversation messages exist */}
+          {/* Bottom Floating Copilot Bar - Active Conversation State */}
           {messages.length > 0 && (
-            <div style={{ padding: '10px 0 2px 0', background: 'transparent', flexShrink: 0 }}>
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  handleSendMessage();
-                }}
+            <div style={{ padding: '8px 20px 14px 20px', background: 'transparent', flexShrink: 0, display: 'flex', justifyContent: 'center' }}>
+              <div
+                className="copilot-card"
                 style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '12px',
-                  background: '#FFFFFF',
-                  border: '1px solid var(--border-subtle, #E2E8F0)',
+                  maxWidth: '740px',
+                  padding: '12px 18px 10px 18px',
                   borderRadius: '24px',
-                  padding: '10px 18px',
-                  boxShadow: '0 1px 4px rgba(0, 0, 0, 0.04)'
+                  boxShadow: '0 8px 30px rgba(0, 0, 0, 0.06)',
+                  border: '1px solid rgba(0, 0, 0, 0.08)'
                 }}
               >
-                <Search size={18} color="#94A3B8" style={{ flexShrink: 0 }} />
-                {activeWorkspace && (
-                  <span style={{
-                    fontSize: '0.72rem',
-                    padding: '2px 8px',
-                    borderRadius: '12px',
-                    background: activeWorkspace.id !== 'all' ? 'rgba(37, 99, 235, 0.08)' : '#F1F5F9',
-                    color: activeWorkspace.id !== 'all' ? 'var(--primary, #2563EB)' : '#64748B',
-                    fontWeight: 600,
-                    flexShrink: 0,
-                    display: 'flex',
+                {/* Attached Document Preview if any */}
+                {attachedFile && (
+                  <div style={{
+                    display: 'inline-flex',
                     alignItems: 'center',
-                    gap: '4px'
+                    gap: '6px',
+                    background: '#F4F4F5',
+                    border: '1px solid #E4E4E7',
+                    borderRadius: '12px',
+                    padding: '2px 8px',
+                    fontSize: '0.72rem',
+                    color: '#27272A',
+                    marginBottom: '6px'
                   }}>
-                    <span>{activeWorkspace.icon || '🏢'}</span>
-                    <span>{activeWorkspace.id === 'all' ? 'Unified' : activeWorkspace.name.split(' ')[0]}</span>
-                  </span>
+                    <FileText size={12} color="#52525B" />
+                    <span>{attachedFile.name}</span>
+                    <button
+                      type="button"
+                      onClick={() => setAttachedFile(null)}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0 2px', display: 'flex' }}
+                    >
+                      <X size={11} color="#71717A" />
+                    </button>
+                  </div>
                 )}
-                <input
-                  type="text"
+
+                {/* Textarea */}
+                <textarea
+                  className="copilot-textarea"
+                  rows={1}
                   value={inputPrompt}
                   onChange={e => setInputPrompt(e.target.value)}
-                  placeholder={activeWorkspace && activeWorkspace.id !== 'all' ? `Ask in ${activeWorkspace.name}...` : "Search policy rules or ask AI Copilot a question..."}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSendMessage();
+                    }
+                  }}
+                  placeholder={
+                    activeWorkspace && activeWorkspace.id !== 'all'
+                      ? `Message Copilot in ${activeWorkspace.name}...`
+                      : "Message Copilot"
+                  }
                   disabled={isSending}
-                  style={{
-                    flex: 1,
-                    border: 'none',
-                    outline: 'none',
-                    background: 'transparent',
-                    fontSize: '0.875rem',
-                    color: 'var(--text-main, #1E293B)',
-                    fontFamily: 'inherit',
-                    padding: '2px 0'
-                  }}
+                  style={{ minHeight: '22px', maxHeight: '100px', marginBottom: '6px', fontSize: '0.96rem' }}
                 />
-                <button
-                  type="submit"
-                  disabled={!inputPrompt.trim() || isSending}
-                  style={{
-                    width: '30px',
-                    height: '30px',
-                    borderRadius: '50%',
-                    border: 'none',
-                    background: !inputPrompt.trim() || isSending ? 'transparent' : 'var(--primary, #2563EB)',
-                    color: !inputPrompt.trim() || isSending ? '#CBD5E1' : '#FFFFFF',
-                    cursor: !inputPrompt.trim() || isSending ? 'default' : 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '0.9rem',
-                    fontWeight: 700,
-                    transition: 'all 0.15s ease',
-                    flexShrink: 0
-                  }}
-                  title="Search / Send"
-                >
-                  {isSending ? "..." : "↑"}
-                </button>
-              </form>
+
+                {/* Bottom Row: Right mic & peach action button */}
+                <div className="copilot-bottom-row" style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+                  {/* Right: mic and peach circular action button */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <button
+                      type="button"
+                      className={`copilot-action-icon-btn ${isListening ? 'copilot-mic-listening' : ''}`}
+                      title={isListening ? "Listening... click to stop" : "Voice dictation"}
+                      onClick={handleMicClick}
+                    >
+                      <Mic size={17} />
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (!isSending) handleSendMessage();
+                      }}
+                      disabled={!isSending && (!inputPrompt.trim() && !attachedFile)}
+                      title={isSending ? "Generating response..." : "Send question"}
+                      style={{
+                        width: '32px',
+                        height: '32px',
+                        borderRadius: '50%',
+                        border: 'none',
+                        background: '#FBE9D9',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: (!isSending && !inputPrompt.trim() && !attachedFile) ? 'default' : 'pointer',
+                        opacity: (!isSending && !inputPrompt.trim() && !attachedFile) ? 0.6 : 1,
+                        transition: 'all 0.15s cubic-bezier(0.16, 1, 0.3, 1)',
+                        flexShrink: 0
+                      }}
+                    >
+                      {isSending ? (
+                        <div style={{ width: '9px', height: '9px', background: '#292524', borderRadius: '2px' }} />
+                      ) : (
+                        <ArrowUp size={16} color="#292524" strokeWidth={2.5} />
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
+
         </div>
       </div>
     </div>

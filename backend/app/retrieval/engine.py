@@ -86,7 +86,8 @@ def _compute_lexical_score(claim_text: str, subject: str | None, query: str, dom
     # 6. Domain alignment bonus
     if domain and domain not in ("global", "all"):
         domain_keywords = {
-            "finance": ["refund", "billing", "invoice", "arr", "tier", "payment", "accounting", "handbook", "confluence", "customer", "credit"],
+            "finance": ["refund", "billing", "invoice", "arr", "tier", "payment", "accounting", "handbook", "confluence", "customer", "credit", "return", "returns"],
+            "governance": ["policy", "standard", "rule", "terms", "compliance", "entitlement", "audit", "governance", "handbook", "refund", "return", "returns", "window", "contract"],
             "secops": ["security", "firewall", "ingress", "iam", "mtls", "session", "token", "freeze", "infrastructure", "portal", "key"],
             "hr": ["remote", "work", "leave", "vacation", "employee", "handbook", "people", "guideline", "stipend"],
             "support": ["support", "dispute", "sla", "ticket", "escalation", "customer", "resolution", "arbitration"],
@@ -95,6 +96,23 @@ def _compute_lexical_score(claim_text: str, subject: str | None, query: str, dom
         kws = domain_keywords.get(domain, [domain])
         if any(kw in claim_lower for kw in kws):
             score += 12.0
+
+    # 7. Semantic Concept Cluster Expansion (bridges natural phrasing like "refund window" to "30 days from delivery")
+    concept_clusters = [
+        ({"window", "timeframe", "duration", "period", "timeline", "deadline", "cutoff"},
+         {"days", "day", "delivery", "window", "within", "notice", "speed", "inspect", "30", "60", "90"}),
+        ({"refund", "return", "returns", "reimbursement", "credit", "payout", "chargeback"},
+         {"refund", "return", "returns", "credit", "debited", "replacement", "proof", "requested"}),
+        ({"enterprise", "annual", "corporate", "commercial"},
+         {"custom", "contract", "contracts", "accounts", "agreement", "override", "business", "annual"}),
+        ({"approval", "approve", "authorized", "authorization", "sign-off", "signoff", "limit", "threshold"},
+         {"approval", "approving", "approve", "tier", "lead", "manager", "director", "sign-off", "signoff", "over"}),
+    ]
+    for query_concepts, claim_concepts in concept_clusters:
+        if any(qc in q_words for qc in query_concepts):
+            matched = sum(1 for cc in claim_concepts if cc in c_words)
+            if matched > 0:
+                score += matched * 3.5
 
     return score
 
@@ -292,6 +310,9 @@ class ContextRetrievalEngine:
             if not is_valid:
                 included = False
                 exclusion_reason = "Claim validity window has expired."
+            elif claim.claim_text.strip().endswith("?"):
+                included = False
+                exclusion_reason = "Hard Gate Excluded: Interrogative title / FAQ question, not an operative policy rule."
             elif not gate_res.subject_valid:
                 included = False
                 exclusion_reason = "Hard Gate Rejected: Defective extraction fragment or invalid subject entity."
@@ -405,7 +426,18 @@ class ContextRetrievalEngine:
         # 3. Sort included items by relevance score and trust score (highest first) and limit to max_results
         included_items = [item for item in evaluated_items if item[2]]
         included_items.sort(key=lambda x: (x[5], x[1]), reverse=True)
-        top_included = included_items[: request_in.max_results]
+
+        # Deduplicate identical / mirror claim texts (e.g. PDF vs Slack mirrored ingestions) to preserve evidence diversity
+        distinct_included = []
+        seen_claim_norms = set()
+        for item in included_items:
+            norm_key = re.sub(r"\s+", " ", item[0].claim_text.strip().lower()[:120])
+            if norm_key in seen_claim_norms:
+                continue
+            seen_claim_norms.add(norm_key)
+            distinct_included.append(item)
+
+        top_included = distinct_included[: request_in.max_results]
 
         final_context_list: list[ContextItemResponse] = []
         rank = 1

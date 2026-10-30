@@ -2,14 +2,14 @@
 
 :root {
   /* Ultra-Clean Neutral Palette */
-  --bg-page: #F8FAFC;
-  --bg-sidebar: #FFFFFF;
-  --bg-card: #FFFFFF;
-  --bg-card-subtle: #F1F5F9;
+  --bg-page: #FAF8F5;
+  --bg-sidebar: #FAF8F5;
+  --bg-card: #FAF8F5;
+  --bg-card-subtle: #F3EFEA;
   --bg-input: #FFFFFF;
 
-  --border-subtle: #E2E8F0;
-  --border-medium: #CBD5E1;
+  --border-subtle: #E8E3DC;
+  --border-medium: #DDD7CE;
   --border-strong: #94A3B8;
   --border-focus: #FFAB4A;
 
@@ -73,12 +73,14 @@ body {
 .app-layout {
   display: flex;
   min-height: 100vh;
+  background-color: #FAF8F5;
+  background: #FAF8F5;
 }
 
 .sidebar {
   width: 250px;
   min-width: 250px;
-  background: #FFFFFF;
+  background: #FAF8F5;
   border-right: 1px solid var(--border-subtle);
   display: flex;
   flex-direction: column;
@@ -113,6 +115,7 @@ body {
   max-width: 100%;
   min-width: 0;
   width: 100%;
+  background: #FAF8F5;
   transition: all 0.2s ease;
 }
 
@@ -159,7 +162,7 @@ body {
 }
 
 .nav-item:hover {
-  background: #F1F5F9;
+  background: #F0ECE4;
   color: #1E293B;
 }
 
@@ -168,7 +171,7 @@ body {
 }
 
 .nav-item-active {
-  background: #FFF7ED;
+  background: #F7EFE4;
   color: #C2410C;
   font-weight: 600;
   box-shadow: inset 3px 0 0 #FFAB4A;
@@ -1435,9 +1438,10 @@ body {
 
 /* Clean Flat Panels (No Shadows) */
 .clean-panel {
-  background: var(--bg-card);
+  background: #FAF8F5;
   border: 1px solid var(--border-subtle);
   border-radius: 10px;
+  box-shadow: none;
 }
 
 /* Badges */
@@ -2562,4 +2566,341 @@ textarea:focus {
 
 .spin {
   animation: spin 0.8s linear infinite;
+}
+
+/* ============================================================
+   Copilot-Style Modern Agent Interface Styles (Image 1 Parity)
+   ============================================================ */
+.copilot-canvas {
+  background: #FAF8F5;
+  min-height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.copilot-hero-title {
+  font-size: 2.35rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: #18181B;
+  line-height: 1.18;
+  margin: 0 0 24px 0;
+  text-align: center;
+  font-family: inherit;
+}
+
+.copilot-card {
+  width: 100%;
+  max-width: 720px;
+  background: #FFFFFF;
+  border-radius: 26px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 14px 40px -10px rgba(0, 0, 0, 0.07), 0 2px 10px -2px rgba(0, 0, 0, 0.03);
+  padding: 16px 20px 14px 22px;
+  box-sizing: border-box;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  text-align: left;
+}
+
+.copilot-card:hover {
+  border-color: rgba(0, 0, 0, 0.14);
+  box-shadow: 0 18px 46px -10px rgba(0, 0, 0, 0.1), 0 4px 14px -2px rgba(0, 0, 0, 0.04);
+}
+
+.copilot-card:focus-within {
+  border-color: rgba(37, 99, 235, 0.4);
+  box-shadow: 0 18px 48px -10px rgba(37, 99, 235, 0.12), 0 0 0 3px rgba(37, 99, 235, 0.08);
+}
+
+.copilot-textarea {
+  width: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  resize: none;
+  font-size: 0.98rem;
+  color: #18181B;
+  font-family: inherit;
+  line-height: 1.5;
+  padding: 0;
+  margin-bottom: 8px;
+}
+
+.copilot-textarea::placeholder {
+  color: #9CA3AF;
+  font-weight: 400;
+}
+
+.copilot-bottom-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 4px;
+}
+
+.copilot-mode-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 20px;
+  background: #F4F4F5;
+  border: 1px solid #E4E4E7;
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: #27272A;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+
+.copilot-mode-btn:hover {
+  background: #E4E4E7;
+  color: #18181B;
+}
+
+.copilot-action-icon-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: #52525B;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.copilot-action-icon-btn:hover {
+  background: #F4F4F5;
+  color: #18181B;
+}
+
+.copilot-send-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: #18181B;
+  color: #FFFFFF;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.copilot-send-btn:hover:not(:disabled) {
+  transform: scale(1.06);
+  background: #000000;
+}
+
+.copilot-send-btn:disabled {
+  background: #F4F4F5;
+  color: #A1A1AA;
+  cursor: default;
+}
+
+.copilot-pill-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  max-width: 720px;
+  margin-top: 20px;
+}
+
+.copilot-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 18px;
+  border-radius: 9999px;
+  background: #FFFFFF;
+  border: 1px solid #E4E4E7;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: #3F3F46;
+  cursor: pointer;
+  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+  white-space: nowrap;
+  font-family: inherit;
+}
+
+.copilot-pill:hover {
+  background: #FAFAFA;
+  border-color: #D4D4D8;
+  color: #18181B;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+}
+
+.copilot-pill:active {
+  transform: translateY(0);
+}
+
+.copilot-mode-menu {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 0;
+  background: #FFFFFF;
+  border: 1px solid #E4E4E7;
+  border-radius: 14px;
+  box-shadow: 0 12px 32px -4px rgba(0, 0, 0, 0.12), 0 4px 12px -2px rgba(0, 0, 0, 0.05);
+  padding: 6px;
+  width: 280px;
+  z-index: 50;
+  animation: copilotFadeIn 0.15s ease-out;
+}
+
+.copilot-mode-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.12s ease;
+  font-family: inherit;
+  box-sizing: border-box;
+}
+
+.copilot-mode-item:hover {
+  background: #F4F4F5;
+}
+
+.copilot-mode-item.active {
+  background: #F4F4F5;
+}
+
+.copilot-plus-menu {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  right: 0;
+  background: #FFFFFF;
+  border: 1px solid #E4E4E7;
+  border-radius: 14px;
+  box-shadow: 0 12px 32px -4px rgba(0, 0, 0, 0.12), 0 4px 12px -2px rgba(0, 0, 0, 0.05);
+  padding: 6px;
+  width: 250px;
+  z-index: 50;
+  animation: copilotFadeIn 0.15s ease-out;
+}
+
+.copilot-plus-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: #27272A;
+  transition: background 0.12s ease;
+  font-family: inherit;
+  box-sizing: border-box;
+}
+
+.copilot-plus-item:hover {
+  background: #F4F4F5;
+  color: #18181B;
+}
+
+@keyframes copilotFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.copilot-mic-listening {
+  animation: copilotMicPulse 1.2s infinite ease-in-out;
+  background: #FEE2E2 !important;
+  color: #DC2626 !important;
+}
+
+@keyframes copilotMicPulse {
+  0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.4); }
+  50% { transform: scale(1.08); box-shadow: 0 0 0 6px rgba(220, 38, 38, 0); }
+  100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); }
+}
+
+
+
+
+/* ========================================================================== */
+/* UNIFIED #FAF8F5 AMBIENT SYSTEM - ZERO OVERLAPPING BACKGROUNDS FOR ALL TABS */
+/* ========================================================================== */
+
+html, body, #root, .app-layout {
+  background-color: #FAF8F5 !important;
+  background: #FAF8F5 !important;
+}
+
+.sidebar {
+  background-color: #FAF8F5 !important;
+  border-right: 1px solid #E8E3DC !important;
+}
+
+.main-content {
+  background-color: #FAF8F5 !important;
+  background: #FAF8F5 !important;
+}
+
+.top-breadcrumb-bar {
+  background-color: #FAF8F5 !important;
+}
+
+/* Seamless Copilot Chat Workspace - No outer card frame or nested borders */
+.copilot-canvas {
+  background-color: #FAF8F5 !important;
+  background: #FAF8F5 !important;
+  border: none !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  width: 100% !important;
+}
+
+/* Ensure all tab panels, workspaces, and cards share the #FAF8F5 base */
+.clean-panel,
+.panel,
+.workbench-panel,
+.tab-header-center,
+.document-explorer-panel,
+.vault-panel {
+  background-color: #FAF8F5 !important;
+  border-color: #E8E3DC !important;
+  box-shadow: none !important;
+}
+
+/* Input Card & Floating Modals retain crisp clean surfaces */
+.copilot-card {
+  background: #FFFFFF !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Clean subtle borders across all tab tables and lists */
+.clean-panel th,
+.clean-panel td,
+.sidebar-footer {
+  border-color: #E8E3DC !important;
 }

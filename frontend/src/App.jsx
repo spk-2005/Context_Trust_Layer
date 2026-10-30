@@ -5745,11 +5745,11 @@ export default function App() {
                     display: 'grid',
                     gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
                     gap: '14px',
-                    background: '#FFFFFF',
-                    border: '1px solid #E2E8F0',
+                    background: '#FAF8F5',
+                    border: '1px solid var(--border-subtle)',
                     borderRadius: '12px',
                     padding: '16px 20px',
-                    boxShadow: '0 1px 3px rgba(0,0,0,0.03)'
+                    boxShadow: 'none'
                   }}>
                     <div>
                       <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Configured Live Connections</div>
@@ -5795,11 +5795,11 @@ export default function App() {
 
                   {/* SECTION 1: LIVE CONNECTORS */}
                   <div style={{
-                    background: '#FFFFFF',
-                    border: '1px solid #E2E8F0',
+                    background: '#FAF8F5',
+                    border: '1px solid var(--border-subtle)',
                     borderRadius: '12px',
                     padding: '20px',
-                    boxShadow: '0 1px 3px rgba(0,0,0,0.03)'
+                    boxShadow: 'none'
                   }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
                       <div>
@@ -6033,11 +6033,11 @@ export default function App() {
 
                   {/* SECTION 2: SYNCHRONIZED CONNECTORS */}
                   <div style={{
-                    background: '#FFFFFF',
-                    border: '1px solid #E2E8F0',
+                    background: '#FAF8F5',
+                    border: '1px solid var(--border-subtle)',
                     borderRadius: '12px',
                     padding: '20px',
-                    boxShadow: '0 1px 3px rgba(0,0,0,0.03)'
+                    boxShadow: 'none'
                   }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
                       <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0F172A', margin: 0 }}>
@@ -6124,11 +6124,11 @@ export default function App() {
 
                   {/* SECTION 3: AVAILABLE LIVE DATA PROVIDERS (5 SUPPORTED PROVIDERS) */}
                   <div style={{
-                    background: '#FFFFFF',
-                    border: '1px solid #E2E8F0',
+                    background: '#FAF8F5',
+                    border: '1px solid var(--border-subtle)',
                     borderRadius: '12px',
                     padding: '20px',
-                    boxShadow: '0 1px 3px rgba(0,0,0,0.03)'
+                    boxShadow: 'none'
                   }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
                       <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0F172A', margin: 0 }}>
@@ -6243,11 +6243,11 @@ export default function App() {
             {/* VIEW: FULL PAGE CONNECT REAL ENTERPRISE DATA SOURCE (ATLAN ARCHITECTURE) */}
             {docExplorerView === 'connect' && (
               <div style={{
-                background: '#FFFFFF',
-                border: '1px solid #E2E8F0',
+                background: '#FAF8F5',
+                border: '1px solid var(--border-subtle)',
                 borderRadius: '14px',
                 padding: '28px',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+                boxShadow: 'none',
                 marginBottom: '24px'
               }}>
                 {/* Header & 4-Step Process Guide */}

@@ -1,5 +1,5 @@
 import uuid
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 from fastapi import HTTPException, status
 from sqlalchemy import func, or_, select, text, update
@@ -71,6 +71,210 @@ class FolderService:
             )
             return res2.scalar_one()
 
+    async def ensure_enterprise_hierarchy(self, organization_id: uuid.UUID) -> Dict[str, Folder]:
+        """Idempotently provisions the standard industrial enterprise folder hierarchy."""
+        folders_by_name: Dict[str, Folder] = {}
+
+        # 1. System Inbox
+        inbox = await self.ensure_system_inbox(organization_id)
+        folders_by_name["Inbox"] = inbox
+
+        # 2. Enterprise Policies & Standards (Governance Root)
+        res_gov = await self.db.execute(
+            select(Folder).where(
+                Folder.organization_id == organization_id,
+                Folder.parent_id.is_(None),
+                Folder.name == "Enterprise Policies & Standards",
+            )
+        )
+        gov = res_gov.scalar_one_or_none()
+        if not gov:
+            gov = Folder(
+                id=uuid.uuid4(),
+                organization_id=organization_id,
+                parent_id=None,
+                name="Enterprise Policies & Standards",
+                depth=0,
+                is_system=False,
+                folder_type="governance",
+                icon="shield",
+                color="#FFAB4A",
+            )
+            self.db.add(gov)
+            await self.db.flush()
+        folders_by_name["Enterprise Policies & Standards"] = gov
+
+        # Subfolders under Policies & Standards
+        gov_subs = [
+            ("Security & Infrastructure", "lock", "#3B82F6"),
+            ("Legal & Customer Contracts", "scale", "#8B5CF6"),
+            ("Finance & Operations", "dollar-sign", "#10B981"),
+            ("People & Workplace", "users", "#F59E0B"),
+        ]
+        for sub_name, icon, color in gov_subs:
+            res_sub = await self.db.execute(
+                select(Folder).where(
+                    Folder.organization_id == organization_id,
+                    Folder.parent_id == gov.id,
+                    Folder.name == sub_name,
+                )
+            )
+            sub = res_sub.scalar_one_or_none()
+            if not sub:
+                sub = Folder(
+                    id=uuid.uuid4(),
+                    organization_id=organization_id,
+                    parent_id=gov.id,
+                    name=sub_name,
+                    depth=1,
+                    is_system=False,
+                    folder_type="domain",
+                    icon=icon,
+                    color=color,
+                )
+                self.db.add(sub)
+                await self.db.flush()
+            folders_by_name[sub_name] = sub
+
+        # 3. Connected Integrations Root
+        res_conn = await self.db.execute(
+            select(Folder).where(
+                Folder.organization_id == organization_id,
+                Folder.parent_id.is_(None),
+                Folder.name == "Connected Integrations",
+            )
+        )
+        conn = res_conn.scalar_one_or_none()
+        if not conn:
+            conn = Folder(
+                id=uuid.uuid4(),
+                organization_id=organization_id,
+                parent_id=None,
+                name="Connected Integrations",
+                depth=0,
+                is_system=False,
+                folder_type="connectors",
+                icon="network",
+                color="#6366F1",
+            )
+            self.db.add(conn)
+            await self.db.flush()
+        folders_by_name["Connected Integrations"] = conn
+
+        # Connector subfolders
+        conn_subs = [
+            ("Slack Channels", "message-square", "#E11D48"),
+            ("GitHub Repositories", "git-branch", "#1E293B"),
+            ("Confluence Spaces", "book-open", "#0284C7"),
+            ("Jira Projects", "check-square", "#0284C7"),
+        ]
+        for sub_name, icon, color in conn_subs:
+            res_sub = await self.db.execute(
+                select(Folder).where(
+                    Folder.organization_id == organization_id,
+                    Folder.parent_id == conn.id,
+                    Folder.name == sub_name,
+                )
+            )
+            sub = res_sub.scalar_one_or_none()
+            if not sub:
+                sub = Folder(
+                    id=uuid.uuid4(),
+                    organization_id=organization_id,
+                    parent_id=conn.id,
+                    name=sub_name,
+                    depth=1,
+                    is_system=False,
+                    folder_type="connector_source",
+                    icon=icon,
+                    color=color,
+                )
+                self.db.add(sub)
+                await self.db.flush()
+            folders_by_name[sub_name] = sub
+
+        # 4. Custom Workspaces Root
+        res_cust = await self.db.execute(
+            select(Folder).where(
+                Folder.organization_id == organization_id,
+                Folder.parent_id.is_(None),
+                Folder.name == "Custom Workspaces",
+            )
+        )
+        cust = res_cust.scalar_one_or_none()
+        if not cust:
+            cust = Folder(
+                id=uuid.uuid4(),
+                organization_id=organization_id,
+                parent_id=None,
+                name="Custom Workspaces",
+                depth=0,
+                is_system=False,
+                folder_type="custom",
+                icon="briefcase",
+                color="#64748B",
+            )
+            self.db.add(cust)
+            await self.db.flush()
+        folders_by_name["Custom Workspaces"] = cust
+
+        return folders_by_name
+
+    async def auto_organize_documents(self, organization_id: uuid.UUID) -> Dict[str, Any]:
+        """Automatically files unorganized or unclassified documents into their appropriate enterprise folder."""
+        f_map = await self.ensure_enterprise_hierarchy(organization_id)
+        inbox = f_map.get("Inbox")
+
+        res_docs = await self.db.execute(
+            select(Document).where(Document.organization_id == organization_id)
+        )
+        docs = res_docs.scalars().all()
+
+        classified_count = 0
+        details = []
+
+        for d in docs:
+            # If already assigned to a specific domain or connector folder, skip
+            # Only auto-organize if folder_id is None, or if it is in Inbox and can be matched to a domain/connector
+            if d.folder_id and inbox and d.folder_id != inbox.id:
+                continue
+
+            title_lower = (d.title or "").lower()
+            doc_type = (d.document_type or "").lower()
+
+            target_folder = None
+            if doc_type == "slack_message" or "slack thread" in title_lower or "slack" in title_lower:
+                target_folder = f_map.get("Slack Channels")
+            elif "github" in title_lower:
+                target_folder = f_map.get("GitHub Repositories")
+            elif "confluence" in title_lower:
+                target_folder = f_map.get("Confluence Spaces")
+            elif "jira" in title_lower:
+                target_folder = f_map.get("Jira Projects")
+            elif any(k in title_lower for k in ["refund", "billing", "price", "pricing", "commercial", "supplier", "finance", "invoice"]):
+                target_folder = f_map.get("Finance & Operations")
+            elif any(k in title_lower for k in ["security", "infrastructure", "cloud", "iam", "wifi", "access", "sanction", "aml", "firewall"]):
+                target_folder = f_map.get("Security & Infrastructure")
+            elif any(k in title_lower for k in ["legal", "agreement", "contract", "terms", "nda", "standard", "governance", "compliance"]):
+                target_folder = f_map.get("Legal & Customer Contracts")
+            elif any(k in title_lower for k in ["handbook", "employee", "remote", "workplace", "people", "hr", "conduct"]):
+                target_folder = f_map.get("People & Workplace")
+            else:
+                target_folder = f_map.get("Custom Workspaces") if d.folder_id is None else inbox
+
+            if target_folder and d.folder_id != target_folder.id:
+                d.folder_id = target_folder.id
+                classified_count += 1
+                details.append({"document_id": str(d.id), "title": d.title, "target_folder": target_folder.name})
+
+        await self.db.flush()
+        return {
+            "success": True,
+            "organized_count": classified_count,
+            "total_documents": len(docs),
+            "details": details,
+        }
+
     async def list_folders(
         self,
         organization_id: uuid.UUID,
@@ -78,8 +282,9 @@ class FolderService:
         as_tree: bool = False,
     ) -> List[FolderResponse] | List[FolderTreeNode]:
         """Lists folders for an organization with direct document and subfolder counts."""
-        # Ensure system Inbox exists
+        # Ensure system Inbox and standard enterprise hierarchy exist
         await self.ensure_system_inbox(organization_id)
+        await self.ensure_enterprise_hierarchy(organization_id)
 
         # Base query
         stmt = select(Folder).where(Folder.organization_id == organization_id)
