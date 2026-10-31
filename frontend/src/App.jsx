@@ -5607,68 +5607,6 @@ export default function App() {
               )}
             </div>
 
-            {/* 3 Dedicated Document Explorer Horizontal Navigation Tabs */}
-            {docExplorerView !== 'connect' && (
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                borderBottom: '1px solid #E2E8F0',
-                paddingBottom: '14px',
-                marginBottom: '20px'
-              }}>
-                {[
-                  { id: 'folders', label: 'Folders & Structure', icon: FolderTree, count: displayedDbDocuments.length },
-                  { id: 'ingest', label: 'Upload & Ingest', icon: Upload, count: null },
-                  { id: 'connectors', label: 'Live Connectors', icon: Database, count: displayedDataSources.length }
-                ].map(tab => {
-                  const isActive = (tab.id === 'folders' && (docExplorerView === 'folders' || docExplorerView === 'documents'))
-                    || (tab.id === 'connectors' && docExplorerView === 'connectors')
-                    || docExplorerView === tab.id;
-                  const IconComp = tab.icon;
-                  return (
-                    <button
-                      key={tab.id}
-                      type="button"
-                      onClick={() => {
-                        setDocExplorerView(tab.id);
-                        if (tab.id === 'connectors') setTestConnectionResult(null);
-                      }}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                        padding: '8px 16px',
-                        borderRadius: '8px',
-                        border: isActive ? '1px solid #2563EB' : '1px solid #E2E8F0',
-                        background: isActive ? '#EFF6FF' : '#FFFFFF',
-                        color: isActive ? '#1D4ED8' : '#475569',
-                        fontSize: '0.82rem',
-                        fontWeight: isActive ? 700 : 500,
-                        cursor: 'pointer',
-                        transition: 'all 0.15s ease'
-                      }}
-                    >
-                      <IconComp size={15} style={{ color: isActive ? '#2563EB' : '#64748B' }} />
-                      <span>{tab.label}</span>
-                      {typeof tab.count === 'number' && (
-                        <span style={{
-                          fontSize: '0.68rem',
-                          fontWeight: 700,
-                          padding: '1px 6px',
-                          borderRadius: '10px',
-                          background: isActive ? '#DBEAFE' : '#F1F5F9',
-                          color: isActive ? '#1E40AF' : '#64748B'
-                        }}>
-                          {tab.count}
-                        </span>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-
             {/* VIEW 0: CONNECTORS HUB (LIVE CONNECTORS & SYNCHRONIZED CONNECTORS WORKFLOW) */}
             {docExplorerView === 'connectors' && (() => {
               const LIVE_CONNECTOR_TYPES = ['github', 'mongodb', 'mongodb_atlas', 'jira', 'confluence', 'postgresql'];
