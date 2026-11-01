@@ -149,15 +149,20 @@ class BenchmarkHarness:
         "notification": {"notify_human_resources", "notify", "notifies", "has_notification_requirement"},
     }
 
+    DEFAULT_REPO_ROOT = Path(__file__).resolve().parent.parent.parent
+    DEFAULT_GOLD_DIR = DEFAULT_REPO_ROOT / "research" / "gold_labels"
+    DEFAULT_RESULTS_DIR = DEFAULT_REPO_ROOT / "research" / "extraction-results"
+    DEFAULT_MANIFEST_PATH = DEFAULT_REPO_ROOT / "research" / "evaluation" / "corpus_manifest.json"
+
     def __init__(
         self,
-        gold_dir: Path = Path("B:/Context_Layer_Ai/research/gold_labels"),
-        results_dir: Path = Path("B:/Context_Layer_Ai/research/extraction-results"),
-        manifest_path: Path = Path("B:/Context_Layer_Ai/research/evaluation/corpus_manifest.json"),
+        gold_dir: Path | None = None,
+        results_dir: Path | None = None,
+        manifest_path: Path | None = None,
     ):
-        self.gold_dir = gold_dir
-        self.results_dir = results_dir
-        self.manifest_path = manifest_path
+        self.gold_dir = Path(gold_dir) if gold_dir is not None else self.DEFAULT_GOLD_DIR
+        self.results_dir = Path(results_dir) if results_dir is not None else self.DEFAULT_RESULTS_DIR
+        self.manifest_path = Path(manifest_path) if manifest_path is not None else self.DEFAULT_MANIFEST_PATH
         self.manifest: Dict[str, Any] = {}
         if self.manifest_path.exists():
             self.manifest = json.loads(self.manifest_path.read_text(encoding="utf-8"))
@@ -176,7 +181,7 @@ class BenchmarkHarness:
         return False
 
     def evaluate_document(self, doc_code: str) -> Dict[str, Any]:
-        is_test_fixture = doc_code.startswith("DOC-TEST") or (self.gold_dir != Path("B:/Context_Layer_Ai/research/gold_labels"))
+        is_test_fixture = doc_code.startswith("DOC-TEST") or (self.gold_dir != self.DEFAULT_GOLD_DIR and not str(self.gold_dir).replace("\\", "/").endswith("research/gold_labels"))
         if is_test_fixture:
             canonical_title = f"Test Fixture {doc_code}"
             canonical_org = "Unit Test Environment"

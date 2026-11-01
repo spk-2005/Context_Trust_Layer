@@ -30,6 +30,7 @@ from app.ingestion.connectors.kafka_connector import KafkaConnector
 from app.ingestion.connectors.mongodb_connector import MongoDbConnector
 from app.ingestion.connectors.postgres_connector import PostgresConnector
 from app.ingestion.connectors.salesforce_connector import SalesforceConnector
+from app.ingestion.connectors.slack_connector import SlackConnector
 from app.ingestion.connectors.universal_driver import UniversalConnectorDriver
 from app.ingestion.sync_engine import SyncEngine, SyncResult
 from app.schemas.data_source import (
@@ -56,6 +57,7 @@ LIVE_SUPPORTED_PROVIDERS = {
     "confluence",
     "postgresql",
     "postgres",
+    "slack",
 }
 
 
@@ -73,12 +75,6 @@ def _secure_and_validate_config(source_type: str, raw_config: dict[str, Any], te
     and returns (persisted_config, redacted_safe_config).
     """
     stype = (source_type or "").lower().strip()
-    if stype in ("slack", "slack_message", "slack_bot"):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Slack connector is not supported or permitted in this workflow."
-        )
-
     clean_cfg = dict(raw_config or {})
     schedule_val = str(clean_cfg.get("schedule", "off")).lower().strip()
     if schedule_val not in ("off", "1m", "10m"):
@@ -154,6 +150,24 @@ def _secure_and_validate_config(source_type: str, raw_config: dict[str, Any], te
         if password:
             secret_payload["password"] = password
 
+    elif stype in ("slack", "slack_channel", "slack_workspace"):
+        token = clean_cfg.get("bot_token") or clean_cfg.get("token") or clean_cfg.get("access_token") or ""
+        if not token or not token.startswith("xoxb-"):
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+                detail="Slack Bot User OAuth Token is required and must start with 'xoxb-'."
+            )
+        secret_payload["bot_token"] = token
+        secret_payload["token"] = token
+
+        # Normalize channels
+        raw_ch = clean_cfg.get("channels", [])
+        if isinstance(raw_ch, str):
+            clean_cfg["channels"] = [c.strip().lstrip("#") for c in raw_ch.split(",") if c.strip()]
+        elif isinstance(raw_ch, list):
+            clean_cfg["channels"] = [str(c).strip().lstrip("#") for c in raw_ch if str(c).strip()]
+        clean_cfg["lookback_days"] = max(1, min(365, int(clean_cfg.get("lookback_days", 30))))
+
     # State transition rule: Connected ONLY after successful test
     connection_status = "connected" if test_passed else "disconnected"
 
@@ -163,7 +177,7 @@ def _secure_and_validate_config(source_type: str, raw_config: dict[str, Any], te
         persisted_config["_encrypted_credentials"] = EncryptionService.encrypt_payload(secret_payload)
 
     # Redact raw secrets before storing or exposing
-    for k in ("password", "token", "access_token", "api_token", "api_key", "secret", "client_secret"):
+    for k in ("password", "token", "access_token", "api_token", "bot_token", "api_key", "secret", "client_secret"):
         if k in persisted_config and persisted_config[k]:
             persisted_config[k] = "••••••••"
     if "connection_string" in persisted_config and persisted_config["connection_string"]:
@@ -203,9 +217,6 @@ async def get_connector_catalog(
             if s_lower in c.name.lower() or s_lower in c.description.lower() or s_lower in c.id.lower() or s_lower in c.category_label.lower()
         ]
 
-    # Exclude Slack from any catalog output
-    filtered = [c for c in filtered if c.id not in ("slack", "slack_message")]
-
     connector_dicts = []
     for c in filtered:
         c_dict = c.model_dump()
@@ -230,12 +241,6 @@ async def test_source_connection(
     Uses real provider APIs, database drivers, and official SDKs.
     """
     stype = (data.source_type or "").lower().strip()
-    if stype in ("slack", "slack_message", "slack_bot"):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Slack connector is explicitly excluded and not supported."
-        )
-
     dummy_org = uuid.UUID("11111111-1111-1111-1111-111111111111")
     dummy_src = uuid.uuid4()
     logger.info("Initiating live connection test for source type '%s'", stype)
@@ -306,6 +311,15 @@ async def test_source_connection(
             )
             res = await connector.test_connection()
 
+        elif stype in ("slack", "slack_channel", "slack_workspace"):
+            connector = SlackConnector(
+                session=db,
+                organization_id=dummy_org,
+                source_id=dummy_src,
+                connection_config=data.connection_config,
+            )
+            res = await connector.test_connection()
+
         else:
             driver = UniversalConnectorDriver(
                 session=db,
@@ -354,9 +368,6 @@ async def discover_source_resources(
     using the authenticated provider API or database driver.
     """
     stype = (data.source_type or "").lower().strip()
-    if stype in ("slack", "slack_message", "slack_bot"):
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Slack connector is not supported.")
-
     cfg = data.connection_config or {}
 
     try:
@@ -410,6 +421,11 @@ async def discover_source_resources(
                 )
                 return ResourceDiscoveryResponse(source_type="postgresql", target_resource="schemas", items=schemas, total_count=len(schemas))
 
+        elif stype in ("slack", "slack_channel", "slack_workspace"):
+            token = cfg.get("bot_token") or cfg.get("token") or cfg.get("access_token") or ""
+            channels = await SlackConnector.discover_channels(bot_token=token)
+            return ResourceDiscoveryResponse(source_type="slack", target_resource="channels", items=channels, total_count=len(channels))
+
         return ResourceDiscoveryResponse(source_type=stype, target_resource=data.target_resource, items=[], total_count=0)
 
     except Exception as e:
@@ -433,7 +449,7 @@ async def list_data_sources(
     )
     external_connectors = [
         s for s in sources
-        if (s.source_type or "").lower().strip() not in ("file", "upload", "local_file", "slack")
+        if (s.source_type or "").lower().strip() not in ("file", "upload", "local_file")
         and "file upload" not in (s.name or "").lower()
         and "direct document upload" not in (s.name or "").lower()
         and (include_archived or (s.status.value if hasattr(s.status, "value") else str(s.status)).lower() not in ("deleted", "inactive", "archived"))

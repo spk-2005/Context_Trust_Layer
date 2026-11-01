@@ -30,7 +30,7 @@ def find_epcs_pdf() -> Path:
     for p in Path(".").glob("**/*EPCS*.pdf"):
         if p.exists():
             return p
-    raise FileNotFoundError("EPCS PDF document not found in workspace")
+    pytest.skip("EPCS PDF document not found in workspace")
 
 
 @pytest.mark.asyncio

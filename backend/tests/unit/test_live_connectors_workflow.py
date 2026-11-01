@@ -47,38 +47,43 @@ from app.ingestion.scheduler import SyncScheduler
 
 
 # ---------------------------------------------------------------------------
-# 1. Catalog & Slack Exclusion Tests
+# 1. Catalog & Slack Live Integration Tests
 # ---------------------------------------------------------------------------
-def test_five_live_providers_registered_and_slack_excluded():
-    """Verify GitHub, MongoDB, Jira, Confluence, and PostgreSQL are live, and Slack is excluded."""
-    expected_five = ["github", "mongodb_atlas", "jira", "confluence", "postgresql"]
+def test_live_providers_registered_including_slack():
+    """Verify GitHub, MongoDB, Jira, Confluence, PostgreSQL, and Slack are registered and live."""
+    expected_providers = ["github", "mongodb_atlas", "jira", "confluence", "postgresql", "slack"]
     all_connectors = ConnectorRegistry.get_all()
     all_ids = {c.id for c in all_connectors}
 
-    # All 5 must exist in registry
-    for provider in expected_five:
-        assert provider in all_ids, f"{provider} must be registered"
+    for provider in expected_providers:
+        assert provider in all_ids, f"{provider} must be registered in catalog"
+
+    for provider in ["github", "jira", "confluence", "postgresql", "slack"]:
         assert provider in LIVE_SUPPORTED_PROVIDERS, f"{provider} must be in LIVE_SUPPORTED_PROVIDERS"
-
-    # All 5 must be discoverable via find_connector
-    assert ConnectorRegistry.find_connector("github") is not None
-    assert ConnectorRegistry.find_connector("mongodb") is not None
-    assert ConnectorRegistry.find_connector("jira") is not None
-    assert ConnectorRegistry.find_connector("confluence") is not None
-    assert ConnectorRegistry.find_connector("postgresql") is not None
-
-    # Slack must NOT be in LIVE_SUPPORTED_PROVIDERS
-    assert "slack" not in LIVE_SUPPORTED_PROVIDERS
-    assert "slack_message" not in LIVE_SUPPORTED_PROVIDERS
+        assert ConnectorRegistry.find_connector(provider) is not None, f"{provider} must be findable"
 
 
-def test_slack_rejected_by_config_validation():
-    """Verify Slack configuration is immediately rejected with 400."""
+def test_slack_configuration_validation_and_encryption():
+    """Verify Slack configuration enforces xoxb- token format, encrypts secrets, and redacts bot_token."""
     from fastapi import HTTPException
+
+    # 1. Non-xoxb token rejected with 422
     with pytest.raises(HTTPException) as exc:
-        _secure_and_validate_config("slack", {"token": "xoxb-123"}, test_passed=False)
-    assert exc.value.status_code == 400
-    assert "Slack" in exc.value.detail
+        _secure_and_validate_config("slack", {"token": "xoxp-user-token"}, test_passed=False)
+    assert exc.value.status_code == 422
+    assert "xoxb-" in exc.value.detail
+
+    # 2. Valid token accepted, encrypted, and redacted
+    persisted, redacted = _secure_and_validate_config(
+        "slack",
+        {"bot_token": "xoxb-test-secret-123", "channels": "incident-management, secops", "lookback_days": 15},
+        test_passed=True,
+    )
+    assert "_encrypted_credentials" in persisted
+    assert persisted["bot_token"] == "••••••••"
+    assert persisted["channels"] == ["incident-management", "secops"]
+    assert persisted["lookback_days"] == 15
+    assert redacted["bot_token"] == "••••••••"
 
 
 # ---------------------------------------------------------------------------

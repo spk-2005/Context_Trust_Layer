@@ -289,6 +289,7 @@ async def test_deletion_policy_non_empty_blocked(setup_test_org, client: AsyncCl
         source_id=ds.id,
         folder_id=uuid.UUID(p["id"]),
         title="Test Document",
+        content_hash="test_content_hash_12345",
     )
     db.add(doc)
     await db.commit()

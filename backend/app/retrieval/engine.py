@@ -200,14 +200,14 @@ class ContextRetrievalEngine:
         res = await self.session.execute(stmt)
         all_claims = res.scalars().all()
 
-        target_domain = (request_in.domain or request_in.workspace_id or "").lower()
+        target_domain = (request_in.domain or request_in.workspace_id or '').lower()
 
         # 2b. Compute query embedding & populate claim embeddings for Semantic Vector Search
         query_emb: list[float] = []
         try:
             query_emb = await self.llm.get_embedding(request_in.query)
         except Exception as q_err:
-            logger.warning("Query embedding calculation failed (%s); falling back to lexical search", q_err)
+            logger.warning('Query embedding calculation failed (%s); falling back to lexical search', q_err)
 
         # Batch compute missing embeddings
         missing_claims = [c.claim_text for c in all_claims if c.claim_text not in _EMBEDDING_CACHE]
@@ -217,7 +217,7 @@ class ContextRetrievalEngine:
                 for txt, emb in zip(missing_claims, new_embs):
                     _EMBEDDING_CACHE[txt] = emb
             except Exception as b_err:
-                logger.debug("Batch embedding calculation fallback (%s)", b_err)
+                logger.debug('Batch embedding calculation fallback (%s)', b_err)
                 for txt in missing_claims:
                     try:
                         _EMBEDDING_CACHE[txt] = await self.llm.get_embedding(txt)
@@ -242,33 +242,36 @@ class ContextRetrievalEngine:
             claim_emb = _EMBEDDING_CACHE.get(claim.claim_text, [])
             sem_score = _cosine_similarity(query_emb, claim_emb) if query_emb and claim_emb else 0.0
             claim_scores.append({
-                "claim": claim,
-                "lex_score": lex_score,
-                "sem_score": sem_score,
+                'claim': claim,
+                'lex_score': lex_score,
+                'sem_score': sem_score,
             })
 
         # Rank claims by lexical and semantic scores for Reciprocal Rank Fusion (RRF)
-        sorted_by_lex = sorted(claim_scores, key=lambda x: x["lex_score"], reverse=True)
+        sorted_by_lex = sorted(claim_scores, key=lambda x: x['lex_score'], reverse=True)
         for rank_idx, item in enumerate(sorted_by_lex, start=1):
-            item["rank_lex"] = rank_idx
+            item['rank_lex'] = rank_idx
 
-        sorted_by_sem = sorted(claim_scores, key=lambda x: x["sem_score"], reverse=True)
+        sorted_by_sem = sorted(claim_scores, key=lambda x: x['sem_score'], reverse=True)
         for rank_idx, item in enumerate(sorted_by_sem, start=1):
-            item["rank_sem"] = rank_idx
+            item['rank_sem'] = rank_idx
 
         # Calculate final RRF Fusion score
         for item in claim_scores:
-            rank_l = item.get("rank_lex", 1)
-            rank_s = item.get("rank_sem", 1)
-            sem_s = item.get("sem_score", 0.0)
-            lex_s = item.get("lex_score", 0.0)
+            rank_l = item.get('rank_lex', 1)
+            rank_s = item.get('rank_sem', 1)
+            sem_s = item.get('sem_score', 0.0)
+            lex_s = item.get('lex_score', 0.0)
             rrf_val = (1.0 / (60.0 + rank_l)) + (1.0 / (60.0 + rank_s)) + (sem_s * 0.05)
-            item["rrf_score"] = rrf_val
-            item["is_relevant"] = (lex_s > 0.0) or (sem_s >= 0.50) or (len(request_in.query.split()) <= 1)
+            item['rrf_score'] = rrf_val
+            item['is_relevant'] = (lex_s > 0.0) or (sem_s >= 0.50) or (len(request_in.query.split()) <= 1)
 
-        scores_by_claim_id = {item["claim"].id: item for item in claim_scores}
+        scores_by_claim_id = {item['claim'].id: item for item in claim_scores}
 
-        evaluated_items: list[tuple[Claim, decimal.Decimal, bool, str | None, ContextItemResponse | None, float]] = []
+        evaluated_items: list[
+            tuple[Claim, decimal.Decimal, bool, str | None, ContextItemResponse | None, float]
+        ] = []
+        query_terms = set(request_in.query.lower().split())
         now = datetime.now(timezone.utc)
 
         for claim in all_claims:

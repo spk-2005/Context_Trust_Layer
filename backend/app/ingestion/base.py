@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, AsyncIterator, List, Optional, Sequence
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from app.db.enums import SourceFamily, SourceIntent
 from app.db.models.document import Document
@@ -189,11 +189,13 @@ class UnifiedConnector(ABC):
 # Backwards compatibility aliases
 class RawDocument(BaseModel):
     """Represents an un-normalized ingress document payload from connector integration (legacy)."""
-    organization_id: uuid.UUID
-    source_id: uuid.UUID
+    model_config = ConfigDict(extra="allow")
+    organization_id: Optional[uuid.UUID] = Field(default_factory=lambda: uuid.UUID("11111111-1111-1111-1111-111111111111"))
+    source_id: Optional[uuid.UUID] = Field(default_factory=uuid.uuid4)
     title: str
     content: str
     document_type: str = "document"
+    source_type: Optional[str] = None
     external_id: str | None = None
     author: str | None = None
     created_at: datetime | None = None

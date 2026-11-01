@@ -6,6 +6,7 @@ from app.ingestion.connectors.kafka_connector import KafkaConnector
 from app.ingestion.connectors.mongodb_connector import MongoDbConnector
 from app.ingestion.connectors.postgres_connector import PostgresConnector
 from app.ingestion.connectors.salesforce_connector import SalesforceConnector
+from app.ingestion.connectors.slack_connector import SlackConnector
 
 __all__ = [
     "FileConnector",
@@ -16,4 +17,5 @@ __all__ = [
     "KafkaConnector",
     "SalesforceConnector",
     "MongoDbConnector",
+    "SlackConnector",
 ]

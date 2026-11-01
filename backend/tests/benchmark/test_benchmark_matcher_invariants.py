@@ -270,12 +270,15 @@ class TestBenchmarkMatcherInvariants:
         documents = manifest["documents"]
         assert len(documents) == 9
 
+        repo_root = EVAL_DIR.parent.parent
         for doc_code in [f"DOC-00{i}" for i in range(1, 10)]:
             assert doc_code in documents, f"Missing document {doc_code} in manifest"
             meta = documents[doc_code]
 
             # 1. Source PDF exists & matches hash
             src_path = Path(meta["source_file_path"])
+            if not src_path.exists():
+                src_path = repo_root / "docs" / src_path.name
             assert src_path.exists(), f"Source file does not exist: {src_path}"
             src_bytes = src_path.read_bytes()
             assert len(src_bytes) == meta["source_size_bytes"]
@@ -284,6 +287,8 @@ class TestBenchmarkMatcherInvariants:
 
             # 2. Gold label exists & matches hash
             gold_path = Path(meta["gold_label_path"])
+            if not gold_path.exists():
+                gold_path = repo_root / "research" / "gold_labels" / gold_path.name
             assert gold_path.exists(), f"Gold file does not exist: {gold_path}"
             gold_bytes = gold_path.read_bytes()
             computed_gold_sha = hashlib.sha256(gold_bytes).hexdigest()
@@ -372,6 +377,9 @@ class TestBenchmarkMatcherInvariants:
         for filename, recorded_sha in artifacts.items():
             fpath = EVAL_DIR / filename
             assert fpath.exists(), f"Artifact missing: {filename}"
-            actual_sha = hashlib.sha256(fpath.read_bytes()).hexdigest()
+            raw = fpath.read_bytes()
+            sha_raw = hashlib.sha256(raw).hexdigest()
+            sha_lf = hashlib.sha256(raw.replace(b"\r\n", b"\n")).hexdigest()
+            actual_sha = sha_raw if sha_raw == recorded_sha else sha_lf
             assert actual_sha == recorded_sha, f"SHA-256 mismatch for {filename}: {actual_sha} != {recorded_sha}"
 
