@@ -112,7 +112,9 @@ class ContextRetrievalEngine:
         res = await self.session.execute(stmt)
         all_claims = res.scalars().all()
 
-        evaluated_items: list[tuple[Claim, decimal.Decimal, bool, str | None, ContextItemResponse | None]] = []
+        evaluated_items: list[
+            tuple[Claim, decimal.Decimal, bool, str | None, ContextItemResponse | None, int]
+        ] = []
         query_terms = set(request_in.query.lower().split())
         now = datetime.now(timezone.utc)
 
