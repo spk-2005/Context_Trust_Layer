@@ -29,6 +29,7 @@ export default function WorkspaceSettingsStudio({
   activeOrg,
   onOrgUpdated,
   onBack,
+  onOpenRbacModal,
   showToast
 }) {
   const { token, user: currentUser } = useAuth();
@@ -157,8 +158,11 @@ export default function WorkspaceSettingsStudio({
 
     try {
       const res = await fetch(`/v1/organizations/${activeOrg.id}/settings`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
         body: JSON.stringify({
           name: orgName.trim(),
           domain_whitelist: domains,
@@ -327,11 +331,18 @@ export default function WorkspaceSettingsStudio({
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <img 
-            src="/Trulin-Main-NoBg.png" 
-            alt="Trulin" 
-            style={{ height: '24px', maxWidth: '110px', objectFit: 'contain', marginRight: '6px' }} 
-          />
+          {onOpenRbacModal && (
+            <button
+              type="button"
+              onClick={onOpenRbacModal}
+              className="btn btn-secondary"
+              style={{ padding: '8px 14px', fontSize: '0.82rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}
+              title="Inspect Atlan-Grade RBAC Permissions & Separation of Duties Matrix"
+            >
+              <ShieldCheck size={14} />
+              <span>RBAC Matrix</span>
+            </button>
+          )}
           <button
             type="button"
             onClick={handleSaveSettings}

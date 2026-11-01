@@ -37,6 +37,11 @@ def _build_user_response(user: User) -> UserResponse:
         avatar_url=user.avatar_url,
         title=user.title,
         department=user.department,
+        phone=getattr(user, "phone", None),
+        bio=getattr(user, "bio", None),
+        timezone=getattr(user, "timezone", None),
+        user_preferences=getattr(user, "user_preferences", None) or {},
+        active_device_id=getattr(user, "last_active_device", None),
     )
 
 
@@ -223,6 +228,7 @@ class SSOService:
             name=name or email.split("@")[0].title(),
             avatar_url=avatar_url,
             provider=provider,
+            device_id=req.device_id,
         )
 
     @classmethod
@@ -249,6 +255,7 @@ class SSOService:
             provider=req.provider,
             explicit_org_name=req.organization_name,
             explicit_role=target_role,
+            device_id=req.device_id,
         )
 
     @classmethod
@@ -302,6 +309,7 @@ class SSOService:
         avatar_url: Optional[str] = None,
         explicit_org_name: Optional[str] = None,
         explicit_role: Optional[UserRole] = None,
+        device_id: Optional[str] = None,
     ) -> TokenResponse:
         """Resolve enterprise tenant based on email domain, auto-provision organization and user."""
         email = email.strip().lower()
@@ -395,6 +403,10 @@ class SSOService:
                 active_user.avatar_url = avatar_url
             await db.flush()
 
+        session_id = str(uuid.uuid4())
+        active_user.active_session_id = session_id
+        if device_id:
+            active_user.last_active_device = device_id
         await db.commit()
         await db.refresh(active_user)
 
@@ -407,6 +419,7 @@ class SSOService:
                 "org_id": str(active_user.organization_id),
                 "name": active_user.name,
                 "auth_provider": provider,
+                "session_id": session_id,
             },
         )
         refresh_token = create_refresh_token(subject=str(active_user.id))
@@ -421,6 +434,8 @@ class SSOService:
                     "slug": mem.organization.slug,
                     "role": mem.role.value if hasattr(mem.role, "value") else str(mem.role),
                     "setup_completed": bool(getattr(mem.organization, "setup_completed", False)),
+                    "governance_config": mem.organization.governance_config or {},
+                    "domain_whitelist": mem.organization.domain_whitelist or [],
                 })
 
         # 5. Build pending invitations list

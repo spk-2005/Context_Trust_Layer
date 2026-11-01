@@ -12,6 +12,7 @@ backend/.venv/
 .env.*
 .env.local
 !.env.example
+!.env.production.example
 
 # IDE
 .vscode/

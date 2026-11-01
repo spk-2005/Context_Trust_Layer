@@ -3,7 +3,7 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-ROOT_DIR = Path(__file__).resolve().parent.parent.parent.parent
+ROOT_DIR = Path(__file__).resolve().parents[3]
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
@@ -14,7 +14,6 @@ import pytest
 from research.evaluation.benchmark_harness import BenchmarkHarness
 from app.extraction.subject_normalizer import SubjectNormalizer
 from app.extraction.extractors.domain_rule_extractor import DomainRuleExtractor
-
 
 EVAL_DIR = ROOT_DIR / "research" / "evaluation"
 HOLDOUT_DIR = ROOT_DIR / "research" / "holdout"

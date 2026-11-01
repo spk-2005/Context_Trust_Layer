@@ -8,7 +8,7 @@ export const DEFAULT_ENTERPRISE_PERSONAS = [
     name: 'Sarah Chen',
     email: 'sarah.chen@ssfa.com',
     role: 'admin',
-    title: 'Chief Compliance Officer',
+    title: 'Administrator',
     department: 'Risk, Trust & Security',
     organization_name: 'SSFA Capital Holdings',
     organization_id: '11111111-1111-1111-1111-111111111111',
@@ -60,6 +60,20 @@ export const DEFAULT_ENTERPRISE_PERSONAS = [
   }
 ];
 
+export const getOrCreateDeviceId = () => {
+  if (typeof window === 'undefined') return 'device_client';
+  try {
+    let id = localStorage.getItem('ctl_device_id');
+    if (!id) {
+      id = 'dev_' + (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2, 15));
+      localStorage.setItem('ctl_device_id', id);
+    }
+    return id;
+  } catch {
+    return 'dev_default';
+  }
+};
+
 export function AuthProvider({ children }) {
   const [token, setToken] = useState(() => localStorage.getItem('ctl_token') || null);
   const [user, setUser] = useState(() => {
@@ -103,7 +117,89 @@ export function AuthProvider({ children }) {
   const [permissions, setPermissions] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const [authModalTab, setAuthModalTab] = useState('personas'); // 'personas' | 'login' | 'register' | 'sso'
+  const [authModalTab, setAuthModalTab] = useState('login'); // 'login' | 'sso' | 'register' | 'personas'
+  const [deviceId] = useState(() => getOrCreateDeviceId());
+  const [sessionSupersededNotice, setSessionSupersededNotice] = useState(null);
+
+  // Broadcast sync events to all other tabs on this device
+  const broadcastSyncEvent = (type, payload) => {
+    try {
+      if (typeof BroadcastChannel !== 'undefined') {
+        const bc = new BroadcastChannel('ctl_sync_channel');
+        bc.postMessage({ type, payload });
+        bc.close();
+      }
+    } catch (err) {
+      console.warn('Broadcast sync error:', err);
+    }
+  };
+
+  // Multi-tab synchronization on the same device
+  useEffect(() => {
+    let channel = null;
+    if (typeof BroadcastChannel !== 'undefined') {
+      try {
+        channel = new BroadcastChannel('ctl_sync_channel');
+        channel.onmessage = (event) => {
+          const { type, payload } = event.data || {};
+          if (type === 'AUTH_LOGIN') {
+            if (payload?.token) {
+              setToken(payload.token);
+              setUser(payload.user);
+              if (payload.organization) setOrganization(payload.organization);
+              if (payload.myOrganizations) setMyOrganizations(payload.myOrganizations);
+              setIsAuthModalOpen(false);
+              setSessionSupersededNotice(null);
+            }
+          } else if (type === 'AUTH_LOGOUT') {
+            setToken(null);
+            setUser(null);
+            setOrganization(null);
+            setMyOrganizations([]);
+          } else if (type === 'USER_UPDATED') {
+            if (payload) setUser(payload);
+          } else if (type === 'SESSION_SUPERSEDED') {
+            setSessionSupersededNotice(
+              'Your account was signed into on another device. In compliance with enterprise security policy, this session has been closed.'
+            );
+            logout(false);
+          }
+        };
+      } catch (err) {
+        console.warn('BroadcastChannel sync init error:', err);
+      }
+    }
+
+    // Fallback: storage event listener for cross-tab sync
+    const handleStorage = (e) => {
+      if (e.key === 'ctl_token') {
+        if (!e.newValue) {
+          setToken(null);
+          setUser(null);
+          setOrganization(null);
+          setMyOrganizations([]);
+        } else {
+          setToken(e.newValue);
+          try {
+            const u = JSON.parse(localStorage.getItem('ctl_user') || 'null');
+            if (u) setUser(u);
+            const o = JSON.parse(localStorage.getItem('ctl_org') || 'null');
+            if (o) setOrganization(o);
+          } catch {}
+        }
+      } else if (e.key === 'ctl_user') {
+        try {
+          if (e.newValue) setUser(JSON.parse(e.newValue));
+        } catch {}
+      }
+    };
+    window.addEventListener('storage', handleStorage);
+
+    return () => {
+      if (channel) channel.close();
+      window.removeEventListener('storage', handleStorage);
+    };
+  }, []);
 
   // 1. Fetch available personas, SSO providers, and RBAC matrix
   const refreshPersonas = async () => {
@@ -184,7 +280,10 @@ export function AuthProvider({ children }) {
     async function verifySession() {
       try {
         const res = await fetch('/v1/auth/me', {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'X-Device-Id': deviceId,
+          }
         });
         if (res.ok) {
           const profile = await res.json();
@@ -199,16 +298,23 @@ export function AuthProvider({ children }) {
             localStorage.setItem('ctl_org', JSON.stringify(orgData));
           }
         } else if (res.status === 401 || res.status === 403 || res.status === 404) {
-          // Token is expired, invalid, or references a deleted user — clear it
-          logout();
+          try {
+            const errJson = await res.json();
+            if (errJson?.detail && typeof errJson.detail === 'string' && errJson.detail.includes('SESSION_SUPERSEDED')) {
+              setSessionSupersededNotice(
+                'Your account was signed into on another device. In compliance with enterprise security policy, only one active device session is permitted.'
+              );
+              broadcastSyncEvent('SESSION_SUPERSEDED');
+            }
+          } catch {}
+          logout(false);
         }
-        // Other errors (5xx network) are ignored silently — don't log out
       } catch (err) {
         console.warn('Error verifying session:', err);
       }
     }
     verifySession();
-  }, [token]);
+  }, [token, deviceId]);
 
   // 3. Handle live OAuth redirect callback (e.g. ?code=... from Google)
   useEffect(() => {
@@ -226,7 +332,8 @@ export function AuthProvider({ children }) {
             body: JSON.stringify({
               provider: 'google',
               code: code,
-              redirect_uri: redirectUri
+              redirect_uri: redirectUri,
+              device_id: deviceId,
             })
           });
           if (res.ok) {
@@ -245,7 +352,7 @@ export function AuthProvider({ children }) {
       }
       exchangeCode();
     }
-  }, []);
+  }, [deviceId]);
 
   const handleAuthSuccess = (data) => {
     const { access_token, user: userData, organizations: orgs, pending_invitations: invites, is_new_user } = data;
@@ -253,8 +360,9 @@ export function AuthProvider({ children }) {
     setUser(userData);
     localStorage.setItem('ctl_token', access_token);
     localStorage.setItem('ctl_user', JSON.stringify(userData));
+    let orgData = null;
     if (userData && userData.organization_id) {
-      const orgData = {
+      orgData = {
         id: userData.organization_id,
         name: userData.organization_name || 'Enterprise Tenant'
       };
@@ -265,6 +373,10 @@ export function AuthProvider({ children }) {
     if (orgs && Array.isArray(orgs)) {
       setMyOrganizations(orgs);
       localStorage.setItem('ctl_my_orgs', JSON.stringify(orgs));
+      if (!orgData && orgs.length > 0) {
+        setOrganization(orgs[0]);
+        localStorage.setItem('ctl_org', JSON.stringify(orgs[0]));
+      }
     }
     if (invites && Array.isArray(invites)) {
       setMyInvitations(invites);
@@ -274,13 +386,22 @@ export function AuthProvider({ children }) {
       setIsNewUser(Boolean(is_new_user));
     }
     setIsAuthModalOpen(false);
+    setSessionSupersededNotice(null);
+
+    // Multi-tab broadcast
+    broadcastSyncEvent('AUTH_LOGIN', {
+      token: access_token,
+      user: userData,
+      organization: orgData || (orgs && orgs[0]) || null,
+      myOrganizations: orgs || [],
+    });
   };
 
   const login = async (email, password) => {
     const res = await fetch('/v1/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password })
+      body: JSON.stringify({ email, password, device_id: deviceId })
     });
     if (!res.ok) {
       const err = await res.json();
@@ -295,7 +416,7 @@ export function AuthProvider({ children }) {
     const res = await fetch('/v1/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(formData)
+      body: JSON.stringify({ ...formData, device_id: deviceId })
     });
     if (!res.ok) {
       const err = await res.json();
@@ -311,7 +432,7 @@ export function AuthProvider({ children }) {
       const res = await fetch('/v1/auth/persona-login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user_id: persona.id })
+        body: JSON.stringify({ user_id: persona.id, device_id: deviceId })
       });
       if (res.ok) {
         const data = await res.json();
@@ -332,7 +453,8 @@ export function AuthProvider({ children }) {
   const loginWithSSO = async (provider, customOptions = {}) => {
     try {
       // 1. Inquire provider authorization endpoint
-      const authRes = await fetch(`/v1/auth/sso/authorize/${provider}`);
+      const currentRedirectUri = `${window.location.origin}/auth/callback`;
+      const authRes = await fetch(`/v1/auth/sso/authorize/${provider}?redirect_uri=${encodeURIComponent(currentRedirectUri)}`);
       if (!authRes.ok) {
         const err = await authRes.json();
         throw new Error(err.detail || `Failed to initiate ${provider} SSO authorization`);
@@ -362,7 +484,8 @@ export function AuthProvider({ children }) {
             : provider === 'microsoft'
             ? 'Marcus Vance (Entra ID)'
             : 'Enterprise Okta User'
-        )
+        ),
+        device_id: deviceId
       };
 
       const cbRes = await fetch('/v1/auth/sso/callback', {
@@ -393,7 +516,8 @@ export function AuthProvider({ children }) {
         provider: 'sso',
         corporate_email: corporateEmail,
         full_name: fullName || undefined,
-        organization_name: organizationName || undefined
+        organization_name: organizationName || undefined,
+        device_id: deviceId,
       })
     });
     if (!res.ok) {
@@ -448,7 +572,8 @@ export function AuthProvider({ children }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           provider: 'google',
-          credential
+          credential,
+          device_id: deviceId,
         })
       });
       if (!res.ok) {
@@ -534,7 +659,7 @@ export function AuthProvider({ children }) {
   };
 
   const isTabVisible = (tabKey) => {
-    if (tabKey === 'home' || tabKey === 'profile') return true;
+    if (tabKey === 'home' || tabKey === 'profile' || tabKey === 'settings' || tabKey === 'register_company') return true;
     const meta = ROLE_METADATA[effectiveRole] || ROLE_METADATA.admin;
     return meta.allowed_tabs ? meta.allowed_tabs.includes(tabKey) : true;
   };
@@ -554,7 +679,7 @@ export function AuthProvider({ children }) {
     return permissions.includes(permissionKey);
   };
 
-  const logout = () => {
+  const logout = (broadcast = true) => {
     setToken(null);
     setUser(null);
     setOrganization(null);
@@ -567,6 +692,22 @@ export function AuthProvider({ children }) {
     localStorage.removeItem('ctl_org');
     localStorage.removeItem('ctl_my_orgs');
     localStorage.removeItem('ctl_my_invitations');
+    if (broadcast) {
+      broadcastSyncEvent('AUTH_LOGOUT');
+    }
+  };
+
+  const updateUser = (updatedFields) => {
+    setUser(prev => {
+      const merged = { ...(prev || {}), ...updatedFields };
+      try {
+        localStorage.setItem('ctl_user', JSON.stringify(merged));
+      } catch (e) {
+        console.warn('Failed to persist user profile:', e);
+      }
+      broadcastSyncEvent('USER_UPDATED', merged);
+      return merged;
+    });
   };
 
   return (
@@ -574,6 +715,7 @@ export function AuthProvider({ children }) {
       value={{
         token,
         user,
+        updateUser,
         organization,
         personas,
         ssoProviders,
@@ -596,6 +738,10 @@ export function AuthProvider({ children }) {
         myInvitations,
         isNewUser,
         setIsNewUser,
+        deviceId,
+        sessionSupersededNotice,
+        setSessionSupersededNotice,
+        broadcastSyncEvent,
         login,
         register,
         handleAuthSuccess,
@@ -617,13 +763,13 @@ export function AuthProvider({ children }) {
 
 export const ROLE_METADATA = {
   admin: {
-    title: 'Chief Compliance Officer (CCO)',
+    title: 'Administrator',
     role: 'admin',
     description: 'Executive authority: full tenant governance, policy overrides, user promotions, and audit sign-offs.',
     separation_of_duties: 'Executive override authority across all workflows.',
     badge_color: '#047857',
     badge_bg: 'rgba(4, 120, 87, 0.12)',
-    allowed_tabs: ['home', 'profile', 'demo', 'live_ingestion', 'visual_lineage', 'context_curator', 'ingestion', 'integrations', 'audit', 'team', 'playground', 'conflicts'],
+    allowed_tabs: ['home', 'profile', 'settings', 'register_company', 'demo', 'live_ingestion', 'visual_lineage', 'context_curator', 'ingestion', 'integrations', 'audit', 'team', 'playground', 'conflicts'],
   },
   data_owner: {
     title: 'Data Steward',

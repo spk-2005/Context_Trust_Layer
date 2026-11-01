@@ -50,13 +50,21 @@ async def root():
 
 @app.get("/health")
 async def health():
-    async with AsyncSessionLocal() as session:
-        result = await session.execute(text("SELECT 1"))
-        value = result.scalar()
+    db_ok = False
+    db_err = None
+    try:
+        async with AsyncSessionLocal() as session:
+            result = await session.execute(text("SELECT 1"))
+            db_ok = result.scalar() == 1
+    except Exception as e:
+        db_err = str(e)
 
     return {
-        "status": "healthy",
-        "database": value == 1,
+        "status": "healthy" if db_ok else "degraded",
+        "database": db_ok,
+        "database_error": db_err,
+        "database_configured": bool(settings.database_url and "localhost" not in settings.database_url),
+        "app_env": settings.app_env,
     }
 
 

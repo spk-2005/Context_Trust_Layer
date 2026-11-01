@@ -248,8 +248,11 @@ class OllamaProvider(BaseLLMProvider):
         return await self.evaluate_contradiction(claim_a_text, claim_b_text)
 
     async def get_embedding(self, text: str) -> list[float]:
+        if getattr(self, "_embeddings_unavailable", False):
+            return _hash_emb(text, self.embedding_dim)
+
         try:
-            async with httpx.AsyncClient(timeout=15.0) as client:
+            async with httpx.AsyncClient(timeout=3.0) as client:
                 resp = await client.post(
                     f"{self.base_url}/api/embeddings",
                     json={"model": self.emb_model, "prompt": text}
@@ -260,14 +263,18 @@ class OllamaProvider(BaseLLMProvider):
                     emb = data.get("embedding")
                     if emb and len(emb) > 0:
                         return emb
+                elif resp.status_code in (404, 500):
+                    self._embeddings_unavailable = True
         except Exception:
-            pass
+            self._embeddings_unavailable = True
         return _hash_emb(text, self.embedding_dim)
 
     async def generate_embedding(self, text: str) -> list[float]:
         return await self.get_embedding(text)
 
     async def get_embeddings(self, texts: Sequence[str]) -> list[list[float]]:
+        if getattr(self, "_embeddings_unavailable", False):
+            return [_hash_emb(t, self.embedding_dim) for t in texts]
         results = []
         for t in texts:
             results.append(await self.get_embedding(t))
@@ -282,43 +289,64 @@ class OllamaProvider(BaseLLMProvider):
         citations: list[dict],
         has_conflicts: bool = False,
         warnings: list[str] | None = None,
+        history: list[dict] | None = None,
     ) -> str:
         """Synthesize a factual, grounded answer to query based strictly on verified context claims."""
-        context_items = []
-        for idx, c in enumerate(citations, start=1):
-            claim_txt = c.get("claim_text", "")
-            source_doc = c.get("source_document", "Verified Knowledge")
-            context_items.append(f"[{idx}] {claim_txt} (Source: {source_doc})")
+        if not getattr(self, "_model_unavailable", False):
+            context_items = []
+            for idx, c in enumerate(citations, start=1):
+                claim_txt = c.get("claim_text", "")
+                source_doc = c.get("source_title") or c.get("source_document") or "Verified Knowledge"
+                folder = c.get("folder_name") or "Enterprise Policies"
+                context_items.append(f"[{idx}] {claim_txt} (Folder: {folder} | Source: {source_doc})")
+            
+            context_block = "\n".join(context_items) if context_items else "No verified claims found."
+            
+            system_prompt = (
+                "You are the Trulin Context Trust Copilot—an enterprise decision governance assistant.\n"
+                "Synthesize a fluent, polished, executive response that answers the user's question directly based STRICTLY on the verified context claims below.\n\n"
+                "FORMATTING GUIDELINES:\n"
+                "1. Start with a clear direct answer in the first 1-2 sentences answering the user's inquiry.\n"
+                "2. Group specific criteria, conditions, or thresholds into a bulleted list with bold topic prefixes.\n"
+                "3. Tag every statement with inline citations using [Source 1], [Source 2], etc.\n"
+                "4. NEVER output raw unformatted dumps or copy-paste claims verbatim without explanatory framing.\n"
+                "5. If the user's specific question (e.g. annual enterprise contract terms) is not addressed in the retrieved claims, explicitly disclose the information gap."
+            )
+            user_prompt = f"User Query: {query}\n\nVerified Organizational Context:\n{context_block}"
+            
+            try:
+                async with httpx.AsyncClient(timeout=10.0) as client:
+                    resp = await client.post(
+                        f"{self.base_url}/api/chat",
+                        json={
+                            "model": self.model,
+                            "messages": [
+                                {"role": "system", "content": system_prompt},
+                                {"role": "user", "content": user_prompt}
+                            ],
+                            "stream": False,
+                            "options": {"temperature": 0.1, "num_ctx": self.num_ctx}
+                        }
+                    )
+                    if resp.status_code == 200:
+                        raw_data = resp.json() if callable(resp.json) else resp.json
+                        data = await raw_data if inspect.isawaitable(raw_data) else raw_data
+                        llm_text = data.get("message", {}).get("content", "").strip()
+                        if llm_text:
+                            return llm_text
+                    elif resp.status_code == 404:
+                        self._model_unavailable = True
+            except Exception as e:
+                logger.warning("Ollama generate_grounded_answer error: %s", e)
+                self._model_unavailable = True
         
-        context_block = "\n".join(context_items) if context_items else "No verified claims found."
-        
-        system_prompt = (
-            "You are the Context Trust Layer Grounded Answer Engine. "
-            "Answer the user query using ONLY the verified context claims provided below. "
-            "Cite claim numbers [1], [2], etc., for every assertion. "
-            "If the context does not contain enough information, state that clearly."
+        # Intelligent Hybrid Synthesis Fallback
+        from app.services.policy_answer_synthesizer import PolicyAnswerSynthesizer
+        return PolicyAnswerSynthesizer.synthesize(
+            query=query,
+            citations=citations,
+            has_conflicts=has_conflicts,
+            warnings=warnings,
+            history=history,
         )
-        user_prompt = f"Query: {query}\n\nVerified Context Claims:\n{context_block}"
-        
-        try:
-            async with httpx.AsyncClient(timeout=self.timeout) as client:
-                resp = await client.post(
-                    f"{self.base_url}/api/chat",
-                    json={
-                        "model": self.model,
-                        "messages": [
-                            {"role": "system", "content": system_prompt},
-                            {"role": "user", "content": user_prompt}
-                        ],
-                        "stream": False,
-                        "options": {"temperature": 0.1, "num_ctx": self.num_ctx}
-                    }
-                )
-                if resp.status_code == 200:
-                    raw_data = resp.json() if callable(resp.json) else resp.json
-                    data = await raw_data if inspect.isawaitable(raw_data) else raw_data
-                    return data.get("message", {}).get("content", "").strip()
-        except Exception as e:
-            logger.warning("Ollama generate_grounded_answer error: %s", e)
-        
-        return f"Based on verified organizational ground truth:\n\n" + "\n".join(f"- {c.get('claim_text')}" for c in citations)
+

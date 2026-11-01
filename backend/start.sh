@@ -14,4 +14,10 @@ echo "==> Ensuring demo knowledge is seeded..."
 python seed_demo_knowledge.py || echo "Notice: Demo knowledge already seeded."
 
 echo "==> Launching FastAPI application on port ${PORT:-8000}..."
-exec uvicorn app.main:app --host 0.0.0.0 --port "${PORT:-8000}" --reload
+if [ "${APP_ENV}" = "production" ]; then
+    echo "Running in PRODUCTION mode (workers: ${WEB_CONCURRENCY:-4})..."
+    exec uvicorn app.main:app --host 0.0.0.0 --port "${PORT:-8000}" --workers "${WEB_CONCURRENCY:-4}"
+else
+    echo "Running in DEVELOPMENT mode with hot-reload..."
+    exec uvicorn app.main:app --host 0.0.0.0 --port "${PORT:-8000}" --reload
+fi

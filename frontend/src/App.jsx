@@ -41,6 +41,7 @@ import {
   PanelLeftOpen,
   X,
   LogOut,
+  Settings,
   Upload
 } from 'lucide-react';
 import AuthLandingView from './components/AuthLandingView';
@@ -123,7 +124,7 @@ export const CURATOR_SUBVIEWS = ['health', 'conflicts', 'drift'];
 export const DOC_EXPLORER_VIEWS = ['folders', 'documents', 'ingest', 'connectors', 'connect', 'claims'];
 export const MCP_SUBVIEWS = ['tester', 'configs', 'sdks', 'schemas'];
 export const TEAM_SUBTABS = ['directory', 'activity', 'domains'];
-export const PROFILE_SUBTABS = ['companies', 'security', 'personas'];
+export const PROFILE_SUBTABS = ['user_profile', 'companies', 'register'];
 export const LINEAGE_SECTIONS = ['summary', 'extraction', 'dag', 'conflicts', 'claims', 'all'];
 
 export const parseUrlState = (workspacesList) => {
@@ -132,13 +133,14 @@ export const parseUrlState = (workspacesList) => {
       tab: 'home',
       vaultSubTab: 'documents',
       docId: null,
+      claimId: null,
       lineageSection: 'summary',
       workspace: DEFAULT_WORKSPACES[0],
       docView: 'folders',
       curatorSubView: 'health',
       mcpSubView: 'tester',
       teamSubTab: 'directory',
-      profileSubTab: 'companies',
+      profileSubTab: 'user_profile',
       chatSession: null,
       scenario: 'refund_trap'
     };
@@ -153,7 +155,7 @@ export const parseUrlState = (workspacesList) => {
   let docView = 'folders';
   let mcpSubView = 'tester';
   let teamSubTab = 'directory';
-  let profileSubTab = 'companies';
+  let profileSubTab = 'user_profile';
 
   // 1. Vault / Lineage routing
   if (rawPath === '/lineage' || rawPath === '/vault' || rawPath.startsWith('/lineage/') || rawPath.startsWith('/vault/')) {
@@ -239,7 +241,7 @@ export const parseUrlState = (workspacesList) => {
     if (sub && PROFILE_SUBTABS.includes(sub)) {
       profileSubTab = sub;
     } else {
-      profileSubTab = 'companies';
+      profileSubTab = 'user_profile';
     }
   }
   // 12. Root / Home
@@ -248,7 +250,8 @@ export const parseUrlState = (workspacesList) => {
   }
 
   // Parse query parameters
-  const docId = params.get('doc') || params.get('asset') || null;
+  const docId = params.get('doc') || params.get('asset') || params.get('assetId') || null;
+  const claimId = params.get('claim') || params.get('claimId') || null;
   const sec = params.get('section');
   let lineageSection = 'summary';
   if (sec && LINEAGE_SECTIONS.includes(sec)) {
@@ -270,6 +273,7 @@ export const parseUrlState = (workspacesList) => {
     tab,
     vaultSubTab,
     docId,
+    claimId,
     lineageSection,
     workspace,
     docView,
@@ -286,12 +290,13 @@ export const computeUrlFromState = ({
   activeTab,
   vaultSubTab = 'documents',
   selectedLineageAssetId = null,
+  selectedLineageClaimId = null,
   lineageSection = 'summary',
   curatorSubView = 'health',
   docExplorerView = 'folders',
   mcpActiveSubView = 'tester',
   teamSubTab = 'directory',
-  profileSubTab = 'companies',
+  profileSubTab = 'user_profile',
   activeChatSessionId = null,
   demoScenario = 'refund_trap',
   activeWorkspace = null
@@ -353,7 +358,7 @@ export const computeUrlFromState = ({
       }
       break;
     case 'profile':
-      if (profileSubTab && profileSubTab !== 'companies') {
+      if (profileSubTab && profileSubTab !== 'user_profile') {
         pathname = `/profile/${profileSubTab}`;
       } else {
         pathname = '/profile';
@@ -374,6 +379,9 @@ export const computeUrlFromState = ({
   // Document param & section for Vault / Lineage
   if (activeTab === 'visual_lineage' && selectedLineageAssetId) {
     params.set('doc', selectedLineageAssetId);
+    if (selectedLineageClaimId) {
+      params.set('claimId', selectedLineageClaimId);
+    }
     if (lineageSection && lineageSection !== 'summary') {
       params.set('section', lineageSection);
     }
@@ -631,14 +639,16 @@ export default function App() {
     assetTitle: ''
   });
   const [selectedLineageAssetId, setSelectedLineageAssetId] = useState(() => initialUrlState?.docId || null);
+  const [selectedLineageClaimId, setSelectedLineageClaimId] = useState(() => initialUrlState?.claimId || null);
   const [lineageSection, setLineageSection] = useState(() => initialUrlState?.lineageSection || 'summary');
   const [teamSubTab, setTeamSubTab] = useState(() => initialUrlState?.teamSubTab || 'directory');
-  const [profileSubTab, setProfileSubTab] = useState(() => initialUrlState?.profileSubTab || 'companies');
+  const [profileSubTab, setProfileSubTab] = useState(() => initialUrlState?.profileSubTab || 'user_profile');
   const [mcpActiveSubView, setMcpActiveSubView] = useState(() => initialUrlState?.mcpSubView || 'tester'); // 'tester' | 'configs' | 'sdks' | 'schemas'
   const [selectedDocForViewer, setSelectedDocForViewer] = useState(null);
 
   // -------------------------------------------------------------
   const {
+    token,
     token: authToken,
     user: authUser,
     organization: authOrg,
@@ -661,6 +671,9 @@ export default function App() {
     setIsNewUser,
     acceptInvitation,
     refreshMyOrganizations,
+    sessionSupersededNotice,
+    setSessionSupersededNotice,
+    broadcastSyncEvent,
   } = useAuth();
 
   // Atlan Active Persona & User Ecosystem State
@@ -1225,37 +1238,94 @@ export default function App() {
   const [docExplorerView, setDocExplorerView] = useState(getInitialDocViewFromUrl); // 'connectors' | 'ingest' | 'documents' | 'claims'
   const [docSourceFilter, setDocSourceFilter] = useState('all'); // 'all' | source_id
 
-  // Load organization-specific workspaces from storage or org config
+  // Load organization-specific workspaces from backend database (with local/config cache fallback)
   useEffect(() => {
-    if (activeOrg?.id) {
-      try {
-        const saved = localStorage.getItem(`ctl_workspaces_${activeOrg.id}`);
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            setWorkspaces(parsed);
-            if (!activeWorkspace || !parsed.some(w => w.id === activeWorkspace.id)) {
-              setActiveWorkspace(parsed[0]);
-            }
-            return;
+    if (!activeOrg?.id) {
+      setWorkspaces([]);
+      setActiveWorkspace(null);
+      return;
+    }
+
+    let isMounted = true;
+
+    // 1. Initial cache check for instant paint
+    try {
+      const saved = localStorage.getItem(`ctl_workspaces_${activeOrg.id}`);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setWorkspaces(parsed);
+          if (!activeWorkspace || !parsed.some(w => w.id === activeWorkspace.id)) {
+            setActiveWorkspace(parsed[0]);
           }
         }
-      } catch (e) {
-        console.warn('Failed to parse saved workspaces:', e);
-      }
-      if (activeOrg.governance_config?.workspaces && Array.isArray(activeOrg.governance_config.workspaces) && activeOrg.governance_config.workspaces.length > 0) {
+      } else if (activeOrg.governance_config?.workspaces && Array.isArray(activeOrg.governance_config.workspaces) && activeOrg.governance_config.workspaces.length > 0) {
         const orgWs = activeOrg.governance_config.workspaces;
         setWorkspaces(orgWs);
         setActiveWorkspace(orgWs[0]);
         localStorage.setItem(`ctl_workspaces_${activeOrg.id}`, JSON.stringify(orgWs));
-        return;
       }
-      setWorkspaces([]);
-      setActiveWorkspace(null);
-    } else {
-      setWorkspaces([]);
-      setActiveWorkspace(null);
+    } catch (e) {
+      console.warn('Error reading workspace cache:', e);
     }
+
+    // 2. Fetch live source-of-truth from backend
+    async function fetchOrgWorkspaces() {
+      try {
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+        const res = await fetch(`/v1/organizations/${activeOrg.id}/workspaces`, { headers });
+        if (res.ok && isMounted) {
+          const remoteWs = await res.json();
+          if (Array.isArray(remoteWs) && remoteWs.length > 0) {
+            setWorkspaces(remoteWs);
+            localStorage.setItem(`ctl_workspaces_${activeOrg.id}`, JSON.stringify(remoteWs));
+            setActiveWorkspace(prev => {
+              if (prev && remoteWs.some(w => w.id === prev.id)) {
+                return prev;
+              }
+              return remoteWs[0];
+            });
+          }
+        }
+      } catch (err) {
+        console.warn('Failed to fetch remote workspaces:', err);
+      }
+    }
+
+    fetchOrgWorkspaces();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [activeOrg?.id, token]);
+
+  // Multi-tab workspace synchronization
+  useEffect(() => {
+    let channel = null;
+    if (typeof BroadcastChannel !== 'undefined') {
+      try {
+        channel = new BroadcastChannel('ctl_sync_channel');
+        channel.onmessage = (event) => {
+          const { type, payload } = event.data || {};
+          if (type === 'WORKSPACE_CHANGED' && payload?.orgId === activeOrg?.id) {
+            if (payload.activeWorkspace) {
+              setActiveWorkspace(payload.activeWorkspace);
+            }
+            if (activeOrg?.id) {
+              fetch(`/v1/organizations/${activeOrg.id}/workspaces`)
+                .then(r => r.json())
+                .then(data => {
+                  if (Array.isArray(data)) setWorkspaces(data);
+                })
+                .catch(() => {});
+            }
+          }
+        };
+      } catch (e) {}
+    }
+    return () => {
+      if (channel) channel.close();
+    };
   }, [activeOrg?.id]);
 
   // Chat Sessions for Sidebar History and AI Copilot Chat Sync
@@ -1522,16 +1592,24 @@ export default function App() {
   const [isFetchingLineage, setIsFetchingLineage] = useState(false);
   const [copiedToken, setCopiedToken] = useState(null);
 
-  const handleCreateWorkspace = (e) => {
+  const handleCreateWorkspace = async (e) => {
     e?.preventDefault();
     if (!newWorkspaceName.trim()) return;
+    const name = newWorkspaceName.trim();
+    const domain = newWorkspaceDomain;
+    const desc = newWorkspaceDescription.trim() || 'Custom department workspace';
+    const icon = domain === 'secops' ? '🛡️' : domain === 'hr' ? '👥' : domain === 'finance' ? '💳' : domain === 'staging' ? '🧪' : '📁';
+
+    const tempId = `ws_${Date.now()}`;
     const newWs = {
-      id: `ws_${Date.now()}`,
-      name: newWorkspaceName.trim(),
-      icon: newWorkspaceDomain === 'secops' ? '🛡️' : newWorkspaceDomain === 'hr' ? '👥' : newWorkspaceDomain === 'finance' ? '💳' : newWorkspaceDomain === 'staging' ? '🧪' : '📁',
-      domain: newWorkspaceDomain,
-      description: newWorkspaceDescription.trim() || 'Custom department workspace'
+      id: tempId,
+      name,
+      icon,
+      domain,
+      description: desc
     };
+
+    // Optimistic local update
     setWorkspaces(prev => {
       const updated = [...prev, newWs];
       if (activeOrg?.id) {
@@ -1545,12 +1623,49 @@ export default function App() {
     setNewWorkspaceDescription('');
     closeDropdowns();
     showToast(`Created and switched to workspace '${newWs.name}'!`);
+
+    // Persist to backend database!
+    if (activeOrg?.id) {
+      try {
+        const headers = { 'Content-Type': 'application/json' };
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+        const res = await fetch(`/v1/organizations/${activeOrg.id}/workspaces`, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({
+            name,
+            domain,
+            icon,
+            description: desc
+          })
+        });
+        if (res.ok) {
+          const persistedWs = await res.json();
+          setWorkspaces(prev => {
+            const updated = prev.map(w => w.id === tempId ? persistedWs : w);
+            localStorage.setItem(`ctl_workspaces_${activeOrg.id}`, JSON.stringify(updated));
+            return updated;
+          });
+          setActiveWorkspace(persistedWs);
+          broadcastSyncEvent?.('WORKSPACE_CHANGED', {
+            orgId: activeOrg.id,
+            activeWorkspace: persistedWs
+          });
+        }
+      } catch (err) {
+        console.warn('Failed to save workspace to backend:', err);
+      }
+    }
   };
 
   const handleSwitchWorkspace = (ws) => {
     setActiveWorkspace(ws);
     closeDropdowns();
     showToast(`Switched workspace to '${ws.name}'`);
+    broadcastSyncEvent?.('WORKSPACE_CHANGED', {
+      orgId: activeOrg?.id,
+      activeWorkspace: ws
+    });
   };
 
   // -------------------------------------------------------------
@@ -2633,23 +2748,17 @@ export default function App() {
       : (activeOrg ? [activeOrg] : []);
 
     return (
-      <div ref={headerControlsRef} style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'nowrap', position: 'relative' }}>
+      <div ref={headerControlsRef} style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'nowrap', position: 'relative' }}>
         {/* 1. ACTIVE ENTERPRISE TENANT ORGANIZATION DROPDOWN */}
         <div style={{ position: 'relative' }}>
           <button
             onClick={() => toggleDropdown('org')}
             className={`top-header-pill ${isOrgDropdownOpen ? 'top-header-pill-active' : ''}`}
             title={`Active Organization Tenant: ${isOrgReady ? activeOrg?.name : 'Create Organization'}`}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '3px 9px',
-              ...(!isOrgReady ? { border: '1px dashed #EA580C', background: 'rgba(234, 88, 12, 0.08)' } : {})
-            }}
+            style={!isOrgReady ? { border: '1px dashed #64748B', background: 'rgba(100, 116, 139, 0.06)' } : undefined}
           >
-            <Building2 size={12} style={{ color: isOrgReady ? '#FFAB4A' : '#EA580C' }} />
-            <span style={{ maxWidth: '130px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 700 }}>
+            <Building2 size={13} style={{ color: isOrgReady ? '#475569' : '#0F172A', flexShrink: 0 }} />
+            <span style={{ maxWidth: '140px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 600 }}>
               {isOrgReady ? activeOrg.name : (activeOrg?.name && !activeOrg.name.includes('Pending Setup') ? activeOrg.name : 'Create Organization')}
             </span>
             {!isOrgReady ? (
@@ -2657,9 +2766,10 @@ export default function App() {
                 fontSize: '0.58rem',
                 padding: '1px 5px',
                 borderRadius: '3px',
-                background: '#EA580C',
+                background: '#0F172A',
                 color: '#FFFFFF',
-                fontWeight: 800
+                fontWeight: 800,
+                flexShrink: 0
               }}>
                 SETUP
               </span>
@@ -2668,14 +2778,16 @@ export default function App() {
                 fontSize: '0.62rem',
                 padding: '1px 5px',
                 borderRadius: '4px',
-                background: 'rgba(255, 171, 74, 0.18)',
-                color: '#9A4900',
-                fontWeight: 700
+                background: '#F1F5F9',
+                color: '#334155',
+                border: '1px solid #E2E8F0',
+                fontWeight: 700,
+                flexShrink: 0
               }}>
                 {activeOrg.member_count}
               </span>
             ) : null}
-            <ChevronDown size={11} style={{ color: '#94A3B8', transform: isOrgDropdownOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s ease' }} />
+            <ChevronDown size={11} style={{ color: '#94A3B8', transform: isOrgDropdownOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s ease', flexShrink: 0 }} />
           </button>
 
           {isOrgDropdownOpen && (
@@ -2683,12 +2795,12 @@ export default function App() {
               className="dropdown-menu-animated"
               style={{
                 position: 'absolute',
-                top: 'calc(100% + 5px)',
+                top: 'calc(100% + 6px)',
                 right: 0,
-                background: 'var(--bg-card)',
-                border: '1px solid var(--border-subtle)',
-                borderRadius: '8px',
-                boxShadow: '0 12px 32px rgba(0,0,0,0.22)',
+                background: '#FFFFFF',
+                border: '1px solid #E2E8F0',
+                borderRadius: '10px',
+                boxShadow: '0 12px 28px -4px rgba(15, 23, 42, 0.12), 0 8px 12px -4px rgba(15, 23, 42, 0.06)',
                 zIndex: 260,
                 width: '300px',
                 padding: '8px'
@@ -2697,9 +2809,6 @@ export default function App() {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 6px 6px 6px', borderBottom: '1px solid var(--border-subtle)', marginBottom: '6px' }}>
                 <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                   Enterprise Organizations
-                </span>
-                <span className="badge" style={{ fontSize: '0.62rem', padding: '1px 5px' }}>
-                  {displayOrgs.length} {displayOrgs.length === 1 ? 'Tenant' : 'Tenants'}
                 </span>
               </div>
 
@@ -2721,8 +2830,6 @@ export default function App() {
               <div style={{ maxHeight: '180px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '2px' }}>
                 {displayOrgs.map(org => {
                   const isActive = activeOrg?.id === org.id;
-                  const myMem = myOrganizations?.find(m => m.id === org.id);
-                  const roleToShow = org.role || myMem?.role || (isActive ? (authUser?.role || effectiveRole) : null);
                   return (
                     <button
                       key={org.id}
@@ -2734,14 +2841,13 @@ export default function App() {
                         width: '100%',
                         display: 'flex',
                         alignItems: 'center',
-                        justifyContent: 'space-between',
-                        padding: '7px 9px',
-                        background: isActive ? 'rgba(255, 171, 74, 0.12)' : 'transparent',
+                        padding: '8px 12px',
+                        background: isActive ? '#F1F5F9' : 'transparent',
                         border: 'none',
                         borderRadius: '5px',
-                        color: isActive ? '#9A4900' : 'var(--text-main)',
+                        color: isActive ? '#0F172A' : 'var(--text-main)',
                         fontSize: '0.78rem',
-                        fontWeight: isActive ? 700 : 500,
+                        fontWeight: isActive ? 600 : 500,
                         cursor: 'pointer',
                         textAlign: 'left',
                         transition: 'background 0.15s ease'
@@ -2749,26 +2855,9 @@ export default function App() {
                       onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = '#F8FAFC'; }}
                       onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = 'transparent'; }}
                     >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
-                        <Building2 size={13} style={{ color: isActive ? '#FFAB4A' : 'var(--text-muted)', flexShrink: 0 }} />
-                        <div style={{ minWidth: 0 }}>
-                          <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                            <span>{org.name}</span>
-                            {roleToShow && (
-                              <span style={{ fontSize: '0.58rem', fontWeight: 700, padding: '1px 4px', borderRadius: '3px', backgroundColor: '#EFF6FF', color: '#1D4ED8', textTransform: 'uppercase' }}>
-                                {roleToShow}
-                              </span>
-                            )}
-                          </div>
-                          <div style={{ fontSize: '0.66rem', color: 'var(--text-muted)', fontFamily: 'monospace' }}>
-                            {org.slug}
-                          </div>
-                        </div>
-                      </div>
-
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        {isActive && <span style={{ color: '#FFAB4A', fontWeight: 800 }}>✓</span>}
-                      </div>
+                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {org.name}
+                      </span>
                     </button>
                   );
                 })}
@@ -2777,16 +2866,17 @@ export default function App() {
               <div style={{ borderTop: '1px solid var(--border-subtle)', marginTop: '6px', paddingTop: '6px', display: 'flex', flexDirection: 'column', gap: '3px' }}>
                 <button
                   onClick={() => {
-                    setShowNewOrgModal(true);
                     closeDropdowns();
+                    setActiveTab('profile');
+                    setProfileSubTab('register');
                   }}
                   style={{
                     width: '100%',
                     padding: '7px 8px',
-                    background: 'rgba(255, 171, 74, 0.1)',
-                    border: '1px solid rgba(255, 171, 74, 0.3)',
+                    background: '#F8FAFC',
+                    border: '1px solid #E2E8F0',
                     borderRadius: '5px',
-                    color: '#9A4900',
+                    color: '#0F172A',
                     fontSize: '0.74rem',
                     fontWeight: 700,
                     cursor: 'pointer',
@@ -2795,42 +2885,17 @@ export default function App() {
                     alignItems: 'center',
                     gap: '6px'
                   }}
+                  onMouseEnter={e => e.currentTarget.style.background = '#F1F5F9'}
+                  onMouseLeave={e => e.currentTarget.style.background = '#F8FAFC'}
                 >
                   <Plus size={13} />
-                  <span>+ Create Enterprise Organization</span>
+                  <span>Create Enterprise Organization</span>
                 </button>
 
                 <button
                   onClick={() => {
-                    setSetupWizardTargetOrg(activeOrg);
-                    setIsSetupWizardOpen(true);
                     closeDropdowns();
-                  }}
-                  style={{
-                    width: '100%',
-                    padding: '5px 8px',
-                    background: 'transparent',
-                    border: 'none',
-                    color: 'var(--text-secondary)',
-                    fontSize: '0.72rem',
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    textAlign: 'left',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px'
-                  }}
-                  onMouseEnter={e => e.currentTarget.style.color = 'var(--text-main)'}
-                  onMouseLeave={e => e.currentTarget.style.color = 'var(--text-secondary)'}
-                >
-                  <Sparkles size={12} style={{ color: '#FFAB4A' }} />
-                  <span>Launch Onboarding Wizard for '{activeOrg?.name || 'Organization'}'</span>
-                </button>
-
-                <button
-                  onClick={() => {
-                    setIsOrgSettingsModalOpen(true);
-                    closeDropdowns();
+                    setActiveTab('settings');
                   }}
                   style={{
                     width: '100%',
@@ -2863,15 +2928,10 @@ export default function App() {
             onClick={() => toggleDropdown('workspace')}
             className={`top-header-pill ${isWorkspaceDropdownOpen ? 'top-header-pill-active' : ''}`}
             title={`Active Workspace: ${isWorkspaceReady ? activeWorkspace?.name : 'Create Workspace'}`}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              ...(!isWorkspaceReady ? { border: '1px dashed #EA580C', background: 'rgba(234, 88, 12, 0.08)' } : {})
-            }}
+            style={!isWorkspaceReady ? { border: '1px dashed #64748B', background: 'rgba(100, 116, 139, 0.06)' } : undefined}
           >
-            <FolderGit2 size={12} style={{ color: isWorkspaceReady ? 'var(--text-muted)' : '#EA580C' }} />
-            <span style={{ maxWidth: '130px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: isWorkspaceReady ? 500 : 700 }}>
+            <FolderGit2 size={13} style={{ color: '#475569', flexShrink: 0 }} />
+            <span style={{ maxWidth: '140px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 600 }}>
               {isWorkspaceReady ? activeWorkspace.name.replace(' (Universal)', '') : 'Create Workspace'}
             </span>
             {!isWorkspaceReady && (
@@ -2879,14 +2939,15 @@ export default function App() {
                 fontSize: '0.58rem',
                 padding: '1px 5px',
                 borderRadius: '3px',
-                background: '#EA580C',
+                background: '#0F172A',
                 color: '#FFFFFF',
-                fontWeight: 800
+                fontWeight: 800,
+                flexShrink: 0
               }}>
                 SETUP
               </span>
             )}
-            <ChevronDown size={11} style={{ color: '#94A3B8', transform: isWorkspaceDropdownOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s ease' }} />
+            <ChevronDown size={11} style={{ color: '#94A3B8', transform: isWorkspaceDropdownOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s ease', flexShrink: 0 }} />
           </button>
 
           {isWorkspaceDropdownOpen && (
@@ -2894,12 +2955,12 @@ export default function App() {
               className="dropdown-menu-animated"
               style={{
                 position: 'absolute',
-                top: 'calc(100% + 5px)',
+                top: 'calc(100% + 6px)',
                 right: 0,
-                background: 'var(--bg-card)',
-                border: '1px solid var(--border-subtle)',
-                borderRadius: '8px',
-                boxShadow: '0 12px 32px rgba(0,0,0,0.22)',
+                background: '#FFFFFF',
+                border: '1px solid #E2E8F0',
+                borderRadius: '10px',
+                boxShadow: '0 12px 28px -4px rgba(15, 23, 42, 0.12), 0 8px 12px -4px rgba(15, 23, 42, 0.06)',
                 zIndex: 250,
                 width: '280px',
                 padding: '8px'
@@ -2908,9 +2969,6 @@ export default function App() {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 6px 6px 6px', borderBottom: '1px solid var(--border-subtle)', marginBottom: '6px' }}>
                 <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                   Workspaces
-                </span>
-                <span className="badge badge-muted" style={{ fontSize: '0.62rem', padding: '1px 5px' }}>
-                  {workspaces.length} {workspaces.length === 1 ? 'Workspace' : 'Workspaces'}
                 </span>
               </div>
 
@@ -2941,14 +2999,13 @@ export default function App() {
                       width: '100%',
                       display: 'flex',
                       alignItems: 'center',
-                      justifyContent: 'space-between',
-                      padding: '6px 8px',
-                      background: activeWorkspace?.id === ws.id ? 'var(--primary-subtle, rgba(255, 171, 74, 0.12))' : 'transparent',
+                      padding: '8px 12px',
+                      background: activeWorkspace?.id === ws.id ? '#F1F5F9' : 'transparent',
                       border: 'none',
                       borderRadius: '5px',
-                      color: activeWorkspace?.id === ws.id ? '#9A4900' : 'var(--text-main)',
-                      fontSize: '0.75rem',
-                      fontWeight: activeWorkspace?.id === ws.id ? 700 : 500,
+                      color: activeWorkspace?.id === ws.id ? '#0F172A' : 'var(--text-main)',
+                      fontSize: '0.78rem',
+                      fontWeight: activeWorkspace?.id === ws.id ? 600 : 500,
                       cursor: 'pointer',
                       textAlign: 'left',
                       transition: 'background 0.15s ease'
@@ -2956,11 +3013,7 @@ export default function App() {
                     onMouseEnter={e => { if (activeWorkspace?.id !== ws.id) e.currentTarget.style.background = '#F8FAFC'; }}
                     onMouseLeave={e => { if (activeWorkspace?.id !== ws.id) e.currentTarget.style.background = 'transparent'; }}
                   >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0 }}>
-                      <span>{ws.icon || '📁'}</span>
-                      <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{ws.name}</span>
-                    </div>
-                    {activeWorkspace?.id === ws.id && <span style={{ fontSize: '0.75rem', color: '#FFAB4A', fontWeight: 800 }}>✓</span>}
+                    <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{ws.name}</span>
                   </button>
                 ))}
 
@@ -2974,16 +3027,18 @@ export default function App() {
               <div style={{ borderTop: '1px solid var(--border-subtle)', marginTop: '6px', paddingTop: '6px' }}>
                 <button
                   onClick={() => {
-                    setShowNewWorkspaceModal(true);
                     closeDropdowns();
+                    setActiveTab('ingestion');
+                    setExpandedMenu?.('ingestion');
+                    setDocExplorerView?.('folders');
                   }}
                   style={{
                     width: '100%',
                     padding: '7px 8px',
-                    background: 'rgba(255, 171, 74, 0.1)',
-                    border: '1px solid rgba(255, 171, 74, 0.3)',
+                    background: '#F8FAFC',
+                    border: '1px solid #E2E8F0',
                     borderRadius: '5px',
-                    color: '#9A4900',
+                    color: '#0F172A',
                     fontSize: '0.74rem',
                     fontWeight: 700,
                     cursor: 'pointer',
@@ -2992,9 +3047,11 @@ export default function App() {
                     alignItems: 'center',
                     gap: '5px'
                   }}
+                  onMouseEnter={e => e.currentTarget.style.background = '#F1F5F9'}
+                  onMouseLeave={e => e.currentTarget.style.background = '#F8FAFC'}
                 >
                   <Plus size={13} />
-                  <span>+ Create Department Workspace</span>
+                  <span>Create Department Workspace</span>
                 </button>
               </div>
             </div>
@@ -3005,33 +3062,33 @@ export default function App() {
         <div style={{ position: 'relative' }}>
           <button
             onClick={() => toggleDropdown('persona')}
-            className={`top-header-pill ${isPersonaDropdownOpen ? 'top-header-pill-active' : ''}`}
+            aria-label="User profile menu"
             title={`Signed in as ${authUser?.name || activePersona?.name || 'User'} (${(authUser?.role || effectiveRole || 'admin').toUpperCase()})`}
-            style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '3px 8px 3px 5px' }}
+            className={`top-header-avatar-btn ${isPersonaDropdownOpen ? 'top-header-avatar-btn-active' : ''}`}
           >
-            <img
-              src={authUser?.avatar_url || activePersona?.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${authUser?.name || 'User'}`}
-              alt="Avatar"
-              style={{ width: '18px', height: '18px', borderRadius: '50%', backgroundColor: 'rgba(255,171,74,0.2)' }}
-            />
-            <span style={{ maxWidth: '110px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 600 }}>
-              {authUser?.name || activePersona?.name || 'User'}
-            </span>
-            <span
-              style={{
-                fontSize: '0.6rem',
-                fontWeight: 700,
-                padding: '1px 5px',
-                borderRadius: '4px',
-                backgroundColor: 'rgba(255,171,74,0.15)',
-                color: '#B45309',
-                border: '1px solid rgba(255,171,74,0.35)',
-                textTransform: 'uppercase'
-              }}
-            >
-              {(authUser?.role || effectiveRole || 'admin')}
-            </span>
-            <ChevronDown size={11} style={{ color: '#94A3B8', transform: isPersonaDropdownOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s ease' }} />
+            {authUser?.avatar_url || authUser?.picture || activePersona?.avatar_url ? (
+              <img
+                src={authUser?.avatar_url || authUser?.picture || activePersona?.avatar_url}
+                alt="Avatar"
+                onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  borderRadius: '50%',
+                  objectFit: 'cover',
+                  display: 'block'
+                }}
+              />
+            ) : (
+              <span style={{ color: '#FFFFFF', fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.02em', userSelect: 'none' }}>
+                {(authUser?.name || activePersona?.name || 'PK')
+                  .split(' ')
+                  .map(n => n[0])
+                  .join('')
+                  .slice(0, 2)
+                  .toUpperCase()}
+              </span>
+            )}
           </button>
 
           {isPersonaDropdownOpen && (
@@ -3039,44 +3096,146 @@ export default function App() {
               className="dropdown-menu-animated"
               style={{
                 position: 'absolute',
-                top: 'calc(100% + 5px)',
+                top: 'calc(100% + 6px)',
                 right: 0,
-                background: 'var(--bg-card)',
-                border: '1px solid var(--border-subtle)',
-                borderRadius: '8px',
-                boxShadow: '0 12px 32px rgba(0,0,0,0.22)',
+                background: '#FFFFFF',
+                border: '1px solid #E2E8F0',
+                borderRadius: '10px',
+                boxShadow: '0 12px 28px -4px rgba(15, 23, 42, 0.12), 0 8px 12px -4px rgba(15, 23, 42, 0.06)',
                 zIndex: 250,
                 width: '280px',
                 padding: '8px'
               }}
             >
               {/* User Details Header */}
-              <div style={{ padding: '6px 8px', borderBottom: '1px solid var(--border-subtle)', marginBottom: '6px' }}>
-                <div style={{ fontWeight: 700, fontSize: '0.82rem', color: 'var(--text-main)' }}>
-                  {authUser?.name || activePersona?.name}
+              <div style={{ padding: '8px 10px', borderBottom: '1px solid var(--border-subtle)', marginBottom: '4px' }}>
+                <div style={{ fontWeight: 700, fontSize: '0.84rem', color: 'var(--text-main)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {authUser?.name || activePersona?.name || 'User'}
                 </div>
-                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', wordBreak: 'break-all', marginTop: '1px' }}>
+                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginTop: '2px' }}>
                   {authUser?.email || activePersona?.email}
-                </div>
-                <div style={{ fontSize: '0.68rem', color: '#FFAB4A', fontWeight: 600, marginTop: '3px' }}>
-                  🏢 {authOrg?.name || activeOrg?.name || 'Enterprise Workspace'}
                 </div>
               </div>
 
-              {/* Google Identity Verified Badge */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '4px 8px 8px 8px', fontSize: '0.70rem', color: 'var(--text-muted)' }}>
-                <svg width="13" height="13" viewBox="0 0 24 24">
-                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
-                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
-                </svg>
-                <span>Authenticated via Google Workspace</span>
+              {/* Navigation Options */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', padding: '2px 0' }}>
+                <button
+                  onClick={() => {
+                    closeDropdowns();
+                    setActiveTab('profile');
+                    setProfileSubTab('user_profile');
+                  }}
+                  style={{
+                    width: '100%',
+                    padding: '7px 10px',
+                    background: 'transparent',
+                    border: 'none',
+                    borderRadius: '5px',
+                    color: 'var(--text-main)',
+                    fontSize: '0.76rem',
+                    fontWeight: 500,
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    transition: 'background 0.15s ease'
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.background = '#F1F5F9'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                >
+                  <User size={13} style={{ color: '#475569' }} />
+                  <span>Profile</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    closeDropdowns();
+                    setActiveTab('profile');
+                    setProfileSubTab('companies');
+                  }}
+                  style={{
+                    width: '100%',
+                    padding: '7px 10px',
+                    background: 'transparent',
+                    border: 'none',
+                    borderRadius: '5px',
+                    color: 'var(--text-main)',
+                    fontSize: '0.76rem',
+                    fontWeight: 500,
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    transition: 'background 0.15s ease'
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.background = '#F1F5F9'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                >
+                  <Building2 size={13} style={{ color: '#475569' }} />
+                  <span>Organizations</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    closeDropdowns();
+                    setActiveTab('settings');
+                  }}
+                  style={{
+                    width: '100%',
+                    padding: '7px 10px',
+                    background: 'transparent',
+                    border: 'none',
+                    borderRadius: '5px',
+                    color: 'var(--text-main)',
+                    fontSize: '0.76rem',
+                    fontWeight: 500,
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    transition: 'background 0.15s ease'
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.background = '#F1F5F9'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                >
+                  <Settings size={13} style={{ color: '#475569' }} />
+                  <span>Workspace Settings</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    closeDropdowns();
+                    setIsRbacModalOpen(true);
+                  }}
+                  style={{
+                    width: '100%',
+                    padding: '7px 10px',
+                    background: 'transparent',
+                    border: 'none',
+                    borderRadius: '5px',
+                    color: 'var(--text-main)',
+                    fontSize: '0.76rem',
+                    fontWeight: 500,
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    transition: 'background 0.15s ease'
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.background = '#F1F5F9'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                >
+                  <ShieldCheck size={13} style={{ color: '#475569' }} />
+                  <span>RBAC Matrix</span>
+                </button>
               </div>
 
               {/* Sign Out Action */}
-              <div style={{ borderTop: '1px solid var(--border-subtle)', paddingTop: '6px' }}>
-
+              <div style={{ borderTop: '1px solid var(--border-subtle)', marginTop: '4px', paddingTop: '4px' }}>
                 <button
                   onClick={() => {
                     closeDropdowns();
@@ -3084,19 +3243,22 @@ export default function App() {
                   }}
                   style={{
                     width: '100%',
-                    padding: '6px 8px',
+                    padding: '7px 10px',
                     background: 'transparent',
                     border: 'none',
-                    borderRadius: '4px',
+                    borderRadius: '5px',
                     color: '#EF4444',
-                    fontSize: '0.74rem',
+                    fontSize: '0.75rem',
                     fontWeight: 600,
                     cursor: 'pointer',
                     textAlign: 'left',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '6px'
+                    gap: '8px',
+                    transition: 'background 0.15s ease'
                   }}
+                  onMouseEnter={e => e.currentTarget.style.background = '#FEF2F2'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                 >
                   <LogOut size={13} />
                   <span>Sign Out</span>
@@ -3112,18 +3274,10 @@ export default function App() {
             closeDropdowns();
             setIsWebhookModalOpen(true);
           }}
-          className="top-header-pill"
+          className="top-header-icon-btn"
           title="Configure Real-Time Incident Webhooks (Slack, PagerDuty, MS Teams)"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '5px',
-            color: 'var(--text-secondary)',
-            fontWeight: 600,
-            cursor: 'pointer'
-          }}
         >
-          <Bell size={12} style={{ color: '#EA580C' }} />
+          <Bell size={13} style={{ color: '#475569' }} />
         </button>
       </div>
     );
@@ -3831,66 +3985,6 @@ export default function App() {
               <span>Team & Personas</span>
             </button>
           )}
-          <button
-            onClick={() => setActiveTab('profile')}
-            className={`nav-item ${activeTab === 'profile' ? 'nav-item-active' : ''}`}
-            title="Profile & Companies"
-          >
-            <User size={16} strokeWidth={1.75} />
-            <span>Profile & Companies</span>
-          </button>
-
-          {/* Pinned System Status & RBAC Inspector in Sidebar Footer */}
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '8px 10px 4px 10px',
-            marginTop: '6px',
-            borderTop: '1px solid var(--border-subtle)'
-          }}>
-            <button
-              type="button"
-              onClick={() => setIsRbacModalOpen(true)}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                background: 'transparent',
-                border: 'none',
-                color: 'var(--text-secondary)',
-                fontSize: '0.72rem',
-                fontWeight: 600,
-                cursor: 'pointer',
-                padding: '3px 6px',
-                borderRadius: '5px',
-                transition: 'all 0.15s ease'
-              }}
-              title="Inspect Atlan-Grade RBAC Permissions & Separation of Duties Matrix"
-              onMouseEnter={e => { e.currentTarget.style.background = '#F1F5F9'; e.currentTarget.style.color = '#0F172A'; }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
-            >
-              <ShieldCheck size={13} style={{ color: 'var(--primary)' }} />
-              {isSidebarOpen && <span>RBAC Matrix</span>}
-            </button>
-
-            {isSidebarOpen && (
-              <div
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '5px',
-                  fontSize: '0.68rem',
-                  color: '#64748B',
-                  fontWeight: 600
-                }}
-                title="System Operational Status: All engines healthy"
-              >
-                <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--success-solid, #10B981)', display: 'inline-block' }} />
-                <span>Operational</span>
-              </div>
-            )}
-          </div>
         </div>
       </aside>
 
@@ -3902,7 +3996,7 @@ export default function App() {
         {/* ========================================================= */}
         {/* TOP HEADER CONTROLS (Identical position for all tabs/pages) */}
         {/* ========================================================= */}
-        <div className="top-breadcrumb-bar" style={{ position: 'relative', zIndex: 50 }}>
+        <div className="top-breadcrumb-bar" style={{ position: 'relative', zIndex: 50, paddingTop: '10px', paddingBottom: '6px' }}>
           <div />
           {renderHeaderRightControls()}
         </div>
@@ -5451,6 +5545,15 @@ export default function App() {
                 setActiveChatSessionId(id);
                 fetchChatSessions();
               }}
+              onOpenHitlModal={() => setIsHitlModalOpen(true)}
+              onInspectDocument={(docId) => {
+                setInspectorState({
+                  isOpen: true,
+                  assetType: 'document',
+                  assetId: docId,
+                  assetTitle: 'Policy Document'
+                });
+              }}
             />
           )
         )}
@@ -5523,68 +5626,6 @@ export default function App() {
                 </div>
               )}
             </div>
-
-            {/* 3 Dedicated Document Explorer Horizontal Navigation Tabs */}
-            {docExplorerView !== 'connect' && (
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                borderBottom: '1px solid #E2E8F0',
-                paddingBottom: '14px',
-                marginBottom: '20px'
-              }}>
-                {[
-                  { id: 'folders', label: 'Folders & Structure', icon: FolderTree, count: displayedDbDocuments.length },
-                  { id: 'ingest', label: 'Upload & Ingest', icon: Upload, count: null },
-                  { id: 'connectors', label: 'Live Connectors', icon: Database, count: displayedDataSources.length }
-                ].map(tab => {
-                  const isActive = (tab.id === 'folders' && (docExplorerView === 'folders' || docExplorerView === 'documents'))
-                    || (tab.id === 'connectors' && docExplorerView === 'connectors')
-                    || docExplorerView === tab.id;
-                  const IconComp = tab.icon;
-                  return (
-                    <button
-                      key={tab.id}
-                      type="button"
-                      onClick={() => {
-                        setDocExplorerView(tab.id);
-                        if (tab.id === 'connectors') setTestConnectionResult(null);
-                      }}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                        padding: '8px 16px',
-                        borderRadius: '8px',
-                        border: isActive ? '1px solid #2563EB' : '1px solid #E2E8F0',
-                        background: isActive ? '#EFF6FF' : '#FFFFFF',
-                        color: isActive ? '#1D4ED8' : '#475569',
-                        fontSize: '0.82rem',
-                        fontWeight: isActive ? 700 : 500,
-                        cursor: 'pointer',
-                        transition: 'all 0.15s ease'
-                      }}
-                    >
-                      <IconComp size={15} style={{ color: isActive ? '#2563EB' : '#64748B' }} />
-                      <span>{tab.label}</span>
-                      {typeof tab.count === 'number' && (
-                        <span style={{
-                          fontSize: '0.68rem',
-                          fontWeight: 700,
-                          padding: '1px 6px',
-                          borderRadius: '10px',
-                          background: isActive ? '#DBEAFE' : '#F1F5F9',
-                          color: isActive ? '#1E40AF' : '#64748B'
-                        }}>
-                          {tab.count}
-                        </span>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-            )}
 
             {/* VIEW 0: CONNECTORS HUB (LIVE CONNECTORS & SYNCHRONIZED CONNECTORS WORKFLOW) */}
             {docExplorerView === 'connectors' && (() => {
@@ -5672,11 +5713,11 @@ export default function App() {
                     display: 'grid',
                     gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
                     gap: '14px',
-                    background: '#FFFFFF',
-                    border: '1px solid #E2E8F0',
+                    background: '#FAF8F5',
+                    border: '1px solid var(--border-subtle)',
                     borderRadius: '12px',
                     padding: '16px 20px',
-                    boxShadow: '0 1px 3px rgba(0,0,0,0.03)'
+                    boxShadow: 'none'
                   }}>
                     <div>
                       <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Configured Live Connections</div>
@@ -5722,11 +5763,11 @@ export default function App() {
 
                   {/* SECTION 1: LIVE CONNECTORS */}
                   <div style={{
-                    background: '#FFFFFF',
-                    border: '1px solid #E2E8F0',
+                    background: '#FAF8F5',
+                    border: '1px solid var(--border-subtle)',
                     borderRadius: '12px',
                     padding: '20px',
-                    boxShadow: '0 1px 3px rgba(0,0,0,0.03)'
+                    boxShadow: 'none'
                   }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
                       <div>
@@ -5961,11 +6002,11 @@ export default function App() {
 
                   {/* SECTION 2: SYNCHRONIZED CONNECTORS */}
                   <div style={{
-                    background: '#FFFFFF',
-                    border: '1px solid #E2E8F0',
+                    background: '#FAF8F5',
+                    border: '1px solid var(--border-subtle)',
                     borderRadius: '12px',
                     padding: '20px',
-                    boxShadow: '0 1px 3px rgba(0,0,0,0.03)'
+                    boxShadow: 'none'
                   }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
                       <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0F172A', margin: 0 }}>
@@ -6053,11 +6094,11 @@ export default function App() {
 
                   {/* SECTION 3: AVAILABLE LIVE DATA PROVIDERS (5 SUPPORTED PROVIDERS) */}
                   <div style={{
-                    background: '#FFFFFF',
-                    border: '1px solid #E2E8F0',
+                    background: '#FAF8F5',
+                    border: '1px solid var(--border-subtle)',
                     borderRadius: '12px',
                     padding: '20px',
-                    boxShadow: '0 1px 3px rgba(0,0,0,0.03)'
+                    boxShadow: 'none'
                   }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
                       <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0F172A', margin: 0 }}>
@@ -6172,11 +6213,11 @@ export default function App() {
             {/* VIEW: FULL PAGE CONNECT REAL ENTERPRISE DATA SOURCE (ATLAN ARCHITECTURE) */}
             {docExplorerView === 'connect' && (
               <div style={{
-                background: '#FFFFFF',
-                border: '1px solid #E2E8F0',
+                background: '#FAF8F5',
+                border: '1px solid var(--border-subtle)',
                 borderRadius: '14px',
                 padding: '28px',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+                boxShadow: 'none',
                 marginBottom: '24px'
               }}>
                 {/* Header & 4-Step Process Guide */}
@@ -7859,9 +7900,12 @@ export default function App() {
                 onVaultSubTabChange={(sub) => {
                   setVaultSubTab(sub);
                   setSelectedLineageAssetId(null);
+                  setSelectedLineageClaimId(null);
                 }}
                 initialAssetId={selectedLineageAssetId}
                 onAssetChange={setSelectedLineageAssetId}
+                initialClaimId={selectedLineageClaimId}
+                onClaimChange={setSelectedLineageClaimId}
                 initialSection={lineageSection}
                 onSectionChange={setLineageSection}
               />
@@ -7956,6 +8000,7 @@ export default function App() {
               showToast={showToast}
               initialSubTab={teamSubTab}
               onSubTabChange={setTeamSubTab}
+              onOpenRbacModal={() => setIsRbacModalOpen(true)}
               onLaunchSetupWizard={(org) => {
                 setSetupWizardTargetOrg(org || activeOrg);
                 setIsSetupWizardOpen(true);
@@ -7981,15 +8026,23 @@ export default function App() {
               onSelectPersona={handleSelectPersona}
               effectiveRole={effectiveRole}
               roleMetadata={roleMetadata}
+              onOpenRbacModal={() => setIsRbacModalOpen(true)}
               onOpenRegisterOrg={() => {
-                setSetupWizardTargetOrg(null);
-                setIsSetupWizardOpen(true);
+                setActiveTab('profile');
+                setProfileSubTab('register');
               }}
               onLaunchSetupWizard={(org) => {
-                setSetupWizardTargetOrg(org || activeOrg);
-                setIsSetupWizardOpen(true);
+                if (org && org.id !== activeOrg?.id) {
+                  setActiveOrg(org);
+                }
+                setActiveTab('settings');
               }}
-              onOpenOrgSettings={() => setActiveTab('settings')}
+              onOpenOrgSettings={(targetOrg) => {
+                if (targetOrg && targetOrg.id !== activeOrg?.id) {
+                  setActiveOrg(targetOrg);
+                }
+                setActiveTab('settings');
+              }}
               onLogout={authLogout}
               showToast={showToast}
               initialSubSection={profileSubTab}
@@ -8010,6 +8063,7 @@ export default function App() {
                 setOrganizations(orgs => orgs.map(o => o.id === updated.id ? updated : o));
               }}
               onBack={() => setActiveTab('profile')}
+              onOpenRbacModal={() => setIsRbacModalOpen(true)}
               showToast={showToast}
             />
           </div>
@@ -8516,6 +8570,126 @@ export default function App() {
 
       {/* Enterprise Authentication & Persona Switching Modal */}
       <SignInModal />
+
+      {/* Session Superseded Security Alert Modal (Single Device Policy Enforced) */}
+      {sessionSupersededNotice && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(15, 23, 42, 0.75)',
+            backdropFilter: 'blur(8px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 99999,
+            padding: '16px',
+          }}
+        >
+          <div
+            style={{
+              width: '100%',
+              maxWidth: '480px',
+              backgroundColor: '#FFFFFF',
+              borderRadius: '16px',
+              border: '1px solid #FECACA',
+              boxShadow: '0 25px 60px -15px rgba(220, 38, 38, 0.25)',
+              overflow: 'hidden',
+              display: 'flex',
+              flexDirection: 'column',
+            }}
+          >
+            <div style={{ height: '4px', background: 'linear-gradient(90deg, #EF4444, #DC2626, #B91C1C)' }} />
+            <div style={{ padding: '24px 28px', textAlign: 'center' }}>
+              <div
+                style={{
+                  width: '56px',
+                  height: '56px',
+                  borderRadius: '16px',
+                  backgroundColor: '#FEF2F2',
+                  border: '1px solid #FECACA',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  margin: '0 auto 16px auto',
+                  color: '#DC2626',
+                }}
+              >
+                <ShieldAlert size={28} />
+              </div>
+
+              <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: '#0F172A', margin: '0 0 8px 0' }}>
+                Active Session Terminated
+              </h3>
+
+              <div
+                style={{
+                  padding: '4px 10px',
+                  borderRadius: '6px',
+                  backgroundColor: '#FEF2F2',
+                  color: '#991B1B',
+                  fontSize: '0.74rem',
+                  fontWeight: 600,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  marginBottom: '14px',
+                }}
+              >
+                <span>Enterprise Single-Device Security Policy</span>
+              </div>
+
+              <p style={{ fontSize: '0.82rem', color: '#475569', lineHeight: 1.5, margin: '0 0 20px 0' }}>
+                {sessionSupersededNotice}
+              </p>
+
+              <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSessionSupersededNotice(null);
+                    setAuthModalTab('login');
+                    setIsAuthModalOpen(true);
+                  }}
+                  style={{
+                    flex: 1,
+                    padding: '11px 18px',
+                    borderRadius: '8px',
+                    border: 'none',
+                    background: 'linear-gradient(135deg, #FFAB4A 0%, #EA580C 100%)',
+                    color: '#FFFFFF',
+                    fontSize: '0.84rem',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    boxShadow: '0 4px 12px rgba(234, 88, 12, 0.25)',
+                  }}
+                >
+                  Sign In Again on this Device
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSessionSupersededNotice(null)}
+                  style={{
+                    padding: '11px 16px',
+                    borderRadius: '8px',
+                    border: '1px solid #CBD5E1',
+                    backgroundColor: '#FFFFFF',
+                    color: '#64748B',
+                    fontSize: '0.84rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                  }}
+                >
+                  Dismiss
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Enterprise Organization & Workspace Governance Modal */}
       <OrganizationSettingsModal

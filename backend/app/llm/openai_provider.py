@@ -244,6 +244,7 @@ class OpenAIProvider(BaseLLMProvider):
         citations: list[dict],
         has_conflicts: bool = False,
         warnings: list[str] | None = None,
+        history: list[dict] | None = None,
     ) -> str:
         """Synthesize a natural language, factual answer using the model."""
         if not citations:
@@ -261,7 +262,7 @@ class OpenAIProvider(BaseLLMProvider):
             if len(text) > 300:
                 text = text[:300].rsplit(" ", 1)[0] + "..."
             sanitized_citations.append(
-                f"[{idx + 1}] {text} (Source: {c.get('source_title', 'Knowledge Base')} > {c.get('section', 'General')}, Trust Score: {int(float(c.get('trust_score', 0.8))*100)}%)"
+                f"[Source {idx + 1}] {text} (Document: {c.get('source_title', 'Knowledge Base')} > {c.get('section', 'General')}, Trust Score: {int(float(c.get('trust_score', 0.8))*100)}%)"
             )
 
         citations_context = "\n".join(sanitized_citations) if sanitized_citations else "No specific text excerpts available."
@@ -272,13 +273,14 @@ class OpenAIProvider(BaseLLMProvider):
 
         system_prompt = (
             "You are Context Trust Layer Copilot, an enterprise governance intelligence assistant. "
-            "Formulate an attractive, crisp, and well-structured answer directly answering the user's inquiry. "
+            "Formulate an attractive, crisp, and well-structured answer directly answering the user's inquiry based strictly on the verified context.\n"
             "Structure the response clearly using Markdown:\n"
             "- Start with a clear 1-sentence **Bottom Line / Direct Answer**.\n"
             "- Use clean bullet points (`- `) with **bold keywords** for specific rules, numbers, dollar thresholds, durations, windows, eligible roles, or exceptions.\n"
+            "- Attach citation markers like [Source 1], [Source 2] to material assertions.\n"
             "- If there are specific policies, section references, or caveats, state them in a bullet point or a brief note.\n"
             "- If there is a contradiction or gap in the verified knowledge base, explicitly mention it.\n"
-            "DO NOT write a single long dense wall-of-text paragraph. DO NOT output raw JSON or code blocks. Keep it visually engaging, scannable, and professional."
+            "DO NOT invent facts or override limitations. DO NOT write a single dense wall-of-text paragraph. Keep it visually engaging, scannable, and professional."
         )
 
         user_prompt = (
@@ -288,13 +290,19 @@ class OpenAIProvider(BaseLLMProvider):
             "Please provide a structured, attractive, and authoritative answer for the user."
         )
 
+        messages = [{"role": "system", "content": system_prompt}]
+        if history:
+            for turn in history[-4:]:
+                r = turn.get("role")
+                c = turn.get("content", "")
+                if r in ("user", "assistant") and c:
+                    messages.append({"role": r, "content": c[:300]})
+        messages.append({"role": "user", "content": user_prompt})
+
         try:
             response = await self.client.chat.completions.create(
                 model=self.model,
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_prompt},
-                ],
+                messages=messages,
                 temperature=0.2,
                 max_tokens=500,
             )
@@ -305,5 +313,5 @@ class OpenAIProvider(BaseLLMProvider):
             logger.warning("LLM answer synthesis failed (%s); using template synthesis", chat_err)
 
         from app.llm.mock_provider import MockLLMProvider
-        return await MockLLMProvider().generate_grounded_answer(query, citations, has_conflicts, warnings)
+        return await MockLLMProvider().generate_grounded_answer(query, citations, has_conflicts, warnings, history=history)
 

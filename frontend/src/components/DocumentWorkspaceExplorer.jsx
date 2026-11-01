@@ -28,7 +28,17 @@ import {
   Info,
   Network,
   Sparkles,
-  BookOpen
+  BookOpen,
+  Shield,
+  Lock,
+  Scale,
+  Coins,
+  Users,
+  MessageSquare,
+  CheckSquare,
+  Briefcase,
+  ArrowLeft,
+  ChevronLeft
 } from 'lucide-react';
 
 export default function DocumentWorkspaceExplorer({
@@ -62,6 +72,8 @@ export default function DocumentWorkspaceExplorer({
   const [claimSearchQuery, setClaimSearchQuery] = useState('');
   const [isFullFileReaderOpen, setIsFullFileReaderOpen] = useState(false);
   const [fullReaderSearch, setFullReaderSearch] = useState('');
+  const [readerViewMode, setReaderViewMode] = useState('text'); // 'text' | 'pdf'
+  const [copiedReaderText, setCopiedReaderText] = useState(false);
 
   // Folder Insights state
   const [metrics, setMetrics] = useState(null);
@@ -213,7 +225,7 @@ export default function DocumentWorkspaceExplorer({
         setAllDocuments(docsData);
         setSelectedDocId(prev => {
           if (prev && docsData.some(d => d.id === prev)) return prev;
-          return docsData.length > 0 ? docsData[0].id : null;
+          return null;
         });
       }
     } catch (err) {
@@ -244,6 +256,130 @@ export default function DocumentWorkspaceExplorer({
   const activeFolder = useMemo(() => {
     return folders.find(f => f.id === activeFolderId) || null;
   }, [folders, activeFolderId]);
+
+  // Breadcrumb path from root to active folder
+  const breadcrumbs = useMemo(() => {
+    if (!activeFolderId) return [{ id: null, name: 'Vault Root' }];
+    const chain = [];
+    let cur = folders.find(f => f.id === activeFolderId);
+    while (cur) {
+      chain.unshift(cur);
+      if (!cur.parent_id) break;
+      cur = folders.find(f => f.id === cur.parent_id);
+    }
+    return [{ id: null, name: 'Vault Root' }, ...chain];
+  }, [folders, activeFolderId]);
+
+  // Direct subfolders for current folder
+  const currentChildFolders = useMemo(() => {
+    return folders.filter(f => f.parent_id === activeFolderId);
+  }, [folders, activeFolderId]);
+
+  // Direct documents for current folder
+  const currentFolderDocs = useMemo(() => {
+    if (!activeFolderId) {
+      const inbox = folders.find(f => f.is_system && f.folder_type === 'inbox');
+      return inbox ? (docsByFolder[inbox.id] || docsByFolder['inbox'] || []) : allDocuments;
+    }
+    const current = folders.find(f => f.id === activeFolderId);
+    if (current?.is_system && current?.folder_type === 'inbox') {
+      return (docsByFolder[activeFolderId] || []).concat(docsByFolder['inbox'] || []);
+    }
+    return docsByFolder[activeFolderId] || [];
+  }, [activeFolderId, folders, docsByFolder, allDocuments]);
+
+  // Handler for intelligent auto-organize
+  const [isAutoOrganizing, setIsAutoOrganizing] = useState(false);
+  const handleAutoOrganize = async () => {
+    setIsAutoOrganizing(true);
+    try {
+      const headers = {};
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+      headers['X-Organization-Id'] = orgId;
+
+      showToast?.('Intelligently auto-organizing documents into enterprise folders...');
+      const res = await fetch(`/v1/folders/auto-organize?organization_id=${orgId}`, {
+        method: 'POST',
+        headers
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        showToast?.(`Successfully filed ${data.organized_count} document${data.organized_count === 1 ? '' : 's'} into enterprise domain & connector folders!`);
+        await fetchData(true);
+      } else {
+        const err = await res.json();
+        showToast?.(err.detail || 'Auto-organize failed', 'error');
+      }
+    } catch (err) {
+      showToast?.('Error organizing documents: ' + err.message, 'error');
+    } finally {
+      setIsAutoOrganizing(false);
+    }
+  };
+
+  // Helper to render icon for folders
+  const renderFolderIcon = (node, size = 15) => {
+    const color = node.color || '#FFAB4A';
+    if (node.is_system && node.folder_type === 'inbox') {
+      return <Inbox size={size} style={{ color: '#6366F1', flexShrink: 0 }} />;
+    }
+    if (node.folder_type === 'governance') {
+      return <Shield size={size} style={{ color: '#FFAB4A', flexShrink: 0 }} />;
+    }
+    if (node.folder_type === 'connectors') {
+      return <Network size={size} style={{ color: '#6366F1', flexShrink: 0 }} />;
+    }
+    if (node.icon === 'lock') return <Lock size={size} style={{ color: '#3B82F6', flexShrink: 0 }} />;
+    if (node.icon === 'scale') return <Scale size={size} style={{ color: '#8B5CF6', flexShrink: 0 }} />;
+    if (node.icon === 'dollar-sign') return <Coins size={size} style={{ color: '#10B981', flexShrink: 0 }} />;
+    if (node.icon === 'users') return <Users size={size} style={{ color: '#F59E0B', flexShrink: 0 }} />;
+    if (node.icon === 'message-square') return <MessageSquare size={size} style={{ color: '#E11D48', flexShrink: 0 }} />;
+    if (node.icon === 'git-branch') return <GitBranch size={size} style={{ color: '#334155', flexShrink: 0 }} />;
+    if (node.icon === 'book-open') return <BookOpen size={size} style={{ color: '#0284C7', flexShrink: 0 }} />;
+    if (node.icon === 'check-square') return <CheckSquare size={size} style={{ color: '#0284C7', flexShrink: 0 }} />;
+    if (node.icon === 'briefcase') return <Briefcase size={size} style={{ color: '#64748B', flexShrink: 0 }} />;
+    return <Folder size={size} style={{ color, flexShrink: 0 }} />;
+  };
+
+  // Helper to render source badge
+  const renderSourceBadge = (doc) => {
+    const title = (doc.title || '').toLowerCase();
+    const type = (doc.document_type || '').toLowerCase();
+    if (type === 'slack_message' || title.includes('slack')) {
+      return (
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.68rem', padding: '2px 7px', borderRadius: '4px', background: '#FEE2E2', color: '#991B1B', fontWeight: 600 }}>
+          <MessageSquare size={10} /> Slack
+        </span>
+      );
+    }
+    if (title.includes('github')) {
+      return (
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.68rem', padding: '2px 7px', borderRadius: '4px', background: '#F1F5F9', color: '#334155', fontWeight: 600 }}>
+          <GitBranch size={10} /> GitHub
+        </span>
+      );
+    }
+    if (title.includes('confluence')) {
+      return (
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.68rem', padding: '2px 7px', borderRadius: '4px', background: '#E0F2FE', color: '#0369A1', fontWeight: 600 }}>
+          <BookOpen size={10} /> Confluence
+        </span>
+      );
+    }
+    if (title.includes('jira')) {
+      return (
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.68rem', padding: '2px 7px', borderRadius: '4px', background: '#E0F2FE', color: '#0284C7', fontWeight: 600 }}>
+          <CheckSquare size={10} /> Jira
+        </span>
+      );
+    }
+    return (
+      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.68rem', padding: '2px 7px', borderRadius: '4px', background: '#FFF7ED', color: '#C2410C', fontWeight: 600 }}>
+        <Upload size={10} /> Manual Upload
+      </span>
+    );
+  };
 
   // 2. Fetch details & artifacts for selected document (Live Preview)
   useEffect(() => {
@@ -854,12 +990,8 @@ export default function DocumentWorkspaceExplorer({
               )}
             </span>
 
-            {/* Folder Icon (NO numbers anywhere) */}
-            {node.is_system ? (
-              <Inbox size={15} style={{ color: '#6366F1', flexShrink: 0 }} />
-            ) : (
-              <Folder size={15} style={{ color: node.color || '#3B82F6', flexShrink: 0 }} />
-            )}
+            {/* Folder Icon (Customized per folder type/domain) */}
+            {renderFolderIcon(node, 15)}
 
             {/* Folder Name OR Inline Rename Input (Just like Drive / Windows Explorer) */}
             {renamingFolderId === node.id ? (
@@ -1030,12 +1162,12 @@ export default function DocumentWorkspaceExplorer({
         style={{
           width: '360px',
           minWidth: '320px',
-          background: '#FFFFFF',
+          background: '#FAF8F5',
           borderRadius: '8px',
-          border: '1px solid var(--border-subtle, #E2E8F0)',
+          border: '1px solid var(--border-subtle)',
           display: 'flex',
           flexDirection: 'column',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+          boxShadow: 'none',
           overflow: 'hidden'
         }}
       >
@@ -1043,8 +1175,8 @@ export default function DocumentWorkspaceExplorer({
         <div
           style={{
             padding: '10px 12px',
-            borderBottom: '1px solid var(--border-subtle, #E2E8F0)',
-            background: '#F8FAFC',
+            borderBottom: '1px solid var(--border-subtle)',
+            background: '#FAF8F5',
             display: 'flex',
             flexDirection: 'column',
             gap: '8px'
@@ -1057,36 +1189,7 @@ export default function DocumentWorkspaceExplorer({
             </span>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-              {!readOnly ? (
-                <>
-                  {/* New Folder Button (In-place OS/Drive style) */}
-                  <button
-                    type="button"
-                    onClick={() => startInlineCreate(activeFolderId || null)}
-                    className="btn btn-secondary"
-                    style={{ padding: '3px 8px', fontSize: '0.72rem', display: 'flex', alignItems: 'center', gap: '4px' }}
-                    title="New Subfolder in selected folder"
-                  >
-                    <FolderPlus size={13} style={{ color: '#3B82F6' }} />
-                    <span>New</span>
-                  </button>
-
-                  {/* Upload Button */}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setUploadFolderId(activeFolderId);
-                      setShowUploadModal(true);
-                    }}
-                    className="btn btn-primary"
-                    style={{ padding: '3px 9px', fontSize: '0.72rem', display: 'flex', alignItems: 'center', gap: '4px' }}
-                    title="Upload document to selected folder"
-                  >
-                    <Upload size={13} />
-                    <span>Upload</span>
-                  </button>
-                </>
-              ) : (
+              {readOnly && (
                 <span
                   style={{
                     fontSize: '0.68rem',
@@ -1209,12 +1312,12 @@ export default function DocumentWorkspaceExplorer({
         style={{
           flex: 1,
           minWidth: 0,
-          background: '#FFFFFF',
+          background: '#FAF8F5',
           borderRadius: '8px',
-          border: '1px solid var(--border-subtle, #E2E8F0)',
+          border: '1px solid var(--border-subtle)',
           display: 'flex',
           flexDirection: 'column',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+          boxShadow: 'none',
           overflow: 'hidden',
           maxHeight: '500px' // Minimal height as requested by user!
         }}
@@ -1236,38 +1339,63 @@ export default function DocumentWorkspaceExplorer({
           });
           const activeClaimObj = claimsList.find(c => c.id === selectedClaimId) || (claimsList.length > 0 ? claimsList[0] : null);
 
+          const rawReaderContent = (() => {
+            if (!selectedDocDetails) return '';
+            if (selectedDocDetails.content_uri && selectedDocDetails.content_uri.trim().length > 0) {
+              return selectedDocDetails.content_uri;
+            }
+            const verUri = selectedDocDetails.versions?.[0]?.content_uri;
+            if (verUri && verUri.trim().length > 0) {
+              return verUri;
+            }
+            if (claimsList.length > 0) {
+              const quotes = claimsList
+                .map((c, i) => `${i + 1}. [${c.subject || 'Rule'}] ${c.claim_text || ''}${c.evidence?.[0]?.text_span ? `\n   Quote: "${c.evidence[0].text_span}"` : ''}`)
+                .filter(l => l.trim().length > 0);
+              if (quotes.length > 0) {
+                return `## Extracted Atomic Policy Rules & Verified Assertions\n\n${quotes.join('\n\n')}`;
+              }
+            }
+            return '';
+          })();
+
           return (
             <>
-              {/* 1. Header Bar: Title, Badge, Open File, Inspect, Close */}
+              {/* 1. Header Bar: Back & Actions (Open File, Reader, 360 Studio, Close) */}
               <div
                 style={{
-                  padding: '9px 14px',
-                  borderBottom: '1px solid var(--border-subtle, #E2E8F0)',
-                  background: '#F8FAFC',
+                  padding: '8px 14px',
+                  borderBottom: '1px solid var(--border-subtle)',
+                  background: '#FAF8F5',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
                   gap: '8px'
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, flex: 1 }}>
-                  <FileText size={15} style={{ color: '#2563EB', flexShrink: 0 }} />
-                  <span
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedDocId(null)}
+                    className="btn btn-secondary"
                     style={{
-                      fontSize: '0.86rem',
-                      fontWeight: 700,
-                      color: 'var(--text-main)',
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis'
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                      padding: '4px 10px',
+                      fontSize: '0.75rem',
+                      fontWeight: 600,
+                      background: '#FFFFFF',
+                      border: '1px solid #CBD5E1',
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                      color: '#1E293B'
                     }}
-                    title={selectedDocDetails.title}
+                    title="Return to folder documents list"
                   >
-                    {selectedDocDetails.title}
-                  </span>
-                  <span className="badge badge-verified" style={{ fontSize: '0.64rem', padding: '1px 6px' }}>
-                    {selectedDocDetails.document_type || 'Policy'}
-                  </span>
+                    <ArrowLeft size={13} />
+                    <span>Back to Documents</span>
+                  </button>
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -1278,10 +1406,10 @@ export default function DocumentWorkspaceExplorer({
                       window.open(url, '_blank');
                     }}
                     className="btn btn-secondary"
-                    style={{ padding: '3px 8px', fontSize: '0.72rem', display: 'flex', alignItems: 'center', gap: '4px', background: '#FFFFFF', color: '#0284C7', border: '1px solid #CBD5E1' }}
+                    style={{ padding: '4px 9px', fontSize: '0.74rem', display: 'flex', alignItems: 'center', gap: '4px', background: '#FFFFFF', color: '#0284C7', border: '1px solid #CBD5E1', borderRadius: '6px' }}
                     title="Open document file in a new browser tab"
                   >
-                    <ExternalLink size={12} />
+                    <ExternalLink size={13} />
                     <span>Open File ↗</span>
                   </button>
 
@@ -1289,10 +1417,10 @@ export default function DocumentWorkspaceExplorer({
                     type="button"
                     onClick={() => setIsFullFileReaderOpen(true)}
                     className="btn btn-secondary"
-                    style={{ padding: '3px 8px', fontSize: '0.72rem', display: 'flex', alignItems: 'center', gap: '4px', background: '#FFFFFF', color: '#1E293B', border: '1px solid #CBD5E1' }}
+                    style={{ padding: '4px 10px', fontSize: '0.74rem', display: 'flex', alignItems: 'center', gap: '5px', background: '#FFFFFF', color: '#0F172A', border: '1px solid #CBD5E1', borderRadius: '6px', fontWeight: 600 }}
                     title="Open in full-screen reader modal with search"
                   >
-                    <BookOpen size={12} />
+                    <BookOpen size={13} style={{ color: '#2563EB' }} />
                     <span>Reader</span>
                   </button>
 
@@ -1301,31 +1429,21 @@ export default function DocumentWorkspaceExplorer({
                     onClick={() => onViewClaims?.(selectedDocDetails, 'summary')}
                     className="btn btn-primary"
                     style={{
-                      padding: '3px 9px',
-                      fontSize: '0.72rem',
+                      padding: '4px 10px',
+                      fontSize: '0.74rem',
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '4px',
+                      gap: '5px',
                       background: '#EA580C',
                       borderColor: '#EA580C',
                       color: '#FFFFFF',
-                      fontWeight: 700
+                      fontWeight: 700,
+                      borderRadius: '6px'
                     }}
                     title="Open document in full 360° Lineage Studio"
                   >
-                    <Sparkles size={12} />
+                    <Sparkles size={13} />
                     <span>360° Studio ↗</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => onInspectDocument?.(selectedDocDetails)}
-                    className="btn btn-secondary"
-                    style={{ padding: '3px 8px', fontSize: '0.72rem', display: 'flex', alignItems: 'center', gap: '4px' }}
-                    title="Open in full Claim Inspector drawer"
-                  >
-                    <Maximize2 size={12} />
-                    <span>Inspect</span>
                   </button>
 
                   <button
@@ -1336,16 +1454,17 @@ export default function DocumentWorkspaceExplorer({
                       setSelectedDocArtifacts(null);
                     }}
                     style={{
-                      width: '22px',
-                      height: '22px',
-                      borderRadius: '4px',
-                      border: 'none',
-                      background: 'transparent',
-                      color: '#94A3B8',
+                      width: '24px',
+                      height: '24px',
+                      borderRadius: '5px',
+                      border: '1px solid #E2E8F0',
+                      background: '#FFFFFF',
+                      color: '#64748B',
                       cursor: 'pointer',
                       display: 'flex',
                       alignItems: 'center',
-                      justifyContent: 'center'
+                      justifyContent: 'center',
+                      marginLeft: '4px'
                     }}
                     title="Close preview"
                   >
@@ -1354,23 +1473,23 @@ export default function DocumentWorkspaceExplorer({
                 </div>
               </div>
 
-              {/* 2. Facility Tabs: Preview, Description & Specs, Claims, Document Lineage */}
+              {/* 2. Facility Tabs: Preview, Description & Specs, Claims, Document Lineage (High Contrast & Visible) */}
               <div
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '4px',
-                  padding: '4px 12px',
-                  borderBottom: '1px solid var(--border-subtle, #E2E8F0)',
-                  background: '#FFFFFF',
+                  gap: '8px',
+                  padding: '8px 14px',
+                  borderBottom: '1px solid #CBD5E1',
+                  background: '#F1F5F9',
                   overflowX: 'auto'
                 }}
               >
                 {[
-                  { id: 'preview', label: 'Preview & File', icon: FileText },
-                  { id: 'description', label: 'Description & Specs', icon: Info },
-                  { id: 'claims', label: `Atomic Claims (${claimsList.length})`, icon: ShieldCheck },
-                  { id: 'lineage', label: 'Document Lineage', icon: Network }
+                  { id: 'preview', label: 'Preview & File', icon: FileText, iconColor: '#0284C7' },
+                  { id: 'description', label: 'Description & Specs', icon: Info, iconColor: '#7C3AED' },
+                  { id: 'claims', label: 'Atomic Claims', count: claimsList.length, icon: ShieldCheck, iconColor: '#16A34A' },
+                  { id: 'lineage', label: 'Document Lineage', icon: Network, iconColor: '#EA580C' }
                 ].map(tab => {
                   const isActive = activeFacilityTab === tab.id;
                   const IconComp = tab.icon;
@@ -1382,21 +1501,48 @@ export default function DocumentWorkspaceExplorer({
                       style={{
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '5px',
-                        padding: '5px 10px',
-                        fontSize: '0.74rem',
-                        fontWeight: isActive ? 700 : 500,
-                        border: 'none',
-                        borderBottom: isActive ? '2px solid #EA580C' : '2px solid transparent',
-                        background: 'transparent',
-                        color: isActive ? '#EA580C' : '#64748B',
+                        gap: '7px',
+                        padding: '7px 16px',
+                        fontSize: '0.84rem',
+                        fontWeight: isActive ? 800 : 700,
+                        borderRadius: '6px',
+                        border: isActive ? '1.5px solid #1D4ED8' : '1px solid #CBD5E1',
+                        background: isActive ? '#2563EB' : '#FFFFFF',
+                        color: isActive ? '#FFFFFF' : '#0F172A',
                         cursor: 'pointer',
                         whiteSpace: 'nowrap',
+                        boxShadow: isActive ? '0 2px 5px rgba(37,99,235,0.3)' : '0 1px 2px rgba(0,0,0,0.06)',
                         transition: 'all 0.15s ease'
                       }}
+                      onMouseEnter={e => {
+                        if (!isActive) {
+                          e.currentTarget.style.background = '#F8FAFC';
+                          e.currentTarget.style.color = '#000000';
+                          e.currentTarget.style.borderColor = '#94A3B8';
+                        }
+                      }}
+                      onMouseLeave={e => {
+                        if (!isActive) {
+                          e.currentTarget.style.background = '#FFFFFF';
+                          e.currentTarget.style.color = '#0F172A';
+                          e.currentTarget.style.borderColor = '#CBD5E1';
+                        }
+                      }}
                     >
-                      <IconComp size={13} />
+                      <IconComp size={15} style={{ color: isActive ? '#FFFFFF' : tab.iconColor }} />
                       <span>{tab.label}</span>
+                      {typeof tab.count === 'number' && (
+                        <span style={{
+                          fontSize: '0.70rem',
+                          fontWeight: 800,
+                          padding: '2px 7px',
+                          borderRadius: '10px',
+                          background: isActive ? 'rgba(255,255,255,0.28)' : '#E2E8F0',
+                          color: isActive ? '#FFFFFF' : '#0F172A'
+                        }}>
+                          {tab.count}
+                        </span>
+                      )}
                     </button>
                   );
                 })}
@@ -1412,7 +1558,7 @@ export default function DocumentWorkspaceExplorer({
                       style={{
                         flex: 1,
                         overflowY: 'auto',
-                        background: '#F1F5F9',
+                        background: '#FAF8F5',
                         padding: '14px 18px'
                       }}
                     >
@@ -1442,7 +1588,7 @@ export default function DocumentWorkspaceExplorer({
                           </div>
 
                           <div style={{ fontSize: '0.82rem', color: 'var(--text-main)', lineHeight: 1.55, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-                            {selectedDocDetails.content_uri || 'No text content available for this document.'}
+                            {rawReaderContent || 'No text content available for this document.'}
                           </div>
                         </div>
                       )}
@@ -1952,26 +2098,221 @@ export default function DocumentWorkspaceExplorer({
             </>
           );
         })() : (
-          /* Empty Selection Placeholder */
+          /* INDUSTRIAL FOLDER WORKSPACE & BREADCRUMB NAVIGATION */
           <div
             style={{
               flex: 1,
-              minHeight: '260px',
               display: 'flex',
               flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              padding: '30px',
-              textAlign: 'center',
-              color: 'var(--text-muted)'
+              background: '#FAF8F5',
+              overflowY: 'auto',
+              minHeight: '440px'
             }}
           >
-            <FileText size={32} style={{ color: '#CBD5E1', marginBottom: '10px' }} />
-            <div style={{ fontSize: '0.84rem', fontWeight: 600, color: 'var(--text-main)', marginBottom: '4px' }}>
-              Select a file to preview
+            {/* 1. TOP BREADCRUMB BAR */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '10px 16px',
+                borderBottom: '1px solid var(--border-subtle)',
+                background: '#FAF8F5',
+                flexWrap: 'wrap',
+                gap: '8px'
+              }}
+            >
+              {/* Interactive Clickable Breadcrumb Trail */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
+                {breadcrumbs.map((crumb, idx) => {
+                  const isLast = idx === breadcrumbs.length - 1;
+                  return (
+                    <React.Fragment key={crumb.id || 'root'}>
+                      {idx > 0 && <ChevronRight size={12} style={{ color: '#94A3B8' }} />}
+                      <span
+                        onClick={() => {
+                          setActiveFolderId(crumb.id);
+                          setSelectedDocId(null);
+                        }}
+                        style={{
+                          cursor: isLast ? 'default' : 'pointer',
+                          fontWeight: isLast ? 700 : 500,
+                          color: isLast ? 'var(--text-main)' : '#0284C7',
+                          padding: '2px 6px',
+                          borderRadius: '4px',
+                          transition: 'background 0.15s ease'
+                        }}
+                        onMouseEnter={e => {
+                          if (!isLast) e.currentTarget.style.background = '#F0ECE4';
+                        }}
+                        onMouseLeave={e => {
+                          if (!isLast) e.currentTarget.style.background = 'transparent';
+                        }}
+                        title={isLast ? 'Current folder' : `Jump to ${crumb.name}`}
+                      >
+                        {crumb.name}
+                      </span>
+                    </React.Fragment>
+                  );
+                })}
+              </div>
+
+              {/* Action Toolbar */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <button
+                  type="button"
+                  onClick={handleAutoOrganize}
+                  disabled={isAutoOrganizing}
+                  className="btn btn-secondary"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '5px',
+                    padding: '4px 10px',
+                    fontSize: '0.74rem',
+                    fontWeight: 600,
+                    background: '#FFFFFF',
+                    border: '1px solid #CBD5E1',
+                    borderRadius: '6px',
+                    cursor: isAutoOrganizing ? 'not-allowed' : 'pointer',
+                    color: '#D97706'
+                  }}
+                  title="Automatically organize all unclassified files into domain & connector folders"
+                >
+                  <Sparkles size={13} className={isAutoOrganizing ? 'spin' : ''} style={{ color: '#F59E0B' }} />
+                  <span>{isAutoOrganizing ? 'Filing...' : 'Auto-Organize'}</span>
+                </button>
+              </div>
             </div>
-            <div style={{ fontSize: '0.74rem', maxWidth: '240px' }}>
-              Click any document in the directory tree on the left to read its live content, claims, and hash seal.
+
+            {/* 4. DOCUMENTS TABLE SECTION */}
+            <div style={{ padding: '16px 20px', flex: 1 }}>
+              <div style={{ fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '10px', letterSpacing: '0.04em' }}>
+                Documents ({currentFolderDocs.length})
+              </div>
+
+              {currentFolderDocs.length === 0 ? (
+                <div
+                  style={{
+                    padding: '36px 20px',
+                    textAlign: 'center',
+                    background: '#FFFFFF',
+                    borderRadius: '8px',
+                    border: '1px dashed var(--border-subtle)',
+                    color: 'var(--text-muted)'
+                  }}
+                >
+                  <FileText size={28} style={{ color: '#CBD5E1', marginBottom: '8px' }} />
+                  <div style={{ fontSize: '0.84rem', fontWeight: 600, color: 'var(--text-main)', marginBottom: '4px' }}>
+                    No documents in this folder
+                  </div>
+                  <div style={{ fontSize: '0.74rem', maxWidth: '320px', margin: '0 auto 12px auto' }}>
+                    Upload a policy document, connect an integration, or click Auto-Organize to file unclassified documents.
+                  </div>
+                  {!readOnly && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setUploadFolderId(activeFolderId);
+                        setShowUploadModal(true);
+                      }}
+                      className="btn btn-primary"
+                      style={{ padding: '5px 14px', fontSize: '0.74rem' }}
+                    >
+                      Upload to this folder
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <div style={{ overflowX: 'auto', background: '#FFFFFF', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.76rem' }}>
+                    <thead>
+                      <tr style={{ background: '#FAF8F5', borderBottom: '1px solid var(--border-subtle)', color: 'var(--text-muted)' }}>
+                        <th style={{ padding: '8px 12px', fontWeight: 600 }}>Document</th>
+                        <th style={{ padding: '8px 12px', fontWeight: 600 }}>Origin Source</th>
+                        <th style={{ padding: '8px 12px', fontWeight: 600 }}>Domain</th>
+                        <th style={{ padding: '8px 12px', fontWeight: 600 }}>Claims</th>
+                        <th style={{ padding: '8px 12px', fontWeight: 600 }}>Trust Status</th>
+                        <th style={{ padding: '8px 12px', fontWeight: 600, textAlign: 'right' }}>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {currentFolderDocs.map(doc => (
+                        <tr
+                          key={doc.id}
+                          style={{ borderBottom: '1px solid #F1F5F9', transition: 'background 0.1s ease' }}
+                          onMouseEnter={e => e.currentTarget.style.background = '#FAF8F5'}
+                          onMouseLeave={e => e.currentTarget.style.background = '#FFFFFF'}
+                        >
+                          <td style={{ padding: '8px 12px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <FileText size={14} style={{ color: '#0284C7', flexShrink: 0 }} />
+                              <div style={{ minWidth: 0 }}>
+                                <div
+                                  onClick={() => setSelectedDocId(doc.id)}
+                                  style={{ fontWeight: 600, color: 'var(--text-main)', cursor: 'pointer', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '280px' }}
+                                  title={doc.title}
+                                >
+                                  {doc.title}
+                                </div>
+                                <div style={{ fontSize: '0.66rem', color: '#94A3B8', fontFamily: 'var(--font-mono)' }}>
+                                  {doc.content_hash ? `sha256:${doc.content_hash.slice(0, 8)}...` : 'hash pending'}
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+                          <td style={{ padding: '8px 12px' }}>
+                            {renderSourceBadge(doc)}
+                          </td>
+                          <td style={{ padding: '8px 12px' }}>
+                            <span style={{ fontSize: '0.68rem', padding: '2px 6px', borderRadius: '4px', background: '#F1F5F9', color: '#475569', fontWeight: 600 }}>
+                              {doc.domain || 'General'}
+                            </span>
+                          </td>
+                          <td style={{ padding: '8px 12px' }}>
+                            <span style={{ fontSize: '0.68rem', padding: '2px 6px', borderRadius: '4px', background: '#EFF6FF', color: '#1D4ED8', fontWeight: 700 }}>
+                              {doc.claims_count !== undefined ? `${doc.claims_count} Claims` : 'Claims ready'}
+                            </span>
+                          </td>
+                          <td style={{ padding: '8px 12px' }}>
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.68rem', padding: '2px 6px', borderRadius: '4px', background: '#F0FDF4', color: '#166534', fontWeight: 600 }}>
+                              <CheckCircle2 size={11} style={{ color: '#16A34A' }} /> Verified
+                            </span>
+                          </td>
+                          <td style={{ padding: '8px 12px', textAlign: 'right' }}>
+                            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                              <button
+                                type="button"
+                                onClick={() => setSelectedDocId(doc.id)}
+                                className="btn btn-secondary"
+                                style={{ padding: '2px 8px', fontSize: '0.70rem', background: '#FFFFFF', border: '1px solid #CBD5E1', cursor: 'pointer' }}
+                                title="Inspect live content & extracted claims"
+                              >
+                                Preview
+                              </button>
+                              {!readOnly && (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setMovingDoc(doc);
+                                    setMoveDocTargetFolderId(doc.folder_id || '');
+                                    setShowMoveDocModal(true);
+                                  }}
+                                  className="btn btn-secondary"
+                                  style={{ padding: '2px 6px', fontSize: '0.70rem', background: '#FFFFFF', border: '1px solid #CBD5E1', cursor: 'pointer' }}
+                                  title="Move to another folder"
+                                >
+                                  <Move size={11} />
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -2530,222 +2871,430 @@ export default function DocumentWorkspaceExplorer({
       )}
 
       {/* ── MODAL: FULL DOCUMENT READER ── */}
-      {isFullFileReaderOpen && selectedDocDetails && (
-        <div className="modal-backdrop" onClick={() => setIsFullFileReaderOpen(false)} style={{ zIndex: 9999 }}>
-          <div
-            className="modal-content"
-            onClick={e => e.stopPropagation()}
-            style={{
-              maxWidth: '920px',
-              width: '92vw',
-              maxHeight: '90vh',
-              display: 'flex',
-              flexDirection: 'column',
-              padding: 0,
-              overflow: 'hidden',
-              borderRadius: '8px',
-              background: '#FFFFFF',
-              boxShadow: '0 20px 40px rgba(0,0,0,0.2)'
-            }}
-          >
-            {/* Modal Header */}
+      {isFullFileReaderOpen && (() => {
+        const modalClaims = selectedDocArtifacts?.claims || [];
+        const readerContent = (() => {
+          if (!selectedDocDetails) return '';
+          if (selectedDocDetails.content_uri && selectedDocDetails.content_uri.trim().length > 0) {
+            return selectedDocDetails.content_uri;
+          }
+          const verUri = selectedDocDetails.versions?.[0]?.content_uri;
+          if (verUri && verUri.trim().length > 0) {
+            return verUri;
+          }
+          if (modalClaims.length > 0) {
+            const quotes = modalClaims
+              .map((c, i) => `${i + 1}. [${c.subject || 'Rule'}] ${c.claim_text || ''}${c.evidence?.[0]?.text_span ? `\n   Quote: "${c.evidence[0].text_span}"` : ''}`)
+              .filter(l => l.trim().length > 0);
+            if (quotes.length > 0) {
+              return `## Extracted Atomic Policy Rules & Verified Assertions\n\n${quotes.join('\n\n')}`;
+            }
+          }
+          return '';
+        })();
+
+        const searchMatchesCount = (fullReaderSearch.trim() && readerContent)
+          ? (readerContent.match(new RegExp(fullReaderSearch.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&'), 'gi')) || []).length
+          : 0;
+
+        const handleCopyText = (text) => {
+          if (!text) return;
+          navigator.clipboard?.writeText(text);
+          setCopiedReaderText(true);
+          setTimeout(() => setCopiedReaderText(false), 2000);
+          showToast?.('Document text copied to clipboard');
+        };
+
+        return (
+          <div className="modal-backdrop" onClick={() => setIsFullFileReaderOpen(false)} style={{ zIndex: 9999 }}>
             <div
+              className="modal-content"
+              onClick={e => e.stopPropagation()}
               style={{
+                maxWidth: '960px',
+                width: '94vw',
+                height: '90vh',
+                maxHeight: '90vh',
                 display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                padding: '12px 18px',
-                borderBottom: '1px solid #E2E8F0',
-                background: '#F8FAFC'
+                flexDirection: 'column',
+                padding: 0,
+                overflow: 'hidden',
+                borderRadius: '10px',
+                background: '#FFFFFF',
+                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
-                <FileText size={18} style={{ color: '#EA580C', flexShrink: 0 }} />
-                <div style={{ minWidth: 0 }}>
-                  <div style={{ fontSize: '0.94rem', fontWeight: 800, color: '#0F172A', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    {selectedDocDetails.title}
-                  </div>
-                  <div style={{ fontSize: '0.68rem', color: '#64748B', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <span className="badge badge-verified" style={{ fontSize: '0.60rem' }}>
-                      {selectedDocDetails.document_type || 'Policy'}
-                    </span>
-                    <span>•</span>
-                    <span>v{selectedDocDetails.versions?.length || 1}.0</span>
-                    <span>•</span>
-                    <code>SHA-256: {selectedDocDetails.content_hash?.substring(0, 16)}...</code>
-                  </div>
-                </div>
-              </div>
-
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <div style={{ position: 'relative' }}>
-                  <Search size={13} style={{ position: 'absolute', left: '8px', top: '50%', transform: 'translateY(-50%)', color: '#94A3B8' }} />
-                  <input
-                    type="text"
-                    placeholder="Search document text..."
-                    value={fullReaderSearch}
-                    onChange={e => setFullReaderSearch(e.target.value)}
-                    style={{
-                      padding: '4px 8px 4px 26px',
-                      fontSize: '0.74rem',
-                      borderRadius: '5px',
-                      border: '1px solid #CBD5E1',
-                      width: '180px',
-                      outline: 'none'
-                    }}
-                  />
-                  {fullReaderSearch && (
-                    <button
-                      type="button"
-                      onClick={() => setFullReaderSearch('')}
-                      style={{ position: 'absolute', right: '6px', top: '50%', transform: 'translateY(-50%)', border: 'none', background: 'transparent', color: '#94A3B8', cursor: 'pointer', padding: 0 }}
-                    >
-                      <X size={12} />
-                    </button>
-                  )}
-                </div>
-
-                <a
-                  href={`/v1/documents/${selectedDocDetails.id}/file`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="btn btn-secondary"
-                  style={{ padding: '4px 9px', fontSize: '0.72rem', display: 'flex', alignItems: 'center', gap: '4px', textDecoration: 'none' }}
-                >
-                  <ExternalLink size={12} />
-                  <span>Open in Tab ↗</span>
-                </a>
-
-                <button
-                  type="button"
-                  onClick={() => handleCopy(selectedDocDetails.content_uri || '')}
-                  className="btn btn-secondary"
-                  style={{ padding: '4px 9px', fontSize: '0.72rem', display: 'flex', alignItems: 'center', gap: '4px' }}
-                >
-                  <Copy size={12} />
-                  <span>Copy Text</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setIsFullFileReaderOpen(false)}
-                  style={{
-                    width: '28px',
-                    height: '28px',
+              {/* Header */}
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  padding: '10px 18px',
+                  borderBottom: '1px solid #CBD5E1',
+                  background: '#F8FAFC',
+                  gap: '12px',
+                  flexWrap: 'wrap'
+                }}
+              >
+                {/* Document info */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0, flex: 1 }}>
+                  <div style={{
+                    width: '32px',
+                    height: '32px',
                     borderRadius: '6px',
-                    border: '1px solid #E2E8F0',
-                    background: '#FFFFFF',
-                    cursor: 'pointer',
+                    background: '#EFF6FF',
+                    border: '1px solid #BFDBFE',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    color: '#64748B'
-                  }}
-                >
-                  <X size={16} />
-                </button>
-              </div>
-            </div>
+                    flexShrink: 0
+                  }}>
+                    <BookOpen size={16} style={{ color: '#2563EB' }} />
+                  </div>
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ fontSize: '0.92rem', fontWeight: 800, color: '#0F172A', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {selectedDocDetails?.title || 'Document Reader'}
+                    </div>
+                    {selectedDocDetails && (
+                      <div style={{ fontSize: '0.68rem', color: '#64748B', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span className="badge badge-verified" style={{ fontSize: '0.62rem', fontWeight: 700 }}>
+                          {selectedDocDetails.document_type || 'Policy'}
+                        </span>
+                        <span>•</span>
+                        <span>v{selectedDocDetails.versions?.length || 1}.0</span>
+                        <span>•</span>
+                        <code style={{ fontSize: '0.66rem' }}>SHA-256: {selectedDocDetails.content_hash?.substring(0, 12)}...</code>
+                      </div>
+                    )}
+                  </div>
+                </div>
 
-            {/* Document Content */}
-            <div
-              style={{
-                flex: 1,
-                overflowY: 'auto',
-                padding: '24px 32px',
-                background: '#FAFAFA',
-                fontFamily: 'system-ui, -apple-system, sans-serif'
-              }}
-            >
-              <div
-                style={{
-                  maxWidth: '780px',
-                  margin: '0 auto',
-                  background: '#FFFFFF',
-                  padding: '32px 40px',
-                  borderRadius: '4px',
-                  boxShadow: '0 2px 10px rgba(0,0,0,0.06), 0 0 1px rgba(0,0,0,0.1)',
-                  minHeight: '400px',
-                  fontSize: '0.86rem',
-                  lineHeight: 1.65,
-                  color: '#1E293B',
-                  whiteSpace: 'pre-wrap',
-                  wordBreak: 'break-word'
-                }}
-              >
-                {selectedDocDetails.content_uri ? (
-                  fullReaderSearch ? (
-                    selectedDocDetails.content_uri.split(new RegExp(`(${fullReaderSearch.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&')})`, 'gi')).map((part, i) =>
-                      part.toLowerCase() === fullReaderSearch.toLowerCase() ? (
-                        <mark key={i} style={{ background: '#FEF08A', color: '#854D0E', padding: '1px 3px', borderRadius: '2px', fontWeight: 700 }}>
-                          {part}
-                        </mark>
-                      ) : (
-                        part
-                      )
-                    )
-                  ) : (
-                    selectedDocDetails.content_uri
-                  )
+                {/* View Mode Toggle */}
+                <div style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  background: '#E2E8F0',
+                  padding: '3px',
+                  borderRadius: '7px',
+                  gap: '3px'
+                }}>
+                  <button
+                    type="button"
+                    onClick={() => setReaderViewMode('text')}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                      padding: '4px 10px',
+                      fontSize: '0.74rem',
+                      fontWeight: readerViewMode === 'text' ? 700 : 500,
+                      borderRadius: '5px',
+                      border: 'none',
+                      background: readerViewMode === 'text' ? '#FFFFFF' : 'transparent',
+                      color: readerViewMode === 'text' ? '#1D4ED8' : '#475569',
+                      cursor: 'pointer',
+                      boxShadow: readerViewMode === 'text' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                      transition: 'all 0.15s ease'
+                    }}
+                  >
+                    <FileText size={13} style={{ color: readerViewMode === 'text' ? '#2563EB' : '#64748B' }} />
+                    <span>Formatted Text & Rules</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setReaderViewMode('pdf')}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                      padding: '4px 10px',
+                      fontSize: '0.74rem',
+                      fontWeight: readerViewMode === 'pdf' ? 700 : 500,
+                      borderRadius: '5px',
+                      border: 'none',
+                      background: readerViewMode === 'pdf' ? '#FFFFFF' : 'transparent',
+                      color: readerViewMode === 'pdf' ? '#1D4ED8' : '#475569',
+                      cursor: 'pointer',
+                      boxShadow: readerViewMode === 'pdf' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                      transition: 'all 0.15s ease'
+                    }}
+                  >
+                    <ExternalLink size={13} style={{ color: readerViewMode === 'pdf' ? '#2563EB' : '#64748B' }} />
+                    <span>Original PDF / File</span>
+                  </button>
+                </div>
+
+                {/* Search & Actions */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  {readerViewMode === 'text' && (
+                    <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                      <Search size={13} style={{ position: 'absolute', left: '8px', color: '#94A3B8' }} />
+                      <input
+                        type="text"
+                        placeholder="Search text..."
+                        value={fullReaderSearch}
+                        onChange={e => setFullReaderSearch(e.target.value)}
+                        style={{
+                          padding: '4px 24px 4px 26px',
+                          fontSize: '0.74rem',
+                          borderRadius: '6px',
+                          border: '1px solid #CBD5E1',
+                          width: '160px',
+                          outline: 'none',
+                          background: '#FFFFFF'
+                        }}
+                      />
+                      {fullReaderSearch && (
+                        <button
+                          type="button"
+                          onClick={() => setFullReaderSearch('')}
+                          style={{
+                            position: 'absolute',
+                            right: '6px',
+                            border: 'none',
+                            background: 'transparent',
+                            color: '#94A3B8',
+                            cursor: 'pointer',
+                            padding: 0,
+                            display: 'flex',
+                            alignItems: 'center'
+                          }}
+                        >
+                          <X size={12} />
+                        </button>
+                      )}
+                    </div>
+                  )}
+
+                  {fullReaderSearch.trim() && readerViewMode === 'text' && (
+                    <span style={{ fontSize: '0.70rem', color: searchMatchesCount > 0 ? '#15803D' : '#DC2626', fontWeight: 700, whiteSpace: 'nowrap' }}>
+                      {searchMatchesCount} {searchMatchesCount === 1 ? 'match' : 'matches'}
+                    </span>
+                  )}
+
+                  {selectedDocDetails && (
+                    <a
+                      href={`/v1/documents/${selectedDocDetails.id}/file`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="btn btn-secondary"
+                      style={{
+                        padding: '4px 9px',
+                        fontSize: '0.74rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        textDecoration: 'none',
+                        background: '#FFFFFF',
+                        border: '1px solid #CBD5E1',
+                        borderRadius: '6px',
+                        color: '#0284C7',
+                        fontWeight: 600
+                      }}
+                      title="Open full document file in browser tab"
+                    >
+                      <ExternalLink size={12} />
+                      <span>Open in Tab ↗</span>
+                    </a>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={() => handleCopyText(readerContent || selectedDocDetails?.title || '')}
+                    className="btn btn-secondary"
+                    style={{
+                      padding: '4px 10px',
+                      fontSize: '0.74rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                      background: '#FFFFFF',
+                      border: '1px solid #CBD5E1',
+                      borderRadius: '6px',
+                      color: copiedReaderText ? '#16A34A' : '#1E293B',
+                      fontWeight: 600
+                    }}
+                    title="Copy full document text"
+                  >
+                    {copiedReaderText ? <Check size={12} style={{ color: '#16A34A' }} /> : <Copy size={12} />}
+                    <span>{copiedReaderText ? 'Copied!' : 'Copy Text'}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setIsFullFileReaderOpen(false)}
+                    style={{
+                      width: '28px',
+                      height: '28px',
+                      borderRadius: '6px',
+                      border: '1px solid #CBD5E1',
+                      background: '#FFFFFF',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#64748B'
+                    }}
+                    title="Close Reader"
+                  >
+                    <X size={15} />
+                  </button>
+                </div>
+              </div>
+
+              {/* Reader Body */}
+              <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', display: 'flex', flexDirection: 'column', background: readerViewMode === 'pdf' ? '#334155' : '#F8FAFC' }}>
+                {loadingPreview || !selectedDocDetails ? (
+                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px', gap: '12px' }}>
+                    <RefreshCw size={26} className="spin" style={{ color: '#2563EB' }} />
+                    <span style={{ fontSize: '0.86rem', color: '#64748B', fontWeight: 600 }}>Loading document contents...</span>
+                  </div>
+                ) : readerViewMode === 'pdf' ? (
+                  <div style={{ flex: 1, width: '100%', height: '100%', minHeight: '500px', display: 'flex' }}>
+                    <iframe
+                      src={`/v1/documents/${selectedDocDetails.id}/file`}
+                      title={`${selectedDocDetails.title || 'Document'} PDF Viewer`}
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        minHeight: '500px',
+                        border: 'none',
+                        flex: 1
+                      }}
+                    />
+                  </div>
                 ) : (
-                  <div style={{ textAlign: 'center', color: '#94A3B8', padding: '50px' }}>
-                    No raw text content available for this document file.
+                  <div style={{ flex: 1, overflowY: 'auto', padding: '24px 28px' }}>
+                    {readerContent ? (
+                      <div
+                        style={{
+                          maxWidth: '820px',
+                          margin: '0 auto',
+                          background: '#FFFFFF',
+                          padding: '32px 36px',
+                          borderRadius: '8px',
+                          border: '1px solid #E2E8F0',
+                          boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
+                          fontSize: '0.88rem',
+                          lineHeight: 1.7,
+                          color: '#0F172A',
+                          whiteSpace: 'pre-wrap',
+                          wordBreak: 'break-word',
+                          fontFamily: 'ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+                        }}
+                      >
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #E2E8F0', paddingBottom: '10px', marginBottom: '18px', fontSize: '0.74rem', color: '#64748B' }}>
+                          <span style={{ fontWeight: 700, textTransform: 'uppercase', color: '#334155' }}>
+                            {selectedDocDetails.document_type || 'Policy'} Text Stream
+                          </span>
+                          <span>
+                            {readerContent.split(/\s+/).filter(Boolean).length} words • {readerContent.split('\n').length} lines
+                          </span>
+                        </div>
+
+                        {fullReaderSearch.trim() ? (
+                          readerContent.split(new RegExp(`(${fullReaderSearch.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&')})`, 'gi')).map((part, i) =>
+                            part.toLowerCase() === fullReaderSearch.toLowerCase() ? (
+                              <mark key={i} style={{ background: '#FEF08A', color: '#854D0E', padding: '1px 4px', borderRadius: '3px', fontWeight: 700 }}>
+                                {part}
+                              </mark>
+                            ) : (
+                              part
+                            )
+                          )
+                        ) : (
+                          readerContent
+                        )}
+                      </div>
+                    ) : (
+                      <div style={{ textAlign: 'center', padding: '50px 20px', background: '#FFFFFF', borderRadius: '8px', border: '1px solid #E2E8F0', maxWidth: '520px', margin: '40px auto' }}>
+                        <FileText size={38} style={{ color: '#0284C7', margin: '0 auto 12px auto', display: 'block' }} />
+                        <div style={{ fontSize: '1rem', fontWeight: 800, color: '#0F172A', marginBottom: '6px' }}>
+                          Document Available as Original File
+                        </div>
+                        <p style={{ fontSize: '0.80rem', color: '#64748B', lineHeight: 1.5, marginBottom: '18px' }}>
+                          This document was uploaded as a PDF file. Use the built-in PDF viewer to inspect the document in its native layout.
+                        </p>
+                        <div style={{ display: 'flex', justifyContent: 'center', gap: '8px' }}>
+                          <button
+                            type="button"
+                            onClick={() => setReaderViewMode('pdf')}
+                            className="btn btn-primary"
+                            style={{ padding: '6px 16px', fontSize: '0.80rem', background: '#2563EB', borderColor: '#2563EB', color: '#FFFFFF', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                          >
+                            <BookOpen size={14} />
+                            <span>Switch to PDF Viewer</span>
+                          </button>
+                          <a
+                            href={`/v1/documents/${selectedDocDetails.id}/file`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="btn btn-secondary"
+                            style={{ padding: '6px 14px', fontSize: '0.80rem', display: 'inline-flex', alignItems: 'center', gap: '6px', textDecoration: 'none' }}
+                          >
+                            <ExternalLink size={14} />
+                            <span>Open in Tab ↗</span>
+                          </a>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
-            </div>
 
-            {/* Modal Footer */}
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                padding: '10px 18px',
-                borderTop: '1px solid #E2E8F0',
-                background: '#FFFFFF',
-                fontSize: '0.74rem'
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span className="badge badge-verified" style={{ fontSize: '0.66rem' }}>
-                  {claimsList.length} Extracted Claims
-                </span>
-                <span style={{ color: '#64748B' }}>
-                  Verified with SHA-256 seal
-                </span>
-              </div>
+              {/* Modal Footer */}
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  padding: '10px 18px',
+                  borderTop: '1px solid #CBD5E1',
+                  background: '#FFFFFF',
+                  fontSize: '0.74rem'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span className="badge badge-verified" style={{ fontSize: '0.68rem', fontWeight: 700 }}>
+                    {modalClaims.length} Extracted Claims
+                  </span>
+                  <span style={{ color: '#64748B' }}>
+                    Verified with SHA-256 Provenance
+                  </span>
+                </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsFullFileReaderOpen(false);
-                    setActiveFacilityTab('claims');
-                  }}
-                  className="btn btn-secondary"
-                  style={{ padding: '4px 10px', fontSize: '0.72rem' }}
-                >
-                  Select Claims ({claimsList.length})
-                </button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsFullFileReaderOpen(false);
+                      setActiveFacilityTab('claims');
+                    }}
+                    className="btn btn-secondary"
+                    style={{ padding: '5px 12px', fontSize: '0.74rem', fontWeight: 600 }}
+                  >
+                    Select Claims ({modalClaims.length})
+                  </button>
 
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsFullFileReaderOpen(false);
-                    onViewClaims?.(selectedDocDetails, 'summary');
-                  }}
-                  className="btn btn-primary"
-                  style={{ padding: '4px 12px', fontSize: '0.72rem', background: '#EA580C', borderColor: '#EA580C', color: '#FFFFFF', fontWeight: 700 }}
-                >
-                  <Sparkles size={12} style={{ marginRight: '4px', display: 'inline' }} />
-                  <span>Open 360° Studio ↗</span>
-                </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsFullFileReaderOpen(false);
+                      onViewClaims?.(selectedDocDetails, 'summary');
+                    }}
+                    className="btn btn-primary"
+                    style={{ padding: '5px 14px', fontSize: '0.74rem', background: '#EA580C', borderColor: '#EA580C', color: '#FFFFFF', fontWeight: 700 }}
+                  >
+                    <Sparkles size={13} style={{ marginRight: '5px', display: 'inline' }} />
+                    <span>Open 360° Studio ↗</span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
     </div>
   );
 }

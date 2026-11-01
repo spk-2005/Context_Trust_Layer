@@ -89,6 +89,15 @@ async def get_current_user(
             detail="User account is deactivated or suspended.",
         )
 
+    # Enterprise Single-Device Session Enforcement
+    token_session_id = payload.get("session_id")
+    if token_session_id and user.active_session_id and user.active_session_id != token_session_id:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="SESSION_SUPERSEDED: Your account was signed into on another device. Enterprise policy enforces single-device access.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
     return user
 
 

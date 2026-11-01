@@ -2,6 +2,8 @@ import decimal
 import uuid
 from pydantic import BaseModel, Field
 
+from app.schemas.governed_context import GovernedContextPackage
+
 
 class ContextQueryRequest(BaseModel):
     organization_id: uuid.UUID
@@ -22,6 +24,8 @@ class ContextSourceInfo(BaseModel):
     document: str
     section: str | None = None
     page: int | None = None
+    folder_name: str | None = None
+    folder_id: str | None = None
 
 
 class ContextValidityInfo(BaseModel):
@@ -38,9 +42,14 @@ class ContextItemResponse(BaseModel):
     evidence: list[str] = []
     claim_type: str | None = None
     is_canonical: bool = True
+    claim_id: str | None = None
+    document_id: str | None = None
+    evidence_lane: str = "canonical"
+    governed_package: GovernedContextPackage | None = None
 
 
 class ContextQueryResponse(BaseModel):
     context: list[ContextItemResponse] = []
+    governed_packages: list[GovernedContextPackage] = []
     conflicts: list[dict] = []
     confidence: decimal.Decimal = decimal.Decimal("1.0000")

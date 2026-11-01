@@ -72,6 +72,10 @@ class Settings(BaseSettings):
             self.database_url = self.database_url.replace("postgres://", "postgresql+asyncpg://", 1)
         elif self.database_url.startswith("postgresql://"):
             self.database_url = self.database_url.replace("postgresql://", "postgresql+asyncpg://", 1)
+
+        if self.database_url and "sslmode=" in self.database_url:
+            self.database_url = self.database_url.replace("sslmode=", "ssl=")
+
         return self
 
     model_config = SettingsConfigDict(

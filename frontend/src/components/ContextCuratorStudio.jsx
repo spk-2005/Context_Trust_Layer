@@ -342,14 +342,14 @@ export default function ContextCuratorStudio({
             
             {/* CARD 1: Overall Context Health */}
             <div style={{
-              background: '#FFFFFF',
-              border: '1px solid #E2E8F0',
+              background: '#FAF8F5',
+              border: '1px solid var(--border-subtle)',
               borderRadius: '12px',
               padding: '18px 20px',
               display: 'flex',
               flexDirection: 'column',
               justifyContent: 'space-between',
-              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03)',
+              boxShadow: 'none',
               position: 'relative',
               overflow: 'hidden',
               transition: 'all 0.2s ease'
@@ -388,14 +388,14 @@ export default function ContextCuratorStudio({
 
             {/* CARD 2: Contradiction Free Index */}
             <div style={{
-              background: '#FFFFFF',
-              border: '1px solid #E2E8F0',
+              background: '#FAF8F5',
+              border: '1px solid var(--border-subtle)',
               borderRadius: '12px',
               padding: '18px 20px',
               display: 'flex',
               flexDirection: 'column',
               justifyContent: 'space-between',
-              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03)',
+              boxShadow: 'none',
               position: 'relative',
               overflow: 'hidden',
               transition: 'all 0.2s ease'
@@ -434,14 +434,14 @@ export default function ContextCuratorStudio({
 
             {/* CARD 3: Freshness & Time Validity */}
             <div style={{
-              background: '#FFFFFF',
-              border: '1px solid #E2E8F0',
+              background: '#FAF8F5',
+              border: '1px solid var(--border-subtle)',
               borderRadius: '12px',
               padding: '18px 20px',
               display: 'flex',
               flexDirection: 'column',
               justifyContent: 'space-between',
-              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03)',
+              boxShadow: 'none',
               position: 'relative',
               overflow: 'hidden',
               transition: 'all 0.2s ease'
@@ -481,7 +481,7 @@ export default function ContextCuratorStudio({
             {/* CARD 4: Pending Conflicts */}
             <div
               style={{
-                background: '#FFFFFF',
+                background: '#FAF8F5',
                 border: '1px solid #E2E8F0',
                 borderRadius: '12px',
                 padding: '18px 20px',

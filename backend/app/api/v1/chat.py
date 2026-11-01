@@ -39,8 +39,13 @@ async def list_chat_sessions(
     db: AsyncSession = Depends(get_db),
 ):
     """List chat sessions for a specific organization, user/persona, and departmental workspace."""
-    service = ChatService(db)
-    return await service.list_sessions(organization_id, user_id, workspace_id, limit)
+    try:
+        service = ChatService(db)
+        return await service.list_sessions(organization_id, user_id, workspace_id, limit)
+    except Exception as e:
+        import logging
+        logging.getLogger("chat").warning(f"Error querying chat sessions: {e}")
+        return []
 
 
 @router.post("/sessions")
@@ -111,3 +116,27 @@ async def send_chat_message(
         domain=req.domain,
     )
     return result
+
+
+from app.services.feedback_telemetry_service import (
+    FeedbackSubmitRequest,
+    FeedbackTelemetryService,
+)
+
+
+@router.post("/sessions/{session_id}/messages/{message_id}/feedback")
+async def submit_message_feedback(
+    session_id: uuid.UUID,
+    message_id: str,
+    req: FeedbackSubmitRequest,
+):
+    """Log structured feedback with failure taxonomy stage (Atlan feedback loop)."""
+    req.session_id = str(session_id)
+    req.message_id = str(message_id)
+    return FeedbackTelemetryService.record_feedback(req)
+
+
+@router.get("/telemetry/feedback")
+async def get_feedback_telemetry():
+    """Get aggregated failure taxonomy distribution and steward queue stats."""
+    return FeedbackTelemetryService.get_stage_distribution()

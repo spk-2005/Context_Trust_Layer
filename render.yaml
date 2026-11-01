@@ -19,6 +19,12 @@ services:
         value: mock
       - key: PYTHON_VERSION
         value: 3.11.9
+      - key: WEB_CONCURRENCY
+        value: 2
+      - key: SECRET_KEY
+        generateValue: true
+      - key: JWT_SECRET
+        generateValue: true
 
 databases:
   - name: context-trust-db

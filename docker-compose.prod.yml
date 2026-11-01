@@ -1,0 +1,70 @@
+services:
+  # =========================================================================
+  # 1. DATABASE: PostgreSQL 16 with pgvector Extension
+  # =========================================================================
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: context-trust-postgres-prod
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-context_trust}
+      POSTGRES_USER: ${POSTGRES_USER:-context_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-context_prod_password_secure_2026}
+    volumes:
+      - postgres_prod_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-context_user} -d ${POSTGRES_DB:-context_trust}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+
+  # =========================================================================
+  # 2. BACKEND: FastAPI Multi-Worker Production Service
+  # =========================================================================
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: context-trust-backend-prod
+    restart: unless-stopped
+    environment:
+      - APP_ENV=production
+      - WEB_CONCURRENCY=${WEB_CONCURRENCY:-4}
+      - POSTGRES_SERVER=postgres
+      - POSTGRES_USER=${POSTGRES_USER:-context_user}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-context_prod_password_secure_2026}
+      - POSTGRES_DB=${POSTGRES_DB:-context_trust}
+      - POSTGRES_PORT=5432
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-context_user}:${POSTGRES_PASSWORD:-context_prod_password_secure_2026}@postgres:5432/${POSTGRES_DB:-context_trust}
+      - SECRET_KEY=${SECRET_KEY:-prod_super_secret_signing_key_at_least_32_bytes}
+      - JWT_SECRET=${JWT_SECRET:-prod_super_secret_jwt_key_at_least_32_bytes}
+      - LLM_PROVIDER=${LLM_PROVIDER:-mock}
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # =========================================================================
+  # 3. FRONTEND: High-Performance Nginx Production Reverse Proxy & Static SPA
+  # =========================================================================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+    container_name: context-trust-frontend-prod
+    restart: unless-stopped
+    ports:
+      - "${FRONTEND_PORT:-4000}:80"
+    depends_on:
+      - backend
+
+volumes:
+  postgres_prod_data:
+    driver: local
+
+networks:
+  default:
+    name: context-trust-prod-net

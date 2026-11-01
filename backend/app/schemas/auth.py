@@ -7,12 +7,14 @@ from app.db.enums import UserRole, RecordStatus
 class UserLoginRequest(BaseModel):
     email: EmailStr
     password: str = Field(..., min_length=4)
+    device_id: Optional[str] = None
 
 
 class PersonaLoginRequest(BaseModel):
     user_id: Optional[uuid.UUID] = None
     email: Optional[str] = None
     role: Optional[str] = None
+    device_id: Optional[str] = None
 
 
 class UserRegisterRequest(BaseModel):
@@ -23,10 +25,12 @@ class UserRegisterRequest(BaseModel):
     role: Optional[UserRole] = Field(default=UserRole.DEVELOPER)
     department: Optional[str] = Field(None, max_length=100)
     title: Optional[str] = Field(None, max_length=100)
+    device_id: Optional[str] = None
 
 
 class TokenRefreshRequest(BaseModel):
     refresh_token: str
+    device_id: Optional[str] = None
 
 
 class OrganizationSummary(BaseModel):
@@ -48,6 +52,11 @@ class UserResponse(BaseModel):
     avatar_url: Optional[str] = None
     title: Optional[str] = None
     department: Optional[str] = None
+    phone: Optional[str] = None
+    bio: Optional[str] = None
+    timezone: Optional[str] = None
+    user_preferences: Optional[dict] = None
+    active_device_id: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
 

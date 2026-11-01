@@ -7,7 +7,9 @@ from sqlalchemy import (
     Enum,
     ForeignKey,
     Index,
+    JSON,
     String,
+    Text,
     UniqueConstraint,
     text,
 )
@@ -107,6 +109,37 @@ class User(Base):
 
     department: Mapped[str | None] = mapped_column(
         String(100),
+        nullable=True,
+    )
+
+    phone: Mapped[str | None] = mapped_column(
+        String(50),
+        nullable=True,
+    )
+
+    bio: Mapped[str | None] = mapped_column(
+        Text,
+        nullable=True,
+    )
+
+    timezone: Mapped[str | None] = mapped_column(
+        String(100),
+        nullable=True,
+    )
+
+    user_preferences: Mapped[dict | None] = mapped_column(
+        JSON,
+        nullable=True,
+        default=dict,
+    )
+
+    active_session_id: Mapped[str | None] = mapped_column(
+        String(255),
+        nullable=True,
+    )
+
+    last_active_device: Mapped[str | None] = mapped_column(
+        String(255),
         nullable=True,
     )
 

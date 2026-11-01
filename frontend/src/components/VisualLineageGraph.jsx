@@ -51,7 +51,9 @@ export default function VisualLineageGraph({
   vaultSubTab: externalVaultSubTab,
   onVaultSubTabChange,
   initialAssetId,
+  initialClaimId,
   onAssetChange,
+  onClaimChange,
   initialSection = 'summary',
   onSectionChange
 }) {
@@ -2047,6 +2049,29 @@ export default function VisualLineageGraph({
     return null;
   }, [vaultSubTab, selectedNode, documentsList, sourcesList, allClaimsRaw, allConflictsRaw, decisionsList, conflictMap, graphData]);
 
+  // Deep-Link Claim Activation: Focus and inspect specific claim if initialClaimId was passed
+  useEffect(() => {
+    if (!initialClaimId) return;
+    const cid = String(initialClaimId).replace(/^cl_/, '');
+    const targetId = String(initialClaimId).startsWith('cl_') ? String(initialClaimId) : `cl_${cid}`;
+    const matchedNode = graphData?.nodes?.find(n => n.id === targetId || n.id === initialClaimId || n.id === `cl_${cid}`);
+    const actualNodeId = matchedNode ? matchedNode.id : targetId;
+
+    const matchedClaim = selectedAsset360?.claims?.find(c => c.id === initialClaimId || c.id === targetId || c.cleanId === cid || c.id === cid);
+    const claimObj = matchedClaim || { id: targetId, cleanId: cid, text: 'Policy Rule Claim' };
+
+    setActiveClaimInspector(claimObj);
+    setHighlightedClaimIdInReader(cid);
+    setIsDetailsOpen(true);
+    setSelectedNodeId(actualNodeId);
+    setInteractiveRootId(actualNodeId);
+    setViewMode('interactive');
+    setLineageGranularity('claim');
+    setExpandedUpstreamSet(new Set([actualNodeId]));
+    setExpandedDownstreamSet(new Set([actualNodeId]));
+    fetchBlastRadius(cid);
+  }, [initialClaimId, graphData, selectedAsset360]);
+
   return (
     <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '8px' }}>
 
@@ -2183,7 +2208,7 @@ export default function VisualLineageGraph({
               <style>{`
                 .trulin-artifact-row {
                   transition: background 0.22s cubic-bezier(0.16, 1, 0.3, 1);
-                  background: #FFFFFF;
+                  background: #FAF8F5;
                   cursor: pointer;
                 }
                 .trulin-artifact-row:hover {

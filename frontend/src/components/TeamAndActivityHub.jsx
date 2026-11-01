@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { ShieldCheck } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export default function TeamAndActivityHub({
@@ -8,7 +9,8 @@ export default function TeamAndActivityHub({
   showToast,
   initialSubTab = 'directory',
   onSubTabChange,
-  onLaunchSetupWizard
+  onLaunchSetupWizard,
+  onOpenRbacModal
 }) {
   const { user: currentAuthUser, refreshPersonas } = useAuth();
   const [activeSubTab, setActiveSubTab] = useState(initialSubTab || 'directory'); // 'directory', 'activity', 'domains'
@@ -245,6 +247,32 @@ export default function TeamAndActivityHub({
               title="Launch Guided Organization Onboarding & Setup Wizard"
             >
               <span>🚀 Setup Wizard</span>
+            </button>
+          )}
+          {onOpenRbacModal && (
+            <button
+              onClick={onOpenRbacModal}
+              className="btn btn-secondary"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '8px 14px',
+                fontSize: '0.82rem',
+                fontWeight: 600,
+                background: '#FFFFFF',
+                border: '1px solid #CBD5E1',
+                borderRadius: '6px',
+                color: '#0F172A',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease'
+              }}
+              onMouseEnter={e => e.currentTarget.style.background = '#F1F5F9'}
+              onMouseLeave={e => e.currentTarget.style.background = '#FFFFFF'}
+              title="Inspect Atlan-Grade RBAC Permissions & Separation of Duties Matrix"
+            >
+              <ShieldCheck size={15} style={{ color: '#0F172A' }} />
+              <span>RBAC Matrix</span>
             </button>
           )}
           <button

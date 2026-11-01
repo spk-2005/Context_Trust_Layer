@@ -11,7 +11,7 @@ from pathlib import Path
 import pytest
 
 
-REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent
+REPO_ROOT = Path(__file__).resolve().parents[3]
 RESULTS_DIR = REPO_ROOT / "research" / "extraction-results"
 GOLD_DIR = REPO_ROOT / "research" / "gold_labels"
 

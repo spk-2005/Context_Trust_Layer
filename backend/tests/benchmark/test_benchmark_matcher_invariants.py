@@ -18,8 +18,8 @@ import sys
 from pathlib import Path
 import pytest
 
-# Ensure research evaluation module is importable
-EVAL_DIR = Path(__file__).resolve().parent.parent.parent.parent / "research" / "evaluation"
+REPO_ROOT = Path(__file__).resolve().parents[3]
+EVAL_DIR = REPO_ROOT / "research" / "evaluation"
 if str(EVAL_DIR) not in sys.path:
     sys.path.insert(0, str(EVAL_DIR))
 
