@@ -107,6 +107,7 @@ async def list_organizations(
 async def create_organization(
     data: OrganizationCreate,
     db: AsyncSession = Depends(get_db),
+    current_user: Optional[User] = Depends(get_optional_current_user),
 ):
     """Register a new enterprise organization / client company tenant."""
     slug = data.slug.strip().lower()

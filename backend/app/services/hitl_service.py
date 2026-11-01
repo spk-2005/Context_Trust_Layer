@@ -96,9 +96,17 @@ async def record_hitl_escalation_if_needed(
     # Attempt to persist to database if available
     try:
         async with AsyncSessionLocal() as session:
-            session.add(escalation)
-            await session.commit()
-            await session.refresh(escalation)
+            from app.db.models.organization import Organization
+            from sqlalchemy import select
+            org_res = await session.execute(
+                select(Organization.id).where(Organization.id == organization_id).limit(1)
+            )
+            if org_res.scalar_one_or_none():
+                session.add(escalation)
+                await session.commit()
+                await session.refresh(escalation)
+            else:
+                logger.debug("Organization %s not found in DB; escalation kept in-memory", organization_id)
     except Exception as e:
         logger.debug(f"Database unavailable for HITL escalation save, using in-memory store: {e}")
 
