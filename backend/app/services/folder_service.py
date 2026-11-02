@@ -71,6 +71,160 @@ class FolderService:
             )
             return res2.scalar_one()
 
+    async def _get_or_create_folder(
+        self,
+        organization_id: uuid.UUID,
+        parent_id: Optional[uuid.UUID],
+        name: str,
+        folder_type: str,
+        depth: int,
+        icon: str = "folder",
+        color: str = "#3B82F6",
+        is_system: bool = False,
+    ) -> Folder:
+        """Idempotently finds or provisions a folder by name and parent."""
+        import inspect
+
+        safe_parent_id = parent_id if isinstance(parent_id, uuid.UUID) else None
+        stmt = select(Folder).where(
+            Folder.organization_id == organization_id,
+            Folder.name == name,
+        )
+        if safe_parent_id is not None:
+            stmt = stmt.where(Folder.parent_id == safe_parent_id)
+        else:
+            stmt = stmt.where(Folder.parent_id.is_(None))
+
+        res = await self.db.execute(stmt)
+        scalar_fn = getattr(res, "scalar_one_or_none", None)
+        folder = None
+        if callable(scalar_fn):
+            folder = scalar_fn()
+            if inspect.iscoroutine(folder):
+                folder = await folder
+
+        if folder and isinstance(folder, Folder):
+            return folder
+
+        folder = Folder(
+            id=uuid.uuid4(),
+            organization_id=organization_id,
+            parent_id=safe_parent_id,
+            name=name,
+            depth=depth,
+            is_system=is_system,
+            folder_type=folder_type,
+            icon=icon,
+            color=color,
+        )
+        self.db.add(folder)
+        try:
+            await self.db.flush()
+            await self.db.refresh(folder)
+            return folder
+        except Exception:
+            try:
+                await self.db.rollback()
+                res2 = await self.db.execute(stmt)
+                scalar_fn2 = getattr(res2, "scalar_one_or_none", None)
+                if callable(scalar_fn2):
+                    folder2 = scalar_fn2()
+                    if inspect.iscoroutine(folder2):
+                        folder2 = await folder2
+                    if folder2 and isinstance(folder2, Folder):
+                        return folder2
+            except Exception:
+                pass
+            return folder
+
+    async def ensure_slack_hierarchy(
+        self,
+        organization_id: uuid.UUID,
+        channel_name: str,
+    ) -> tuple[Folder, Folder]:
+        """
+        Idempotently resolves or provisions the full 5-tier Slack hierarchy:
+          Connected Integrations -> Slack -> Slack Channels -> #{channel_name} -> (Slack Messages, Slack Documents)
+          
+        Returns:
+            tuple[Folder, Folder]: (slack_messages_folder, slack_documents_folder)
+        """
+        # Level 0: Connected Integrations
+        conn_root = await self._get_or_create_folder(
+            organization_id=organization_id,
+            parent_id=None,
+            name="Connected Integrations",
+            folder_type="connectors",
+            depth=0,
+            icon="network",
+            color="#6366F1",
+        )
+        conn_id = conn_root.id if hasattr(conn_root, "id") and isinstance(conn_root.id, uuid.UUID) else None
+
+        # Level 1: Slack Provider
+        slack_svc = await self._get_or_create_folder(
+            organization_id=organization_id,
+            parent_id=conn_id,
+            name="Slack",
+            folder_type="connector_service",
+            depth=1,
+            icon="message-circle",
+            color="#4A154B",
+        )
+        slack_svc_id = slack_svc.id if hasattr(slack_svc, "id") and isinstance(slack_svc.id, uuid.UUID) else None
+
+        # Level 2: Slack Channels Container
+        channels_root = await self._get_or_create_folder(
+            organization_id=organization_id,
+            parent_id=slack_svc_id,
+            name="Slack Channels",
+            folder_type="slack_channels_root",
+            depth=2,
+            icon="hash",
+            color="#E11D48",
+        )
+        channels_root_id = channels_root.id if hasattr(channels_root, "id") and isinstance(channels_root.id, uuid.UUID) else None
+
+        # Level 3: Channel Folder (e.g. #social)
+        clean_name = (channel_name or "general").strip()
+        if not clean_name.startswith("#"):
+            clean_name = f"#{clean_name}"
+
+        channel_folder = await self._get_or_create_folder(
+            organization_id=organization_id,
+            parent_id=channels_root_id,
+            name=clean_name,
+            folder_type="slack_channel",
+            depth=3,
+            icon="hash",
+            color="#3B82F6",
+        )
+        channel_id = channel_folder.id if hasattr(channel_folder, "id") and isinstance(channel_folder.id, uuid.UUID) else None
+
+        # Level 4a: Slack Messages Sub-Folder (Conversations)
+        messages_folder = await self._get_or_create_folder(
+            organization_id=organization_id,
+            parent_id=channel_id,
+            name="Slack Messages",
+            folder_type="slack_messages",
+            depth=4,
+            icon="message-square",
+            color="#8B5CF6",
+        )
+
+        # Level 4b: Slack Documents Sub-Folder (Extracted Attachments)
+        documents_folder = await self._get_or_create_folder(
+            organization_id=organization_id,
+            parent_id=channel_id,
+            name="Slack Documents",
+            folder_type="slack_documents",
+            depth=4,
+            icon="file-text",
+            color="#10B981",
+        )
+
+        return messages_folder, documents_folder
+
     async def ensure_enterprise_hierarchy(self, organization_id: uuid.UUID) -> Dict[str, Folder]:
         """Idempotently provisions the standard industrial enterprise folder hierarchy."""
         folders_by_name: Dict[str, Folder] = {}
@@ -161,9 +315,77 @@ class FolderService:
             await self.db.flush()
         folders_by_name["Connected Integrations"] = conn
 
-        # Connector subfolders
+        # Slack Provider Service Root (Level 1 under Connected Integrations)
+        res_slack = await self.db.execute(
+            select(Folder).where(
+                Folder.organization_id == organization_id,
+                Folder.parent_id == conn.id,
+                Folder.name == "Slack",
+            )
+        )
+        slack_svc = res_slack.scalar_one_or_none()
+        if not slack_svc:
+            slack_svc = Folder(
+                id=uuid.uuid4(),
+                organization_id=organization_id,
+                parent_id=conn.id,
+                name="Slack",
+                depth=1,
+                is_system=False,
+                folder_type="connector_service",
+                icon="message-circle",
+                color="#4A154B",
+            )
+            self.db.add(slack_svc)
+            await self.db.flush()
+        folders_by_name["Slack"] = slack_svc
+
+        # Slack Channels Container under Slack (Level 2)
+        res_slack_ch = await self.db.execute(
+            select(Folder).where(
+                Folder.organization_id == organization_id,
+                Folder.name == "Slack Channels",
+            )
+        )
+        slack_ch_candidates = res_slack_ch.scalars().all()
+        slack_ch_folder = None
+        if not slack_ch_candidates:
+            slack_ch_folder = Folder(
+                id=uuid.uuid4(),
+                organization_id=organization_id,
+                parent_id=slack_svc.id,
+                name="Slack Channels",
+                depth=2,
+                is_system=False,
+                folder_type="slack_channels_root",
+                icon="hash",
+                color="#E11D48",
+            )
+            self.db.add(slack_ch_folder)
+            await self.db.flush()
+        else:
+            primary = next((f for f in slack_ch_candidates if f.parent_id == slack_svc.id), slack_ch_candidates[0])
+            primary.parent_id = slack_svc.id
+            primary.depth = 2
+            primary.folder_type = "slack_channels_root"
+            primary.icon = "hash"
+            await self.db.flush()
+            slack_ch_folder = primary
+            # Deduplicate any extra legacy "Slack Channels" folders
+            for dup in slack_ch_candidates:
+                if dup.id != primary.id:
+                    await self.db.execute(
+                        update(Folder).where(Folder.parent_id == dup.id).values(parent_id=primary.id)
+                    )
+                    await self.db.execute(
+                        update(Document).where(Document.folder_id == dup.id).values(folder_id=primary.id)
+                    )
+                    await self.db.delete(dup)
+                    await self.db.flush()
+        folders_by_name["Slack Channels"] = slack_ch_folder
+
+        # Other Connector subfolders under Connected Integrations
         conn_subs = [
-            ("Slack Channels", "message-square", "#E11D48"),
             ("GitHub Repositories", "git-branch", "#1E293B"),
             ("Confluence Spaces", "book-open", "#0284C7"),
             ("Jira Projects", "check-square", "#0284C7"),
@@ -222,18 +444,37 @@ class FolderService:
 
     async def auto_organize_documents(self, organization_id: uuid.UUID) -> Dict[str, Any]:
         """Automatically files unorganized or unclassified documents into their appropriate enterprise folder."""
+        from app.db.models.data_source import DataSource
+
         f_map = await self.ensure_enterprise_hierarchy(organization_id)
         inbox = f_map.get("Inbox")
 
-        res_docs = await self.db.execute(
-            select(Document).where(Document.organization_id == organization_id)
+        stmt = (
+            select(Document, DataSource.source_type)
+            .outerjoin(DataSource, Document.source_id == DataSource.id)
+            .where(Document.organization_id == organization_id)
         )
-        docs = res_docs.scalars().all()
+        res_docs = await self.db.execute(stmt)
+        rows = res_docs.all()
 
         classified_count = 0
         details = []
 
-        for d in docs:
+        import re
+
+        # Pre-build channel_id -> channel_name map from existing thread documents
+        channel_id_to_name: dict[str, str] = {}
+        for d, _ in rows:
+            t = d.title or ""
+            e = d.external_id or ""
+            if "slack thread" in t.lower() and e.startswith("slack://"):
+                m_ch = re.search(r"#([a-zA-Z0-9_\-]+)", t)
+                if m_ch:
+                    parts = e.replace("slack://", "").split("/")
+                    if parts and parts[0]:
+                        channel_id_to_name[parts[0]] = m_ch.group(1)
+
+        for d, src_type in rows:
             # If already assigned to a specific domain or connector folder, skip
             # Only auto-organize if folder_id is None, or if it is in Inbox and can be matched to a domain/connector
             if d.folder_id and inbox and d.folder_id != inbox.id:
@@ -241,15 +482,43 @@ class FolderService:
 
             title_lower = (d.title or "").lower()
             doc_type = (d.document_type or "").lower()
+            ext_id = d.external_id or ""
 
             target_folder = None
-            if doc_type == "slack_message" or "slack thread" in title_lower or "slack" in title_lower:
-                target_folder = f_map.get("Slack Channels")
-            elif "github" in title_lower:
+            is_slack = (
+                src_type == "slack"
+                or doc_type == "slack_message"
+                or ext_id.startswith("slack://")
+                or "slack thread" in title_lower
+                or "slack" in title_lower
+            )
+
+            if is_slack:
+                # Extract channel name
+                ch_name = None
+                m = re.search(r"#([a-zA-Z0-9_\-]+)", d.title or "")
+                if m:
+                    ch_name = m.group(1)
+                elif ext_id.startswith("slack://"):
+                    parts = ext_id.replace("slack://", "").split("/")
+                    if len(parts) >= 1 and parts[0]:
+                        ch_name = channel_id_to_name.get(parts[0], parts[0])
+                if not ch_name:
+                    ch_name = "general"
+
+                msgs_folder, docs_folder = await self.ensure_slack_hierarchy(organization_id, ch_name)
+                is_extracted_file = (
+                    "/file/" in ext_id
+                    or doc_type in ("document", "attachment", "pdf", "docx")
+                    or (not title_lower.startswith("slack thread:"))
+                ) and doc_type != "slack_message"
+
+                target_folder = docs_folder if is_extracted_file else msgs_folder
+            elif "github" in title_lower or src_type == "github":
                 target_folder = f_map.get("GitHub Repositories")
-            elif "confluence" in title_lower:
+            elif "confluence" in title_lower or src_type in ("confluence", "wiki"):
                 target_folder = f_map.get("Confluence Spaces")
-            elif "jira" in title_lower:
+            elif "jira" in title_lower or src_type in ("jira", "jira_issues"):
                 target_folder = f_map.get("Jira Projects")
             elif any(k in title_lower for k in ["refund", "billing", "price", "pricing", "commercial", "supplier", "finance", "invoice"]):
                 target_folder = f_map.get("Finance & Operations")
@@ -271,7 +540,103 @@ class FolderService:
         return {
             "success": True,
             "organized_count": classified_count,
-            "total_documents": len(docs),
+            "total_documents": len(rows),
+            "details": details,
+        }
+
+    async def migrate_existing_slack_documents(self, organization_id: uuid.UUID) -> Dict[str, Any]:
+        """
+        Dedicated migration utility: Scans all documents in the organization that belong to Slack
+        and moves:
+          - Conversations/threads -> #{channel}/Slack Messages
+          - Extracted files/attachments -> #{channel}/Slack Documents
+        """
+        from app.db.models.data_source import DataSource
+
+        stmt = (
+            select(Document, DataSource.source_type)
+            .outerjoin(DataSource, Document.source_id == DataSource.id)
+            .where(Document.organization_id == organization_id)
+        )
+        res_docs = await self.db.execute(stmt)
+        rows = res_docs.all()
+
+        migrated_messages = 0
+        migrated_documents = 0
+        details = []
+
+        import re
+
+        # Pre-build channel_id -> channel_name map from existing thread documents
+        channel_id_to_name: dict[str, str] = {}
+        for doc, _ in rows:
+            t = doc.title or ""
+            e = doc.external_id or ""
+            if "slack thread" in t.lower() and e.startswith("slack://"):
+                m_ch = re.search(r"#([a-zA-Z0-9_\-]+)", t)
+                if m_ch:
+                    parts = e.replace("slack://", "").split("/")
+                    if parts and parts[0]:
+                        channel_id_to_name[parts[0]] = m_ch.group(1)
+
+        for doc, src_type in rows:
+            ext_id = doc.external_id or ""
+            doc_type = (doc.document_type or "").lower()
+            title = doc.title or ""
+            title_lower = title.lower()
+
+            is_slack = (
+                src_type == "slack"
+                or doc_type == "slack_message"
+                or ext_id.startswith("slack://")
+                or "slack thread:" in title_lower
+            )
+
+            if not is_slack:
+                continue
+
+            # Identify channel name
+            ch_name = None
+            m = re.search(r"#([a-zA-Z0-9_\-]+)", title)
+            if m:
+                ch_name = m.group(1)
+            elif ext_id.startswith("slack://"):
+                parts = ext_id.replace("slack://", "").split("/")
+                if len(parts) >= 1 and parts[0]:
+                    ch_name = channel_id_to_name.get(parts[0], parts[0])
+            if not ch_name:
+                ch_name = "general"
+
+            msgs_folder, docs_folder = await self.ensure_slack_hierarchy(organization_id, ch_name)
+
+            # Determine whether it's a message thread or an extracted file
+            is_extracted_file = (
+                "/file/" in ext_id
+                or doc_type in ("document", "attachment", "pdf", "docx")
+                or (not title_lower.startswith("slack thread:"))
+            ) and doc_type != "slack_message"
+
+            target_folder = docs_folder if is_extracted_file else msgs_folder
+
+            if doc.folder_id != target_folder.id:
+                doc.folder_id = target_folder.id
+                if is_extracted_file:
+                    migrated_documents += 1
+                else:
+                    migrated_messages += 1
+                details.append({
+                    "document_id": str(doc.id),
+                    "title": doc.title,
+                    "target_folder": target_folder.name,
+                    "target_folder_id": str(target_folder.id),
+                })
+
+        await self.db.flush()
+        return {
+            "success": True,
+            "migrated_messages": migrated_messages,
+            "migrated_documents": migrated_documents,
+            "total_migrated": migrated_messages + migrated_documents,
             "details": details,
         }
 

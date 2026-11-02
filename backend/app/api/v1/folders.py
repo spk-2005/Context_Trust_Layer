@@ -230,3 +230,18 @@ async def auto_organize_workspace_folders(
     await db.commit()
     return result
 
+
+@router.post("/migrate-slack")
+async def migrate_slack_workspace_folders(
+    org_id: uuid.UUID = Depends(_resolve_organization_id),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Reroutes all Slack conversational threads into Slack Messages subfolders
+    and all extracted attachments into Slack Documents subfolders.
+    """
+    service = FolderService(db)
+    result = await service.migrate_existing_slack_documents(organization_id=org_id)
+    await db.commit()
+    return result
+
