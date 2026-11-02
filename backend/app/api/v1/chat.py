@@ -79,6 +79,24 @@ async def get_chat_session(
     return session_data
 
 
+class UpdateSessionRequest(BaseModel):
+    title: str = Field(..., min_length=1, max_length=500)
+
+
+@router.patch("/sessions/{session_id}")
+async def update_chat_session(
+    session_id: uuid.UUID,
+    req: UpdateSessionRequest,
+    db: AsyncSession = Depends(get_db),
+):
+    """Rename or update a conversation session title."""
+    service = ChatService(db)
+    updated = await service.update_session_title(session_id, req.title)
+    if not updated:
+        raise HTTPException(status_code=404, detail="Chat session not found")
+    return updated
+
+
 @router.delete("/sessions/{session_id}")
 async def delete_chat_session(
     session_id: uuid.UUID,

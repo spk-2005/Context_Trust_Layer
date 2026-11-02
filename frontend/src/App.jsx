@@ -1352,7 +1352,6 @@ export default function App() {
 
   const handleStartNewChatFromSidebar = async () => {
     try {
-      const deptPrefix = activeWorkspace && activeWorkspace.id !== 'all' ? `[${activeWorkspace.name.split(' ')[0]}] ` : '';
       const res = await fetch('/v1/chat/sessions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1361,7 +1360,7 @@ export default function App() {
           user_id: activePersona?.id || null,
           user_name: activePersona?.name || 'Sarah Chen',
           user_role: activePersona?.role || 'admin',
-          title: `${deptPrefix}New Conversation`,
+          title: 'New Conversation',
           workspace_id: activeWorkspace?.id || 'all',
           domain: activeWorkspace?.domain || 'global',
         }),
@@ -1598,7 +1597,7 @@ export default function App() {
     const name = newWorkspaceName.trim();
     const domain = newWorkspaceDomain;
     const desc = newWorkspaceDescription.trim() || 'Custom department workspace';
-    const icon = domain === 'secops' ? '🛡️' : domain === 'hr' ? '👥' : domain === 'finance' ? '💳' : domain === 'staging' ? '🧪' : '📁';
+    const icon = domain === 'secops' ? '🛡️' : domain === 'hr' ? '👥' : domain === 'finance' ? '💳' : domain === 'staging' ? '🧪' : domain === 'governance' ? '⚖️' : '📁';
 
     const tempId = `ws_${Date.now()}`;
     const newWs = {
@@ -1612,9 +1611,8 @@ export default function App() {
     // Optimistic local update
     setWorkspaces(prev => {
       const updated = [...prev, newWs];
-      if (activeOrg?.id) {
-        localStorage.setItem(`ctl_workspaces_${activeOrg.id}`, JSON.stringify(updated));
-      }
+      const targetOrgId = activeOrg?.id || 'demo';
+      localStorage.setItem(`ctl_workspaces_${targetOrgId}`, JSON.stringify(updated));
       return updated;
     });
     setActiveWorkspace(newWs);
@@ -2867,8 +2865,7 @@ export default function App() {
                 <button
                   onClick={() => {
                     closeDropdowns();
-                    setActiveTab('profile');
-                    setProfileSubTab('register');
+                    setShowNewOrgModal(true);
                   }}
                   style={{
                     width: '100%',
@@ -3018,8 +3015,23 @@ export default function App() {
                 ))}
 
                 {workspaces.length === 0 && (
-                  <div style={{ padding: '8px 10px', fontSize: '0.72rem', color: 'var(--text-muted)', background: 'var(--bg-card-subtle)', borderRadius: '5px', margin: '4px 0' }}>
-                    No departmental workspaces added yet. Create one below to unlock all services.
+                  <div
+                    onClick={() => {
+                      closeDropdowns();
+                      setShowNewWorkspaceModal(true);
+                    }}
+                    style={{
+                      padding: '8px 10px',
+                      fontSize: '0.72rem',
+                      color: 'var(--text-muted)',
+                      background: 'var(--bg-card-subtle)',
+                      borderRadius: '5px',
+                      margin: '4px 0',
+                      cursor: 'pointer'
+                    }}
+                    title="Click to create a workspace"
+                  >
+                    No departmental workspaces added yet. Click here or below to create one.
                   </div>
                 )}
               </div>
@@ -3028,9 +3040,7 @@ export default function App() {
                 <button
                   onClick={() => {
                     closeDropdowns();
-                    setActiveTab('ingestion');
-                    setExpandedMenu?.('ingestion');
-                    setDocExplorerView?.('folders');
+                    setShowNewWorkspaceModal(true);
                   }}
                   style={{
                     width: '100%',
@@ -3307,7 +3317,7 @@ export default function App() {
   const isEnvironmentReady = Boolean(isOrgReady && isWorkspaceReady);
 
   return (
-    <div className="app-layout">
+    <div className={`app-layout ${activeTab === 'playground' ? 'app-layout-fixed' : ''}`}>
 
       {/* Toast Notification */}
       {notification && (
@@ -3331,7 +3341,9 @@ export default function App() {
       {/* LEFT SIDEBAR MENU (COLLAPSIBLE ICON RAIL WHEN CLOSED)     */}
       {/* ========================================================= */}
       <aside className={`sidebar ${!isSidebarOpen ? 'sidebar-collapsed' : ''}`}>
-        {/* Brand Header + Icon-Only Open/Close Toggle Button */}
+        {/* Top Section: Brand Header & Primary Navigation Group */}
+        <div style={{ display: 'flex', flexDirection: 'column', width: '100%', minHeight: 0 }}>
+          {/* Brand Header + Icon-Only Open/Close Toggle Button */}
         {isSidebarOpen ? (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '14px', padding: '2px 4px' }}>
             <div
@@ -3770,177 +3782,21 @@ export default function App() {
               )}
             </div>
           )}
+
+          {/* AI Copilot Chat Navigation */}
+          <button
+            type="button"
+            onClick={() => {
+              setActiveTab('playground');
+              setExpandedMenu('playground');
+            }}
+            className={`nav-item ${activeTab === 'playground' ? 'nav-item-active' : ''}`}
+            title="AI Copilot Chat"
+          >
+            <Bot size={16} strokeWidth={1.75} />
+            <span>AI Copilot Chat</span>
+          </button>
         </div>
-
-        {/* Set Middle: AI Copilot Chat & Scrollable Previous Chats History (Fills Middle Space) */}
-        <div className="sidebar-middle-section" style={{
-          flex: 1,
-          minHeight: 0,
-          width: '100%',
-          display: 'flex',
-          flexDirection: 'column',
-          borderTop: '1px solid var(--border-subtle)',
-          paddingTop: '8px',
-          marginTop: '4px',
-          overflow: 'hidden'
-        }}>
-          {/* AI Copilot Chat Button with + New Chat Action */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '4px', width: '100%' }}>
-            <button
-              onClick={() => {
-                setActiveTab('playground');
-                setExpandedMenu('playground');
-              }}
-              className={`nav-item ${activeTab === 'playground' ? 'nav-item-active' : ''}`}
-              style={{ flex: 1 }}
-              title="AI Copilot Chat"
-            >
-              <Bot size={16} strokeWidth={1.75} />
-              <span>AI Copilot Chat</span>
-            </button>
-            {isSidebarOpen && (
-              <button
-                type="button"
-                onClick={handleStartNewChatFromSidebar}
-                title="Start New Chat"
-                style={{
-                  width: '28px',
-                  height: '28px',
-                  borderRadius: '6px',
-                  border: '1px solid var(--border-subtle)',
-                  background: 'transparent',
-                  color: '#64748B',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  transition: 'all 0.15s ease',
-                  flexShrink: 0
-                }}
-                onMouseEnter={e => {
-                  e.currentTarget.style.color = 'var(--primary)';
-                  e.currentTarget.style.borderColor = 'var(--primary)';
-                  e.currentTarget.style.background = '#F1F5F9';
-                }}
-                onMouseLeave={e => {
-                  e.currentTarget.style.color = '#64748B';
-                  e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                  e.currentTarget.style.background = 'transparent';
-                }}
-              >
-                <Plus size={14} strokeWidth={2.2} />
-              </button>
-            )}
-          </div>
-
-          {/* Section Header for Recent Chats (Only shown when sidebar is expanded) */}
-          {isSidebarOpen && (() => {
-            const displayedChatSessions = chatSessions.filter(s => {
-              if (!activeWorkspace || activeWorkspace.id === 'all') return true;
-              return s.workspace_id === activeWorkspace.id || s.domain === activeWorkspace.domain;
-            });
-
-            return (
-              <>
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  padding: '6px 8px 4px 10px',
-                  fontSize: '0.68rem',
-                  fontWeight: 600,
-                  color: activeWorkspace && activeWorkspace.id !== 'all' ? 'var(--primary, #2563EB)' : '#94A3B8',
-                  letterSpacing: '0.04em',
-                  textTransform: 'uppercase'
-                }}>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    {activeWorkspace && activeWorkspace.id !== 'all' ? `${activeWorkspace.icon || '🏢'} ${activeWorkspace.name.split(' ')[0]} Chats` : 'Recent Chats'}
-                  </span>
-                  <span style={{
-                    background: activeWorkspace && activeWorkspace.id !== 'all' ? 'rgba(37, 99, 235, 0.1)' : '#F1F5F9',
-                    color: activeWorkspace && activeWorkspace.id !== 'all' ? 'var(--primary, #2563EB)' : '#64748B',
-                    padding: '1px 6px',
-                    borderRadius: '10px',
-                    fontSize: '0.65rem',
-                    fontWeight: 600
-                  }}>{displayedChatSessions.length}</span>
-                </div>
-
-                {/* Scrollable Previous Chats List (Scrolls cleanly with comfortable gap) */}
-                <div className="sidebar-chat-scroll" style={{
-                  flex: 1,
-                  minHeight: 0,
-                  overflowY: 'auto',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '6px',
-                  paddingRight: '4px',
-                  marginTop: '4px',
-                  marginBottom: '4px'
-                }}>
-                  {displayedChatSessions.length === 0 ? (
-                    <div style={{ padding: '8px 10px', fontSize: '0.82rem', color: '#94A3B8', fontStyle: 'italic' }}>
-                      {activeWorkspace && activeWorkspace.id !== 'all' ? `No ${activeWorkspace.name.split(' ')[0]} chats yet` : 'No previous chats yet'}
-                    </div>
-                  ) : (
-                    displayedChatSessions.map((session) => {
-                      const isCurrent = activeTab === 'playground' && activeChatSessionId === session.id;
-                      return (
-                        <button
-                          key={session.id}
-                          onClick={() => {
-                            setActiveTab('playground');
-                            setActiveChatSessionId(session.id);
-                          }}
-                          className={`nav-chat-item ${isCurrent ? 'nav-chat-item-active' : ''}`}
-                          title={session.title}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '9px',
-                            padding: '8px 10px',
-                            borderRadius: '7px',
-                            fontSize: '0.86rem',
-                            lineHeight: '1.25',
-                            border: 'none',
-                            cursor: 'pointer',
-                            textAlign: 'left',
-                            width: '100%',
-                            background: isCurrent ? '#EEF2FF' : 'transparent',
-                            color: isCurrent ? '#312E81' : '#475569',
-                            fontWeight: isCurrent ? 600 : 500,
-                            transition: 'all 0.15s ease'
-                          }}
-                          onMouseEnter={e => {
-                            if (!isCurrent) {
-                              e.currentTarget.style.background = '#F1F5F9';
-                              e.currentTarget.style.color = '#0F172A';
-                            }
-                          }}
-                          onMouseLeave={e => {
-                            if (!isCurrent) {
-                              e.currentTarget.style.background = 'transparent';
-                              e.currentTarget.style.color = '#475569';
-                            }
-                          }}
-                        >
-                          <MessageSquare size={14} style={{ flexShrink: 0, opacity: isCurrent ? 1 : 0.65, color: isCurrent ? '#4F46E5' : '#64748B' }} />
-                          <span style={{
-                            flex: 1,
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            whiteSpace: 'nowrap'
-                          }}>
-                            {session.title || 'Untitled Conversation'}
-                          </span>
-                        </button>
-                      );
-                    })
-                  )}
-                </div>
-              </>
-            );
-          })()}
         </div>
 
         {/* Set 2: Bottom Pinned Governance & Administration Group */}
@@ -3991,12 +3847,12 @@ export default function App() {
       {/* ========================================================= */}
       {/* MAIN CONTENT AREA                                         */}
       {/* ========================================================= */}
-      <main className="main-content">
+      <main className={`main-content ${activeTab === 'playground' ? 'main-content-fixed' : ''}`}>
 
         {/* ========================================================= */}
         {/* TOP HEADER CONTROLS (Identical position for all tabs/pages) */}
         {/* ========================================================= */}
-        <div className="top-breadcrumb-bar" style={{ position: 'relative', zIndex: 50, paddingTop: '10px', paddingBottom: '6px' }}>
+        <div className="top-breadcrumb-bar" style={{ position: 'relative', zIndex: 50, paddingTop: '10px', paddingBottom: '6px', flexShrink: 0 }}>
           <div />
           {renderHeaderRightControls()}
         </div>
@@ -5534,27 +5390,29 @@ export default function App() {
               onGoHome={() => setActiveTab('home')}
             />
           ) : (
-            <AgentChatPlayground
-              activeOrg={activeOrg}
-              activePersona={activePersona}
-              activeWorkspace={activeWorkspace}
-              workspaces={workspaces}
-              showToast={showToast}
-              selectedSessionId={activeChatSessionId}
-              onSessionChange={(id) => {
-                setActiveChatSessionId(id);
-                fetchChatSessions();
-              }}
-              onOpenHitlModal={() => setIsHitlModalOpen(true)}
-              onInspectDocument={(docId) => {
-                setInspectorState({
-                  isOpen: true,
-                  assetType: 'document',
-                  assetId: docId,
-                  assetTitle: 'Policy Document'
-                });
-              }}
-            />
+            <div style={{ flex: 1, minHeight: 0, height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+              <AgentChatPlayground
+                activeOrg={activeOrg}
+                activePersona={activePersona}
+                activeWorkspace={activeWorkspace}
+                workspaces={workspaces}
+                showToast={showToast}
+                selectedSessionId={activeChatSessionId}
+                onSessionChange={(id) => {
+                  setActiveChatSessionId(id);
+                  fetchChatSessions();
+                }}
+                onOpenHitlModal={() => setIsHitlModalOpen(true)}
+                onInspectDocument={(docId) => {
+                  setInspectorState({
+                    isOpen: true,
+                    assetType: 'document',
+                    assetId: docId,
+                    assetTitle: 'Policy Document'
+                  });
+                }}
+              />
+            </div>
           )
         )}
 
@@ -5587,14 +5445,14 @@ export default function App() {
             }}>
               <div>
                 <h1 className="tab-main-heading" style={{ margin: 0, textAlign: 'left', fontSize: '1.45rem' }}>
-                  {(docExplorerView === 'folders' || docExplorerView === 'documents') && 'Folders & Workspace Structure'}
+                  {(docExplorerView === 'folders' || docExplorerView === 'documents') && 'Folders & Structure'}
                   {docExplorerView === 'ingest' && 'Upload & Ingestion Studio'}
                   {docExplorerView === 'connectors' && 'Live Connectors'}
                   {docExplorerView === 'connect' && 'Connect Enterprise Data Source'}
                   {docExplorerView === 'claims' && 'Atomic Claims Browser'}
                 </h1>
                 <p className="tab-subtitle" style={{ margin: '4px 0 0 0', textAlign: 'left' }}>
-                  {(docExplorerView === 'folders' || docExplorerView === 'documents') && 'Create and organize files into nested folders, upload documents directly to folders, and manage workspace hierarchy.'}
+                  {(docExplorerView === 'folders' || docExplorerView === 'documents') && 'Create and organize files into nested folders, upload documents directly to folders, and manage directory hierarchy.'}
                   {docExplorerView === 'ingest' && 'Upload raw policy files or markdown to parse atomic claims with 9-gate verification into PostgreSQL.'}
                   {docExplorerView === 'connectors' && 'Manage live external data source connectors, real-time synchronization schedules, and automated schema ingestion.'}
                   {docExplorerView === 'connect' && 'Configure automated schema extraction, governance rules, and continuous synchronization.'}
@@ -8348,20 +8206,25 @@ export default function App() {
       {/* MODAL: REGISTER NEW CLIENT ORGANIZATION / WORKSPACE       */}
       {/* ========================================================= */}
       {showNewOrgModal && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: 'rgba(0, 0, 0, 0.65)',
-          backdropFilter: 'blur(4px)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1000,
-          padding: '20px'
-        }}>
+        <div
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowNewOrgModal(false);
+          }}
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.65)',
+            backdropFilter: 'blur(4px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            padding: '20px'
+          }}
+        >
           <div className="clean-panel" style={{ width: '100%', maxWidth: '480px', padding: '24px', background: 'var(--bg-card)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <div>
@@ -8444,20 +8307,25 @@ export default function App() {
       {/* MODAL: CREATE DEPARTMENTAL WORKSPACE                     */}
       {/* ========================================================= */}
       {showNewWorkspaceModal && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: 'rgba(0, 0, 0, 0.65)',
-          backdropFilter: 'blur(4px)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1000,
-          padding: '20px'
-        }}>
+        <div
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowNewWorkspaceModal(false);
+          }}
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.65)',
+            backdropFilter: 'blur(4px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            padding: '20px'
+          }}
+        >
           <div className="clean-panel" style={{ width: '100%', maxWidth: '480px', padding: '24px', background: 'var(--bg-card)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <div>
@@ -8472,6 +8340,7 @@ export default function App() {
                 </p>
               </div>
               <button
+                type="button"
                 onClick={() => setShowNewWorkspaceModal(false)}
                 style={{ background: 'transparent', border: 'none', fontSize: '1.2rem', color: 'var(--text-muted)', cursor: 'pointer' }}
               >
@@ -8490,6 +8359,7 @@ export default function App() {
                   value={newWorkspaceName}
                   onChange={e => setNewWorkspaceName(e.target.value)}
                   required
+                  autoFocus
                   style={{ width: '100%', padding: '10px 12px', fontSize: '0.85rem' }}
                 />
               </div>
@@ -8503,6 +8373,7 @@ export default function App() {
                   onChange={e => setNewWorkspaceDomain(e.target.value)}
                   style={{ width: '100%', padding: '9px 12px', fontSize: '0.85rem', background: 'var(--bg-card-subtle)', color: 'var(--text-main)', border: '1px solid var(--border-subtle)', borderRadius: '6px' }}
                 >
+                  <option value="governance">⚖️ Legal, Risk & Governance</option>
                   <option value="finance">💳 Finance & Billing Operations</option>
                   <option value="secops">🛡️ Engineering & Infrastructure SecOps</option>
                   <option value="hr">👥 HR & People Operations</option>

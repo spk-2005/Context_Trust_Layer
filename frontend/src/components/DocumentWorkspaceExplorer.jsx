@@ -2651,7 +2651,7 @@ export default function DocumentWorkspaceExplorer({
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <BarChart2 size={16} style={{ color: '#2563EB' }} />
                 <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 700 }}>
-                  Folder Insights: {activeFolder?.name || 'Workspace'}
+                  Folder Insights: {activeFolder?.name || 'Vault Root'}
                 </h3>
               </div>
               <button type="button" onClick={() => setShowInsightsModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
@@ -2709,7 +2709,7 @@ export default function DocumentWorkspaceExplorer({
                   onChange={e => setMoveFolderTargetId(e.target.value)}
                   style={{ width: '100%', padding: '7px 10px', fontSize: '0.78rem', borderRadius: '5px', border: '1px solid #CBD5E1' }}
                 >
-                  <option value="root">-- Workspace Root --</option>
+                  <option value="root">-- Vault Root --</option>
                   {folders
                     .filter(f => f.id !== movingFolder.id && !f.is_system)
                     .map(f => (

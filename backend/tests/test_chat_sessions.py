@@ -96,6 +96,14 @@ async def test_chat_session_lifecycle_and_message_processing():
         detail = detail_res.json()
         assert len(detail["messages"]) >= 4
 
+        # 5b. Rename the chat session via PATCH
+        rename_res = await client.patch(
+            f"/v1/chat/sessions/{session_id}",
+            json={"title": "Updated Refund Policy Inquiry Title"}
+        )
+        assert rename_res.status_code == 200
+        assert rename_res.json()["title"] == "Updated Refund Policy Inquiry Title"
+
         # 6. Delete the chat session
         del_res = await client.delete(f"/v1/chat/sessions/{session_id}")
         assert del_res.status_code == 200

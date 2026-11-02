@@ -3,7 +3,8 @@ import {
   MessageSquare, Plus, MoreHorizontal, Search, Trash2, 
   CheckCircle2, Clock, ShieldCheck, Sparkles, AlertTriangle, 
   Copy, Check, ChevronDown, ChevronRight, BookOpen, Layers, Shield,
-  ExternalLink, ShieldAlert, ArrowUpRight, Mic, ArrowUp, FileText, X
+  ExternalLink, ShieldAlert, ArrowUpRight, Mic, ArrowUp, FileText, X,
+  PanelLeftClose, PanelLeftOpen, Pencil, Share2
 } from 'lucide-react';
 
 const PROCESS_STEPS = [
@@ -114,6 +115,58 @@ function ChatProcessingPipeline({ activeWorkspace }) {
       </div>
     </div>
   );
+}
+
+// Smart Title Synthesis for Chat Sessions like ChatGPT / Claude / Copilot
+export function generateSmartTitle(query) {
+  if (!query || typeof query !== 'string') return 'New Conversation';
+
+  let cleaned = query.trim();
+  cleaned = cleaned.replace(/\[Attached Document:[^\]]+\]/gi, '');
+  cleaned = cleaned.replace(/```[\s\S]*?```/g, '');
+  cleaned = cleaned.trim();
+
+  const prefixes = [
+    /^(?:can\s+(?:you|we|i)\s+(?:please\s+)?(?:tell\s+me\s+about|explain|check|verify|give\s+me|show\s+me|help\s+me\s+with))\s+/i,
+    /^(?:could\s+(?:you|we|i)\s+(?:please\s+)?(?:tell\s+me\s+about|explain|check|verify|give\s+me|show\s+me))\s+/i,
+    /^(?:what\s+(?:is|are|does|do)\s+(?:the|our|your)?\s*(?:policy|rules?|guidelines?|standard|requirements?|procedure)\s+(?:for|about|on|regarding)?)\s+/i,
+    /^(?:what\s+(?:is|are|does|do)\s+(?:the|our|your)?)\s+/i,
+    /^(?:tell\s+me\s+(?:about|regarding))\s+/i,
+    /^(?:explain\s+(?:the|our|how)?)\s+/i,
+    /^(?:how\s+(?:do|can|does|should)\s+(?:we|i|a\s+user)?)\s+/i,
+    /^(?:is\s+it\s+(?:allowed|permitted|possible)\s+to)\s+/i,
+    /^(?:am\s+i\s+(?:allowed|permitted)\s+to)\s+/i,
+    /^(?:can\s+(?:i|we|an\s+agent)\s+)\s*/i,
+    /^(?:please\s+)\s*/i,
+    /^(?:i\s+(?:want|need|would\s+like)\s+to\s+(?:know|check|understand)\s+(?:about)?)\s+/i,
+  ];
+
+  for (const regex of prefixes) {
+    cleaned = cleaned.replace(regex, '').trim();
+  }
+
+  cleaned = cleaned.replace(/^[^\w]+/, '').replace(/[?!.,;:"']+$/, '').trim();
+
+  if (!cleaned) {
+    cleaned = query.slice(0, 35).trim();
+  }
+
+  const words = cleaned.split(/\s+/).filter(Boolean);
+  const truncatedWords = words.slice(0, 6);
+
+  const minorWords = new Set(['a', 'an', 'the', 'and', 'but', 'or', 'for', 'nor', 'on', 'at', 'to', 'by', 'in', 'of']);
+  const titled = truncatedWords.map((word, idx) => {
+    const lower = word.toLowerCase();
+    if (idx === 0 || idx === truncatedWords.length - 1 || !minorWords.has(lower)) {
+      return word.charAt(0).toUpperCase() + word.slice(1);
+    }
+    return lower;
+  }).join(' ');
+
+  if (titled.length > 48) {
+    return titled.slice(0, 45).trim() + '...';
+  }
+  return titled || 'New Conversation';
 }
 
 // Rich Formatted Content Renderer for Catchy & Scannable Answers with Interactive Citations
@@ -444,6 +497,48 @@ export default function AgentChatPlayground({
   const [activeCitationHighlight, setActiveCitationHighlight] = useState({});
   const [copiedMsgId, setCopiedMsgId] = useState(null);
 
+  // ChatGPT-style Collapsible Chat History State
+  const [isHistoryOpen, setIsHistoryOpen] = useState(() => {
+    try {
+      const saved = localStorage.getItem('copilot_history_open');
+      return saved !== null ? saved === 'true' : true;
+    } catch {
+      return true;
+    }
+  });
+  const [historySearchQuery, setHistorySearchQuery] = useState('');
+  const [openMenuSessionId, setOpenMenuSessionId] = useState(null);
+  const [editingSessionId, setEditingSessionId] = useState(null);
+  const [editingTitle, setEditingTitle] = useState('');
+  const renameInputRef = useRef(null);
+
+  const toggleHistoryOpen = () => {
+    setIsHistoryOpen(prev => {
+      const next = !prev;
+      try {
+        localStorage.setItem('copilot_history_open', String(next));
+      } catch (e) {}
+      return next;
+    });
+  };
+
+  useEffect(() => {
+    if (editingSessionId && renameInputRef.current) {
+      renameInputRef.current.focus();
+      renameInputRef.current.select();
+    }
+  }, [editingSessionId]);
+
+  useEffect(() => {
+    const handleOutsideClick = (e) => {
+      if (!e.target.closest('.copilot-history-item-actions')) {
+        setOpenMenuSessionId(null);
+      }
+    };
+    document.addEventListener('mousedown', handleOutsideClick);
+    return () => document.removeEventListener('mousedown', handleOutsideClick);
+  }, []);
+
   const handleCitationClick = (msgId, sourceNum) => {
     setExpandedCitations(prev => ({ ...prev, [msgId]: true }));
     setActiveCitationHighlight(prev => ({ ...prev, [msgId]: sourceNum }));
@@ -463,6 +558,8 @@ export default function AgentChatPlayground({
   }, [selectedSessionId]);
 
   const messagesEndRef = useRef(null);
+  const chatContainerRef = useRef(null);
+  const bottomInputRef = useRef(null);
   const fileInputRef = useRef(null);
   const plusMenuRef = useRef(null);
   const orgId = activeOrg?.id || '11111111-1111-1111-1111-111111111111';
@@ -574,10 +671,14 @@ export default function AgentChatPlayground({
       const res = await fetch(url);
       if (res.ok) {
         const data = await res.json();
-        setSessions(data);
-        if (selectFirst && data.length > 0) {
-          loadSessionDetails(data[0].id);
-        } else if (data.length === 0) {
+        const normalized = data.map(s => ({
+          ...s,
+          title: (s.title || 'Untitled Conversation').replace(/^\[.*?\]\s*/, '')
+        }));
+        setSessions(normalized);
+        if (selectFirst && normalized.length > 0) {
+          loadSessionDetails(normalized[0].id);
+        } else if (normalized.length === 0) {
           setActiveSessionId(null);
           setActiveSession(null);
           setMessages([]);
@@ -613,9 +714,14 @@ export default function AgentChatPlayground({
 
   // Create new session tagged with active departmental workspace
   const handleCreateNewChat = async (initialTitle = "New Conversation") => {
+    // If the active session is already empty, just focus and reuse it rather than creating empty duplicates
+    if (messages.length === 0 && activeSession && (!activeSession.message_count || activeSession.message_count === 0)) {
+      bottomInputRef.current?.focus();
+      return activeSession.id;
+    }
+
     try {
-      const wsPrefix = activeWorkspace && activeWorkspace.id !== 'all' ? `[${activeWorkspace.name.split(' ')[0]}] ` : '';
-      const finalTitle = initialTitle.startsWith('[') ? initialTitle : `${wsPrefix}${initialTitle}`;
+      const finalTitle = initialTitle;
       const res = await fetch('/v1/chat/sessions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -646,7 +752,8 @@ export default function AgentChatPlayground({
 
   // Delete session
   const handleDeleteSession = async (e, sessionId) => {
-    e.stopPropagation();
+    if (e) e.stopPropagation();
+    setOpenMenuSessionId(null);
     try {
       const res = await fetch(`/v1/chat/sessions/${sessionId}`, { method: 'DELETE' });
       if (res.ok) {
@@ -666,6 +773,93 @@ export default function AgentChatPlayground({
     } catch (err) {
       console.error("Failed to delete session", err);
     }
+  };
+
+  // Start inline rename
+  const handleStartRename = (session, e) => {
+    if (e) e.stopPropagation();
+    setEditingSessionId(session.id);
+    setEditingTitle(session.title || '');
+    setOpenMenuSessionId(null);
+  };
+
+  // Commit session rename to backend
+  const handleSaveRename = async (sessionId, e) => {
+    if (e) e.stopPropagation();
+    const trimmed = editingTitle.trim();
+    if (!trimmed) {
+      setEditingSessionId(null);
+      return;
+    }
+    try {
+      const res = await fetch(`/v1/chat/sessions/${sessionId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: trimmed })
+      });
+      if (res.ok) {
+        setSessions(prev => prev.map(s => s.id === sessionId ? { ...s, title: trimmed } : s));
+        if (activeSession && activeSession.id === sessionId) {
+          setActiveSession(prev => prev ? { ...prev, title: trimmed } : null);
+        }
+        if (showToast) showToast('Conversation renamed');
+      } else {
+        if (showToast) showToast('Failed to rename conversation');
+      }
+    } catch (err) {
+      console.error('Rename failed', err);
+      if (showToast) showToast('Failed to rename conversation');
+    } finally {
+      setEditingSessionId(null);
+    }
+  };
+
+  // Copy chat title to clipboard
+  const handleCopyTitle = (session, e) => {
+    if (e) e.stopPropagation();
+    navigator.clipboard.writeText(session.title || 'Conversation');
+    if (showToast) showToast('Chat title copied to clipboard');
+    setOpenMenuSessionId(null);
+  };
+
+  // Group chat sessions chronologically like ChatGPT
+  const groupSessionsByDate = (sessionList) => {
+    const now = new Date();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    const startOfYesterday = startOfToday - 86400000;
+    const sevenDaysAgo = startOfToday - 7 * 86400000;
+    const thirtyDaysAgo = startOfToday - 30 * 86400000;
+
+    const groups = {
+      today: [],
+      yesterday: [],
+      previous7Days: [],
+      previous30Days: [],
+      older: []
+    };
+
+    sessionList.forEach(session => {
+      const date = session.created_at ? new Date(session.created_at).getTime() : 0;
+      if (date >= startOfToday) {
+        groups.today.push(session);
+      } else if (date >= startOfYesterday) {
+        groups.yesterday.push(session);
+      } else if (date >= sevenDaysAgo) {
+        groups.previous7Days.push(session);
+      } else if (date >= thirtyDaysAgo) {
+        groups.previous30Days.push(session);
+      } else {
+        groups.older.push(session);
+      }
+    });
+
+    return [
+      { label: 'Today', items: groups.today },
+      { label: 'Yesterday', items: groups.yesterday },
+      { label: 'Previous 7 Days', items: groups.previous7Days },
+      { label: 'Previous 30 Days', items: groups.previous30Days },
+      { label: 'Older', items: groups.older },
+    ].filter(g => g.items.length > 0);
   };
 
   // Send message
@@ -719,8 +913,29 @@ export default function AgentChatPlayground({
           result.user_message,
           result.assistant_message
         ]);
-        // Update session list title if updated
-        loadSessions(false);
+
+        // Auto-assign smart, distinct title based on first query like professional copilots
+        const assignedTitle = result.session_title || generateSmartTitle(textToSend);
+        const currentTitle = (activeSession?.title || '').trim();
+        const isGeneric = !currentTitle ||
+          currentTitle === 'New Conversation' ||
+          currentTitle === 'Untitled Conversation' ||
+          currentTitle.endsWith('New Conversation') ||
+          currentTitle.startsWith('[');
+
+        if (isGeneric && assignedTitle && assignedTitle !== 'New Conversation') {
+          setActiveSession(prev => prev ? { ...prev, title: assignedTitle } : null);
+          setSessions(prev => prev.map(s => s.id === currentSid ? { ...s, title: assignedTitle } : s));
+          if (!result.session_title) {
+            fetch(`/v1/chat/sessions/${currentSid}`, {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ title: assignedTitle })
+            }).catch(e => console.error('Failed to sync smart title', e));
+          }
+        } else {
+          loadSessions(false);
+        }
       } else {
         if (showToast) showToast("Failed to process message with Context Gate");
       }
@@ -731,34 +946,325 @@ export default function AgentChatPlayground({
     }
   };
 
-  // Scroll to bottom on new messages
+  // Scroll to bottom on new messages inside the chat container ONLY (prevents page/window from scrolling)
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTo({
+        top: chatContainerRef.current.scrollHeight,
+        behavior: 'smooth'
+      });
+    }
   }, [messages, isSending]);
+
+  // Keep focus in bottom input bar after message sent
+  useEffect(() => {
+    if (messages.length > 0 && !isSending) {
+      bottomInputRef.current?.focus();
+    }
+  }, [messages.length, isSending]);
 
   // Reload sessions when user persona or org changes
   useEffect(() => {
     loadSessions(true);
   }, [orgId, userId]);
 
-  const filteredSessions = sessions.filter(s =>
-    s.title?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredSessions = sessions.filter(s => {
+    if (!historySearchQuery.trim()) return true;
+    return (s.title || '').toLowerCase().includes(historySearchQuery.toLowerCase());
+  });
+
+  const sessionGroups = historySearchQuery.trim()
+    ? [{ label: `Search Results (${filteredSessions.length})`, items: filteredSessions }]
+    : groupSessionsByDate(filteredSessions);
 
   return (
-    <div className="copilot-canvas" style={{ background: '#FAF8F5', border: 'none', borderRadius: 0, overflow: 'hidden', width: '100%' }}>
-      {/* FULL-SCREEN AI COPILOT CHAT WORKSPACE (WARM MINIMALIST AESTHETIC) */}
-      <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 100px)', maxHeight: 'calc(100vh - 100px)', background: '#FAF8F5', overflow: 'hidden' }}>
+    <div
+      className="copilot-canvas"
+      style={{
+        background: '#FAF8F5',
+        border: 'none',
+        borderRadius: 0,
+        overflow: 'hidden',
+        width: '100%',
+        height: '100%',
+        flex: 1,
+        minHeight: 0,
+        display: 'flex',
+        flexDirection: 'row'
+      }}
+    >
+      {/* 1. LEFT SIDE: CHATGPT-STYLE COLLAPSIBLE CHAT HISTORY PANEL */}
+      <aside
+        className={`copilot-history-sidebar ${!isHistoryOpen ? 'copilot-history-sidebar-closed' : ''}`}
+        aria-label="Chat History"
+      >
+        {/* Panel Header */}
+        <div className="copilot-history-header">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
+            <span style={{
+              fontSize: '0.86rem',
+              fontWeight: 700,
+              color: '#1C1917',
+              letterSpacing: '-0.01em',
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis'
+            }}>
+              Chats
+            </span>
+            <span style={{
+              background: '#EFECE6',
+              color: '#78716C',
+              padding: '1px 6px',
+              borderRadius: '10px',
+              fontSize: '0.68rem',
+              fontWeight: 600
+            }}>
+              {filteredSessions.length}
+            </span>
+          </div>
 
-        {/* MAIN WORKSPACE: CONVERSATION STREAM & FLOATING INPUT */}
-        <div style={{ display: 'flex', flexDirection: 'column', height: '100%', padding: '0', overflow: 'hidden', background: 'transparent' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <button
+              type="button"
+              className="copilot-history-icon-btn"
+              onClick={() => handleCreateNewChat()}
+              title="New Chat"
+            >
+              <Plus size={16} strokeWidth={2.2} />
+            </button>
+            <button
+              type="button"
+              className="copilot-history-icon-btn"
+              onClick={toggleHistoryOpen}
+              title="Close chat history"
+            >
+              <PanelLeftClose size={16} strokeWidth={1.8} />
+            </button>
+          </div>
+        </div>
 
+        {/* Search Bar */}
+        <div className="copilot-history-search-wrapper">
+          <Search size={13} color="#A8A29E" style={{ flexShrink: 0 }} />
+          <input
+            type="text"
+            className="copilot-history-search-input"
+            placeholder="Search chats..."
+            value={historySearchQuery}
+            onChange={e => setHistorySearchQuery(e.target.value)}
+          />
+          {historySearchQuery && (
+            <button
+              type="button"
+              onClick={() => setHistorySearchQuery('')}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex' }}
+            >
+              <X size={12} color="#78716C" />
+            </button>
+          )}
+        </div>
+
+        {/* Scrollable Grouped History List */}
+        <div className="copilot-history-scroll">
+          {sessionGroups.length === 0 ? (
+            <div style={{
+              padding: '24px 12px',
+              textAlign: 'center',
+              color: '#A8A29E',
+              fontSize: '0.80rem'
+            }}>
+              {historySearchQuery ? 'No matching conversations' : 'No previous chats yet.'}
+            </div>
+          ) : (
+            sessionGroups.map(group => (
+              <div key={group.label} style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
+                <div className="copilot-history-group-title">
+                  {group.label}
+                </div>
+                {group.items.map(session => {
+                  const isCurrent = activeSessionId === session.id;
+                  const isEditing = editingSessionId === session.id;
+                  const isMenuOpen = openMenuSessionId === session.id;
+
+                  return (
+                    <div
+                      key={session.id}
+                      className={`copilot-history-item ${isCurrent ? 'copilot-history-item-active' : ''}`}
+                      onClick={() => {
+                        if (!isEditing) {
+                          setActiveSessionId(session.id);
+                          loadSessionDetails(session.id);
+                        }
+                      }}
+                      title={(session.title || 'Untitled Conversation').replace(/^\[.*?\]\s*/, '')}
+                    >
+
+                      {isEditing ? (
+                        <div
+                          style={{ display: 'flex', alignItems: 'center', gap: '4px', flex: 1, minWidth: 0 }}
+                          onClick={e => e.stopPropagation()}
+                        >
+                          <input
+                            ref={renameInputRef}
+                            type="text"
+                            className="copilot-history-rename-input"
+                            value={editingTitle}
+                            onChange={e => setEditingTitle(e.target.value)}
+                            onKeyDown={e => {
+                              if (e.key === 'Enter') handleSaveRename(session.id, e);
+                              if (e.key === 'Escape') setEditingSessionId(null);
+                            }}
+                          />
+                          <button
+                            type="button"
+                            onClick={e => handleSaveRename(session.id, e)}
+                            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '2px', display: 'flex' }}
+                            title="Save"
+                          >
+                            <Check size={13} color="#16A34A" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={e => { e.stopPropagation(); setEditingSessionId(null); }}
+                            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '2px', display: 'flex' }}
+                            title="Cancel"
+                          >
+                            <X size={13} color="#78716C" />
+                          </button>
+                        </div>
+                      ) : (
+                        <>
+                          <span className="copilot-history-item-title">
+                            {(session.title || 'Untitled Conversation').replace(/^\[.*?\]\s*/, '')}
+                          </span>
+
+                          {/* 3-Dots Action Button & Dropdown Menu */}
+                          <div
+                            className={`copilot-history-item-actions ${isMenuOpen ? 'copilot-history-item-actions-visible' : ''}`}
+                            onClick={e => e.stopPropagation()}
+                          >
+                            <button
+                              type="button"
+                              className="copilot-history-more-btn"
+                              title="Chat options"
+                              onClick={e => {
+                                e.stopPropagation();
+                                setOpenMenuSessionId(prev => prev === session.id ? null : session.id);
+                              }}
+                            >
+                              <MoreHorizontal size={14} />
+                            </button>
+
+                            {/* Floating Dropdown Menu */}
+                            {isMenuOpen && (
+                              <div className="copilot-history-dropdown-menu">
+                                <button
+                                  type="button"
+                                  className="copilot-history-dropdown-item"
+                                  onClick={e => handleStartRename(session, e)}
+                                >
+                                  <Pencil size={13} color="#57534E" />
+                                  <span>Rename</span>
+                                </button>
+                                <button
+                                  type="button"
+                                  className="copilot-history-dropdown-item"
+                                  onClick={e => handleCopyTitle(session, e)}
+                                >
+                                  <Copy size={13} color="#57534E" />
+                                  <span>Copy Title</span>
+                                </button>
+                                <div style={{ height: '1px', background: '#E8E3DC', margin: '2px 0' }} />
+                                <button
+                                  type="button"
+                                  className="copilot-history-dropdown-item copilot-history-dropdown-item-danger"
+                                  onClick={e => handleDeleteSession(e, session.id)}
+                                >
+                                  <Trash2 size={13} />
+                                  <span>Delete Chat</span>
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            ))
+          )}
+        </div>
+      </aside>
+
+      {/* 2. RIGHT SIDE: MAIN COPILOT WORKSPACE */}
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          height: '100%',
+          flex: 1,
+          minWidth: 0,
+          background: '#FAF8F5',
+          overflow: 'hidden',
+          position: 'relative'
+        }}
+      >
+        {/* Top Header Bar for Right Side */}
+        <header className="copilot-top-header">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
+            {!isHistoryOpen && (
+              <button
+                type="button"
+                className="copilot-topbar-toggle-btn"
+                onClick={toggleHistoryOpen}
+                title="Open chat history sidebar"
+              >
+                <PanelLeftOpen size={15} strokeWidth={2} />
+                <span>History</span>
+              </button>
+            )}
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
+              <span style={{
+                fontSize: '0.86rem',
+                fontWeight: 600,
+                color: '#1C1917',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                maxWidth: '420px'
+              }}>
+                {(activeSession?.title || 'New Conversation').replace(/^\[.*?\]\s*/, '')}
+              </span>
+            </div>
+          </div>
+        </header>
+
+        {/* Conversation Stream & Bottom Floating Bar */}
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            height: '100%',
+            flex: 1,
+            minHeight: 0,
+            padding: '0',
+            overflow: 'hidden',
+            background: 'transparent'
+          }}
+        >
           {/* Messages Scroll Area */}
           <div
             id="chat-messages-container"
+            ref={chatContainerRef}
             style={{
               flex: 1,
+              minHeight: 0,
               overflowY: messages.length === 0 ? 'hidden' : 'auto',
+              overflowX: 'hidden',
+              overscrollBehavior: 'contain',
               padding: messages.length === 0 ? '24px 20px' : '16px 20px',
               display: 'flex',
               flexDirection: 'column',
@@ -1148,33 +1654,44 @@ export default function AgentChatPlayground({
 
           {/* Bottom Floating Copilot Bar - Active Conversation State */}
           {messages.length > 0 && (
-            <div style={{ padding: '8px 20px 14px 20px', background: 'transparent', flexShrink: 0, display: 'flex', justifyContent: 'center' }}>
+            <div style={{
+              padding: '6px 20px 12px 20px',
+              background: 'transparent',
+              flexShrink: 0,
+              display: 'flex',
+              justifyContent: 'center',
+              position: 'relative'
+            }}>
               <div
-                className="copilot-card"
+                className="copilot-compact-bar"
                 style={{
-                  maxWidth: '740px',
-                  padding: '12px 18px 10px 18px',
-                  borderRadius: '24px',
-                  boxShadow: '0 8px 30px rgba(0, 0, 0, 0.06)',
-                  border: '1px solid rgba(0, 0, 0, 0.08)'
+                  position: 'relative',
+                  width: '100%',
+                  maxWidth: '740px'
                 }}
               >
-                {/* Attached Document Preview if any */}
+                {/* Floating Attached Document Preview if any */}
                 {attachedFile && (
                   <div style={{
+                    position: 'absolute',
+                    bottom: 'calc(100% + 6px)',
+                    left: '12px',
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: '6px',
-                    background: '#F4F4F5',
+                    background: '#FFFFFF',
                     border: '1px solid #E4E4E7',
                     borderRadius: '12px',
-                    padding: '2px 8px',
+                    padding: '3px 10px',
                     fontSize: '0.72rem',
                     color: '#27272A',
-                    marginBottom: '6px'
+                    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)',
+                    zIndex: 10
                   }}>
                     <FileText size={12} color="#52525B" />
-                    <span>{attachedFile.name}</span>
+                    <span style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {attachedFile.name}
+                    </span>
                     <button
                       type="button"
                       onClick={() => setAttachedFile(null)}
@@ -1185,16 +1702,22 @@ export default function AgentChatPlayground({
                   </div>
                 )}
 
-                {/* Textarea */}
+                {/* Single-Row Textarea */}
                 <textarea
-                  className="copilot-textarea"
+                  ref={bottomInputRef}
+                  className="copilot-compact-textarea"
                   rows={1}
                   value={inputPrompt}
-                  onChange={e => setInputPrompt(e.target.value)}
+                  onChange={e => {
+                    setInputPrompt(e.target.value);
+                    e.target.style.height = 'auto';
+                    e.target.style.height = `${Math.min(e.target.scrollHeight, 120)}px`;
+                  }}
                   onKeyDown={e => {
                     if (e.key === 'Enter' && !e.shiftKey) {
                       e.preventDefault();
                       handleSendMessage();
+                      if (e.target) e.target.style.height = 'auto';
                     }
                   }}
                   placeholder={
@@ -1203,51 +1726,60 @@ export default function AgentChatPlayground({
                       : "Message Copilot"
                   }
                   disabled={isSending}
-                  style={{ minHeight: '22px', maxHeight: '100px', marginBottom: '6px', fontSize: '0.96rem' }}
                 />
 
-                {/* Bottom Row: Right mic & peach action button */}
-                <div className="copilot-bottom-row" style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
-                  {/* Right: mic and peach circular action button */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <button
-                      type="button"
-                      className={`copilot-action-icon-btn ${isListening ? 'copilot-mic-listening' : ''}`}
-                      title={isListening ? "Listening... click to stop" : "Voice dictation"}
-                      onClick={handleMicClick}
-                    >
-                      <Mic size={17} />
-                    </button>
+                {/* Inline Action Buttons: Mic & Peach Arrow Send */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
+                  <button
+                    type="button"
+                    className={`copilot-action-icon-btn ${isListening ? 'copilot-mic-listening' : ''}`}
+                    title={isListening ? "Listening... click to stop" : "Voice dictation"}
+                    onClick={handleMicClick}
+                    style={{
+                      width: '32px',
+                      height: '32px',
+                      borderRadius: '50%',
+                      border: 'none',
+                      background: isListening ? '#FEE2E2' : 'transparent',
+                      color: isListening ? '#EF4444' : '#52525B',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      transition: 'all 0.15s ease'
+                    }}
+                  >
+                    <Mic size={17} />
+                  </button>
 
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (!isSending) handleSendMessage();
-                      }}
-                      disabled={!isSending && (!inputPrompt.trim() && !attachedFile)}
-                      title={isSending ? "Generating response..." : "Send question"}
-                      style={{
-                        width: '32px',
-                        height: '32px',
-                        borderRadius: '50%',
-                        border: 'none',
-                        background: '#FBE9D9',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        cursor: (!isSending && !inputPrompt.trim() && !attachedFile) ? 'default' : 'pointer',
-                        opacity: (!isSending && !inputPrompt.trim() && !attachedFile) ? 0.6 : 1,
-                        transition: 'all 0.15s cubic-bezier(0.16, 1, 0.3, 1)',
-                        flexShrink: 0
-                      }}
-                    >
-                      {isSending ? (
-                        <div style={{ width: '9px', height: '9px', background: '#292524', borderRadius: '2px' }} />
-                      ) : (
-                        <ArrowUp size={16} color="#292524" strokeWidth={2.5} />
-                      )}
-                    </button>
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!isSending) handleSendMessage();
+                    }}
+                    disabled={!isSending && (!inputPrompt.trim() && !attachedFile)}
+                    title={isSending ? "Generating response..." : "Send question"}
+                    style={{
+                      width: '32px',
+                      height: '32px',
+                      borderRadius: '50%',
+                      border: 'none',
+                      background: '#FBE9D9',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: (!isSending && !inputPrompt.trim() && !attachedFile) ? 'default' : 'pointer',
+                      opacity: (!isSending && !inputPrompt.trim() && !attachedFile) ? 0.6 : 1,
+                      transition: 'all 0.15s cubic-bezier(0.16, 1, 0.3, 1)',
+                      flexShrink: 0
+                    }}
+                  >
+                    {isSending ? (
+                      <div style={{ width: '9px', height: '9px', background: '#292524', borderRadius: '2px' }} />
+                    ) : (
+                      <ArrowUp size={16} color="#292524" strokeWidth={2.5} />
+                    )}
+                  </button>
                 </div>
               </div>
             </div>

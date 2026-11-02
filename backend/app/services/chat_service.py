@@ -23,6 +23,60 @@ class ChatService:
         self.llm = get_llm_provider()
         self.resolver = ConversationContextResolver(self.llm)
 
+    @staticmethod
+    def generate_smart_title(query: str, fallback: str = "New Conversation") -> str:
+        if not query or not query.strip():
+            return fallback
+
+        import re
+        text = query.strip()
+        text = re.sub(r"\[Attached Document:[^\]]+\]", "", text, flags=re.IGNORECASE)
+        text = re.sub(r"```[\s\S]*?```", "", text)
+        text = text.strip()
+
+        prefixes = [
+            r"^(?:can\s+(?:you|we|i)\s+(?:please\s+)?(?:tell\s+me\s+about|explain|check|verify|give\s+me|show\s+me|help\s+me\s+with))\s*",
+            r"^(?:could\s+(?:you|we|i)\s+(?:please\s+)?(?:tell\s+me\s+about|explain|check|verify|give\s+me|show\s+me))\s*",
+            r"^(?:what\s+(?:is|are|does|do)\s+(?:the|our|your)?\s*(?:policy|rules?|guidelines?|standard|requirements?|procedure)\s+(?:for|about|on|regarding)?)\s*",
+            r"^(?:what\s+(?:is|are|does|do)\s+(?:the|our|your)?)\s*",
+            r"^(?:tell\s+me\s+(?:about|regarding))\s*",
+            r"^(?:explain\s+(?:the|our|how)?)\s*",
+            r"^(?:how\s+(?:do|can|does|should)\s+(?:we|i|a\s+user)?)\s*",
+            r"^(?:is\s+it\s+(?:allowed|permitted|possible)\s+to)\s*",
+            r"^(?:am\s+i\s+(?:allowed|permitted)\s+to)\s*",
+            r"^(?:can\s+(?:i|we|an\s+agent)\s+)\s*",
+            r"^(?:please\s+)\s*",
+            r"^(?:i\s+(?:want|need|would\s+like)\s+to\s+(?:know|check|understand)\s+(?:about)?)\s*",
+        ]
+        cleaned = text
+        for pat in prefixes:
+            cleaned = re.sub(pat, "", cleaned, flags=re.IGNORECASE).strip()
+
+        cleaned = re.sub(r"^[^\w]+", "", cleaned)
+        cleaned = re.sub(r"[?!.,;:\"']+$", "", cleaned).strip()
+
+        if not cleaned:
+            cleaned = text[:36].strip()
+
+        words = cleaned.split()
+        if len(words) > 6:
+            cleaned = " ".join(words[:6])
+
+        words = cleaned.split()
+        minor_words = {"a", "an", "the", "and", "but", "or", "for", "nor", "on", "at", "to", "by", "in", "of"}
+        titled_words = []
+        for i, w in enumerate(words):
+            if i == 0 or w.lower() not in minor_words or i == len(words) - 1:
+                titled_words.append(w.capitalize() if not w.isupper() else w)
+            else:
+                titled_words.append(w.lower())
+        title = " ".join(titled_words)
+
+        if len(title) > 48:
+            title = title[:45].rstrip() + "..."
+
+        return title or fallback
+
     async def list_sessions(
         self,
         organization_id: uuid.UUID,
@@ -31,7 +85,30 @@ class ChatService:
         limit: int = 50,
     ) -> list[dict[str, Any]]:
         sessions = await self.repo.list_sessions(organization_id, user_id, workspace_id, limit)
-        return [s.to_dict() for s in sessions]
+        results = []
+        needs_commit = False
+        for s in sessions:
+            title_str = (s.title or "").strip()
+            is_generic = (
+                not title_str
+                or title_str in ("New Conversation", "Untitled Conversation")
+                or title_str.endswith("New Conversation")
+                or title_str.startswith("[")
+            )
+            if is_generic and s.messages:
+                first_user_msg = next((m for m in s.messages if m.role == "user" and m.content), None)
+                if first_user_msg:
+                    smart = self.generate_smart_title(first_user_msg.content)
+                    if smart and smart != "New Conversation":
+                        s.title = smart
+                        needs_commit = True
+            results.append(s.to_dict())
+        if needs_commit:
+            try:
+                await self.session.commit()
+            except Exception:
+                pass
+        return results
 
     async def get_session(self, session_id: uuid.UUID) -> dict[str, Any] | None:
         s = await self.repo.get_session(session_id)
@@ -62,6 +139,13 @@ class ChatService:
         )
         await self.session.commit()
         return s.to_dict()
+
+    async def update_session_title(self, session_id: uuid.UUID, title: str) -> dict[str, Any] | None:
+        session_obj = await self.repo.update_session_title(session_id, title)
+        if not session_obj:
+            return None
+        await self.session.commit()
+        return session_obj.to_dict()
 
     async def delete_session(self, session_id: uuid.UUID) -> bool:
         success = await self.repo.delete_session(session_id)
@@ -296,10 +380,25 @@ class ChatService:
             metadata_json=metadata_json,
         )
 
+        # 9. Auto-assign smart title if current title is generic or blank
+        current_title = (session_obj.title or "").strip() if session_obj else ""
+        is_generic_title = (
+            not current_title
+            or current_title in ("New Conversation", "Untitled Conversation")
+            or current_title.endswith("New Conversation")
+            or current_title.startswith("[")
+        )
+        if is_generic_title and session_obj:
+            smart_title = self.generate_smart_title(content)
+            if smart_title and smart_title != "New Conversation":
+                session_obj.title = smart_title
+                current_title = smart_title
+
         await self.session.commit()
 
         return {
             "session_id": str(session_id),
+            "session_title": current_title,
             "user_message": user_msg.to_dict(),
             "assistant_message": assistant_msg.to_dict(),
         }

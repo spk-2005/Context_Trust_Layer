@@ -106,7 +106,19 @@ class ChatRepository(BaseRepository[ChatSession]):
         await self.session.refresh(message)
         return message
 
+    async def update_session_title(self, session_id: uuid.UUID, title: str) -> ChatSession | None:
+        stmt = select(ChatSession).where(ChatSession.id == session_id).limit(1)
+        result = await self.session.execute(stmt)
+        session_obj = result.scalar_one_or_none()
+        if not session_obj:
+            return None
+        session_obj.title = title.strip()
+        await self.session.flush()
+        await self.session.refresh(session_obj)
+        return session_obj
+
     async def delete_session(self, session_id: uuid.UUID) -> bool:
         stmt = delete(ChatSession).where(ChatSession.id == session_id)
         result = await self.session.execute(stmt)
         return result.rowcount > 0
+
