@@ -1333,3 +1333,46 @@ async def delete_or_decommission_document(
             "conflicts_resolved": len(conflicts),
         }
 
+
+@router.post("/{document_id}/reprocess", status_code=status.HTTP_200_OK)
+async def reprocess_document_claims(
+    document_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+):
+    """Re-extracts atomic claims, runs 10-gate validation, and recalculates trust and conflict scores via 11-Layer Unified Extraction Pipeline."""
+    from app.db.repositories.document_repository import DocumentRepository
+    from app.services.claim_extraction_service import ClaimExtractionService
+    from app.services.conflict_service import ConflictService
+    from app.services.trust_service import TrustService
+    from app.db.repositories.claim_repository import ClaimRepository
+
+    doc_repo = DocumentRepository(db)
+    doc = await doc_repo.get_by_id(document_id)
+    if not doc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Document {document_id} not found.")
+
+    version = await doc_repo.get_current_version(document_id)
+    if not version:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Current version for document {document_id} not found.")
+
+    extraction_service = ClaimExtractionService(db)
+    conflict_service = ConflictService(db)
+    trust_service = TrustService(db)
+    claim_repo = ClaimRepository(db)
+
+    claims = await extraction_service.extract_claims_from_version(version.id)
+    await conflict_service.run_conflict_detection_for_version(version.id)
+    await trust_service.calculate_for_version(version.id)
+    await db.commit()
+
+    persisted_claims = await claim_repo.list_by_version(version.id)
+    return {
+        "status": "success",
+        "document_id": str(document_id),
+        "document_title": doc.title,
+        "version_id": str(version.id),
+        "claims_count": len(persisted_claims),
+        "message": f"Document '{doc.title}' successfully reprocessed via 11-Layer Architecture. {len(persisted_claims)} certified claims extracted.",
+    }
+
+

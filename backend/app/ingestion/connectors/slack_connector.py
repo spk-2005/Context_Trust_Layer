@@ -927,6 +927,8 @@ class SlackConnector(BaseConnector):
                     "latest_ts": latest_ts,
                     "permalink": permalink,
                     "files": all_file_names,
+                    "source_family": "conversational",
+                    "source_intent": "operational_data",
                 },
             )
 
@@ -939,13 +941,18 @@ class SlackConnector(BaseConnector):
                     for fdoc in m.get("extracted_files", []):
                         f_id = fdoc.get("file_id") or uuid.uuid4().hex[:8]
                         f_title = fdoc.get("title") or fdoc.get("name")
+                        fname = fdoc.get("name") or f"{f_title}"
+                        lower_name = fname.lower()
+                        is_policy = any(k in lower_name for k in ("policy", "handbook", "standard", "sop", "guideline", "refund", "terms", "compliance"))
+                        f_doc_type = "policy" if is_policy else "document"
+
                         file_doc_create = DocumentCreate(
                             organization_id=self.organization_id,
                             source_id=self.source_id,
                             owner_id=self.owner_id,
                             folder_id=docs_folder.id if docs_folder else None,
                             title=f"{f_title}",
-                            document_type="document",
+                            document_type=f_doc_type,
                             content=fdoc.get("content", ""),
                             external_id=f"slack://{meta['channel_id']}/file/{f_id}",
                             metadata={
@@ -954,12 +961,14 @@ class SlackConnector(BaseConnector):
                                 "domain": "General",
                                 "channel": ch_name,
                                 "channel_id": meta["channel_id"],
-                                "filename": fdoc.get("name"),
+                                "filename": fname,
                                 "file_id": f_id,
                                 "filetype": fdoc.get("filetype", ""),
                                 "permalink": fdoc.get("permalink", ""),
                                 "thread_ts": th_ts,
                                 "parent_thread_doc_id": str(doc.id) if doc else None,
+                                "source_family": "document",
+                                "source_intent": "governance_policy" if is_policy else "operational_data",
                             },
                         )
                         if fdoc.get("content"):

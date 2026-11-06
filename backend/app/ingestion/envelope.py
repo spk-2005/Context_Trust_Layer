@@ -167,8 +167,9 @@ class EnvelopeFactory:
         document_type: str = "policy",
         source_intent: SourceIntent | None = None,
         access_scope: dict[str, Any] | None = None,
+        source_family: SourceFamily | None = None,
     ) -> CanonicalSourceEnvelope:
-        """Creates a canonical envelope for manual file uploads."""
+        """Creates a canonical envelope for manual file uploads and connector-ingested documents."""
         content_hash = cls.calculate_hash(raw_bytes if raw_bytes else parsed_content)
         
         ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else "txt"
@@ -190,6 +191,10 @@ class EnvelopeFactory:
             SourceIntent.GOVERNANCE_POLICY if document_type == "policy" else SourceIntent.OPERATIONAL_DATA
         )
 
+        resolved_family = source_family or (
+            SourceFamily.DOCUMENT if native_format not in ("json", "csv") else SourceFamily.STRUCTURED
+        )
+
         deterministic_seed = f"{organization_id}:{source_id}:file://{filename}:{content_hash}"
         envelope_id = uuid.uuid5(uuid.NAMESPACE_URL, deterministic_seed)
 
@@ -198,7 +203,7 @@ class EnvelopeFactory:
             organization_id=organization_id,
             source_id=source_id,
             asset_id=f"file://{filename}",
-            source_family=SourceFamily.DOCUMENT if native_format not in ("json", "csv") else SourceFamily.STRUCTURED,
+            source_family=resolved_family,
             source_intent=intent,
             native_format=native_format,
             source_version="1",
