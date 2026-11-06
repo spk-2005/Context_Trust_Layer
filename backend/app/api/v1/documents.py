@@ -9,7 +9,7 @@ from pathlib import Path
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile, status
 from fastapi.responses import Response
-from sqlalchemy import or_, select, update
+from sqlalchemy import func, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -164,6 +164,83 @@ async def _ensure_folder_exists(
 
     fresh_inbox = await folder_service.ensure_system_inbox(organization_id)
     return fresh_inbox.id
+
+
+async def _resolve_folder_path(
+    db: AsyncSession,
+    organization_id: uuid.UUID,
+    relative_path: str | None,
+    base_folder_id: uuid.UUID | None = None,
+    default_title: str = "",
+    doc_type: str = "",
+) -> uuid.UUID:
+    """
+    Given a relative path (e.g. from webkitRelativePath, like 'Legal/Contracts/nda.pdf'),
+    traverses or creates the folder hierarchy in the organization and returns the UUID
+    of the directory holding the file.
+    If relative_path has no directories (e.g. 'nda.pdf' or None), delegates to _ensure_folder_exists.
+    """
+    if not relative_path or not relative_path.strip():
+        return await _ensure_folder_exists(db, organization_id, base_folder_id, title=default_title, doc_type=doc_type)
+
+    normalized_path = relative_path.replace("\\", "/").strip().strip("/")
+    parts = [p.strip() for p in normalized_path.split("/") if p.strip()]
+
+    # If the path has multiple parts, the last part is the file name
+    if len(parts) > 1:
+        folder_names = parts[:-1]
+    else:
+        return await _ensure_folder_exists(db, organization_id, base_folder_id, title=default_title, doc_type=doc_type)
+
+    current_parent_id = None
+    current_depth = 0
+    if base_folder_id:
+        res = await db.execute(
+            select(Folder).where(
+                Folder.id == base_folder_id,
+                Folder.organization_id == organization_id,
+            )
+        )
+        base_f = res.scalar_one_or_none()
+        if base_f:
+            current_parent_id = base_f.id
+            current_depth = min(base_f.depth + 1, 6)
+
+    for f_name in folder_names:
+        stmt = select(Folder).where(
+            Folder.organization_id == organization_id,
+            func.lower(Folder.name) == f_name.lower(),
+        )
+        if current_parent_id is None:
+            stmt = stmt.where(Folder.parent_id.is_(None))
+        else:
+            stmt = stmt.where(Folder.parent_id == current_parent_id)
+
+        res = await db.execute(stmt)
+        existing = res.scalar_one_or_none()
+        if existing:
+            current_parent_id = existing.id
+            current_depth = min(existing.depth + 1, 6)
+        else:
+            new_id = uuid.uuid4()
+            depth_to_set = min(current_depth, 6)
+            new_f = Folder(
+                id=new_id,
+                organization_id=organization_id,
+                parent_id=current_parent_id,
+                name=f_name,
+                depth=depth_to_set,
+                is_system=False,
+                folder_type="custom",
+                icon="folder",
+                color="#3B82F6",
+            )
+            db.add(new_f)
+            await db.flush()
+            current_parent_id = new_id
+            current_depth = min(depth_to_set + 1, 6)
+
+    return current_parent_id
 
 
 def _persist_uploaded_file_bytes(doc_id: uuid.UUID, filename: str, raw_bytes: bytes) -> None:
@@ -374,6 +451,7 @@ async def create_document(
 )
 async def upload_document_file(
     file: UploadFile = File(...),
+    relative_path: str | None = Form(None),
     organization_id: uuid.UUID = Form(uuid.UUID("11111111-1111-1111-1111-111111111111")),
     source_id: uuid.UUID = Form(uuid.UUID("44444444-4444-4444-4444-444444444444")),
     folder_id: uuid.UUID | None = Form(None),
@@ -389,10 +467,15 @@ async def upload_document_file(
     filename = file.filename or "uploaded_doc.txt"
     doc_title = title or filename.rsplit(".", 1)[0].replace("-", " ").replace("_", " ").title()
     doc_title = doc_title.replace("\x00", "").strip()
-    doc_external_id = (external_id or f"file://{filename}").replace("\x00", "").strip()
+    doc_external_id = (external_id or f"file://{relative_path or filename}").replace("\x00", "").strip()
 
-    resolved_folder_id = await _ensure_folder_exists(
-        db, organization_id, folder_id, title=doc_title, doc_type=document_type
+    resolved_folder_id = await _resolve_folder_path(
+        db,
+        organization_id,
+        relative_path=relative_path,
+        base_folder_id=folder_id,
+        default_title=doc_title,
+        doc_type=document_type,
     )
 
     from app.ingestion.universal_file_parser import UniversalFileParser
@@ -474,6 +557,7 @@ async def upload_document_file(
 )
 async def upload_and_extract_document(
     file: UploadFile = File(...),
+    relative_path: str | None = Form(None),
     organization_id: uuid.UUID = Form(uuid.UUID("11111111-1111-1111-1111-111111111111")),
     source_id: uuid.UUID = Form(uuid.UUID("44444444-4444-4444-4444-444444444444")),
     folder_id: uuid.UUID | None = Form(None),
@@ -501,10 +585,15 @@ async def upload_and_extract_document(
     filename = file.filename or "uploaded_doc.txt"
     doc_title = title or filename.rsplit(".", 1)[0].replace("-", " ").replace("_", " ").title()
     doc_title = doc_title.replace("\x00", "").strip()
-    doc_external_id = (external_id or f"file://{filename}").replace("\x00", "").strip()
+    doc_external_id = (external_id or f"file://{relative_path or filename}").replace("\x00", "").strip()
 
-    resolved_folder_id = await _ensure_folder_exists(
-        db, organization_id, folder_id, title=doc_title, doc_type=document_type
+    resolved_folder_id = await _resolve_folder_path(
+        db,
+        organization_id,
+        relative_path=relative_path,
+        base_folder_id=folder_id,
+        default_title=doc_title,
+        doc_type=document_type,
     )
 
     from app.ingestion.universal_file_parser import UniversalFileParser
@@ -664,6 +753,10 @@ async def upload_and_extract_document(
     if layers_payload and layers_payload.get("layer_5_extraction", {}).get("claims_extracted", 0) > 0:
         total_claims_count = max(total_claims_count, layers_payload["layer_5_extraction"]["claims_extracted"])
 
+    folder_res = await db.execute(select(Folder).where(Folder.id == resolved_folder_id))
+    folder_obj = folder_res.scalar_one_or_none()
+    folder_name = folder_obj.name if folder_obj else "Inbox"
+
     return {
         "success": True,
         "document": doc_response.model_dump(),
@@ -672,7 +765,94 @@ async def upload_and_extract_document(
         "claims": [c.model_dump() for c in extracted_claims],
         "duration_ms": duration_ms,
         "layers": layers_payload,
-        "message": f"Successfully parsed '{filename}' across all 6 architecture layers ({total_claims_count} claims verified in {duration_ms}ms).",
+        "folder_id": str(resolved_folder_id),
+        "folder_name": folder_name,
+        "relative_path": relative_path or filename,
+        "message": f"Successfully parsed '{filename}' into folder '{folder_name}' ({total_claims_count} claims verified in {duration_ms}ms).",
+    }
+
+
+@router.post(
+    "/upload-folder",
+    status_code=status.HTTP_201_CREATED,
+)
+async def upload_folder_batch(
+    files: list[UploadFile] = File(...),
+    relative_paths_json: str | None = Form(None),
+    organization_id: uuid.UUID = Form(uuid.UUID("11111111-1111-1111-1111-111111111111")),
+    source_id: uuid.UUID = Form(uuid.UUID("44444444-4444-4444-4444-444444444444")),
+    folder_id: uuid.UUID | None = Form(None),
+    document_type: str = Form("policy"),
+    use_mock: bool = Form(False),
+    provider: str | None = Form(None),
+    source_family: str | None = Form(None),
+    source_intent: str | None = Form(None),
+    db: AsyncSession = Depends(get_db),
+):
+    """Batch upload an entire folder with multiple files preserving relative subfolder structure."""
+    import json
+    paths = []
+    if relative_paths_json:
+        try:
+            paths = json.loads(relative_paths_json)
+        except Exception:
+            paths = []
+
+    resolved_source_id = await _ensure_source_exists(db, organization_id, source_id)
+    results = []
+
+    for idx, file in enumerate(files):
+        rel_path = paths[idx] if idx < len(paths) else (file.filename or "doc.txt")
+        raw_bytes = await file.read()
+        filename = file.filename or "uploaded_doc.txt"
+        doc_title = filename.rsplit(".", 1)[0].replace("-", " ").replace("_", " ").title()
+
+        resolved_folder_id = await _resolve_folder_path(
+            db,
+            organization_id,
+            relative_path=rel_path,
+            base_folder_id=folder_id,
+            default_title=doc_title,
+            doc_type=document_type,
+        )
+
+        from app.ingestion.universal_file_parser import UniversalFileParser
+        content_text = UniversalFileParser.parse_file(filename=filename, raw_bytes=raw_bytes, doc_title=doc_title)
+
+        doc_in = DocumentCreate(
+            organization_id=organization_id,
+            source_id=resolved_source_id,
+            folder_id=resolved_folder_id,
+            title=doc_title,
+            content=content_text,
+            document_type=document_type.replace("\x00", ""),
+            external_id=f"file://{rel_path}",
+            metadata={"filename": filename, "relative_path": rel_path, "file_size": len(raw_bytes), "upload_mode": "batch_folder"},
+        )
+
+        ingestion_service = DocumentIngestionService(db)
+        document, version, normalized = await ingestion_service.ingest_document(doc_in)
+        await db.commit()
+        _persist_uploaded_file_bytes(document.id, filename, raw_bytes)
+
+        folder_res = await db.execute(select(Folder).where(Folder.id == resolved_folder_id))
+        f_obj = folder_res.scalar_one_or_none()
+
+        results.append({
+            "document_id": str(document.id),
+            "title": document.title,
+            "filename": filename,
+            "relative_path": rel_path,
+            "folder_id": str(resolved_folder_id),
+            "folder_name": f_obj.name if f_obj else "Inbox",
+            "size": len(raw_bytes),
+        })
+
+    return {
+        "success": True,
+        "total_files": len(files),
+        "documents": results,
+        "message": f"Successfully ingested {len(results)} file(s) maintaining subfolder structure.",
     }
 
 

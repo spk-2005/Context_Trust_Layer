@@ -119,7 +119,7 @@ export const DEFAULT_WORKSPACES = [
   { id: 'all', name: 'All Workspaces (Unified)', icon: '🌐', domain: 'global', description: 'Unified enterprise knowledge across all departments and systems' },
 ];
 
-export const VAULT_SUBTABS = ['documents', 'connectors', 'conflicts', 'claims', 'dag'];
+export const VAULT_SUBTABS = ['claims', 'dag'];
 export const CURATOR_SUBVIEWS = ['health', 'conflicts', 'drift'];
 export const DOC_EXPLORER_VIEWS = ['folders', 'documents', 'ingest', 'connectors', 'connect', 'claims'];
 export const MCP_SUBVIEWS = ['tester', 'configs', 'sdks', 'schemas'];
@@ -131,7 +131,7 @@ export const parseUrlState = (workspacesList) => {
   if (typeof window === 'undefined') {
     return {
       tab: 'home',
-      vaultSubTab: 'documents',
+      vaultSubTab: 'claims',
       docId: null,
       claimId: null,
       lineageSection: 'summary',
@@ -150,7 +150,7 @@ export const parseUrlState = (workspacesList) => {
   const params = new URLSearchParams(window.location.search);
 
   let tab = 'home';
-  let vaultSubTab = 'documents';
+  let vaultSubTab = 'claims';
   let curatorSubView = 'health';
   let docView = 'folders';
   let mcpSubView = 'tester';
@@ -165,7 +165,7 @@ export const parseUrlState = (workspacesList) => {
     if (subCandidate && VAULT_SUBTABS.includes(subCandidate)) {
       vaultSubTab = subCandidate;
     } else {
-      vaultSubTab = 'documents';
+      vaultSubTab = 'claims';
     }
   }
   // 2. Curator routing
@@ -314,7 +314,7 @@ export const computeUrlFromState = ({
       pathname = '/live-ingestion';
       break;
     case 'visual_lineage':
-      if (vaultSubTab && vaultSubTab !== 'documents') {
+      if (vaultSubTab && vaultSubTab !== 'claims') {
         pathname = `/vault/${vaultSubTab}`;
       } else {
         pathname = '/vault';
@@ -607,7 +607,7 @@ export default function App() {
   const isPopStateRef = useRef(false);
   const [activeTab, setActiveTab] = useState(() => initialUrlState?.tab || 'home');
   const [expandedMenu, setExpandedMenu] = useState(() => initialUrlState?.tab || 'home');
-  const [vaultSubTab, setVaultSubTab] = useState(() => initialUrlState?.vaultSubTab || 'documents');
+  const [vaultSubTab, setVaultSubTab] = useState(() => initialUrlState?.vaultSubTab || 'claims');
   const [openSidebarMenu, setOpenSidebarMenu] = useState(() => {
     if (initialUrlState?.tab === 'visual_lineage') return 'vault';
     if (initialUrlState?.tab === 'context_curator' || initialUrlState?.tab === 'conflicts') return 'curator';
@@ -3496,7 +3496,7 @@ export default function App() {
                 <div className={`sidebar-accordion-wrapper ${openSidebarMenu === 'explorer' ? 'expanded' : ''}`}>
                   <div className="sidebar-accordion-inner">
                     {[
-                      { id: 'folders', label: 'Folders & Structure', count: displayedDbDocuments.length },
+                      { id: 'folders', label: 'File Browser', count: displayedDbDocuments.length },
                       { id: 'ingest', label: 'Upload & Ingest', count: null },
                       { id: 'connectors', label: 'Live Connectors', count: displayedDataSources.length }
                     ].map(sub => {
@@ -3592,10 +3592,28 @@ export default function App() {
               {isSidebarOpen && (
                 <div className={`sidebar-accordion-wrapper ${openSidebarMenu === 'vault' ? 'expanded' : ''}`}>
                   <div className="sidebar-accordion-inner">
+                    {/* Bridge button to Document Explorer */}
+                    <button
+                      type="button"
+                      onClick={() => { setActiveTab('ingestion'); setDocExplorerView('folders'); setOpenSidebarMenu('explorer'); }}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: '6px',
+                        padding: '5px 8px', borderRadius: '6px', border: '1px solid #E2E8F0',
+                        background: 'transparent', color: '#94A3B8', fontSize: '0.72rem',
+                        fontWeight: 600, cursor: 'pointer', width: '100%', marginBottom: '4px',
+                        transition: 'all 0.15s ease'
+                      }}
+                      onMouseEnter={e => { e.currentTarget.style.background = '#F8FAFC'; e.currentTarget.style.color = '#475569'; e.currentTarget.style.borderColor = '#CBD5E1'; }}
+                      onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#94A3B8'; e.currentTarget.style.borderColor = '#E2E8F0'; }}
+                      title="Open folder browser in Document Explorer"
+                    >
+                      <FolderTree size={11} strokeWidth={1.75} />
+                      <span>Open File Browser</span>
+                      <span style={{ marginLeft: 'auto', opacity: 0.5, fontSize: '0.65rem' }}>→</span>
+                    </button>
                     {[
-                      { id: 'documents', label: 'Folders & Documents', count: displayedDbDocuments.length },
-                      { id: 'dag', label: 'Full Canvas DAG', count: null },
-                      { id: 'claims', label: 'Atomic Claims', count: dbClaims.length }
+                      { id: 'claims', label: 'Atomic Claims', count: dbClaims.length },
+                      { id: 'dag', label: 'Full Canvas DAG', count: null }
                     ].map(sub => {
                       const isSubActive = activeTab === 'visual_lineage' && vaultSubTab === sub.id;
                       return (
@@ -5445,7 +5463,7 @@ export default function App() {
             }}>
               <div>
                 <h1 className="tab-main-heading" style={{ margin: 0, textAlign: 'left', fontSize: '1.45rem' }}>
-                  {(docExplorerView === 'folders' || docExplorerView === 'documents') && 'Folders & Structure'}
+                  {(docExplorerView === 'folders' || docExplorerView === 'documents') && 'File Browser & Organization'}
                   {docExplorerView === 'ingest' && 'Upload & Ingestion Studio'}
                   {docExplorerView === 'connectors' && 'Live Connectors'}
                   {docExplorerView === 'connect' && 'Connect Enterprise Data Source'}
@@ -7730,44 +7748,24 @@ export default function App() {
             />
           ) : (
           <div>
-            {vaultSubTab === 'documents' && !selectedLineageAssetId ? (
-              <DocumentWorkspaceExplorer
-                activeOrg={activeOrg}
-                token={authToken}
-                user={authUser}
-                showToast={showToast}
-                readOnly={true}
-                onInspectDocument={(doc) => setInspectorState({
-                  isOpen: true,
-                  assetType: 'document',
-                  assetId: doc.id,
-                  assetTitle: doc.title
-                })}
-                onViewClaims={(doc, section = 'summary') => {
-                  setSelectedLineageAssetId(doc.id);
-                  setVaultSubTab('documents');
-                  if (section) setLineageSection(section);
-                }}
-              />
-            ) : (
-              <VisualLineageGraph
-                activeOrg={activeOrg}
-                activeWorkspace={activeWorkspace}
-                showToast={showToast}
-                vaultSubTab={vaultSubTab}
-                onVaultSubTabChange={(sub) => {
-                  setVaultSubTab(sub);
-                  setSelectedLineageAssetId(null);
-                  setSelectedLineageClaimId(null);
-                }}
-                initialAssetId={selectedLineageAssetId}
-                onAssetChange={setSelectedLineageAssetId}
-                initialClaimId={selectedLineageClaimId}
-                onClaimChange={setSelectedLineageClaimId}
-                initialSection={lineageSection}
-                onSectionChange={setLineageSection}
-              />
-            )}
+            <VisualLineageGraph
+              activeOrg={activeOrg}
+              activeWorkspace={activeWorkspace}
+              showToast={showToast}
+              vaultSubTab={vaultSubTab}
+              onVaultSubTabChange={(sub) => {
+                setVaultSubTab(sub);
+                setSelectedLineageAssetId(null);
+                setSelectedLineageClaimId(null);
+              }}
+              initialAssetId={selectedLineageAssetId}
+              onAssetChange={setSelectedLineageAssetId}
+              initialClaimId={selectedLineageClaimId}
+              onClaimChange={setSelectedLineageClaimId}
+              initialSection={lineageSection}
+              onSectionChange={setLineageSection}
+              onOpenFileBrowser={() => { setActiveTab('ingestion'); setDocExplorerView('folders'); }}
+            />
           </div>
           )
         )}

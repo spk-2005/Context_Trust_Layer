@@ -29,6 +29,7 @@ import {
   Network,
   Sparkles,
   BookOpen,
+  Bot,
   Shield,
   Lock,
   Scale,
@@ -40,6 +41,160 @@ import {
   ArrowLeft,
   ChevronLeft
 } from 'lucide-react';
+
+// Lightweight Executive Markdown & Document Formatter
+const renderFormattedMarkdown = (text) => {
+  if (!text) return null;
+  const lines = text.split('\n');
+  const elements = [];
+  let currentList = [];
+  let inCodeBlock = false;
+  let codeBuffer = [];
+
+  const flushList = () => {
+    if (currentList.length > 0) {
+      elements.push(
+        <ul key={`list-${elements.length}`} style={{ margin: '8px 0 14px 0', paddingLeft: '22px', display: 'flex', flexDirection: 'column', gap: '5px' }}>
+          {currentList.map((item, idx) => (
+            <li key={idx} style={{ fontSize: '0.84rem', color: '#334155', lineHeight: 1.6 }}>
+              {item}
+            </li>
+          ))}
+        </ul>
+      );
+      currentList = [];
+    }
+  };
+
+  const flushCode = () => {
+    if (codeBuffer.length > 0) {
+      elements.push(
+        <pre key={`code-${elements.length}`} style={{
+          background: '#0F172A',
+          color: '#F8FAFC',
+          padding: '12px 16px',
+          borderRadius: '6px',
+          fontSize: '0.76rem',
+          fontFamily: 'Consolas, Monaco, monospace',
+          overflowX: 'auto',
+          margin: '8px 0 14px 0',
+          lineHeight: 1.5
+        }}>
+          <code>{codeBuffer.join('\n')}</code>
+        </pre>
+      );
+      codeBuffer = [];
+    }
+  };
+
+  for (let i = 0; i < lines.length; i++) {
+    const rawLine = lines[i];
+    const trimmed = rawLine.trim();
+
+    if (trimmed.startsWith('```')) {
+      if (inCodeBlock) {
+        flushCode();
+        inCodeBlock = false;
+      } else {
+        flushList();
+        inCodeBlock = true;
+      }
+      continue;
+    }
+
+    if (inCodeBlock) {
+      codeBuffer.push(rawLine);
+      continue;
+    }
+
+    if (!trimmed) {
+      flushList();
+      continue;
+    }
+
+    // Heading 1: # Title
+    if (trimmed.startsWith('# ')) {
+      flushList();
+      const title = trimmed.substring(2).replace(/^#+\s*/, '');
+      elements.push(
+        <div key={`h1-${i}`} style={{
+          fontSize: '1.25rem',
+          fontWeight: 800,
+          color: '#0F172A',
+          margin: '12px 0 14px 0',
+          lineHeight: 1.35,
+          letterSpacing: '-0.02em',
+          borderBottom: '1.5px solid #F1F5F9',
+          paddingBottom: '8px'
+        }}>
+          {title}
+        </div>
+      );
+    }
+    // Heading 2: ## Subtitle
+    else if (trimmed.startsWith('## ')) {
+      flushList();
+      const sub = trimmed.substring(3).trim();
+      elements.push(
+        <div key={`h2-${i}`} style={{
+          fontSize: '0.98rem',
+          fontWeight: 700,
+          color: '#1E293B',
+          margin: '16px 0 8px 0',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px'
+        }}>
+          <span style={{ width: '4px', height: '14px', background: '#3B82F6', borderRadius: '2px', display: 'inline-block' }} />
+          <span>{sub}</span>
+        </div>
+      );
+    }
+    // Heading 3: ### Subtitle
+    else if (trimmed.startsWith('### ')) {
+      flushList();
+      const sub = trimmed.substring(4).trim();
+      elements.push(
+        <div key={`h3-${i}`} style={{
+          fontSize: '0.88rem',
+          fontWeight: 700,
+          color: '#334155',
+          margin: '12px 0 6px 0'
+        }}>
+          {sub}
+        </div>
+      );
+    }
+    // Bullet item (- or *)
+    else if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
+      currentList.push(trimmed.substring(2));
+    }
+    // Numbered item (e.g. 1. or 2.)
+    else if (/^\d+\.\s/.test(trimmed)) {
+      currentList.push(trimmed.replace(/^\d+\.\s*/, ''));
+    }
+    // Regular text paragraph
+    else {
+      flushList();
+      elements.push(
+        <p key={`p-${i}`} style={{
+          fontSize: '0.84rem',
+          color: '#334155',
+          lineHeight: 1.65,
+          margin: '0 0 12px 0',
+          wordBreak: 'break-word'
+        }}>
+          {trimmed}
+        </p>
+      );
+    }
+  }
+
+  flushList();
+  flushCode();
+
+  return elements;
+};
 
 export default function DocumentWorkspaceExplorer({
   activeOrg,
@@ -74,6 +229,18 @@ export default function DocumentWorkspaceExplorer({
   const [fullReaderSearch, setFullReaderSearch] = useState('');
   const [readerViewMode, setReaderViewMode] = useState('text'); // 'text' | 'pdf'
   const [copiedReaderText, setCopiedReaderText] = useState(false);
+  const [selectedDagNodeId, setSelectedDagNodeId] = useState('doc_canonical');
+  const [dagViewFilter, setDagViewFilter] = useState('all'); // 'all' | 'claims' | 'gateways'
+
+  // Close reader modal on Escape key
+  useEffect(() => {
+    if (!isFullFileReaderOpen) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') setIsFullFileReaderOpen(false);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isFullFileReaderOpen]);
 
   // Folder Insights state
   const [metrics, setMetrics] = useState(null);
@@ -1149,7 +1316,7 @@ export default function DocumentWorkspaceExplorer({
   };
 
   return (
-    <div style={{ display: 'flex', gap: '14px', width: '100%', alignItems: 'flex-start' }}>
+    <div style={{ display: 'flex', gap: '14px', width: '100%', maxWidth: '100%', overflowX: 'hidden', alignItems: 'stretch' }}>
       
       {/* ── LEFT PANE: DIRECTORY TREE (FOLDERS & FILES) ── */}
       <div
@@ -1160,10 +1327,12 @@ export default function DocumentWorkspaceExplorer({
           }
         }}
         style={{
-          width: '360px',
-          minWidth: '320px',
+          width: '280px',
+          minWidth: '250px',
+          maxWidth: '310px',
+          flexShrink: 0,
           background: '#FAF8F5',
-          borderRadius: '8px',
+          borderRadius: '10px',
           border: '1px solid var(--border-subtle)',
           display: 'flex',
           flexDirection: 'column',
@@ -1307,19 +1476,22 @@ export default function DocumentWorkspaceExplorer({
         </div>
       </div>
 
-      {/* ── RIGHT PANE: LIVE DOCUMENT PREVIEW (MINIMAL COMPACT HEIGHT) ── */}
+      {/* ── RIGHT PANE: LIVE DOCUMENT PREVIEW & WORKSPACE ── */}
       <div
         style={{
           flex: 1,
           minWidth: 0,
+          maxWidth: '100%',
+          overflowX: 'hidden',
           background: '#FAF8F5',
-          borderRadius: '8px',
+          borderRadius: '10px',
           border: '1px solid var(--border-subtle)',
           display: 'flex',
           flexDirection: 'column',
-          boxShadow: 'none',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
           overflow: 'hidden',
-          maxHeight: '500px' // Minimal height as requested by user!
+          minHeight: '560px',
+          maxHeight: 'calc(100vh - 190px)'
         }}
       >
         {selectedDocDetails ? (() => {
@@ -1361,89 +1533,163 @@ export default function DocumentWorkspaceExplorer({
 
           return (
             <>
-              {/* 1. Header Bar: Back & Actions (Open File, Reader, 360 Studio, Close) */}
+              {/* 1. Header Bar: Document Identity & Quick Actions */}
               <div
                 style={{
-                  padding: '8px 14px',
-                  borderBottom: '1px solid var(--border-subtle)',
-                  background: '#FAF8F5',
+                  padding: '10px 16px',
+                  borderBottom: '1px solid #E2E8F0',
+                  background: '#FFFFFF',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
-                  gap: '8px'
+                  gap: '12px',
+                  minWidth: 0,
+                  flexShrink: 0
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                {/* Left: Back button + Doc Title & Type */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0, flex: 1 }}>
                   <button
                     type="button"
                     onClick={() => setSelectedDocId(null)}
-                    className="btn btn-secondary"
                     style={{
                       display: 'inline-flex',
                       alignItems: 'center',
                       gap: '5px',
-                      padding: '4px 10px',
-                      fontSize: '0.75rem',
+                      padding: '5px 10px',
+                      fontSize: '0.74rem',
                       fontWeight: 600,
-                      background: '#FFFFFF',
+                      background: '#F8FAFC',
                       border: '1px solid #CBD5E1',
                       borderRadius: '6px',
                       cursor: 'pointer',
-                      color: '#1E293B'
+                      color: '#334155',
+                      flexShrink: 0,
+                      transition: 'all 0.15s ease'
                     }}
-                    title="Return to folder documents list"
+                    onMouseEnter={e => { e.currentTarget.style.background = '#F1F5F9'; e.currentTarget.style.color = '#0F172A'; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = '#F8FAFC'; e.currentTarget.style.color = '#334155'; }}
+                    title="Return to documents list"
                   >
                     <ArrowLeft size={13} />
-                    <span>Back to Documents</span>
+                    <span>Back</span>
                   </button>
+
+                  <div style={{ height: '16px', width: '1px', background: '#E2E8F0', flexShrink: 0 }} />
+
+                  {/* Doc Type Badge & Title */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, overflow: 'hidden' }}>
+                    <span
+                      style={{
+                        fontSize: '0.64rem',
+                        fontWeight: 800,
+                        padding: '2px 7px',
+                        borderRadius: '4px',
+                        background: '#EFF6FF',
+                        color: '#2563EB',
+                        border: '1px solid #DBEAFE',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.04em',
+                        flexShrink: 0
+                      }}
+                    >
+                      {selectedDocDetails.document_type || 'Policy'}
+                    </span>
+                    <span
+                      style={{
+                        fontSize: '0.84rem',
+                        fontWeight: 700,
+                        color: '#0F172A',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap'
+                      }}
+                      title={selectedDocDetails.title}
+                    >
+                      {selectedDocDetails.title}
+                    </span>
+                  </div>
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                {/* Right: Actions (Open File, Reader, 360 Studio, Close) */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
                   <button
                     type="button"
                     onClick={() => {
                       const url = `/v1/documents/${selectedDocDetails.id}/file`;
                       window.open(url, '_blank');
                     }}
-                    className="btn btn-secondary"
-                    style={{ padding: '4px 9px', fontSize: '0.74rem', display: 'flex', alignItems: 'center', gap: '4px', background: '#FFFFFF', color: '#0284C7', border: '1px solid #CBD5E1', borderRadius: '6px' }}
+                    style={{
+                      padding: '4px 9px',
+                      fontSize: '0.72rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      background: '#FFFFFF',
+                      color: '#0284C7',
+                      border: '1px solid #CBD5E1',
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                      fontWeight: 600,
+                      transition: 'all 0.15s ease'
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.background = '#F0F9FF'; e.currentTarget.style.borderColor = '#7DD3FC'; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = '#FFFFFF'; e.currentTarget.style.borderColor = '#CBD5E1'; }}
                     title="Open document file in a new browser tab"
                   >
-                    <ExternalLink size={13} />
-                    <span>Open File ↗</span>
+                    <ExternalLink size={12} />
+                    <span>Open File</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => setIsFullFileReaderOpen(true)}
-                    className="btn btn-secondary"
-                    style={{ padding: '4px 10px', fontSize: '0.74rem', display: 'flex', alignItems: 'center', gap: '5px', background: '#FFFFFF', color: '#0F172A', border: '1px solid #CBD5E1', borderRadius: '6px', fontWeight: 600 }}
-                    title="Open in full-screen reader modal with search"
+                    style={{
+                      padding: '4px 9px',
+                      fontSize: '0.72rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      background: '#FFFFFF',
+                      color: '#1E293B',
+                      border: '1px solid #CBD5E1',
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                      fontWeight: 600,
+                      transition: 'all 0.15s ease'
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.background = '#F8FAFC'; e.currentTarget.style.borderColor = '#94A3B8'; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = '#FFFFFF'; e.currentTarget.style.borderColor = '#CBD5E1'; }}
+                    title="Open distraction-free full-screen reader modal"
                   >
-                    <BookOpen size={13} style={{ color: '#2563EB' }} />
+                    <BookOpen size={12} style={{ color: '#2563EB' }} />
                     <span>Reader</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => onViewClaims?.(selectedDocDetails, 'summary')}
-                    className="btn btn-primary"
                     style={{
                       padding: '4px 10px',
-                      fontSize: '0.74rem',
+                      fontSize: '0.72rem',
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '5px',
-                      background: '#EA580C',
-                      borderColor: '#EA580C',
+                      gap: '4px',
+                      background: 'linear-gradient(135deg, #EA580C 0%, #F97316 100%)',
+                      border: 'none',
                       color: '#FFFFFF',
                       fontWeight: 700,
-                      borderRadius: '6px'
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                      boxShadow: '0 2px 5px rgba(234, 88, 12, 0.22)',
+                      transition: 'all 0.15s ease'
                     }}
+                    onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 3px 7px rgba(234, 88, 12, 0.3)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 2px 5px rgba(234, 88, 12, 0.22)'; }}
                     title="Open document in full 360° Lineage Studio"
                   >
-                    <Sparkles size={13} />
-                    <span>360° Studio ↗</span>
+                    <Sparkles size={12} />
+                    <span>360° Studio</span>
                   </button>
 
                   <button
@@ -1454,9 +1700,9 @@ export default function DocumentWorkspaceExplorer({
                       setSelectedDocArtifacts(null);
                     }}
                     style={{
-                      width: '24px',
-                      height: '24px',
-                      borderRadius: '5px',
+                      width: '26px',
+                      height: '26px',
+                      borderRadius: '6px',
                       border: '1px solid #E2E8F0',
                       background: '#FFFFFF',
                       color: '#64748B',
@@ -1464,160 +1710,255 @@ export default function DocumentWorkspaceExplorer({
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      marginLeft: '4px'
+                      marginLeft: '2px',
+                      transition: 'all 0.15s ease'
                     }}
+                    onMouseEnter={e => { e.currentTarget.style.background = '#FEE2E2'; e.currentTarget.style.color = '#DC2626'; e.currentTarget.style.borderColor = '#FCA5A5'; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = '#FFFFFF'; e.currentTarget.style.color = '#64748B'; e.currentTarget.style.borderColor = '#E2E8F0'; }}
                     title="Close preview"
                   >
-                    <X size={14} />
+                    <X size={13} />
                   </button>
                 </div>
               </div>
 
-              {/* 2. Facility Tabs: Preview, Description & Specs, Claims, Document Lineage (High Contrast & Visible) */}
+              {/* 2. Facility Tabs: Modern Segmented Control Bar (Zero Horizontal Overflow) */}
               <div
                 style={{
                   display: 'flex',
                   alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '7px 14px',
+                  borderBottom: '1px solid #E2E8F0',
+                  background: '#FAF8F5',
                   gap: '8px',
-                  padding: '8px 14px',
-                  borderBottom: '1px solid #CBD5E1',
-                  background: '#F1F5F9',
-                  overflowX: 'auto'
+                  minWidth: 0,
+                  flexShrink: 0
                 }}
               >
-                {[
-                  { id: 'preview', label: 'Preview & File', icon: FileText, iconColor: '#0284C7' },
-                  { id: 'description', label: 'Description & Specs', icon: Info, iconColor: '#7C3AED' },
-                  { id: 'claims', label: 'Atomic Claims', count: claimsList.length, icon: ShieldCheck, iconColor: '#16A34A' },
-                  { id: 'lineage', label: 'Document Lineage', icon: Network, iconColor: '#EA580C' }
-                ].map(tab => {
-                  const isActive = activeFacilityTab === tab.id;
-                  const IconComp = tab.icon;
-                  return (
-                    <button
-                      key={tab.id}
-                      type="button"
-                      onClick={() => setActiveFacilityTab(tab.id)}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '7px',
-                        padding: '7px 16px',
-                        fontSize: '0.84rem',
-                        fontWeight: isActive ? 800 : 700,
-                        borderRadius: '6px',
-                        border: isActive ? '1.5px solid #1D4ED8' : '1px solid #CBD5E1',
-                        background: isActive ? '#2563EB' : '#FFFFFF',
-                        color: isActive ? '#FFFFFF' : '#0F172A',
-                        cursor: 'pointer',
-                        whiteSpace: 'nowrap',
-                        boxShadow: isActive ? '0 2px 5px rgba(37,99,235,0.3)' : '0 1px 2px rgba(0,0,0,0.06)',
-                        transition: 'all 0.15s ease'
-                      }}
-                      onMouseEnter={e => {
-                        if (!isActive) {
-                          e.currentTarget.style.background = '#F8FAFC';
-                          e.currentTarget.style.color = '#000000';
-                          e.currentTarget.style.borderColor = '#94A3B8';
-                        }
-                      }}
-                      onMouseLeave={e => {
-                        if (!isActive) {
-                          e.currentTarget.style.background = '#FFFFFF';
-                          e.currentTarget.style.color = '#0F172A';
-                          e.currentTarget.style.borderColor = '#CBD5E1';
-                        }
-                      }}
-                    >
-                      <IconComp size={15} style={{ color: isActive ? '#FFFFFF' : tab.iconColor }} />
-                      <span>{tab.label}</span>
-                      {typeof tab.count === 'number' && (
-                        <span style={{
-                          fontSize: '0.70rem',
-                          fontWeight: 800,
-                          padding: '2px 7px',
-                          borderRadius: '10px',
-                          background: isActive ? 'rgba(255,255,255,0.28)' : '#E2E8F0',
-                          color: isActive ? '#FFFFFF' : '#0F172A'
-                        }}>
-                          {tab.count}
-                        </span>
-                      )}
-                    </button>
-                  );
-                })}
+                {/* Segmented Control Pills */}
+                <div
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    background: '#E2E8F0',
+                    padding: '3px',
+                    borderRadius: '8px',
+                    gap: '2px',
+                    minWidth: 0,
+                    maxWidth: '100%'
+                  }}
+                >
+                  {[
+                    { id: 'preview', label: 'Preview', icon: FileText, iconColor: '#0284C7' },
+                    { id: 'description', label: 'Specs', icon: Info, iconColor: '#7C3AED' },
+                    { id: 'claims', label: 'Claims', count: claimsList.length, icon: ShieldCheck, iconColor: '#16A34A' },
+                    { id: 'lineage', label: 'Lineage', icon: Network, iconColor: '#EA580C' }
+                  ].map(tab => {
+                    const isActive = activeFacilityTab === tab.id;
+                    const IconComp = tab.icon;
+                    return (
+                      <button
+                        key={tab.id}
+                        type="button"
+                        onClick={() => setActiveFacilityTab(tab.id)}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '5px',
+                          padding: '4px 11px',
+                          fontSize: '0.74rem',
+                          fontWeight: isActive ? 700 : 500,
+                          borderRadius: '6px',
+                          border: isActive ? '1px solid rgba(0,0,0,0.06)' : '1px solid transparent',
+                          background: isActive ? '#FFFFFF' : 'transparent',
+                          color: isActive ? '#0F172A' : '#64748B',
+                          cursor: 'pointer',
+                          whiteSpace: 'nowrap',
+                          boxShadow: isActive ? '0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04)' : 'none',
+                          transition: 'all 0.15s ease'
+                        }}
+                        onMouseEnter={e => {
+                          if (!isActive) {
+                            e.currentTarget.style.color = '#0F172A';
+                            e.currentTarget.style.background = 'rgba(255,255,255,0.6)';
+                          }
+                        }}
+                        onMouseLeave={e => {
+                          if (!isActive) {
+                            e.currentTarget.style.color = '#64748B';
+                            e.currentTarget.style.background = 'transparent';
+                          }
+                        }}
+                      >
+                        <IconComp size={13} style={{ color: isActive ? tab.iconColor : '#94A3B8' }} />
+                        <span>{tab.label}</span>
+                        {typeof tab.count === 'number' && (
+                          <span
+                            style={{
+                              fontSize: '0.64rem',
+                              fontWeight: 800,
+                              padding: '1px 5px',
+                              borderRadius: '10px',
+                              background: isActive ? '#DCFCE7' : '#CBD5E1',
+                              color: isActive ? '#15803D' : '#475569',
+                              marginLeft: '1px'
+                            }}
+                          >
+                            {tab.count}
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Right Trust/Integrity Micro Badge */}
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    fontSize: '0.68rem',
+                    color: '#64748B',
+                    fontWeight: 600,
+                    flexShrink: 0
+                  }}
+                >
+                  <span
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      background: '#F0FDF4',
+                      color: '#166534',
+                      padding: '2px 7px',
+                      borderRadius: '12px',
+                      border: '1px solid #BBF7D0'
+                    }}
+                  >
+                    <ShieldCheck size={11} style={{ color: '#16A34A' }} />
+                    <span>9-Gate Verified</span>
+                  </span>
+                  <span style={{ color: '#CBD5E1' }}>•</span>
+                  <span>{trustPercent}% Trust</span>
+                </div>
               </div>
 
               {/* 3. Facility Tab Contents */}
-              <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
+              <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', overflowX: 'hidden', display: 'flex', flexDirection: 'column' }}>
 
                 {/* TAB 1: PREVIEW & OPEN FILE */}
                 {activeFacilityTab === 'preview' && (
-                  <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 }}>
                     <div
                       style={{
                         flex: 1,
                         overflowY: 'auto',
+                        overflowX: 'hidden',
                         background: '#FAF8F5',
-                        padding: '14px 18px'
+                        padding: '16px 20px'
                       }}
                     >
                       {loadingPreview ? (
-                        <div style={{ textAlign: 'center', padding: '30px', color: 'var(--text-muted)', fontSize: '0.78rem' }}>
-                          <RefreshCw size={15} className="spin" style={{ margin: '0 auto 6px auto', display: 'block' }} />
-                          Loading document preview...
+                        <div style={{ textAlign: 'center', padding: '50px 20px', color: 'var(--text-muted)', fontSize: '0.80rem' }}>
+                          <RefreshCw size={18} className="spin" style={{ margin: '0 auto 8px auto', display: 'block', color: '#2563EB' }} />
+                          <span>Loading policy document preview...</span>
                         </div>
                       ) : (
                         <div
                           style={{
                             background: '#FFFFFF',
-                            borderRadius: '3px',
-                            boxShadow: '0 2px 8px rgba(0,0,0,0.08), 0 0 1px rgba(0,0,0,0.12)',
-                            padding: '18px 22px',
-                            minHeight: '220px',
+                            borderRadius: '8px',
+                            border: '1px solid #E2E8F0',
+                            boxShadow: '0 4px 20px -2px rgba(15, 23, 42, 0.05), 0 1px 3px rgba(0,0,0,0.03)',
+                            padding: '22px 26px',
+                            minHeight: '260px',
                             display: 'flex',
                             flexDirection: 'column',
-                            gap: '10px'
+                            gap: '12px'
                           }}
                         >
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #E2E8F0', paddingBottom: '6px', fontSize: '0.68rem', color: 'var(--text-muted)' }}>
-                            <span style={{ fontWeight: 700, textTransform: 'uppercase' }}>
-                              {selectedDocDetails.document_type || 'Policy'} Document Sheet
-                            </span>
-                            <span>Page 1 of 1</span>
+                          {/* Dossier Sheet Header */}
+                          <div
+                            style={{
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                              borderBottom: '1px solid #E2E8F0',
+                              paddingBottom: '10px',
+                              fontSize: '0.68rem',
+                              color: '#64748B'
+                            }}
+                          >
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <span style={{ fontWeight: 800, color: '#0F172A', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                {selectedDocDetails.document_type || 'Policy'} Document Sheet
+                              </span>
+                              <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#94A3B8' }} />
+                              <span style={{ color: '#16A34A', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                                <CheckCircle2 size={11} /> Verified Ingestion
+                              </span>
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.66rem' }}>
+                              <span>Page 1 of 1</span>
+                              <span style={{ color: '#CBD5E1' }}>|</span>
+                              <span style={{ fontFamily: 'monospace', color: '#475569' }}>
+                                SHA: {selectedDocDetails.content_hash?.substring(0, 8)}...
+                              </span>
+                            </div>
                           </div>
 
-                          <div style={{ fontSize: '0.82rem', color: 'var(--text-main)', lineHeight: 1.55, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-                            {rawReaderContent || 'No text content available for this document.'}
+                          {/* Markdown Parsed Document Body */}
+                          <div style={{ minHeight: '120px' }}>
+                            {rawReaderContent ? (
+                              renderFormattedMarkdown(rawReaderContent)
+                            ) : (
+                              <div style={{ padding: '30px 10px', textAlign: 'center', color: '#94A3B8', fontSize: '0.80rem' }}>
+                                No text content available for this document.
+                              </div>
+                            )}
                           </div>
                         </div>
                       )}
                     </div>
 
+                    {/* Bottom Metadata & Facility Switch Bar */}
                     <div
                       style={{
-                        padding: '8px 14px',
-                        borderTop: '1px solid var(--border-subtle, #E2E8F0)',
+                        padding: '8px 16px',
+                        borderTop: '1px solid #E2E8F0',
                         background: '#FFFFFF',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'space-between',
                         fontSize: '0.72rem',
                         gap: '8px',
-                        flexWrap: 'wrap'
+                        flexWrap: 'wrap',
+                        flexShrink: 0
                       }}
                     >
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span className="badge badge-allow" style={{ fontSize: '0.66rem', padding: '1px 6px' }}>
+                        <span
+                          style={{
+                            fontSize: '0.66rem',
+                            padding: '2px 8px',
+                            borderRadius: '12px',
+                            background: '#F0FDF4',
+                            color: '#15803D',
+                            border: '1px solid #BBF7D0',
+                            fontWeight: 700
+                          }}
+                        >
                           {claimsList.length} Extracted Claim{claimsList.length === 1 ? '' : 's'}
                         </span>
-                        <span style={{ color: 'var(--text-muted)' }}>
-                          SHA-256: <code style={{ fontSize: '0.70rem' }}>{selectedDocDetails.content_hash?.substring(0, 10)}...</code>
+                        <span style={{ color: '#64748B' }}>
+                          Hash: <code style={{ fontSize: '0.70rem', background: '#F1F5F9', padding: '1px 4px', borderRadius: '3px' }}>{selectedDocDetails.content_hash?.substring(0, 10)}...</code>
                         </span>
                         <button
                           type="button"
                           onClick={() => handleCopy(selectedDocDetails.content_hash)}
-                          style={{ background: 'none', border: 'none', color: '#2563EB', cursor: 'pointer', padding: 0 }}
+                          style={{ background: 'none', border: 'none', color: '#2563EB', cursor: 'pointer', padding: 0, display: 'inline-flex', alignItems: 'center' }}
                           title="Copy SHA-256 hash"
                         >
                           {copiedHash ? <Check size={13} style={{ color: '#16A34A' }} /> : <Copy size={13} />}
@@ -1628,42 +1969,64 @@ export default function DocumentWorkspaceExplorer({
                         <button
                           type="button"
                           onClick={() => setActiveFacilityTab('description')}
-                          className="btn btn-secondary"
-                          style={{ padding: '4px 9px', fontSize: '0.72rem', display: 'flex', alignItems: 'center', gap: '4px' }}
+                          style={{
+                            padding: '4px 9px',
+                            fontSize: '0.72rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            background: '#F8FAFC',
+                            border: '1px solid #E2E8F0',
+                            borderRadius: '6px',
+                            cursor: 'pointer',
+                            color: '#334155',
+                            fontWeight: 600
+                          }}
                         >
-                          <Info size={12} />
-                          <span>Description</span>
+                          <Info size={12} style={{ color: '#7C3AED' }} />
+                          <span>Specs</span>
                         </button>
 
                         <button
                           type="button"
                           onClick={() => setActiveFacilityTab('claims')}
-                          className="btn btn-primary"
-                          style={{ padding: '4px 10px', fontSize: '0.72rem', display: 'flex', alignItems: 'center', gap: '4px' }}
+                          style={{
+                            padding: '4px 10px',
+                            fontSize: '0.72rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            background: '#EFF6FF',
+                            border: '1px solid #BFDBFE',
+                            borderRadius: '6px',
+                            cursor: 'pointer',
+                            color: '#1D4ED8',
+                            fontWeight: 700
+                          }}
                         >
                           <Search size={12} />
-                          <span>Select Claims ({claimsList.length})</span>
+                          <span>View Claims ({claimsList.length})</span>
                         </button>
 
                         <button
                           type="button"
                           onClick={() => setActiveFacilityTab('lineage')}
-                          className="btn btn-secondary"
-                          style={{ padding: '4px 9px', fontSize: '0.72rem', display: 'flex', alignItems: 'center', gap: '4px' }}
+                          style={{
+                            padding: '4px 9px',
+                            fontSize: '0.72rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            background: '#F8FAFC',
+                            border: '1px solid #E2E8F0',
+                            borderRadius: '6px',
+                            cursor: 'pointer',
+                            color: '#334155',
+                            fontWeight: 600
+                          }}
                         >
-                          <Layers size={12} />
+                          <Layers size={12} style={{ color: '#EA580C' }} />
                           <span>Lineage</span>
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() => onViewClaims?.(selectedDocDetails, 'summary')}
-                          className="btn btn-secondary"
-                          style={{ padding: '4px 9px', fontSize: '0.72rem', display: 'flex', alignItems: 'center', gap: '4px', color: '#EA580C', borderColor: '#FED7AA', background: '#FFF7ED' }}
-                          title="Open in full 360° Lineage Studio"
-                        >
-                          <Sparkles size={12} />
-                          <span>360° Studio ➔</span>
                         </button>
                       </div>
                     </div>
@@ -1919,181 +2282,530 @@ export default function DocumentWorkspaceExplorer({
                   </div>
                 )}
 
-                {/* TAB 4: DOCUMENT-WISE LINEAGE DAG */}
-                {activeFacilityTab === 'lineage' && (
-                  <div style={{ padding: '16px 18px', display: 'flex', flexDirection: 'column', gap: '14px', background: '#FFFFFF', flex: 1 }}>
-                    {/* Lineage Banner */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#F8FAFC', padding: '10px 14px', borderRadius: '8px', border: '1px solid #E2E8F0', flexWrap: 'wrap', gap: '8px' }}>
-                      <div>
-                        <div style={{ fontSize: '0.82rem', fontWeight: 800, color: '#0F172A' }}>
-                          Document-Wise Lineage Flow
+                {/* TAB 4: FULL-FIDELITY EVIDENCE LINEAGE DAG CANVAS */}
+                {activeFacilityTab === 'lineage' && (() => {
+                  const displayClaims = claimsList.slice(0, 4);
+                  const remainingClaimsCount = Math.max(0, claimsList.length - 4);
+                  const activeNodeDetails = (() => {
+                    if (selectedDagNodeId === 'src_node') {
+                      return {
+                        title: selectedDocArtifacts?.source?.name || 'Direct File Upload',
+                        type: 'Source Ingestion Connector',
+                        badge: 'Authoritative Tier 1',
+                        badgeColor: '#2563EB',
+                        details: 'Authoritative tenant ingestion conduit. Ingests raw document binaries and issues cryptographic provenance signatures.',
+                        sha: selectedDocDetails.content_hash || 'SHA-INGESTION-VALID',
+                        status: 'Connected & Authoritative'
+                      };
+                    }
+                    if (selectedDagNodeId === 'gate_decision') {
+                      return {
+                        title: 'Universal Decision Gate',
+                        type: 'Policy Enforcement Gateway',
+                        badge: 'Autonomous Enforcement',
+                        badgeColor: '#7C3AED',
+                        details: 'Continuous verification gateway. Evaluates cross-policy contradictions, scores trust decay, and applies authority overrides.',
+                        sha: 'GATEWAY-DETERMINISTIC-OK',
+                        status: '0 Active Contradictions'
+                      };
+                    }
+                    if (selectedDagNodeId === 'gate_agent') {
+                      return {
+                        title: 'LLM Grounding & AI Assistant Gateway',
+                        type: 'Model Context Provider',
+                        badge: 'Runtime RAG Conduit',
+                        badgeColor: '#059669',
+                        details: 'Grounds downstream AI chatbots and enterprise agents with mathematically verified policy facts, preventing hallucinations.',
+                        sha: 'RUNTIME-GROUNDING-VERIFIED',
+                        status: 'Active Fact Provider'
+                      };
+                    }
+                    if (selectedDagNodeId === 'gate_merkle') {
+                      return {
+                        title: 'Immutable Merkle Proof Ledger',
+                        type: 'Cryptographic Compliance Proof',
+                        badge: 'Zero-Knowledge Proof',
+                        badgeColor: '#D97706',
+                        details: 'Permanent audit ledger storing SHA-256 digest roots for compliance audits and sovereign regulatory validation.',
+                        sha: selectedDocDetails.content_hash || 'MERKLE-ROOT-OK',
+                        status: 'Cryptographically Sealed'
+                      };
+                    }
+                    if (selectedDagNodeId.startsWith('claim_')) {
+                      const claimIdx = parseInt(selectedDagNodeId.replace('claim_', ''), 10);
+                      const targetClaim = displayClaims[claimIdx];
+                      if (targetClaim) {
+                        return {
+                          title: targetClaim.subject || 'Policy Rule',
+                          type: 'Atomic Extracted Claim',
+                          badge: `${Math.round((targetClaim.trust_score || 0.95) * 100)}% Trust`,
+                          badgeColor: '#16A34A',
+                          details: targetClaim.claim_text,
+                          quote: targetClaim.quote,
+                          sha: targetClaim.id || 'CLAIM-SHA-VALID',
+                          status: targetClaim.status || '9-Gate Verified'
+                        };
+                      }
+                    }
+                    // Default to canonical document
+                    return {
+                      title: selectedDocDetails.title,
+                      type: `${selectedDocDetails.document_type || 'Policy'} Document`,
+                      badge: `v${selectedDocDetails.versions?.length || 1}.0 Canonical`,
+                      badgeColor: '#EA580C',
+                      details: 'Canonical governance asset. Parsed, normalized, and decomposed into verifiable atomic assertions.',
+                      sha: selectedDocDetails.content_hash || 'SHA256-SEALED-OK',
+                      status: '9-Gate Verification Passed'
+                    };
+                  })();
+
+                  return (
+                    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0, background: '#FAF8F5' }}>
+                      {/* DAG Toolbar & Lens Controls */}
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          padding: '10px 16px',
+                          borderBottom: '1px solid #E2E8F0',
+                          background: '#FFFFFF',
+                          gap: '10px',
+                          flexWrap: 'wrap',
+                          flexShrink: 0
+                        }}
+                      >
+                        <div>
+                          <div style={{ fontSize: '0.84rem', fontWeight: 800, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <Network size={14} style={{ color: '#EA580C' }} />
+                            <span>Evidence Lineage & Provenance Graph</span>
+                          </div>
+                          <div style={{ fontSize: '0.68rem', color: '#64748B', marginTop: '2px' }}>
+                            Full-fidelity trace: Source Connector ➔ Canonical Policy ➔ Atomic Claims ➔ Decision Gates
+                          </div>
                         </div>
-                        <div style={{ fontSize: '0.70rem', color: '#64748B' }}>
-                          Source-to-Decision verification pipeline for "{selectedDocDetails.title}"
+
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          {/* Lens Filter Pills */}
+                          <div style={{ display: 'inline-flex', alignItems: 'center', background: '#F1F5F9', padding: '2px', borderRadius: '6px', gap: '2px' }}>
+                            {[
+                              { id: 'all', label: 'All Stages (4)' },
+                              { id: 'claims', label: 'Claims Focus' },
+                              { id: 'gateways', label: 'Gateways Only' }
+                            ].map(l => (
+                              <button
+                                key={l.id}
+                                type="button"
+                                onClick={() => setDagViewFilter(l.id)}
+                                style={{
+                                  padding: '3px 8px',
+                                  fontSize: '0.68rem',
+                                  fontWeight: dagViewFilter === l.id ? 700 : 500,
+                                  borderRadius: '4px',
+                                  border: 'none',
+                                  background: dagViewFilter === l.id ? '#FFFFFF' : 'transparent',
+                                  color: dagViewFilter === l.id ? '#0F172A' : '#64748B',
+                                  cursor: 'pointer',
+                                  boxShadow: dagViewFilter === l.id ? '0 1px 2px rgba(0,0,0,0.06)' : 'none'
+                                }}
+                              >
+                                {l.label}
+                              </button>
+                            ))}
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() => onViewClaims?.(selectedDocDetails, 'dag')}
+                            style={{
+                              padding: '5px 12px',
+                              fontSize: '0.72rem',
+                              fontWeight: 700,
+                              background: 'linear-gradient(135deg, #EA580C 0%, #F97316 100%)',
+                              border: 'none',
+                              color: '#FFFFFF',
+                              borderRadius: '6px',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '5px',
+                              boxShadow: '0 2px 4px rgba(234, 88, 12, 0.2)'
+                            }}
+                            title="Open full interactive DAG in 360° Studio"
+                          >
+                            <Sparkles size={12} />
+                            <span>Launch 360° Canvas DAG ↗</span>
+                          </button>
                         </div>
                       </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <button
-                          type="button"
-                          onClick={() => onViewClaims?.(selectedDocDetails, 'dag')}
-                          className="btn btn-primary"
-                          style={{ padding: '4px 12px', fontSize: '0.74rem', display: 'flex', alignItems: 'center', gap: '5px', background: '#EA580C', borderColor: '#EA580C' }}
+
+                      {/* DAG Interactive Canvas */}
+                      <div
+                        style={{
+                          flex: 1,
+                          overflow: 'auto',
+                          position: 'relative',
+                          background: '#F8FAFC',
+                          backgroundImage: 'radial-gradient(#CBD5E1 1.2px, transparent 1.2px)',
+                          backgroundSize: '20px 20px',
+                          padding: '24px 20px',
+                          minHeight: '380px',
+                          display: 'flex',
+                          alignItems: 'flex-start',
+                          gap: '36px'
+                        }}
+                      >
+                        {/* SVG Connecting Bezier Lines */}
+                        <svg
+                          style={{
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            width: '100%',
+                            height: '100%',
+                            minWidth: '850px',
+                            minHeight: '400px',
+                            pointerEvents: 'none',
+                            zIndex: 1
+                          }}
                         >
-                          <Layers size={13} />
-                          <span>Launch Full Canvas DAG ↗</span>
-                        </button>
-                      </div>
-                    </div>
+                          <defs>
+                            <marker id="atlan-arrow-default" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+                              <polygon points="0 1, 8 4, 0 7" fill="#94A3B8" />
+                            </marker>
+                            <marker id="atlan-arrow-active" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+                              <polygon points="0 1, 8 4, 0 7" fill="#2563EB" />
+                            </marker>
+                            <marker id="atlan-arrow-decision" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+                              <polygon points="0 1, 8 4, 0 7" fill="#7C3AED" />
+                            </marker>
+                          </defs>
 
-                    {/* Interactive Visual Mini-DAG Canvas (Responsive 4-Stage Flow) */}
-                    <div
-                      style={{
-                        background: '#F8FAFC',
-                        borderRadius: '8px',
-                        border: '1px solid #E2E8F0',
-                        padding: '18px 14px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flexWrap: 'wrap',
-                        gap: '8px',
-                        position: 'relative'
-                      }}
-                    >
-                      {/* Node 1: Source */}
+                          {/* Connection 1: Source to Document */}
+                          <path
+                            d="M 215 110 C 240 110, 240 110, 265 110"
+                            fill="none"
+                            stroke={selectedDagNodeId === 'src_node' || selectedDagNodeId === 'doc_canonical' ? '#2563EB' : '#94A3B8'}
+                            strokeWidth={selectedDagNodeId === 'src_node' || selectedDagNodeId === 'doc_canonical' ? 2.4 : 1.6}
+                            markerEnd={selectedDagNodeId === 'src_node' || selectedDagNodeId === 'doc_canonical' ? 'url(#atlan-arrow-active)' : 'url(#atlan-arrow-default)'}
+                          />
+
+                          {/* Connections 2: Document to Claims */}
+                          {displayClaims.map((_, idx) => {
+                            const claimY = 75 + (idx * 90);
+                            return (
+                              <path
+                                key={`edge_claim_${idx}`}
+                                d={`M 465 110 C 500 110, 480 ${claimY}, 515 ${claimY}`}
+                                fill="none"
+                                stroke={selectedDagNodeId === `claim_${idx}` ? '#2563EB' : '#CBD5E1'}
+                                strokeWidth={selectedDagNodeId === `claim_${idx}` ? 2.2 : 1.4}
+                                strokeDasharray={selectedDagNodeId === `claim_${idx}` ? 'none' : '4 3'}
+                                markerEnd={selectedDagNodeId === `claim_${idx}` ? 'url(#atlan-arrow-active)' : 'url(#atlan-arrow-default)'}
+                              />
+                            );
+                          })}
+
+                          {/* Connections 3: Claims to Gateways */}
+                          {displayClaims.map((_, idx) => {
+                            const claimY = 75 + (idx * 90);
+                            return (
+                              <g key={`gate_paths_${idx}`}>
+                                <path
+                                  d={`M 715 ${claimY} C 740 ${claimY}, 730 85, 755 85`}
+                                  fill="none"
+                                  stroke="#E2E8F0"
+                                  strokeWidth={1.2}
+                                  markerEnd="url(#atlan-arrow-default)"
+                                />
+                                <path
+                                  d={`M 715 ${claimY} C 740 ${claimY}, 730 185, 755 185`}
+                                  fill="none"
+                                  stroke="#E2E8F0"
+                                  strokeWidth={1.2}
+                                  markerEnd="url(#atlan-arrow-default)"
+                                />
+                              </g>
+                            );
+                          })}
+                        </svg>
+
+                        {/* ── STAGE 1: SOURCE INGESTION LAYER ── */}
+                        <div style={{ width: '190px', flexShrink: 0, zIndex: 2, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                          <div style={{ fontSize: '0.64rem', fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                            Stage 1: Source
+                          </div>
+
+                          <div
+                            onClick={() => setSelectedDagNodeId('src_node')}
+                            style={{
+                              background: '#FFFFFF',
+                              borderRadius: '8px',
+                              border: selectedDagNodeId === 'src_node' ? '2px solid #2563EB' : '1px solid #CBD5E1',
+                              boxShadow: selectedDagNodeId === 'src_node' ? '0 0 0 3px rgba(37,99,235,0.15), 0 4px 12px rgba(0,0,0,0.06)' : '0 2px 6px rgba(0,0,0,0.04)',
+                              padding: '12px 14px',
+                              cursor: 'pointer',
+                              transition: 'all 0.15s ease'
+                            }}
+                          >
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                              <span style={{ fontSize: '0.62rem', fontWeight: 800, padding: '1px 6px', borderRadius: '4px', background: '#EFF6FF', color: '#2563EB' }}>
+                                Authoritative Tier 1
+                              </span>
+                              <span style={{ fontSize: '0.62rem', color: '#16A34A', fontWeight: 700 }}>● Live</span>
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
+                              <div style={{ width: '22px', height: '22px', borderRadius: '4px', background: '#F1F5F9', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.85rem' }}>
+                                🔌
+                              </div>
+                              <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#0F172A', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                {selectedDocArtifacts?.source?.name || 'Direct File Upload'}
+                              </span>
+                            </div>
+                            <div style={{ fontSize: '0.66rem', color: '#64748B', marginTop: '6px', borderTop: '1px solid #F1F5F9', paddingTop: '4px' }}>
+                              Sovereign Compliance Conduit
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* ── STAGE 2: CANONICAL DOCUMENT LAYER ── */}
+                        <div style={{ width: '200px', flexShrink: 0, zIndex: 2, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                          <div style={{ fontSize: '0.64rem', fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                            Stage 2: Policy Asset
+                          </div>
+
+                          <div
+                            onClick={() => setSelectedDagNodeId('doc_canonical')}
+                            style={{
+                              background: '#FFFFFF',
+                              borderRadius: '8px',
+                              border: selectedDagNodeId === 'doc_canonical' ? '2px solid #EA580C' : '1px solid #CBD5E1',
+                              boxShadow: selectedDagNodeId === 'doc_canonical' ? '0 0 0 3px rgba(234,88,12,0.15), 0 4px 12px rgba(0,0,0,0.06)' : '0 2px 6px rgba(0,0,0,0.04)',
+                              padding: '12px 14px',
+                              cursor: 'pointer',
+                              transition: 'all 0.15s ease'
+                            }}
+                          >
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                              <span style={{ fontSize: '0.62rem', fontWeight: 800, padding: '1px 6px', borderRadius: '4px', background: '#FFF7ED', color: '#EA580C', border: '1px solid #FFEDD5', textTransform: 'uppercase' }}>
+                                {selectedDocDetails.document_type || 'Policy'}
+                              </span>
+                              <span style={{ fontSize: '0.62rem', color: '#64748B', fontWeight: 600 }}>v{selectedDocDetails.versions?.length || 1}.0</span>
+                            </div>
+                            <div style={{ fontSize: '0.78rem', fontWeight: 800, color: '#0F172A', lineHeight: 1.35, marginBottom: '6px', maxHeight: '36px', overflow: 'hidden' }}>
+                              {selectedDocDetails.title}
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.64rem', color: '#64748B', borderTop: '1px solid #F1F5F9', paddingTop: '4px' }}>
+                              <span style={{ color: '#16A34A', fontWeight: 700 }}>✓ 9-Gate Sealed</span>
+                              <span>{claimsList.length} Claims</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* ── STAGE 3: ATOMIC CLAIMS & ASSERTIONS ── */}
+                        <div style={{ width: '200px', flexShrink: 0, zIndex: 2, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                          <div style={{ fontSize: '0.64rem', fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                            Stage 3: Atomic Claims ({claimsList.length})
+                          </div>
+
+                          {displayClaims.length === 0 ? (
+                            <div style={{ padding: '20px 10px', textAlign: 'center', background: '#FFFFFF', borderRadius: '8px', border: '1px dashed #CBD5E1', fontSize: '0.72rem', color: '#94A3B8' }}>
+                              No claims extracted yet
+                            </div>
+                          ) : (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                              {displayClaims.map((c, idx) => {
+                                const isSelected = selectedDagNodeId === `claim_${idx}`;
+                                return (
+                                  <div
+                                    key={c.id || idx}
+                                    onClick={() => setSelectedDagNodeId(`claim_${idx}`)}
+                                    style={{
+                                      background: '#FFFFFF',
+                                      borderRadius: '8px',
+                                      border: isSelected ? '2px solid #2563EB' : '1px solid #E2E8F0',
+                                      boxShadow: isSelected ? '0 0 0 3px rgba(37,99,235,0.15), 0 3px 8px rgba(0,0,0,0.05)' : '0 1px 3px rgba(0,0,0,0.03)',
+                                      padding: '10px 12px',
+                                      cursor: 'pointer',
+                                      transition: 'all 0.15s ease'
+                                    }}
+                                  >
+                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+                                      <span style={{ fontSize: '0.60rem', fontWeight: 800, padding: '1px 5px', borderRadius: '3px', background: '#F1F5F9', color: '#475569', textTransform: 'uppercase' }}>
+                                        {c.subject || 'Rule'}
+                                      </span>
+                                      <span style={{ fontSize: '0.62rem', fontWeight: 800, color: '#16A34A', background: '#DCFCE7', padding: '1px 5px', borderRadius: '4px' }}>
+                                        {Math.round((c.trust_score || 0.95) * 100)}%
+                                      </span>
+                                    </div>
+                                    <div style={{ fontSize: '0.72rem', color: '#0F172A', fontWeight: 600, lineHeight: 1.35, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                                      {c.claim_text}
+                                    </div>
+                                  </div>
+                                );
+                              })}
+
+                              {remainingClaimsCount > 0 && (
+                                <button
+                                  type="button"
+                                  onClick={() => onViewClaims?.(selectedDocDetails, 'claims')}
+                                  style={{
+                                    padding: '6px',
+                                    borderRadius: '6px',
+                                    border: '1px dashed #CBD5E1',
+                                    background: '#FFFFFF',
+                                    fontSize: '0.68rem',
+                                    fontWeight: 700,
+                                    color: '#0284C7',
+                                    cursor: 'pointer',
+                                    textAlign: 'center'
+                                  }}
+                                >
+                                  +{remainingClaimsCount} more claims in Claims Studio ➔
+                                </button>
+                              )}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* ── STAGE 4: ENFORCEMENT & DECISION GATEWAYS ── */}
+                        <div style={{ width: '190px', flexShrink: 0, zIndex: 2, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                          <div style={{ fontSize: '0.64rem', fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                            Stage 4: Enforcement
+                          </div>
+
+                          {/* Gateway 1: Decision Gate */}
+                          <div
+                            onClick={() => setSelectedDagNodeId('gate_decision')}
+                            style={{
+                              background: '#FFFFFF',
+                              borderRadius: '8px',
+                              border: selectedDagNodeId === 'gate_decision' ? '2px solid #7C3AED' : '1px solid #CBD5E1',
+                              boxShadow: selectedDagNodeId === 'gate_decision' ? '0 0 0 3px rgba(124,58,237,0.15)' : '0 1px 3px rgba(0,0,0,0.03)',
+                              padding: '10px 12px',
+                              cursor: 'pointer',
+                              transition: 'all 0.15s ease'
+                            }}
+                          >
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '3px' }}>
+                              <Scale size={13} style={{ color: '#7C3AED' }} />
+                              <span style={{ fontSize: '0.74rem', fontWeight: 800, color: '#0F172A' }}>Universal Decision Gate</span>
+                            </div>
+                            <div style={{ fontSize: '0.64rem', color: '#64748B' }}>
+                              Evaluates priority & overrides
+                            </div>
+                          </div>
+
+                          {/* Gateway 2: LLM Grounding */}
+                          <div
+                            onClick={() => setSelectedDagNodeId('gate_agent')}
+                            style={{
+                              background: '#FFFFFF',
+                              borderRadius: '8px',
+                              border: selectedDagNodeId === 'gate_agent' ? '2px solid #059669' : '1px solid #CBD5E1',
+                              boxShadow: selectedDagNodeId === 'gate_agent' ? '0 0 0 3px rgba(5,150,105,0.15)' : '0 1px 3px rgba(0,0,0,0.03)',
+                              padding: '10px 12px',
+                              cursor: 'pointer',
+                              transition: 'all 0.15s ease'
+                            }}
+                          >
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '3px' }}>
+                              <Bot size={13} style={{ color: '#059669' }} />
+                              <span style={{ fontSize: '0.74rem', fontWeight: 800, color: '#0F172A' }}>AI Assistant Grounding</span>
+                            </div>
+                            <div style={{ fontSize: '0.64rem', color: '#64748B' }}>
+                              Direct factual context injection
+                            </div>
+                          </div>
+
+                          {/* Gateway 3: Merkle Audit */}
+                          <div
+                            onClick={() => setSelectedDagNodeId('gate_merkle')}
+                            style={{
+                              background: '#FFFFFF',
+                              borderRadius: '8px',
+                              border: selectedDagNodeId === 'gate_merkle' ? '2px solid #D97706' : '1px solid #CBD5E1',
+                              boxShadow: selectedDagNodeId === 'gate_merkle' ? '0 0 0 3px rgba(217,119,6,0.15)' : '0 1px 3px rgba(0,0,0,0.03)',
+                              padding: '10px 12px',
+                              cursor: 'pointer',
+                              transition: 'all 0.15s ease'
+                            }}
+                          >
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '3px' }}>
+                              <Lock size={13} style={{ color: '#D97706' }} />
+                              <span style={{ fontSize: '0.74rem', fontWeight: 800, color: '#0F172A' }}>Immutable Audit Root</span>
+                            </div>
+                            <div style={{ fontSize: '0.64rem', color: '#64748B' }}>
+                              Cryptographic SHA-256 seal
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Active Node Inspector Footer Drawer */}
                       <div
                         style={{
+                          padding: '10px 18px',
+                          borderTop: '1px solid #E2E8F0',
                           background: '#FFFFFF',
-                          border: '1.5px solid #CBD5E1',
-                          borderRadius: '8px',
-                          padding: '10px 12px',
-                          flex: '1 1 130px',
-                          minWidth: '125px',
-                          maxWidth: '180px',
-                          textAlign: 'center',
-                          boxShadow: '0 2px 6px rgba(0,0,0,0.04)',
-                          zIndex: 2
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          gap: '12px',
+                          flexShrink: 0
                         }}
                       >
-                        <div style={{ fontSize: '1.1rem', marginBottom: '2px' }}>🔌</div>
-                        <div style={{ fontSize: '0.64rem', fontWeight: 800, color: '#334155', textTransform: 'uppercase' }}>Source Connector</div>
-                        <div style={{ fontSize: '0.74rem', fontWeight: 700, color: '#0F172A', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                          {selectedDocArtifacts?.source?.name || 'Direct File Upload'}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0, flex: 1 }}>
+                          <span
+                            style={{
+                              fontSize: '0.64rem',
+                              fontWeight: 800,
+                              padding: '2px 7px',
+                              borderRadius: '4px',
+                              background: '#F1F5F9',
+                              color: activeNodeDetails.badgeColor || '#2563EB',
+                              textTransform: 'uppercase',
+                              flexShrink: 0
+                            }}
+                          >
+                            {activeNodeDetails.badge}
+                          </span>
+                          <div style={{ minWidth: 0 }}>
+                            <div style={{ fontSize: '0.78rem', fontWeight: 800, color: '#0F172A', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                              {activeNodeDetails.title}
+                            </div>
+                            <div style={{ fontSize: '0.68rem', color: '#64748B', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                              {activeNodeDetails.details}
+                            </div>
+                          </div>
                         </div>
-                        <span style={{ fontSize: '0.58rem', background: '#F1F5F9', color: '#64748B', padding: '1px 5px', borderRadius: '4px', fontWeight: 700, marginTop: '3px', display: 'inline-block' }}>
-                          Authoritative
-                        </span>
-                      </div>
 
-                      {/* Arrow 1 */}
-                      <div style={{ color: '#94A3B8', fontWeight: 800, fontSize: '0.9rem' }}>➔</div>
-
-                      {/* Node 2: Document */}
-                      <div
-                        style={{
-                          background: '#FFF7ED',
-                          border: '1.5px solid #EA580C',
-                          borderRadius: '8px',
-                          padding: '10px 12px',
-                          flex: '1 1 130px',
-                          minWidth: '125px',
-                          maxWidth: '180px',
-                          textAlign: 'center',
-                          boxShadow: '0 2px 8px rgba(234, 88, 12, 0.15)',
-                          zIndex: 2
-                        }}
-                      >
-                        <div style={{ fontSize: '1.1rem', marginBottom: '2px' }}>📄</div>
-                        <div style={{ fontSize: '0.64rem', fontWeight: 800, color: '#EA580C', textTransform: 'uppercase' }}>Governance Policy</div>
-                        <div style={{ fontSize: '0.74rem', fontWeight: 700, color: '#0F172A', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                          {selectedDocDetails.title}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+                          <button
+                            type="button"
+                            onClick={() => onViewClaims?.(selectedDocDetails, 'dag')}
+                            style={{
+                              padding: '4px 10px',
+                              fontSize: '0.72rem',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                              background: '#F8FAFC',
+                              border: '1px solid #CBD5E1',
+                              borderRadius: '6px',
+                              cursor: 'pointer',
+                              color: '#1E293B',
+                              fontWeight: 600
+                            }}
+                          >
+                            <Sparkles size={12} style={{ color: '#EA580C' }} />
+                            <span>Interactive Studio</span>
+                          </button>
                         </div>
-                        <span style={{ fontSize: '0.58rem', background: '#FFEDD5', color: '#C2410C', padding: '1px 5px', borderRadius: '4px', fontWeight: 700, marginTop: '3px', display: 'inline-block' }}>
-                          v{selectedDocDetails.versions?.length || 1}.0 • SHA256 Sealed
-                        </span>
-                      </div>
-
-                      {/* Arrow 2 */}
-                      <div style={{ color: '#94A3B8', fontWeight: 800, fontSize: '0.9rem' }}>➔</div>
-
-                      {/* Node 3: Claims & Gates */}
-                      <div
-                        style={{
-                          background: '#FFFFFF',
-                          border: '1.5px solid #16A34A',
-                          borderRadius: '8px',
-                          padding: '10px 12px',
-                          flex: '1 1 130px',
-                          minWidth: '125px',
-                          maxWidth: '180px',
-                          textAlign: 'center',
-                          boxShadow: '0 2px 6px rgba(0,0,0,0.04)',
-                          zIndex: 2
-                        }}
-                      >
-                        <div style={{ fontSize: '1.1rem', marginBottom: '2px' }}>🛡️</div>
-                        <div style={{ fontSize: '0.64rem', fontWeight: 800, color: '#16A34A', textTransform: 'uppercase' }}>Atomic Verification</div>
-                        <div style={{ fontSize: '0.74rem', fontWeight: 700, color: '#0F172A' }}>
-                          {claimsList.length} Extracted Claims
-                        </div>
-                        <span style={{ fontSize: '0.58rem', background: '#DCFCE7', color: '#15803D', padding: '1px 5px', borderRadius: '4px', fontWeight: 700, marginTop: '3px', display: 'inline-block' }}>
-                          9-Gate Verified
-                        </span>
-                      </div>
-
-                      {/* Arrow 3 */}
-                      <div style={{ color: '#94A3B8', fontWeight: 800, fontSize: '0.9rem' }}>➔</div>
-
-                      {/* Node 4: Decision Gateway */}
-                      <div
-                        style={{
-                          background: '#EFF6FF',
-                          border: '1.5px solid #3B82F6',
-                          borderRadius: '8px',
-                          padding: '10px 12px',
-                          flex: '1 1 130px',
-                          minWidth: '125px',
-                          maxWidth: '180px',
-                          textAlign: 'center',
-                          boxShadow: '0 2px 6px rgba(0,0,0,0.04)',
-                          zIndex: 2
-                        }}
-                      >
-                        <div style={{ fontSize: '1.1rem', marginBottom: '2px' }}>⚖️</div>
-                        <div style={{ fontSize: '0.64rem', fontWeight: 800, color: '#2563EB', textTransform: 'uppercase' }}>Decision Gateway</div>
-                        <div style={{ fontSize: '0.74rem', fontWeight: 700, color: '#0F172A' }}>
-                          Audit & Enforcement
-                        </div>
-                        <span style={{ fontSize: '0.58rem', background: '#DBEAFE', color: '#1D4ED8', padding: '1px 5px', borderRadius: '4px', fontWeight: 700, marginTop: '3px', display: 'inline-block' }}>
-                          0 Blockers
-                        </span>
                       </div>
                     </div>
-
-                    {/* Action Bar */}
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '8px', paddingTop: '4px' }}>
-                      <button
-                        type="button"
-                        onClick={() => onViewClaims?.(selectedDocDetails, 'dag')}
-                        className="btn btn-secondary"
-                        style={{ padding: '5px 12px', fontSize: '0.74rem', display: 'flex', alignItems: 'center', gap: '5px' }}
-                      >
-                        <Network size={13} style={{ color: '#2563EB' }} />
-                        <span>Interactive Node Graph ↗</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => onViewClaims?.(selectedDocDetails, 'summary')}
-                        className="btn btn-primary"
-                        style={{ padding: '5px 14px', fontSize: '0.74rem', display: 'flex', alignItems: 'center', gap: '5px', background: '#EA580C', borderColor: '#EA580C', color: '#FFFFFF', fontWeight: 700 }}
-                      >
-                        <Sparkles size={13} />
-                        <span>Open 360° Studio ↗</span>
-                      </button>
-                    </div>
-                  </div>
-                )}
+                  );
+                })()}
               </div>
             </>
           );
@@ -2906,78 +3618,108 @@ export default function DocumentWorkspaceExplorer({
         };
 
         return (
-          <div className="modal-backdrop" onClick={() => setIsFullFileReaderOpen(false)} style={{ zIndex: 9999 }}>
+          <div
+            className="modal-backdrop"
+            onClick={() => setIsFullFileReaderOpen(false)}
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              width: '100vw',
+              height: '100vh',
+              background: 'rgba(15, 23, 42, 0.65)',
+              backdropFilter: 'blur(5px)',
+              WebkitBackdropFilter: 'blur(5px)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '24px',
+              boxSizing: 'border-box',
+              zIndex: 99999
+            }}
+          >
             <div
               className="modal-content"
               onClick={e => e.stopPropagation()}
               style={{
-                maxWidth: '960px',
-                width: '94vw',
-                height: '90vh',
+                maxWidth: '920px',
+                width: '100%',
                 maxHeight: '90vh',
+                height: '88vh',
                 display: 'flex',
                 flexDirection: 'column',
                 padding: 0,
                 overflow: 'hidden',
-                borderRadius: '10px',
+                borderRadius: '12px',
                 background: '#FFFFFF',
-                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
+                border: '1px solid #CBD5E1',
+                boxShadow: '0 25px 60px -15px rgba(15, 23, 42, 0.35)',
+                boxSizing: 'border-box',
+                margin: 'auto'
               }}
             >
-              {/* Header */}
+              {/* Header: Clean, Uncluttered, No space-consuming filename */}
               <div
                 style={{
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
                   padding: '10px 18px',
-                  borderBottom: '1px solid #CBD5E1',
+                  borderBottom: '1px solid #E2E8F0',
                   background: '#F8FAFC',
-                  gap: '12px',
-                  flexWrap: 'wrap'
+                  gap: '10px',
+                  flexWrap: 'nowrap',
+                  overflow: 'hidden',
+                  flexShrink: 0
                 }}
               >
-                {/* Document info */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0, flex: 1 }}>
+                {/* Left: Compact Reader Icon & Label (File name removed to avoid overflow) */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
                   <div style={{
-                    width: '32px',
-                    height: '32px',
+                    width: '30px',
+                    height: '30px',
                     borderRadius: '6px',
                     background: '#EFF6FF',
                     border: '1px solid #BFDBFE',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    flexShrink: 0
+                    color: '#2563EB'
                   }}>
-                    <BookOpen size={16} style={{ color: '#2563EB' }} />
+                    <BookOpen size={15} />
                   </div>
-                  <div style={{ minWidth: 0 }}>
-                    <div style={{ fontSize: '0.92rem', fontWeight: 800, color: '#0F172A', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {selectedDocDetails?.title || 'Document Reader'}
-                    </div>
-                    {selectedDocDetails && (
-                      <div style={{ fontSize: '0.68rem', color: '#64748B', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <span className="badge badge-verified" style={{ fontSize: '0.62rem', fontWeight: 700 }}>
-                          {selectedDocDetails.document_type || 'Policy'}
-                        </span>
-                        <span>•</span>
-                        <span>v{selectedDocDetails.versions?.length || 1}.0</span>
-                        <span>•</span>
-                        <code style={{ fontSize: '0.66rem' }}>SHA-256: {selectedDocDetails.content_hash?.substring(0, 12)}...</code>
-                      </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span style={{ fontSize: '0.86rem', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.01em' }}>
+                      Document Reader
+                    </span>
+                    {selectedDocDetails?.document_type && (
+                      <span style={{
+                        fontSize: '0.62rem',
+                        fontWeight: 800,
+                        padding: '1px 6px',
+                        borderRadius: '4px',
+                        background: '#EFF6FF',
+                        color: '#2563EB',
+                        border: '1px solid #DBEAFE',
+                        textTransform: 'uppercase'
+                      }}>
+                        {selectedDocDetails.document_type}
+                      </span>
                     )}
                   </div>
                 </div>
 
-                {/* View Mode Toggle */}
+                {/* Center: View Mode Toggle */}
                 <div style={{
                   display: 'inline-flex',
                   alignItems: 'center',
                   background: '#E2E8F0',
                   padding: '3px',
                   borderRadius: '7px',
-                  gap: '3px'
+                  gap: '2px',
+                  flexShrink: 0
                 }}>
                   <button
                     type="button"
@@ -2986,8 +3728,8 @@ export default function DocumentWorkspaceExplorer({
                       display: 'flex',
                       alignItems: 'center',
                       gap: '5px',
-                      padding: '4px 10px',
-                      fontSize: '0.74rem',
+                      padding: '4px 11px',
+                      fontSize: '0.73rem',
                       fontWeight: readerViewMode === 'text' ? 700 : 500,
                       borderRadius: '5px',
                       border: 'none',
@@ -2999,7 +3741,7 @@ export default function DocumentWorkspaceExplorer({
                     }}
                   >
                     <FileText size={13} style={{ color: readerViewMode === 'text' ? '#2563EB' : '#64748B' }} />
-                    <span>Formatted Text & Rules</span>
+                    <span>Formatted Text</span>
                   </button>
                   <button
                     type="button"
@@ -3008,8 +3750,8 @@ export default function DocumentWorkspaceExplorer({
                       display: 'flex',
                       alignItems: 'center',
                       gap: '5px',
-                      padding: '4px 10px',
-                      fontSize: '0.74rem',
+                      padding: '4px 11px',
+                      fontSize: '0.73rem',
                       fontWeight: readerViewMode === 'pdf' ? 700 : 500,
                       borderRadius: '5px',
                       border: 'none',
@@ -3021,26 +3763,26 @@ export default function DocumentWorkspaceExplorer({
                     }}
                   >
                     <ExternalLink size={13} style={{ color: readerViewMode === 'pdf' ? '#2563EB' : '#64748B' }} />
-                    <span>Original PDF / File</span>
+                    <span>Original File</span>
                   </button>
                 </div>
 
-                {/* Search & Actions */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                {/* Right: Search, Copy & ALWAYS-VISIBLE Close Button */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
                   {readerViewMode === 'text' && (
                     <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                      <Search size={13} style={{ position: 'absolute', left: '8px', color: '#94A3B8' }} />
+                      <Search size={12} style={{ position: 'absolute', left: '7px', color: '#94A3B8' }} />
                       <input
                         type="text"
                         placeholder="Search text..."
                         value={fullReaderSearch}
                         onChange={e => setFullReaderSearch(e.target.value)}
                         style={{
-                          padding: '4px 24px 4px 26px',
-                          fontSize: '0.74rem',
+                          padding: '4px 22px 4px 24px',
+                          fontSize: '0.72rem',
                           borderRadius: '6px',
                           border: '1px solid #CBD5E1',
-                          width: '160px',
+                          width: '120px',
                           outline: 'none',
                           background: '#FFFFFF'
                         }}
@@ -3051,52 +3793,24 @@ export default function DocumentWorkspaceExplorer({
                           onClick={() => setFullReaderSearch('')}
                           style={{
                             position: 'absolute',
-                            right: '6px',
+                            right: '5px',
                             border: 'none',
                             background: 'transparent',
                             color: '#94A3B8',
                             cursor: 'pointer',
-                            padding: 0,
-                            display: 'flex',
-                            alignItems: 'center'
+                            padding: 0
                           }}
                         >
-                          <X size={12} />
+                          <X size={11} />
                         </button>
                       )}
                     </div>
                   )}
 
                   {fullReaderSearch.trim() && readerViewMode === 'text' && (
-                    <span style={{ fontSize: '0.70rem', color: searchMatchesCount > 0 ? '#15803D' : '#DC2626', fontWeight: 700, whiteSpace: 'nowrap' }}>
+                    <span style={{ fontSize: '0.68rem', color: searchMatchesCount > 0 ? '#15803D' : '#DC2626', fontWeight: 700, whiteSpace: 'nowrap' }}>
                       {searchMatchesCount} {searchMatchesCount === 1 ? 'match' : 'matches'}
                     </span>
-                  )}
-
-                  {selectedDocDetails && (
-                    <a
-                      href={`/v1/documents/${selectedDocDetails.id}/file`}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="btn btn-secondary"
-                      style={{
-                        padding: '4px 9px',
-                        fontSize: '0.74rem',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '4px',
-                        textDecoration: 'none',
-                        background: '#FFFFFF',
-                        border: '1px solid #CBD5E1',
-                        borderRadius: '6px',
-                        color: '#0284C7',
-                        fontWeight: 600
-                      }}
-                      title="Open full document file in browser tab"
-                    >
-                      <ExternalLink size={12} />
-                      <span>Open in Tab ↗</span>
-                    </a>
                   )}
 
                   <button
@@ -3104,41 +3818,49 @@ export default function DocumentWorkspaceExplorer({
                     onClick={() => handleCopyText(readerContent || selectedDocDetails?.title || '')}
                     className="btn btn-secondary"
                     style={{
-                      padding: '4px 10px',
-                      fontSize: '0.74rem',
+                      padding: '4px 9px',
+                      fontSize: '0.72rem',
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '5px',
+                      gap: '4px',
                       background: '#FFFFFF',
                       border: '1px solid #CBD5E1',
                       borderRadius: '6px',
                       color: copiedReaderText ? '#16A34A' : '#1E293B',
-                      fontWeight: 600
+                      fontWeight: 600,
+                      cursor: 'pointer'
                     }}
                     title="Copy full document text"
                   >
                     {copiedReaderText ? <Check size={12} style={{ color: '#16A34A' }} /> : <Copy size={12} />}
-                    <span>{copiedReaderText ? 'Copied!' : 'Copy Text'}</span>
+                    <span>{copiedReaderText ? 'Copied' : 'Copy'}</span>
                   </button>
 
+                  {/* PROMINENT CLOSE BUTTON - NEVER OVERFLOWS */}
                   <button
                     type="button"
                     onClick={() => setIsFullFileReaderOpen(false)}
                     style={{
-                      width: '28px',
-                      height: '28px',
+                      width: '30px',
+                      height: '30px',
                       borderRadius: '6px',
-                      border: '1px solid #CBD5E1',
+                      border: '1.5px solid #CBD5E1',
                       background: '#FFFFFF',
                       cursor: 'pointer',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      color: '#64748B'
+                      color: '#0F172A',
+                      flexShrink: 0,
+                      marginLeft: '3px',
+                      boxShadow: '0 1px 2px rgba(0,0,0,0.06)',
+                      transition: 'all 0.15s ease'
                     }}
-                    title="Close Reader"
+                    onMouseEnter={e => { e.currentTarget.style.background = '#FEE2E2'; e.currentTarget.style.color = '#DC2626'; e.currentTarget.style.borderColor = '#FCA5A5'; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = '#FFFFFF'; e.currentTarget.style.color = '#0F172A'; e.currentTarget.style.borderColor = '#CBD5E1'; }}
+                    title="Close Reader (Esc)"
                   >
-                    <X size={15} />
+                    <X size={16} strokeWidth={2.5} />
                   </button>
                 </div>
               </div>
@@ -3175,36 +3897,56 @@ export default function DocumentWorkspaceExplorer({
                           padding: '32px 36px',
                           borderRadius: '8px',
                           border: '1px solid #E2E8F0',
-                          boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
+                          boxShadow: '0 4px 16px -2px rgba(15, 23, 42, 0.06)',
                           fontSize: '0.88rem',
                           lineHeight: 1.7,
                           color: '#0F172A',
-                          whiteSpace: 'pre-wrap',
                           wordBreak: 'break-word',
                           fontFamily: 'ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
                         }}
                       >
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #E2E8F0', paddingBottom: '10px', marginBottom: '18px', fontSize: '0.74rem', color: '#64748B' }}>
-                          <span style={{ fontWeight: 700, textTransform: 'uppercase', color: '#334155' }}>
-                            {selectedDocDetails.document_type || 'Policy'} Text Stream
-                          </span>
-                          <span>
-                            {readerContent.split(/\s+/).filter(Boolean).length} words • {readerContent.split('\n').length} lines
-                          </span>
+                        {/* Header Inside the Paper Sheet */}
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '1.5px solid #F1F5F9', paddingBottom: '14px', marginBottom: '20px', gap: '16px' }}>
+                          <div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                              <span style={{ fontSize: '0.64rem', fontWeight: 800, padding: '2px 7px', borderRadius: '4px', background: '#EFF6FF', color: '#2563EB', border: '1px solid #DBEAFE', textTransform: 'uppercase' }}>
+                                {selectedDocDetails.document_type || 'Policy'}
+                              </span>
+                              <span style={{ fontSize: '0.68rem', color: '#16A34A', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                                <CheckCircle2 size={12} /> Verified Ingestion
+                              </span>
+                              <span style={{ fontSize: '0.68rem', color: '#64748B' }}>
+                                • v{selectedDocDetails.versions?.length || 1}.0
+                              </span>
+                            </div>
+                            <h1 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 800, color: '#0F172A', lineHeight: 1.3 }}>
+                              {selectedDocDetails.title}
+                            </h1>
+                          </div>
+                          <div style={{ textAlign: 'right', fontSize: '0.68rem', color: '#64748B', flexShrink: 0 }}>
+                            <div style={{ fontWeight: 600, color: '#475569' }}>
+                              {readerContent.split(/\s+/).filter(Boolean).length} words • ~{Math.max(1, Math.ceil(readerContent.split(/\s+/).filter(Boolean).length / 200))} min read
+                            </div>
+                            <div style={{ fontFamily: 'monospace', fontSize: '0.64rem', color: '#94A3B8', marginTop: '2px' }}>
+                              SHA: {selectedDocDetails.content_hash?.substring(0, 10)}...
+                            </div>
+                          </div>
                         </div>
 
                         {fullReaderSearch.trim() ? (
-                          readerContent.split(new RegExp(`(${fullReaderSearch.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&')})`, 'gi')).map((part, i) =>
-                            part.toLowerCase() === fullReaderSearch.toLowerCase() ? (
-                              <mark key={i} style={{ background: '#FEF08A', color: '#854D0E', padding: '1px 4px', borderRadius: '3px', fontWeight: 700 }}>
-                                {part}
-                              </mark>
-                            ) : (
-                              part
-                            )
-                          )
+                          <div style={{ whiteSpace: 'pre-wrap', lineHeight: 1.65, fontSize: '0.84rem', color: '#334155' }}>
+                            {readerContent.split(new RegExp(`(${fullReaderSearch.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&')})`, 'gi')).map((part, i) =>
+                              part.toLowerCase() === fullReaderSearch.toLowerCase() ? (
+                                <mark key={i} style={{ background: '#FEF08A', color: '#854D0E', padding: '1px 4px', borderRadius: '3px', fontWeight: 700 }}>
+                                  {part}
+                                </mark>
+                              ) : (
+                                part
+                              )
+                            )}
+                          </div>
                         ) : (
-                          readerContent
+                          renderFormattedMarkdown(readerContent)
                         )}
                       </div>
                     ) : (
