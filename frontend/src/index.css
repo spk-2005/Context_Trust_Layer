@@ -3301,3 +3301,198 @@ input.copilot-history-search-input[type="text"] {
   color: #1C1917;
   border-color: #D6D3D1;
 }
+
+/* ========================================================
+   11-Layer Universal Trust Pipeline & Live Document Preview
+   ======================================================== */
+.ingest-progressive-pipeline-card {
+  background: var(--bg-surface, #FFFFFF);
+  border: 1px solid var(--border-color, #E2E8F0);
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.02);
+}
+
+.ingest-progressive-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ingest-layers-stream {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 4px 0;
+}
+
+
+.ingest-layer-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.70rem;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  user-select: none;
+  cursor: default;
+}
+
+.ingest-layer-chip.pending {
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  color: #64748B;
+}
+
+.ingest-layer-chip.current {
+  background: #FFF7ED;
+  border: 1px solid #EA580C;
+  color: #EA580C;
+  font-weight: 700;
+  box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.15);
+  transform: translateY(-1px);
+}
+
+.ingest-layer-chip.done {
+  background: #ECFDF5;
+  border: 1px solid #A7F3D0;
+  color: #065F46;
+}
+
+.ingest-layer-chip-num {
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.62rem;
+  font-weight: 800;
+}
+
+.ingest-layer-chip.pending .ingest-layer-chip-num {
+  background: #E2E8F0;
+  color: #475569;
+}
+
+.ingest-layer-chip.current .ingest-layer-chip-num {
+  background: #EA580C;
+  color: #FFFFFF;
+}
+
+.ingest-layer-chip.done .ingest-layer-chip-num {
+  background: #059669;
+  color: #FFFFFF;
+}
+
+.ingest-preview-tabs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #F1F5F9;
+  padding: 3px;
+  border-radius: 8px;
+}
+
+.ingest-preview-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 11px;
+  border-radius: 6px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1px solid transparent;
+  background: transparent;
+  color: #64748B;
+  transition: all 0.15s ease;
+}
+
+.ingest-preview-tab-btn:hover {
+  color: #1E293B;
+}
+
+.ingest-preview-tab-btn.active {
+  background: #FFFFFF;
+  color: #0F172A;
+  border-color: #CBD5E1;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.ingest-folder-path-banner {
+  background: linear-gradient(135deg, #F0F9FF 0%, #E0F2FE 100%);
+  border: 1px solid #BAE6FD;
+  border-radius: 10px;
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ingest-text-preview-container {
+  background: #0F172A;
+  color: #E2E8F0;
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 0.76rem;
+  line-height: 1.55;
+  max-height: 480px;
+  overflow-y: auto;
+  border: 1px solid #1E293B;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.25);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.ingest-text-preview-line-num {
+  color: #475569;
+  user-select: none;
+  display: inline-block;
+  width: 38px;
+  text-align: right;
+  margin-right: 14px;
+}
+
+/* Universal True-Viewport Modal Overlay System */
+.modal-backdrop {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background: rgba(15, 23, 42, 0.65) !important;
+  backdrop-filter: blur(5px) !important;
+  -webkit-backdrop-filter: blur(5px) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 20px !important;
+  box-sizing: border-box !important;
+  z-index: 99999 !important;
+}
+
+.modal-content {
+  background: #FFFFFF;
+  border-radius: 12px;
+  border: 1px solid #CBD5E1;
+  box-shadow: 0 25px 60px -15px rgba(15, 23, 42, 0.35);
+  box-sizing: border-box;
+  max-width: 90vw;
+  max-height: 90vh;
+  margin: auto;
+  position: relative;
+}
+
