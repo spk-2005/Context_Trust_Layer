@@ -99,9 +99,8 @@ async def _ensure_folder_exists(
 ) -> uuid.UUID:
     """
     Resolves folder_id within the organization.
-    If folder_id is not specified, intelligently matches document title and type
-    to standard enterprise folders (Finance, Security, Legal, HR, Connectors),
-    falling back to the organization's system Inbox.
+    If folder_id is specified and exists, respects it.
+    For direct uploads with no folder selected, routes directly to the organization's system Inbox.
     """
     from app.services.folder_service import FolderService
     folder_service = FolderService(db)
@@ -118,52 +117,9 @@ async def _ensure_folder_exists(
         if existing:
             return existing
 
-    # 2. Ensure enterprise hierarchy exists
-    f_map = await folder_service.ensure_enterprise_hierarchy(organization_id)
-    inbox = f_map.get("Inbox")
-
-    # 3. Smart routing based on title and document_type
-    title_lower = (title or "").lower()
-    type_lower = (doc_type or "").lower()
-
-    if type_lower == "slack_message" or "slack" in title_lower:
-        matched = f_map.get("Slack Channels")
-        if matched:
-            return matched.id
-    if "github" in title_lower:
-        matched = f_map.get("GitHub Repositories")
-        if matched:
-            return matched.id
-    if "confluence" in title_lower:
-        matched = f_map.get("Confluence Spaces")
-        if matched:
-            return matched.id
-    if "jira" in title_lower:
-        matched = f_map.get("Jira Projects")
-        if matched:
-            return matched.id
-    if any(k in title_lower for k in ["refund", "billing", "price", "pricing", "commercial", "supplier", "finance", "invoice"]):
-        matched = f_map.get("Finance & Operations")
-        if matched:
-            return matched.id
-    if any(k in title_lower for k in ["security", "infrastructure", "cloud", "iam", "wifi", "access", "sanction", "aml", "firewall"]):
-        matched = f_map.get("Security & Infrastructure")
-        if matched:
-            return matched.id
-    if any(k in title_lower for k in ["legal", "agreement", "contract", "terms", "nda", "standard", "governance", "compliance"]):
-        matched = f_map.get("Legal & Customer Contracts")
-        if matched:
-            return matched.id
-    if any(k in title_lower for k in ["handbook", "employee", "remote", "workplace", "people", "hr", "conduct"]):
-        matched = f_map.get("People & Workplace")
-        if matched:
-            return matched.id
-
-    if inbox:
-        return inbox.id
-
-    fresh_inbox = await folder_service.ensure_system_inbox(organization_id)
-    return fresh_inbox.id
+    # 2. Direct manual uploads without a folder selection default strictly to Inbox
+    inbox = await folder_service.ensure_system_inbox(organization_id)
+    return inbox.id
 
 
 async def _resolve_folder_path(
@@ -1556,4 +1512,47 @@ async def delete_or_decommission_document(
             "claims_affected": len(claims),
             "conflicts_resolved": len(conflicts),
         }
+
+
+@router.post("/{document_id}/reprocess", status_code=status.HTTP_200_OK)
+async def reprocess_document_claims(
+    document_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+):
+    """Re-extracts atomic claims, runs 10-gate validation, and recalculates trust and conflict scores via 11-Layer Unified Extraction Pipeline."""
+    from app.db.repositories.document_repository import DocumentRepository
+    from app.services.claim_extraction_service import ClaimExtractionService
+    from app.services.conflict_service import ConflictService
+    from app.services.trust_service import TrustService
+    from app.db.repositories.claim_repository import ClaimRepository
+
+    doc_repo = DocumentRepository(db)
+    doc = await doc_repo.get_by_id(document_id)
+    if not doc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Document {document_id} not found.")
+
+    version = await doc_repo.get_current_version(document_id)
+    if not version:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Current version for document {document_id} not found.")
+
+    extraction_service = ClaimExtractionService(db)
+    conflict_service = ConflictService(db)
+    trust_service = TrustService(db)
+    claim_repo = ClaimRepository(db)
+
+    claims = await extraction_service.extract_claims_from_version(version.id)
+    await conflict_service.run_conflict_detection_for_version(version.id)
+    await trust_service.calculate_for_version(version.id)
+    await db.commit()
+
+    persisted_claims = await claim_repo.list_by_version(version.id)
+    return {
+        "status": "success",
+        "document_id": str(document_id),
+        "document_title": doc.title,
+        "version_id": str(version.id),
+        "claims_count": len(persisted_claims),
+        "message": f"Document '{doc.title}' successfully reprocessed via 11-Layer Architecture. {len(persisted_claims)} certified claims extracted.",
+    }
+
 

@@ -64,6 +64,7 @@ class UnifiedPipelineOptions(BaseModel):
     external_id: Optional[str] = None
     persist_to_db: bool = False
     document_version_id: Optional[uuid.UUID] = None
+    parsed_content: Optional[str] = None
 
 
 @dataclass
@@ -114,9 +115,10 @@ class UnifiedExtractionPipeline:
     async def execute(
         cls,
         filename: str,
-        raw_bytes: bytes,
+        raw_bytes: Optional[bytes] = None,
         options: Optional[UnifiedPipelineOptions] = None,
         db_session: Optional[AsyncSession] = None,
+        parsed_content: Optional[str] = None,
     ) -> UnifiedPipelineResult:
         start_time = time.time()
         opts = options or UnifiedPipelineOptions()
@@ -127,11 +129,20 @@ class UnifiedExtractionPipeline:
         ).replace("\x00", "").strip()
 
         # Step 1: Universal Parsing
-        content_text = UniversalFileParser.parse_file(
-            filename=filename,
-            raw_bytes=raw_bytes,
-            doc_title=doc_title,
-        )
+        effective_parsed = parsed_content or opts.parsed_content
+        if effective_parsed:
+            content_text = effective_parsed
+            if raw_bytes is None:
+                raw_bytes = content_text.encode("utf-8")
+        else:
+            effective_bytes = raw_bytes or b""
+            content_text = UniversalFileParser.parse_file(
+                filename=filename,
+                raw_bytes=effective_bytes,
+                doc_title=doc_title,
+            )
+            if raw_bytes is None:
+                raw_bytes = effective_bytes
 
         # Step 2: Canonical Source Envelope (Layer 3)
         canonical_env = EnvelopeFactory.create_from_file_upload(
@@ -142,6 +153,7 @@ class UnifiedExtractionPipeline:
             source_id=opts.source_id,
             document_type=opts.document_type,
             source_intent=opts.source_intent,
+            source_family=opts.source_family,
         )
 
         # Step 3: Structured Parsing (Layer 4)

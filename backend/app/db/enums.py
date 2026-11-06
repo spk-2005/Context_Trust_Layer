@@ -57,6 +57,7 @@ class SourceFamily(str, Enum):
     STRUCTURED = "structured"                # Layer 2 primary naming
     STRUCTURED_DATA = "structured"           # Layer 1 alias
     CONVERSATION = "conversation"            # Slack, Teams, Jira comments, Email threads
+    CONVERSATIONAL = "conversation"          # Alias
     METADATA = "metadata"                    # Layer 2 primary naming
     METADATA_OPERATIONAL = "metadata"        # Layer 1 alias
 
@@ -70,7 +71,7 @@ class SourceFamily(str, Enum):
                 return cls.METADATA
             if val_lower in ("document", "documents", "file"):
                 return cls.DOCUMENT
-            if val_lower in ("conversation", "chat", "discussions"):
+            if val_lower in ("conversation", "conversational", "chat", "discussions"):
                 return cls.CONVERSATION
         return super()._missing_(value)
 

@@ -834,15 +834,35 @@ class SlackConnector(BaseConnector):
         results: list[tuple[Document, DocumentVersion, bool]] = []
         ingestion_service = self.ingestion_service or (DocumentIngestionService(self.session) if self.session else None)
 
+        folder_service = None
+        channel_folders_cache: dict[str, tuple[Any, Any]] = {}
+        if self.session and self.organization_id:
+            from app.services.folder_service import FolderService
+            folder_service = FolderService(self.session)
+
         for ext_id, msgs in threads.items():
             meta = thread_metadata[ext_id]
             # Sort messages chronologically by float timestamp
             msgs.sort(key=lambda x: float(x.get("id", "0") or 0))
 
-            ch_name = meta["channel"]
+            ch_name = meta["channel"] or "general"
             th_ts = meta["thread_ts"]
             permalink = meta["permalink"]
             msg_count = len(msgs)
+
+            # Resolve 5-tier channel folders: Slack Messages (conversations) & Slack Documents (attachments)
+            msgs_folder = None
+            docs_folder = None
+            if folder_service:
+                try:
+                    if ch_name not in channel_folders_cache:
+                        channel_folders_cache[ch_name] = await folder_service.ensure_slack_hierarchy(
+                            self.organization_id, ch_name
+                        )
+                    msgs_folder, docs_folder = channel_folders_cache[ch_name]
+                except Exception as fe:
+                    logger.warning("Could not resolve Slack channel hierarchy for %s: %s", ch_name, fe)
+                    msgs_folder, docs_folder = None, None
 
             root_msg = msgs[0]
             root_speaker = root_msg.get("speaker", "Unknown User")
@@ -890,12 +910,15 @@ class SlackConnector(BaseConnector):
                 organization_id=self.organization_id,
                 source_id=self.source_id,
                 owner_id=self.owner_id,
+                folder_id=msgs_folder.id if msgs_folder else None,
                 title=title_text,
                 document_type="slack_message",
                 content=full_markdown,
                 external_id=ext_id,
                 metadata={
                     "connector": "slack",
+                    "origin_source": "Slack",
+                    "domain": "General",
                     "channel": ch_name,
                     "channel_id": meta["channel_id"],
                     "thread_ts": th_ts,
@@ -904,6 +927,8 @@ class SlackConnector(BaseConnector):
                     "latest_ts": latest_ts,
                     "permalink": permalink,
                     "files": all_file_names,
+                    "source_family": "conversational",
+                    "source_intent": "operational_data",
                 },
             )
 
@@ -911,28 +936,39 @@ class SlackConnector(BaseConnector):
                 doc, version, _, is_changed = await ingestion_service.ingest_document_with_dedup(doc_create)
                 results.append((doc, version, is_changed))
 
-                # Ingest attached documents as dedicated, first-class documents as well
+                # Ingest attached documents as dedicated, first-class documents in the Slack Documents sub-folder
                 for m in msgs:
                     for fdoc in m.get("extracted_files", []):
                         f_id = fdoc.get("file_id") or uuid.uuid4().hex[:8]
                         f_title = fdoc.get("title") or fdoc.get("name")
+                        fname = fdoc.get("name") or f"{f_title}"
+                        lower_name = fname.lower()
+                        is_policy = any(k in lower_name for k in ("policy", "handbook", "standard", "sop", "guideline", "refund", "terms", "compliance"))
+                        f_doc_type = "policy" if is_policy else "document"
+
                         file_doc_create = DocumentCreate(
                             organization_id=self.organization_id,
                             source_id=self.source_id,
                             owner_id=self.owner_id,
+                            folder_id=docs_folder.id if docs_folder else None,
                             title=f"{f_title}",
-                            document_type="document",
+                            document_type=f_doc_type,
                             content=fdoc.get("content", ""),
                             external_id=f"slack://{meta['channel_id']}/file/{f_id}",
                             metadata={
                                 "connector": "slack",
+                                "origin_source": "Slack",
+                                "domain": "General",
                                 "channel": ch_name,
                                 "channel_id": meta["channel_id"],
-                                "filename": fdoc.get("name"),
+                                "filename": fname,
                                 "file_id": f_id,
                                 "filetype": fdoc.get("filetype", ""),
                                 "permalink": fdoc.get("permalink", ""),
                                 "thread_ts": th_ts,
+                                "parent_thread_doc_id": str(doc.id) if doc else None,
+                                "source_family": "document",
+                                "source_intent": "governance_policy" if is_policy else "operational_data",
                             },
                         )
                         if fdoc.get("content"):

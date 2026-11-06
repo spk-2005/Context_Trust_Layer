@@ -367,3 +367,137 @@ async def test_metrics_transparent_counts(setup_test_org, client: AsyncClient, d
     assert "completed" in metrics["documents"]["by_processing_state"]
     assert "human_certified" in metrics["claims"]["by_verification_tier"]
     assert "conflicts_detected_in_scope" in metrics
+
+
+@pytest.mark.asyncio
+async def test_slack_5_tier_folder_hierarchy_and_routing(setup_test_org, db: AsyncSession):
+    """
+    Verifies that FolderService constructs the exact 5-tier Slack hierarchy:
+    Connected Integrations (L0) -> Slack (L1) -> Slack Channels (L2) -> #{channel} (L3) -> (Slack Messages, Slack Documents) (L4)
+    and that migration routes messages and attachments into their respective subfolders.
+    """
+    from app.db.models.data_source import DataSource
+
+    org_id = setup_test_org["org_id"]
+    service = FolderService(db)
+
+    # 1. Provision Slack channel hierarchy for #social
+    msgs_folder, docs_folder = await service.ensure_slack_hierarchy(org_id, "#social")
+    await db.commit()
+
+    assert msgs_folder.name == "Slack Messages"
+    assert msgs_folder.folder_type == "slack_messages"
+    assert msgs_folder.depth == 4
+
+    assert docs_folder.name == "Slack Documents"
+    assert docs_folder.folder_type == "slack_documents"
+    assert docs_folder.depth == 4
+    assert msgs_folder.parent_id == docs_folder.parent_id
+
+    # Verify Level 3: Channel folder #social
+    res_ch = await db.execute(select(Folder).where(Folder.id == msgs_folder.parent_id))
+    channel_folder = res_ch.scalar_one()
+    assert channel_folder.name == "#social"
+    assert channel_folder.depth == 3
+    assert channel_folder.folder_type == "slack_channel"
+
+    # Verify Level 2: Slack Channels container
+    res_ch_root = await db.execute(select(Folder).where(Folder.id == channel_folder.parent_id))
+    channels_root = res_ch_root.scalar_one()
+    assert channels_root.name == "Slack Channels"
+    assert channels_root.depth == 2
+
+    # Verify Level 1: Slack Provider
+    res_slack = await db.execute(select(Folder).where(Folder.id == channels_root.parent_id))
+    slack_root = res_slack.scalar_one()
+    assert slack_root.name == "Slack"
+    assert slack_root.depth == 1
+    assert slack_root.folder_type == "connector_service"
+
+    # Verify Level 0: Connected Integrations
+    res_conn = await db.execute(select(Folder).where(Folder.id == slack_root.parent_id))
+    conn_root = res_conn.scalar_one()
+    assert conn_root.name == "Connected Integrations"
+    assert conn_root.depth == 0
+
+    # 2. Idempotency check: Calling ensure_slack_hierarchy again returns identical folders
+    msgs_folder2, docs_folder2 = await service.ensure_slack_hierarchy(org_id, "social")
+    assert msgs_folder2.id == msgs_folder.id
+    assert docs_folder2.id == docs_folder.id
+
+    # 3. Test Migration: Create documents currently in Inbox
+    inbox = await service.ensure_system_inbox(org_id)
+    ds = DataSource(
+        id=uuid.uuid4(),
+        organization_id=org_id,
+        name="Slack Test Source",
+        source_type="slack",
+        external_id=f"slack-test-{uuid.uuid4().hex[:8]}",
+    )
+    ds_manual = DataSource(
+        id=uuid.uuid4(),
+        organization_id=org_id,
+        name="Direct File Upload",
+        source_type="file_upload",
+        external_id=f"upload-test-{uuid.uuid4().hex[:8]}",
+    )
+    db.add_all([ds, ds_manual])
+    await db.flush()
+
+    # Thread document in Inbox
+    thread_doc = Document(
+        id=uuid.uuid4(),
+        organization_id=org_id,
+        source_id=ds.id,
+        folder_id=inbox.id,
+        title="Slack Thread: #social (1792988883.172359)",
+        document_type="slack_message",
+        external_id="slack://C01/1792988883.172359",
+        content_hash="hash_thread_1",
+        metadata={"connector": "slack", "channel": "social"},
+    )
+    # Extracted attached file in Inbox
+    attached_doc = Document(
+        id=uuid.uuid4(),
+        organization_id=org_id,
+        source_id=ds.id,
+        folder_id=inbox.id,
+        title="Basics Of Python Questions",
+        document_type="document",
+        external_id="slack://C01/file/F999",
+        content_hash="hash_attached_1",
+        metadata={"connector": "slack", "channel": "social", "filename": "Basics of python questions.docx"},
+    )
+    # Manual direct upload in Inbox
+    manual_doc = Document(
+        id=uuid.uuid4(),
+        organization_id=org_id,
+        source_id=ds_manual.id,
+        folder_id=inbox.id,
+        title="My Manual Notes",
+        document_type="document",
+        content_hash="hash_manual_1",
+        metadata={"upload": True},
+    )
+    db.add_all([thread_doc, attached_doc, manual_doc])
+    await db.commit()
+
+    # Run migration
+    migration_res = await service.migrate_existing_slack_documents(org_id)
+    await db.commit()
+
+    assert migration_res["success"] is True
+    assert migration_res["migrated_messages"] >= 1
+    assert migration_res["migrated_documents"] >= 1
+
+    # Reload documents
+    await db.refresh(thread_doc)
+    await db.refresh(attached_doc)
+    await db.refresh(manual_doc)
+
+    # Thread doc moved to Slack Messages
+    assert thread_doc.folder_id == msgs_folder.id
+    # Attached doc moved to Slack Documents
+    assert attached_doc.folder_id == docs_folder.id
+    # Manual doc stays in Inbox!
+    assert manual_doc.folder_id == inbox.id

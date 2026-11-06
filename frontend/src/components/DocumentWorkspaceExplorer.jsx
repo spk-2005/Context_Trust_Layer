@@ -36,6 +36,8 @@ import {
   Coins,
   Users,
   MessageSquare,
+  MessageCircle,
+  Hash,
   CheckSquare,
   Briefcase,
   ArrowLeft,
@@ -412,7 +414,7 @@ export default function DocumentWorkspaceExplorer({
   const docsByFolder = useMemo(() => {
     const map = {};
     for (const doc of allDocuments) {
-      const fId = doc.folder_id || 'inbox';
+      const fId = doc.folder_id || 'unassigned';
       if (!map[fId]) map[fId] = [];
       map[fId].push(doc);
     }
@@ -446,11 +448,11 @@ export default function DocumentWorkspaceExplorer({
   const currentFolderDocs = useMemo(() => {
     if (!activeFolderId) {
       const inbox = folders.find(f => f.is_system && f.folder_type === 'inbox');
-      return inbox ? (docsByFolder[inbox.id] || docsByFolder['inbox'] || []) : allDocuments;
+      return inbox ? (docsByFolder[inbox.id] || docsByFolder['unassigned'] || []) : allDocuments;
     }
     const current = folders.find(f => f.id === activeFolderId);
     if (current?.is_system && current?.folder_type === 'inbox') {
-      return (docsByFolder[activeFolderId] || []).concat(docsByFolder['inbox'] || []);
+      return (docsByFolder[activeFolderId] || []).concat(docsByFolder['unassigned'] || []);
     }
     return docsByFolder[activeFolderId] || [];
   }, [activeFolderId, folders, docsByFolder, allDocuments]);
@@ -496,6 +498,21 @@ export default function DocumentWorkspaceExplorer({
     }
     if (node.folder_type === 'connectors') {
       return <Network size={size} style={{ color: '#6366F1', flexShrink: 0 }} />;
+    }
+    if (node.folder_type === 'connector_service' || node.name === 'Slack') {
+      return <MessageCircle size={size} style={{ color: '#4A154B', flexShrink: 0 }} />;
+    }
+    if (node.folder_type === 'slack_channels_root' || node.name === 'Slack Channels') {
+      return <Hash size={size} style={{ color: '#E11D48', flexShrink: 0 }} />;
+    }
+    if (node.folder_type === 'slack_channel' || (node.name && node.name.startsWith('#'))) {
+      return <Hash size={size} style={{ color: '#3B82F6', flexShrink: 0 }} />;
+    }
+    if (node.folder_type === 'slack_messages' || node.name === 'Slack Messages') {
+      return <MessageSquare size={size} style={{ color: '#8B5CF6', flexShrink: 0 }} />;
+    }
+    if (node.folder_type === 'slack_documents' || node.name === 'Slack Documents') {
+      return <FileText size={size} style={{ color: '#10B981', flexShrink: 0 }} />;
     }
     if (node.icon === 'lock') return <Lock size={size} style={{ color: '#3B82F6', flexShrink: 0 }} />;
     if (node.icon === 'scale') return <Scale size={size} style={{ color: '#8B5CF6', flexShrink: 0 }} />;
@@ -1073,7 +1090,7 @@ export default function DocumentWorkspaceExplorer({
 
       // Get files belonging to this folder (or inbox if system inbox)
       const folderFiles = (docsByFolder[node.id] || []).concat(
-        node.is_system ? (docsByFolder['inbox'] || []) : []
+        node.is_system ? (docsByFolder['unassigned'] || []) : []
       );
 
       // Deduplicate files by id

@@ -64,6 +64,66 @@ class ClaimExtractionService:
             raise ValueError(f"Parent document for version {document_version_id} not found.")
 
         raw_text = version.content_uri or ""
+
+        # -------------------------------------------------------------
+        # TRULIN 11-LAYER UNIVERSAL CLAIM ARCHITECTURE PIPELINE
+        # -------------------------------------------------------------
+        try:
+            from app.db.enums import SourceFamily, SourceIntent
+            from app.extraction.unified_pipeline import UnifiedExtractionPipeline, UnifiedPipelineOptions
+
+            is_thread = (
+                doc.document_type in ("communication", "slack_message")
+                or (doc.metadata and isinstance(doc.metadata, dict) and doc.metadata.get("thread_ts"))
+            )
+            resolved_family = SourceFamily.CONVERSATION if is_thread else SourceFamily.DOCUMENT
+            resolved_intent = (
+                SourceIntent.GOVERNANCE_POLICY
+                if str(doc.document_type).lower() in ("policy", "standard")
+                else SourceIntent.OPERATIONAL_DATA
+            )
+            doc_filename = (
+                (doc.metadata.get("filename") if (doc.metadata and isinstance(doc.metadata, dict)) else None)
+                or f"{doc.title}.md"
+            )
+
+            pipeline_opts = UnifiedPipelineOptions(
+                organization_id=doc.organization_id,
+                source_id=doc.source_id,
+                document_type=doc.document_type or "document",
+                source_intent=resolved_intent,
+                source_family=resolved_family,
+                doc_title=doc.title,
+                external_id=doc.external_id,
+                persist_to_db=True,
+                document_version_id=version.id,
+                parsed_content=raw_text,
+            )
+
+            await UnifiedExtractionPipeline.execute(
+                filename=doc_filename,
+                raw_bytes=raw_text.encode("utf-8"),
+                options=pipeline_opts,
+                db_session=self.session,
+                parsed_content=raw_text,
+            )
+            await self.session.flush()
+
+            persisted_claims = await self.claim_repo.list_by_version(version.id)
+            if persisted_claims:
+                logger.info(
+                    "UnifiedExtractionPipeline (11-Layer) extracted and verified %d claims for version %s",
+                    len(persisted_claims),
+                    document_version_id,
+                )
+                return persisted_claims
+        except Exception as exc:
+            logger.warning(
+                "UnifiedExtractionPipeline encountered note for version %s (%s). Falling back to section extractor.",
+                document_version_id,
+                exc,
+            )
+
         normalized = self.normalizer.normalize(
             document_id=doc.id,
             document_version_id=version.id,
