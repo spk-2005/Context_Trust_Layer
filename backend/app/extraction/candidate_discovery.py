@@ -10,7 +10,7 @@ import re
 from typing import List, Tuple
 
 from app.extraction.models import ExtractionStrategyType
-from app.ingestion.parsers.evidence_model import ParsedEvidenceUnit
+from app.ingestion.parsers.evidence_model import ContentRole, ParsedEvidenceUnit
 
 
 class CandidateDiscoveryEngine:
@@ -45,30 +45,34 @@ class CandidateDiscoveryEngine:
     @classmethod
     def is_candidate(cls, unit: ParsedEvidenceUnit) -> Tuple[bool, ExtractionStrategyType, str]:
         """
-        Evaluates an evidence unit.
+        Evaluates an evidence unit across text, tables, structured records, and connector messages.
         Returns (is_candidate, recommended_strategy, reason).
         """
         b_type = unit.block_type
-        text = unit.content_text or ""
+        text = (unit.normalized_content or unit.content_text or "").strip()
         s_data = unit.structured_data or {}
+        unit_role = getattr(unit, "content_role", None)
 
         # 1. Structured Database & BSON Records -> Deterministic Schema Extraction
         if b_type in ("database_record", "record_row", "structured_record"):
-            # Has data fields or key-value entries
             if s_data.get("flattened_fields") or s_data.get("raw_record") or s_data.get("row_value"):
                 return True, ExtractionStrategyType.DETERMINISTIC_SCHEMA, "Database record with typed field invariants."
             return True, ExtractionStrategyType.DETERMINISTIC_SCHEMA, "Structured operational record."
 
-        # 2. Relational & Schema DDL Definitions -> Deterministic Schema Extraction
-        if b_type in ("schema_definition", "column_definition"):
+        # 2. Relational & Schema DDL Definitions & Constraints -> Deterministic Schema Extraction
+        if b_type in ("schema_definition", "column_definition", "constraint_definition"):
             return True, ExtractionStrategyType.DETERMINISTIC_SCHEMA, "Relational schema constraint / DDL definition."
+
+        # 2B. Structured JSON Scalars and XML Elements
+        if b_type in ("json_scalar", "xml_element"):
+            return True, ExtractionStrategyType.DETERMINISTIC_SCHEMA, "Structured scalar or XML element data invariant."
 
         # 3. BI Metric Definitions & Lineage -> Deterministic Schema Extraction
         if b_type in ("metric_definition", "lineage_node", "config_property"):
             return True, ExtractionStrategyType.DETERMINISTIC_SCHEMA, "BI metric rule or lineage dependency."
 
         # 4. Structured Table Rows -> Table-Aware Extraction
-        if b_type == "table_row":
+        if b_type in ("table_row", "table"):
             table_type = s_data.get("table_type")
             cols = s_data.get("columns", {})
             col_keys_lower = [str(k).lower().strip() for k in cols.keys()]
@@ -106,15 +110,39 @@ class CandidateDiscoveryEngine:
             # Eligible: Policy Matrix (e.g. Grade Notice Duration Matrix)
             if s_data.get("is_ambiguous"):
                 return True, ExtractionStrategyType.TABLE_AWARE, "Table row policy matrix with ambiguous/merged cell layout requiring review."
-            if cols:
+            if cols or b_type == "table_row":
                 return True, ExtractionStrategyType.TABLE_AWARE, "Structured policy matrix row with defined columns."
-            return True, ExtractionStrategyType.TABLE_AWARE, "Table row policy specification."
+            return True, ExtractionStrategyType.TABLE_AWARE, "Table policy specification."
 
-        # 5. Conversational Decisions & Messages
-        if b_type == "chat_message":
-            if cls.DECISION_PATTERN.search(text) or cls.MODAL_PATTERN.search(text):
-                return True, ExtractionStrategyType.DOMAIN_RULES, "Conversational decision or policy exemption."
-            return False, ExtractionStrategyType.DOMAIN_RULES, "Informal chat message without decision."
+        # 5. Conversational Decisions, Messages, and Connector Content
+        if b_type in ("chat_message", "message", "slack_message", "commit", "pull_request", "issue", "connector_payload"):
+            if (
+                cls.DECISION_PATTERN.search(text)
+                or cls.MODAL_PATTERN.search(text)
+                or cls.THRESHOLD_PATTERN.search(text)
+                or any(w in text.lower() for w in ("strictly limited to", "limited to", "window is", "deployment window", "must be", "will be", "deployed"))
+            ):
+                return True, ExtractionStrategyType.DOMAIN_RULES, "Connector communication with factual or policy assertion."
+            return False, ExtractionStrategyType.DOMAIN_RULES, "Informal chat message without decision or factual constraint."
+
+        # Definitions: discover terms, classifications, and threshold qualifiers
+        if unit_role == ContentRole.DEFINITION or (
+            b_type in ("clause", "paragraph", "definition")
+            and bool(re.search(r"^(?:[\"“\'][^\"”\']+[\"”\']|[A-Z][a-zA-Z\s\-]{2,30})\s+(?:means|is defined as|refers to|shall mean)\b", text, re.IGNORECASE))
+        ):
+            return True, ExtractionStrategyType.DOMAIN_RULES, "Definition establishing terminology, scope qualification, or threshold criteria."
+
+        # Exceptions: discover explicit policy exemptions
+        if unit_role == ContentRole.EXCEPTION or (
+            b_type in ("clause", "paragraph", "exception")
+            and bool(re.search(r"\b(?:exception|exemptions?|unless|except for|excluding)\b", text, re.IGNORECASE))
+            and len(text.split()) > 3
+        ):
+            return True, ExtractionStrategyType.DOMAIN_RULES, "Explicit policy exemption or exception rule."
+
+        # FAQ Answers: factual or policy responses to questions
+        if unit_role in (ContentRole.FAQ_ANSWER, ContentRole.FAQ) and not text.endswith("?"):
+            return True, ExtractionStrategyType.DOMAIN_RULES, "FAQ answer specifying policy constraints or factual specifications."
 
         # Chinese Deontic Modal Check (DOC-068) - Gated by feature flag
         from app.core.multilingual import is_multilingual_enabled
@@ -123,11 +151,12 @@ class CandidateDiscoveryEngine:
                 return True, ExtractionStrategyType.DOMAIN_RULES, "Chinese contract deontic policy assertion."
 
         # 6. Document Clauses & Paragraphs
-        if b_type in ("clause", "paragraph"):
+        if b_type in ("clause", "paragraph", "definition", "faq_answer"):
             from app.extraction.deontic_classifier import DeonticClassifier
-            from app.ingestion.parsers.evidence_model import ContentRole
 
             # Filter out FAQ questions, introductory context, and document metadata upfront
+            if unit_role in (ContentRole.FAQ_QUESTION, ContentRole.INTRODUCTORY_CONTEXT, ContentRole.DOCUMENT_METADATA) or text.strip().endswith("?"):
+                return False, ExtractionStrategyType.DOMAIN_RULES, "Inquiry question, introductory context, or document metadata; non-canonical context."
             unit_role = getattr(unit, "content_role", None)
             if unit_role in (ContentRole.FAQ_QUESTION, ContentRole.INTRODUCTORY_CONTEXT, ContentRole.DOCUMENT_METADATA) or text.strip().endswith("?"):
                 return False, ExtractionStrategyType.DOMAIN_RULES, "Inquiry question, introductory context, or document metadata; non-canonical context."

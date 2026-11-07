@@ -82,6 +82,13 @@ class Layer5ExtractionPipeline:
 
             # 3. Source-Aware Plugin Verification
             for claim in extracted_claims:
+                if not claim.source_version and getattr(envelope, "source_version", None):
+                    claim.source_version = envelope.source_version
+                if not claim.raw_content and getattr(unit, "raw_content", None):
+                    claim.raw_content = unit.raw_content
+                if not claim.normalized_content and getattr(unit, "normalized_content", None):
+                    claim.normalized_content = unit.normalized_content
+
                 is_valid, plugin_name, v_reason, details = self.plugin_manager.verify_candidate(
                     candidate=claim,
                     unit=unit,

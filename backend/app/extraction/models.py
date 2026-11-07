@@ -141,6 +141,25 @@ class CandidateClaim(BaseModel):
     content_hash: str = Field(..., description="SHA-256 hash of the claim semantics and evidence")
     extracted_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
+    # Phase 5 Extensions: Structured Provenance, Scope, Multi-Evidence, and Deduplication
+    evidence_unit_ids: List[str] = Field(default_factory=list, description="IDs of all contributing source evidence units")
+    evidence_relationship_type: Optional[str] = Field(default=None, description="Structural relation linking contributing evidence units")
+    definition_references: List[str] = Field(default_factory=list, description="Referenced definition IDs or terms that qualify this claim")
+    exception_references: List[str] = Field(default_factory=list, description="Referenced exception IDs or terms")
+    temporal_scope: Optional[str] = Field(default=None, description="Temporal validity, window, or effective duration")
+    geographic_scope: Optional[str] = Field(default=None, description="Geographic jurisdiction or applicable region")
+    product_scope: Optional[str] = Field(default=None, description="Applicable product, service, tier, or SKU")
+    entity_scope: Optional[str] = Field(default=None, description="Target entity, population, role, or audience")
+    source_version: Optional[str] = Field(default=None, description="Source version of asset or envelope")
+    is_current: bool = Field(default=True, description="Whether from current source version")
+    raw_content: Optional[str] = Field(default=None, description="Raw content of primary evidence")
+    normalized_content: Optional[str] = Field(default=None, description="Normalized readable content")
+    extraction_status: str = Field(default="candidate", description="Extraction lifecycle status")
+    extraction_warnings: List[str] = Field(default_factory=list, description="Extraction warnings or scope ambiguities")
+    duplicate_of: Optional[str] = Field(default=None, description="Primary candidate ID if this is a duplicate occurrence")
+    duplicate_occurrences: List[dict[str, Any]] = Field(default_factory=list, description="Separate evidence occurrences of the same claim")
+    is_duplicate: bool = Field(default=False, description="Flagged true if this is a duplicate occurrence of an earlier candidate")
+
     @classmethod
     def create(
         cls,
@@ -178,9 +197,26 @@ class CandidateClaim(BaseModel):
         typed_value: Optional[TypedValue] = None,
         deadline: Optional[dict[str, Any]] = None,
         content_role: ContentRole | str | None = None,
+        evidence_unit_ids: Optional[List[str]] = None,
+        evidence_relationship_type: Optional[str] = None,
+        definition_references: Optional[List[str]] = None,
+        exception_references: Optional[List[str]] = None,
+        temporal_scope: Optional[str] = None,
+        geographic_scope: Optional[str] = None,
+        product_scope: Optional[str] = None,
+        entity_scope: Optional[str] = None,
+        source_version: Optional[str] = None,
+        is_current: bool = True,
+        raw_content: Optional[str] = None,
+        normalized_content: Optional[str] = None,
+        extraction_status: str = "candidate",
+        extraction_warnings: Optional[List[str]] = None,
+        duplicate_of: Optional[str] = None,
+        duplicate_occurrences: Optional[List[dict[str, Any]]] = None,
+        is_duplicate: bool = False,
     ) -> CandidateClaim:
         text_clean = claim_text.strip()
-        hash_input = f"{asset_id}:{subject}:{predicate}:{object_}:{value}:{unit}:{evidence_text_span}:{json.dumps(structured_values or {}, sort_keys=True, default=str)}"
+        hash_input = f"{asset_id}:{subject}:{predicate}:{object_}:{value}:{unit}:{evidence_text_span}:{source_version or ''}:{json.dumps(structured_values or {}, sort_keys=True, default=str)}"
         claim_hash = hashlib.sha256(hash_input.encode("utf-8")).hexdigest()
         cand_id = f"cand:{unit_id}:{claim_hash[:10]}"
 
@@ -220,6 +256,28 @@ class CandidateClaim(BaseModel):
         elif not resolved_time_basis and structured_values and structured_values.get("time_basis"):
             resolved_time_basis = structured_values.get("time_basis")
 
+        # Resolve evidence_unit_ids
+        resolved_evidence_unit_ids = list(evidence_unit_ids) if evidence_unit_ids else [source_unit_id or unit_id]
+
+        # Resolve scopes
+        resolved_scope = dict(scope or {})
+        if temporal_scope:
+            resolved_scope.setdefault("temporal", temporal_scope)
+        else:
+            temporal_scope = resolved_scope.get("temporal") or resolved_scope.get("temporal_scope")
+        if geographic_scope:
+            resolved_scope.setdefault("geographic", geographic_scope)
+        else:
+            geographic_scope = resolved_scope.get("geographic") or resolved_scope.get("geographic_scope")
+        if product_scope:
+            resolved_scope.setdefault("product", product_scope)
+        else:
+            product_scope = resolved_scope.get("product") or resolved_scope.get("product_scope")
+        if entity_scope:
+            resolved_scope.setdefault("entity", entity_scope)
+        else:
+            entity_scope = resolved_scope.get("entity") or resolved_scope.get("entity_scope")
+
         return cls(
             candidate_id=cand_id,
             envelope_id=envelope_id,
@@ -245,7 +303,7 @@ class CandidateClaim(BaseModel):
             modality=modality,
             conditions=conditions or [],
             exceptions=exceptions or [],
-            scope=scope or {},
+            scope=resolved_scope,
             claim_type=claim_type,
             is_canonical=resolved_canonical,
             cross_references=cross_references or [],
@@ -259,6 +317,23 @@ class CandidateClaim(BaseModel):
             ambiguity_reason=ambiguity_reason,
             content_hash=claim_hash,
             extracted_at=datetime.now(timezone.utc),
+            evidence_unit_ids=resolved_evidence_unit_ids,
+            evidence_relationship_type=evidence_relationship_type,
+            definition_references=definition_references or [],
+            exception_references=exception_references or [],
+            temporal_scope=temporal_scope,
+            geographic_scope=geographic_scope,
+            product_scope=product_scope,
+            entity_scope=entity_scope,
+            source_version=source_version,
+            is_current=is_current,
+            raw_content=raw_content,
+            normalized_content=normalized_content or text_clean,
+            extraction_status=extraction_status,
+            extraction_warnings=extraction_warnings or [],
+            duplicate_of=duplicate_of,
+            duplicate_occurrences=duplicate_occurrences or [],
+            is_duplicate=is_duplicate,
         )
 
 

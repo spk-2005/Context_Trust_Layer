@@ -27,6 +27,87 @@ class DomainRuleExtractor:
     )
 
     @classmethod
+    def parse_conditions_and_exceptions(cls, text: str) -> dict[str, Any]:
+        """
+        Extracts conditions, exceptions, temporal scope, geographic scope, product scope,
+        and entity scope from a sentence. Guarantees conditions and exceptions are preserved.
+        """
+        res: dict[str, Any] = {
+            "conditions": [],
+            "exceptions": [],
+            "temporal_scope": None,
+            "geographic_scope": None,
+            "product_scope": None,
+            "entity_scope": None,
+            "definition_references": [],
+        }
+        if not text:
+            return res
+
+        # 1. Exceptions (exemptions, exclusions)
+        exc_patterns = [
+            r"\bexcept\s+(?:for|when|where|in\s+cases\s+of)?\s+(?P<exc>[^,\.;]+)",
+            r"\bwith\s+the\s+exception\s+of\s+(?P<exc>[^,\.;]+)",
+            r"\bexcluding\s+(?P<exc>[^,\.;]+)",
+            r"\bother\s+than\s+(?P<exc>[^,\.;]+)",
+            r"\bunless\s+(?P<exc>[^,\.;]+)",
+        ]
+        for pat in exc_patterns:
+            for m in re.finditer(pat, text, re.IGNORECASE):
+                exc_val = m.group("exc").strip()
+                if exc_val and len(exc_val.split()) <= 15:
+                    if exc_val not in res["exceptions"]:
+                        res["exceptions"].append(exc_val)
+                        if any(w in exc_val.lower() for w in ("item", "product", "goods", "merchandise", "software", "license", "card", "service")):
+                            res["product_scope"] = f"Excludes: {exc_val}"
+
+        # 2. Conditions (preconditions, triggers)
+        cond_patterns = [
+            r"\bprovided\s+(?:that\s+)?(?P<cond>[^,\.;]+)",
+            r"\bsubject\s+to\s+(?P<cond>[^,\.;]+)",
+            r"\bon\s+(?:the\s+)?condition\s+that\s+(?P<cond>[^,\.;]+)",
+            r"\bin\s+the\s+event\s+(?:that\s+)?(?P<cond>[^,\.;]+)",
+            r"\bas\s+long\s+as\s+(?P<cond>[^,\.;]+)",
+            r"\bif\s+(?P<cond>[^,\.;]+)",
+            r"\bwhen\s+(?P<cond>[^,\.;]+)",
+        ]
+        for pat in cond_patterns:
+            for m in re.finditer(pat, text, re.IGNORECASE):
+                cond_val = m.group("cond").strip()
+                if cond_val and len(cond_val.split()) <= 20:
+                    if cond_val not in res["conditions"] and not any(cond_val in e for e in res["exceptions"]):
+                        res["conditions"].append(cond_val)
+
+        # 3. Temporal Scope
+        temp_m = re.search(
+            r"\b(?:within\s+\d+\s+(?:days?|hours?|months?|business\s+days?|calendar\s+days?)(?:\s+of\s+[^,;\.]*)?|effective\s+[A-Za-z]+\s+\d{1,2},?\s+\d{4}|effective\s+\d{4}-\d{2}-\d{2}|for\s+a\s+period\s+of\s+\d+\s+[a-z]+|between\s+\d+:\d+\s+and\s+\d+:\d+(?:\s+[A-Z]+)?|Sundays\s+between\s+[0-9:\sA-Z]+)\b",
+            text,
+            re.IGNORECASE,
+        )
+        if temp_m:
+            res["temporal_scope"] = temp_m.group(0).strip()
+            if res["temporal_scope"] not in res["conditions"]:
+                res["conditions"].append(res["temporal_scope"])
+
+        # 4. Geographic Scope
+        geo_m = re.search(r"\b(?:in\s+|within\s+)?(European\s+Union|EU|United\s+States|U\.S\.|US|Canada|Ontario|California|UK|United\s+Kingdom|Global|Worldwide)\b", text, re.IGNORECASE)
+        if geo_m:
+            res["geographic_scope"] = geo_m.group(1).strip()
+
+        # 5. Entity Scope / Audience
+        entity_m = re.search(r"\b(Gold\s+members?|full-time\s+employees?|contractors?|Tier\s+\d+\s+customers?|probationary\s+employees?|prescribers?|covered\s+entities|customers?|all\s+employees)\b", text, re.IGNORECASE)
+        if entity_m:
+            res["entity_scope"] = entity_m.group(1).strip()
+
+        # 6. Definition References
+        def_terms = ["like-new condition", "qualifying purchase", "emergency mandate", "probationary period", "business purpose"]
+        for dt in def_terms:
+            if dt in text.lower():
+                res["definition_references"].append(dt.title())
+
+        return res
+
+    @classmethod
     def is_procedural_ui_instruction(cls, text: str) -> bool:
         """Identifies instructional how-to UI navigation clicks and software UI capabilities that do not constitute normative governance rules."""
         if not text:
@@ -801,30 +882,106 @@ class DomainRuleExtractor:
         loc = unit.locator or {}
         unit_role = getattr(unit, "content_role", ContentRole.POLICY_RULE)
 
-        # 0. Headings and non-canonical metadata units must NOT yield normative policy claims
+        # 0. Headings: Composite headings declaring explicit governance policies are candidates
         if unit.block_type == "heading" or getattr(unit, "content_role", None) in (ContentRole.HEADING, ContentRole.DOCUMENT_METADATA):
-            return []
+            if not any(w in text.lower() for w in ("must", "shall", "required", "prohibited", "window:", "policy:", "effective:")):
+                return []
 
-        # 1. Conversational decisions (e.g. "[Bob] Yes, co-signing the exemption rule SEC-902 under emergency mandate v2.0.")
-        if unit.block_type == "chat_message":
-            speaker = unit.structured_data.get("speaker") or "Authorized User"
-            claim = CandidateClaim.create(
+        # 1. Conversational decisions, chat messages, and connector communications
+        if unit.block_type in ("chat_message", "message", "slack_message"):
+            speaker = unit.structured_data.get("speaker") or loc.get("speaker") or "Authorized User"
+            factual_match = re.search(r"\b(?P<subj>[A-Za-z0-9\s\-]+?)\s+(?:is|are)\s+(?:strictly\s+)?limited\s+to\s+(?P<obj>.*)$", text, re.IGNORECASE) or \
+                            re.search(r"\b(?P<subj>[A-Za-z0-9\s\-]+?)\s+(?:must|shall|is\s+required\s+to)\s+(?P<obj>.*)$", text, re.IGNORECASE)
+            if factual_match and not any(w in text.lower() for w in ("approve", "co-sign", "grant", "exempt")):
+                subj = factual_match.group("subj").strip()
+                obj = factual_match.group("obj").strip().rstrip(".:")
+                parsed_ctx = cls.parse_conditions_and_exceptions(text)
+                temp_s = parsed_ctx["temporal_scope"] or (re.search(r"\b(?:between\s+\d+:\d+\s+and\s+\d+:\d+(?:\s+[A-Z]+)?|on\s+[A-Za-z]+s?|Sundays\s+between\s+[0-9:\sA-Z]+)\b", obj, re.IGNORECASE).group(0) if re.search(r"\b(?:between\s+\d+:\d+\s+and\s+\d+:\d+(?:\s+[A-Z]+)?|on\s+[A-Za-z]+s?|Sundays\s+between\s+[0-9:\sA-Z]+)\b", obj, re.IGNORECASE) else None)
+                claim = CandidateClaim.create(
+                    envelope_id=unit.envelope_id,
+                    unit_id=unit.unit_id,
+                    asset_id=unit.asset_id,
+                    claim_text=f"[{speaker}] {text}",
+                    subject=subj,
+                    predicate="is_strictly_limited_to" if "strictly" in text.lower() else ("is_limited_to" if "limited" in text.lower() else "requires"),
+                    object_=obj,
+                    evidence_text_span=text,
+                    modal_operator="must" if "must" in text.lower() or "strictly" in text.lower() else "is",
+                    modality="MUST" if "must" in text.lower() or "strictly" in text.lower() else "REQUIRED",
+                    claim_type="policy_fact",
+                    extraction_strategy=ExtractionStrategyType.DOMAIN_RULES,
+                    locator=loc,
+                    structured_values=unit.structured_data,
+                    confidence=0.95,
+                    evidence_unit_ids=[unit.unit_id],
+                    entity_scope=speaker,
+                    temporal_scope=temp_s,
+                    source_version=getattr(unit, "source_version", None),
+                    is_current=getattr(unit, "is_current", True),
+                    raw_content=getattr(unit, "raw_content", None),
+                    normalized_content=getattr(unit, "normalized_content", None),
+                )
+                claims.append(claim)
+                return claims
+            else:
+                claim = CandidateClaim.create(
+                    envelope_id=unit.envelope_id,
+                    unit_id=unit.unit_id,
+                    asset_id=unit.asset_id,
+                    claim_text=f"Decision by {speaker}: {text}",
+                    subject=f"Decision ({speaker})",
+                    predicate="authorizes",
+                    object_=text,
+                    evidence_text_span=text,
+                    modal_operator="authorized",
+                    claim_type="decision",
+                    extraction_strategy=ExtractionStrategyType.DOMAIN_RULES,
+                    locator=loc,
+                    structured_values=unit.structured_data,
+                    confidence=0.92,
+                    evidence_unit_ids=[unit.unit_id],
+                    entity_scope=speaker,
+                    source_version=getattr(unit, "source_version", None),
+                    is_current=getattr(unit, "is_current", True),
+                    raw_content=getattr(unit, "raw_content", None),
+                    normalized_content=getattr(unit, "normalized_content", None),
+                )
+                claims.append(claim)
+                return claims
+
+        # 1B. Definitions (terms, qualification criteria)
+        if unit_role == ContentRole.DEFINITION or (
+            bool(re.search(r"^(?:[\"“\'](?P<term>[^\"”\']+)[\"”\']|(?P<term_bare>[A-Z][a-zA-Z\s\-]{2,30}))\s+(?:means|is defined as|refers to|shall mean)\s+(?P<def_text>.*)$", text, re.IGNORECASE))
+        ):
+            def_m = re.search(r"^(?:[\"“\'](?P<term>[^\"”\']+)[\"”\']|(?P<term_bare>[A-Z][a-zA-Z\s\-]{2,30}))\s+(?:means|is defined as|refers to|shall mean)\s+(?P<def_text>.*)$", text, re.IGNORECASE)
+            term = (def_m.group("term") or def_m.group("term_bare")).strip() if def_m else (hier[-1] if hier else "Defined Term")
+            def_content = def_m.group("def_text").strip().rstrip(".:") if def_m else text
+            c_def = CandidateClaim.create(
                 envelope_id=unit.envelope_id,
                 unit_id=unit.unit_id,
                 asset_id=unit.asset_id,
-                claim_text=f"Decision by {speaker}: {text}",
-                subject=f"Decision ({speaker})",
-                predicate="authorizes",
-                object_=text,
+                claim_text=text,
+                subject=term,
+                predicate="is_defined_as",
+                object_=def_content,
                 evidence_text_span=text,
-                modal_operator="authorized",
-                claim_type="decision",
+                modal_operator="is",
+                modality="IS",
+                claim_type="definition",
+                content_role=ContentRole.DEFINITION,
+                is_canonical=False,
                 extraction_strategy=ExtractionStrategyType.DOMAIN_RULES,
                 locator=loc,
                 structured_values=unit.structured_data,
-                confidence=0.92,
+                confidence=0.98,
+                evidence_unit_ids=[unit.unit_id],
+                definition_references=[term],
+                source_version=getattr(unit, "source_version", None),
+                is_current=getattr(unit, "is_current", True),
+                raw_content=getattr(unit, "raw_content", None),
+                normalized_content=getattr(unit, "normalized_content", None),
             )
-            claims.append(claim)
+            claims.append(c_def)
             return claims
 
         # Check 0: Compound Eligibility Meta-Rule (§3 Return Eligibility)
@@ -3023,6 +3180,17 @@ class DomainRuleExtractor:
                         curr_conds = [f"If {sub_cond}"] + curr_conds
 
                 match = cls.MODAL_SPLIT_REGEX.match(curr_clause_target)
+                if not match:
+                    fact_m = re.match(
+                        r"^(?P<subject>[A-Za-z0-9\s\-]+?)\s+\b(?P<modal>is|are)\s+(?P<predicate_object>\d+\s+(?:days?|hours?|months?|business\s+days?|calendar\s+days?|years?|percent|%|USD|\$|\b).*)$",
+                        curr_clause_target,
+                        re.IGNORECASE,
+                    )
+                    if fact_m:
+                        raw_subject = fact_m.group("subject").strip()
+                        raw_modal = "is"
+                        raw_pred_obj = fact_m.group("predicate_object").strip().rstrip(".:")
+                        match = fact_m
                 if match:
                     raw_subject = match.group("subject").strip() or (hier[-1] if hier else "System")
                     raw_modal = match.group("modal").strip().lower()
@@ -3121,19 +3289,24 @@ class DomainRuleExtractor:
                     if not raw_pred_words:
                         continue
 
-                    initial_pred = raw_pred_words[0].lower().strip(",.")
+                    if raw_modal in ("is", "are"):
+                        initial_pred = "is"
+                        object_start_idx = 0
+                        sentence_modality = "POLICY_FACT"
+                    else:
+                        initial_pred = raw_pred_words[0].lower().strip(",.")
 
-                    # Disallow numeric predicates (e.g. predicate literally '1')
-                    if initial_pred.isdigit():
-                        continue
+                        # Disallow numeric predicates (e.g. predicate literally '1')
+                        if initial_pred.isdigit():
+                            continue
 
-                    # Defect 2 repair: Manner adverbs ending in 'ly' preceding action verb (e.g. "digitally sign")
-                    object_start_idx = 1
-                    if initial_pred.endswith("ly") and len(raw_pred_words) > 1:
-                        action_verb = raw_pred_words[1].lower().strip(",.")
-                        if not action_verb.isdigit():
-                            initial_pred = f"{initial_pred}_{action_verb}"
-                            object_start_idx = 2
+                        # Defect 2 repair: Manner adverbs ending in 'ly' preceding action verb (e.g. "digitally sign")
+                        object_start_idx = 1
+                        if initial_pred.endswith("ly") and len(raw_pred_words) > 1:
+                            action_verb = raw_pred_words[1].lower().strip(",.")
+                            if not action_verb.isdigit():
+                                initial_pred = f"{initial_pred}_{action_verb}"
+                                object_start_idx = 2
 
                     # Determine modality if modal was permission or prohibition
                     sentence_modality = modality
@@ -3274,6 +3447,34 @@ class DomainRuleExtractor:
                     if not subject_val or len(str(subject_val).strip()) <= 1 or not object_val or len(str(object_val).strip()) <= 1:
                         continue
     
+                    parsed_ctx = cls.parse_conditions_and_exceptions(clean_s)
+                    combined_conds = list(curr_conds)
+                    for c_item in parsed_ctx["conditions"]:
+                        if c_item not in combined_conds:
+                            combined_conds.append(c_item)
+
+                    combined_excs = list(parsed_ctx["exceptions"])
+                    temp_scope = parsed_ctx["temporal_scope"]
+                    geo_scope = parsed_ctx["geographic_scope"]
+                    prod_scope = parsed_ctx["product_scope"]
+                    ent_scope = parsed_ctx["entity_scope"]
+                    def_refs = parsed_ctx["definition_references"]
+
+                    rel_type = None
+                    if def_refs:
+                        rel_type = "definition_applies_to"
+                    elif combined_excs:
+                        rel_type = "rule_has_exception"
+                    elif combined_conds:
+                        rel_type = "rule_qualified_by"
+
+                    ev_ids = [unit.unit_id]
+                    for rel_id in (getattr(unit, "related_unit_ids", None) or []):
+                        if rel_id not in ev_ids:
+                            ev_ids.append(rel_id)
+                    if getattr(unit, "parent_id", None) and unit.parent_id not in ev_ids:
+                        ev_ids.append(unit.parent_id)
+
                     c = CandidateClaim.create(
                         envelope_id=unit.envelope_id,
                         unit_id=unit.unit_id,
@@ -3285,7 +3486,8 @@ class DomainRuleExtractor:
                         evidence_text_span=sentence,
                         modal_operator=raw_modal,
                         modality=sentence_modality,
-                        conditions=curr_conds,
+                        conditions=combined_conds,
+                        exceptions=combined_excs,
                         cross_references=gen_deps,
                         claim_type=claim_type_out,
                         content_role=unit_role,
@@ -3294,6 +3496,18 @@ class DomainRuleExtractor:
                         locator={**loc, "sentence_index": s_idx},
                         structured_values=cls.extract_domain_structured_values(clean_s, object_val, hier),
                         confidence=0.96 if sentence_modality in ("OBLIGATION", "PROHIBITION", "PERMISSION") else 0.90,
+                        evidence_unit_ids=ev_ids,
+                        evidence_relationship_type=rel_type,
+                        definition_references=def_refs,
+                        exception_references=combined_excs,
+                        temporal_scope=temp_scope,
+                        geographic_scope=geo_scope,
+                        product_scope=prod_scope,
+                        entity_scope=ent_scope,
+                        source_version=getattr(unit, "source_version", None),
+                        is_current=getattr(unit, "is_current", True),
+                        raw_content=getattr(unit, "raw_content", None),
+                        normalized_content=getattr(unit, "normalized_content", None),
                     )
                     claims.append(c)
                     found_modal_claim = True
@@ -3482,6 +3696,34 @@ class DomainRuleExtractor:
                 if not subject or len(str(subject).strip()) <= 1 or not object_val or len(str(object_val).strip()) <= 1:
                     continue
 
+                parsed_ctx = cls.parse_conditions_and_exceptions(clean_s)
+                combined_conds = list(gen_conds)
+                for c_item in parsed_ctx["conditions"]:
+                    if c_item not in combined_conds:
+                        combined_conds.append(c_item)
+
+                combined_excs = list(parsed_ctx["exceptions"])
+                temp_scope = parsed_ctx["temporal_scope"]
+                geo_scope = parsed_ctx["geographic_scope"]
+                prod_scope = parsed_ctx["product_scope"]
+                ent_scope = parsed_ctx["entity_scope"]
+                def_refs = parsed_ctx["definition_references"]
+
+                rel_type = None
+                if def_refs:
+                    rel_type = "definition_applies_to"
+                elif combined_excs:
+                    rel_type = "rule_has_exception"
+                elif combined_conds:
+                    rel_type = "rule_qualified_by"
+
+                ev_ids = [unit.unit_id]
+                for rel_id in (getattr(unit, "related_unit_ids", None) or []):
+                    if rel_id not in ev_ids:
+                        ev_ids.append(rel_id)
+                if getattr(unit, "parent_id", None) and unit.parent_id not in ev_ids:
+                    ev_ids.append(unit.parent_id)
+
                 c = CandidateClaim.create(
                     envelope_id=unit.envelope_id,
                     unit_id=unit.unit_id,
@@ -3493,7 +3735,8 @@ class DomainRuleExtractor:
                     evidence_text_span=sentence,
                     modal_operator=modal_op,
                     modality=modality,
-                    conditions=gen_conds,
+                    conditions=combined_conds,
+                    exceptions=combined_excs,
                     cross_references=gen_deps,
                     claim_type=claim_type_out,
                     content_role=unit_role,
@@ -3505,6 +3748,18 @@ class DomainRuleExtractor:
                         **({"validity": validity_dict} if validity_dict else {}),
                     },
                     confidence=0.90 if modality == "POLICY_FACT" else 0.85,
+                    evidence_unit_ids=ev_ids,
+                    evidence_relationship_type=rel_type,
+                    definition_references=def_refs,
+                    exception_references=combined_excs,
+                    temporal_scope=temp_scope,
+                    geographic_scope=geo_scope,
+                    product_scope=prod_scope,
+                    entity_scope=ent_scope,
+                    source_version=getattr(unit, "source_version", None),
+                    is_current=getattr(unit, "is_current", True),
+                    raw_content=getattr(unit, "raw_content", None),
+                    normalized_content=getattr(unit, "normalized_content", None),
                 )
                 claims.append(c)
 

@@ -41,20 +41,19 @@ class DeterministicSchemaExtractor:
             subject = f"{loc.get('database', 'db')}.{container}#{rec_id}"
 
             fields = s_data.get("flattened_fields") or s_data.get("raw_record") or {}
-            
+            ev_ids = [unit.unit_id]
+            if unit.parent_id and unit.parent_id not in ev_ids:
+                ev_ids.append(unit.parent_id)
+            rel_type = "record_has_field" if unit.parent_id else None
+
             for field_name, field_val in fields.items():
                 if field_name in ("_id", "id", "__v") or field_val is None:
                     continue
 
                 clean_field = field_name.split(".")[-1].split("[")[0].lower()
-                # Prioritize high value fields or all non-empty fields
-                is_priority = clean_field in cls.HIGH_VALUE_FIELDS or len(fields) <= 12
-                if not is_priority:
-                    continue
-
                 claim_text = f"`{subject}` defines `{field_name}` as `{field_val}`."
                 predicate = f"has_{clean_field}" if not clean_field.startswith("is_") else clean_field
-                
+
                 c = CandidateClaim.create(
                     envelope_id=unit.envelope_id,
                     unit_id=unit.unit_id,
@@ -70,8 +69,114 @@ class DeterministicSchemaExtractor:
                     locator={**loc, "field_path": field_name},
                     structured_values={field_name: field_val, "container": container, "record_id": rec_id},
                     confidence=1.0,
+                    evidence_unit_ids=ev_ids,
+                    evidence_relationship_type=rel_type,
+                    source_version=getattr(unit, "source_version", None),
+                    is_current=getattr(unit, "is_current", True),
+                    raw_content=getattr(unit, "raw_content", None),
+                    normalized_content=getattr(unit, "normalized_content", None),
+                    product_scope=container,
                 )
                 claims.append(c)
+
+        # 1B. Structured JSON Scalar Payload
+        elif b_type == "json_scalar":
+            db_name = loc.get("database", "db")
+            container = loc.get("container") or loc.get("table", "config")
+            subject = f"{db_name}.{container}#scalar"
+            scalar_val = s_data.get("scalar_value", unit.normalized_content or unit.content_text)
+            claim_text = f"`{subject}` has value `{scalar_val}`."
+            c = CandidateClaim.create(
+                envelope_id=unit.envelope_id,
+                unit_id=unit.unit_id,
+                asset_id=unit.asset_id,
+                claim_text=claim_text,
+                subject=subject,
+                predicate="has_value",
+                object_=str(scalar_val),
+                evidence_text_span=unit.content_text or str(scalar_val),
+                modal_operator="is",
+                claim_type="policy_fact",
+                extraction_strategy=ExtractionStrategyType.DETERMINISTIC_SCHEMA,
+                locator=loc,
+                structured_values=s_data,
+                confidence=1.0,
+                evidence_unit_ids=[unit.unit_id],
+                source_version=getattr(unit, "source_version", None),
+                is_current=getattr(unit, "is_current", True),
+                raw_content=getattr(unit, "raw_content", None),
+                normalized_content=getattr(unit, "normalized_content", None),
+            )
+            claims.append(c)
+
+        # 1C. Structured XML Element
+        elif b_type == "xml_element":
+            tag = s_data.get("tag") or "element"
+            xpath = s_data.get("xpath") or tag
+            elem_text = s_data.get("text") or unit.normalized_content or unit.content_text
+            subject = f"XML Element `{xpath}`"
+            claim_text = f"`{subject}` defines content as `{elem_text}`."
+            ev_ids = [unit.unit_id]
+            if unit.parent_id and unit.parent_id not in ev_ids:
+                ev_ids.append(unit.parent_id)
+            c = CandidateClaim.create(
+                envelope_id=unit.envelope_id,
+                unit_id=unit.unit_id,
+                asset_id=unit.asset_id,
+                claim_text=claim_text,
+                subject=subject,
+                predicate="defines_content",
+                object_=str(elem_text),
+                evidence_text_span=unit.content_text or str(elem_text),
+                modal_operator="is",
+                claim_type="invariant",
+                extraction_strategy=ExtractionStrategyType.DETERMINISTIC_SCHEMA,
+                locator=loc,
+                structured_values=s_data,
+                confidence=1.0,
+                evidence_unit_ids=ev_ids,
+                evidence_relationship_type="parent_child" if unit.parent_id else None,
+                source_version=getattr(unit, "source_version", None),
+                is_current=getattr(unit, "is_current", True),
+                raw_content=getattr(unit, "raw_content", None),
+                normalized_content=getattr(unit, "normalized_content", None),
+            )
+            claims.append(c)
+
+        # 1D. SQL Constraint Definition
+        elif b_type == "constraint_definition":
+            c_name = s_data.get("name") or s_data.get("constraint_name") or loc.get("constraint") or "constraint"
+            c_type = s_data.get("type") or s_data.get("constraint_type") or "CHECK"
+            c_def = s_data.get("definition") or s_data.get("condition") or ""
+            table_name = loc.get("table") or loc.get("container") or "table"
+            subject = f"Table `{table_name}` Constraint `{c_name}`"
+            claim_text = f"`{subject}` enforces constraint ({c_type}): `{c_def}`."
+            ev_ids = [unit.unit_id]
+            if unit.parent_id and unit.parent_id not in ev_ids:
+                ev_ids.append(unit.parent_id)
+            c = CandidateClaim.create(
+                envelope_id=unit.envelope_id,
+                unit_id=unit.unit_id,
+                asset_id=unit.asset_id,
+                claim_text=claim_text,
+                subject=subject,
+                predicate="enforces_constraint",
+                object_=str(c_def),
+                evidence_text_span=unit.content_text or str(c_def),
+                modal_operator="enforces",
+                claim_type="schema_invariant",
+                extraction_strategy=ExtractionStrategyType.DETERMINISTIC_SCHEMA,
+                locator=loc,
+                structured_values=s_data,
+                confidence=1.0,
+                evidence_unit_ids=ev_ids,
+                evidence_relationship_type="record_has_field" if unit.parent_id else None,
+                source_version=getattr(unit, "source_version", None),
+                is_current=getattr(unit, "is_current", True),
+                raw_content=getattr(unit, "raw_content", None),
+                normalized_content=getattr(unit, "normalized_content", None),
+            )
+            claims.append(c)
 
         # 2. Schema Definition (Collection / Table Level)
         elif b_type == "schema_definition":
@@ -537,6 +642,13 @@ class DeterministicSchemaExtractor:
                         is_ambiguous=is_ambiguous,
                         ambiguity_reason=ambiguity_reason,
                         confidence=0.70 if is_ambiguous else 0.98,
+                        evidence_unit_ids=[unit.unit_id] + ([unit.parent_id] if unit.parent_id else []),
+                        evidence_relationship_type="table_has_row" if unit.parent_id else None,
+                        source_version=getattr(unit, "source_version", None),
+                        is_current=getattr(unit, "is_current", True),
+                        raw_content=getattr(unit, "raw_content", None),
+                        normalized_content=getattr(unit, "normalized_content", None),
+                        product_scope=s_data.get("table_type") or "table_matrix",
                     )
                     claims.append(c)
 

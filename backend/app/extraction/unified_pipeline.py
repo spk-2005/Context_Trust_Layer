@@ -178,24 +178,46 @@ class UnifiedExtractionPipeline:
             norm_c = ClaimQualityNormalizer.normalize_candidate_claim(c)
             normalized_candidates.append(norm_c if norm_c is not None else c)
 
-        # Step 5: Deduplication (preserve highest confidence & merge conditions)
-        seen_keys: Dict[Tuple[str, str, str, str], CandidateClaim] = {}
+        # Step 5: Duplicate Detection without deleting evidence occurrences or source versions
+        # Key includes subject, predicate, object, modality, and source_version
+        seen_keys: Dict[Tuple[str, str, str, str, str], CandidateClaim] = {}
+        deduped_candidates: List[CandidateClaim] = []
+
         for c in normalized_candidates:
+            version_str = str(c.source_version or "").strip().lower()
             key = (
                 (c.subject or "").strip().lower(),
                 (c.predicate or "").strip().lower(),
                 str(c.object or "").strip().lower(),
                 str(c.modality or "").strip().upper(),
+                version_str,
             )
             if key not in seen_keys:
                 seen_keys[key] = c
+                deduped_candidates.append(c)
             else:
                 existing = seen_keys[key]
-                # Merge conditions if any
-                if c.conditions and not existing.conditions:
-                    existing.conditions = c.conditions
+                # Merge conditions & exceptions if complementary
+                for cond in (c.conditions or []):
+                    if cond not in existing.conditions:
+                        existing.conditions.append(cond)
+                for exc in (c.exceptions or []):
+                    if exc not in existing.exceptions:
+                        existing.exceptions.append(exc)
+                for ev_id in (c.evidence_unit_ids or []):
+                    if ev_id not in existing.evidence_unit_ids:
+                        existing.evidence_unit_ids.append(ev_id)
 
-        deduped_candidates = list(seen_keys.values())
+                # Record duplicate occurrence while keeping separate evidence provenance
+                c.is_duplicate = True
+                c.duplicate_of = existing.candidate_id
+                existing.duplicate_occurrences.append({
+                    "candidate_id": c.candidate_id,
+                    "unit_id": c.unit_id,
+                    "evidence_id": c.evidence_id,
+                    "locator": c.locator,
+                    "source_version": c.source_version,
+                })
 
         # Step 6: Universal 10-Gate Governance & Certification Gate (Layer 6)
         evaluations: List[CandidateGateEvaluation] = []
