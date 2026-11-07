@@ -12,7 +12,13 @@ from typing import Any, List
 
 from app.db.enums import SourceFamily
 from app.ingestion.envelope import CanonicalSourceEnvelope
-from app.ingestion.parsers.evidence_model import ParsedEvidenceResult, ParsedEvidenceUnit
+from app.ingestion.parsers.evidence_model import (
+    ContentRole,
+    EvidenceRelationship,
+    ParsedEvidenceResult,
+    ParsedEvidenceUnit,
+    StructuralRelationType,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -79,11 +85,28 @@ class ConversationParser:
             if timestamp:
                 formatted_text = f"({timestamp}) {formatted_text}"
 
+            relations = []
+            if parent_id:
+                relations.append(
+                    EvidenceRelationship(
+                        relation_type=StructuralRelationType.PARENT_CHILD,
+                        target_unit_id=str(parent_id),
+                    )
+                )
+
             unit = ParsedEvidenceUnit.create(
                 envelope_id=envelope.envelope_id,
                 asset_id=envelope.asset_id,
+                source_id=str(envelope.source_id),
+                source_version=envelope.source_version,
+                source_type=envelope.native_format or "conversation",
                 block_type="chat_message",
+                content_role=ContentRole.COMMUNICATION,
+                raw_content=json.dumps(msg, default=str) if isinstance(msg, dict) else str(msg),
+                normalized_content=formatted_text,
                 content_text=formatted_text,
+                parent_id=str(parent_id) if parent_id else None,
+                relationships=relations,
                 structured_data={
                     "speaker": speaker,
                     "raw_text": text_body,
@@ -98,6 +121,8 @@ class ConversationParser:
                     "thread_id": thread_id,
                     "message_id": msg_id,
                     "speaker": speaker,
+                    "message_timestamp": timestamp,
+                    "timestamp": timestamp,
                     **envelope.locator_metadata,
                 },
                 hierarchical_context=[f"Channel: {channel}", f"Thread: {thread_id}", f"Message by {speaker}"],

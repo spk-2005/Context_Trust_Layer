@@ -12,7 +12,13 @@ from typing import Any, List, Union
 
 from app.db.enums import SourceFamily
 from app.ingestion.envelope import CanonicalSourceEnvelope
-from app.ingestion.parsers.evidence_model import ParsedEvidenceResult, ParsedEvidenceUnit
+from app.ingestion.parsers.evidence_model import (
+    ContentRole,
+    EvidenceRelationship,
+    ParsedEvidenceResult,
+    ParsedEvidenceUnit,
+    StructuralRelationType,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -81,10 +87,16 @@ class StructuredDataParser:
                     u = ParsedEvidenceUnit.create(
                         envelope_id=envelope.envelope_id,
                         asset_id=envelope.asset_id,
+                        source_id=str(envelope.source_id),
+                        source_version=envelope.source_version,
+                        source_type=fmt or "structured",
                         block_type="structured_record",
+                        content_role=ContentRole.POLICY_RULE,
+                        raw_content=line,
+                        normalized_content=line,
                         content_text=line,
                         structured_data={"raw_line": line},
-                        locator={"line_index": idx + 1, **loc},
+                        locator={"line_index": idx + 1, "database": db_name, "table": container_name, "database_table": container_name, **loc},
                         hierarchical_context=[db_name, container_name],
                         sequence_index=idx,
                     )
@@ -126,6 +138,7 @@ class StructuredDataParser:
 
         # Full Schema Summary Unit
         schema_text = f"Database `{db_name}` > Container `{container_name}` Schema Definition"
+        raw_schema_str = json.dumps(payload, default=str) if not isinstance(payload, str) else payload
         if isinstance(payload, dict):
             summary_parts = [f"Database: {db_name}", f"Container: {container_name}"]
             for k, v in payload.items():
@@ -133,18 +146,23 @@ class StructuredDataParser:
                     summary_parts.append(f"{k}: {v}")
             schema_text += " (" + ", ".join(summary_parts) + ")"
 
-        units.append(
-            ParsedEvidenceUnit.create(
-                envelope_id=envelope.envelope_id,
-                asset_id=envelope.asset_id,
-                block_type="schema_definition",
-                content_text=schema_text,
-                structured_data={"raw_schema": payload, "database": db_name, "container": container_name},
-                locator={"database": db_name, "container": container_name, **envelope.locator_metadata},
-                hierarchical_context=[db_name, container_name, "Schema"],
-                sequence_index=0,
-            )
+        summary_unit = ParsedEvidenceUnit.create(
+            envelope_id=envelope.envelope_id,
+            asset_id=envelope.asset_id,
+            source_id=str(envelope.source_id),
+            source_version=envelope.source_version,
+            source_type=envelope.native_format or "sql_schema",
+            block_type="schema_definition",
+            content_role=ContentRole.DEFINITION,
+            raw_content=raw_schema_str,
+            normalized_content=schema_text,
+            content_text=schema_text,
+            structured_data={"raw_schema": payload, "database": db_name, "container": container_name},
+            locator={"database": db_name, "container": container_name, "database_table": container_name, **envelope.locator_metadata},
+            hierarchical_context=[db_name, container_name, "Schema"],
+            sequence_index=0,
         )
+        units.append(summary_unit)
 
         # Individual Column / Field Units
         for idx, col in enumerate(columns):
@@ -161,8 +179,21 @@ class StructuredDataParser:
                 u = ParsedEvidenceUnit.create(
                     envelope_id=envelope.envelope_id,
                     asset_id=envelope.asset_id,
+                    source_id=str(envelope.source_id),
+                    source_version=envelope.source_version,
+                    source_type=envelope.native_format or "sql_schema",
                     block_type="column_definition",
+                    content_role=ContentRole.DEFINITION,
+                    raw_content=json.dumps(col, default=str),
+                    normalized_content=col_text,
                     content_text=col_text,
+                    parent_id=summary_unit.evidence_instance_id,
+                    relationships=[
+                        EvidenceRelationship(
+                            relation_type=StructuralRelationType.RECORD_HAS_FIELD,
+                            target_unit_id=summary_unit.evidence_instance_id,
+                        )
+                    ],
                     structured_data={
                         "column_name": col_name,
                         "data_type": col_type,
@@ -172,7 +203,9 @@ class StructuredDataParser:
                     locator={
                         "database": db_name,
                         "container": container_name,
+                        "database_table": container_name,
                         "column": col_name,
+                        "field_path": col_name,
                         **envelope.locator_metadata,
                     },
                     hierarchical_context=[db_name, container_name, col_name],
@@ -204,7 +237,13 @@ class StructuredDataParser:
         unit = ParsedEvidenceUnit.create(
             envelope_id=envelope.envelope_id,
             asset_id=envelope.asset_id,
+            source_id=str(envelope.source_id),
+            source_version=envelope.source_version,
+            source_type=envelope.native_format or "database_record",
             block_type="database_record",
+            content_role=ContentRole.POLICY_RULE,
+            raw_content=json.dumps(doc, default=str),
+            normalized_content=content_text,
             content_text=content_text,
             structured_data={
                 "record_id": pk_val,
@@ -216,7 +255,9 @@ class StructuredDataParser:
             locator={
                 "database": db_name,
                 "container": container_name,
+                "database_table": container_name,
                 "record_id": pk_val,
+                "primary_key": pk_val,
                 **envelope.locator_metadata,
             },
             hierarchical_context=[db_name, container_name, f"Record#{pk_val}"],
@@ -241,13 +282,25 @@ class StructuredDataParser:
                     su.sequence_index = idx
                     units.append(su)
             else:
+                raw_rec_str = str(rec)
                 u = ParsedEvidenceUnit.create(
                     envelope_id=envelope.envelope_id,
                     asset_id=envelope.asset_id,
+                    source_id=str(envelope.source_id),
+                    source_version=envelope.source_version,
+                    source_type=envelope.native_format or "database_record",
                     block_type="record_row",
-                    content_text=str(rec),
+                    content_role=ContentRole.POLICY_RULE,
+                    raw_content=raw_rec_str,
+                    normalized_content=raw_rec_str,
+                    content_text=raw_rec_str,
                     structured_data={"row_value": rec},
-                    locator={"row_index": idx, "database": db_name, "container": container_name},
+                    locator={
+                        "row_index": idx,
+                        "database": db_name,
+                        "container": container_name,
+                        "database_table": container_name,
+                    },
                     hierarchical_context=[db_name, container_name, f"Row#{idx}"],
                     sequence_index=idx,
                 )

@@ -12,7 +12,7 @@ from typing import Any, List
 
 from app.db.enums import SourceFamily
 from app.ingestion.envelope import CanonicalSourceEnvelope
-from app.ingestion.parsers.evidence_model import ParsedEvidenceResult, ParsedEvidenceUnit
+from app.ingestion.parsers.evidence_model import ContentRole, ParsedEvidenceResult, ParsedEvidenceUnit
 
 logger = logging.getLogger(__name__)
 
@@ -41,10 +41,16 @@ class MetadataParser:
                         u = ParsedEvidenceUnit.create(
                             envelope_id=envelope.envelope_id,
                             asset_id=asset_id,
+                            source_id=str(envelope.source_id),
+                            source_version=envelope.source_version,
+                            source_type=fmt or "metadata",
                             block_type="operational_entry",
+                            content_role=ContentRole.METADATA,
+                            raw_content=line,
+                            normalized_content=line.strip(),
                             content_text=line.strip(),
                             structured_data={"raw_entry": line.strip()},
-                            locator={"line_number": idx + 1, **envelope.locator_metadata},
+                            locator={"line_number": idx + 1, "line": idx + 1, **envelope.locator_metadata},
                             hierarchical_context=["Operational Log", f"Entry#{idx+1}"],
                             sequence_index=idx,
                         )
@@ -64,10 +70,16 @@ class MetadataParser:
                         u = ParsedEvidenceUnit.create(
                             envelope_id=envelope.envelope_id,
                             asset_id=asset_id,
+                            source_id=str(envelope.source_id),
+                            source_version=envelope.source_version,
+                            source_type=fmt or "metadata",
                             block_type="metric_definition",
+                            content_role=ContentRole.POLICY_RULE,
+                            raw_content=json.dumps(m, default=str),
+                            normalized_content=unit_text,
                             content_text=unit_text,
                             structured_data=m,
-                            locator={"metric_name": name, **envelope.locator_metadata},
+                            locator={"metric_name": name, "field_path": name, **envelope.locator_metadata},
                             hierarchical_context=["BI Semantic Layer", "Metrics", name],
                             sequence_index=idx,
                         )
@@ -75,13 +87,20 @@ class MetadataParser:
                 else:
                     name = parsed_obj.get("name") or asset_id.split("/")[-1]
                     formula = parsed_obj.get("formula") or parsed_obj.get("calculation") or ""
+                    u_text = f"Metric `{name}`: Calculation: `{formula}`"
                     u = ParsedEvidenceUnit.create(
                         envelope_id=envelope.envelope_id,
                         asset_id=asset_id,
+                        source_id=str(envelope.source_id),
+                        source_version=envelope.source_version,
+                        source_type=fmt or "metadata",
                         block_type="metric_definition",
-                        content_text=f"Metric `{name}`: Calculation: `{formula}`",
+                        content_role=ContentRole.POLICY_RULE,
+                        raw_content=json.dumps(parsed_obj, default=str),
+                        normalized_content=u_text,
+                        content_text=u_text,
                         structured_data=parsed_obj,
-                        locator={"metric_name": name, **envelope.locator_metadata},
+                        locator={"metric_name": name, "field_path": name, **envelope.locator_metadata},
                         hierarchical_context=["BI Semantic Layer", name],
                         sequence_index=0,
                     )
@@ -98,10 +117,16 @@ class MetadataParser:
                     u = ParsedEvidenceUnit.create(
                         envelope_id=envelope.envelope_id,
                         asset_id=asset_id,
+                        source_id=str(envelope.source_id),
+                        source_version=envelope.source_version,
+                        source_type=fmt or "metadata",
                         block_type="lineage_node",
+                        content_role=ContentRole.METADATA,
+                        raw_content=json.dumps(node, default=str),
+                        normalized_content=u_text,
                         content_text=u_text,
                         structured_data=node,
-                        locator={"node_id": node_name, **envelope.locator_metadata},
+                        locator={"node_id": node_name, "field_path": node_name, **envelope.locator_metadata},
                         hierarchical_context=["Lineage Graph", node_name],
                         sequence_index=idx,
                     )
@@ -114,10 +139,16 @@ class MetadataParser:
                     u = ParsedEvidenceUnit.create(
                         envelope_id=envelope.envelope_id,
                         asset_id=asset_id,
+                        source_id=str(envelope.source_id),
+                        source_version=envelope.source_version,
+                        source_type=fmt or "metadata",
                         block_type="config_property",
+                        content_role=ContentRole.METADATA,
+                        raw_content=f"{k}: {v}",
+                        normalized_content=u_text,
                         content_text=u_text,
                         structured_data={"key": k, "value": v},
-                        locator={"property_key": k, **envelope.locator_metadata},
+                        locator={"property_key": k, "field_path": k, **envelope.locator_metadata},
                         hierarchical_context=["Configuration", k],
                         sequence_index=idx,
                     )

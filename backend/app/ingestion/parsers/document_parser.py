@@ -23,6 +23,7 @@ class DocumentParser:
     CLAUSE_PATTERN = re.compile(r"^(?:(?:Section|Article|Clause|Rule)\s+)?(\d+(?:\.\d+)*|[A-Z]\.|\([a-z0-9]+\))\s*[:.-]?\s+(.*)", re.IGNORECASE)
     HEADING_PATTERN = re.compile(r"^(#{1,6})\s+(.*)")
     TABLE_ROW_PATTERN = re.compile(r"^\|(.+)\|$")
+    PAGE_MARKER_PATTERN = re.compile(r"^(?:#{1,6}\s+Page\s+(\d+)|---\s*Page\s+(\d+)\s*---|Page\s+(\d+)\s+(?:of|\/)\s+\d+)", re.IGNORECASE)
 
     @classmethod
     def _classify_content_role(cls, text: str, context: list[str], block_type: str) -> ContentRole:
@@ -32,6 +33,12 @@ class DocumentParser:
 
         text_lower = text.lower().strip()
         context_lower = " > ".join(context).lower()
+
+        # 0. Exceptions and Carve-Outs
+        if any(w in context_lower for w in ("exception", "exceptions", "carve-out", "exclusions")) or any(
+            text_lower.startswith(w) for w in ("except where", "with the exception of", "unless otherwise", "excluding ", "exception:", "exemptions:")
+        ):
+            return ContentRole.EXCEPTION
 
         # 1. Illustrative Examples and Case Studies (Prioritized before Revision History for hybrid sections like '20. Revision History and Sample Case Studies')
         if any(w in context_lower for w in ("sample case", "sample cases", "case stud", "case study", "illustrative scenario", "worked example", "hypothetical scenario", "examples", "example")):
@@ -52,7 +59,7 @@ class DocumentParser:
         if text_lower.endswith("?") or re.match(r"^(?:q\s*[:.]|question\s*[:.]|q\d+[:.]|\d+\.\s*(?:can|what|will|how|is|where|why|do|does|did|should))\b", text_lower):
             return ContentRole.FAQ_QUESTION
         if re.match(r"^(?:a\s*[:.]|answer\s*[:.]|a\d+[:.])\b", text_lower):
-            return ContentRole.FAQ
+            return ContentRole.FAQ_ANSWER
         if is_faq_context:
             return ContentRole.FAQ
 
@@ -83,7 +90,7 @@ class DocumentParser:
             return ContentRole.DEFINITION
         if any(w in text_lower for w in ("means an employee", "means any person", "is defined as", "refers to the", "means ")):
             return ContentRole.DEFINITION
-        if re.match(r"^[A-Z][A-Za-z0-9\s\-_]{2,35}:\s+[A-Z]", line.strip() if 'line' in locals() else text) and not is_faq_context and not re.match(r"^step\s*\d+", text_lower):
+        if re.match(r"^[A-Z][A-Za-z0-9\s\-_]{2,35}:\s+[A-Z]", text) and not is_faq_context and not re.match(r"^step\s*\d+", text_lower):
             return ContentRole.DEFINITION
 
         # 8. Reference Citations & External Cross-References
@@ -94,8 +101,14 @@ class DocumentParser:
         ):
             return ContentRole.REFERENCE_CITATION
 
-        # 9. Default to Policy Rule
-        return ContentRole.POLICY_RULE
+        # 9. Normative Rules vs Unknown
+        if (
+            block_type == "clause"
+            or any(w in text_lower for w in ("must", "shall", "required", "prohibited", "forbidden", "entitled", "may not", "cannot", "will not", "is eligible", "are eligible", "mandated", "authoriz"))
+        ):
+            return ContentRole.POLICY_RULE
+
+        return ContentRole.UNKNOWN
 
     @classmethod
     async def parse(cls, envelope: CanonicalSourceEnvelope) -> ParsedEvidenceResult:
@@ -106,6 +119,12 @@ class DocumentParser:
         lines = raw_text.splitlines(keepends=True)
         breadcrumb_stack: list[tuple[int, str]] = []  # (level, title)
         
+        current_page: int | None = (
+            envelope.locator_metadata.get("page")
+            or envelope.locator_metadata.get("page_number")
+            or (1 if envelope.native_format in ("pdf", "docx") else None)
+        )
+
         char_cursor = 0
         line_num = 1
         seq_idx = 0
@@ -133,6 +152,10 @@ class DocumentParser:
                 line_num += 1
                 continue
 
+            page_match = cls.PAGE_MARKER_PATTERN.match(line_str)
+            if page_match:
+                current_page = int(page_match.group(1) or page_match.group(2) or page_match.group(3))
+
             # 1. Heading Detection (# H1, ## H2, etc.)
             h_match = cls.HEADING_PATTERN.match(line_str)
             if h_match:
@@ -155,11 +178,18 @@ class DocumentParser:
                 unit = ParsedEvidenceUnit.create(
                     envelope_id=envelope.envelope_id,
                     asset_id=envelope.asset_id,
+                    source_id=str(envelope.source_id),
+                    source_version=envelope.source_version,
+                    source_type=envelope.native_format or "document",
                     block_type="heading",
                     content_role=ContentRole.HEADING,
+                    raw_content=line_raw,
+                    normalized_content=h_title,
                     content_text=h_title,
                     structured_data={"heading_level": level, "heading_text": h_title},
                     locator={
+                        "page": current_page,
+                        "line": line_num,
                         "line_start": line_num,
                         "line_end": line_num,
                         "start_char": line_start_char,
@@ -254,7 +284,9 @@ class DocumentParser:
                                 col_name = table_headers[idx]
                                 prev_cols[col_name] = (prev_cols.get(col_name, "") + " " + cell_val.strip()).strip()
                         prev_unit.structured_data["columns"] = prev_cols
-                        prev_unit.content_text = " | ".join(f"{k}: {v}" for k, v in prev_cols.items())
+                        prev_text = " | ".join(f"{k}: {v}" for k, v in prev_cols.items())
+                        prev_unit.content_text = prev_text
+                        prev_unit.normalized_content = prev_text
                         continue
 
                     # Data row
@@ -310,9 +342,14 @@ class DocumentParser:
                     unit = ParsedEvidenceUnit.create(
                         envelope_id=envelope.envelope_id,
                         asset_id=envelope.asset_id,
+                        source_id=str(envelope.source_id),
+                        source_version=envelope.source_version,
+                        source_type=envelope.native_format or "document",
                         block_type="table_row",
                         content_role=row_content_role,
                         is_canonical=row_is_canonical,
+                        raw_content=line_raw,
+                        normalized_content=row_text,
                         content_text=row_text,
                         structured_data={
                             "columns": row_dict,
@@ -324,6 +361,8 @@ class DocumentParser:
                             "ambiguity_reason": ambiguity_reason,
                         },
                         locator={
+                            "page": current_page,
+                            "line": line_num,
                             "line_start": line_num,
                             "line_end": line_num,
                             "start_char": line_start_char,
@@ -374,11 +413,18 @@ class DocumentParser:
             unit = ParsedEvidenceUnit.create(
                 envelope_id=envelope.envelope_id,
                 asset_id=envelope.asset_id,
+                source_id=str(envelope.source_id),
+                source_version=envelope.source_version,
+                source_type=envelope.native_format or "document",
                 block_type=block_type,
                 content_role=unit_role,
+                raw_content=line_raw,
+                normalized_content=clean_text,
                 content_text=clean_text,
                 structured_data={"raw_line": line_str},
                 locator={
+                    "page": current_page,
+                    "line": line_num,
                     "line_start": line_num,
                     "line_end": line_num,
                     "start_char": line_start_char,
@@ -460,4 +506,6 @@ class DocumentParser:
                             if not cur_v or cur_v in ("-", "—", "N/A", "n/a", "None", "nil"):
                                 cols[col_name] = span_val
                                 u.structured_data["columns"] = cols
-                                u.content_text = " | ".join(f"{k}: {v}" for k, v in cols.items())
+                                merged_text = " | ".join(f"{k}: {v}" for k, v in cols.items())
+                                u.content_text = merged_text
+                                u.normalized_content = merged_text
