@@ -315,3 +315,4 @@ def test_backward_compatibility_with_legacy_parsed_evidence_unit():
     assert "raw_content" in dumped
     assert "normalized_content" in dumped
     assert "content_text" in dumped
+

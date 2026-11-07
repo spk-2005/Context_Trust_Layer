@@ -13,7 +13,7 @@ import uuid
 from collections.abc import Mapping
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Any, List, Optional
+from typing import Any, List, Optional, Union
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
@@ -575,7 +575,10 @@ class ParsedEvidenceResult(BaseModel):
     source_family: SourceFamily
     parser_name: str
     units: List[EvidenceUnit] = Field(default_factory=list)
-    completeness_score: float = Field(ge=0.0, le=1.0, default=1.0, description="Ratio of asset content successfully parsed without error")
+    completeness_score: Union[float, str, None] = Field(
+        default="NOT_MEASURED",
+        description="Ratio of asset content successfully parsed without error, or 'NOT_MEASURED' if no denominator exists",
+    )
     quality_metrics: dict[str, Any] = Field(default_factory=dict, description="Parsing fidelity metrics (e.g. tables parsed, char count)")
     parsed_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 

@@ -705,13 +705,14 @@ class UniversalFileParser:
                 reader = csv.reader(f, delimiter=delimiter) if delimiter else csv.reader(f)
                 rows = []
                 for idx, row in enumerate(reader):
-                    clean_row = [c.strip() for c in row if c.strip()]
-                    if clean_row:
+                    # Preserve all columns and empty cell positions without column shifting
+                    clean_row = [c.strip().replace("\n", " ").replace("|", "\\|") for c in row]
+                    if any(c for c in clean_row) or idx == 0:
                         rows.append("| " + " | ".join(clean_row) + " |")
                         if idx == 0:
                             rows.append("| " + " | ".join(["---"] * len(clean_row)) + " |")
                 if rows:
-                    return f"# {title}\n\n" + "\n".join(rows[:500])
+                    return f"# {title}\n\n" + "\n".join(rows)
             except UnicodeDecodeError:
                 continue
         return cls._parse_plain_text(raw_bytes, title, "document.csv")
@@ -723,7 +724,7 @@ class UniversalFileParser:
                 decoded = raw_bytes.decode(enc).strip()
                 if is_jsonl:
                     lines = [json.loads(line) for line in decoded.splitlines() if line.strip()]
-                    formatted = json.dumps(lines[:100], indent=2)
+                    formatted = json.dumps(lines, indent=2)
                 else:
                     data = json.loads(decoded)
                     formatted = json.dumps(data, indent=2)
@@ -752,9 +753,24 @@ class UniversalFileParser:
             try:
                 xml_str = raw_bytes.decode(enc)
                 tree = ET.fromstring(xml_str)
-                texts = [elem.text.strip() for elem in tree.iter() if elem.text and elem.text.strip()]
-                if texts:
-                    return f"# {title}\n\n" + "\n\n".join(texts[:300])
+                formatted_elements = []
+
+                def _render_elem(elem: ET.Element, depth: int = 0):
+                    tag = elem.tag.split("}")[-1] if "}" in elem.tag else elem.tag
+                    attrs = " ".join(f'{k}="{v}"' for k, v in elem.attrib.items())
+                    attr_str = f" ({attrs})" if attrs else ""
+                    txt = (elem.text or "").strip()
+                    indent = "  " * depth
+                    if txt:
+                        formatted_elements.append(f"{indent}- **<{tag}{attr_str}>**: {txt}")
+                    elif attrs:
+                        formatted_elements.append(f"{indent}- **<{tag}{attr_str}>**")
+                    for child in elem:
+                        _render_elem(child, depth + 1)
+
+                _render_elem(tree)
+                if formatted_elements:
+                    return f"# {title}\n\n" + "\n".join(formatted_elements)
             except Exception:
                 continue
         return cls._parse_plain_text(raw_bytes, title, "data.xml")

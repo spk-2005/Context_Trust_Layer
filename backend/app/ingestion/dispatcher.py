@@ -102,13 +102,33 @@ class SourceTypeDetector:
                 handler_name="metadata_operational_parser",
             )
 
-        # 3. Check for Documents & Files (Markdown, HTML, Confluence, PDF, DOCX, text)
+        # 3. Check for Structured Data (SQL schemas, tables, MongoDB BSON, JSON/CSV/XML)
+        if (
+            fam == SourceFamily.STRUCTURED
+            or fmt in ("sql_schema", "json_schema", "json", "jsonl", "csv", "tsv", "xml", "parquet", "bson", "table_row")
+            or "postgres://" in asset_id
+            or "mongodb://" in asset_id
+            or "mysql://" in asset_id
+            or isinstance(payload, (dict, list))
+            or (isinstance(payload, str) and fmt.startswith("sql"))
+        ):
+            return RoutingDecision(
+                envelope_id=envelope.envelope_id,
+                asset_id=envelope.asset_id,
+                target_parser=TargetParserCategory.STRUCTURED_DATA,
+                detected_format=fmt or "structured_data",
+                confidence=0.99,
+                reason="Identified as relational or document-based structured data (database/JSON/CSV/XML).",
+                handler_name="structured_data_parser",
+            )
+
+        # 4. Check for Documents & Files (Markdown, HTML, Confluence, PDF, DOCX, text)
         if (
             fam == SourceFamily.DOCUMENT
             or fmt in ("markdown", "confluence_html", "html", "pdf", "docx", "txt", "document_text")
             or "confluence://" in asset_id
             or "github://" in asset_id
-            or (isinstance(payload, str) and not fmt.startswith("sql"))
+            or isinstance(payload, str)
         ):
             return RoutingDecision(
                 envelope_id=envelope.envelope_id,
@@ -118,25 +138,6 @@ class SourceTypeDetector:
                 confidence=0.95,
                 reason="Identified as narrative document, wiki, policy, or file asset.",
                 handler_name="document_ast_parser",
-            )
-
-        # 4. Check for Structured Data (SQL schemas, tables, MongoDB BSON, JSON/CSV/XML)
-        if (
-            fam == SourceFamily.STRUCTURED
-            or fmt in ("sql_schema", "json_schema", "json", "csv", "xml", "parquet", "bson", "table_row")
-            or "postgres://" in asset_id
-            or "mongodb://" in asset_id
-            or "mysql://" in asset_id
-            or isinstance(payload, (dict, list))
-        ):
-            return RoutingDecision(
-                envelope_id=envelope.envelope_id,
-                asset_id=envelope.asset_id,
-                target_parser=TargetParserCategory.STRUCTURED_DATA,
-                detected_format=fmt or "structured_data",
-                confidence=0.99,
-                reason="Identified as relational or document-based structured data (database/JSON/CSV).",
-                handler_name="structured_data_parser",
             )
 
         # 5. Default Fallback
