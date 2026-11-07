@@ -379,6 +379,8 @@ class StructuredDataParser:
                 try:
                     dialect = csv.Sniffer().sniff(sample)
                     delimiter = dialect.delimiter
+                    if not delimiter or delimiter in ("\r", "\n", "\r\n") or len(delimiter) != 1:
+                        delimiter = ","
                 except Exception:
                     delimiter = ","
             reader = csv.reader(f, delimiter=delimiter or ",")

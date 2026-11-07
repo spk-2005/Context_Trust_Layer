@@ -46,3 +46,4 @@ def downgrade() -> None:
     op.drop_column('claims', 'conditions_data')
     op.drop_column('claims', 'extraction_status')
     op.drop_column('claims', 'validation_status')
+

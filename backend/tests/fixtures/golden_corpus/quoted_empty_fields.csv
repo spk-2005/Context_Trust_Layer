@@ -1,0 +1,16 @@
+id,product_name,category,price,in_stock,notes
+1,Widget A,Electronics,29.99,true,"Standard, sealed"
+2,,Hardware,15.00,false,"Missing name"
+3,Super Gadget,,49.99,true,""
+4,Tool Set,Hardware,89.00,true,"Heavy duty, 50-piece"
+5,Sensor,,12.50,,
+6,Adapter,Electronics,9.99,true,"USB-C to HDMI, 4K"
+7,Cable,Accessories,4.99,true,""
+8,,Accessories,2.50,false,"No label"
+9,Display,Electronics,199.99,true,"IPS, 27-inch"
+10,Mount,Hardware,34.00,true,"VESA compatible, steel"
+11,Keyboard,Electronics,65.00,false,"Mechanical, tactile"
+12,Mouse,Electronics,,true,"Wireless, optical"
+13,Pad,Accessories,12.00,true,"XL cloth, stitched"
+14,Stand,Hardware,45.00,false,"Adjustable, aluminum"
+15,Case,Accessories,18.00,true,"Water resistant, padded"

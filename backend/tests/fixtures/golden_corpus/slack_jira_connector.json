@@ -1,0 +1,31 @@
+{
+  "slack": {
+    "channel_id": "C012345",
+    "channel_name": "governance-announcements",
+    "messages": [
+      {
+        "message_id": "msg_001",
+        "user": "U9988",
+        "timestamp": "1700001000.000100",
+        "text": "Annual SOC2 audit begins on October 1st for all cloud infrastructure.",
+        "replies_count": 0
+      }
+    ]
+  },
+  "jira": {
+    "issue_key": "SEC-402",
+    "summary": "Enforce AES-256 for all S3 buckets",
+    "status": "In Progress",
+    "priority": "High",
+    "labels": [
+      "compliance",
+      "soc2"
+    ],
+    "comments": [
+      {
+        "author": "lead_sec",
+        "body": "Enforcement script is scheduled for execution."
+      }
+    ]
+  }
+}

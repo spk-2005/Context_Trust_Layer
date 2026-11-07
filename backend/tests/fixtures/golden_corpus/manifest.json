@@ -1,0 +1,344 @@
+{
+  "version": "1.0.0",
+  "description": "Trulin Phase 8 Golden Corpus with verified ground truth expectations",
+  "fixtures": {
+    "native_text_pdf": {
+      "filename": "native_text.pdf",
+      "format": "pdf",
+      "expected_pages": 2,
+      "expected_blocks": 5,
+      "expected_tables": 0,
+      "expected_content": [
+        "Data Retention Policy",
+        "Customer account records must be preserved for 7 years",
+        "Multi-Factor Authentication"
+      ],
+      "expected_candidate_claims": [
+        {
+          "subject": "Customer account records",
+          "predicate": "must be preserved for",
+          "object": "7 years",
+          "modality": "OBLIGATION"
+        },
+        {
+          "subject": "All administrative accounts",
+          "predicate": "must enforce",
+          "object": "Multi-Factor Authentication",
+          "modality": "OBLIGATION"
+        }
+      ],
+      "expected_validation_status": "SUPPORTED"
+    },
+    "scanned_pdf": {
+      "filename": "scanned_page.pdf",
+      "format": "pdf",
+      "is_scanned_simulation": true,
+      "expected_pages": 1,
+      "expected_protected_tokens": [
+        "AES256",
+        "TLS1.3",
+        "v2.0",
+        "15th",
+        "$100k",
+        "admin@example.com",
+        "https://example.com/api/v1",
+        "50%"
+      ],
+      "ocr_ground_truth_text": "Compliant with AES256 and TLS1.3 for v2.0 on the 15th with $100k budget. Contact admin@example.com or visit https://example.com/api/v1. Complete migration within next 30 days and 50% discount.",
+      "expected_validation_status": "SUPPORTED"
+    },
+    "complex_pdf_table": {
+      "filename": "complex_table.pdf",
+      "format": "pdf",
+      "expected_tables": 1,
+      "expected_columns": [
+        "Tier",
+        "Max Expense",
+        "Approver",
+        "Notes"
+      ],
+      "expected_empty_cells": 1,
+      "expected_candidate_claims": [
+        {
+          "subject": "Standard",
+          "predicate": "has_limit",
+          "object": "$1,000",
+          "column_header": "Max Expense"
+        },
+        {
+          "subject": "Executive",
+          "predicate": "has_limit",
+          "object": "$10,000",
+          "column_header": "Max Expense"
+        }
+      ],
+      "expected_validation_status": "SUPPORTED"
+    },
+    "multipage_pdf_table": {
+      "filename": "multipage_table.pdf",
+      "format": "pdf",
+      "expected_pages": 2,
+      "expected_tables": 2,
+      "is_continuation": true,
+      "expected_candidate_claims": [
+        {
+          "subject": "AST-001",
+          "predicate": "has_classification",
+          "object": "Confidential"
+        },
+        {
+          "subject": "AST-003",
+          "predicate": "has_classification",
+          "object": "Public"
+        }
+      ],
+      "expected_validation_status": "SUPPORTED"
+    },
+    "docx_interleaved": {
+      "filename": "interleaved_policy.docx",
+      "format": "docx",
+      "expected_headings": [
+        "1. Workplace Ergonomics",
+        "2. Equipment Disposal"
+      ],
+      "expected_paragraphs": 2,
+      "expected_tables": 2,
+      "expected_candidate_claims": [
+        {
+          "subject": "All workstations",
+          "predicate": "must be evaluated within",
+          "object": "30 days of hire",
+          "modality": "OBLIGATION"
+        },
+        {
+          "subject": "Ergonomic Chair",
+          "predicate": "has_allowance",
+          "object": "$300"
+        }
+      ],
+      "expected_validation_status": "SUPPORTED"
+    },
+    "xlsx_multi_sheet_sparse": {
+      "filename": "multi_sheet_sparse.xlsx",
+      "format": "xlsx",
+      "expected_sheets": 3,
+      "hidden_sheets": [
+        "Internal Audit"
+      ],
+      "merged_ranges": [
+        "A1:B1"
+      ],
+      "expected_formulas": [
+        "=B3*0.15"
+      ],
+      "expected_empty_cells": 2,
+      "expected_validation_status": "SUPPORTED"
+    },
+    "csv_quoted_empty": {
+      "filename": "quoted_empty_fields.csv",
+      "format": "csv",
+      "expected_rows": 15,
+      "expected_columns": [
+        "id",
+        "product_name",
+        "category",
+        "price",
+        "in_stock",
+        "notes"
+      ],
+      "expected_empty_cells": 6,
+      "expected_validation_status": "SUPPORTED"
+    },
+    "nested_json": {
+      "filename": "nested_and_scalar.json",
+      "format": "json",
+      "expected_fields": 8,
+      "expected_candidate_claims": [
+        {
+          "subject": "IdentityGate",
+          "predicate": "has_version",
+          "object": "2.4.0"
+        },
+        {
+          "subject": "PasswordPolicy.rules",
+          "predicate": "has_min_length",
+          "object": 14
+        }
+      ],
+      "expected_validation_status": "SUPPORTED"
+    },
+    "scalar_json": {
+      "filename": "scalar_payload.json",
+      "format": "json",
+      "is_scalar": true,
+      "scalar_value": true,
+      "expected_units": 1,
+      "expected_validation_status": "SUPPORTED"
+    },
+    "jsonl_large": {
+      "filename": "audit_records.jsonl",
+      "format": "jsonl",
+      "expected_records": 125,
+      "must_not_truncate_at_100": true,
+      "expected_validation_status": "SUPPORTED"
+    },
+    "xml_namespaces": {
+      "filename": "config_namespaces.xml",
+      "format": "xml",
+      "expected_elements": [
+        "policy",
+        "rule",
+        "enforceTLS",
+        "rotateKeys"
+      ],
+      "expected_attributes": [
+        "id",
+        "version",
+        "level",
+        "frequency"
+      ],
+      "expected_validation_status": "SUPPORTED"
+    },
+    "sql_ddl": {
+      "filename": "schema_constraints.sql",
+      "format": "sql",
+      "expected_tables": [
+        "accounts",
+        "transactions"
+      ],
+      "expected_falsy_defaults": {
+        "balance": 0.0,
+        "is_active": false
+      },
+      "expected_constraints": [
+        "PRIMARY KEY",
+        "NOT NULL",
+        "UNIQUE",
+        "REFERENCES"
+      ],
+      "expected_validation_status": "SUPPORTED"
+    },
+    "database_wide_record": {
+      "filename": "wide_relational_record.json",
+      "format": "json",
+      "field_count": 57,
+      "expected_min_fields": 50,
+      "expected_validation_status": "SUPPORTED"
+    },
+    "html_nested_tables": {
+      "filename": "nested_tables.html",
+      "format": "html",
+      "expected_headings": [
+        "Enterprise Governance Overview"
+      ],
+      "expected_tables": 2,
+      "expected_list_items": 2,
+      "scripts_stripped": true,
+      "expected_validation_status": "SUPPORTED"
+    },
+    "markdown_rich": {
+      "filename": "governance_readme.md",
+      "format": "md",
+      "expected_headings": [
+        "Security Governance Readme",
+        "1. Scope and Objective",
+        "2. Automated Pipeline"
+      ],
+      "expected_code_blocks": 1,
+      "expected_links": 1,
+      "expected_candidate_claims": [
+        {
+          "subject": "All engineers",
+          "predicate": "must complete",
+          "object": "secure code training within 60 days",
+          "modality": "OBLIGATION"
+        }
+      ],
+      "expected_validation_status": "SUPPORTED"
+    },
+    "duplicate_text_different_locations": {
+      "filename": "duplicate_provisions.md",
+      "format": "md",
+      "exact_duplicate_phrase": "All employees must complete security awareness training annually.",
+      "expected_locations_count": 2,
+      "must_preserve_both_locators": true,
+      "expected_validation_status": "SUPPORTED"
+    },
+    "northwind_handbook": {
+      "filename": "northwind_handbook.md",
+      "format": "md",
+      "expected_candidate_claims": [
+        {
+          "subject": "All digital goods",
+          "predicate": "are non-refundable",
+          "object": "once delivered",
+          "modality": "PROHIBITION",
+          "expected_section": "6. Digital Goods",
+          "validation_status": "SUPPORTED"
+        },
+        {
+          "subject": "Video courses",
+          "predicate": "has_refund_window",
+          "object": "7 days of purchase",
+          "conditions": [
+            "less than 20% of the course has been viewed"
+          ],
+          "modality": "PERMISSION",
+          "expected_section": "6.1 Video Courses",
+          "validation_status": "SUPPORTED",
+          "must_not_link_to_section": "6. Digital Goods"
+        },
+        {
+          "subject": "Perishable goods past 14 days",
+          "predicate": "are non-refundable",
+          "exceptions": [
+            "damaged upon delivery"
+          ],
+          "modality": "PROHIBITION",
+          "expected_section": "7. Perishable Goods",
+          "validation_status": "SUPPORTED"
+        },
+        {
+          "subject": "High-value transactions",
+          "predicate": "are defined as",
+          "object": "orders exceeding $10,000 USD",
+          "modality": "POLICY_FACT",
+          "expected_section": "8. Definitions",
+          "validation_status": "SUPPORTED"
+        }
+      ]
+    },
+    "conflicting_versions": {
+      "v1_file": "conflicting_v1.md",
+      "v2_file": "conflicting_v2.md",
+      "v1_version": "v1.0",
+      "v2_version": "v2.0",
+      "subject": "Standard customer return window",
+      "v1_value": "30 days from purchase",
+      "v2_value": "14 days from purchase",
+      "distinct_candidate_preservation": true,
+      "conflict_type": "TEMPORAL_SUPERSEDED_OR_CONTRADICTION"
+    },
+    "connector_payload": {
+      "filename": "slack_jira_connector.json",
+      "format": "json",
+      "connectors": [
+        "slack",
+        "jira"
+      ],
+      "expected_candidate_claims": [
+        {
+          "subject": "Annual SOC2 audit",
+          "predicate": "begins on",
+          "object": "October 1st"
+        },
+        {
+          "subject": "SEC-402",
+          "predicate": "has_status",
+          "object": "In Progress"
+        }
+      ],
+      "expected_validation_status": "SUPPORTED"
+    }
+  }
+}

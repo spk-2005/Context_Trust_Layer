@@ -1,0 +1,19 @@
+{
+  "service": "IdentityGate",
+  "version": "2.4.0",
+  "active": true,
+  "policies": [
+    {
+      "name": "PasswordPolicy",
+      "rules": {
+        "min_length": 14,
+        "require_special": true,
+        "expiry_days": 90
+      }
+    }
+  ],
+  "metadata": {
+    "cluster": "us-east-1",
+    "backup_enabled": null
+  }
+}
