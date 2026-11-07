@@ -3,6 +3,7 @@ import io
 import json
 import logging
 import re
+import uuid
 import xml.etree.ElementTree as ET
 import zipfile
 from enum import Enum
@@ -12,8 +13,47 @@ from pydantic import BaseModel, Field
 
 logger = logging.getLogger(__name__)
 
+# Patterns for identifiers, versions, dates, amounts, etc. that should NOT be split or mutated by OCR repair
+PROTECTED_OCR_PATTERNS = [
+    r'https?://[^\s]+',
+    r'www\.[^\s]+',
+    r'[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}',
+    r'[\$€£¥]\s*\d+(?:,\d{3})*(?:\.\d+)?(?:k|m|b|t)?\b',
+    r'\b\d+(?:,\d{3})*(?:\.\d+)?\s*(?:USD|EUR|GBP|k|m|b)\b',
+    r'\b\d+(?:\.\d+)?%',
+    r'\b\d{1,2}(?:st|nd|rd|th)\b',
+    r'\b\d{4}-\d{2}-\d{2}\b',
+    r'\b\d{1,2}/\d{1,2}/\d{2,4}\b',
+    r'\bv\d+(?:\.\d+)*\b',
+    r'\b(?:AES|TLS|FIDO|SHA|RSA|IPV|HTTP|OAUTH|UTF|PDF|SQL|SOC|ISO|HIPAA|PCI|CVE|GDPR|NIST)[-_]?\d+(?:\.\d+)*\b',
+    r'\b[A-Za-z]{2,}\d+(?:\.\d+)*\b',
+    r'\b[A-Za-z]+[-_]\d+\b',
+    r'\bP\d+\b',
+]
+_PROTECTED_REGEX = re.compile('|'.join(f'(?:{p})' for p in PROTECTED_OCR_PATTERNS), re.IGNORECASE)
+
+
+def mask_protected_tokens(text: str) -> Tuple[str, Dict[str, str]]:
+    tokens_map: Dict[str, str] = {}
+    def repl(m):
+        key = f"__PROT_TOK_{len(tokens_map)}__"
+        tokens_map[key] = m.group(0)
+        return key
+
+    masked = _PROTECTED_REGEX.sub(repl, text)
+    return masked, tokens_map
+
+
+def unmask_protected_tokens(text: str, tokens_map: Dict[str, str]) -> str:
+    for key, val in tokens_map.items():
+        text = text.replace(key, val)
+    return text
+
+
 def repair_ocr_text(raw_text: str) -> str:
-    """Repairs OCR-induced token concatenation, missing punctuation spacing, and run-together words."""
+    """Repairs OCR-induced token concatenation, missing punctuation spacing, and run-together words.
+    Protects dates, amounts, percentages, versions, IDs, and technical standards from unsafe corruption.
+    """
     if not raw_text:
         return ""
 
@@ -23,7 +63,10 @@ def repair_ocr_text(raw_text: str) -> str:
     except Exception:
         wordsegment = None
 
-    lines = raw_text.splitlines()
+    # Mask protected tokens prior to OCR repairs to prevent unsafe corruption (e.g., AES256, TLS1.3, v2.0, 15th, $100k)
+    masked_text, tokens_map = mask_protected_tokens(raw_text)
+
+    lines = masked_text.splitlines()
     repaired_lines = []
     for line in lines:
         if not line.strip():
@@ -43,13 +86,14 @@ def repair_ocr_text(raw_text: str) -> str:
         line = re.sub(r'\.([A-Za-z])', r'. \1', line)
 
         # 2. Letter to digit / digit to letter transitions (e.g. next30days -> next 30 days)
+        # Note: Protected tokens (AES256, TLS1.3, 15th, etc.) are masked as __PROT_TOK_N__ and preserved
         line = re.sub(r'([a-zA-Z])(\d+)', r'\1 \2', line)
         line = re.sub(r'(\d+)([a-zA-Z])', r'\1 \2', line)
 
         tokens = line.split()
         repaired_tokens = []
         for token in tokens:
-            if "@" in token or token.startswith(("http://", "https://", "www.")):
+            if "@" in token or token.startswith(("http://", "https://", "www.", "__PROT_TOK_")):
                 repaired_tokens.append(token)
                 continue
 
@@ -59,7 +103,7 @@ def repair_ocr_text(raw_text: str) -> str:
                 continue
 
             prefix, word, suffix = match.groups()
-            if len(word) <= 3 or word.isdigit():
+            if len(word) <= 3 or word.isdigit() or word.startswith("__PROT_TOK_"):
                 repaired_tokens.append(token)
                 continue
 
@@ -83,7 +127,8 @@ def repair_ocr_text(raw_text: str) -> str:
 
         repaired_lines.append(" ".join(repaired_tokens))
 
-    return "\n".join(repaired_lines)
+    repaired_result = "\n".join(repaired_lines)
+    return unmask_protected_tokens(repaired_result, tokens_map)
 
 _OCR_ENGINE = None
 
@@ -113,12 +158,16 @@ class ContentBlockType(str, Enum):
 
 
 class ContentBlock(BaseModel):
-    id: str = Field(default_factory=lambda: f"blk_{re.sub(r'[^a-zA-Z0-9]', '', str(io.BytesIO().getvalue() or ''))[:8]}")
+    id: str = Field(default_factory=lambda: f"blk_{uuid.uuid4().hex[:12]}")
     block_type: ContentBlockType = ContentBlockType.PARAGRAPH
     text: str
     raw_text: str = ""
+    text_source: str = "native"  # "native", "ocr", "repaired_ocr", "hybrid"
+    ocr_confidence: Optional[float] = None
+    bounding_box: Optional[Dict[str, Any]] = None
     page_number: Optional[int] = None
     section_heading: Optional[str] = None
+    heading_path: List[str] = Field(default_factory=list)
     table_data: Optional[Dict[str, Any]] = None  # {"headers": [...], "rows": [[...]], "row_dicts": [...]}
     start_char_offset: int = 0
     end_char_offset: int = 0
@@ -128,8 +177,15 @@ class ContentBlock(BaseModel):
 class DocumentPage(BaseModel):
     page_number: int
     text: str
+    native_text: str = ""
+    ocr_text_raw: str = ""
+    ocr_text_repaired: str = ""
+    selected_text_source: str = "native"  # "native", "ocr", "hybrid"
+    ocr_confidence: Optional[float] = None
     char_count: int = 0
     is_scanned_image: bool = False
+    width: Optional[float] = None
+    height: Optional[float] = None
     blocks: List[ContentBlock] = Field(default_factory=list)
 
 
@@ -250,6 +306,36 @@ class UniversalFileParser:
         except Exception:
             pass
 
+        warnings: List[str] = []
+
+        # Check for Legacy Compound File Binary Format (CFBF/OLE2) e.g. legacy .doc, .xls, .ppt
+        is_cfbf = raw_bytes.startswith(b"\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1")
+        if is_cfbf and lower_name.endswith((".doc", ".xls", ".ppt")):
+            legacy_warning = f"Legacy binary format ({filename}) detected (CFBF/OLE2). Modern OpenXML (.docx/.xlsx/.pptx) is required."
+            warnings.append(legacy_warning)
+            full_text = f"# {title}\n\n[Legacy binary file '{filename}' cannot be parsed as modern OpenXML. Please convert to modern format.]"
+            blk = ContentBlock(
+                id=f"blk_legacy_{uuid.uuid4().hex[:8]}",
+                block_type=ContentBlockType.PARAGRAPH,
+                text=full_text,
+                raw_text=full_text,
+            )
+            return ParsedDocument(
+                filename=filename,
+                title=title,
+                file_type="plain_text",
+                content_hash=content_hash,
+                full_text=full_text,
+                raw_text=full_text,
+                pages=[],
+                blocks=[blk],
+                tables=[],
+                extraction_quality=0.0,
+                is_scanned=False,
+                warnings=warnings,
+                metadata={"file_size": len(raw_bytes), "legacy_binary": True},
+            )
+
         file_type = "plain_text"
         if lower_name.endswith(".pdf"):
             file_type = "pdf"
@@ -279,7 +365,6 @@ class UniversalFileParser:
         pages: List[DocumentPage] = []
         blocks: List[ContentBlock] = []
         tables: List[Dict[str, Any]] = []
-        warnings: List[str] = []
         extraction_quality = 1.0
         is_scanned = False
         full_text = ""
@@ -363,7 +448,7 @@ class UniversalFileParser:
             warnings.append(f"Parsing error: {str(e)}")
             full_text = cls._parse_plain_text(raw_bytes, title, filename)
             blocks.append(ContentBlock(
-                id="blk_fallback_1",
+                id=f"blk_fallback_{uuid.uuid4().hex[:8]}",
                 block_type=ContentBlockType.PARAGRAPH,
                 text=full_text,
                 raw_text=full_text,
@@ -371,7 +456,7 @@ class UniversalFileParser:
 
         full_text = full_text.replace("\x00", "").strip()
         if not full_text:
-            full_text = f"# {title}\n\nIngested document '{filename}' ({len(raw_bytes)} bytes)."
+            full_text = f"# {title}\n\n[No extractable content found in {filename}]"
 
         result_doc = ParsedDocument(
             filename=filename,
@@ -404,10 +489,214 @@ class UniversalFileParser:
         blocks: List[ContentBlock] = []
         tables: List[Dict[str, Any]] = []
         warnings: List[str] = []
-        is_scanned = False
+        is_scanned_overall = False
         empty_pages = 0
         total_chars = 0
+        pages_text: List[str] = []
 
+        # 1. Try PyMuPDF (fitz) first for high-fidelity native text, tables, and spatial layout
+        pymupdf_available = False
+        try:
+            import pymupdf
+            pymupdf_available = True
+        except ImportError:
+            try:
+                import fitz as pymupdf
+                pymupdf_available = True
+            except ImportError:
+                pymupdf_available = False
+
+        if pymupdf_available:
+            try:
+                doc = pymupdf.open(stream=raw_bytes, filetype="pdf")
+                total_pages = len(doc)
+                ocr_engine = cls._get_ocr_engine()
+
+                for page_idx in range(total_pages):
+                    page = doc[page_idx]
+                    page_num = page_idx + 1
+                    rect = page.rect
+                    page_width = float(rect.width)
+                    page_height = float(rect.height)
+                    page_area = max(1.0, page_width * page_height)
+
+                    native_text = (page.get_text() or "").strip()
+                    native_len = len(native_text)
+                    printable_chars = sum(1 for c in native_text if c.isprintable())
+                    printable_ratio = (printable_chars / max(1, native_len)) if native_len > 0 else 0.0
+
+                    # Table extraction using PyMuPDF find_tables
+                    page_tables: List[Dict[str, Any]] = []
+                    try:
+                        tabs = page.find_tables()
+                        for t_idx, tab in enumerate(tabs.tables, start=1):
+                            extracted = tab.extract()
+                            if extracted and len(extracted) > 0:
+                                hdrs = [str(c or "").strip() for c in extracted[0]]
+                                data_r = [[str(c or "").strip() for c in row] for row in extracted[1:]]
+                                t_id = f"tbl_p{page_num}_{t_idx}"
+                                t_meta = {
+                                    "table_id": t_id,
+                                    "page_number": page_num,
+                                    "headers": hdrs,
+                                    "rows": data_r,
+                                    "bbox": list(tab.bbox) if hasattr(tab, "bbox") else None,
+                                    "row_count": tab.row_count,
+                                    "col_count": tab.col_count,
+                                }
+                                page_tables.append(t_meta)
+                                tables.append(t_meta)
+                    except Exception as tab_err:
+                        logger.warning("PyMuPDF table extraction on page %d: %s", page_num, tab_err)
+
+                    # Multi-signal scanned detection:
+                    # Measure image coverage vs native text density
+                    img_list = page.get_images()
+                    total_img_area = 0.0
+                    for img in img_list:
+                        try:
+                            for r in page.get_image_rects(img[0]):
+                                total_img_area += r.width * r.height
+                        except Exception:
+                            pass
+                    img_coverage = total_img_area / page_area
+
+                    # Page is scanned only if large image covers page AND text is sparse/absent,
+                    # or if zero text and images exist.
+                    # Legitimate short text pages without dominant image coverage are NOT scanned.
+                    is_page_scanned = (
+                        (img_coverage > 0.4 and native_len < 40)
+                        or (len(img_list) > 0 and native_len < 15 and printable_ratio < 0.5)
+                        or (native_len == 0 and len(img_list) > 0)
+                    )
+
+                    ocr_raw = ""
+                    ocr_repaired = ""
+                    page_ocr_conf: Optional[float] = None
+                    selected_source = "native"
+
+                    # Run OCR only when page is scanned or native text is missing/corrupt and images exist
+                    if (is_page_scanned or native_len == 0) and ocr_engine is not None and len(img_list) > 0:
+                        try:
+                            pix = page.get_pixmap(dpi=150)
+                            img_bytes = pix.tobytes("png")
+                            ocr_res, _ = ocr_engine(img_bytes)
+                            if ocr_res:
+                                ocr_lines = [line[1] for line in ocr_res if len(line) > 1 and line[1].strip()]
+                                confs = [line[2] for line in ocr_res if len(line) > 2 and line[2] is not None]
+                                if confs:
+                                    page_ocr_conf = float(sum(confs) / len(confs))
+                                ocr_raw = "\n".join(ocr_lines)
+                                # OCR repair is ONLY applied to OCR-derived text
+                                ocr_repaired = repair_ocr_text(ocr_raw).strip()
+                        except Exception as ocr_err:
+                            logger.warning("RapidOCR failed on page %d: %s", page_num, ocr_err)
+
+                    # Selection strategy: Do NOT select OCR text simply because it has more characters!
+                    # If native text exists and is readable, prefer native text.
+                    if is_page_scanned and ocr_repaired:
+                        if native_len < 20 or printable_ratio < 0.6:
+                            clean_page_text = ocr_repaired
+                            selected_source = "ocr"
+                            is_scanned_overall = True
+                            warnings.append(f"Page {page_num}: text recovered via OCR ({len(clean_page_text)} chars).")
+                        else:
+                            clean_page_text = native_text
+                            selected_source = "native"
+                    else:
+                        clean_page_text = native_text
+                        selected_source = "native"
+
+                    char_count = len(clean_page_text)
+                    total_chars += char_count
+                    if char_count < 20:
+                        empty_pages += 1
+
+                    page_blocks: List[ContentBlock] = []
+                    if clean_page_text:
+                        from app.normalization.document_restructurer import DocumentSemanticRestructurer
+                        from app.normalization.normalizer import DocumentNormalizer
+
+                        page_with_tables = DocumentSemanticRestructurer.extract_tables_from_layout(clean_page_text)
+                        reflowed_page = DocumentNormalizer.reflow_fragmented_lines(page_with_tables)
+                        pages_text.append(f"## Page {page_num}\n{reflowed_page}")
+
+                        chunks = reflowed_page.split("\n\n")
+                        for b_idx, chunk in enumerate(chunks, start=1):
+                            chk = chunk.strip()
+                            if not chk:
+                                continue
+                            is_tbl = bool(chk.startswith("|") and "\n|" in chk)
+                            is_hdg = bool(re.match(r"^(#+|Section\s+\d+|Chapter\s+\d+|Article\s+\d+|Rule\s+\d+)", chk, re.IGNORECASE))
+                            if not is_hdg and re.match(r"^\d+\.\d*\s+[A-Z]", chk):
+                                first_line = chk.split("\n")[0].strip()
+                                if len(first_line.split()) <= 8 and not first_line.endswith((".", ";")) and not any(m in first_line.lower() for m in [" shall ", " must ", " should ", " will ", " may "]):
+                                    is_hdg = True
+
+                            b_type = ContentBlockType.TABLE if is_tbl else (ContentBlockType.HEADING if is_hdg else (ContentBlockType.IMAGE_OCR if selected_source == "ocr" else ContentBlockType.PARAGRAPH))
+
+                            matched_table_data = None
+                            if is_tbl:
+                                tbl_lines = [l for l in chk.split("\n") if l.strip().startswith("|")]
+                                if len(tbl_lines) >= 2:
+                                    hdrs = [c.strip() for c in tbl_lines[0].split("|") if c.strip()]
+                                    data_r = [[c.strip() for c in l.split("|") if c.strip()] for l in tbl_lines[2:]]
+                                    matched_table_data = {"headers": hdrs, "rows": data_r, "page_number": page_num}
+
+                            blk = ContentBlock(
+                                id=f"blk_p{page_num}_{b_idx}",
+                                block_type=b_type,
+                                text=chk,
+                                raw_text=chk,
+                                page_number=page_num,
+                                text_source=selected_source,
+                                ocr_confidence=page_ocr_conf if selected_source == "ocr" else None,
+                                table_data=matched_table_data,
+                            )
+                            page_blocks.append(blk)
+                            blocks.append(blk)
+
+                    pages.append(DocumentPage(
+                        page_number=page_num,
+                        text=clean_page_text,
+                        native_text=native_text,
+                        ocr_text_raw=ocr_raw,
+                        ocr_text_repaired=ocr_repaired,
+                        selected_text_source=selected_source,
+                        ocr_confidence=page_ocr_conf,
+                        char_count=char_count,
+                        is_scanned_image=is_page_scanned,
+                        width=page_width,
+                        height=page_height,
+                        blocks=page_blocks,
+                    ))
+
+                total_pages_count = max(1, len(pages))
+                if empty_pages == total_pages_count or total_chars == 0:
+                    extraction_quality = 0.0
+                    warnings.append(f"PDF contains no extractable text or OCR failed ({filename}).")
+                    full_text = f"# {title}\n\n[No extractable text found in {filename}]"
+                    return full_text, pages, blocks, tables, warnings, is_scanned_overall, extraction_quality
+
+                if is_scanned_overall:
+                    extraction_quality = max(0.65, min(0.95, 1.0 - (empty_pages / total_pages_count) * 0.4))
+                else:
+                    extraction_quality = max(0.7, min(1.0, 1.0 - (empty_pages / total_pages_count) * 0.3))
+
+                full_text = f"# {title}\n\n" + "\n\n".join(pages_text)
+                try:
+                    from app.normalization.document_restructurer import DocumentSemanticRestructurer
+                    full_text = DocumentSemanticRestructurer.restructure(full_text)
+                except Exception as restruct_err:
+                    logger.warning("DocumentSemanticRestructurer failed: %s", restruct_err)
+
+                return full_text, pages, blocks, tables, warnings, is_scanned_overall, extraction_quality
+
+            except Exception as mupdf_err:
+                logger.warning("PyMuPDF failed, attempting fallback to pypdf: %s", mupdf_err)
+                warnings.append(f"PyMuPDF warning: {str(mupdf_err)}")
+
+        # 2. Fallback using pypdf
         try:
             import pypdf
             reader = pypdf.PdfReader(io.BytesIO(raw_bytes))
@@ -424,64 +713,57 @@ class UniversalFileParser:
                 char_count = len(clean_page_text)
                 total_chars += char_count
 
-                # Scanned image detection threshold (< 40 chars per page on average)
-                page_is_scanned = char_count < 40
-                ocr_recovered = False
+                # Multi-signal check
+                images = getattr(page, "images", [])
+                page_is_scanned = (char_count < 40 and len(images) > 0)
+                ocr_raw = ""
+                ocr_repaired = ""
+                selected_source = "native"
+
                 if page_is_scanned:
                     try:
-                        images = getattr(page, "images", [])
-                        if images and len(images) > 0:
-                            ocr_engine = cls._get_ocr_engine()
-                            if ocr_engine is not None:
-                                page_ocr_lines = []
-                                for img in images:
-                                    try:
-                                        result, _ = ocr_engine(img.data)
-                                        if result:
-                                            lines = [line[1] for line in result if line[2] > 0.4]
-                                            page_ocr_lines.extend(lines)
-                                    except Exception as img_err:
-                                        logger.warning("OCR image extraction error on page %d: %s", page_num, img_err)
+                        ocr_engine = cls._get_ocr_engine()
+                        if ocr_engine is not None:
+                            page_ocr_lines = []
+                            for img in images:
+                                try:
+                                    result, _ = ocr_engine(img.data)
+                                    if result:
+                                        lines = [line[1] for line in result if line[2] > 0.4]
+                                        page_ocr_lines.extend(lines)
+                                except Exception as img_err:
+                                    logger.warning("OCR image extraction error on page %d: %s", page_num, img_err)
 
-                                if page_ocr_lines:
-                                    ocr_text = repair_ocr_text("\n".join(page_ocr_lines)).strip()
-                                    if len(ocr_text) > char_count:
-                                        clean_page_text = ocr_text
-                                        total_chars = total_chars - char_count + len(clean_page_text)
-                                        char_count = len(clean_page_text)
-                                        ocr_recovered = True
-                                        is_scanned = True
-                                        warnings.append(f"Page {page_num}: text recovered via OCR ({char_count} chars).")
+                            if page_ocr_lines:
+                                ocr_raw = "\n".join(page_ocr_lines)
+                                ocr_repaired = repair_ocr_text(ocr_raw).strip()
+                                if len(ocr_repaired) > char_count:
+                                    clean_page_text = ocr_repaired
+                                    selected_source = "ocr"
+                                    is_scanned_overall = True
+                                    warnings.append(f"Page {page_num}: text recovered via OCR ({len(clean_page_text)} chars).")
                     except Exception as ocr_err:
                         logger.warning("OCR processing error on page %d: %s", page_num, ocr_err)
 
-                if char_count < 40:
+                if char_count < 20:
                     empty_pages += 1
 
                 page_blocks: List[ContentBlock] = []
                 if clean_page_text:
                     from app.normalization.document_restructurer import DocumentSemanticRestructurer
 
-                    # 1. Convert spatial layout tables to Markdown pipe tables first
                     page_with_tables = DocumentSemanticRestructurer.extract_tables_from_layout(clean_page_text)
-
-                    # 2. Reflow prose lines while strictly preserving Markdown table rows
                     reflowed_page = DocumentNormalizer.reflow_fragmented_lines(page_with_tables)
                     pages_text.append(f"## Page {page_num}\n{reflowed_page}")
 
-                    # Extract paragraphs, tables, and headings into ContentBlocks
                     lines = reflowed_page.split("\n\n")
-                    for b_idx, chunk in enumerate(lines):
+                    for b_idx, chunk in enumerate(lines, start=1):
                         chk = chunk.strip()
                         if not chk:
                             continue
                         is_table = bool(chk.startswith("|") and "\n|" in chk)
                         is_hdg = bool(re.match(r"^(#+|Section\s+\d+|Chapter\s+\d+|Article\s+\d+|Rule\s+\d+)", chk, re.IGNORECASE))
-                        if not is_hdg and re.match(r"^\d+\.\d*\s+[A-Z]", chk):
-                            first_line = chk.split("\n")[0].strip()
-                            if len(first_line.split()) <= 8 and not first_line.endswith((".", ";")) and not any(m in first_line.lower() for m in [" shall ", " must ", " should ", " will ", " may "]):
-                                is_hdg = True
-                        b_type = ContentBlockType.TABLE if is_table else (ContentBlockType.HEADING if is_hdg else (ContentBlockType.IMAGE_OCR if ocr_recovered else ContentBlockType.PARAGRAPH))
+                        b_type = ContentBlockType.TABLE if is_table else (ContentBlockType.HEADING if is_hdg else (ContentBlockType.IMAGE_OCR if selected_source == "ocr" else ContentBlockType.PARAGRAPH))
 
                         table_meta = None
                         if is_table:
@@ -493,11 +775,12 @@ class UniversalFileParser:
                                 tables.append(table_meta)
 
                         blk = ContentBlock(
-                            id=f"blk_p{page_num}_{b_idx+1}",
+                            id=f"blk_p{page_num}_{b_idx}",
                             block_type=b_type,
                             text=chk,
                             raw_text=chk,
                             page_number=page_num,
+                            text_source=selected_source,
                             table_data=table_meta,
                         )
                         page_blocks.append(blk)
@@ -506,38 +789,33 @@ class UniversalFileParser:
                 pages.append(DocumentPage(
                     page_number=page_num,
                     text=clean_page_text,
+                    native_text=page_text,
+                    ocr_text_raw=ocr_raw,
+                    ocr_text_repaired=ocr_repaired,
+                    selected_text_source=selected_source,
                     char_count=char_count,
                     is_scanned_image=page_is_scanned,
                     blocks=page_blocks,
                 ))
 
             total_pages = max(1, len(reader.pages))
-            if empty_pages == total_pages or (total_chars / total_pages) < 50:
-                is_scanned = True
-                warnings.append("Document appears to be a scanned image-based PDF. Text density is low.")
-                extraction_quality = 0.4
+            if empty_pages == total_pages or total_chars == 0:
+                extraction_quality = 0.0
+                warnings.append(f"PDF contains no extractable text ({filename}).")
+                full_text = f"# {title}\n\n[No extractable text found in {filename}]"
             else:
-                if is_scanned:
-                    extraction_quality = max(0.75, min(0.95, 1.0 - (empty_pages / total_pages) * 0.4))
+                if is_scanned_overall:
+                    extraction_quality = max(0.65, min(0.95, 1.0 - (empty_pages / total_pages) * 0.4))
                 else:
-                    extraction_quality = max(0.6, min(1.0, 1.0 - (empty_pages / total_pages) * 0.5))
-
-            if pages_text:
+                    extraction_quality = max(0.7, min(1.0, 1.0 - (empty_pages / total_pages) * 0.3))
                 full_text = f"# {title}\n\n" + "\n\n".join(pages_text)
-                try:
-                    from app.normalization.document_restructurer import DocumentSemanticRestructurer
-                    full_text = DocumentSemanticRestructurer.restructure(full_text)
-                except Exception as restruct_err:
-                    logger.warning("DocumentSemanticRestructurer failed: %s", restruct_err)
-            else:
-                full_text = f"# {title}\n\nIngested PDF document {filename} ({len(reader.pages)} pages)."
 
-            return full_text, pages, blocks, tables, warnings, is_scanned, extraction_quality
+            return full_text, pages, blocks, tables, warnings, is_scanned_overall, extraction_quality
 
         except Exception as e:
             warnings.append(f"PDF extraction warning: {str(e)}")
             plain = cls._parse_plain_text(raw_bytes, title, filename)
-            return plain, [], [], [], warnings, False, 0.5
+            return plain, [], [], [], warnings, False, 0.0
 
     @classmethod
     def _parse_docx_structured(
@@ -546,52 +824,99 @@ class UniversalFileParser:
         blocks: List[ContentBlock] = []
         tables: List[Dict[str, Any]] = []
         warnings: List[str] = []
-        paragraphs_text = []
+        ordered_elements_text: List[str] = []
 
         try:
             import docx
+            from docx.oxml.text.paragraph import CT_P
+            from docx.oxml.table import CT_Tbl
+            from docx.text.paragraph import Paragraph
+            from docx.table import Table
+
             doc = docx.Document(io.BytesIO(raw_bytes))
-            for p_idx, p in enumerate(doc.paragraphs, start=1):
-                txt = p.text.strip()
-                if not txt:
-                    continue
-                style_name = (p.style.name if hasattr(p, "style") and p.style else "").lower()
-                is_heading = "heading" in style_name or bool(
-                    re.match(r"^(Chapter\s+\d+|Page\s+\d+|Section\s+\d+|Control\s+rule|Policy\s+\d+)", txt, re.IGNORECASE)
-                )
-                b_type = ContentBlockType.HEADING if is_heading else ContentBlockType.PARAGRAPH
-                blocks.append(ContentBlock(
-                    id=f"blk_docx_{p_idx}",
-                    block_type=b_type,
-                    text=f"## {txt}" if is_heading else txt,
-                    raw_text=txt,
-                ))
-                paragraphs_text.append(f"## {txt}" if is_heading else txt)
+            current_hier: List[str] = [title]
+            elem_idx = 1
+            tbl_idx = 1
 
-            for t_idx, table in enumerate(doc.tables, start=1):
-                table_rows = []
-                headers = []
-                for r_idx, row in enumerate(table.rows):
-                    cells = [cell.text.strip() for cell in row.cells]
-                    if r_idx == 0:
-                        headers = cells
-                    table_rows.append(cells)
+            # Traverse the document body in its original sequential order, interleaving paragraphs and tables
+            for child in doc.element.body.iterchildren():
+                if isinstance(child, CT_P):
+                    p = Paragraph(child, doc)
+                    txt = p.text.strip()
+                    if not txt:
+                        continue
+                    style_name = (p.style.name if hasattr(p, "style") and p.style else "").lower()
+                    is_heading = "heading" in style_name or bool(
+                        re.match(r"^(Chapter\s+\d+|Page\s+\d+|Section\s+\d+|Control\s+rule|Policy\s+\d+)", txt, re.IGNORECASE)
+                    )
+                    level = 1
+                    if "heading" in style_name:
+                        m = re.search(r"\d+", style_name)
+                        if m:
+                            level = int(m.group(0))
 
-                if table_rows:
-                    formatted_rows = ["| " + " | ".join(r) + " |" for r in table_rows]
-                    t_text = "\n" + "\n".join(formatted_rows) + "\n"
-                    paragraphs_text.append(t_text)
-                    t_data = {"headers": headers, "rows": table_rows}
-                    tables.append(t_data)
+                    if is_heading:
+                        current_hier = current_hier[:level] + [txt]
+                        formatted_text = f"## {txt}"
+                        b_type = ContentBlockType.HEADING
+                    else:
+                        formatted_text = txt
+                        b_type = ContentBlockType.PARAGRAPH
+
                     blocks.append(ContentBlock(
-                        id=f"blk_table_{t_idx}",
-                        block_type=ContentBlockType.TABLE,
-                        text=t_text,
-                        raw_text=t_text,
-                        table_data=t_data,
+                        id=f"blk_docx_{elem_idx}",
+                        block_type=b_type,
+                        text=formatted_text,
+                        raw_text=txt,
+                        heading_path=list(current_hier),
                     ))
+                    ordered_elements_text.append(formatted_text)
+                    elem_idx += 1
 
-            full_text = f"# {title}\n\n" + "\n\n".join(paragraphs_text)
+                elif isinstance(child, CT_Tbl):
+                    t = Table(child, doc)
+                    table_rows = []
+                    headers = []
+                    has_merged_cells = False
+
+                    for r_idx, row in enumerate(t.rows):
+                        cells = []
+                        prev_tc = None
+                        for cell in row.cells:
+                            # Detect merged cells by checking underlying XML element identity
+                            if prev_tc is not None and cell._tc is prev_tc:
+                                has_merged_cells = True
+                            prev_tc = cell._tc
+                            cells.append(cell.text.strip())
+
+                        if r_idx == 0:
+                            headers = cells
+                        table_rows.append(cells)
+
+                    if table_rows:
+                        formatted_rows = ["| " + " | ".join(r) + " |" for r in table_rows]
+                        t_text = "\n" + "\n".join(formatted_rows) + "\n"
+                        ordered_elements_text.append(t_text)
+                        t_data = {
+                            "table_id": f"tbl_docx_{tbl_idx}",
+                            "headers": headers,
+                            "rows": table_rows,
+                            "has_merged_cells": has_merged_cells,
+                            "heading_path": list(current_hier),
+                        }
+                        tables.append(t_data)
+                        blocks.append(ContentBlock(
+                            id=f"blk_table_{tbl_idx}",
+                            block_type=ContentBlockType.TABLE,
+                            text=t_text,
+                            raw_text=t_text,
+                            table_data=t_data,
+                            heading_path=list(current_hier),
+                        ))
+                        tbl_idx += 1
+                        elem_idx += 1
+
+            full_text = f"# {title}\n\n" + "\n\n".join(ordered_elements_text)
             return full_text, [], blocks, tables, warnings
         except Exception as e:
             warnings.append(f"DOCX parser error: {str(e)}")
@@ -605,14 +930,112 @@ class UniversalFileParser:
         blocks: List[ContentBlock] = []
         tables: List[Dict[str, Any]] = []
         warnings: List[str] = []
-        full_text = cls._parse_xlsx(raw_bytes, title, filename)
-        blocks.append(ContentBlock(
-            id="blk_xlsx_1",
-            block_type=ContentBlockType.TABLE,
-            text=full_text,
-            raw_text=full_text,
-        ))
-        return full_text, [], blocks, tables, warnings
+        sheets_markdown: List[str] = []
+
+        try:
+            import openpyxl
+            wb_formulas = openpyxl.load_workbook(io.BytesIO(raw_bytes), data_only=False)
+            try:
+                wb_values = openpyxl.load_workbook(io.BytesIO(raw_bytes), data_only=True)
+            except Exception:
+                wb_values = None
+
+            for s_idx, sheet_name in enumerate(wb_formulas.sheetnames, start=1):
+                ws_form = wb_formulas[sheet_name]
+                ws_val = wb_values[sheet_name] if wb_values and sheet_name in wb_values.sheetnames else None
+
+                is_hidden = getattr(ws_form, "sheet_state", "visible") == "hidden"
+                merged_ranges = [str(r) for r in ws_form.merged_cells.ranges]
+
+                max_r = ws_form.max_row or 0
+                max_c = ws_form.max_column or 0
+                if max_r == 0 or max_c == 0:
+                    continue
+
+                table_rows: List[List[str]] = []
+                headers: List[str] = []
+                grid_metadata: List[List[Dict[str, Any]]] = []
+
+                for r in range(1, max_r + 1):
+                    row_cells: List[str] = []
+                    row_meta: List[Dict[str, Any]] = []
+                    for c in range(1, max_c + 1):
+                        cell_f = ws_form.cell(row=r, column=c)
+                        cell_v = ws_val.cell(row=r, column=c) if ws_val else None
+
+                        val_f = cell_f.value
+                        val_v = cell_v.value if cell_v else None
+
+                        formula = None
+                        if isinstance(val_f, str) and val_f.startswith("="):
+                            formula = val_f
+                            display_val = val_v if val_v is not None else val_f
+                        else:
+                            display_val = val_f
+
+                        display_str = str(display_val) if display_val is not None else ""
+                        row_cells.append(display_str)
+                        row_meta.append({
+                            "coordinate": cell_f.coordinate,
+                            "row": r,
+                            "col": c,
+                            "value": display_val,
+                            "formula": formula,
+                            "data_type": cell_f.data_type,
+                            "number_format": cell_f.number_format,
+                        })
+
+                    if r == 1:
+                        headers = row_cells
+                    table_rows.append(row_cells)
+                    grid_metadata.append(row_meta)
+
+                if table_rows:
+                    formatted_rows = []
+                    for idx, row in enumerate(table_rows):
+                        clean_row = [c.replace("\n", " ").replace("|", "\\|") for c in row]
+                        formatted_rows.append("| " + " | ".join(clean_row) + " |")
+                        if idx == 0:
+                            formatted_rows.append("| " + " | ".join(["---"] * len(clean_row)) + " |")
+
+                    sheet_hdr = f"## Sheet: {sheet_name}" + (" (Hidden)" if is_hidden else "")
+                    sheet_md = sheet_hdr + "\n\n" + "\n".join(formatted_rows)
+                    sheets_markdown.append(sheet_md)
+
+                    t_data = {
+                        "sheet_name": sheet_name,
+                        "table_id": f"tbl_sheet_{s_idx}",
+                        "is_hidden": is_hidden,
+                        "merged_ranges": merged_ranges,
+                        "headers": headers,
+                        "rows": table_rows[1:] if len(table_rows) > 1 else [],
+                        "row_count": max_r,
+                        "col_count": max_c,
+                        "cell_metadata": grid_metadata,
+                    }
+                    tables.append(t_data)
+                    blocks.append(ContentBlock(
+                        id=f"blk_xlsx_{s_idx}",
+                        block_type=ContentBlockType.TABLE,
+                        text=sheet_md,
+                        raw_text=sheet_md,
+                        table_data=t_data,
+                    ))
+
+            full_text = f"# {title}\n\n" + "\n\n".join(sheets_markdown)
+            return full_text, [], blocks, tables, warnings
+
+        except Exception as e:
+            logger.warning("openpyxl failed for %s, falling back: %s", filename, e)
+            warnings.append(f"XLSX openpyxl error: {str(e)}")
+            full_text = cls._parse_xlsx(raw_bytes, title, filename)
+            blocks.append(ContentBlock(
+                id="blk_xlsx_fallback",
+                block_type=ContentBlockType.TABLE,
+                text=full_text,
+                raw_text=full_text,
+            ))
+            return full_text, [], blocks, tables, warnings
 
     @classmethod
     def _parse_pdf(cls, raw_bytes: bytes, title: str, filename: str) -> str:
@@ -738,6 +1161,62 @@ class UniversalFileParser:
         for enc in ("utf-8", "utf-8-sig", "latin-1", "cp1252"):
             try:
                 html_str = raw_bytes.decode(enc)
+                # Try robust lxml.html DOM parser
+                try:
+                    import lxml.html
+                    doc = lxml.html.fromstring(html_str)
+                    # Strip style, script, noscript, and metadata tags
+                    for el in doc.xpath('//script | //style | //noscript | //head | //meta | //link'):
+                        el.drop_tree()
+
+                    body = doc.xpath('//body')
+                    root = body[0] if body else doc
+
+                    rendered_parts: List[str] = []
+                    for el in root.iter():
+                        tag = el.tag
+                        if not isinstance(tag, str):
+                            continue
+                        tag = tag.lower()
+                        if tag in ('h1', 'h2', 'h3', 'h4', 'h5', 'h6'):
+                            level = int(tag[1])
+                            txt = el.text_content().strip()
+                            if txt:
+                                rendered_parts.append(f"\n\n{'#' * level} {txt}\n")
+                        elif tag == 'p' and el.getparent() is not None and el.getparent().tag.lower() not in ('td', 'th', 'li'):
+                            txt = el.text_content().strip()
+                            if txt:
+                                rendered_parts.append(f"\n\n{txt}\n")
+                        elif tag in ('ul', 'ol') and el.getparent() is not None and el.getparent().tag.lower() not in ('li',):
+                            items = [li.text_content().strip() for li in el.xpath('./li') if li.text_content().strip()]
+                            if items:
+                                list_md = "\n".join(f"- {it}" for it in items)
+                                rendered_parts.append(f"\n\n{list_md}\n")
+                        elif tag == 'table':
+                            # Process only top-level tables to avoid double-processing nested tables
+                            if not el.xpath('ancestor::table'):
+                                headers = [th.text_content().strip() for th in el.xpath('.//tr[1]//th | .//thead//th')]
+                                rows = []
+                                for tr in el.xpath('.//tbody/tr | .//tr[position()>1]'):
+                                    cells = [td.text_content().strip() for td in tr.xpath('./td | ./th')]
+                                    if cells:
+                                        rows.append(cells)
+                                if headers or rows:
+                                    t_lines = []
+                                    if headers:
+                                        t_lines.append("| " + " | ".join(headers) + " |")
+                                        t_lines.append("| " + " | ".join(["---"] * len(headers)) + " |")
+                                    for r in rows:
+                                        t_lines.append("| " + " | ".join(r) + " |")
+                                    rendered_parts.append("\n\n" + "\n".join(t_lines) + "\n")
+
+                    extracted = re.sub(r"\n{3,}", "\n\n", "".join(rendered_parts)).strip()
+                    if extracted:
+                        return f"# {title}\n\n{extracted}"
+                except Exception:
+                    pass
+
+                # Fallback to _HTMLToTextExtractor
                 extractor = _HTMLToTextExtractor()
                 extractor.feed(html_str)
                 extracted = extractor.get_text()
@@ -778,9 +1257,41 @@ class UniversalFileParser:
     @classmethod
     def _parse_rtf(cls, raw_bytes: bytes, title: str) -> str:
         text = raw_bytes.decode("latin-1", errors="ignore")
+        # Strip header/font/color/stylesheet tables
+        text = re.sub(r"\{\\\*(?:fonttbl|colortbl|stylesheet|info)[^}]*\}", " ", text)
+        # Structural control words
+        text = re.sub(r"\\par\b|\\line\b", "\n", text)
+        text = re.sub(r"\\tab\b", "\t", text)
+        text = re.sub(r"\\bullet\b", "• ", text)
+        text = re.sub(r"\\endash\b", "–", text)
+        text = re.sub(r"\\emdash\b", "—", text)
+        text = re.sub(r"\\lquote\b|\\rquote\b", "'", text)
+        text = re.sub(r"\\ldblquote\b|\\rdblquote\b", '"', text)
+
+        # Hex escapes \'xx
+        def _hex_repl(m):
+            try:
+                return chr(int(m.group(1), 16))
+            except Exception:
+                return ""
+        text = re.sub(r"\\\'([0-9a-fA-F]{2})", _hex_repl, text)
+
+        # Unicode escapes \uN?
+        def _u_repl(m):
+            try:
+                code = int(m.group(1))
+                if code < 0:
+                    code += 65536
+                return chr(code)
+            except Exception:
+                return ""
+        text = re.sub(r"\\u(-?\d+)(?:\?)?", _u_repl, text)
+
+        # Remove remaining control words and group braces
         clean_text = re.sub(r"\\[a-zA-Z0-9\-]+", " ", text)
         clean_text = re.sub(r"[{}\\]", " ", clean_text)
-        clean_text = re.sub(r"\s+", " ", clean_text).strip()
+        clean_text = re.sub(r"[ \t]+", " ", clean_text)
+        clean_text = re.sub(r"\n\s*\n+", "\n\n", clean_text).strip()
         return f"# {title}\n\n{clean_text}"
 
     @classmethod
@@ -823,6 +1334,41 @@ class UniversalFileParser:
             in_yaml_frontmatter = True
             lines = lines[1:]
 
+        in_code_block = False
+        code_block_lines: List[str] = []
+        code_block_lang = ""
+
+        in_table_block = False
+        table_lines: List[str] = []
+
+        def flush_table():
+            nonlocal b_idx, in_table_block, table_lines
+            if table_lines:
+                tbl_text = "\n".join(table_lines)
+                headers = []
+                data_rows = []
+                for idx, t_line in enumerate(table_lines):
+                    cells = [c.strip() for c in t_line.split("|")[1:-1]] if t_line.startswith("|") else [c.strip() for c in t_line.split("|")]
+                    if idx == 0:
+                        headers = cells
+                    elif idx == 1 and all(re.match(r"^:?-+:?$", c) for c in cells if c):
+                        continue
+                    else:
+                        data_rows.append(cells)
+
+                blocks.append(ContentBlock(
+                    id=f"blk_md_{b_idx}",
+                    block_type=ContentBlockType.TABLE,
+                    text=tbl_text,
+                    raw_text=tbl_text,
+                    heading_path=list(current_hier),
+                    page_number=1,
+                    table_data={"headers": headers, "rows": data_rows},
+                ))
+                b_idx += 1
+                table_lines = []
+            in_table_block = False
+
         for line in lines:
             if in_yaml_frontmatter:
                 if line.strip() == "---":
@@ -830,6 +1376,45 @@ class UniversalFileParser:
                 continue
 
             stripped = line.strip()
+
+            # Fenced code block handling
+            if stripped.startswith("```"):
+                flush_para()
+                flush_table()
+                if not in_code_block:
+                    in_code_block = True
+                    code_block_lang = stripped[3:].strip()
+                    code_block_lines = [line]
+                else:
+                    code_block_lines.append(line)
+                    code_text = "\n".join(code_block_lines)
+                    blocks.append(ContentBlock(
+                        id=f"blk_md_{b_idx}",
+                        block_type=ContentBlockType.CODE_OR_CONFIG,
+                        text=code_text,
+                        raw_text=code_text,
+                        heading_path=list(current_hier),
+                        page_number=1,
+                    ))
+                    b_idx += 1
+                    in_code_block = False
+                    code_block_lines = []
+                    code_block_lang = ""
+                continue
+
+            if in_code_block:
+                code_block_lines.append(line)
+                continue
+
+            # Markdown Table handling
+            if stripped.startswith("|") and ("|" in stripped[1:]):
+                flush_para()
+                in_table_block = True
+                table_lines.append(line)
+                continue
+            elif in_table_block:
+                flush_table()
+
             if not stripped:
                 flush_para()
                 continue
@@ -870,6 +1455,18 @@ class UniversalFileParser:
             current_para.append(stripped)
 
         flush_para()
+        flush_table()
+        if in_code_block and code_block_lines:
+            code_text = "\n".join(code_block_lines)
+            blocks.append(ContentBlock(
+                id=f"blk_md_{b_idx}",
+                block_type=ContentBlockType.CODE_OR_CONFIG,
+                text=code_text,
+                raw_text=code_text,
+                heading_path=list(current_hier),
+                page_number=1,
+            ))
+
         pages = [DocumentPage(page_number=1, text=text, width=612.0, height=792.0)]
         return text, pages, blocks
 
@@ -888,7 +1485,8 @@ class UniversalFileParser:
         for enc in ("utf-8", "utf-8-sig", "latin-1", "cp1252"):
             try:
                 decoded = raw_bytes.decode(enc)
-                return f"# {title}\n\n{decoded.strip()}"
+                if any(c for c in decoded if c.isprintable()):
+                    return f"# {title}\n\n{decoded.strip()}"
             except UnicodeDecodeError:
                 continue
-        return f"# {title}\n\nBinary file {filename} ({len(raw_bytes)} bytes)."
+        return f"# {title}\n\n[Binary file {filename} ({len(raw_bytes)} bytes) contains no extractable plain text]"

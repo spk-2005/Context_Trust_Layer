@@ -188,6 +188,7 @@ class DocumentParser:
                     content_text=h_title,
                     structured_data={"heading_level": level, "heading_text": h_title},
                     locator={
+                        **envelope.locator_metadata,
                         "page": current_page,
                         "line": line_num,
                         "line_start": line_num,
@@ -196,7 +197,6 @@ class DocumentParser:
                         "end_char": line_end_char,
                         "heading_path": context,
                         "paragraph_index": seq_idx,
-                        **envelope.locator_metadata,
                     },
                     hierarchical_context=context,
                     sequence_index=seq_idx,
@@ -287,6 +287,8 @@ class DocumentParser:
                         prev_text = " | ".join(f"{k}: {v}" for k, v in prev_cols.items())
                         prev_unit.content_text = prev_text
                         prev_unit.normalized_content = prev_text
+                        char_cursor = line_end_char
+                        line_num += 1
                         continue
 
                     # Data row
@@ -361,6 +363,7 @@ class DocumentParser:
                             "ambiguity_reason": ambiguity_reason,
                         },
                         locator={
+                            **envelope.locator_metadata,
                             "page": current_page,
                             "line": line_num,
                             "line_start": line_num,
@@ -372,7 +375,6 @@ class DocumentParser:
                             "row_index": table_row_count,
                             "heading_path": context,
                             "paragraph_index": seq_idx,
-                            **envelope.locator_metadata,
                         },
                         hierarchical_context=context,
                         sequence_index=seq_idx,
@@ -423,6 +425,7 @@ class DocumentParser:
                 content_text=clean_text,
                 structured_data={"raw_line": line_str},
                 locator={
+                    **envelope.locator_metadata,
                     "page": current_page,
                     "line": line_num,
                     "line_start": line_num,
@@ -431,7 +434,6 @@ class DocumentParser:
                     "end_char": line_end_char,
                     "heading_path": context,
                     "paragraph_index": seq_idx,
-                    **envelope.locator_metadata,
                 },
                 hierarchical_context=context,
                 sequence_index=seq_idx,
