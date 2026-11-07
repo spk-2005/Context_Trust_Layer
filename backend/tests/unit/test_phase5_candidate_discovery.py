@@ -504,3 +504,4 @@ async def test_contradictory_claims_from_different_versions():
     assert len(deduped) == 2
     assert any(c.source_version == "v1.0" for c in deduped)
     assert any(c.source_version == "v2.0" for c in deduped)
+

@@ -5,6 +5,7 @@ and Enterprise Claim Store persistence.
 """
 
 from app.validation_gate.decision_engine import ClaimLifecycleDecisionEngine
+from app.validation_gate.evidence_validator import ReliableClaimEvidenceValidator
 from app.validation_gate.evaluators import (
     AuthorityEvaluator,
     CompletenessEvaluator,
@@ -17,6 +18,8 @@ from app.validation_gate.models import (
     AuthorityStatus,
     CandidateGateEvaluation,
     ClaimLifecycleDecision,
+    ClaimValidationAuditReport,
+    ClaimValidationStatus,
     DecisionCode,
     CompletenessStatus,
     DimensionEvaluation,
@@ -39,6 +42,8 @@ __all__ = [
     "AuthorityStatus",
     "ReviewStatus",
     "ClaimLifecycleDecision",
+    "ClaimValidationStatus",
+    "ClaimValidationAuditReport",
     "DecisionCode",
     "DimensionEvaluation",
     "CandidateGateEvaluation",
@@ -50,6 +55,7 @@ __all__ = [
     "TemporalValidityEvaluator",
     "AuthorityEvaluator",
     "ClaimLifecycleDecisionEngine",
+    "ReliableClaimEvidenceValidator",
     "EnterpriseClaimStore",
     "Layer6ValidationGatePipeline",
     "global_validation_gate",

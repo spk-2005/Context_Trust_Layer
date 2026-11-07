@@ -24,6 +24,8 @@ from app.validation_gate.evaluators import (
 from app.validation_gate.models import (
     CandidateGateEvaluation,
     ClaimLifecycleDecision,
+    ClaimValidationAuditReport,
+    ClaimValidationStatus,
     DecisionCode,
     DimensionEvaluation,
     ReviewStatus,
@@ -417,6 +419,36 @@ class ClaimLifecycleDecisionEngine:
         decision_code: DecisionCode,
         reason: str,
     ) -> CandidateGateEvaluation:
+        # Phase 6: Derive ClaimValidationStatus and ClaimValidationAuditReport
+        if decision == ClaimLifecycleDecision.APPROVE:
+            val_status = ClaimValidationStatus.SUPPORTED
+        elif decision == ClaimLifecycleDecision.REVIEW:
+            val_status = ClaimValidationStatus.NEEDS_REVIEW
+        else:
+            if decision_code in (DecisionCode.REJECT_GROUNDING_FAILED, DecisionCode.EVIDENCE_CANDIDATE_MISMATCH) or "not found" in reason.lower() or "missing" in reason.lower():
+                val_status = ClaimValidationStatus.INSUFFICIENT_EVIDENCE
+            elif decision_code in (DecisionCode.ROW_VALUE_MISMATCH, DecisionCode.REJECT_SEMANTIC_MISMATCH):
+                val_status = ClaimValidationStatus.CONTRADICTED
+            else:
+                val_status = ClaimValidationStatus.NEEDS_REVIEW
+
+        val_report = ClaimValidationAuditReport(
+            claim_id=candidate.candidate_id,
+            linked_evidence_ids=[getattr(candidate, "source_unit_id", "") or getattr(candidate, "unit_id", "") or ""] if getattr(candidate, "source_unit_id", None) or getattr(candidate, "unit_id", None) else [],
+            exact_source_quotes=[candidate.evidence_text_span] if candidate.evidence_text_span else [],
+            structured_references=getattr(candidate, "locator", {}) or {},
+            evidence_relationship=getattr(candidate, "evidence_relationship_type", None) or "single_unit",
+            validation_status=val_status,
+            extraction_status=getattr(candidate, "extraction_status", "success"),
+            reasoning_summary=reason,
+            missing_conditions=completeness.details.get("unsupported_conditions", []),
+            missing_exceptions=[],
+            warnings=[reason] if val_status != ClaimValidationStatus.SUPPORTED else [],
+            confidence=composite_score,
+            source_version=getattr(candidate, "source_version", None),
+            locator=getattr(candidate, "locator", {}) or {},
+        )
+
         return CandidateGateEvaluation(
             candidate_id=candidate.candidate_id,
             envelope_id=envelope.envelope_id,
@@ -447,4 +479,6 @@ class ClaimLifecycleDecisionEngine:
             lifecycle_decision=decision,
             decision_code=decision_code,
             decision_reason=reason,
+            validation_status=val_status,
+            validation_report=val_report,
         )

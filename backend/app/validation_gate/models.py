@@ -63,6 +63,17 @@ class ClaimLifecycleDecision(str, Enum):
     REJECT = "reject"
 
 
+class ClaimValidationStatus(str, Enum):
+    """
+    Phase 6: Authoritative claim validation status.
+    Decoupled from Layer 4 extraction status (SUCCESS, PARTIAL, FAILED, EMPTY, NEEDS_OCR).
+    """
+    SUPPORTED = "SUPPORTED"
+    CONTRADICTED = "CONTRADICTED"
+    INSUFFICIENT_EVIDENCE = "INSUFFICIENT_EVIDENCE"
+    NEEDS_REVIEW = "NEEDS_REVIEW"
+
+
 class DecisionCode(str, Enum):
     """Machine-readable cause code for Layer 6 claim lifecycle decisions."""
     APPROVE_ALL_PASSED = "APPROVE_ALL_PASSED"
@@ -114,6 +125,49 @@ class DimensionEvaluation(BaseModel):
     details: Dict[str, Any] = Field(default_factory=dict)
 
 
+class ClaimValidationAuditReport(BaseModel):
+    """
+    Standardized Phase 6 audit record for claim validation and evidence grounding.
+    Explicitly decouples Layer 4 extraction status from Layer 6 validation status.
+    """
+    model_config = ConfigDict(populate_by_name=True)
+
+    claim_id: str = Field(..., description="Stable logical identifier of the evaluated claim")
+    linked_evidence_ids: List[str] = Field(default_factory=list, description="IDs of successfully linked and verified evidence units")
+    exact_source_quotes: List[str] = Field(default_factory=list, description="Preserved verbatim source text quotes from evidence")
+    structured_references: Dict[str, Any] = Field(default_factory=dict, description="Structured locator coordinates or field references")
+    evidence_relationship: Optional[str] = Field(default=None, description="Structural relation (e.g. multi_block, parent_child, table_binding)")
+    validation_status: ClaimValidationStatus = Field(..., description="SUPPORTED, CONTRADICTED, INSUFFICIENT_EVIDENCE, or NEEDS_REVIEW")
+    extraction_status: Optional[str] = Field(default=None, description="Layer 4 extraction status (e.g. SUCCESS, PARTIAL, FAILED, EMPTY, NEEDS_OCR)")
+    reasoning_summary: str = Field(..., description="Deterministic explanation of the validation outcome")
+    missing_conditions: List[str] = Field(default_factory=list, description="Conditions present in source evidence but omitted from claim (or vice versa)")
+    missing_exceptions: List[str] = Field(default_factory=list, description="Exceptions present in source evidence but omitted from claim (or vice versa)")
+    warnings: List[str] = Field(default_factory=list, description="Validation warnings, ambiguity notes, or coordinate discrepancies")
+    confidence: float = Field(ge=0.0, le=1.0, default=1.0, description="Verification confidence score")
+    source_version: Optional[str] = Field(default=None, description="Source document or asset version")
+    locator: Dict[str, Any] = Field(default_factory=dict, description="Source locator coordinates")
+    evaluated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "claim_id": self.claim_id,
+            "linked_evidence_ids": self.linked_evidence_ids,
+            "exact_source_quotes": self.exact_source_quotes,
+            "structured_references": self.structured_references,
+            "evidence_relationship": self.evidence_relationship,
+            "validation_status": self.validation_status.value,
+            "extraction_status": self.extraction_status,
+            "reasoning_summary": self.reasoning_summary,
+            "missing_conditions": self.missing_conditions,
+            "missing_exceptions": self.missing_exceptions,
+            "warnings": self.warnings,
+            "confidence": self.confidence,
+            "source_version": self.source_version,
+            "locator": self.locator,
+            "evaluated_at": self.evaluated_at.isoformat(),
+        }
+
+
 class CandidateGateEvaluation(BaseModel):
     """Complete 6-dimensional evaluation and lifecycle decision for a candidate claim."""
     model_config = ConfigDict(populate_by_name=True)
@@ -152,6 +206,10 @@ class CandidateGateEvaluation(BaseModel):
     persisted_claim_id: Optional[uuid.UUID] = None
     evaluated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
+    # Phase 6 Extensions: Validation Status & Audit Report
+    validation_status: Optional[ClaimValidationStatus] = Field(default=None, description="SUPPORTED, CONTRADICTED, INSUFFICIENT_EVIDENCE, or NEEDS_REVIEW")
+    validation_report: Optional[ClaimValidationAuditReport] = Field(default=None, description="Phase 6 evidence audit report")
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "candidate_id": self.candidate_id,
@@ -186,6 +244,8 @@ class CandidateGateEvaluation(BaseModel):
             "decision_reason": self.decision_reason,
             "persisted_claim_id": str(self.persisted_claim_id) if self.persisted_claim_id else None,
             "evaluated_at": self.evaluated_at.isoformat(),
+            "validation_status": self.validation_status.value if self.validation_status else None,
+            "validation_report": self.validation_report.to_dict() if self.validation_report else None,
         }
 
 
