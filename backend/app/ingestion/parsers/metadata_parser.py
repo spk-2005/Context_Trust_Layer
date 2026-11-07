@@ -12,7 +12,14 @@ from typing import Any, List
 
 from app.db.enums import SourceFamily
 from app.ingestion.envelope import CanonicalSourceEnvelope
-from app.ingestion.parsers.evidence_model import ContentRole, ParsedEvidenceResult, ParsedEvidenceUnit
+from app.ingestion.parsers.evidence_model import (
+    ContentRole,
+    EvidenceExtractionValidator,
+    ExtractionQualityReport,
+    ExtractionStatus,
+    ParsedEvidenceResult,
+    ParsedEvidenceUnit,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -154,10 +161,34 @@ class MetadataParser:
                     )
                     units.append(u)
 
+        warnings: list[str] = []
+        if len(units) == 0:
+            status = ExtractionStatus.EMPTY
+            completeness: Any = "NOT_MEASURED"
+            warnings.append("No metadata or operational entries found.")
+        else:
+            val_res = EvidenceExtractionValidator.validate(units)
+            warnings.extend(val_res.warnings)
+            status = ExtractionStatus.PARTIAL if not val_res.is_valid else ExtractionStatus.SUCCESS
+            completeness = 1.0
+
+        quality_report = ExtractionQualityReport(
+            status=status,
+            completeness_score=completeness,
+            expected_fields=len(units),
+            processed_fields=len(units),
+            total_units=len(units),
+            valid_evidence_units=len(units),
+            valid_source_locators=sum(1 for u in units if u.locator and any(u.locator.model_dump().values())),
+            warnings=warnings,
+            parser_name="MetadataParser",
+        )
+
         quality_metrics = {
             "parsed_units": len(units),
             "asset_id": asset_id,
             "format": fmt,
+            "warnings": warnings,
         }
 
         return ParsedEvidenceResult(
@@ -166,6 +197,8 @@ class MetadataParser:
             source_family=SourceFamily.METADATA,
             parser_name="MetadataParser",
             units=units,
-            completeness_score=1.0,
+            completeness_score=completeness,
             quality_metrics=quality_metrics,
+            quality_report=quality_report,
+            extraction_status=status,
         )

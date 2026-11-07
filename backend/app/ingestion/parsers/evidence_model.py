@@ -56,11 +56,61 @@ class ContentRole(str, Enum):
 
 
 class ExtractionStatus(str, Enum):
-    """Extraction lifecycle state for an atomic evidence unit."""
-    EXTRACTED = "extracted"
+    """Explicit extraction lifecycle state for an atomic evidence unit or extraction quality report."""
+    SUCCESS = "success"
     PARTIAL = "partial"
     FAILED = "failed"
+    EMPTY = "empty"
+    UNSUPPORTED = "unsupported"
+    NEEDS_OCR = "needs_ocr"
+    # Backward-compatible aliases
+    EXTRACTED = "extracted"
     SKIPPED = "skipped"
+
+    def __eq__(self, other: Any) -> bool:
+        if isinstance(other, ExtractionStatus):
+            if self.value in ("success", "extracted") and other.value in ("success", "extracted"):
+                return True
+            if self.value in ("unsupported", "skipped") and other.value in ("unsupported", "skipped"):
+                return True
+            return self.value == other.value
+        if isinstance(other, str):
+            other_lower = other.lower().strip()
+            if self.value in ("success", "extracted") and other_lower in ("success", "extracted"):
+                return True
+            if self.value in ("unsupported", "skipped") and other_lower in ("unsupported", "skipped"):
+                return True
+            return self.value == other_lower
+        return super().__eq__(other)
+
+    def __hash__(self) -> int:
+        norm = "success" if self.value in ("success", "extracted") else ("unsupported" if self.value in ("unsupported", "skipped") else self.value)
+        return hash(norm)
+
+    @classmethod
+    def resolve(cls, value: Any) -> ExtractionStatus:
+        """Resolves extraction status safely, normalizing aliases and unrecognized strings."""
+        if isinstance(value, cls):
+            return value
+        if value is None:
+            return cls.SUCCESS
+        v_str = str(value).lower().strip()
+        if v_str in ("success", "extracted"):
+            return cls.SUCCESS
+        if v_str in ("partial", "partially_extracted"):
+            return cls.PARTIAL
+        if v_str in ("failed", "failure", "error"):
+            return cls.FAILED
+        if v_str in ("empty", "no_content"):
+            return cls.EMPTY
+        if v_str in ("unsupported", "skipped", "ignored"):
+            return cls.UNSUPPORTED
+        if v_str in ("needs_ocr", "ocr_required"):
+            return cls.NEEDS_OCR
+        try:
+            return cls(v_str)
+        except ValueError:
+            return cls.FAILED
 
 
 class StructuralRelationType(str, Enum):
@@ -549,7 +599,7 @@ class EvidenceUnit(BaseModel):
             is_canonical=resolved_canonical,
             is_current=is_current,
             is_context_only=resolved_context_only,
-            extraction_status=extraction_status if isinstance(extraction_status, ExtractionStatus) else ExtractionStatus(str(extraction_status).lower()),
+            extraction_status=extraction_status if isinstance(extraction_status, ExtractionStatus) else ExtractionStatus.resolve(extraction_status),
             extraction_confidence=extraction_confidence,
             warnings=warnings or [],
             parser_version=parser_version,
@@ -565,11 +615,224 @@ class EvidenceUnit(BaseModel):
 ParsedEvidenceUnit = EvidenceUnit
 
 
+class ExtractionQualityReport(BaseModel):
+    """
+    Standardized observability report for Layer 4 extraction quality, completeness,
+    validation diagnostics, and source fidelity across all parsers and source types.
+    """
+    model_config = ConfigDict(extra="ignore")
+
+    status: ExtractionStatus = ExtractionStatus.SUCCESS
+    completeness_score: Union[float, str] = Field(
+        default="NOT_MEASURED",
+        description="Coverage ratio (0.0 to 1.0) when a reliable denominator exists, or 'NOT_MEASURED'"
+    )
+
+    # Document & file metrics
+    expected_pages: Optional[int] = None
+    processed_pages: Optional[int] = None
+    expected_blocks: Optional[int] = None
+    processed_blocks: Optional[int] = None
+
+    # Table metrics
+    detected_tables: Optional[int] = None
+    extracted_tables: Optional[int] = None
+    expected_table_rows: Optional[int] = None
+    extracted_table_rows: Optional[int] = None
+    expected_table_cells: Optional[int] = None
+    extracted_table_cells: Optional[int] = None
+
+    # Structured data metrics
+    expected_csv_rows: Optional[int] = None
+    processed_csv_rows: Optional[int] = None
+    expected_jsonl_records: Optional[int] = None
+    processed_jsonl_records: Optional[int] = None
+    expected_records: Optional[int] = None
+    processed_records: Optional[int] = None
+    expected_fields: Optional[int] = None
+    processed_fields: Optional[int] = None
+
+    # OCR metrics
+    ocr_pages: Optional[int] = None
+    ocr_confidence: Optional[float] = None
+
+    # Evidence unit & locator validation counts
+    total_units: int = 0
+    valid_evidence_units: int = 0
+    valid_source_locators: int = 0
+
+    # Truncation and drop details
+    is_truncated: bool = False
+    truncation_reason: Optional[str] = None
+    dropped_records_count: int = 0
+
+    # Diagnostics
+    warnings: List[str] = Field(default_factory=list)
+    errors: List[str] = Field(default_factory=list)
+    unsupported_elements: List[str] = Field(default_factory=list)
+    unprocessed_elements: List[str] = Field(default_factory=list)
+
+    # Parser provenance & schema versions
+    parser_name: str = ""
+    parser_version: str = "1.0.0"
+    normalizer_version: str = "1.0.0"
+    evidence_schema_version: str = "1.0.0"
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
+
+class EvidenceValidationResult(BaseModel):
+    """Structured result of Layer 4 evidence validation rules."""
+    model_config = ConfigDict(extra="ignore")
+
+    is_valid: bool = True
+    errors: List[str] = Field(default_factory=list)
+    warnings: List[str] = Field(default_factory=list)
+    duplicate_ids: List[str] = Field(default_factory=list)
+    missing_locators: List[str] = Field(default_factory=list)
+    broken_references: List[str] = Field(default_factory=list)
+    unprovenanced_units: List[str] = Field(default_factory=list)
+    invalid_status_units: List[str] = Field(default_factory=list)
+    mismatched_tables: List[str] = Field(default_factory=list)
+    missing_source_fields: List[str] = Field(default_factory=list)
+
+
+class EvidenceExtractionValidator:
+    """Validates structural invariants, source locators, relationships, and provenance for Layer 4 evidence."""
+
+    @classmethod
+    def validate(cls, units: List[EvidenceUnit]) -> EvidenceValidationResult:
+        result = EvidenceValidationResult()
+        seen_instance_ids: set[str] = set()
+        all_unit_ids: set[str] = set()
+
+        for u in units:
+            inst_id = u.evidence_instance_id or u.unit_id
+            if inst_id:
+                all_unit_ids.add(inst_id)
+            if u.evidence_id:
+                all_unit_ids.add(u.evidence_id)
+
+        for idx, u in enumerate(units):
+            uid = u.evidence_instance_id or u.unit_id or f"unit_{idx}"
+
+            # 1. Duplicate or missing evidence IDs
+            if not u.evidence_id:
+                result.errors.append(f"Unit at index {idx} has missing or empty evidence_id")
+                result.is_valid = False
+            if not u.evidence_instance_id:
+                result.errors.append(f"Unit at index {idx} has missing or empty evidence_instance_id")
+                result.is_valid = False
+            elif u.evidence_instance_id in seen_instance_ids:
+                result.duplicate_ids.append(u.evidence_instance_id)
+                result.errors.append(f"Duplicate evidence_instance_id detected: '{u.evidence_instance_id}'")
+                result.is_valid = False
+            if u.evidence_instance_id:
+                seen_instance_ids.add(u.evidence_instance_id)
+
+            # 2. Invalid source locators
+            loc = u.locator
+            has_valid_locator = False
+            if loc:
+                loc_dict = loc.model_dump() if hasattr(loc, "model_dump") else (loc if isinstance(loc, dict) else {})
+                coord_fields = [
+                    "page", "line", "line_start", "line_end", "start_char", "end_char", "start_offset", "end_offset",
+                    "table_id", "row_index", "column_index", "json_path", "sheet_name", "record_pk",
+                    "primary_key", "record_id", "database_table", "table", "container", "database",
+                    "field_path", "field_name", "channel", "thread_id", "message_id", "commit_sha",
+                    "file_path", "paragraph_index", "property_key", "section_path"
+                ]
+                def _has_coord_value(v: Any) -> bool:
+                    if v is None:
+                        return False
+                    if isinstance(v, (int, float)):
+                        return True
+                    if isinstance(v, str):
+                        return bool(v.strip())
+                    if isinstance(v, (list, dict)):
+                        return bool(v)
+                    return True
+
+                has_valid_locator = any(_has_coord_value(loc_dict.get(k)) for k in coord_fields)
+                for num_key in ("page", "line", "line_start", "line_end", "start_char", "end_char", "start_offset", "end_offset", "row_index", "column_index"):
+                    val = loc_dict.get(num_key)
+                    if isinstance(val, (int, float)) and val < 0:
+                        result.errors.append(f"Unit '{uid}' has negative coordinate {num_key}={val}")
+                        result.is_valid = False
+
+            if not has_valid_locator:
+                result.missing_locators.append(uid)
+                result.errors.append(f"Unit '{uid}' has missing or empty source locator coordinates")
+                result.is_valid = False
+
+            # 3. Broken parent-child relationships
+            if u.parent_id and u.parent_id not in all_unit_ids:
+                result.broken_references.append(f"{uid}->parent:{u.parent_id}")
+                result.errors.append(f"Unit '{uid}' has parent_id '{u.parent_id}' that does not exist in evidence units")
+                result.is_valid = False
+
+            for rel in getattr(u, "relationships", []):
+                target = rel.target_unit_id
+                if rel.relation_type == StructuralRelationType.PARENT_CHILD and target not in all_unit_ids:
+                    result.broken_references.append(f"{uid}->child:{target}")
+                    result.errors.append(f"Unit '{uid}' has parent_child relationship pointing to nonexistent target '{target}'")
+                    result.is_valid = False
+
+            # 4. Missing table headers & 5. Mismatched table row widths
+            if u.block_type in ("table", "table_row"):
+                sd = u.structured_data or {}
+                headers = sd.get("table_headers") or sd.get("headers") or []
+                if u.block_type == "table" and (not headers or all(not str(h).strip() for h in headers)):
+                    result.mismatched_tables.append(uid)
+                    result.warnings.append(f"Table unit '{uid}' is missing header definitions")
+
+                if u.block_type == "table_row":
+                    cols = sd.get("columns") or {}
+                    if headers and len(cols) != len(headers):
+                        result.mismatched_tables.append(uid)
+                        result.warnings.append(
+                            f"Table row unit '{uid}' cell count ({len(cols)}) does not match header count ({len(headers)})"
+                        )
+
+            # 6. Missing source fields
+            if not u.asset_id:
+                result.missing_source_fields.append(f"{uid}:asset_id")
+                result.errors.append(f"Unit '{uid}' is missing required asset_id")
+                result.is_valid = False
+
+            # 7. Normalized content without raw provenance
+            norm_content = (u.normalized_content or u.content_text or "").strip()
+            raw_content = (u.raw_content or "").strip()
+            if norm_content and not raw_content and not u.structured_data:
+                result.unprovenanced_units.append(uid)
+                result.warnings.append(f"Unit '{uid}' has normalized content without raw content provenance")
+
+            # 8. Evidence units with invalid extraction status
+            if not isinstance(u.extraction_status, ExtractionStatus):
+                try:
+                    ExtractionStatus(str(u.extraction_status).lower())
+                except ValueError:
+                    result.invalid_status_units.append(uid)
+                    result.errors.append(f"Unit '{uid}' has invalid extraction_status '{u.extraction_status}'")
+                    result.is_valid = False
+
+            # 9. Nonexistent unit references
+            for rel_id in (u.related_unit_ids or []):
+                if rel_id not in all_unit_ids:
+                    result.broken_references.append(f"{uid}->related:{rel_id}")
+                    result.warnings.append(f"Unit '{uid}' references nonexistent related unit '{rel_id}'")
+
+        if result.errors:
+            result.is_valid = False
+        return result
+
+
 class ParsedEvidenceResult(BaseModel):
     """
     Standard evidence bundle produced by any Layer 4 specialized parser for an envelope.
-    Tracks parsing completeness and quality metrics.
+    Tracks parsing completeness, extraction status, and quality metrics.
     """
+    model_config = ConfigDict(extra="ignore")
+
     envelope_id: uuid.UUID
     asset_id: str
     source_family: SourceFamily
@@ -580,7 +843,37 @@ class ParsedEvidenceResult(BaseModel):
         description="Ratio of asset content successfully parsed without error, or 'NOT_MEASURED' if no denominator exists",
     )
     quality_metrics: dict[str, Any] = Field(default_factory=dict, description="Parsing fidelity metrics (e.g. tables parsed, char count)")
+    quality_report: Optional[ExtractionQualityReport] = None
+    extraction_status: ExtractionStatus = ExtractionStatus.SUCCESS
     parsed_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+    @model_validator(mode="after")
+    def sync_report_and_status(self) -> ParsedEvidenceResult:
+        if self.quality_report is not None:
+            self.extraction_status = self.quality_report.status
+            if self.quality_report.completeness_score is not None:
+                self.completeness_score = self.quality_report.completeness_score
+        else:
+            val_res = EvidenceExtractionValidator.validate(self.units)
+            status = self.extraction_status
+            if len(self.units) == 0:
+                status = ExtractionStatus.EMPTY if self.completeness_score in ("NOT_MEASURED", 0.0, None) else ExtractionStatus.FAILED
+            elif not val_res.is_valid:
+                status = ExtractionStatus.PARTIAL
+
+            valid_locators = sum(1 for u in self.units if u.locator and any(u.locator.model_dump().values()))
+            self.quality_report = ExtractionQualityReport(
+                status=status,
+                completeness_score=self.completeness_score if self.completeness_score is not None else "NOT_MEASURED",
+                total_units=len(self.units),
+                valid_evidence_units=len(self.units) - len(val_res.duplicate_ids),
+                valid_source_locators=valid_locators,
+                warnings=list(val_res.warnings),
+                errors=list(val_res.errors),
+                parser_name=self.parser_name,
+            )
+            self.extraction_status = status
+        return self
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -590,7 +883,9 @@ class ParsedEvidenceResult(BaseModel):
             "parser_name": self.parser_name,
             "total_units": len(self.units),
             "completeness_score": self.completeness_score,
+            "extraction_status": self.extraction_status.value if hasattr(self.extraction_status, "value") else str(self.extraction_status),
             "quality_metrics": self.quality_metrics,
+            "quality_report": self.quality_report.model_dump() if self.quality_report else None,
             "parsed_at": self.parsed_at.isoformat(),
             "units": [u.model_dump() for u in self.units],
         }

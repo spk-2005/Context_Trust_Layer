@@ -14,7 +14,10 @@ from app.db.enums import SourceFamily
 from app.ingestion.envelope import CanonicalSourceEnvelope
 from app.ingestion.parsers.evidence_model import (
     ContentRole,
+    EvidenceExtractionValidator,
     EvidenceRelationship,
+    ExtractionQualityReport,
+    ExtractionStatus,
     ParsedEvidenceResult,
     ParsedEvidenceUnit,
     StructuralRelationType,
@@ -131,11 +134,42 @@ class ConversationParser:
             )
             units.append(unit)
 
+        expected_count = len(messages)
+        warnings: list[str] = []
+
+        if len(units) == 0:
+            status = ExtractionStatus.EMPTY
+            completeness: Any = "NOT_MEASURED"
+            warnings.append("No messages found in conversation payload.")
+        else:
+            val_res = EvidenceExtractionValidator.validate(units)
+            warnings.extend(val_res.warnings)
+            completeness = (len(units) / expected_count) if expected_count > 0 else 1.0
+            if not val_res.is_valid or completeness < 1.0:
+                status = ExtractionStatus.PARTIAL
+                warnings.extend(val_res.errors)
+            else:
+                status = ExtractionStatus.SUCCESS
+
+        quality_report = ExtractionQualityReport(
+            status=status,
+            completeness_score=completeness,
+            expected_records=expected_count,
+            processed_records=len(units),
+            total_units=len(units),
+            valid_evidence_units=len(units),
+            valid_source_locators=sum(1 for u in units if u.locator and u.locator.message_id is not None),
+            warnings=warnings,
+            parser_name="ConversationParser",
+        )
+
         quality_metrics = {
             "total_messages": len(units),
+            "expected_messages": expected_count,
             "speakers_detected": len(set(u.structured_data.get("speaker") for u in units)),
             "channel": channel,
             "thread_id": thread_id,
+            "warnings": warnings,
         }
 
         return ParsedEvidenceResult(
@@ -144,6 +178,8 @@ class ConversationParser:
             source_family=SourceFamily.CONVERSATION,
             parser_name="ConversationParser",
             units=units,
-            completeness_score=1.0,
+            completeness_score=completeness,
             quality_metrics=quality_metrics,
+            quality_report=quality_report,
+            extraction_status=status,
         )

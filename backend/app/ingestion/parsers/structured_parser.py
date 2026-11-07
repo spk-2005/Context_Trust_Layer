@@ -19,8 +19,11 @@ from app.db.enums import SourceFamily
 from app.ingestion.envelope import CanonicalSourceEnvelope
 from app.ingestion.parsers.evidence_model import (
     ContentRole,
+    EvidenceExtractionValidator,
     EvidenceRelationship,
     EvidenceUnit,
+    EvidenceValidationResult,
+    ExtractionQualityReport,
     ExtractionStatus,
     ParsedEvidenceResult,
     ParsedEvidenceUnit,
@@ -255,7 +258,7 @@ class StructuredDataParser:
                     # JSON scalar (int, float, bool, string, null)
                     units = cls._parse_scalar(envelope, parsed_json, db_name, container_name)
                     expected_count = 1
-                    completeness_score = 1.0
+                    completeness_score = "NOT_MEASURED"
             except json.JSONDecodeError:
                 # Fallback to plain line records
                 lines = [l.strip() for l in clean_str.splitlines() if l.strip()]
@@ -284,15 +287,49 @@ class StructuredDataParser:
         else:
             units = cls._parse_scalar(envelope, payload, db_name, container_name)
             expected_count = 1
-            completeness_score = 1.0
+            completeness_score = "NOT_MEASURED"
 
-        # Compute completeness status
-        if completeness_score == 1.0:
-            comp_status = "COMPLETED"
-        elif isinstance(completeness_score, float):
-            comp_status = "PARTIAL"
+        # Truncation and dropped records detection
+        is_truncated = any("truncated" in w.lower() for w in warnings)
+        truncation_reason = next((w for w in warnings if "truncated" in w.lower()), None)
+        dropped_count = (expected_count - len(units)) if (expected_count and expected_count > len(units) and is_truncated) else 0
+
+        # Run extraction validation
+        val_res = EvidenceExtractionValidator.validate(units)
+        warnings.extend(val_res.warnings)
+
+        # Compute status
+        if len(units) == 0:
+            status = ExtractionStatus.EMPTY
+            completeness_score = "NOT_MEASURED"
+        elif is_truncated or (isinstance(completeness_score, float) and completeness_score < 1.0) or not val_res.is_valid:
+            status = ExtractionStatus.PARTIAL
+        elif warnings:
+            status = ExtractionStatus.PARTIAL
         else:
-            comp_status = "NOT_MEASURED"
+            status = ExtractionStatus.SUCCESS
+
+        quality_report = ExtractionQualityReport(
+            status=status,
+            completeness_score=completeness_score,
+            expected_csv_rows=expected_count if fmt in ("csv", "tsv") else None,
+            processed_csv_rows=len(units) if fmt in ("csv", "tsv") else None,
+            expected_jsonl_records=expected_count if fmt in ("jsonl", "ndjson") else None,
+            processed_jsonl_records=len(units) if fmt in ("jsonl", "ndjson") else None,
+            expected_records=expected_count if fmt in ("json", "database", "postgres", "mysql", "mongodb") else None,
+            processed_records=len(units) if fmt in ("json", "database", "postgres", "mysql", "mongodb") else None,
+            expected_fields=sum(len(u.structured_data.get("flattened_fields", {})) for u in units),
+            processed_fields=sum(len(u.structured_data.get("flattened_fields", {})) for u in units),
+            total_units=len(units),
+            valid_evidence_units=len(units) - len(val_res.duplicate_ids),
+            valid_source_locators=sum(1 for u in units if u.locator and any(u.locator.model_dump().values())),
+            is_truncated=is_truncated,
+            truncation_reason=truncation_reason,
+            dropped_records_count=dropped_count,
+            warnings=warnings,
+            errors=list(val_res.errors),
+            parser_name="StructuredDataParser",
+        )
 
         quality_metrics = {
             "parsed_units": len(units),
@@ -301,9 +338,13 @@ class StructuredDataParser:
             "native_format": fmt,
             "expected_count": expected_count,
             "processed_count": len(units),
-            "completeness_status": comp_status,
+            "completeness_status": "COMPLETED" if status == ExtractionStatus.SUCCESS else ("PARTIAL" if status == ExtractionStatus.PARTIAL else status.value),
+            "is_truncated": is_truncated,
+            "truncation_reason": truncation_reason,
+            "dropped_records_count": dropped_count,
             "fields_indexed": sum(len(u.structured_data.get("flattened_fields", {})) for u in units),
             "warnings": warnings,
+            "errors": list(val_res.errors),
         }
 
         return ParsedEvidenceResult(
@@ -314,6 +355,8 @@ class StructuredDataParser:
             units=units,
             completeness_score=completeness_score,
             quality_metrics=quality_metrics,
+            quality_report=quality_report,
+            extraction_status=status,
         )
 
     @classmethod
@@ -544,7 +587,19 @@ class StructuredDataParser:
         if total_lines == 0:
             return [], 1.0, warnings, 0
 
+        max_records = None
+        if envelope.locator_metadata:
+            raw_max = envelope.locator_metadata.get("max_records") or envelope.locator_metadata.get("limit")
+            if raw_max is not None:
+                try:
+                    max_records = int(raw_max)
+                except (ValueError, TypeError):
+                    max_records = None
+
         for idx, line in enumerate(lines):
+            if max_records is not None and len(units) >= max_records:
+                warnings.append(f"JSONL stream truncated after {max_records} records.")
+                break
             try:
                 rec = json.loads(line)
                 if isinstance(rec, dict):

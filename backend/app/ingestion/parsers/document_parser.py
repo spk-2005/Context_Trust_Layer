@@ -12,7 +12,14 @@ from typing import Any, List
 
 from app.db.enums import SourceFamily
 from app.ingestion.envelope import CanonicalSourceEnvelope
-from app.ingestion.parsers.evidence_model import ContentRole, ParsedEvidenceResult, ParsedEvidenceUnit
+from app.ingestion.parsers.evidence_model import (
+    ContentRole,
+    EvidenceExtractionValidator,
+    ExtractionQualityReport,
+    ExtractionStatus,
+    ParsedEvidenceResult,
+    ParsedEvidenceUnit,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -448,14 +455,62 @@ class DocumentParser:
         # Post-process table units to propagate vertically merged cells
         cls._propagate_table_merged_cells(units)
 
-        completeness = 1.0 if total_lines > 0 else 1.0
+        # Completeness calculation: Use NOT_MEASURED when no reliable denominator exists
+        expected_pages = envelope.locator_metadata.get("page_count") or envelope.locator_metadata.get("total_pages")
+        expected_blocks = envelope.locator_metadata.get("expected_blocks")
+        warnings: list[str] = []
+
+        if len(units) == 0 or total_lines == 0 or not raw_text.strip():
+            completeness: Union[float, str] = "NOT_MEASURED"
+            status = ExtractionStatus.EMPTY
+            warnings.append("Document envelope contains no extractable text lines.")
+        else:
+            val_res = EvidenceExtractionValidator.validate(units)
+            warnings.extend(val_res.warnings)
+            if not val_res.is_valid:
+                status = ExtractionStatus.PARTIAL
+                warnings.extend(val_res.errors)
+            else:
+                status = ExtractionStatus.SUCCESS
+
+            if expected_pages and isinstance(expected_pages, (int, float)) and expected_pages > 0:
+                pages_found = len(set(u.locator.page for u in units if u.locator and u.locator.page is not None))
+                completeness = min(1.0, pages_found / expected_pages)
+            elif expected_blocks and isinstance(expected_blocks, (int, float)) and expected_blocks > 0:
+                completeness = min(1.0, len(units) / expected_blocks)
+            else:
+                # Do not hardcode 1.0; use NOT_MEASURED when denominator is unavailable
+                completeness = "NOT_MEASURED"
+
+        table_ids = set(u.structured_data.get("table_id") for u in units if u.block_type == "table_row")
+        table_rows_count = sum(1 for u in units if u.block_type == "table_row")
+        valid_locators = sum(1 for u in units if u.locator and u.locator.line is not None)
+
+        quality_report = ExtractionQualityReport(
+            status=status,
+            completeness_score=completeness,
+            expected_pages=expected_pages if isinstance(expected_pages, int) else None,
+            processed_pages=len(set(u.locator.page for u in units if u.locator and u.locator.page is not None)) if units else 0,
+            expected_blocks=expected_blocks if isinstance(expected_blocks, int) else None,
+            processed_blocks=len(units),
+            detected_tables=len(table_ids),
+            extracted_tables=len(table_ids),
+            extracted_table_rows=table_rows_count,
+            total_units=len(units),
+            valid_evidence_units=len(units),
+            valid_source_locators=valid_locators,
+            warnings=warnings,
+            parser_name="DocumentParser",
+        )
+
         quality_metrics = {
             "total_lines": total_lines,
             "parsed_units": len(units),
             "headings_count": sum(1 for u in units if u.block_type == "heading"),
             "clauses_count": sum(1 for u in units if u.block_type == "clause"),
-            "table_rows_count": sum(1 for u in units if u.block_type == "table_row"),
+            "table_rows_count": table_rows_count,
             "char_count": char_cursor,
+            "warnings": warnings,
         }
 
         return ParsedEvidenceResult(
@@ -466,6 +521,8 @@ class DocumentParser:
             units=units,
             completeness_score=completeness,
             quality_metrics=quality_metrics,
+            quality_report=quality_report,
+            extraction_status=status,
         )
 
     @classmethod

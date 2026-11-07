@@ -74,14 +74,18 @@ class PipelineStageCache:
         parser_version: str,
         parser_config_hash: str,
         normalizer_version: str,
+        ocr_version: str = "v1.0",
+        evidence_schema_version: str = "v1.0",
     ) -> str:
-        """Computes deterministic 4-factor cryptographic cache key for document processing.
+        """Computes deterministic cryptographic cache key for document processing.
 
         Incorporates:
         1. Source file SHA-256
         2. Parser implementation version
         3. Parser configuration hash (OCR, table, layout flags)
         4. Normalizer semantic rules version
+        5. OCR engine version
+        6. Evidence schema version
         """
         hasher = hashlib.sha256()
         hasher.update(stage_name.encode("utf-8"))
@@ -89,7 +93,24 @@ class PipelineStageCache:
         hasher.update(parser_version.encode("utf-8"))
         hasher.update(parser_config_hash.encode("utf-8"))
         hasher.update(normalizer_version.encode("utf-8"))
+        hasher.update(ocr_version.encode("utf-8"))
+        hasher.update(evidence_schema_version.encode("utf-8"))
         return hasher.hexdigest()
+
+    def invalidate(self, stage_name: str, cache_key: Optional[str] = None) -> int:
+        """Invalidates a specific cached key or an entire stage."""
+        if cache_key:
+            target_file = self._get_stage_dir(stage_name) / f"{cache_key}.json"
+            if target_file.exists():
+                try:
+                    target_file.unlink()
+                    logger.info("Invalidated cache entry for %s:%s", stage_name, cache_key[:12])
+                    return 1
+                except Exception as e:
+                    logger.warning("Failed to invalidate cache entry %s:%s: %s", stage_name, cache_key[:12], e)
+                    return 0
+            return 0
+        return self.clear(stage_name)
 
     def _get_stage_dir(self, stage_name: str) -> Path:
         stage_dir = self.cache_dir / stage_name

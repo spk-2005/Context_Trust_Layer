@@ -11,6 +11,8 @@ from html.parser import HTMLParser
 from typing import Any, Dict, List, Optional, Tuple
 from pydantic import BaseModel, Field
 
+from app.ingestion.parsers.evidence_model import ExtractionQualityReport, ExtractionStatus
+
 logger = logging.getLogger(__name__)
 
 # Patterns for identifiers, versions, dates, amounts, etc. that should NOT be split or mutated by OCR repair
@@ -202,6 +204,8 @@ class ParsedDocument(BaseModel):
     blocks: List[ContentBlock] = Field(default_factory=list)
     tables: List[Dict[str, Any]] = Field(default_factory=list)
     extraction_quality: float = 1.0  # 0.0 to 1.0
+    extraction_status: ExtractionStatus = ExtractionStatus.SUCCESS
+    quality_report: Optional[ExtractionQualityReport] = None
     is_scanned: bool = False
     warnings: List[str] = Field(default_factory=list)
     metadata: Dict[str, Any] = Field(default_factory=dict)
@@ -288,7 +292,7 @@ class UniversalFileParser:
         lower_name = name.lower()
         content_hash = hashlib.sha256(raw_bytes).hexdigest()
 
-        # Content-Addressed Pipeline Cache Lookup (4-Factor Invariant Key)
+        # Content-Addressed Pipeline Cache Lookup (Cryptographic Invariant Key)
         cache_key = None
         try:
             from app.caching.pipeline_cache import default_pipeline_cache
@@ -299,14 +303,43 @@ class UniversalFileParser:
                 parser_version="v3.3",
                 parser_config_hash=config_hash,
                 normalizer_version="v1.3",
+                ocr_version="v1.2",
+                evidence_schema_version="v1.0",
             )
             cached_doc = default_pipeline_cache.get_model("universal_parser", cache_key, ParsedDocument)
             if cached_doc is not None:
                 return cached_doc
-        except Exception:
-            pass
+        except Exception as cache_err:
+            logger.warning("Pipeline cache lookup error for %s: %s", filename, cache_err)
 
         warnings: List[str] = []
+
+        # Empty payload handling
+        if len(raw_bytes) == 0:
+            full_text = f"# {title}\n\n[Empty file '{filename}' contains no content]"
+            q_report = ExtractionQualityReport(
+                status=ExtractionStatus.EMPTY,
+                completeness_score="NOT_MEASURED",
+                warnings=["File is empty (0 bytes)."],
+                parser_name="UniversalFileParser",
+            )
+            return ParsedDocument(
+                filename=filename,
+                title=title,
+                file_type="plain_text",
+                content_hash=content_hash,
+                full_text=full_text,
+                raw_text="",
+                pages=[],
+                blocks=[],
+                tables=[],
+                extraction_quality=0.0,
+                extraction_status=ExtractionStatus.EMPTY,
+                quality_report=q_report,
+                is_scanned=False,
+                warnings=["File is empty (0 bytes)."],
+                metadata={"file_size": 0},
+            )
 
         # Check for Legacy Compound File Binary Format (CFBF/OLE2) e.g. legacy .doc, .xls, .ppt
         is_cfbf = raw_bytes.startswith(b"\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1")
@@ -320,6 +353,12 @@ class UniversalFileParser:
                 text=full_text,
                 raw_text=full_text,
             )
+            q_report = ExtractionQualityReport(
+                status=ExtractionStatus.UNSUPPORTED,
+                completeness_score=0.0,
+                warnings=warnings,
+                parser_name="UniversalFileParser",
+            )
             return ParsedDocument(
                 filename=filename,
                 title=title,
@@ -331,6 +370,8 @@ class UniversalFileParser:
                 blocks=[blk],
                 tables=[],
                 extraction_quality=0.0,
+                extraction_status=ExtractionStatus.UNSUPPORTED,
+                quality_report=q_report,
                 is_scanned=False,
                 warnings=warnings,
                 metadata={"file_size": len(raw_bytes), "legacy_binary": True},
@@ -446,17 +487,56 @@ class UniversalFileParser:
         except Exception as e:
             logger.warning("UniversalFileParser error for %s: %s", filename, e)
             warnings.append(f"Parsing error: {str(e)}")
-            full_text = cls._parse_plain_text(raw_bytes, title, filename)
-            blocks.append(ContentBlock(
-                id=f"blk_fallback_{uuid.uuid4().hex[:8]}",
-                block_type=ContentBlockType.PARAGRAPH,
-                text=full_text,
-                raw_text=full_text,
-            ))
+            # Do NOT silently fall back from a failed binary parser to plain-text parsing
+            if file_type in ("pdf", "docx", "xlsx", "pptx"):
+                extraction_quality = 0.0
+                full_text = f"# {title}\n\n[Parsing error for binary {file_type} file '{filename}': {str(e)}]"
+                blocks.append(ContentBlock(
+                    id=f"blk_error_{uuid.uuid4().hex[:8]}",
+                    block_type=ContentBlockType.PARAGRAPH,
+                    text=full_text,
+                    raw_text=full_text,
+                ))
+            else:
+                full_text = cls._parse_plain_text(raw_bytes, title, filename)
+                blocks.append(ContentBlock(
+                    id=f"blk_fallback_{uuid.uuid4().hex[:8]}",
+                    block_type=ContentBlockType.PARAGRAPH,
+                    text=full_text,
+                    raw_text=full_text,
+                ))
 
         full_text = full_text.replace("\x00", "").strip()
         if not full_text:
             full_text = f"# {title}\n\n[No extractable content found in {filename}]"
+
+        # Resolve explicit ExtractionStatus
+        if extraction_quality == 0.0 or not blocks or (file_type == "pdf" and any("no extractable text" in w.lower() for w in warnings)):
+            if is_scanned or any("needs_ocr" in w.lower() or "scanned" in w.lower() for w in warnings):
+                doc_status = ExtractionStatus.NEEDS_OCR
+            elif not warnings:
+                doc_status = ExtractionStatus.EMPTY
+            else:
+                doc_status = ExtractionStatus.FAILED
+        elif warnings or extraction_quality < 1.0:
+            doc_status = ExtractionStatus.PARTIAL
+        else:
+            doc_status = ExtractionStatus.SUCCESS
+
+        quality_report = ExtractionQualityReport(
+            status=doc_status,
+            completeness_score=extraction_quality,
+            expected_pages=len(pages) if pages else None,
+            processed_pages=len(pages) if pages else None,
+            expected_blocks=len(blocks),
+            processed_blocks=len(blocks),
+            detected_tables=len(tables),
+            extracted_tables=len(tables),
+            valid_evidence_units=len(blocks),
+            valid_source_locators=sum(1 for b in blocks if b.page_number is not None),
+            warnings=list(warnings),
+            parser_name="UniversalFileParser",
+        )
 
         result_doc = ParsedDocument(
             filename=filename,
@@ -469,16 +549,18 @@ class UniversalFileParser:
             blocks=blocks,
             tables=tables,
             extraction_quality=extraction_quality,
+            extraction_status=doc_status,
+            quality_report=quality_report,
             is_scanned=is_scanned,
             warnings=warnings,
             metadata={"file_size": len(raw_bytes), "block_count": len(blocks), "page_count": len(pages)},
         )
-        if cache_key:
+        if cache_key and doc_status not in (ExtractionStatus.FAILED, ExtractionStatus.EMPTY):
             try:
                 from app.caching.pipeline_cache import default_pipeline_cache
                 default_pipeline_cache.set("universal_parser", cache_key, result_doc, metadata={"filename": filename})
-            except Exception:
-                pass
+            except Exception as cache_store_err:
+                logger.warning("Pipeline cache store error for %s: %s", filename, cache_store_err)
         return result_doc
 
     @classmethod
@@ -813,9 +895,8 @@ class UniversalFileParser:
             return full_text, pages, blocks, tables, warnings, is_scanned_overall, extraction_quality
 
         except Exception as e:
-            warnings.append(f"PDF extraction warning: {str(e)}")
-            plain = cls._parse_plain_text(raw_bytes, title, filename)
-            return plain, [], [], [], warnings, False, 0.0
+            warnings.append(f"PDF extraction error: {str(e)}")
+            return f"# {title}\n\n[Corrupt PDF: {str(e)}]", [], [], [], warnings, False, 0.0
 
     @classmethod
     def _parse_docx_structured(

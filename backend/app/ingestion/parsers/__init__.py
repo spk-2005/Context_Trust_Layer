@@ -5,8 +5,11 @@ Exports universal evidence models, typed locators, and specialized parsers.
 
 from app.ingestion.parsers.evidence_model import (
     ContentRole,
+    EvidenceExtractionValidator,
     EvidenceRelationship,
     EvidenceUnit,
+    EvidenceValidationResult,
+    ExtractionQualityReport,
     ExtractionStatus,
     ParsedEvidenceResult,
     ParsedEvidenceUnit,
@@ -25,6 +28,9 @@ __all__ = [
     "EvidenceUnit",
     "ParsedEvidenceUnit",
     "ParsedEvidenceResult",
+    "ExtractionQualityReport",
+    "EvidenceExtractionValidator",
+    "EvidenceValidationResult",
     "SourceLocator",
     "ContentRole",
     "ExtractionStatus",
