@@ -58,13 +58,36 @@ class TrustService:
             max([float(c.confidence) for c in conflicts]) if has_conflicts else 0.0
         )
 
+        # Phase 7: Extract evidence provenance and validation signals
+        has_ev = len(claim.evidence) > 0
+        has_valid_loc = True
+        if has_ev:
+            first_ev = claim.evidence[0]
+            # Valid if it has page, section, or locator offsets
+            has_valid_loc = bool(
+                first_ev.page_number is not None
+                or first_ev.section
+                or (first_ev.start_offset is not None and first_ev.end_offset is not None)
+                or getattr(first_ev, "locator_data", None)
+            )
+
+        ext_status = getattr(claim, "extraction_status", None)
+        val_status = getattr(claim, "validation_status", None)
+        missing_conds = getattr(claim, "has_missing_conditions", False)
+        if not missing_conds and hasattr(claim, "conditions_data") and isinstance(claim.conditions_data, dict):
+            missing_conds = bool(claim.conditions_data.get("missing_conditions"))
+
         breakdown = self.calculator.calculate(
             source_authority_level=authority_level,
             doc_created_at=version.created_at if version else None,
-            has_evidence=len(claim.evidence) > 0,
+            has_evidence=has_ev,
             is_current_version=version.is_current if version else True,
             has_conflicts=has_conflicts,
             conflict_confidence=max_conflict_confidence,
+            extraction_status=ext_status,
+            has_valid_locator=has_valid_loc,
+            has_missing_conditions=missing_conds,
+            validation_status=val_status,
         )
 
         trust_score = ClaimTrustScore(

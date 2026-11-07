@@ -80,12 +80,39 @@ class CompatibilityGate:
         return False
 
     @classmethod
-    def conditions_mutually_exclusive(cls, cond_a: Dict[str, str], cond_b: Dict[str, str]) -> bool:
+    def conditions_mutually_exclusive(cls, cond_a: Dict[str, Any], cond_b: Dict[str, Any]) -> bool:
         """Determines if two condition dictionaries represent mutually exclusive activation sets."""
+        if not cond_a or not cond_b:
+            return False
+
         # 1. Employment Status Dimension (Probationary vs Confirmed)
         status_a = cond_a.get("employment_status")
         status_b = cond_b.get("employment_status")
         if status_a and status_b and status_a != status_b:
+            return True
+
+        # 2. Membership / Tier Dimension (Standard vs Gold)
+        tier_a = cond_a.get("tier") or cond_a.get("membership_tier")
+        tier_b = cond_b.get("tier") or cond_b.get("membership_tier")
+        if tier_a and tier_b and tier_a != tier_b:
+            return True
+
+        # 3. Product or Sub-category Scope
+        prod_a = cond_a.get("product_scope") or cond_a.get("product_type")
+        prod_b = cond_b.get("product_scope") or cond_b.get("product_type")
+        if prod_a and prod_b and prod_a != prod_b:
+            return True
+
+        # 4. Jurisdiction / Region Scope
+        reg_a = cond_a.get("region") or cond_a.get("jurisdiction")
+        reg_b = cond_b.get("region") or cond_b.get("jurisdiction")
+        if reg_a and reg_b and reg_a != reg_b:
+            return True
+
+        # 5. Return reason / triggering condition (e.g. defective vs change_of_mind)
+        reason_a = cond_a.get("return_reason") or cond_a.get("condition")
+        reason_b = cond_b.get("return_reason") or cond_b.get("condition")
+        if reason_a and reason_b and reason_a != reason_b:
             return True
 
         return False

@@ -46,20 +46,33 @@ class ClaimReviewSummaryResponse(BaseModel):
 @router.get("/queue", response_model=list[ClaimResponse])
 async def list_review_queue(
     organization_id: uuid.UUID = Query(..., description="Organization ID"),
+    issue_type: Optional[str] = Query(None, description="Filter by unresolved issue type: ambiguous_extraction, missing_conditions, conflicting_evidence, uncertain_ocr, invalid_locator"),
     limit: int = Query(50, ge=1, le=100),
     offset: int = Query(0, ge=0),
     db: AsyncSession = Depends(get_db),
 ):
     """
     Returns candidate claims queued for human triage and review
-    (status == CANDIDATE, low confidence, or unnormalized/ambiguous).
+    (status == CANDIDATE or CONFLICTED, or unresolved evidence issues).
+    Successfully validated claims (SUPPORTED, verified) are excluded.
     """
+    conditions = [
+        Claim.organization_id == organization_id,
+        Claim.status.in_([ClaimStatus.CANDIDATE, ClaimStatus.CONFLICTED]),
+    ]
+
+    if issue_type:
+        issue_norm = issue_type.lower().strip()
+        if issue_norm == "conflicting_evidence":
+            conditions.append(Claim.status == ClaimStatus.CONFLICTED)
+        elif issue_norm == "uncertain_ocr":
+            conditions.append(Claim.extraction_status == "needs_ocr")
+        elif issue_norm == "missing_conditions":
+            conditions.append(Claim.validation_status == "NEEDS_REVIEW")
+
     stmt = (
         select(Claim)
-        .where(
-            Claim.organization_id == organization_id,
-            Claim.status == ClaimStatus.CANDIDATE,
-        )
+        .where(*conditions)
         .order_by(Claim.created_at.desc())
         .offset(offset)
         .limit(limit)

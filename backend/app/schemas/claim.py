@@ -18,6 +18,9 @@ class ClaimEvidenceResponse(BaseModel):
     start_offset: int | None = None
     end_offset: int | None = None
     evidence_hash: str | None = None
+    source_version: str | None = None
+    locator_data: dict[str, Any] | None = None
+    relationship_type: str | None = None
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
@@ -77,6 +80,17 @@ class ClaimResponse(BaseModel):
     validity_records: list[ClaimValidityResponse] = []
     trust_scores: list[ClaimTrustScoreResponse] = []
 
+    # Phase 7: Explicit Validation & Provenance Fields
+    validation_status: str | None = None
+    extraction_status: str | None = None
+    conditions: list[Any] = []
+    exceptions: list[str] = []
+    warnings: list[str] = []
+    evidence_relationship: str | None = None
+    source_version: str | None = None
+    locator: dict[str, Any] | None = None
+    evidence_quotes: list[str] = []
+
     model_config = ConfigDict(from_attributes=True)
 
     @model_validator(mode="after")
@@ -105,6 +119,20 @@ class ClaimResponse(BaseModel):
         self.agent_accessible = res.agent_accessible
         self.certification_tier = res.certification_tier
         self.rejection_reasons = res.rejection_reasons
+
+        # Phase 7: Populate rich evidence and version context
+        if not self.evidence_quotes and self.evidence:
+            self.evidence_quotes = [e.text_span for e in self.evidence if e.text_span]
+        if not self.source_version and self.validity_records:
+            self.source_version = self.validity_records[0].version
+        if not self.locator and self.evidence:
+            first_ev = self.evidence[0]
+            self.locator = {
+                "page": first_ev.page_number,
+                "section": first_ev.section,
+                "start_offset": first_ev.start_offset,
+                "end_offset": first_ev.end_offset,
+            }
         return self
 
 

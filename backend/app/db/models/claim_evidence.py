@@ -1,11 +1,13 @@
 import uuid
 from datetime import datetime
 
+from typing import Any
 from sqlalchemy import (
     CheckConstraint,
     DateTime,
     ForeignKey,
     Integer,
+    JSON,
     String,
     Text,
     text,
@@ -84,6 +86,22 @@ class ClaimEvidence(Base):
 
     evidence_hash: Mapped[str | None] = mapped_column(
         String(64),
+        nullable=True,
+    )
+
+    # Phase 7: Structured Provenance, Version & Multi-Block Lineage
+    source_version: Mapped[str | None] = mapped_column(
+        String(50),
+        nullable=True,
+    )
+
+    locator_data: Mapped[Any | None] = mapped_column(
+        JSON,
+        nullable=True,
+    )
+
+    relationship_type: Mapped[str | None] = mapped_column(
+        String(50),
         nullable=True,
     )
 

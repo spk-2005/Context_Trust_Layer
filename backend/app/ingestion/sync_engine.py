@@ -177,8 +177,11 @@ class SyncEngine:
         source_id: uuid.UUID,
         use_mock_llm: bool = True,
         user_id: uuid.UUID | None = None,
+        force_reprocess: bool = False,
     ) -> SyncResult:
-        """Executes a complete delta sync cycle with SHA-256 deduplication and per-connection locking."""
+        """Executes a complete delta sync cycle with SHA-256 deduplication and per-connection locking.
+        Supports force_reprocess to re-extract when parser or schema version changes.
+        """
         start_time = time.perf_counter()
         source = await self.source_repo.get_by_id(source_id)
         if not source:
@@ -253,7 +256,7 @@ class SyncEngine:
                         existing_claims = await claim_repo.list_by_version(version.id)
                         is_changed = len(existing_claims) == 0
 
-                    if not is_changed:
+                    if not is_changed and not force_reprocess:
                         documents_skipped_count += 1
                         continue
 

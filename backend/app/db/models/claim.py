@@ -1,11 +1,13 @@
 import uuid
 from datetime import datetime
 
+from typing import Any
 from sqlalchemy import (
     DateTime,
     Enum,
     ForeignKey,
     Index,
+    JSON,
     String,
     Text,
     text,
@@ -95,6 +97,42 @@ class Claim(Base):
 
     extraction_model: Mapped[str | None] = mapped_column(
         String(100),
+        nullable=True,
+    )
+
+    # Phase 7: Rich Validation, Provenance & Structured Context
+    validation_status: Mapped[str | None] = mapped_column(
+        String(50),
+        nullable=True,
+    )
+
+    extraction_status: Mapped[str | None] = mapped_column(
+        String(50),
+        nullable=True,
+    )
+
+    conditions_data: Mapped[Any | None] = mapped_column(
+        JSON,
+        nullable=True,
+    )
+
+    exceptions_data: Mapped[Any | None] = mapped_column(
+        JSON,
+        nullable=True,
+    )
+
+    source_version: Mapped[str | None] = mapped_column(
+        String(50),
+        nullable=True,
+    )
+
+    evidence_relationships: Mapped[Any | None] = mapped_column(
+        JSON,
+        nullable=True,
+    )
+
+    locator_data: Mapped[Any | None] = mapped_column(
+        JSON,
         nullable=True,
     )
 

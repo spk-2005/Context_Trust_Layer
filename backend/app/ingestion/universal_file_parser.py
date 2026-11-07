@@ -270,6 +270,9 @@ class _HTMLToTextExtractor(HTMLParser):
 
 
 class UniversalFileParser:
+    PARSER_VERSION: str = "2.0.0"
+    SCHEMA_VERSION: str = "2.0.0"
+
     @classmethod
     def _get_ocr_engine(cls):
         return get_ocr_engine()

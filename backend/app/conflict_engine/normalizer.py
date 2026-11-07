@@ -150,6 +150,32 @@ class ClaimNormalizer:
         if "prior written approval" in combined_text or "manager approval" in combined_text:
             cond_dict["approval_required"] = "manager_written"
 
+        # 4. Product Scope Dimension
+        if "video course" in combined_text or "course content" in combined_text:
+            cond_dict["product_type"] = "video_course"
+        elif "software license" in combined_text:
+            cond_dict["product_type"] = "software_license"
+        elif "digital goods" in combined_text:
+            cond_dict["product_type"] = "digital_goods"
+
+        # 5. Membership Tier Dimension
+        if "gold member" in combined_text or "gold tier" in combined_text:
+            cond_dict["membership_tier"] = "gold"
+        elif "standard member" in combined_text or "standard tier" in combined_text:
+            cond_dict["membership_tier"] = "standard"
+
+        # 6. Condition / Return Reason Dimension
+        if "defective" in combined_text or "damaged" in combined_text:
+            cond_dict["return_reason"] = "defective"
+        elif "change of mind" in combined_text or "unwanted" in combined_text:
+            cond_dict["return_reason"] = "change_of_mind"
+
+        # 7. Region Dimension
+        if "international return" in combined_text or "non-us" in combined_text or "outside us" in combined_text:
+            cond_dict["region"] = "international"
+        elif "domestic return" in combined_text or "within us" in combined_text:
+            cond_dict["region"] = "domestic"
+
         return cond_dict
 
     @classmethod

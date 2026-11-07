@@ -156,6 +156,10 @@ class EnterpriseClaimStore:
             claim_stmt = select(Claim).where(Claim.id == claim_uuid)
             existing_claim = (await session.execute(claim_stmt)).scalar_one_or_none()
 
+            src_ver = (getattr(candidate, "source_version", None) or envelope.source_version or "v1.0")[:50]
+            val_stat = eval_record.validation_status.value if getattr(eval_record, "validation_status", None) else None
+            ext_stat = getattr(candidate, "extraction_status", "success")
+
             if existing_claim:
                 existing_claim.claim_text = candidate.claim_text
                 existing_claim.subject = (candidate.subject or "")[:255]
@@ -163,6 +167,16 @@ class EnterpriseClaimStore:
                 existing_claim.object = candidate.object
                 existing_claim.claim_type = (candidate.claim_type or "policy")[:50]
                 existing_claim.status = db_status
+                existing_claim.validation_status = val_stat
+                existing_claim.extraction_status = ext_stat
+                existing_claim.conditions_data = {"conditions": getattr(candidate, "conditions", [])}
+                existing_claim.exceptions_data = getattr(candidate, "exceptions", [])
+                existing_claim.source_version = src_ver
+                existing_claim.evidence_relationships = {
+                    "relationship_type": getattr(candidate, "evidence_relationship_type", None),
+                    "evidence_unit_ids": getattr(candidate, "evidence_unit_ids", []),
+                }
+                existing_claim.locator_data = candidate.locator
                 claim = existing_claim
             else:
                 claim = Claim(
@@ -177,29 +191,77 @@ class EnterpriseClaimStore:
                     extraction_method=candidate.extraction_strategy.value[:50],
                     extraction_model="TrulinUniversalLayer5",
                     status=db_status,
+                    validation_status=val_stat,
+                    extraction_status=ext_stat,
+                    conditions_data={"conditions": getattr(candidate, "conditions", [])},
+                    exceptions_data=getattr(candidate, "exceptions", []),
+                    source_version=src_ver,
+                    evidence_relationships={
+                        "relationship_type": getattr(candidate, "evidence_relationship_type", None),
+                        "evidence_unit_ids": getattr(candidate, "evidence_unit_ids", []),
+                    },
+                    locator_data=candidate.locator,
                 )
                 session.add(claim)
                 await session.flush()
 
-            # 3. Create Evidence Record with exact spatial and section locators
+            # 3. Create Evidence Record with exact spatial and section locators (deduplicated)
             loc = candidate.locator or {}
             raw_page = loc.get("page_number") or loc.get("page")
             sec_heading = loc.get("section_heading") or loc.get("section")
             start_off = loc.get("start_offset") or loc.get("char_start")
             end_off = loc.get("end_offset") or loc.get("char_end")
+            ev_hash = candidate.content_hash
 
-            evidence = ClaimEvidence(
-                claim_id=claim.id,
-                document_id=document.id,
-                evidence_type=(candidate.verification_plugin or "source_evidence")[:50],
-                page_number=int(raw_page) if (raw_page is not None and str(raw_page).isdigit() and int(raw_page) > 0) else None,
-                section=(str(sec_heading)[:500] if sec_heading else None),
-                start_offset=int(start_off) if (start_off is not None and isinstance(start_off, int)) else None,
-                end_offset=int(end_off) if (end_off is not None and isinstance(end_off, int)) else None,
-                text_span=candidate.evidence_text_span,
-                evidence_hash=candidate.content_hash,
+            existing_ev_stmt = select(ClaimEvidence).where(
+                ClaimEvidence.claim_id == claim.id,
+                ClaimEvidence.evidence_hash == ev_hash,
             )
-            session.add(evidence)
+            existing_ev = (await session.execute(existing_ev_stmt)).scalar_one_or_none()
+
+            if not existing_ev:
+                evidence = ClaimEvidence(
+                    claim_id=claim.id,
+                    document_id=document.id,
+                    evidence_type=(candidate.verification_plugin or "source_evidence")[:50],
+                    page_number=int(raw_page) if (raw_page is not None and str(raw_page).isdigit() and int(raw_page) > 0) else None,
+                    section=(str(sec_heading)[:500] if sec_heading else None),
+                    start_offset=int(start_off) if (start_off is not None and isinstance(start_off, int)) else None,
+                    end_offset=int(end_off) if (end_off is not None and isinstance(end_off, int)) else None,
+                    text_span=candidate.evidence_text_span,
+                    evidence_hash=ev_hash,
+                    source_version=src_ver,
+                    locator_data=candidate.locator,
+                    relationship_type=getattr(candidate, "evidence_relationship_type", None),
+                )
+                session.add(evidence)
+
+            # Persist any separate evidence occurrences (e.g. from multi-block units or duplicate occurrences)
+            for occ in getattr(candidate, "duplicate_occurrences", []) or []:
+                occ_span = occ.get("evidence_text_span") or candidate.evidence_text_span
+                occ_hash = occ.get("content_hash") or hashlib.sha256(occ_span.encode()).hexdigest()
+                occ_loc = occ.get("locator") or {}
+                raw_occ_page = occ_loc.get("page_number") or occ_loc.get("page")
+
+                dup_ev_stmt = select(ClaimEvidence).where(
+                    ClaimEvidence.claim_id == claim.id,
+                    ClaimEvidence.evidence_hash == occ_hash,
+                )
+                if not (await session.execute(dup_ev_stmt)).scalar_one_or_none():
+                    session.add(
+                        ClaimEvidence(
+                            claim_id=claim.id,
+                            document_id=document.id,
+                            evidence_type="corroborating_evidence",
+                            page_number=int(raw_occ_page) if (raw_occ_page is not None and str(raw_occ_page).isdigit() and int(raw_occ_page) > 0) else None,
+                            section=(str(occ_loc.get("section") or occ_loc.get("section_heading"))[:500] if occ_loc.get("section") or occ_loc.get("section_heading") else None),
+                            text_span=occ_span,
+                            evidence_hash=occ_hash,
+                            source_version=src_ver,
+                            locator_data=occ_loc,
+                            relationship_type="corroborating",
+                        )
+                    )
 
             # 4. Upsert ClaimTrustScore
             score_stmt = select(ClaimTrustScore).where(ClaimTrustScore.claim_id == claim.id)

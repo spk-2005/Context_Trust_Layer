@@ -111,3 +111,57 @@ async def record_hitl_escalation_if_needed(
         logger.debug(f"Database unavailable for HITL escalation save, using in-memory store: {e}")
 
     return escalation
+
+
+async def record_claim_evidence_escalation(
+    claim_id: uuid.UUID | str,
+    organization_id: uuid.UUID,
+    issue_type: str,
+    details: str,
+    reasons: list[str],
+    claim_text: str = "",
+    liability_prevented_usd: float = 5000.0,
+) -> Optional[HitlEscalation]:
+    """
+    Phase 7: Creates an HITL escalation for claims with unresolved evidence issues:
+    - ambiguous_extraction
+    - missing_source_context
+    - conflicting_evidence
+    - uncertain_ocr
+    - incomplete_conditions
+    - invalid_locator
+    Only called when unresolved issues exist; never for successfully validated claims.
+    """
+    esc_id = uuid.uuid4()
+    escalation = HitlEscalation(
+        id=esc_id,
+        organization_id=organization_id,
+        audit_id=f"claim-evidence-{str(claim_id)[:8]}",
+        actor_id=f"claim:{claim_id}",
+        actor_role="evidence_validator",
+        action_prompt=claim_text or f"Validate evidence grounding for claim {claim_id}",
+        reasons=reasons or [f"Unresolved evidence issue: {issue_type}. {details}"],
+        category=f"Evidence Grounding: {issue_type.replace('_', ' ').title()}",
+        liability_prevented_usd=liability_prevented_usd,
+        status="PENDING",
+        suggested_action=f"Inspect underlying source evidence and resolve {issue_type}: {details}",
+        created_at=datetime.now(timezone.utc),
+    )
+
+    _IN_MEMORY_ESCALATIONS[str(esc_id)] = escalation
+
+    try:
+        async with AsyncSessionLocal() as session:
+            from app.db.models.organization import Organization
+            org_res = await session.execute(
+                select(Organization.id).where(Organization.id == organization_id).limit(1)
+            )
+            if org_res.scalar_one_or_none():
+                session.add(escalation)
+                await session.commit()
+                await session.refresh(escalation)
+    except Exception as e:
+        logger.debug(f"Database unavailable for HITL escalation save, using in-memory store: {e}")
+
+    return escalation
+
